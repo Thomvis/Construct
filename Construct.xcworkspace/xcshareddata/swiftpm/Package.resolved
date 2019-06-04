@@ -1,0 +1,61 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "combine-schedulers",
+        "repositoryURL": "https://github.com/pointfreeco/combine-schedulers",
+        "state": {
+          "branch": null,
+          "revision": "ff42ec9061d864de7982162011321d3df5080c10",
+          "version": "0.1.2"
+        }
+      },
+      {
+        "package": "Down",
+        "repositoryURL": "https://github.com/iwasrobbed/Down",
+        "state": {
+          "branch": null,
+          "revision": "427aec0a0ab342246ec02369dea398597b61174a",
+          "version": "0.9.3"
+        }
+      },
+      {
+        "package": "Parma",
+        "repositoryURL": "https://github.com/dasautoooo/Parma",
+        "state": {
+          "branch": null,
+          "revision": "82f825cead4b408fa3e0059affa3e5d296d3b745",
+          "version": "0.1.1"
+        }
+      },
+      {
+        "package": "swift-case-paths",
+        "repositoryURL": "https://github.com/pointfreeco/swift-case-paths",
+        "state": {
+          "branch": null,
+          "revision": "ed1838ab4fa5d47db8aa640736dd5b7672548873",
+          "version": "0.1.2"
+        }
+      },
+      {
+        "package": "swift-composable-architecture",
+        "repositoryURL": "https://github.com/pointfreeco/swift-composable-architecture.git",
+        "state": {
+          "branch": null,
+          "revision": "47a9d368d1f314a630bf91b71acfb5054420eeb3",
+          "version": "0.8.0"
+        }
+      },
+      {
+        "package": "SnapshotTesting",
+        "repositoryURL": "https://github.com/pointfreeco/swift-snapshot-testing.git",
+        "state": {
+          "branch": null,
+          "revision": "c466812aa2e22898f27557e2e780d3aad7a27203",
+          "version": "1.8.2"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

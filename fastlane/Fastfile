@@ -1,0 +1,41 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    xcversion(version: "12.0")
+    increment_build_number(xcodeproj: "Construct.xcodeproj")
+    build_app(workspace: "SwiftUITest.xcworkspace", scheme: "Construct")
+    upload_to_testflight
+  end
+
+  lane :update_appcenter_dsyms do
+    download_dsyms(version: "latest")
+
+    lane_context[SharedValues::DSYM_PATHS].each do |dsym|
+      appcenter_upload(
+        api_token: "4046b30a07b9bd488fc773545b7ebe9dbee1c382",
+        owner_name: "thomas-visser-00ws",
+        owner_type: "user", # Default is user - set to organization for appcenter organizations
+        app_name: "Construct",
+        dsym: dsym,
+        upload_dsym_only: true
+      )
+    end
+  end
+end
