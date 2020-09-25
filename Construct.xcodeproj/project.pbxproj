@@ -80,6 +80,7 @@
 		E9517FDD2360C09D005A51FC /* CancellableBag.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9517FDC2360C09D005A51FC /* CancellableBag.swift */; };
 		E9540FFA23181524008A25EC /* PopoverHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9540FF923181524008A25EC /* PopoverHost.swift */; };
 		E95B3D7C2354F35700F93BA8 /* EntityChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */; };
+		E95DE630251E8D160085D550 /* FloatingDiceRollerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */; };
 		E95FA115231C58A30098BD83 /* DiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */; };
 		E95FD429249BF26C0023F363 /* DDBCharacterDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95173233B87E300141552 /* DDBCharacterDataSourceReader.swift */; };
 		E95FD42F249BFA280023F363 /* EncounterDetailTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */; };
@@ -270,6 +271,7 @@
 		E9540FF923181524008A25EC /* PopoverHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverHost.swift; sourceTree = "<group>"; };
 		E9562F28230D1F62008B010F /* DiceCalculatorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiceCalculatorView.swift; sourceTree = "<group>"; };
 		E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityChangeObserver.swift; sourceTree = "<group>"; };
+		E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerView.swift; sourceTree = "<group>"; };
 		E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExpressionTest.swift; sourceTree = "<group>"; };
 		E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailTest.swift; sourceTree = "<group>"; };
 		E962FF352504FC2E00919B34 /* AnimatedRollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedRollView.swift; sourceTree = "<group>"; };
@@ -403,6 +405,7 @@
 				E9562F28230D1F62008B010F /* DiceCalculatorView.swift */,
 				E91B858323E4337D009AF6D7 /* DiceRollerView.swift */,
 				E985FDC923E4A6AC00F1A62C /* DiceRollerViewState.swift */,
+				E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */,
 			);
 			path = DiceRoller;
 			sourceTree = "<group>";
@@ -1060,6 +1063,7 @@
 				E9AB031323EBF09B0091C908 /* EqualSize.swift in Sources */,
 				E9517FD9235F9547005A51FC /* SectionContainer.swift in Sources */,
 				E9F9EB43231965EF00A70D11 /* RolledDiceExpression.swift in Sources */,
+				E95DE630251E8D160085D550 /* FloatingDiceRollerView.swift in Sources */,
 				E9F56AC6235483780085A72D /* AppState.swift in Sources */,
 				E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */,
 				E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */,
@@ -1329,7 +1333,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = me.thomasvisser.construct5e;
 				PRODUCT_NAME = Construct;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -1350,7 +1354,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = me.thomasvisser.construct5e;
 				PRODUCT_NAME = Construct;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
