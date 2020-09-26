@@ -1,0 +1,29 @@
+PODS:
+  - AppCenter (3.3.3):
+    - AppCenter/Analytics (= 3.3.3)
+    - AppCenter/Crashes (= 3.3.3)
+  - AppCenter/Analytics (3.3.3):
+    - AppCenter/Core
+  - AppCenter/Core (3.3.3)
+  - AppCenter/Crashes (3.3.3):
+    - AppCenter/Core
+  - GRDB.swift (5.0.0):
+    - GRDB.swift/standard (= 5.0.0)
+  - GRDB.swift/standard (5.0.0)
+
+DEPENDENCIES:
+  - AppCenter
+  - GRDB.swift
+
+SPEC REPOS:
+  https://cdn.cocoapods.org/:
+    - AppCenter
+    - GRDB.swift
+
+SPEC CHECKSUMS:
+  AppCenter: 987f1d24493e47580057911962d11df00e46e060
+  GRDB.swift: 454936cb486adee867b818def30c8dd7fa714764
+
+PODFILE CHECKSUM: 8dc1e497408f53fba541bb0eb0ecb7feb86a9183
+
+COCOAPODS: 1.7.5

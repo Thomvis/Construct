@@ -21,7 +21,6 @@ profile
 *.moved-aside
 DerivedData
 .idea/
-Podfile.lock
 *.xcscmblueprint
 .build
 Pods

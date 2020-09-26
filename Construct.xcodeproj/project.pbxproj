@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		2D1D69374FB1D4C687809187 /* Pods_Construct.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 032EAD8614A98051862C974C /* Pods_Construct.framework */; };
 		E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */; };
-		E905E0BC246D83B800698C0A /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = E905E0BB246D83B800698C0A /* SwiftPackageProductDependency */; };
+		E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E905E0BB246D83B800698C0A /* ComposableArchitecture */; };
 		E91885CB23943BBF0094EC87 /* Sort.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91885CA23943BBF0094EC87 /* Sort.swift */; };
 		E91885CD23944A3F0094EC87 /* ddb_bass.json in Resources */ = {isa = PBXBuildFile; fileRef = E91885CC23944A3F0094EC87 /* ddb_bass.json */; };
 		E91B857F23DA355B009AF6D7 /* software_licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = E91B857E23DA3552009AF6D7 /* software_licenses.md */; };
@@ -28,7 +28,7 @@
 		E92B8FD823C904D70040E6C5 /* ActivityButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92B8FD723C904D70040E6C5 /* ActivityButton.swift */; };
 		E931CF8324FD0E54006CEE78 /* CreatureActionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8224FD0E53006CEE78 /* CreatureActionParser.swift */; };
 		E931CF8524FD17B8006CEE78 /* CreatureActionParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8424FD17B8006CEE78 /* CreatureActionParserTest.swift */; };
-		E931CF8824FE5D68006CEE78 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = E931CF8724FE5D68006CEE78 /* SwiftPackageProductDependency */; };
+		E931CF8824FE5D68006CEE78 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = E931CF8724FE5D68006CEE78 /* SnapshotTesting */; };
 		E931CF8A25003077006CEE78 /* ParserCombinatorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8925003076006CEE78 /* ParserCombinatorTest.swift */; };
 		E931CF8F2500C8A8006CEE78 /* DiceAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8E2500C8A8006CEE78 /* DiceAction.swift */; };
 		E931CF912500C8BF006CEE78 /* DiceActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF902500C8BF006CEE78 /* DiceActionView.swift */; };
@@ -47,7 +47,7 @@
 		E9323A3F23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */; };
 		E93777EA233C05D500C9F41A /* ddb_riverine.json in Resources */ = {isa = PBXBuildFile; fileRef = E93777E9233C05D500C9F41A /* ddb_riverine.json */; };
 		E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93777EC233CF81F00C9F41A /* O5eModels.swift */; };
-		E93FA1CA24EC5B7F007441BF /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = E93FA1C924EC5B7F007441BF /* SwiftPackageProductDependency */; };
+		E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */ = {isa = PBXBuildFile; productRef = E93FA1C924EC5B7F007441BF /* Parma */; };
 		E940B5D7237B45EE00A8DAF4 /* spells.json in Resources */ = {isa = PBXBuildFile; fileRef = E940B5D6237B45EE00A8DAF4 /* spells.json */; };
 		E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA902477E56300F313D7 /* CompendiumIndexState.swift */; };
 		E942E00D247E8F6600170FAC /* StatBlockCombatantResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD3235C8AC6000CCC8B /* StatBlockCombatantResources.swift */; };
@@ -195,10 +195,8 @@
 
 /* Begin PBXFileReference section */
 		032EAD8614A98051862C974C /* Pods_Construct.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Construct.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		309B1A4EA7814A37BB795932 /* Pods-SwiftUITest.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwiftUITest.release.xcconfig"; path = "Target Support Files/Pods-SwiftUITest/Pods-SwiftUITest.release.xcconfig"; sourceTree = "<group>"; };
 		3A0F57D7422E43FBF9316518 /* Pods-Construct.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Construct.debug.xcconfig"; path = "Target Support Files/Pods-Construct/Pods-Construct.debug.xcconfig"; sourceTree = "<group>"; };
 		ADA4BC6E550C523D748FD7B0 /* Pods-Construct.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Construct.release.xcconfig"; path = "Target Support Files/Pods-Construct/Pods-Construct.release.xcconfig"; sourceTree = "<group>"; };
-		DEAE5721538A83C9641E7E21 /* Pods-SwiftUITest.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SwiftUITest.debug.xcconfig"; path = "Target Support Files/Pods-SwiftUITest/Pods-SwiftUITest.debug.xcconfig"; sourceTree = "<group>"; };
 		E903F71F237F42AF004C1AC8 /* InlineCombatantTagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineCombatantTagsView.swift; sourceTree = "<group>"; };
 		E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagPopover.swift; sourceTree = "<group>"; };
 		E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryDetailViewState.swift; sourceTree = "<group>"; };
@@ -381,8 +379,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E93FA1CA24EC5B7F007441BF /* BuildFile in Frameworks */,
-				E905E0BC246D83B800698C0A /* BuildFile in Frameworks */,
+				E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */,
+				E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */,
 				2D1D69374FB1D4C687809187 /* Pods_Construct.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -391,7 +389,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E931CF8824FE5D68006CEE78 /* BuildFile in Frameworks */,
+				E931CF8824FE5D68006CEE78 /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,8 +399,6 @@
 		0F5EFA6F481BE178BDDF3ACC /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				DEAE5721538A83C9641E7E21 /* Pods-SwiftUITest.debug.xcconfig */,
-				309B1A4EA7814A37BB795932 /* Pods-SwiftUITest.release.xcconfig */,
 				3A0F57D7422E43FBF9316518 /* Pods-Construct.debug.xcconfig */,
 				ADA4BC6E550C523D748FD7B0 /* Pods-Construct.release.xcconfig */,
 			);
@@ -907,8 +903,8 @@
 			);
 			name = Construct;
 			packageProductDependencies = (
-				E905E0BB246D83B800698C0A /* SwiftPackageProductDependency */,
-				E93FA1C924EC5B7F007441BF /* SwiftPackageProductDependency */,
+				E905E0BB246D83B800698C0A /* ComposableArchitecture */,
+				E93FA1C924EC5B7F007441BF /* Parma */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -929,7 +925,7 @@
 			);
 			name = UnitTests;
 			packageProductDependencies = (
-				E931CF8724FE5D68006CEE78 /* SwiftPackageProductDependency */,
+				E931CF8724FE5D68006CEE78 /* SnapshotTesting */,
 			);
 			productName = UnitTests;
 			productReference = E9F9EB482319694100A70D11 /* UnitTests.xctest */;
@@ -964,9 +960,9 @@
 			);
 			mainGroup = E999895722A6B4F20067BA25;
 			packageReferences = (
-				E905E0BA246D83B800698C0A /* RemoteSwiftPackageReference */,
-				E93FA1C824EC5B7F007441BF /* RemoteSwiftPackageReference */,
-				E931CF8624FE5D68006CEE78 /* RemoteSwiftPackageReference */,
+				E905E0BA246D83B800698C0A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				E93FA1C824EC5B7F007441BF /* XCRemoteSwiftPackageReference "Parma" */,
+				E931CF8624FE5D68006CEE78 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -1480,7 +1476,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		E905E0BA246D83B800698C0A /* RemoteSwiftPackageReference */ = {
+		E905E0BA246D83B800698C0A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
 			requirement = {
@@ -1488,7 +1484,7 @@
 				minimumVersion = 0.1.3;
 			};
 		};
-		E931CF8624FE5D68006CEE78 /* RemoteSwiftPackageReference */ = {
+		E931CF8624FE5D68006CEE78 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing.git";
 			requirement = {
@@ -1496,7 +1492,7 @@
 				minimumVersion = 1.8.2;
 			};
 		};
-		E93FA1C824EC5B7F007441BF /* RemoteSwiftPackageReference */ = {
+		E93FA1C824EC5B7F007441BF /* XCRemoteSwiftPackageReference "Parma" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/dasautoooo/Parma";
 			requirement = {
@@ -1507,19 +1503,19 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E905E0BB246D83B800698C0A /* SwiftPackageProductDependency */ = {
+		E905E0BB246D83B800698C0A /* ComposableArchitecture */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E905E0BA246D83B800698C0A /* RemoteSwiftPackageReference */;
+			package = E905E0BA246D83B800698C0A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
 		};
-		E931CF8724FE5D68006CEE78 /* SwiftPackageProductDependency */ = {
+		E931CF8724FE5D68006CEE78 /* SnapshotTesting */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E931CF8624FE5D68006CEE78 /* RemoteSwiftPackageReference */;
+			package = E931CF8624FE5D68006CEE78 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
 			productName = SnapshotTesting;
 		};
-		E93FA1C924EC5B7F007441BF /* SwiftPackageProductDependency */ = {
+		E93FA1C924EC5B7F007441BF /* Parma */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E93FA1C824EC5B7F007441BF /* RemoteSwiftPackageReference */;
+			package = E93FA1C824EC5B7F007441BF /* XCRemoteSwiftPackageReference "Parma" */;
 			productName = Parma;
 		};
 /* End XCSwiftPackageProductDependency section */
