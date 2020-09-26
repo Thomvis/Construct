@@ -1,6 +1,6 @@
 # Construct: D&D companion app in SwiftUI
 
-![](https://build.appcenter.ms/v0.1/apps/dee59819-1d72-4a54-b70c-4b8bed188efd/branches/main/badge)
+![](https://github.com/Thomvis/Construct/workflows/Construct%20CI/badge.svg?branch=main)
 
 ## Project Goals
 This project aims to be...
