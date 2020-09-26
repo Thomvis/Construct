@@ -10,7 +10,7 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 
-struct AppState {
+struct AppState: Equatable {
 
     var selectedTab: Tabs = .campaign
 
@@ -39,7 +39,7 @@ struct AppState {
         case diceRoller
     }
 
-    enum Action {
+    enum Action: Equatable {
         case selectedTab(Tabs)
         case campaignBrowser(CampaignBrowseViewAction)
         case compendium(CompendiumIndexAction)

@@ -107,7 +107,7 @@ extension CampaignBrowseViewState: NavigationStackItemState {
     var navigationTitle: String { navigationBarTitle }
 }
 
-enum CampaignBrowseViewAction: NavigationStackSourceAction {
+enum CampaignBrowseViewAction: NavigationStackSourceAction, Equatable {
 
     case items(Async<[CampaignNode], Error, Environment>.Action)
     case didTapNodeEditDone(CampaignBrowseViewState.NodeEditState, CampaignNode?, String)
@@ -167,7 +167,7 @@ enum CampaignBrowseViewAction: NavigationStackSourceAction {
         }
     }
 
-    enum NextScreenAction {
+    enum NextScreenAction: Equatable {
         case campaignBrowse(CampaignBrowseViewAction)
         case encounterDetail(EncounterDetailViewState.Action)
     }

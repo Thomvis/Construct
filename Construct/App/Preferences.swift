@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct Preferences: Codable {
+struct Preferences: Codable, Equatable {
     var didShowWelcomeSheet = false
 }
 

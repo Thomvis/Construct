@@ -24,7 +24,7 @@ struct DiceRollerViewState: Equatable {
     }
 }
 
-enum DiceRollerViewAction {
+enum DiceRollerViewAction: Equatable {
     case calculatorState(DiceCalculatorAction)
     case hideOutcome
 
