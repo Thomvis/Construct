@@ -20,7 +20,6 @@ class Database {
         self.queue = try path.map { try DatabaseQueue(path: $0) } ?? DatabaseQueue(configuration: Configuration())
         self.keyValueStore = KeyValueStore(queue)
 
-        self.queue.setupMemoryManagement(in: UIApplication.shared)
         try migrator(self.queue, importDefaultContent: importDefaultContent).migrate(self.queue)
     }
 

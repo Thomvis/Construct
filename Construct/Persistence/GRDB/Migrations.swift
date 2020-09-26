@@ -16,13 +16,6 @@ extension Database {
     func migrator(_ queue: DatabaseQueue, importDefaultContent: Bool = true) throws -> DatabaseMigrator {
         var migrator = DatabaseMigrator()
 
-        let appliedMigrations: Set<String>
-        do {
-            appliedMigrations = try migrator.appliedMigrations(in: queue)
-        } catch {
-            appliedMigrations = Set()
-        }
-
         var didImportDefaultContent = false
 
         migrator.registerMigration(Self.v1) { db in
