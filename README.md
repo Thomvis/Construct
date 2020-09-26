@@ -3,7 +3,7 @@
 ![](https://build.appcenter.ms/v0.1/apps/dee59819-1d72-4a54-b70c-4b8bed188efd/branches/main/badge)
 
 ## Project Goals
-I want the project to be...
+This project aims to be...
 - 🐉 an easy to use companion app for Dungeon Masters running [5th edition D&D](https://en.wikipedia.org/wiki/Dungeons_%26_Dragons)
 - 🎓 a resource for developers learning [SwiftUI](https://developer.apple.com/xcode/swiftui/) and [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture)
 
