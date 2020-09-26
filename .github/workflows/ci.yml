@@ -1,0 +1,23 @@
+name: "Construct CI"
+
+on: 
+  push:
+    branches: 
+      - master
+  pull_request:
+    branches: 
+      - '*'
+
+jobs:
+  test:
+    name: Test 
+    runs-on: macOS-latest
+    env: 
+      DEVELOPER_DIR: /Applications/Xcode_12.app/Contents/Developer
+    strategy:
+      matrix:
+        destination: ["OS=14.0,name=iPhone 11 Pro"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: iOS - ${{ matrix.destination }}
+        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -workspace "Construct.xcworkspace" -scheme "Construct" -destination "${{ matrix.destination }}" clean test | xcpretty
