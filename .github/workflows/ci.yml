@@ -19,7 +19,5 @@ jobs:
         destination: ["OS=14.0,name=iPhone 11 Pro"]
     steps:
       - uses: actions/checkout@v2
-      - name: CocoaPods
-        run: pod install
       - name: iOS - ${{ matrix.destination }}
-        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -workspace "Construct.xcworkspace" -scheme "Construct" -destination "${{ matrix.destination }}" clean test | xcpretty
+        run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project "Construct.xcodeproj" -scheme "Construct" -destination "${{ matrix.destination }}" clean test | xcpretty

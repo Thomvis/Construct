@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2D1D69374FB1D4C687809187 /* Pods_Construct.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 032EAD8614A98051862C974C /* Pods_Construct.framework */; };
 		E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */; };
 		E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E905E0BB246D83B800698C0A /* ComposableArchitecture */; };
 		E91885CB23943BBF0094EC87 /* Sort.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91885CA23943BBF0094EC87 /* Sort.swift */; };
@@ -140,6 +139,9 @@
 		E9819BE324852498005B898E /* CampaignBrowserContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC32350FA5D0085A72D /* CampaignBrowserContainerView.swift */; };
 		E9819BE4248524AA005B898E /* CampaignBrowseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB31123505AF400CA0AF4 /* CampaignBrowseView.swift */; };
 		E9819BE52485252A005B898E /* SheetNavigationContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91C167A2402DF3E004B5C85 /* SheetNavigationContainer.swift */; };
+		E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F732520A17A0098A166 /* AppCenterAnalytics */; };
+		E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F752520A17A0098A166 /* AppCenterCrashes */; };
+		E9869F7D2520A64B0098A166 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F7C2520A64B0098A166 /* GRDB */; };
 		E99095B3249797F400731EB9 /* AddCombatantDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */; };
 		E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */; };
 		E9969199247C3C0100A8B1A0 /* Spell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E940B5D8237B45FC00A8DAF4 /* Spell.swift */; };
@@ -194,9 +196,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		032EAD8614A98051862C974C /* Pods_Construct.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Construct.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		3A0F57D7422E43FBF9316518 /* Pods-Construct.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Construct.debug.xcconfig"; path = "Target Support Files/Pods-Construct/Pods-Construct.debug.xcconfig"; sourceTree = "<group>"; };
-		ADA4BC6E550C523D748FD7B0 /* Pods-Construct.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Construct.release.xcconfig"; path = "Target Support Files/Pods-Construct/Pods-Construct.release.xcconfig"; sourceTree = "<group>"; };
 		E903F71F237F42AF004C1AC8 /* InlineCombatantTagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineCombatantTagsView.swift; sourceTree = "<group>"; };
 		E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagPopover.swift; sourceTree = "<group>"; };
 		E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryDetailViewState.swift; sourceTree = "<group>"; };
@@ -379,9 +378,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */,
+				E9869F7D2520A64B0098A166 /* GRDB in Frameworks */,
+				E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */,
 				E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */,
 				E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */,
-				2D1D69374FB1D4C687809187 /* Pods_Construct.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -396,23 +397,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0F5EFA6F481BE178BDDF3ACC /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				3A0F57D7422E43FBF9316518 /* Pods-Construct.debug.xcconfig */,
-				ADA4BC6E550C523D748FD7B0 /* Pods-Construct.release.xcconfig */,
-			);
-			path = Pods;
-			sourceTree = "<group>";
-		};
-		C1894E2187982091E7DF1BCD /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				032EAD8614A98051862C974C /* Pods_Construct.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		E91B858223E43368009AF6D7 /* DiceRoller */ = {
 			isa = PBXGroup;
 			children = (
@@ -652,6 +636,13 @@
 			path = EncounterDetailView;
 			sourceTree = "<group>";
 		};
+		E9869F722520A17A0098A166 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		E98F96FA230B24200080372A /* Foundation */ = {
 			isa = PBXGroup;
 			children = (
@@ -700,8 +691,7 @@
 				E999896222A6B4F20067BA25 /* Construct */,
 				E9F9EB492319694200A70D11 /* UnitTests */,
 				E999896122A6B4F20067BA25 /* Products */,
-				0F5EFA6F481BE178BDDF3ACC /* Pods */,
-				C1894E2187982091E7DF1BCD /* Frameworks */,
+				E9869F722520A17A0098A166 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -891,11 +881,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E999897422A6B4F30067BA25 /* Build configuration list for PBXNativeTarget "Construct" */;
 			buildPhases = (
-				1D6B469C3B845D4620C0AD66 /* [CP] Check Pods Manifest.lock */,
 				E999895C22A6B4F20067BA25 /* Sources */,
 				E999895D22A6B4F20067BA25 /* Frameworks */,
 				E999895E22A6B4F20067BA25 /* Resources */,
-				085EA15046A236A7B86EE763 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -905,6 +893,9 @@
 			packageProductDependencies = (
 				E905E0BB246D83B800698C0A /* ComposableArchitecture */,
 				E93FA1C924EC5B7F007441BF /* Parma */,
+				E9869F732520A17A0098A166 /* AppCenterAnalytics */,
+				E9869F752520A17A0098A166 /* AppCenterCrashes */,
+				E9869F7C2520A64B0098A166 /* GRDB */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -963,6 +954,8 @@
 				E905E0BA246D83B800698C0A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				E93FA1C824EC5B7F007441BF /* XCRemoteSwiftPackageReference "Parma" */,
 				E931CF8624FE5D68006CEE78 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+				E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
+				E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -1005,48 +998,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		085EA15046A236A7B86EE763 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Construct/Pods-Construct-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Construct/Pods-Construct-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Construct/Pods-Construct-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		1D6B469C3B845D4620C0AD66 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Construct-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E999895C22A6B4F20067BA25 /* Sources */ = {
@@ -1360,7 +1311,6 @@
 		};
 		E999897522A6B4F30067BA25 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3A0F57D7422E43FBF9316518 /* Pods-Construct.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Construct/Construct.entitlements;
@@ -1383,7 +1333,6 @@
 		};
 		E999897622A6B4F30067BA25 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = ADA4BC6E550C523D748FD7B0 /* Pods-Construct.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Construct/Construct.entitlements;
@@ -1500,6 +1449,22 @@
 				minimumVersion = 0.1.0;
 			};
 		};
+		E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.3.4;
+			};
+		};
+		E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Thomvis/GRDB.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1517,6 +1482,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E93FA1C824EC5B7F007441BF /* XCRemoteSwiftPackageReference "Parma" */;
 			productName = Parma;
+		};
+		E9869F732520A17A0098A166 /* AppCenterAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */;
+			productName = AppCenterAnalytics;
+		};
+		E9869F752520A17A0098A166 /* AppCenterCrashes */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */;
+			productName = AppCenterCrashes;
+		};
+		E9869F7C2520A64B0098A166 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

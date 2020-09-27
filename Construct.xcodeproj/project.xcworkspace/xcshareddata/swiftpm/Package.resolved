@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "App Center",
+        "repositoryURL": "https://github.com/microsoft/appcenter-sdk-apple.git",
+        "state": {
+          "branch": null,
+          "revision": "96794627f4c0873c0d0ff058aae78da3abbba487",
+          "version": "3.3.4"
+        }
+      },
+      {
         "package": "combine-schedulers",
         "repositoryURL": "https://github.com/pointfreeco/combine-schedulers",
         "state": {
@@ -20,12 +29,30 @@
         }
       },
       {
+        "package": "GRDB",
+        "repositoryURL": "https://github.com/Thomvis/GRDB.swift.git",
+        "state": {
+          "branch": null,
+          "revision": "c2b31ae8afa3b45049ea6eaa9dccae11c91f3beb",
+          "version": "5.0.0"
+        }
+      },
+      {
         "package": "Parma",
         "repositoryURL": "https://github.com/dasautoooo/Parma",
         "state": {
           "branch": null,
           "revision": "82f825cead4b408fa3e0059affa3e5d296d3b745",
           "version": "0.1.1"
+        }
+      },
+      {
+        "package": "PLCrashReporter",
+        "repositoryURL": "https://github.com/microsoft/plcrashreporter.git",
+        "state": {
+          "branch": null,
+          "revision": "6b7ca9a2faad6ea990ff60b0a3ee4fdf3db59150",
+          "version": "1.7.2"
         }
       },
       {
