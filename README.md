@@ -1,4 +1,5 @@
-# Construct: D&D companion app in SwiftUI
+<img src="https://github.com/Thomvis/Construct/raw/main/assets/logo.png" height="50" /> Construct: D&D companion app in SwiftUI
+===
 
 ![](https://github.com/Thomvis/Construct/workflows/Construct%20CI/badge.svg?branch=main)
 
