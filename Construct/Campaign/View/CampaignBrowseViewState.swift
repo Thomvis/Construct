@@ -329,7 +329,7 @@ extension CampaignBrowseViewState {
                 }
                 return .none
             },
-            Reducer.withState({ $0.node.id == $1.node.id }) { state in
+            Reducer.withState({ $0.node.id != $1.node.id }) { state in
                 Async<[CampaignNode], Error, Environment>.reducer { env in
                     do {
                         let nodes = try env.campaignBrowser.nodes(in: state.node)
