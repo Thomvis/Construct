@@ -1,7 +1,7 @@
 <img src="https://github.com/Thomvis/Construct/raw/main/assets/logo.png" height="25" /> Construct: D&D companion app in SwiftUI
 ===
 
-![](https://github.com/Thomvis/Construct/workflows/Construct%20CI/badge.svg?branch=main)
+![](https://github.com/Thomvis/Construct/workflows/Construct%20CI/badge.svg?branch=main) [![](https://img.shields.io/badge/TestFlight-join-blue.svg)](https://testflight.apple.com/join/tvK1gYv9)
 
 ## Project Goals
 This project aims to be...
