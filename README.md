@@ -16,6 +16,13 @@ The easiest way to use the app is by downloading it from the App Store.
 You can find an overview of Construct's features at [construct5e.app](https://www.construct5e.app).
 
 ### For developers
-Download or checkout the repository and open `Construct.xcworkspace`.
+Download the project, open `Construct.xcodeproj` and run `Construct`.
+
+#### Architecture overview
+Construct is built using SwiftUI and a reducer-based architecture implemented using [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) framework. The entire app's state is represented by the [AppState struct](https://github.com/Thomvis/Construct/blob/main/Construct/App/AppState.swift), a deeply nested data structure containing the top-level screens and any screen, sheet or popover opened from there. A [tight integration](https://github.com/Thomvis/Construct/blob/main/Construct/Foundation/Navigation.swift) between SwiftUI's NavigationLink and the app's state make programmatic navigation a breeze.
+
+All data in the app is stored locally in an sqlite database using [GRDB](http://groue.github.io/GRDB.swift/). Construct defines a simple [key-value store](https://github.com/Thomvis/Construct/blob/main/Construct/Persistence/KeyValueStore.swift) on top of GRDB. All entities are serialized using Swift's Codable, can optionally support full-text search and are [automatically](https://github.com/Thomvis/Construct/blob/main/Construct/Persistence/EntityChangeObserver.swift) saved in the database when they change in the app state.
+
+The D&D domain calls for some interesting parsing solution. Construct contains a small [parser combinator framework](https://github.com/Thomvis/Construct/blob/main/Construct/Foundation/ParserCombinator.swift) and defines a couple of [interesting](https://github.com/Thomvis/Construct/blob/main/Construct/Models/CreatureActionParser.swift) [parsers](https://github.com/Thomvis/Construct/blob/main/Construct/Models/DiceExpressionParser.swift).
 
 I hope to write posts detailing some of the interesting parts of the app in the future.
