@@ -57,12 +57,6 @@ struct AppState: Equatable {
         }
     }
 
-    enum Tabs: Int {
-        case campaign
-        case compendium
-        case diceRoller
-    }
-
     enum Action: Equatable {
         case navigation(AppStateNavigationAction)
 

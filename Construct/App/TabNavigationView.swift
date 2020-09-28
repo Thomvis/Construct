@@ -27,21 +27,21 @@ struct TabNavigationView: View {
                         Image(systemName: "shield")
                         Text("Adventure")
                     }
-                    .tag(AppState.Tabs.campaign)
+                    .tag(TabNavigationViewState.Tabs.campaign)
 
                 CompendiumContainerView(store: store.scope(state: { $0.compendium }, action: { .compendium($0) }))
                     .tabItem {
                         Image(systemName: "book")
                         Text("Compendium")
                     }
-                    .tag(AppState.Tabs.compendium)
+                    .tag(TabNavigationViewState.Tabs.compendium)
 
                 DiceRollerView(store: self.store.scope(state: { $0.diceRoller }, action: { .diceRoller($0) }), isVisible: viewStore.selectedTab == .diceRoller)
                     .tabItem {
                         Image("tabbar_d20")
                         Text("Dice")
                     }
-                    .tag(AppState.Tabs.diceRoller)
+                    .tag(TabNavigationViewState.Tabs.diceRoller)
             }
         }
     }
