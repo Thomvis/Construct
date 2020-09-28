@@ -12,11 +12,7 @@ import ComposableArchitecture
 
 struct AppState: Equatable {
 
-    var selectedTab: Tabs = .campaign
-
-    var campaignBrowser: CampaignBrowseViewState = CampaignBrowseViewState(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)
-    var compendium: CompendiumIndexState = CompendiumIndexState(title: "Compendium", properties: .index, results: .initial)
-    var diceRoller: DiceRollerViewState = DiceRollerViewState()
+    var navigation: Navigation
 
     var preferences: Preferences
 
@@ -26,10 +22,38 @@ struct AppState: Equatable {
 
     var topNavigationItemState: NavigationStackItemState? {
         guard !showWelcomeSheet else { return nil }
-        switch selectedTab {
-        case .campaign: return campaignBrowser.topNavigationItemState
-        case .compendium: return compendium.topNavigationItemState
-        case .diceRoller: return nil
+        switch navigation {
+        case .tab(let s): return s.topNavigationItemState
+        case .column: return nil
+        }
+    }
+
+    enum Navigation: Equatable {
+        case tab(TabNavigationViewState)
+        case column(ColumnNavigationViewState)
+
+        var tabState: TabNavigationViewState? {
+            get {
+                guard case .tab(let s) = self else { return nil }
+                return s
+            }
+            set {
+                if let newValue = newValue {
+                    self = .tab(newValue)
+                }
+            }
+        }
+
+        var columnState: ColumnNavigationViewState? {
+            get {
+                guard case .column(let s) = self else { return nil }
+                return s
+            }
+            set {
+                if let newValue = newValue {
+                    self = .column(newValue)
+                }
+            }
         }
     }
 
@@ -40,10 +64,8 @@ struct AppState: Equatable {
     }
 
     enum Action: Equatable {
-        case selectedTab(Tabs)
-        case campaignBrowser(CampaignBrowseViewAction)
-        case compendium(CompendiumIndexAction)
-        case diceRoller(DiceRollerViewAction)
+        case navigation(AppStateNavigationAction)
+
         case welcomeSheet(Bool)
         case welcomeSheetSampleEncounterTapped
         case welcomeSheetDismissTapped
@@ -51,22 +73,13 @@ struct AppState: Equatable {
 
         case sceneDidBecomeActive
         case sceneWillResignActive
-
-        var diceRollerAction: DiceRollerViewAction? {
-            guard case .diceRoller(let a) = self else { return nil }
-            return a
-        }
     }
 
     static var reducer: Reducer<AppState, Action, Environment> {
         return Reducer.combine(
             Reducer { state, action, env in
                 switch action {
-                case .selectedTab(let t):
-                    state.selectedTab = t
-                case .campaignBrowser: break
-                case .compendium: break
-                case .diceRoller: break
+                case .navigation: break // handled below
                 case .welcomeSheet(let show):
                     state.showWelcomeSheet = show
                     if !show {
@@ -77,7 +90,7 @@ struct AppState: Equatable {
                         .append(Effect.result { () -> Result<Action?, Never> in
                             // navigate to scratch pad
                             if let encounter: Encounter = try? env.database.keyValueStore.get(Encounter.key(Encounter.scratchPadEncounterId)) {
-                                return .success(.campaignBrowser(.setNextScreen(.encounter(EncounterDetailViewState(building: encounter)))))
+                                return .success(.navigation(.openEncounter(encounter)))
                             } else {
                                 return .success(nil)
                             }
@@ -95,9 +108,7 @@ struct AppState: Equatable {
                 }
                 return .none
             },
-            CampaignBrowseViewState.reducer.pullback(state: \.campaignBrowser, action: /Action.campaignBrowser),
-            compendiumContainerReducer.pullback(state: \.compendium, action: /Action.compendium),
-            DiceRollerViewState.reducer.pullback(state: \.diceRoller, action: /Action.diceRoller),
+            Navigation.reducer.pullback(state: \.navigation, action: /AppState.Action.navigation),
             Reducer { state, action, env in
                 if state.sceneIsActive, let edv = state.topNavigationItemState as? EncounterDetailViewState, edv.running != nil {
                     env.isIdleTimerDisabled = true
@@ -108,6 +119,35 @@ struct AppState: Equatable {
             }
         )
     }
+}
+
+enum AppStateNavigationAction: Equatable {
+    case openEncounter(Encounter)
+
+    case onHorizontalSizeClassChange(UserInterfaceSizeClass)
+
+    case tab(TabNavigationViewAction)
+    case column(ColumnNavigationViewAction)
+}
+
+extension AppState.Navigation {
+    static let reducer: Reducer<Self, AppStateNavigationAction, Environment> = Reducer.combine(
+        Reducer { state, action, env in
+            switch (state, action) {
+            case (_, .onHorizontalSizeClassChange(.compact)):
+                state = .tab(TabNavigationViewState())
+            case (_, .onHorizontalSizeClassChange(.regular)):
+                state = .column(ColumnNavigationViewState())
+            case (.tab, .openEncounter(let e)):
+                return Effect(value: .tab(.campaignBrowser(.setNextScreen(.encounter(EncounterDetailViewState(building: e))))))
+            default:
+                break
+            }
+            return .none
+        },
+        TabNavigationViewState.reducer.optional().pullback(state: \.tabState, action: /AppStateNavigationAction.tab),
+        ColumnNavigationViewState.reducer.optional().pullback(state: \.columnState, action: /AppStateNavigationAction.column)
+    )
 }
 
 protocol Popover {

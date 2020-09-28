@@ -264,7 +264,7 @@ struct OutcomeView: View {
                                         Throphy()
                                     }
                                     Text("\(result.total)").font(.largeTitle)
-                                        .animation(nil)
+//                                        .animation(nil)
                                     if viewStore.state.shouldCelebrateRoll && !viewStore.state.resultIsIntermediary {
                                         Throphy()
                                     }
@@ -274,7 +274,7 @@ struct OutcomeView: View {
                                 }
                             }
                             .opacity(viewStore.state.resultIsIntermediary ? 0.66 : 1.0)
-                            .animation(nil)
+//                            .animation(nil)
                         }.replaceNilWith {
                             Button(action: {
                                 viewStore.send(.onRerollButtonTap)

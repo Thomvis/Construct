@@ -26,6 +26,7 @@ struct FloatingDiceRollerContainerView: View {
                 .frame(minWidth: 250)
                 .fixedSize()
                 .padding(12)
+                .clipped()
                 .background(Color(UIColor.systemBackground).cornerRadius(12).shadow(radius: 5))
                 .background(GeometryReader { panelProxy in
                     Color.clear.preference(key: CollectionViewSizeKey<Int>.self, value: [0: panelProxy.size])

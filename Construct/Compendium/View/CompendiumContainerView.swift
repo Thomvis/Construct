@@ -12,11 +12,11 @@ import ComposableArchitecture
 
 struct CompendiumContainerView: View {
     @EnvironmentObject var environment: Environment
-    var store: Store<AppState, AppState.Action>
+    var store: Store<CompendiumIndexState, CompendiumIndexAction>
 
     var body: some View {
         NavigationView {
-            CompendiumIndexView(store: store.scope(state: { $0.compendium }, action: { .compendium($0) }))
+            CompendiumIndexView(store: store)
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .edgesIgnoringSafeArea(.top)

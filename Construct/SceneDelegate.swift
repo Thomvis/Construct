@@ -28,6 +28,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
             let env = Environment(window: window)
             let state = AppState(
+                navigation: .tab(TabNavigationViewState()),
                 preferences: (try? env.database.keyValueStore.get(Preferences.key)) ?? Preferences()
             )
             let store = Store(

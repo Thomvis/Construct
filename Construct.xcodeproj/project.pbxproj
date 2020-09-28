@@ -143,6 +143,10 @@
 		E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F732520A17A0098A166 /* AppCenterAnalytics */; };
 		E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F752520A17A0098A166 /* AppCenterCrashes */; };
 		E9869F7D2520A64B0098A166 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F7C2520A64B0098A166 /* GRDB */; };
+		E9869F8D252203BA0098A166 /* TabNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F8C252203BA0098A166 /* TabNavigationView.swift */; };
+		E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F90252203F40098A166 /* TabNavigationViewState.swift */; };
+		E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9425223E870098A166 /* ColumnNavigationView.swift */; };
+		E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */; };
 		E99095B3249797F400731EB9 /* AddCombatantDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */; };
 		E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */; };
 		E9969199247C3C0100A8B1A0 /* Spell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E940B5D8237B45FC00A8DAF4 /* Spell.swift */; };
@@ -309,6 +313,10 @@
 		E985FDC923E4A6AC00F1A62C /* DiceRollerViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceRollerViewState.swift; sourceTree = "<group>"; };
 		E985FDCB23E89F0200F1A62C /* CombatantResourcesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantResourcesView.swift; sourceTree = "<group>"; };
 		E985FDCD23E89F0B00F1A62C /* CombatantResourcesViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantResourcesViewState.swift; sourceTree = "<group>"; };
+		E9869F8C252203BA0098A166 /* TabNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationView.swift; sourceTree = "<group>"; };
+		E9869F90252203F40098A166 /* TabNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationViewState.swift; sourceTree = "<group>"; };
+		E9869F9425223E870098A166 /* ColumnNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationView.swift; sourceTree = "<group>"; };
+		E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationViewState.swift; sourceTree = "<group>"; };
 		E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantDetailView.swift; sourceTree = "<group>"; };
 		E990F4F023706AAC00276EB6 /* StateDrivenNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateDrivenNavigationView.swift; sourceTree = "<group>"; };
 		E999896022A6B4F20067BA25 /* Construct.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Construct.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -519,6 +527,10 @@
 				E999896722A6B4F20067BA25 /* ContentView.swift */,
 				E92A41E3240D2F0C009AF440 /* WelcomeView.swift */,
 				E92A41E7240D3A66009AF440 /* Preferences.swift */,
+				E9869F8C252203BA0098A166 /* TabNavigationView.swift */,
+				E9869F90252203F40098A166 /* TabNavigationViewState.swift */,
+				E9869F9425223E870098A166 /* ColumnNavigationView.swift */,
+				E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -1031,6 +1043,7 @@
 				E931E54F233A230800C3FE9A /* Fraction.swift in Sources */,
 				E999FBC9235BA536000CCC8B /* SimpleList.swift in Sources */,
 				E97651D7248AE50600C76865 /* CombatantResourcesView.swift in Sources */,
+				E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */,
 				E9517FDD2360C09D005A51FC /* CancellableBag.swift in Sources */,
 				E97651D1248AE0AC00C76865 /* CombatantRow.swift in Sources */,
 				E972BAA12478586900F313D7 /* CompendiumItem.swift in Sources */,
@@ -1072,6 +1085,7 @@
 				E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */,
 				E91E4718231E8CD0005D1E6F /* CompendiumDataSource.swift in Sources */,
 				E946B025247D9ED9008A407C /* Duration.swift in Sources */,
+				E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */,
 				E946B02C247E6225008A407C /* CompendiumItemGroupDetailView.swift in Sources */,
 				E97651DB248BBF1B00C76865 /* RunningEncounterLogView.swift in Sources */,
 				E942E016247EB3D300170FAC /* Open5eSpellDataSourceReader.swift in Sources */,
@@ -1100,6 +1114,7 @@
 				E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */,
 				E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */,
 				E931CF8324FD0E54006CEE78 /* CreatureActionParser.swift in Sources */,
+				E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */,
 				E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */,
 				E999FBC5235B4AC1000CCC8B /* CollectionView.swift in Sources */,
 				E996919B247C411300A8B1A0 /* CompendiumEntryDetailViewState.swift in Sources */,
@@ -1131,6 +1146,7 @@
 				E972BAA424793DE500F313D7 /* Navigation.swift in Sources */,
 				E97651D0248ADF5A00C76865 /* AddCombatantView.swift in Sources */,
 				E9819BE4248524AA005B898E /* CampaignBrowseView.swift in Sources */,
+				E9869F8D252203BA0098A166 /* TabNavigationView.swift in Sources */,
 				E942E01B247FEA6D00170FAC /* EncounterDetailViewState.swift in Sources */,
 				E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */,
 				E9819BE52485252A005B898E /* SheetNavigationContainer.swift in Sources */,
