@@ -20,7 +20,7 @@ platform :ios do
   lane :beta do
     xcversion(version: "12.0")
     increment_build_number(xcodeproj: "Construct.xcodeproj")
-    build_app(workspace: "SwiftUITest.xcworkspace", scheme: "Construct")
+    build_app(project: "Construct.xcodeproj", scheme: "Construct")
     upload_to_testflight
   end
 
