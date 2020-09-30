@@ -25,109 +25,18 @@ struct CombatantDetailContainerView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                ScrollView {
-                    CombatantDetailView(store: store).padding(12).padding(.bottom, 50)
-                }
-
-                defaultActionBar.frame(maxHeight: .infinity, alignment: .bottom).padding(8)
-            }
-            .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-            .navigationBarItems(trailing: Group {
-                Button(action: {
-                    self.presentationMode.wrappedValue.dismiss()
-                }) {
-                    Text("Done").bold()
-                }
-            })
+            CombatantDetailView(store: store)
+                .navigationBarItems(trailing: Group {
+                    Button(action: {
+                        self.presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Text("Done").bold()
+                    }
+                })
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .edgesIgnoringSafeArea(.all)
     }
-
-    var defaultActionBar: some View {
-        HStack {
-            Spacer()
-
-            if let stats = viewStore.state.combatant.definition.stats {
-                Menu(content: {
-                    ForEach(Ability.allCases.reversed(), id: \.self) { a in
-                        if let modifier = stats.savingThrowModifier(a) {
-                            Button(action: {
-                                viewStore.send(.popover(.rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))))
-                            }) {
-                                Label(
-                                    "\(a.localizedDisplayName) save: \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))",
-                                    systemImage: stats.savingThrows[a] != nil
-                                        ? "circlebadge.fill"
-                                        : "circlebadge"
-                                )
-                            }
-                        } else {
-                            Text(a.localizedDisplayName)
-                        }
-                    }
-
-                    Divider()
-
-                    Menu(content: {
-                        ForEach(Ability.allCases.reversed(), id: \.rawValue) { a in
-                            if let modifier = stats.abilityScores?.score(for: a).modifier {
-                                Button(action: {
-                                    viewStore.send(.popover(.rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))))
-                                }) {
-                                    Label(title: {
-                                        Text("\(a.localizedDisplayName): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
-                                    }, icon: {
-                                        Image(systemName: "circlebadge")
-                                    })
-                                }
-                            } else {
-                                Text(a.localizedDisplayName)
-                            }
-                        }
-
-                        Divider()
-
-                        ForEach(Skill.allCases.reversed(), id: \.rawValue) { s in
-                            let title = "\(s.localizedDisplayName) (\(s.ability.localizedAbbreviation.uppercased()))"
-                            if let modifier = stats.skillModifier(s) {
-                                Button(action: {
-                                    viewStore.send(.popover(.rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))))
-                                }) {
-                                    Label(title: {
-                                        Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
-                                    }, icon: {
-                                        Image(systemName: stats.skills[s] != nil
-                                                ? "circlebadge.fill"
-                                                : "circlebadge"
-                                        )
-                                    })
-                                }
-                            } else {
-                                Text("\(title)")
-                            }
-                        }
-                    }) {
-                        Text("Ability Check...")
-                    }
-                }) {
-                    RoundedButton(action: { }) {
-                        Label("Roll...", systemImage: "die.face.6")
-                    }
-                    .frame(minWidth: 100)
-                }
-            }
-        }
-    }
-
-    struct Rollable: Hashable {
-        var title: String
-        var modifier: Modifier?
-        var proficient: Bool
-        var ability: Bool
-    }
-
 }
 
 struct CombatantDetailView: View {
@@ -146,183 +55,192 @@ struct CombatantDetailView: View {
     }
 
     var body: some View {
-        VStack(spacing: 18) {
-            HStack {
-                SimpleButton(action: {
-                    self.viewStore.send(.popover(.healthAction(HealthDialogState(numberEntryView: NumberEntryViewState.pad(value: 0), hp: self.combatant.hp))))
-                }) {
-                    VStack {
-                        Text("Hit Points")
-                        combatant.hp.map { hp in
-                            HStack {
-                                VStack {
-                                    Text("\(hp.current)").font(.title)
-                                    Text("Cur").font(.subheadline)
-                                }.equalSize()
-                                VStack {
-                                    Text("/").font(.title)
-                                    Text("").font(.subheadline)
-                                }.fixedSize()
-                                VStack {
-                                    Text("\(hp.maximum)").font(.title)
-                                    Text("Max").font(.subheadline)
-                                }.equalSize()
-                                VStack {
-                                    Text("\(hp.temporary)").font(.title)
-                                    Text("Temp").font(.subheadline)
-                                }.equalSize()
+        ZStack {
+            ScrollView {
+                VStack(spacing: 18) {
+                    HStack {
+                        SimpleButton(action: {
+                            self.viewStore.send(.popover(.healthAction(HealthDialogState(numberEntryView: NumberEntryViewState.pad(value: 0), hp: self.combatant.hp))))
+                        }) {
+                            VStack {
+                                Text("Hit Points")
+                                combatant.hp.map { hp in
+                                    HStack {
+                                        VStack {
+                                            Text("\(hp.current)").font(.title)
+                                            Text("Cur").font(.subheadline)
+                                        }.equalSize()
+                                        VStack {
+                                            Text("/").font(.title)
+                                            Text("").font(.subheadline)
+                                        }.fixedSize()
+                                        VStack {
+                                            Text("\(hp.maximum)").font(.title)
+                                            Text("Max").font(.subheadline)
+                                        }.equalSize()
+                                        VStack {
+                                            Text("\(hp.temporary)").font(.title)
+                                            Text("Temp").font(.subheadline)
+                                        }.equalSize()
+                                    }
+                                    .equalSizes(horizontal: true, vertical: false)
+                                }.replaceNilWith {
+                                    Text("--").font(.subheadline)
+                                }
+                                .equalSize()
                             }
-                            .equalSizes(horizontal: true, vertical: false)
-                        }.replaceNilWith {
-                            Text("--").font(.subheadline)
+                            .padding(8)
+                            .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
                         }
-                        .equalSize()
-                    }
-                    .padding(8)
-                    .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
-                }
 
-                Text(combatant.definition.ac.map { "\($0)" } ?? "--")
-                    .font(.title)
-                    .background(
-                        Image(systemName: "shield")
-                            .resizable()
-                            .font(Font.title.weight(.light))
-                            .aspectRatio(contentMode: .fit)
-                            .padding(-10)
-                    )
-                    .padding(10)
-
-                SimpleButton(action: {
-                    self.viewStore.send(.popover(.initiative(self.combatant)))
-                }) {
-                    VStack {
-                        Text("Initiative")
-
-                        combatant.initiative.map {
-                            Text("\($0)")
-                        }.replaceNilWith {
-                            combatant.definition.initiativeModifier.map {
-                                Text(env.modifierFormatter.stringWithFallback(for: $0)).italic().opacity(0.6)
-                            }.replaceNilWith {
-                                Text("--").italic().opacity(0.6)
-                            }
-                        }
-                        .font(.title)
-                        .equalSize()
-                    }
-                }
-                .padding(8)
-                .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
-            }.equalSizes(horizontal: false, vertical: true)
-
-            SectionContainer(
-                title: "Tags",
-                accessory: StateDrivenNavigationLink(
-                    store: store,
-                    state: /CombatantDetailViewState.NextScreen.combatantTagsView,
-                    action: /CombatantDetailViewAction.NextScreenAction.combatantTagsView,
-                    isActive: { _ in true },
-                    initialState: {
-                        CombatantTagsViewState(combatants: [self.combatant], effectContext: self.viewStore.state.runningEncounter.map {
-                            EffectContext(
-                                source: nil,
-                                targets: [self.viewStore.state.combatant],
-                                running: $0
+                        Text(combatant.definition.ac.map { "\($0)" } ?? "--")
+                            .font(.title)
+                            .background(
+                                Image(systemName: "shield")
+                                    .resizable()
+                                    .font(Font.title.weight(.light))
+                                    .aspectRatio(contentMode: .fit)
+                                    .padding(-10)
                             )
-                        })
-                    },
-                    destination: CombatantTagsView.init) {
-                    Text("Manage")
-                 }
-            ) {
-                InlineCombatantTagsView(store: store, viewStore: viewStore)
-            }
+                            .padding(10)
 
-            if !combatant.resources.isEmpty {
-                SectionContainer(
-                    title: "Limited resources",
-                    accessory: StateDrivenNavigationLink(
-                        store: store,
-                        state: /CombatantDetailViewState.NextScreen.combatantResourcesView,
-                        action: /CombatantDetailViewAction.NextScreenAction.combatantResourcesView,
-                        isActive: { _ in true },
-                        initialState: {
-                            CombatantResourcesViewState(combatant: self.combatant)
-                        },
-                        destination: CombatantResourcesView.init) {
-                        Text("Manage")
-                     }
-                ) {
-                    SimpleList(data: combatant.resources, id: \.id) { resource in
-                        IfLetStore(self.store.scope(state: { $0.combatant.resources.first { $0.id == resource.id } }, action: { .combatant(.resource(resource.id, $0)) })) { store in
+                        SimpleButton(action: {
+                            self.viewStore.send(.popover(.initiative(self.combatant)))
+                        }) {
+                            VStack {
+                                Text("Initiative")
 
-                            CombatantResourceTrackerView(store: store)
-                        }
-                    }
-                }
-            }
-
-            SectionContainer(title: "Stats") {
-                contentView(for: combatant)
-            }
-
-            viewStore.state.runningEncounter.map { running in
-                latestEvents(running)
-            }
-
-            SectionContainer(title: "Edit") {
-                VStack(alignment: .leading) {
-                    Button(action: {
-                        self.viewStore.send(.popover(.addLimitedResource(CombatantTrackerEditViewState(resource: CombatantResource(id: UUID(), title: "", slots: [false])))))
-                    }) {
-                        Text("Add limited resource")
-                    }
-
-                    if combatant.definition is CompendiumCombatantDefinition {
-                        Divider()
-
-                        VStack(alignment: .leading) {
-                            Button(action: {
-                                self.viewStore.send(.unlinkFromCompendium)
-                            }) {
-                                Text("Unlink from compendium")
+                                combatant.initiative.map {
+                                    Text("\($0)")
+                                }.replaceNilWith {
+                                    combatant.definition.initiativeModifier.map {
+                                        Text(env.modifierFormatter.stringWithFallback(for: $0)).italic().opacity(0.6)
+                                    }.replaceNilWith {
+                                        Text("--").italic().opacity(0.6)
+                                    }
+                                }
+                                .font(.title)
+                                .equalSize()
                             }
-                            Text("This combatant was added from the compendium. Unlink it to further tailor it for this encounter.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
                         }
-                    }
+                        .padding(8)
+                        .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
+                    }.equalSizes(horizontal: false, vertical: true)
 
-                    if combatant.definition is AdHocCombatantDefinition {
-                        Divider()
-
-                        VStack(alignment: .leading) {
-                            Button(action: {
-                                self.viewStore.send(.saveToCompendium)
-                            }) {
-                                Text("Save to compendium")
-                            }
-                            Text("This combatant was created for this encounter. Save it to the compendium to make it available for other encounters.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
-                        }
-
-                        Divider()
-
-                        StateDrivenNavigationLink(
+                    SectionContainer(
+                        title: "Tags",
+                        accessory: StateDrivenNavigationLink(
                             store: store,
-                            state: /CombatantDetailViewState.NextScreen.creatureEditView,
-                            action: /CombatantDetailViewAction.NextScreenAction.creatureEditView,
+                            state: /CombatantDetailViewState.NextScreen.combatantTagsView,
+                            action: /CombatantDetailViewAction.NextScreenAction.combatantTagsView,
                             isActive: { _ in true },
                             initialState: {
-                                guard let def = self.combatant.definition as? AdHocCombatantDefinition else { return CreatureEditViewState(create: .monster) }
-                                return CreatureEditViewState(edit: def)
+                                CombatantTagsViewState(combatants: [self.combatant], effectContext: self.viewStore.state.runningEncounter.map {
+                                    EffectContext(
+                                        source: nil,
+                                        targets: [self.viewStore.state.combatant],
+                                        running: $0
+                                    )
+                                })
                             },
-                            destination: CreatureEditView.init)
-                        {
-                            Text("Edit combatant")
+                            destination: CombatantTagsView.init) {
+                            Text("Manage")
+                         }
+                    ) {
+                        InlineCombatantTagsView(store: store, viewStore: viewStore)
+                    }
+
+                    if !combatant.resources.isEmpty {
+                        SectionContainer(
+                            title: "Limited resources",
+                            accessory: StateDrivenNavigationLink(
+                                store: store,
+                                state: /CombatantDetailViewState.NextScreen.combatantResourcesView,
+                                action: /CombatantDetailViewAction.NextScreenAction.combatantResourcesView,
+                                isActive: { _ in true },
+                                initialState: {
+                                    CombatantResourcesViewState(combatant: self.combatant)
+                                },
+                                destination: CombatantResourcesView.init) {
+                                Text("Manage")
+                             }
+                        ) {
+                            SimpleList(data: combatant.resources, id: \.id) { resource in
+                                IfLetStore(self.store.scope(state: { $0.combatant.resources.first { $0.id == resource.id } }, action: { .combatant(.resource(resource.id, $0)) })) { store in
+
+                                    CombatantResourceTrackerView(store: store)
+                                }
+                            }
+                        }
+                    }
+
+                    SectionContainer(title: "Stats") {
+                        contentView(for: combatant)
+                    }
+
+                    viewStore.state.runningEncounter.map { running in
+                        latestEvents(running)
+                    }
+
+                    SectionContainer(title: "Edit") {
+                        VStack(alignment: .leading) {
+                            Button(action: {
+                                self.viewStore.send(.popover(.addLimitedResource(CombatantTrackerEditViewState(resource: CombatantResource(id: UUID(), title: "", slots: [false])))))
+                            }) {
+                                Text("Add limited resource")
+                            }
+
+                            if combatant.definition is CompendiumCombatantDefinition {
+                                Divider()
+
+                                VStack(alignment: .leading) {
+                                    Button(action: {
+                                        self.viewStore.send(.unlinkFromCompendium)
+                                    }) {
+                                        Text("Unlink from compendium")
+                                    }
+                                    Text("This combatant was added from the compendium. Unlink it to further tailor it for this encounter.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+                                }
+                            }
+
+                            if combatant.definition is AdHocCombatantDefinition {
+                                Divider()
+
+                                VStack(alignment: .leading) {
+                                    Button(action: {
+                                        self.viewStore.send(.saveToCompendium)
+                                    }) {
+                                        Text("Save to compendium")
+                                    }
+                                    Text("This combatant was created for this encounter. Save it to the compendium to make it available for other encounters.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+                                }
+
+                                Divider()
+
+                                StateDrivenNavigationLink(
+                                    store: store,
+                                    state: /CombatantDetailViewState.NextScreen.creatureEditView,
+                                    action: /CombatantDetailViewAction.NextScreenAction.creatureEditView,
+                                    isActive: { _ in true },
+                                    initialState: {
+                                        guard let def = self.combatant.definition as? AdHocCombatantDefinition else { return CreatureEditViewState(create: .monster) }
+                                        return CreatureEditViewState(edit: def)
+                                    },
+                                    destination: CreatureEditView.init)
+                                {
+                                    Text("Edit combatant")
+                                }
+                            }
                         }
                     }
                 }
+                .padding(12)
+                .padding(.bottom, 50)
             }
+
+            defaultActionBar.frame(maxHeight: .infinity, alignment: .bottom).padding(8)
         }
+        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .actionSheet(self.store.scope(state: { $0.actionSheet }), dismiss: .actionSheet(nil))
         .popover(self.popover)
     }
@@ -415,5 +333,81 @@ struct CombatantDetailView: View {
         }, set: { _ in
             self.viewStore.send(.popover(nil))
         })
+    }
+
+    var defaultActionBar: some View {
+        HStack {
+            Spacer()
+
+            if let stats = viewStore.state.combatant.definition.stats {
+                Menu(content: {
+                    ForEach(Ability.allCases.reversed(), id: \.self) { a in
+                        if let modifier = stats.savingThrowModifier(a) {
+                            Button(action: {
+                                viewStore.send(.popover(.rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))))
+                            }) {
+                                Label(
+                                    "\(a.localizedDisplayName) save: \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))",
+                                    systemImage: stats.savingThrows[a] != nil
+                                        ? "circlebadge.fill"
+                                        : "circlebadge"
+                                )
+                            }
+                        } else {
+                            Text(a.localizedDisplayName)
+                        }
+                    }
+
+                    Divider()
+
+                    Menu(content: {
+                        ForEach(Ability.allCases.reversed(), id: \.rawValue) { a in
+                            if let modifier = stats.abilityScores?.score(for: a).modifier {
+                                Button(action: {
+                                    viewStore.send(.popover(.rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))))
+                                }) {
+                                    Label(title: {
+                                        Text("\(a.localizedDisplayName): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
+                                    }, icon: {
+                                        Image(systemName: "circlebadge")
+                                    })
+                                }
+                            } else {
+                                Text(a.localizedDisplayName)
+                            }
+                        }
+
+                        Divider()
+
+                        ForEach(Skill.allCases.reversed(), id: \.rawValue) { s in
+                            let title = "\(s.localizedDisplayName) (\(s.ability.localizedAbbreviation.uppercased()))"
+                            if let modifier = stats.skillModifier(s) {
+                                Button(action: {
+                                    viewStore.send(.popover(.rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))))
+                                }) {
+                                    Label(title: {
+                                        Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
+                                    }, icon: {
+                                        Image(systemName: stats.skills[s] != nil
+                                                ? "circlebadge.fill"
+                                                : "circlebadge"
+                                        )
+                                    })
+                                }
+                            } else {
+                                Text("\(title)")
+                            }
+                        }
+                    }) {
+                        Text("Ability Check...")
+                    }
+                }) {
+                    RoundedButton(action: { }) {
+                        Label("Roll...", systemImage: "die.face.6")
+                    }
+                    .frame(minWidth: 100)
+                }
+            }
+        }
     }
 }

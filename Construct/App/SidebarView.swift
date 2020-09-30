@@ -11,15 +11,37 @@ import SwiftUI
 import ComposableArchitecture
 
 struct SidebarView: View {
+    @EnvironmentObject var env: Environment
 
     let store: Store<SidebarViewState, SidebarViewAction>
 
     var body: some View {
         WithViewStore(store) { viewStore in
             List {
-                Text("Test A")
-                Text("Test B")
-                Text("Test C")
+
+                StateDrivenNavigationLink(
+                    store: store,
+                    state: /SidebarViewState.NextScreen.encounter,
+                    action: /SidebarViewAction.NextScreenAction.encounter,
+                    navDest: .detail,
+                    isActive: { _ in true },
+                    initialState: {
+                        if let encounter: Encounter = try? self.env.database.keyValueStore.get(Encounter.key(Encounter.scratchPadEncounterId)) {
+                            return EncounterDetailViewState(building: encounter)
+                        } else {
+                            return EncounterDetailViewState.nullInstance
+                        }
+                    },
+                    destination: { EncounterDetailView(store: $0) }
+                ) {
+                    Label("Scatch pad encounter", systemImage: "shield")
+                }
+
+                Section(header: Text("Adventure")) {
+                    Text("Test A")
+                    Text("Test B")
+                    Text("Test C")
+                }
 
                 Section(header: Text("Compendium")) {
                     StateDrivenNavigationLink(

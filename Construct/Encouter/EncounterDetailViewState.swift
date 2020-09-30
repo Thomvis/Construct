@@ -12,7 +12,7 @@ import CasePaths
 import SwiftUI
 import ComposableArchitecture
 
-struct EncounterDetailViewState: Equatable {
+struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
     var building: Encounter {
         didSet {
             let b = building
@@ -50,6 +50,8 @@ struct EncounterDetailViewState: Equatable {
     var editMode = false
     var selection = Set<UUID>()
 
+    var presentedScreens: [NavigationDestination : NextScreen] = [:]
+
     var encounter: Encounter {
         get { running?.current ?? building }
         set {
@@ -77,14 +79,22 @@ struct EncounterDetailViewState: Equatable {
 
     var combatantDetailState: CombatantDetailViewState? {
         get {
-            guard case .combatant(let state)? = sheet else { return nil }
-            return state
+            if case .combatant(let state)? = sheet {
+                return state
+            }
+
+            if case .combatant(let state) = detailScreen {
+                return state
+            }
+            return nil
         }
         set {
-            if let state = newValue {
-                self.sheet = .combatant(state)
-            } else {
-                self.sheet = nil
+            if sheet != nil {
+                self.sheet = newValue.map { .combatant($0) }
+            }
+
+            if detailScreen != nil {
+                self.detailScreen = newValue.map { .combatant($0) }
             }
         }
     }
@@ -147,10 +157,20 @@ struct EncounterDetailViewState: Equatable {
         case single(Combatant)
         case selection
     }
+
+    enum NextScreen: Equatable, NavigationStackItemStateConvertible, NavigationStackItemState {
+        case combatant(CombatantDetailViewState)
+
+        var navigationStackItemState: NavigationStackItemState {
+            switch self {
+            case .combatant(let s): return s
+            }
+        }
+    }
 }
 
 extension EncounterDetailViewState {
-    enum Action: Equatable {
+    enum Action: Equatable, NavigationStackSourceAction {
         case onAppear
         case encounter(Encounter.Action) // forwarded to the effective encounter
         case buildingEncounter(Encounter.Action)
@@ -175,9 +195,32 @@ extension EncounterDetailViewState {
 
         case selectedCombatantTags(CombatantTagsViewAction)
 
+        case setNextScreen(EncounterDetailViewState.NextScreen?)
+        case nextScreen(NextScreenAction)
+        case setDetailScreen(EncounterDetailViewState.NextScreen?)
+        case detailScreen(NextScreenAction)
+
         enum SelectionEncounterAction: Hashable {
             case duplicate
             case remove
+        }
+
+        enum NextScreenAction: Equatable {
+            case combatant(CombatantDetailViewAction)
+        }
+
+        static func presentScreen(_ destination: NavigationDestination, _ screen: EncounterDetailViewState.NextScreen?) -> Self {
+            switch destination {
+            case .nextInStack: return .setNextScreen(screen)
+            case .detail: return .setDetailScreen(screen)
+            }
+        }
+
+        static func presentedScreen(_ destination: NavigationDestination, _ action: NextScreenAction) -> Self {
+            switch destination {
+            case .nextInStack: return .nextScreen(action)
+            case .detail: return .detailScreen(action)
+            }
         }
     }
 
@@ -300,6 +343,12 @@ extension EncounterDetailViewState {
                 case .selectedCombatantTags(.combatant(let c, let a)):
                     return Effect(value: .encounter(.combatant(c.id, a)))
                 case .selectedCombatantTags: break // handled below
+                case .setNextScreen(let s):
+                    state.presentedScreens[.nextInStack] = s
+                case .setDetailScreen(let s):
+                    state.presentedScreens[.detail] = s
+                case .nextScreen: break // handled below
+                case .detailScreen: break // handled below
                 }
                 return .none
             },
@@ -316,6 +365,7 @@ extension EncounterDetailViewState {
                 }.pullback(state: \.resumableRunningEncounters, action: /Action.resumableRunningEncounters)
             },
             CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.combatantDetail),
+            CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.detailScreen..Action.NextScreenAction.combatant),
             CombatantTagsViewState.reducer.optional().pullback(state: \.selectedCombatantTagsState, action: /Action.selectedCombatantTags)
         )
     }

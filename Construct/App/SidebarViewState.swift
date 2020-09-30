@@ -28,12 +28,28 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
         }
     }
 
+    var selectedEncounterState: EncounterDetailViewState? {
+        get {
+            if case .encounter(let s) = presentedScreens[.detail] {
+                return s
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                presentedScreens[.detail] = .encounter(newValue)
+            }
+        }
+    }
+
     enum NextScreen: NavigationStackItemState, NavigationStackItemStateConvertible, Equatable {
         case compendium(CompendiumIndexState)
+        case encounter(EncounterDetailViewState)
 
         var navigationStackItemState: NavigationStackItemState {
             switch self {
             case .compendium(let s): return s
+            case .encounter(let s): return s
             }
         }
     }
@@ -62,6 +78,7 @@ enum SidebarViewAction: NavigationStackSourceAction, Equatable {
 
     enum NextScreenAction: Equatable {
         case compendium(CompendiumIndexAction)
+        case encounter(EncounterDetailViewState.Action)
     }
 }
 
@@ -73,6 +90,7 @@ extension SidebarViewState: NavigationStackItemState {
 extension SidebarViewState {
     static let reducer: Reducer<Self, SidebarViewAction, Environment> = Reducer.combine(
         CompendiumIndexState.reducer.optional().pullback(state: \.selectedCompendiumIndexState, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.compendium),
+        EncounterDetailViewState.reducer.optional().pullback(state: \.selectedEncounterState, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.encounter),
         Reducer { state, action, env in
             switch action {
             case .setNextScreen(let s):

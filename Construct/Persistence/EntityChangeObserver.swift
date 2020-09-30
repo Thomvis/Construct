@@ -15,7 +15,9 @@ protocol HavingEntities {
 
 extension AppState: HavingEntities {
     var entities: [AnyKeyValueStoreEntity] {
-        return (navigation.tabState.map { $0.entities } ?? []) + [AnyKeyValueStoreEntity(preferences)]
+        return (navigation.tabState.map { $0.entities } ?? [])
+            + (navigation.columnState.map { $0.entities } ?? [])
+            + [AnyKeyValueStoreEntity(preferences)]
     }
 }
 
@@ -25,9 +27,24 @@ extension TabNavigationViewState: HavingEntities {
     }
 }
 
+extension ColumnNavigationViewState: HavingEntities {
+    var entities: [AnyKeyValueStoreEntity] {
+        return (sidebar.nextScreen?.entities ?? []) + (sidebar.detailScreen?.entities ?? [])
+    }
+}
+
+extension SidebarViewState.NextScreen: HavingEntities {
+    var entities: [AnyKeyValueStoreEntity] {
+        switch self {
+        case .compendium: return []
+        case .encounter(let s): return s.entities
+        }
+    }
+}
+
 extension CampaignBrowseViewState: HavingEntities {
     var entities: [AnyKeyValueStoreEntity] {
-        return nextScreen?.entities ?? []
+        return (nextScreen?.entities ?? []) + (detailScreen?.entities ?? [])
     }
 }
 
