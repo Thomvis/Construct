@@ -99,6 +99,7 @@ struct EncounterDetailView: View {
         }, content: self.sheetView)
         .actionSheet(store.scope(state: { $0.actionSheet }), dismiss: .actionSheet(nil))
         .popover(popover)
+        .stateDrivenNavigationLink(store: store, state: /EncounterDetailViewState.NextScreen.combatantColumn, action: /EncounterDetailViewState.Action.NextScreenAction.combatantColumn, navDest: .detail, isActive: { _ in true }, destination: CombatantDetailColumnContainerView.init)
         .onAppear {
             self.viewStore.send(.onAppear)
         }
@@ -359,35 +360,21 @@ struct CombatantSection: View {
             EmptyView() // TODO
         }) {
             ForEach(combatants, id: \.id) { combatant in
-                with(
-                    CombatantRow(encounter: self.encounter, running: self.running, combatant: combatant, onHealthTap: {
-                        self.parent.viewStore.send(.popover(.health(.single(combatant))))
-                    }, onInitiativeTap: {
-                        withAnimation {
-                            self.parent.viewStore.send(.popover(.combatantInitiative(combatant)))
-                        }
-                    })
-                ) { row in
+                CombatantRow(encounter: self.encounter, running: self.running, combatant: combatant, onHealthTap: {
+                    self.parent.viewStore.send(.popover(.health(.single(combatant))))
+                }, onInitiativeTap: {
+                    withAnimation {
+                        self.parent.viewStore.send(.popover(.combatantInitiative(combatant)))
+                    }
+                })
+                // contentShape is needed or else the tapGesture on the whole cell doesn't work
+                // scale is used to make the row easier selectable in edit mode
+                .contentShape(Rectangle().scale(self.parent.viewStore.state.editMode ? 0 : 1))
+                .onTapGesture {
                     if parent.appNavigation == .tab {
-                        row
-                            // contentShape is needed or else the tapGesture on the whole cell doesn't work
-                            // scale is used to make the row easier selectable in edit mode
-                            .contentShape(Rectangle().scale(self.parent.viewStore.state.editMode ? 0 : 1))
-                            .onTapGesture {
-                                self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, encounter: self.parent.viewStore.state.encounter, combatant: combatant))))
-                            }
+                        self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
                     } else {
-                        StateDrivenNavigationLink(
-                            store: parent.store,
-                            state: /EncounterDetailViewState.NextScreen.combatant,
-                            action: /EncounterDetailViewState.Action.NextScreenAction.combatant,
-                            navDest: .detail,
-                            isActive: { $0.combatant == combatant },
-                            initialState: CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, encounter: self.parent.viewStore.state.encounter, combatant: combatant),
-                            destination: CombatantDetailView.init
-                        ) {
-                            row
-                        }
+                        self.parent.viewStore.send(.setDetailScreen(.combatantColumn(CombatantDetailColumnContainerViewState(encounter: self.parent.viewStore.state.encounter, selectedCombatantId: combatant.id, runningEncounter: self.parent.viewStore.state.running))))
                     }
                 }
                 .contextMenu {

@@ -15,7 +15,7 @@ import CasePaths
 struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 
     var runningEncounter: RunningEncounter?
-    var encounter: Encounter
+//    var encounter: Encounter
 
     var combatant: Combatant {
         didSet {
@@ -279,5 +279,5 @@ enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
 }
 
 extension CombatantDetailViewState {
-    static let nullInstance = CombatantDetailViewState(encounter: Encounter.nullInstance, combatant: Combatant.nullInstance)
+    static let nullInstance = CombatantDetailViewState(combatant: Combatant.nullInstance)
 }

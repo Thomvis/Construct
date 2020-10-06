@@ -17,6 +17,7 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
         didSet {
             let b = building
             addCombatantState?.encounter = b
+            combatantColumnState?.encounter = b
             if let cds = combatantDetailState, let c = b.combatant(for: cds.combatant.id) {
                 combatantDetailState?.combatant = c
             }
@@ -37,6 +38,9 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
                     selectedCombatantTagsState?.combatants = scts.combatants.compactMap { running.current.combatant(for: $0.id) }
                 }
             }
+
+            let r = running
+            combatantColumnState?.runningEncounter = r
         }
     }
 
@@ -82,19 +86,25 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
             if case .combatant(let state)? = sheet {
                 return state
             }
-
-            if case .combatant(let state) = detailScreen {
-                return state
-            }
             return nil
         }
         set {
             if sheet != nil {
                 self.sheet = newValue.map { .combatant($0) }
             }
+        }
+    }
 
+    var combatantColumnState: CombatantDetailColumnContainerViewState? {
+        get {
+            if case .combatantColumn(let state)? = detailScreen {
+                return state
+            }
+            return nil
+        }
+        set {
             if detailScreen != nil {
-                self.detailScreen = newValue.map { .combatant($0) }
+                self.detailScreen = newValue.map { .combatantColumn($0) }
             }
         }
     }
@@ -136,6 +146,12 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
             case .health: return .health(.single(Combatant.nullInstance))
             }
         }
+
+        res.detailScreen = detailScreen.map {
+            switch $0 {
+            case .combatantColumn: return .combatantColumn(CombatantDetailColumnContainerViewState.nullInstance)
+            }
+        }
         return res
     }
 
@@ -159,11 +175,11 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
     }
 
     enum NextScreen: Equatable, NavigationStackItemStateConvertible, NavigationStackItemState {
-        case combatant(CombatantDetailViewState)
+        case combatantColumn(CombatantDetailColumnContainerViewState)
 
         var navigationStackItemState: NavigationStackItemState {
             switch self {
-            case .combatant(let s): return s
+            case .combatantColumn(let s): return s
             }
         }
     }
@@ -207,6 +223,7 @@ extension EncounterDetailViewState {
 
         enum NextScreenAction: Equatable {
             case combatant(CombatantDetailViewAction)
+            case combatantColumn(CombatantDetailSplitContainerViewAction)
         }
 
         static func presentScreen(_ destination: NavigationDestination, _ screen: EncounterDetailViewState.NextScreen?) -> Self {
@@ -302,6 +319,8 @@ extension EncounterDetailViewState {
                         return Effect(value: .encounter(.combatant(combatantDetailState.combatant.id, a)))
                     }
                 case .combatantDetail: break // handled by CombatantDetailViewState.reducer
+                case .detailScreen(.combatantColumn(.combatantDetail(let id, .combatant(let a)))):
+                    return Effect(value: .encounter(.combatant(id, a)))
                 case .popover(let p):
                     state.popover = p
                 case .resetEncounter(let clearAll):
@@ -366,7 +385,8 @@ extension EncounterDetailViewState {
             },
             CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.combatantDetail),
             CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.detailScreen..Action.NextScreenAction.combatant),
-            CombatantTagsViewState.reducer.optional().pullback(state: \.selectedCombatantTagsState, action: /Action.selectedCombatantTags)
+            CombatantTagsViewState.reducer.optional().pullback(state: \.selectedCombatantTagsState, action: /Action.selectedCombatantTags),
+            CombatantDetailColumnContainerViewState.reducer.optional().pullback(state: \.combatantColumnState, action: /Action.detailScreen..Action.NextScreenAction.combatantColumn)
         )
     }
 }
