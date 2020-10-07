@@ -182,7 +182,6 @@ struct CompendiumCharacterDetailView: View {
 
     var body: some View {
         SectionContainer {
-            StatBlockView(stats: character.stats)
             statBlockView(character)
         }
     }
