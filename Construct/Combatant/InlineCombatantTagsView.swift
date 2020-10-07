@@ -40,6 +40,16 @@ struct InlineCombatantTagsView: View {
                         destination: CombatantTagEditView.init
                     )
                 }
+                .onAppear {
+                    guard !self.appeared.wrappedValue else { return }
+                    self.appeared.wrappedValue = true
+                    // BUG: workaround for collection view layout issue
+                    // relevant console log: "Bound preference CollectionViewSizeKey<UUID> tried to update multiple times per frame."
+                    self.viewStore.send(.combatant(.addTag(CombatantTag.nullInstance)))
+                    DispatchQueue.main.async {
+                        self.viewStore.send(.combatant(.removeTag(CombatantTag.nullInstance)))
+                    }
+                }
             }
         }
     }
