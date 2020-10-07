@@ -237,6 +237,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     }
                 case .nextScreen(.compendiumEntry(.nextScreen(.groupEdit(.onRemoveTap)))):
                     return Effect(value: .setNextScreen(nil))
+                case .nextScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onRemoveTap)))):
+                    return Effect(value: .setNextScreen(nil))
                 case .nextScreen, .detailScreen:
                     break
                 }
