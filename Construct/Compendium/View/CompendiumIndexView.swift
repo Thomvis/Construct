@@ -73,7 +73,7 @@ struct CompendiumIndexView: View {
         })
         .onAppear {
             if self.viewStore.state.properties.initialContent.isSearchResults {
-                self.viewStore.send(.query(.onTextDidChange(""), debounce: false)) // kick-start search, fixme?
+                self.viewStore.send(.query(.onTextDidChange(viewStore.state.results.input.text), debounce: false)) // kick-start search, fixme?
             }
         }
         .stateDrivenNavigationLink(store: store, state: /CompendiumIndexState.NextScreen.creatureEdit, action: /CompendiumIndexAction.NextScreenAction.creatureEdit, isActive: { _ in true }, destination: { CreatureEditView(store: $0) })
