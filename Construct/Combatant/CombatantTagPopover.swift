@@ -30,15 +30,18 @@ struct CombatantTagPopover: View, Popover {
             }
             Divider()
 
-            tag.note.map {
-                Text("“\($0)”")
-                    .padding(20)
-                    .frame(minHeight: 120)
-            }
+            VStack {
+                tag.note.map {
+                    Text("“\($0)”")
+                        .padding(20)
+                        .frame(minHeight: 120)
+                }
 
-            durationDescription.map {
-                Text(isTagActive ? "Expires " : "Expired ") + Text($0)
+                durationDescription.map {
+                    Text(isTagActive ? "Expires " : "Expired ") + Text($0)
+                }
             }
+            .frame(minHeight: 120)
         }
     }
 
