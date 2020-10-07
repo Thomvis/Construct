@@ -273,6 +273,7 @@ enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
         case combatantTagEditView(CombatantTagEditViewAction)
         case creatureEditView(CreatureEditViewAction)
         case combatantResourcesView(CombatantResourcesViewAction)
+        case runningEncounterLogView
     }
 
 }

@@ -347,9 +347,16 @@ struct CombatantDetailView: View {
         let log = running.log.filter { $0.involves(self.viewStore.state.combatant) }.reversed()
         return Group {
             if !log.isEmpty {
-                SectionContainer(title: "Latest", accessory: Button(action: {
-                    self.viewStore.send(.setNextScreen(.runningEncounterLogView(RunningEncounterLogViewState(encounter: running, context: self.viewStore.state.combatant))))
-                }) {
+                SectionContainer(title: "Latest", accessory: StateDrivenNavigationLink(
+                    store: store,
+                    state: /CombatantDetailViewState.NextScreen.runningEncounterLogView,
+                    action: /CombatantDetailViewAction.NextScreenAction.runningEncounterLogView,
+                    isActive: { _ in true },
+                    initialState: {
+                        RunningEncounterLogViewState(encounter: running, context: self.viewStore.state.combatant)
+                    },
+                    destination: RunningEncounterLogView.init
+                ) {
                     Text("View all (\(log.count))")
                 }) {
                     VStack {
