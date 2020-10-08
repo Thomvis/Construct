@@ -23,6 +23,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     var scrollTo: String? // the key of the entry to scroll to
 
     var presentedScreens: [NavigationDestination: NextScreen]
+    var alert: AlertState<CompendiumIndexAction>?
 
     init(title: String, properties: CompendiumIndexState.Properties, results: CompendiumIndexState.RS, presentedScreens: [NavigationDestination: NextScreen] = [:]) {
         self.title = title
@@ -246,6 +247,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     return Effect(value: .setNextScreen(nil))
                 case .nextScreen, .detailScreen:
                     break
+                case .alert(let s):
+                    state.alert = s
                 }
                 return .none
             },
@@ -312,6 +315,8 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     indirect case nextScreen(NextScreenAction)
     case setDetailScreen(CompendiumIndexState.NextScreen?)
     indirect case detailScreen(NextScreenAction)
+
+    indirect case alert(AlertState<CompendiumIndexAction>?)
 
     static func presentScreen(_ destination: NavigationDestination, _ screen: CompendiumIndexState.NextScreen?) -> Self {
             switch destination {

@@ -36,16 +36,19 @@ let compendiumContainerReducer: Reducer<CompendiumIndexState, CompendiumIndexAct
                     let entry = CompendiumEntry(character)
                     try env.compendium.put(entry)
 
-                    // navigate to detail view of character
-                    callback(.success(.setNextScreen(.compendiumIndex(CompendiumIndexState(
-                        title: "Characters",
-                        properties: .secondary,
-                        results: .initial(type: .character),
-                        presentedScreens: [.nextInStack: .itemDetail(CompendiumEntryDetailViewState(entry: entry))]
-                    )))))
-                } catch {
-                    callback(.success(nil))
-                }
+                    // workaround: programmatic navigation doesn't work (FB8784916) so we instruct the user
+                    // where to find the newly created NPC
+                    callback(.success(.alert(AlertState<CompendiumIndexAction>(title: "Monster saved as NPC", message: "A character named “\(stats.name)” was added to the compendium.", dismissButton: .default("OK")))))
+
+//                    // navigate to detail view of character
+//                    callback(.success(.setNextScreen(.compendiumIndex(CompendiumIndexState(
+//                        title: "Characters",
+//                        properties: .secondary,
+//                        results: .initial(type: .character),
+//                        presentedScreens: [.nextInStack: .itemDetail(CompendiumEntryDetailViewState(entry: entry))]
+//                    )))))
+                } catch { }
+                callback(.success(nil))
             }.compactMap { $0 }.eraseToEffect()
         }
         return .none

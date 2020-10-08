@@ -89,7 +89,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
             Reducer { state, action, env in
                 switch action {
                 case .entry(let e): state.entry = e
-                case .onSaveMonsterAsNPCButton: break // should be handled by the parent
+                case .onSaveMonsterAsNPCButton: break // handled by the compendium container
                 case .popover(let p): state.popover = p
                 case .creatureActionPopover: break // handled by a reducer above
                 case .setNextScreen(let s): state.presentedScreens[.nextInStack] = s

@@ -86,6 +86,7 @@ struct CompendiumIndexView: View {
             action: /CompendiumIndexAction.NextScreenAction.import,
             isActive: { _ in true },
             destination: { _ in CompendiumImportView() })
+        .alert(store.scope(state: \.alert), dismiss: .alert(nil))
     }
 
     @ViewBuilder
