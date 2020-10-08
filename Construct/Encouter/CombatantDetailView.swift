@@ -395,7 +395,7 @@ struct CombatantDetailView: View {
                         self.viewStore.send(.popover(nil))
                     }
                 }.eraseToAnyView
-            case .diceAction(let state):
+            case .diceAction:
                 return IfLetStore(store.scope(state: { $0.diceActionPopoverState }, action: { .diceActionPopover($0) })) { store in
                     DiceActionView(store: store)
                 }.eraseToAnyView
