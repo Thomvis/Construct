@@ -157,27 +157,41 @@ fileprivate struct CompendiumItemList: View {
     let viewProvider: CompendiumIndexView.ViewProvider
 
     var body: some View {
-        List {
-            Section {
-                if entries.isEmpty {
-                    Text("No results")
-                } else {
-                    ForEach(entries, id: \.key) { entry in
-                        StateDrivenNavigationLink(
-                            store: store,
-                            state: /CompendiumIndexState.NextScreen.itemDetail,
-                            action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
-                            isActive: { $0.entry.key == entry.key },
-                            initialState: CompendiumEntryDetailViewState(entry: entry),
-                            destination: { viewProvider.detail($0) }
-                        ) {
-                            self.viewProvider.row(self.store, entry)
+        let listHash = AnyHashable(entries.map { $0.key })
+        return ScrollViewReader { scrollView in
+            List {
+                Section {
+                    if entries.isEmpty {
+                        Text("No results")
+                    } else {
+                        ForEach(entries, id: \.key) { entry in
+                            StateDrivenNavigationLink(
+                                store: store,
+                                state: /CompendiumIndexState.NextScreen.itemDetail,
+                                action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
+                                isActive: { $0.entry.key == entry.key },
+                                initialState: CompendiumEntryDetailViewState(entry: entry),
+                                destination: { viewProvider.detail($0) }
+                            ) {
+                                self.viewProvider.row(self.store, entry)
+                            }
                         }
                     }
                 }
             }
+            .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _ in
+                // workaround: this closure is called with `self.entries` still out of date,
+                // that's why we access it from viewStore
+                let entries = viewStore.state.results.value ?? []
+                if let id = viewStore.state.scrollTo, entries.contains(where: { $0.key == id }) {
+                    withAnimation {
+                        scrollView.scrollTo(id)
+                    }
+                    viewStore.send(.scrollTo(nil))
+                }
+            }
+            .id(entries.count < 50 ? AnyHashable("stable") : listHash)
         }
-        .id(entries.count < 50 ? AnyHashable("stable") : AnyHashable(entries.map { $0.key }))
     }
 }
 

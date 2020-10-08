@@ -20,6 +20,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     let properties: Properties
 
     var results: RS
+    var scrollTo: String? // the key of the entry to scroll to
 
     var presentedScreens: [NavigationDestination: NextScreen]
 
@@ -205,6 +206,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             Reducer { state, action, env in
                 switch action {
                 case .results: break
+                case .scrollTo(let id):
+                    state.scrollTo = id
                 case .onAddButtonTap:
                     if let type = state.editViewCreatureType {
                         state.nextScreen = .creatureEdit(CreatureEditViewState(create: type))
@@ -215,25 +218,27 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     state.presentedScreens[.nextInStack] = n
                 case .setDetailScreen(let s):
                     state.presentedScreens[.detail] = s
-                case .nextScreen(.creatureEdit(CreatureEditViewAction.onAddTap(let state))):
-                    return Effect.future { callback in
-                        if let item = state.compendiumItem {
+                case .nextScreen(.creatureEdit(CreatureEditViewAction.onAddTap(let editState))):
+                    return Effect.run { subscriber in
+                        if let item = editState.compendiumItem {
                             let entry = CompendiumEntry(item)
                             _ = try? env.compendium.put(entry)
-                            callback(.success(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry)))))
-                        } else {
-                            callback(.success(.setNextScreen(nil)))
+                            subscriber.send(.scrollTo(entry.key))
                         }
+                        subscriber.send(.setNextScreen(nil))
+                        subscriber.send(completion: .finished)
+                        return AnyCancellable { }
                     }
                 case .nextScreen(.itemGroupEdit(CompendiumItemGroupEditAction.onAddTap(let group))):
-                    return Effect.future { callback in
-                        do {
-                            let entry = CompendiumEntry(group)
-                            try env.compendium.put(entry)
-                            callback(.success(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry)))))
-                        } catch {
-                            callback(.success(.setNextScreen(nil)))
-                        }
+                    return Effect.run { subscriber in
+                        let entry = CompendiumEntry(group)
+                        try? env.compendium.put(entry)
+
+                        subscriber.send(.scrollTo(entry.key))
+                        subscriber.send(.setNextScreen(nil))
+                        subscriber.send(completion: .finished)
+
+                        return AnyCancellable { }
                     }
                 case .nextScreen(.compendiumEntry(.nextScreen(.groupEdit(.onRemoveTap)))):
                     return Effect(value: .setNextScreen(nil))
@@ -300,6 +305,7 @@ extension CompendiumIndexState: NavigationStackItemState {
 enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 
     case results(CompendiumIndexState.RS.Action<CompendiumIndexQueryAction>)
+    case scrollTo(String?)
     case onAddButtonTap
 
     case setNextScreen(CompendiumIndexState.NextScreen?)
