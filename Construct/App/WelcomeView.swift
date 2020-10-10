@@ -16,9 +16,9 @@ struct WelcomeView: View {
         VStack(spacing: 20) {
 
             ScrollView(.vertical) {
-                Text("Welcome to Construct").font(Font.largeTitle.bold()).padding(.top, 22)
-                
-                Spacer().padding()
+                Text("Welcome to Construct").font(Font.largeTitle.bold())
+                    .padding(.top, 22)
+                    .padding(.bottom, 14)
                 
                 VStack(spacing: 18) {
                     ForEach(Self.items) { item in
@@ -38,8 +38,6 @@ struct WelcomeView: View {
                         }
                     }
                 }
-                
-                Spacer()
             }
 
 
