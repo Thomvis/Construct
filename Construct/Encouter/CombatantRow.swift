@@ -49,11 +49,14 @@ struct CombatantRow: View {
             }) {
                 combatant.initiative.map {
                     Text("\($0)")
+                        .accessibility(label: Text("\($0) initiative"))
                 }.replaceNilWith {
                     combatant.definition.initiativeModifier.map {
                         Text(env.modifierFormatter.stringWithFallback(for: $0)).italic().opacity(0.6)
+                            .accessibility(label: Text("\(env.modifierFormatter.stringWithFallback(for: $0)) modifier to initiative"))
                     }.replaceNilWith {
                         Text("--").italic().opacity(0.6)
+                            .accessibility(hidden: true)
                     }
                 }
                 .background(Circle().foregroundColor(turnIndicatorColor).frame(width: 33, height: 33))
@@ -121,8 +124,10 @@ func ShieldIcon(ac: Int) -> some View {
     ZStack {
         Image(systemName: "shield")
             .font(Font.title.weight(.light))
+            .accessibility(hidden: true)
         Text("\(ac)")
             .font(.caption)
+            .accessibility(label: Text("\(ac) armor class"))
     }
 }
 

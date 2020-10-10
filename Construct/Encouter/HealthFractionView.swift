@@ -22,6 +22,7 @@ struct HealthFractionView: View {
         .background(Rectangle().cornerRadius(4).foregroundColor(colorForDirection.opacity(0.33)).animation(.easeInOut(duration: 0.33)))
         .font(.footnote)
         .frame(width: 25)
+        .accessibility(label: Text("\(hp.effective) of \(hp.maximum) HP"))
     }
 
     var colorForDirection: Color {
