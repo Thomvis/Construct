@@ -27,9 +27,12 @@ struct WelcomeView: View {
                                 .aspectRatio(contentMode: ContentMode.fit)
                                 .frame(width: 45, height: 45)
                                 .foregroundColor(item.iconColor)
+                                .accessibility(hidden: true)
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(item.title).font(.headline)
+                                Text(item.title)
+                                    .font(.headline)
+                                    .accessibilityAddTraits([.isHeader])
                                 Text(item.body)
                                     .multilineTextAlignment(.leading)
                                     .foregroundColor(Color(UIColor.secondaryLabel))
