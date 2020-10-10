@@ -15,6 +15,7 @@ struct WelcomeView: View {
     var body: some View {
         VStack(spacing: 20) {
             Text("Welcome to Construct").font(Font.largeTitle.bold()).padding(.top, 22)
+                .accessibilityAddTraits([.isHeader])
 
             Spacer()
 
