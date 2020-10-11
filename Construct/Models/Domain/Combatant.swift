@@ -180,6 +180,16 @@ extension Hp {
     }
 }
 
+extension Hp {
+    var accessibilityText: String {
+        var result = "HP: \(effective) of \(maximum)"
+        if temporary > 0 {
+            result.append(" including \(temporary) temporary")
+        }
+        return result
+    }
+}
+
 struct Player: Codable, Hashable {
     var name: String?
 }
