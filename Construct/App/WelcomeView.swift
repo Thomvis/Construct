@@ -14,12 +14,13 @@ struct WelcomeView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("Welcome to Construct").font(Font.largeTitle.bold()).padding(.top, 22)
-                .accessibilityAddTraits([.isHeader])
-
-            Spacer()
 
             ScrollView(.vertical) {
+                Text("Welcome to Construct").font(Font.largeTitle.bold())
+                    .accessibilityAddTraits([.isHeader])
+                    .padding(.top, 22)
+                    .padding(.bottom, 14)
+                
                 VStack(spacing: 18) {
                     ForEach(Self.items) { item in
                         HStack(spacing: 25) {
@@ -43,7 +44,6 @@ struct WelcomeView: View {
                 }
             }
 
-            Spacer()
 
             Text("Check out the sample encounter or tap Continue to start building your own adventures.")
                 .font(.footnote)
