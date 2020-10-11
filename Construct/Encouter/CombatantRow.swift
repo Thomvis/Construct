@@ -49,11 +49,11 @@ struct CombatantRow: View {
             }) {
                 combatant.initiative.map {
                     Text("\($0)")
-                        .accessibility(label: Text("\($0) initiative"))
+                        .accessibility(label: Text("Initiative: \($0)"))
                 }.replaceNilWith {
                     combatant.definition.initiativeModifier.map {
                         Text(env.modifierFormatter.stringWithFallback(for: $0)).italic().opacity(0.6)
-                            .accessibility(label: Text("\(env.modifierFormatter.stringWithFallback(for: $0)) modifier to initiative"))
+                            .accessibility(label: Text("Initiative modifier: \(env.modifierFormatter.stringWithFallback(for: $0))"))
                     }.replaceNilWith {
                         Text("--").italic().opacity(0.6)
                             .accessibility(hidden: true)
