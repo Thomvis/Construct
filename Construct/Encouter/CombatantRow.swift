@@ -124,11 +124,11 @@ func ShieldIcon(ac: Int) -> some View {
     ZStack {
         Image(systemName: "shield")
             .font(Font.title.weight(.light))
-            .accessibility(hidden: true)
         Text("\(ac)")
             .font(.caption)
-            .accessibility(label: Text("\(ac) armor class"))
     }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(Text("AC: \(ac)"))
 }
 
 struct CombatantRow_Preview: PreviewProvider {
