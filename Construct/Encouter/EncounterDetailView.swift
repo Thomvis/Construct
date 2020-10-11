@@ -108,7 +108,9 @@ struct EncounterDetailView: View {
                 RoundedButton(action: {
                     self.viewStore.send(.actionSheet(.reset))
                 }) {
-                    Label("Reset...", systemImage: "xmark.circle")
+                    Label("Reset…", systemImage: "xmark.circle")
+                        .accessibility(label: Text("Reset"))
+                        .accessibilityHint(Text("Activate to clear the encounter."))
                 }.disabled(self.viewStore.state.building.combatants.isEmpty)
             }
 
