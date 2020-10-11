@@ -262,9 +262,31 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         return AnyCancellable { }
                     }
                 case .nextScreen(.compendiumEntry(.nextScreen(.groupEdit(.onRemoveTap)))):
-                    return Effect(value: .setNextScreen(nil))
+                    return Effect.run { subscriber in
+                        subscriber.send(.setNextScreen(nil))
+
+                        // Work-around: without the delay, `.setNextScreen(nil)` is not picked up
+                        // (probably because .reload makes the NavigationLink disappear)
+                        DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
+                            subscriber.send(.results(.reload))
+                            subscriber.send(completion: .finished)
+                        }
+
+                        return AnyCancellable { }
+                    }
                 case .nextScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onRemoveTap)))):
-                    return Effect(value: .setNextScreen(nil))
+                    return Effect.run { subscriber in
+                        subscriber.send(.setNextScreen(nil))
+
+                        // Work-around: without the delay, `.setNextScreen(nil)` is not picked up
+                        // (probably because .reload makes the NavigationLink disappear)
+                        DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
+                            subscriber.send(.results(.reload))
+                            subscriber.send(completion: .finished)
+                        }
+
+                        return AnyCancellable { }
+                    }
                 case .nextScreen, .detailScreen:
                     break
                 case .alert(let s):
