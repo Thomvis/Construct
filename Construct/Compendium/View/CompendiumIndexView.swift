@@ -16,14 +16,14 @@ struct CompendiumIndexView: View {
     var store: Store<CompendiumIndexState, CompendiumIndexAction>
     var viewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
 
-    @ObservedObject var localViewStore: ViewStore<State, CompendiumIndexAction>
+    @ObservedObject var localViewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
     let viewProvider: ViewProvider
 
     init(store: Store<CompendiumIndexState, CompendiumIndexAction>, viewProvider: ViewProvider = .default) {
         self.store = store
         self.viewStore = ViewStore(store)
-        self.localViewStore = ViewStore(store.scope(state: State.init), removeDuplicates: {
-            $0 == $1
+        self.localViewStore = ViewStore(store, removeDuplicates: {
+            $0.normalizedForDeduplication == $1.normalizedForDeduplication
         })
         self.viewProvider = viewProvider
     }
@@ -31,16 +31,16 @@ struct CompendiumIndexView: View {
     var body: some View {
         return VStack {
             BorderedSearchField(
-                text: localViewStore.binding(get: { $0.input.text.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
+                text: localViewStore.binding(get: { $0.results.input.text.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
                 accessory: filterButton()
             )
             .padding([.leading, .trailing], 8)
 
-            if localViewStore.state.entries != nil {
-                CompendiumItemList(store: store, viewStore: ViewStore(store), entries: localViewStore.state.entries!, viewProvider: viewProvider)
-            } else if localViewStore.state.error != nil {
+            if localViewStore.state.results.value != nil {
+                CompendiumItemList(store: store, viewStore: ViewStore(store), entries: localViewStore.state.results.value!, viewProvider: viewProvider)
+            } else if localViewStore.state.results.error != nil {
                 Text("Loading failed").frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if localViewStore.state.isLoading {
+            } else if localViewStore.state.results.result.isLoading {
                 Text("Loading...").frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 localViewStore.state.properties.initialContent.view(env, self).replaceNilWith {
@@ -49,7 +49,7 @@ struct CompendiumIndexView: View {
             }
 
             if localViewStore.state.properties.showAdd && localViewStore.state.canAddItem {
-                (localViewStore.state.input.filters?.types?.single).map { type in
+                (localViewStore.state.results.input.filters?.types?.single).map { type in
                     HStack {
                         RoundedButton(action: {
                             self.localViewStore.send(.onAddButtonTap)
@@ -72,7 +72,7 @@ struct CompendiumIndexView: View {
             }
         })
         .onAppear {
-            if self.viewStore.state.properties.initialContent.isSearchResults {
+            if self.viewStore.state.properties.initialContent.isSearchResults, self.viewStore.state.results.value == nil {
                 self.viewStore.send(.query(.onTextDidChange(viewStore.state.results.input.text), debounce: false)) // kick-start search, fixme?
             }
         }
@@ -95,41 +95,6 @@ struct CompendiumIndexView: View {
             FilterButton(viewStore: viewStore)
         } else {
             EmptyView()
-        }
-    }
-
-    struct State: NavigationStackSourceState, Equatable {
-        @EqIgnore var input: CompendiumIndexState.Query
-        var isLoading: Bool
-        var entries: [CompendiumEntry]?
-        @EqCompare(wrappedValue: nil, compare: { ($0 == nil) == ($1 == nil) }) var error: Error?
-
-        var properties: CompendiumIndexState.Properties
-        var canAddItem: Bool
-        var compatibleFilterProperties: [CompendiumIndexState.Query.Filters.Property]
-
-        var navigationStackItemStateId: String
-        var navigationTitle: String
-        var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode?
-
-        var presentedScreens: [NavigationDestination: CompendiumIndexState.NextScreen]
-
-        init(_ state: CompendiumIndexState) {
-            input = state.results.input
-            isLoading = state.results.result.isLoading
-            entries = state.results.value
-
-            properties = state.properties
-            canAddItem = state.canAddItem
-            compatibleFilterProperties = state.compatibleFilterProperties
-
-            navigationStackItemStateId = state.navigationStackItemStateId
-            navigationTitle = state.navigationTitle
-            navigationTitleDisplayMode = state.navigationTitleDisplayMode
-
-            presentedScreens = state.presentedScreens
-
-            error = state.results.error
         }
     }
 }
@@ -191,7 +156,6 @@ fileprivate struct CompendiumItemList: View {
                     viewStore.send(.scrollTo(nil))
                 }
             }
-            .id(entries.count < 50 ? AnyHashable("stable") : listHash)
         }
     }
 }

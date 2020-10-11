@@ -81,6 +81,24 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         return type == .group
     }
 
+    var normalizedForDeduplication: Self {
+        var res = self
+        res.results.input = Query.nullInstance
+        res.results.lastResult?.input = Query.nullInstance
+
+        res.presentedScreens = presentedScreens.mapValues {
+            switch $0 {
+            case .compendiumIndex: return .compendiumIndex(CompendiumIndexState.nullInstance)
+            case .groupEdit: return .groupEdit(CompendiumItemGroupEditState.nullInstance)
+            case .itemDetail: return .itemDetail(CompendiumEntryDetailViewState.nullInstance)
+            case .creatureEdit: return .creatureEdit(CreatureEditViewState.nullInstance)
+            case .import: return .import(CompendiumImportViewState())
+            }
+        }
+
+        return res
+    }
+
     struct Properties: Equatable {
         let showImport: Bool
         let showAdd: Bool
@@ -226,6 +244,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                             _ = try? env.compendium.put(entry)
                             subscriber.send(.scrollTo(entry.key))
                         }
+                        subscriber.send(.results(.reload))
                         subscriber.send(.setNextScreen(nil))
                         subscriber.send(completion: .finished)
                         return AnyCancellable { }
@@ -235,6 +254,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         let entry = CompendiumEntry(group)
                         try? env.compendium.put(entry)
 
+                        subscriber.send(.results(.reload))
                         subscriber.send(.scrollTo(entry.key))
                         subscriber.send(.setNextScreen(nil))
                         subscriber.send(completion: .finished)
@@ -374,4 +394,15 @@ extension CompendiumIndexState.Query {
             return .none
         }
     }
+
+    static let nullInstance = CompendiumIndexState.Query(text: nil, filters: nil, order: nil)
+}
+
+extension CompendiumIndexState {
+    static let nullInstance = CompendiumIndexState(
+        title: "",
+        properties: Properties.index,
+        results: .initial,
+        presentedScreens: [:]
+    )
 }

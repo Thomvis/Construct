@@ -171,3 +171,7 @@ enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
 extension CompendiumItem {
     var compendiumItemDetailViewStateId: String { key.rawValue }
 }
+
+extension CompendiumEntryDetailViewState {
+    static let nullInstance = CompendiumEntryDetailViewState(entry: CompendiumEntry.nullInstance)
+}
