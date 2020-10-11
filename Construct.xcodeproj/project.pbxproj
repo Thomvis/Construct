@@ -147,6 +147,8 @@
 		E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F90252203F40098A166 /* TabNavigationViewState.swift */; };
 		E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9425223E870098A166 /* ColumnNavigationView.swift */; };
 		E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */; };
+		E9869FDA2523BFCB0098A166 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869FD92523BFCB0098A166 /* SidebarView.swift */; };
+		E9869FDE2523BFF60098A166 /* SidebarViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869FDD2523BFF60098A166 /* SidebarViewState.swift */; };
 		E99095B3249797F400731EB9 /* AddCombatantDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */; };
 		E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */; };
 		E9969199247C3C0100A8B1A0 /* Spell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E940B5D8237B45FC00A8DAF4 /* Spell.swift */; };
@@ -317,6 +319,8 @@
 		E9869F90252203F40098A166 /* TabNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationViewState.swift; sourceTree = "<group>"; };
 		E9869F9425223E870098A166 /* ColumnNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationView.swift; sourceTree = "<group>"; };
 		E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationViewState.swift; sourceTree = "<group>"; };
+		E9869FD92523BFCB0098A166 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		E9869FDD2523BFF60098A166 /* SidebarViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarViewState.swift; sourceTree = "<group>"; };
 		E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantDetailView.swift; sourceTree = "<group>"; };
 		E990F4F023706AAC00276EB6 /* StateDrivenNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateDrivenNavigationView.swift; sourceTree = "<group>"; };
 		E999896022A6B4F20067BA25 /* Construct.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Construct.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -531,6 +535,8 @@
 				E9869F90252203F40098A166 /* TabNavigationViewState.swift */,
 				E9869F9425223E870098A166 /* ColumnNavigationView.swift */,
 				E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */,
+				E9869FD92523BFCB0098A166 /* SidebarView.swift */,
+				E9869FDD2523BFF60098A166 /* SidebarViewState.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -1056,6 +1062,7 @@
 				E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */,
 				E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */,
 				E963CCA72479423E009863D7 /* DiceRollerView.swift in Sources */,
+				E9869FDA2523BFCB0098A166 /* SidebarView.swift in Sources */,
 				E9819BE02482E478005B898E /* HealthDialog.swift in Sources */,
 				E97651D6248AE3C600C76865 /* CombatantResourceTrackerView.swift in Sources */,
 				E946B027247D9F53008A407C /* Encounter.swift in Sources */,
@@ -1128,6 +1135,7 @@
 				E931E54223394BCF00C3FE9A /* DiceExpressionParser.swift in Sources */,
 				E97651CA248AD9AA00C76865 /* SettingsView.swift in Sources */,
 				E942E011247EA78200170FAC /* CompendiumIndexView.swift in Sources */,
+				E9869FDE2523BFF60098A166 /* SidebarViewState.swift in Sources */,
 				E946B02F247E62CD008A407C /* NumberEntryPopover.swift in Sources */,
 				E9323A3B23205C4700F0D0C6 /* FileDataSource.swift in Sources */,
 				E963CCFC247BDEBF009863D7 /* CompendiumDataSourceReader.swift in Sources */,

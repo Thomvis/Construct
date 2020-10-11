@@ -10,6 +10,8 @@ import Foundation
 import ComposableArchitecture
 
 struct ColumnNavigationViewState: Equatable {
+    var sidebar: SidebarViewState = SidebarViewState()
+
     var diceCalculator: DiceCalculatorState = DiceCalculatorState(
         displayOutcomeExternally: false,
         rollOnAppear: false,
@@ -20,10 +22,12 @@ struct ColumnNavigationViewState: Equatable {
 
 enum ColumnNavigationViewAction: Equatable {
     case diceCalculator(DiceCalculatorAction)
+    case sidebar(SidebarViewAction)
 }
 
 extension ColumnNavigationViewState {
     static let reducer: Reducer<Self, ColumnNavigationViewAction, Environment> = Reducer.combine(
-        DiceCalculatorState.reducer.pullback(state: \.diceCalculator, action: /ColumnNavigationViewAction.diceCalculator)
+        DiceCalculatorState.reducer.pullback(state: \.diceCalculator, action: /ColumnNavigationViewAction.diceCalculator),
+        SidebarViewState.reducer.pullback(state: \.sidebar, action: /ColumnNavigationViewAction.sidebar)
     )
 }

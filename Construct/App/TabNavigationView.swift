@@ -43,6 +43,7 @@ struct TabNavigationView: View {
                     }
                     .tag(TabNavigationViewState.Tabs.diceRoller)
             }
+            .environment(\.appNavigation, .tab)
         }
     }
 }

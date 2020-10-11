@@ -149,3 +149,19 @@ protocol Popover {
     var popoverId: AnyHashable { get }
     func makeBody() -> AnyView
 }
+
+enum AppNavigation: Equatable {
+    case tab
+    case column
+}
+
+struct AppNavigationEnvironmentKey: EnvironmentKey {
+    static let defaultValue: AppNavigation = .tab
+}
+
+extension EnvironmentValues {
+    var appNavigation: AppNavigation {
+        get { self[AppNavigationEnvironmentKey.self] }
+        set { self[AppNavigationEnvironmentKey.self] = newValue }
+    }
+}

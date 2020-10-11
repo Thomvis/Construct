@@ -116,6 +116,8 @@ extension CompendiumIndexView {
 }
 
 fileprivate struct CompendiumItemList: View {
+    @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
+
     var store: Store<CompendiumIndexState, CompendiumIndexAction>
     @ObservedObject var viewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
 
@@ -135,6 +137,7 @@ fileprivate struct CompendiumItemList: View {
                                 store: store,
                                 state: /CompendiumIndexState.NextScreen.itemDetail,
                                 action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
+                                navDest: appNavigation == .tab ? .nextInStack : .detail,
                                 isActive: { $0.entry.key == entry.key },
                                 initialState: CompendiumEntryDetailViewState(entry: entry),
                                 destination: { viewProvider.detail($0) }

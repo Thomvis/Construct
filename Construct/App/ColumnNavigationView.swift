@@ -10,11 +10,19 @@ import SwiftUI
 import ComposableArchitecture
 
 struct ColumnNavigationView: View {
-    var store: Store<ColumnNavigationViewState, ColumnNavigationViewAction>
+    let store: Store<ColumnNavigationViewState, ColumnNavigationViewAction>
 
     var body: some View {
         ZStack {
-            Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+            NavigationView {
+                SidebarView(store: store.scope(state: { $0.sidebar }, action: { .sidebar($0) }))
+
+                Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+
+                Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+            }
+            .navigationViewStyle(DoubleColumnNavigationViewStyle())
+            .environment(\.appNavigation, .column)
 
             FloatingDiceRollerContainerView(store: store.scope(
                 state: { $0.diceCalculator },
