@@ -21,7 +21,7 @@ struct AddCombatantView: View {
 
     init(store: Store<AddCombatantState, AddCombatantState.Action>, onSelection: @escaping (Action, _ dismiss: Bool) -> Void) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication })
         self.onSelection = onSelection
     }
 

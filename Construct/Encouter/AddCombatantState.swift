@@ -10,7 +10,7 @@ import Foundation
 import ComposableArchitecture
 
 struct AddCombatantState: Equatable {
-    var compendiumState: CompendiumIndexState = CompendiumIndexState(title: "Add Combatant", properties: CompendiumIndexState.Properties(showImport: false, showAdd: false, initialContent: .initial(types: [.monster, .character, .group], destinationProperties: .init(showImport: false, showAdd: false, initialContent: .searchResults))), results: .initial(types: [.monster, .character, .group]))
+    var compendiumState: CompendiumIndexState
 
     var encounter: Encounter {
         didSet { updateCombatantsByDefinitionCache() }
@@ -19,19 +19,20 @@ struct AddCombatantState: Equatable {
 
     var combatantsByDefinitionCache: [String: [Combatant]] = [:] // computed from the encounter
 
-    init(encounter: Encounter, creatureEditViewState: CreatureEditViewState? = nil) {
-        self.encounter = encounter
-        self.creatureEditViewState = creatureEditViewState
-
-        updateCombatantsByDefinitionCache()
-    }
-
     private mutating func updateCombatantsByDefinitionCache() {
         var result: [String: [Combatant]] = [:]
         for combatant in encounter.combatants {
             result[combatant.definition.definitionID, default: []].append(combatant)
         }
         self.combatantsByDefinitionCache = result
+    }
+
+    var normalizedForDeduplication: Self {
+        return AddCombatantState(
+            compendiumState: CompendiumIndexState.nullInstance,
+            encounter: self.encounter,
+            creatureEditViewState: self.creatureEditViewState.map { _ in CreatureEditViewState.nullInstance }
+        )
     }
 
     enum Action: Equatable {
@@ -69,4 +70,12 @@ struct AddCombatantState: Equatable {
 
 extension AddCombatantState {
     static let nullInstance = AddCombatantState(encounter: Encounter.nullInstance)
+
+    init(encounter: Encounter, creatureEditViewState: CreatureEditViewState? = nil) {
+        self.compendiumState = CompendiumIndexState(title: "Add Combatant", properties: CompendiumIndexState.Properties(showImport: false, showAdd: false, initialContent: .initial(types: [.monster, .character, .group], destinationProperties: .init(showImport: false, showAdd: false, initialContent: .searchResults))), results: .initial(types: [.monster, .character, .group]))
+        self.encounter = encounter
+        self.creatureEditViewState = creatureEditViewState
+
+        updateCombatantsByDefinitionCache()
+    }
 }
