@@ -59,7 +59,9 @@ struct AddCombatantView: View {
         .sheet(isPresented: Binding(get: {
             self.viewStore.state.creatureEditViewState != nil
         }, set: {
-            if !$0 { self.viewStore.send(.onCreatureEditViewDismiss) }
+            if !$0 && self.viewStore.state.creatureEditViewState != nil {
+                self.viewStore.send(.onCreatureEditViewDismiss)
+            }
         })) {
             IfLetStore(self.store.scope(state: { $0.creatureEditViewState }, action: { .creatureEditView($0) })) { store in
                 NavigationView {

@@ -183,6 +183,7 @@ extension EncounterDetailViewState {
 
     static var reducer: Reducer<EncounterDetailViewState, Action, Environment> {
         return Reducer.combine(
+            AddCombatantState.reducer.optional().pullback(state: \.addCombatantState, action: /Action.addCombatant),
             Reducer { state, action, env in
                 switch action {
                 case .onAppear:
@@ -314,7 +315,6 @@ extension EncounterDetailViewState {
                     }
                 }.pullback(state: \.resumableRunningEncounters, action: /Action.resumableRunningEncounters)
             },
-            AddCombatantState.reducer.optional().pullback(state: \.addCombatantState, action: /Action.addCombatant),
             CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.combatantDetail),
             CombatantTagsViewState.reducer.optional().pullback(state: \.selectedCombatantTagsState, action: /Action.selectedCombatantTags)
         )
