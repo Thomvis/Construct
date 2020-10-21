@@ -60,7 +60,10 @@ protocol NavigationStackSourceAction {
 
 extension NavigationStackItemState {
     var topNavigationItemState: NavigationStackItemState? {
-        self
+        if let item = self as? NavigationStackItemStateConvertible {
+            return item.navigationStackItemState.topNavigationItemState
+        }
+        return self
     }
 }
 

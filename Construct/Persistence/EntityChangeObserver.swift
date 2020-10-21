@@ -38,6 +38,7 @@ extension SidebarViewState.NextScreen: HavingEntities {
         switch self {
         case .compendium: return []
         case .encounter(let s): return s.entities
+        case .campaignBrowse(let s): return s.entities
         }
     }
 }

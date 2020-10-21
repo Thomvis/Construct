@@ -12,14 +12,13 @@ import Combine
 import ComposableArchitecture
 
 struct CampaignBrowseView: View {
-    var env: Environment
+    @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.sheetPresentationMode) var sheetPresentationMode: SheetPresentationMode?
 
     var store: Store<CampaignBrowseViewState, CampaignBrowseViewAction>
     @ObservedObject var viewStore: ViewStore<CampaignBrowseViewState, CampaignBrowseViewAction>
 
-    init(_ env: Environment, _ store: Store<CampaignBrowseViewState, CampaignBrowseViewAction>) {
-        self.env = env
+    init(store: Store<CampaignBrowseViewState, CampaignBrowseViewAction>) {
         self.store = store
         self.viewStore = ViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication })
     }
@@ -158,7 +157,7 @@ struct CampaignBrowseView: View {
                 action: /CampaignBrowseViewAction.NextScreenAction.campaignBrowse,
                 isActive: { $0.node == item },
                 initialState: CampaignBrowseViewState(node: item, mode: self.viewStore.state.mode, items: .initial, showSettingsButton: false),
-                destination: { CampaignBrowseView(env, $0) },
+                destination: CampaignBrowseView.init,
                 label: label
             ).eraseToAnyView
         }
@@ -198,7 +197,9 @@ struct CampaignBrowseView: View {
         case .settings:
             return SettingsContainerView().environmentObject(env).eraseToAnyView
         case .nodeEdit(let s):
-            return NodeEditView(parent: self, state: Binding(get: {
+            return NodeEditView(onDoneTap: { (state, node, title) in
+                viewStore.send(.didTapNodeEditDone(state, node, title))
+            }, state: Binding(get: {
                 self.viewStore.state.nodeEditState ?? s
             }, set: {
                 self.viewStore.send(.sheet(.nodeEdit($0)))
@@ -206,7 +207,7 @@ struct CampaignBrowseView: View {
         case .move:
             return SheetNavigationContainer {
                 IfLetStore(self.store.scope(state: { $0.moveSheetState }, action: { .moveSheet($0) })) { store in
-                    CampaignBrowseView(self.env, store)
+                    CampaignBrowseView(store: store)
                 }
             }.environmentObject(env).eraseToAnyView
         }
@@ -217,7 +218,7 @@ struct CampaignBrowseView: View {
 struct NodeEditView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    let parent: CampaignBrowseView
+    let onDoneTap: (CampaignBrowseViewState.NodeEditState, CampaignNode?, String) -> Void
 
     @Binding var state: CampaignBrowseViewState.NodeEditState
 
@@ -259,7 +260,7 @@ struct NodeEditView: View {
     func saveAndDismissIfValid() {
         guard !state.name.isEmpty else { return }
 
-        self.parent.viewStore.send(.didTapNodeEditDone(self.state, self.state.node, self.state.name))
+        self.onDoneTap(self.state, self.state.node, self.state.name)
         self.presentationMode.wrappedValue.dismiss()
     }
 }
