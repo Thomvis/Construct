@@ -18,16 +18,27 @@ struct ColumnNavigationViewState: Equatable {
         expression: .number(0),
         mode: .editingExpression
     )
+
+    var referenceView = ReferenceViewState(
+        items: IdentifiedArray(
+            [
+                .init(state: ReferenceItemViewState())
+            ],
+            id: \.id
+        )
+    )
 }
 
 enum ColumnNavigationViewAction: Equatable {
     case diceCalculator(DiceCalculatorAction)
     case sidebar(SidebarViewAction)
+    case referenceView(ReferenceViewAction)
 }
 
 extension ColumnNavigationViewState {
     static let reducer: Reducer<Self, ColumnNavigationViewAction, Environment> = Reducer.combine(
         DiceCalculatorState.reducer.pullback(state: \.diceCalculator, action: /ColumnNavigationViewAction.diceCalculator),
-        SidebarViewState.reducer.pullback(state: \.sidebar, action: /ColumnNavigationViewAction.sidebar)
+        SidebarViewState.reducer.pullback(state: \.sidebar, action: /ColumnNavigationViewAction.sidebar),
+        ReferenceViewState.reducer.pullback(state: \.referenceView, action: /ColumnNavigationViewAction.referenceView)
     )
 }

@@ -19,15 +19,16 @@ struct ColumnNavigationView: View {
 
                 Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
 
-                Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+//                Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+                ReferenceView(store: store.scope(state: { $0.referenceView }, action: { .referenceView($0) }))
             }
             .navigationViewStyle(DoubleColumnNavigationViewStyle())
             .environment(\.appNavigation, .column)
 
-            FloatingDiceRollerContainerView(store: store.scope(
-                state: { $0.diceCalculator },
-                action: { .diceCalculator($0) }
-            ))
+//            FloatingDiceRollerContainerView(store: store.scope(
+//                state: { $0.diceCalculator },
+//                action: { .diceCalculator($0) }
+//            ))
         }
     }
 }
