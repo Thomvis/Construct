@@ -16,9 +16,13 @@ struct ReferenceView: View {
 
     var body: some View {
         WithViewStore(store) { viewStore in
-            TabbedDocumentView<ReferenceItemView>(items: tabItems(viewStore), selection: nil, _onDelete: {
-                viewStore.send(.removeTab($0))
-            })
+            TabbedDocumentView<ReferenceItemView>(
+                items: tabItems(viewStore),
+                selection: viewStore.binding(get: { $0.selectedItemId }, send: { .selectItem($0) }),
+                _onDelete: {
+                    viewStore.send(.removeTab($0))
+                }
+            )
             .toolbar {
                 ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
                     Button(action: {

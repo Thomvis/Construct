@@ -12,6 +12,7 @@ import ComposableArchitecture
 struct ReferenceViewState: Equatable {
 
     var items: IdentifiedArray<UUID, Item>
+    var selectedItemId: UUID?
 
     struct Item: Equatable, Identifiable {
         let id = UUID()
@@ -26,6 +27,7 @@ enum ReferenceViewAction: Equatable {
     case item(UUID, ReferenceItemViewAction)
     case onNewTabTapped
     case removeTab(UUID)
+    case selectItem(UUID?)
 }
 
 extension ReferenceViewState {
@@ -37,8 +39,11 @@ extension ReferenceViewState {
             case .onNewTabTapped:
                 let item = Item(state: ReferenceItemViewState())
                 state.items.append(item)
+                state.selectedItemId = item.id
             case .removeTab(let id):
                 state.items.removeAll(where: { $0.id == id })
+            case .selectItem(let id):
+                state.selectedItemId = id ?? state.items.first?.id
             }
             return .none
         }

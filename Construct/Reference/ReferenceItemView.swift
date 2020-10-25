@@ -29,36 +29,38 @@ struct ReferenceItemView: View {
 
         var body: some View {
             WithViewStore(store) { viewStore in
-                VStack(alignment: .leading) {
+                ScrollView {
                     VStack(alignment: .leading) {
-                        Text("Compendium").font(Font.title)
-                        LazyVGrid(columns: Array(repeating: GridItem(.fixed(90), spacing: 24), count: 4)) {
-                            Button(action: {
-                                viewStore.send(.setNextScreen(.compendium(CompendiumIndexState.init(title: "Monsters", properties: CompendiumIndexState.Properties.secondary, results: .initial(type: .monster)))))
-                            }) {
-                                Text("Monsters")
-                            }
+                        VStack(alignment: .leading) {
+                            Text("Compendium").font(Font.title)
+                            LazyVGrid(columns: Array(repeating: GridItem(.fixed(90), spacing: 24), count: 4)) {
+                                Button(action: {
+                                    viewStore.send(.setNextScreen(.compendium(CompendiumIndexState.init(title: "Monsters", properties: CompendiumIndexState.Properties.secondary, results: .initial(type: .monster)))))
+                                }) {
+                                    Text("Monsters")
+                                }
 
-                            Button(action: {
-                                viewStore.send(.setNextScreen(.compendium(CompendiumIndexState.init(title: "Characters", properties: CompendiumIndexState.Properties.secondary, results: .initial(type: .character)))))
-                            }) {
-                                Text("Characters")
-                            }
+                                Button(action: {
+                                    viewStore.send(.setNextScreen(.compendium(CompendiumIndexState.init(title: "Characters", properties: CompendiumIndexState.Properties.secondary, results: .initial(type: .character)))))
+                                }) {
+                                    Text("Characters")
+                                }
 
-                            Button(action: {
-                                viewStore.send(.setNextScreen(.compendium(CompendiumIndexState.init(title: "Adventuring Parties", properties: CompendiumIndexState.Properties.secondary, results: .initial(type: .group)))))
-                            }) {
-                                Text("Parties")
-                            }
+                                Button(action: {
+                                    viewStore.send(.setNextScreen(.compendium(CompendiumIndexState.init(title: "Adventuring Parties", properties: CompendiumIndexState.Properties.secondary, results: .initial(type: .group)))))
+                                }) {
+                                    Text("Parties")
+                                }
 
-                            Button(action: {
-                                viewStore.send(.setNextScreen(.compendium(CompendiumIndexState.init(title: "Spells", properties: CompendiumIndexState.Properties.secondary, results: .initial(type: .spell)))))
-                            }) {
-                                Text("Spells")
+                                Button(action: {
+                                    viewStore.send(.setNextScreen(.compendium(CompendiumIndexState.init(title: "Spells", properties: CompendiumIndexState.Properties.secondary, results: .initial(type: .spell)))))
+                                }) {
+                                    Text("Spells")
+                                }
                             }
                         }
+                        .buttonStyle(ButtonStyle())
                     }
-                    .buttonStyle(ButtonStyle())
                 }
                 .stateDrivenNavigationLink(
                     store: store,

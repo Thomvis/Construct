@@ -8,17 +8,18 @@
 
 import Foundation
 import SwiftUI
+import Introspect
 
 struct TabbedDocumentView<Content>: View where Content: View {
 
     var items: [ContentItem]
-    @State var selection: UUID?
+    @Binding var selection: UUID?
 
     var _onDelete: ((UUID) -> Void)?
 
     var body: some View {
         VStack(spacing: 0) {
-            Tabbar(items: items, selection: $selection) { id in
+            TabBar(items: items, selection: $selection) { id in
                 if let idx = items.firstIndex(where: { $0.id == id }) {
                     if idx < items.count - 1 {
                         selection = items[idx+1].id
@@ -33,22 +34,22 @@ struct TabbedDocumentView<Content>: View where Content: View {
 
             Divider()
 
-            if let selectedItem = items.first(where: { $0.id == selection }) {
-                selectedItem.view()
-                    .id(selectedItem.id) // needed to prevent NavigationView re-use
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                Color.clear
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            TabView(selection: $selection) {
+                ForEach(items, id: \.id) { item in
+                    item.view().tag(Optional.some(item.id))
+                }
             }
-
+            .introspectTabBarController { vc in
+                vc.tabBar.isHidden = true
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }.onAppear {
             selection = items.first?.id
         }
     }
 
     func onDelete(_ delete: @escaping (UUID) -> Void) -> Self {
-        return TabbedDocumentView(items: items, selection: selection, _onDelete: delete)
+        return TabbedDocumentView(items: items, selection: $selection, _onDelete: delete)
     }
 
     struct ContentItem {
@@ -57,7 +58,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
         let view: () -> Content
     }
 
-    struct Tabbar: View {
+    struct TabBar: View {
 
         var items: [ContentItem]
         @Binding var selection: UUID?
@@ -67,7 +68,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
         var body: some View {
             HStack(spacing: 0) {
                 ForEach(items, id: \.id) { item in
-                    TabView(label: item.label, selected: Binding(get: {
+                    TabBarItemView(label: item.label, selected: Binding(get: {
                         item.id == selection
                     }, set: {
                         if $0 {
@@ -107,7 +108,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
         }
     }
 
-    struct TabView: View {
+    struct TabBarItemView: View {
         let label: Label<Text, Image>
         @Binding var selected: Bool
 
@@ -147,5 +148,4 @@ struct TabbedDocumentView<Content>: View where Content: View {
             }
         }
     }
-
 }

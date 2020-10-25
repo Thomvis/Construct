@@ -157,6 +157,7 @@
 		E991F89025449DA8006CE8E8 /* ReferenceViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F88F25449DA8006CE8E8 /* ReferenceViewState.swift */; };
 		E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89325449E48006CE8E8 /* ReferenceItemView.swift */; };
 		E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */; };
+		E991F89D2545A791006CE8E8 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = E991F89C2545A791006CE8E8 /* Introspect */; };
 		E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */; };
 		E9969199247C3C0100A8B1A0 /* Spell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E940B5D8237B45FC00A8DAF4 /* Spell.swift */; };
 		E996919A247C40E500A8B1A0 /* CreatureEditViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */; };
@@ -407,6 +408,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */,
+				E991F89D2545A791006CE8E8 /* Introspect in Frameworks */,
 				E9869F7D2520A64B0098A166 /* GRDB in Frameworks */,
 				E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */,
 				E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */,
@@ -946,6 +948,7 @@
 				E9869F732520A17A0098A166 /* AppCenterAnalytics */,
 				E9869F752520A17A0098A166 /* AppCenterCrashes */,
 				E9869F7C2520A64B0098A166 /* GRDB */,
+				E991F89C2545A791006CE8E8 /* Introspect */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -1006,6 +1009,7 @@
 				E931CF8624FE5D68006CEE78 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 				E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
 				E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+				E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -1531,6 +1535,14 @@
 				minimumVersion = 5.0.0;
 			};
 		};
+		E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/siteline/SwiftUI-Introspect.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1563,6 +1575,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
 			productName = GRDB;
+		};
+		E991F89C2545A791006CE8E8 /* Introspect */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */;
+			productName = Introspect;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
