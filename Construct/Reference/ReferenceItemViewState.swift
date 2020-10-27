@@ -42,6 +42,19 @@ struct ReferenceItemViewState: Equatable {
         case home(Home)
         case combatantDetail(CombatantDetail)
 
+        var combatantDetailState: CombatantDetail? {
+            get {
+                if case .combatantDetail(let s) = self {
+                    return s
+                }
+                return nil
+            }
+            set {
+                guard case .combatantDetail = self, let newValue = newValue else { return }
+                self = .combatantDetail(newValue)
+            }
+        }
+
         struct Home: Equatable, NavigationStackSourceState {
 
             var navigationStackItemStateId: String = "home"

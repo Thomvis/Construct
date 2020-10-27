@@ -39,10 +39,18 @@ extension ReferenceViewState {
     }
 
     mutating func updateEncounter(_ encounter: Encounter) {
-        fatalError()
+        items = IdentifiedArray(items.map { item in
+            return apply(item) {
+                $0.state.content.combatantDetailState?.encounter = encounter
+            }
+        })
     }
 
     mutating func updateRunningEncounter(_ encounter: RunningEncounter?) {
-        fatalError()
+        items = IdentifiedArray(items.map { item in
+            return apply(item) {
+                $0.state.content.combatantDetailState?.runningEncounter = encounter
+            }
+        })
     }
 }
