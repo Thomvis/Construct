@@ -18,12 +18,19 @@ struct ReferenceItemView: View {
         WithViewStore(store) { viewStore in
             NavigationView {
                 IfLetStore(store.scope(state: { $0.home }, action: { .contentHome($0) }), then: HomeView.init)
-                    .navigationBarHidden(true)
+                    .navigationViewChild
+                    .introspectNavigationController {
+                        $0.isNavigationBarHidden = true
+                    }
 
                 IfLetStore(store.scope(state: { $0.combatantDetail }, action: { .contentCombatantDetail($0) }), then: CombatantDetailView.init)
-                    .navigationBarHidden(true)
+                    .navigationViewChild
+                    .introspectNavigationController {
+                        $0.isNavigationBarHidden = true
+                    }
             }
             .navigationViewStyle(StackNavigationViewStyle())
+            .environment(\.nestedNavigationViewHidesBar, true)
         }
     }
 
