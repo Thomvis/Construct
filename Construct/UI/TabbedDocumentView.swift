@@ -19,17 +19,19 @@ struct TabbedDocumentView<Content>: View where Content: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TabBar(items: items, selection: $selection) { id in
-                if let idx = items.firstIndex(where: { $0.id == id }) {
-                    if idx < items.count - 1 {
-                        selection = items[idx+1].id
-                    } else if idx > 0 {
-                        selection = items[idx-1].id
-                    } else {
-                        selection = nil
+            if items.count > 1 {
+                TabBar(items: items, selection: $selection) { id in
+                    if let idx = items.firstIndex(where: { $0.id == id }) {
+                        if idx < items.count - 1 {
+                            selection = items[idx+1].id
+                        } else if idx > 0 {
+                            selection = items[idx-1].id
+                        } else {
+                            selection = nil
+                        }
                     }
+                    _onDelete?(id)
                 }
-                _onDelete?(id)
             }
 
             Divider()
@@ -142,6 +144,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
                         .foregroundColor(Color(UIColor.gray))
 
                     configuration.title
+                        .lineLimit(1)
                         .if(selected) { $0.font(Font.footnote.weight(.bold)) }
                         .foregroundColor(Color(selected ? UIColor.label : UIColor.gray))
                 }

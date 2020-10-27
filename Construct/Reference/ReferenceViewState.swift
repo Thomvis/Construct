@@ -49,3 +49,12 @@ extension ReferenceViewState {
         }
     )
 }
+
+extension ReferenceViewState: NavigationStackItemState {
+    var navigationStackItemStateId: String { return "ReferenceViewState" }
+    var navigationTitle: String { return "Reference" }
+}
+
+extension ReferenceViewState {
+    static let nullInstance = ReferenceViewState(items: [], selectedItemId: nil)
+}

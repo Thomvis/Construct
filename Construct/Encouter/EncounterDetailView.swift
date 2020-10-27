@@ -99,7 +99,7 @@ struct EncounterDetailView: View {
         }, content: self.sheetView)
         .actionSheet(store.scope(state: { $0.actionSheet }), dismiss: .actionSheet(nil))
         .popover(popover)
-        .stateDrivenNavigationLink(store: store, state: /EncounterDetailViewState.NextScreen.combatantColumn, action: /EncounterDetailViewState.Action.NextScreenAction.combatantColumn, navDest: .detail, isActive: { _ in true }, destination: CombatantDetailColumnContainerView.init)
+        .stateDrivenNavigationLink(store: store, state: /EncounterDetailViewState.NextScreen.reference, action: /EncounterDetailViewState.Action.NextScreenAction.reference, navDest: .detail, isActive: { _ in true }, destination: EncounterReferenceView.init)
         .onAppear {
             self.viewStore.send(.onAppear)
         }
@@ -374,7 +374,8 @@ struct CombatantSection: View {
                     if parent.appNavigation == .tab {
                         self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
                     } else {
-                        self.parent.viewStore.send(.setDetailScreen(.combatantColumn(CombatantDetailColumnContainerViewState(encounter: self.parent.viewStore.state.encounter, selectedCombatantId: combatant.id, runningEncounter: self.parent.viewStore.state.running))))
+//                        self.parent.viewStore.send(.setDetailScreen(.combatantColumn(CombatantDetailColumnContainerViewState(encounter: self.parent.viewStore.state.encounter, selectedCombatantId: combatant.id, runningEncounter: self.parent.viewStore.state.running))))
+                        self.parent.viewStore.send(.setDetailScreen(.reference(ReferenceViewState(encounter: self.parent.viewStore.state.encounter, selectedCombatantId: combatant.id, runningEncounter: self.parent.viewStore.state.running))))
                     }
                 }
                 .contextMenu {

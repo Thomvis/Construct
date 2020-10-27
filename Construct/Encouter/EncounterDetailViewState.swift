@@ -17,7 +17,7 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
         didSet {
             let b = building
             addCombatantState?.encounter = b
-            combatantColumnState?.encounter = b
+            referenceState?.updateEncounter(b)
             if let cds = combatantDetailState, let c = b.combatant(for: cds.combatant.id) {
                 combatantDetailState?.combatant = c
             }
@@ -40,7 +40,7 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
             }
 
             let r = running
-            combatantColumnState?.runningEncounter = r
+            referenceState?.updateRunningEncounter(r)
         }
     }
 
@@ -95,16 +95,16 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
         }
     }
 
-    var combatantColumnState: CombatantDetailColumnContainerViewState? {
+    var referenceState: ReferenceViewState? {
         get {
-            if case .combatantColumn(let state)? = detailScreen {
+            if case .reference(let state)? = detailScreen {
                 return state
             }
             return nil
         }
         set {
             if detailScreen != nil {
-                self.detailScreen = newValue.map { .combatantColumn($0) }
+                self.detailScreen = newValue.map { .reference($0) }
             }
         }
     }
@@ -149,7 +149,7 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
 
         res.detailScreen = detailScreen.map {
             switch $0 {
-            case .combatantColumn: return .combatantColumn(CombatantDetailColumnContainerViewState.nullInstance)
+            case .reference: return .reference(ReferenceViewState.nullInstance)
             }
         }
         return res
@@ -175,11 +175,11 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
     }
 
     enum NextScreen: Equatable, NavigationStackItemStateConvertible, NavigationStackItemState {
-        case combatantColumn(CombatantDetailColumnContainerViewState)
+        case reference(ReferenceViewState)
 
         var navigationStackItemState: NavigationStackItemState {
             switch self {
-            case .combatantColumn(let s): return s
+            case .reference(let s): return s
             }
         }
     }
@@ -223,7 +223,7 @@ extension EncounterDetailViewState {
 
         enum NextScreenAction: Equatable {
             case combatant(CombatantDetailViewAction)
-            case combatantColumn(CombatantDetailSplitContainerViewAction)
+            case reference(EncounterReferenceViewAction)
         }
 
         static func presentScreen(_ destination: NavigationDestination, _ screen: EncounterDetailViewState.NextScreen?) -> Self {
@@ -319,8 +319,8 @@ extension EncounterDetailViewState {
                         return Effect(value: .encounter(.combatant(combatantDetailState.combatant.id, a)))
                     }
                 case .combatantDetail: break // handled by CombatantDetailViewState.reducer
-                case .detailScreen(.combatantColumn(.combatantDetail(let id, .combatant(let a)))):
-                    return Effect(value: .encounter(.combatant(id, a)))
+//                case .detailScreen(.combatantColumn(.combatantDetail(let id, .combatant(let a)))):
+//                    return Effect(value: .encounter(.combatant(id, a)))
                 case .popover(let p):
                     state.popover = p
                 case .resetEncounter(let clearAll):
@@ -386,7 +386,7 @@ extension EncounterDetailViewState {
             CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.combatantDetail),
             CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.detailScreen..Action.NextScreenAction.combatant),
             CombatantTagsViewState.reducer.optional().pullback(state: \.selectedCombatantTagsState, action: /Action.selectedCombatantTags),
-            CombatantDetailColumnContainerViewState.reducer.optional().pullback(state: \.combatantColumnState, action: /Action.detailScreen..Action.NextScreenAction.combatantColumn)
+            encounterReferenceReducer.optional().pullback(state: \.referenceState, action: /Action.detailScreen..Action.NextScreenAction.reference)
         )
     }
 }

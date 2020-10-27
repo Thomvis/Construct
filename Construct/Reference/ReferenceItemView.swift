@@ -19,6 +19,9 @@ struct ReferenceItemView: View {
             NavigationView {
                 IfLetStore(store.scope(state: { $0.home }, action: { .contentHome($0) }), then: HomeView.init)
                     .navigationBarHidden(true)
+
+                IfLetStore(store.scope(state: { $0.combatantDetail }, action: { .contentCombatantDetail($0) }), then: CombatantDetailView.init)
+                    .navigationBarHidden(true)
             }
             .navigationViewStyle(StackNavigationViewStyle())
         }
@@ -84,6 +87,14 @@ struct ReferenceItemView: View {
                     )
                     .opacity(configuration.isPressed ? 0.66 : 1.0)
             }
+        }
+    }
+
+    struct CombatantDetailView: View {
+        let store: Store<ReferenceItemViewState.Content.CombatantDetail, ReferenceItemViewAction.CombatantDetail>
+
+        var body: some View {
+            Construct.CombatantDetailView(store: store.scope(state: { $0.detailState }, action: { .detail($0) }))
         }
     }
 }

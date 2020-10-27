@@ -26,8 +26,21 @@ struct ReferenceItemViewState: Equatable {
         }
     }
 
+    var combatantDetail: Content.CombatantDetail? {
+        get {
+            guard case .combatantDetail(let s) = content else { return nil }
+            return s
+        }
+        set {
+            if let newValue = newValue {
+                content = .combatantDetail(newValue)
+            }
+        }
+    }
+
     enum Content: Equatable {
         case home(Home)
+        case combatantDetail(CombatantDetail)
 
         struct Home: Equatable, NavigationStackSourceState {
 
@@ -55,11 +68,42 @@ struct ReferenceItemViewState: Equatable {
                 }
             }
         }
+
+        struct CombatantDetail: Equatable {
+            var encounter: Encounter // updated from the outside
+            var selectedCombatantId: UUID
+
+            var runningEncounter: RunningEncounter? {
+                didSet {
+                    if pinToTurn, let turn = runningEncounter?.turn {
+                        selectedCombatantId = turn.combatantId
+                    }
+                }
+            }
+
+            var pinToTurn: Bool
+
+            var detailState: CombatantDetailViewState
+
+            init(encounter: Encounter, selectedCombatantId: UUID, runningEncounter: RunningEncounter?) {
+                self.encounter = encounter
+                self.selectedCombatantId = selectedCombatantId
+                self.runningEncounter = runningEncounter
+
+                self.pinToTurn = selectedCombatantId == runningEncounter?.turn?.combatantId
+
+                let combatant = runningEncounter?.current.combatant(for: selectedCombatantId)
+                    ?? encounter.combatant(for: selectedCombatantId)
+                    ?? Combatant.nullInstance
+                self.detailState = CombatantDetailViewState(runningEncounter: runningEncounter, combatant: combatant)
+            }
+        }
     }
 }
 
 enum ReferenceItemViewAction: Equatable {
     case contentHome(Home)
+    case contentCombatantDetail(CombatantDetail)
 
     enum Home: Equatable, NavigationStackSourceAction {
         case setNextScreen(ReferenceItemViewState.Content.Home.NextScreen?)
@@ -85,13 +129,18 @@ enum ReferenceItemViewAction: Equatable {
             case compendium(CompendiumIndexAction)
         }
     }
+
+    enum CombatantDetail: Equatable {
+        case detail(CombatantDetailViewAction)
+    }
 }
 
 extension ReferenceItemViewState {
     static let nullInstance = ReferenceItemViewState()
 
     static let reducer: Reducer<Self, ReferenceItemViewAction, Environment> = Reducer.combine(
-        ReferenceItemViewState.Content.Home.reducer.optional().pullback(state: \.home, action: /ReferenceItemViewAction.contentHome)
+        ReferenceItemViewState.Content.Home.reducer.optional().pullback(state: \.home, action: /ReferenceItemViewAction.contentHome),
+        ReferenceItemViewState.Content.CombatantDetail.reducer.optional().pullback(state: \.combatantDetail, action: /ReferenceItemViewAction.contentCombatantDetail)
     )
 }
 
@@ -109,5 +158,11 @@ extension ReferenceItemViewState.Content.Home {
             }
             return .none
         }
+    )
+}
+
+extension ReferenceItemViewState.Content.CombatantDetail {
+    static let reducer: Reducer<Self, ReferenceItemViewAction.CombatantDetail, Environment> = Reducer.combine(
+        CombatantDetailViewState.reducer.pullback(state: \.detailState, action: /ReferenceItemViewAction.CombatantDetail.detail)
     )
 }

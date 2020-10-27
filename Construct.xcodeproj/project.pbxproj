@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E9040B4A252C8B78009EAE15 /* CombatantDetailColumnContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9040B49252C8B78009EAE15 /* CombatantDetailColumnContainerView.swift */; };
-		E9040B4E252C8BD0009EAE15 /* CombatantDetailColumnContainerViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9040B4D252C8BD0009EAE15 /* CombatantDetailColumnContainerViewState.swift */; };
 		E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */; };
 		E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E905E0BB246D83B800698C0A /* ComposableArchitecture */; };
 		E91885CB23943BBF0094EC87 /* Sort.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91885CA23943BBF0094EC87 /* Sort.swift */; };
@@ -158,6 +156,7 @@
 		E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89325449E48006CE8E8 /* ReferenceItemView.swift */; };
 		E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */; };
 		E991F89D2545A791006CE8E8 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = E991F89C2545A791006CE8E8 /* Introspect */; };
+		E991F8A12545FC09006CE8E8 /* EncounterReferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F8A02545FC09006CE8E8 /* EncounterReferenceView.swift */; };
 		E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */; };
 		E9969199247C3C0100A8B1A0 /* Spell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E940B5D8237B45FC00A8DAF4 /* Spell.swift */; };
 		E996919A247C40E500A8B1A0 /* CreatureEditViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */; };
@@ -213,8 +212,6 @@
 /* Begin PBXFileReference section */
 		E903F71F237F42AF004C1AC8 /* InlineCombatantTagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineCombatantTagsView.swift; sourceTree = "<group>"; };
 		E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagPopover.swift; sourceTree = "<group>"; };
-		E9040B49252C8B78009EAE15 /* CombatantDetailColumnContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantDetailColumnContainerView.swift; sourceTree = "<group>"; };
-		E9040B4D252C8BD0009EAE15 /* CombatantDetailColumnContainerViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantDetailColumnContainerViewState.swift; sourceTree = "<group>"; };
 		E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryDetailViewState.swift; sourceTree = "<group>"; };
 		E91885CA23943BBF0094EC87 /* Sort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sort.swift; sourceTree = "<group>"; };
 		E91885CC23944A3F0094EC87 /* ddb_bass.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ddb_bass.json; sourceTree = "<group>"; };
@@ -338,6 +335,7 @@
 		E991F88F25449DA8006CE8E8 /* ReferenceViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceViewState.swift; sourceTree = "<group>"; };
 		E991F89325449E48006CE8E8 /* ReferenceItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemView.swift; sourceTree = "<group>"; };
 		E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemViewState.swift; sourceTree = "<group>"; };
+		E991F8A02545FC09006CE8E8 /* EncounterReferenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterReferenceView.swift; sourceTree = "<group>"; };
 		E999896022A6B4F20067BA25 /* Construct.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Construct.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E999896322A6B4F20067BA25 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E999896522A6B4F20067BA25 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -890,8 +888,7 @@
 				E972BA95247849A900F313D7 /* CombatantDetailViewState.swift */,
 				E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */,
 				E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */,
-				E9040B49252C8B78009EAE15 /* CombatantDetailColumnContainerView.swift */,
-				E9040B4D252C8BD0009EAE15 /* CombatantDetailColumnContainerViewState.swift */,
+				E991F8A02545FC09006CE8E8 /* EncounterReferenceView.swift */,
 			);
 			path = Encouter;
 			sourceTree = "<group>";
@@ -1120,7 +1117,6 @@
 				E9F56AC6235483780085A72D /* AppState.swift in Sources */,
 				E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */,
 				E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */,
-				E9040B4E252C8BD0009EAE15 /* CombatantDetailColumnContainerViewState.swift in Sources */,
 				E97AEE642396F6A100569E79 /* ClearableTextField.swift in Sources */,
 				E972BA942477F8B200F313D7 /* EquatablePropertyWrappers.swift in Sources */,
 				E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */,
@@ -1147,6 +1143,7 @@
 				E97651D5248AE2DA00C76865 /* InlineCombatantTagsView.swift in Sources */,
 				E9819BE12482E6AA005B898E /* CombatantResourcesViewState.swift in Sources */,
 				E991F89025449DA8006CE8E8 /* ReferenceViewState.swift in Sources */,
+				E991F8A12545FC09006CE8E8 /* EncounterReferenceView.swift in Sources */,
 				E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */,
 				E97651D4248AE1CF00C76865 /* CombatantDetailView.swift in Sources */,
 				E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */,
@@ -1168,7 +1165,6 @@
 				E931E54B233971B300C3FE9A /* SearchField.swift in Sources */,
 				E97651D2248AE0D600C76865 /* RunningEncounterEventRow.swift in Sources */,
 				E9819BE22482E772005B898E /* CombatantTrackerEditView.swift in Sources */,
-				E9040B4A252C8B78009EAE15 /* CombatantDetailColumnContainerView.swift in Sources */,
 				E97651D9248AEA8000C76865 /* CombatantTagEditView.swift in Sources */,
 				E931E54223394BCF00C3FE9A /* DiceExpressionParser.swift in Sources */,
 				E97651CA248AD9AA00C76865 /* SettingsView.swift in Sources */,
