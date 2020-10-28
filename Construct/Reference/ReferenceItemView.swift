@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
+import InterposeKit
 
 struct ReferenceItemView: View {
 
@@ -16,21 +17,16 @@ struct ReferenceItemView: View {
 
     var body: some View {
         WithViewStore(store) { viewStore in
-            NavigationView {
-                IfLetStore(store.scope(state: { $0.home }, action: { .contentHome($0) }), then: HomeView.init)
-                    .navigationViewChild
-                    .introspectNavigationController {
-                        $0.isNavigationBarHidden = true
-                    }
+            NavigationViewHost {
+                NavigationView {
+                    Group {
+                        IfLetStore(store.scope(state: { $0.home }, action: { .contentHome($0) }), then: HomeView.init)
 
-                IfLetStore(store.scope(state: { $0.combatantDetail }, action: { .contentCombatantDetail($0) }), then: CombatantDetailView.init)
-                    .navigationViewChild
-                    .introspectNavigationController {
-                        $0.isNavigationBarHidden = true
+                        IfLetStore(store.scope(state: { $0.combatantDetail }, action: { .contentCombatantDetail($0) }), then: CombatantDetailView.init)
                     }
+                }
+                .navigationViewStyle(StackNavigationViewStyle())
             }
-            .navigationViewStyle(StackNavigationViewStyle())
-            .environment(\.nestedNavigationViewHidesBar, true)
         }
     }
 
@@ -102,6 +98,39 @@ struct ReferenceItemView: View {
 
         var body: some View {
             Construct.CombatantDetailView(store: store.scope(state: { $0.detailState }, action: { .detail($0) }))
+        }
+    }
+}
+
+/// Fully disables the navigation bar of direct NavigationViews added to it
+private struct NavigationViewHost<Content>: UIViewControllerRepresentable where Content: View {
+    let content: () -> Content
+
+    func makeUIViewController(context: Context) -> Host {
+        Host(rootView: content())
+    }
+
+    func updateUIViewController(_ uiViewController: Host, context: Context) {
+
+    }
+
+
+    class Host: UIHostingController<Content> {
+        override func addChild(_ childController: UIViewController) {
+            super.addChild(childController)
+
+            if let nav = childController as? UINavigationController {
+                nav.isNavigationBarHidden = true
+                try! nav.hook(
+                    #selector(UINavigationController.setNavigationBarHidden(_:animated:)),
+                    methodSignature: (@convention(c) (AnyObject, Selector, Bool, Bool) -> Void).self,
+                    hookSignature: (@convention(block) (AnyObject, Bool, Bool) -> Void).self
+                ) { store in
+                    { `self`, hidden, animated in
+                        // no-op
+                    }
+                }
+            }
         }
     }
 }
