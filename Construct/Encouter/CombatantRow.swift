@@ -25,12 +25,11 @@ struct CombatantRow: View {
                 }) {
                     HealthFractionView(hp: hp)
                 }
-            }?.accessibilitySortPriority(.hp)
-            combatant.definition.ac.map { ShieldIcon(ac: $0) }?.accessibilitySortPriority(.ac)
+            }
+            combatant.definition.ac.map { ShieldIcon(ac: $0) }
             VStack(alignment: .leading) {
                 combatant.discriminatedNameText()
                     .fontWeight(combatant.definition.player != nil ? .bold : .regular)
-                    .accessibilitySortPriority(.name)
 
                 secondaryText
                     .multilineTextAlignment(.leading)
@@ -38,7 +37,6 @@ struct CombatantRow: View {
                     .font(.caption)
                     .foregroundColor(Color(UIColor.secondaryLabel))
                     .layoutPriority(0.5)
-                    .accessibilitySortPriority(.other)
             }.layoutPriority(0.5)
             Spacer()
 
@@ -64,12 +62,11 @@ struct CombatantRow: View {
                 .background(Circle().foregroundColor(turnIndicatorColor).frame(width: 33, height: 33))
                 .frame(minWidth: 44, maxHeight: .infinity, alignment: .trailing)
                 .padding(.trailing, 5)
-            }.accessibilitySortPriority(.initiative)
+            }
         }
         .opacity(combatant.isDead ? 0.33 : 1.0)
         .padding([.top, .bottom], 5)
         .frame(minHeight: 40)
-        .accessibilityElement(children: .combine)
     }
 
     // Returned text will contain at most two segments (i.e. different pieces of info)
@@ -155,29 +152,5 @@ struct CombatantRow_Preview: PreviewProvider {
 
             ShieldIcon(ac: 12).previewLayout(.sizeThatFits)
         }
-    }
-}
-
-private extension CombatantRow {
-    /// The available accessibility elements in the row. Higher numbers are featured first, so the case order matters.
-    ///
-    /// We're aiming for an order as follows;
-    /// `<name>, <hp>, <ac>, <initiative>, <other info>`
-    enum AccessibilityElements: Int {
-        case other
-        case initiative
-        case ac
-        case hp
-        case name
-        
-        var sortPriority: Double {
-            return Double(rawValue)
-        }
-    }
-}
-
-private extension View {
-    func accessibilitySortPriority(_ accessibilityElement: CombatantRow.AccessibilityElements) -> ModifiedContent<Self, AccessibilityAttachmentModifier> {
-        accessibilitySortPriority(accessibilityElement.sortPriority)
     }
 }
