@@ -14,6 +14,22 @@ struct ReferenceViewState: Equatable {
     var items: IdentifiedArray<UUID, Item>
     var selectedItemId: UUID?
 
+    init(items: IdentifiedArray<UUID, Item>) {
+        self.items = items
+        self.selectedItemId = items.first?.id
+    }
+
+    var selectedItemNavigationNode: NavigationNode0? {
+        get {
+            selectedItemId.flatMap { items[id: $0]?.state.content.navigationNode }
+        }
+        set {
+            guard let newValue = newValue else { return }
+            guard let id = selectedItemId else { return }
+            items[id: id]?.state.content.navigationNode = newValue
+        }
+    }
+
     struct Item: Equatable, Identifiable {
         let id = UUID()
         var state: ReferenceItemViewState
@@ -25,6 +41,7 @@ struct ReferenceViewState: Equatable {
 
 enum ReferenceViewAction: Equatable {
     case item(UUID, ReferenceItemViewAction)
+    case onBackTapped
     case onNewTabTapped
     case removeTab(UUID)
     case selectItem(UUID?)
@@ -36,6 +53,8 @@ extension ReferenceViewState {
         Reducer { state, action, env in
             switch action {
             case .item: break;
+            case .onBackTapped:
+                state.selectedItemNavigationNode?.popLastNavigationStackItem()
             case .onNewTabTapped:
                 let item = Item(state: ReferenceItemViewState())
                 state.items.append(item)
@@ -56,5 +75,5 @@ extension ReferenceViewState: NavigationStackItemState {
 }
 
 extension ReferenceViewState {
-    static let nullInstance = ReferenceViewState(items: [], selectedItemId: nil)
+    static let nullInstance = ReferenceViewState(items: [])
 }

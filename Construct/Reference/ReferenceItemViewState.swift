@@ -55,6 +55,24 @@ struct ReferenceItemViewState: Equatable {
             }
         }
 
+        var navigationNode: NavigationNode0 {
+            get {
+                switch self {
+                case .home(let h): return h
+                case .combatantDetail(let cd): return cd.detailState
+                }
+            }
+            set {
+                switch newValue {
+                case let v as Home:
+                    self = .home(v)
+                case let v as CombatantDetailViewState:
+                    self.combatantDetailState?.detailState = v
+                default: break
+                }
+            }
+        }
+
         struct Home: Equatable, NavigationStackSourceState {
 
             var navigationStackItemStateId: String = "home"

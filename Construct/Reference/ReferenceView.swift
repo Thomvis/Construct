@@ -33,6 +33,15 @@ struct ReferenceView: View {
                         Label("New Tab", systemImage: "plus")
                     }
                 }
+
+                ToolbarItem(placement: ToolbarItemPlacement.navigation) {
+                    Button(action: {
+                        viewStore.send(.onBackTapped)
+                    }) {
+                        Label("Back", systemImage: "chevron.left")
+                    }
+                    .disabled((viewStore.selectedItemNavigationNode?.navigationStackSize() ?? 0) <= 1)
+                }
             }
             .navigationBarTitle("Reference", displayMode: .inline)
         }

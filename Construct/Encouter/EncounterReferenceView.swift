@@ -35,7 +35,7 @@ extension ReferenceViewState {
             selectedCombatantId: selectedCombatantId,
             runningEncounter: runningEncounter
         )))
-        self.init(items: [.init(state: itemState)], selectedItemId: nil)
+        self.init(items: [.init(state: itemState)])
     }
 
     mutating func updateEncounter(_ encounter: Encounter) {

@@ -158,6 +158,7 @@
 		E991F89D2545A791006CE8E8 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = E991F89C2545A791006CE8E8 /* Introspect */; };
 		E991F8A12545FC09006CE8E8 /* EncounterReferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F8A02545FC09006CE8E8 /* EncounterReferenceView.swift */; };
 		E991F8AF2549746C006CE8E8 /* InterposeKit in Frameworks */ = {isa = PBXBuildFile; productRef = E991F8AE2549746C006CE8E8 /* InterposeKit */; };
+		E991F8DB254B250B006CE8E8 /* Presented.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F8DA254B250B006CE8E8 /* Presented.generated.swift */; };
 		E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */; };
 		E9969199247C3C0100A8B1A0 /* Spell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E940B5D8237B45FC00A8DAF4 /* Spell.swift */; };
 		E996919A247C40E500A8B1A0 /* CreatureEditViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */; };
@@ -337,6 +338,7 @@
 		E991F89325449E48006CE8E8 /* ReferenceItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemView.swift; sourceTree = "<group>"; };
 		E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemViewState.swift; sourceTree = "<group>"; };
 		E991F8A02545FC09006CE8E8 /* EncounterReferenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterReferenceView.swift; sourceTree = "<group>"; };
+		E991F8DA254B250B006CE8E8 /* Presented.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Presented.generated.swift; sourceTree = "<group>"; };
 		E999896022A6B4F20067BA25 /* Construct.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Construct.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E999896322A6B4F20067BA25 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E999896522A6B4F20067BA25 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -734,6 +736,14 @@
 			path = Reference;
 			sourceTree = "<group>";
 		};
+		E991F8D9254B250B006CE8E8 /* Sourcery */ = {
+			isa = PBXGroup;
+			children = (
+				E991F8DA254B250B006CE8E8 /* Presented.generated.swift */,
+			);
+			path = Sourcery;
+			sourceTree = "<group>";
+		};
 		E999895722A6B4F20067BA25 = {
 			isa = PBXGroup;
 			children = (
@@ -771,6 +781,7 @@
 				E9DF660B2313A978005D4FE5 /* Encouter */,
 				E98F96FF230B32250080372A /* Models */,
 				E98F96FA230B24200080372A /* Foundation */,
+				E991F8D9254B250B006CE8E8 /* Sourcery */,
 				E999896322A6B4F20067BA25 /* AppDelegate.swift */,
 				E999896522A6B4F20067BA25 /* SceneDelegate.swift */,
 				E999896922A6B4F30067BA25 /* Assets.xcassets */,
@@ -932,6 +943,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E999897422A6B4F30067BA25 /* Build configuration list for PBXNativeTarget "Construct" */;
 			buildPhases = (
+				E991F8D8254B22E6006CE8E8 /* Sourcery */,
 				E999895C22A6B4F20067BA25 /* Sources */,
 				E999895D22A6B4F20067BA25 /* Frameworks */,
 				E999895E22A6B4F20067BA25 /* Resources */,
@@ -1054,6 +1066,27 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		E991F8D8254B22E6006CE8E8 /* Sourcery */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Sourcery;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which sourcery >/dev/null; then\n  sourcery --sources Construct --templates Sourcery --output Construct/Sourcery\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		E999895C22A6B4F20067BA25 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -1149,6 +1182,7 @@
 				E991F89025449DA8006CE8E8 /* ReferenceViewState.swift in Sources */,
 				E991F8A12545FC09006CE8E8 /* EncounterReferenceView.swift in Sources */,
 				E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */,
+				E991F8DB254B250B006CE8E8 /* Presented.generated.swift in Sources */,
 				E97651D4248AE1CF00C76865 /* CombatantDetailView.swift in Sources */,
 				E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */,
 				E946B023247D9E91008A407C /* AdHocCombatant.swift in Sources */,
