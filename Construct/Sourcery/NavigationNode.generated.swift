@@ -1,13 +1,13 @@
 // Generated using Sourcery 1.0.0 — https://github.com/krzysztofzablocki/Sourcery
 // DO NOT EDIT
 
-protocol NavigationNode0 {
+protocol NavigationNode {
     func topNavigationItems() -> [Any]
     func navigationStackSize() -> Int
     mutating func popLastNavigationStackItem()
 }
 
-extension CombatantResourcesViewState: NavigationNode0 {
+extension CombatantResourcesViewState: NavigationNode {
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -20,7 +20,7 @@ extension CombatantResourcesViewState: NavigationNode0 {
         // no-op
     }
 }
-extension CombatantTagEditViewState: NavigationNode0 {
+extension CombatantTagEditViewState: NavigationNode {
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -33,7 +33,7 @@ extension CombatantTagEditViewState: NavigationNode0 {
         // no-op
     }
 }
-extension CombatantTrackerEditViewState: NavigationNode0 {
+extension CombatantTrackerEditViewState: NavigationNode {
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -46,7 +46,7 @@ extension CombatantTrackerEditViewState: NavigationNode0 {
         // no-op
     }
 }
-extension CompendiumImportViewState: NavigationNode0 {
+extension CompendiumImportViewState: NavigationNode {
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -59,7 +59,7 @@ extension CompendiumImportViewState: NavigationNode0 {
         // no-op
     }
 }
-extension CompendiumItemGroupEditState: NavigationNode0 {
+extension CompendiumItemGroupEditState: NavigationNode {
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -72,7 +72,7 @@ extension CompendiumItemGroupEditState: NavigationNode0 {
         // no-op
     }
 }
-extension CreatureEditViewState: NavigationNode0 {
+extension CreatureEditViewState: NavigationNode {
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -85,7 +85,7 @@ extension CreatureEditViewState: NavigationNode0 {
         // no-op
     }
 }
-extension ReferenceViewState: NavigationNode0 {
+extension ReferenceViewState: NavigationNode {
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -98,7 +98,7 @@ extension ReferenceViewState: NavigationNode0 {
         // no-op
     }
 }
-extension RunningEncounterLogViewState: NavigationNode0 {
+extension RunningEncounterLogViewState: NavigationNode {
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -112,8 +112,8 @@ extension RunningEncounterLogViewState: NavigationNode0 {
     }
 }
 
-extension CampaignBrowseViewState.NextScreen: NavigationNode0 {
-    private var navigationNode0: NavigationNode0 {
+extension CampaignBrowseViewState.NextScreen: NavigationNode {
+    private var NavigationNode: NavigationNode {
         get {
             switch self {
             case .catalogBrowse(let s): return s
@@ -131,20 +131,20 @@ extension CampaignBrowseViewState.NextScreen: NavigationNode0 {
     }
 
     func topNavigationItems() -> [Any] {
-        return navigationNode0.topNavigationItems()
+        return NavigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return navigationNode0.navigationStackSize()
+        return NavigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        navigationNode0.popLastNavigationStackItem()
+        NavigationNode.popLastNavigationStackItem()
     }
 }
 
-extension CombatantDetailViewState.NextScreen: NavigationNode0 {
-    private var navigationNode0: NavigationNode0 {
+extension CombatantDetailViewState.NextScreen: NavigationNode {
+    private var NavigationNode: NavigationNode {
         get {
             switch self {
             case .combatantTagsView(let s): return s
@@ -168,21 +168,21 @@ extension CombatantDetailViewState.NextScreen: NavigationNode0 {
     }
 
     func topNavigationItems() -> [Any] {
-        return navigationNode0.topNavigationItems()
+        return NavigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return navigationNode0.navigationStackSize()
+        return NavigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        navigationNode0.popLastNavigationStackItem()
+        NavigationNode.popLastNavigationStackItem()
     }
 }
 
 
-extension CompendiumEntryDetailViewState.NextScreen: NavigationNode0 {
-    private var navigationNode0: NavigationNode0 {
+extension CompendiumEntryDetailViewState.NextScreen: NavigationNode {
+    private var NavigationNode: NavigationNode {
         get {
             switch self {
             case .creatureEdit(let s): return s
@@ -200,20 +200,20 @@ extension CompendiumEntryDetailViewState.NextScreen: NavigationNode0 {
     }
 
     func topNavigationItems() -> [Any] {
-        return navigationNode0.topNavigationItems()
+        return NavigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return navigationNode0.navigationStackSize()
+        return NavigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        navigationNode0.popLastNavigationStackItem()
+        NavigationNode.popLastNavigationStackItem()
     }
 }
 
-extension CompendiumIndexState.NextScreen: NavigationNode0 {
-    private var navigationNode0: NavigationNode0 {
+extension CompendiumIndexState.NextScreen: NavigationNode {
+    private var NavigationNode: NavigationNode {
         get {
             switch self {
             case .compendiumIndex(let s): return s
@@ -237,20 +237,20 @@ extension CompendiumIndexState.NextScreen: NavigationNode0 {
     }
 
     func topNavigationItems() -> [Any] {
-        return navigationNode0.topNavigationItems()
+        return NavigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return navigationNode0.navigationStackSize()
+        return NavigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        navigationNode0.popLastNavigationStackItem()
+        NavigationNode.popLastNavigationStackItem()
     }
 }
 
-extension EncounterDetailViewState.NextScreen: NavigationNode0 {
-    private var navigationNode0: NavigationNode0 {
+extension EncounterDetailViewState.NextScreen: NavigationNode {
+    private var NavigationNode: NavigationNode {
         get {
             switch self {
             case .reference(let s): return s
@@ -266,20 +266,20 @@ extension EncounterDetailViewState.NextScreen: NavigationNode0 {
     }
 
     func topNavigationItems() -> [Any] {
-        return navigationNode0.topNavigationItems()
+        return NavigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return navigationNode0.navigationStackSize()
+        return NavigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        navigationNode0.popLastNavigationStackItem()
+        NavigationNode.popLastNavigationStackItem()
     }
 }
 
-extension ReferenceItemViewState.Content.Home.NextScreen: NavigationNode0 {
-    private var navigationNode0: NavigationNode0 {
+extension ReferenceItemViewState.Content.Home.NextScreen: NavigationNode {
+    private var NavigationNode: NavigationNode {
         get {
             switch self {
             case .compendium(let s): return s
@@ -295,20 +295,20 @@ extension ReferenceItemViewState.Content.Home.NextScreen: NavigationNode0 {
     }
 
     func topNavigationItems() -> [Any] {
-        return navigationNode0.topNavigationItems()
+        return NavigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return navigationNode0.navigationStackSize()
+        return NavigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        navigationNode0.popLastNavigationStackItem()
+        NavigationNode.popLastNavigationStackItem()
     }
 }
 
-extension SidebarViewState.NextScreen: NavigationNode0 {
-    private var navigationNode0: NavigationNode0 {
+extension SidebarViewState.NextScreen: NavigationNode {
+    private var NavigationNode: NavigationNode {
         get {
             switch self {
             case .compendium(let s): return s
@@ -328,20 +328,20 @@ extension SidebarViewState.NextScreen: NavigationNode0 {
     }
 
     func topNavigationItems() -> [Any] {
-        return navigationNode0.topNavigationItems()
+        return NavigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return navigationNode0.navigationStackSize()
+        return NavigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        navigationNode0.popLastNavigationStackItem()
+        NavigationNode.popLastNavigationStackItem()
     }
 }
 
 
-extension CampaignBrowseViewState: NavigationNode0 {
+extension CampaignBrowseViewState: NavigationNode {
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -427,7 +427,7 @@ extension CampaignBrowseViewState: NavigationNode0 {
         }
     }
 }
-extension CombatantDetailViewState: NavigationNode0 {
+extension CombatantDetailViewState: NavigationNode {
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -594,7 +594,7 @@ extension CombatantDetailViewState: NavigationNode0 {
         }
     }
 }
-extension CombatantTagsViewState: NavigationNode0 {
+extension CombatantTagsViewState: NavigationNode {
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -626,7 +626,7 @@ extension CombatantTagsViewState: NavigationNode0 {
     }
 
 }
-extension CompendiumEntryDetailViewState: NavigationNode0 {
+extension CompendiumEntryDetailViewState: NavigationNode {
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -712,7 +712,7 @@ extension CompendiumEntryDetailViewState: NavigationNode0 {
         }
     }
 }
-extension CompendiumIndexState: NavigationNode0 {
+extension CompendiumIndexState: NavigationNode {
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -879,7 +879,7 @@ extension CompendiumIndexState: NavigationNode0 {
         }
     }
 }
-extension EncounterDetailViewState: NavigationNode0 {
+extension EncounterDetailViewState: NavigationNode {
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -938,7 +938,7 @@ extension EncounterDetailViewState: NavigationNode0 {
         }
     }
 }
-extension ReferenceItemViewState.Content.Home: NavigationNode0 {
+extension ReferenceItemViewState.Content.Home: NavigationNode {
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -997,7 +997,7 @@ extension ReferenceItemViewState.Content.Home: NavigationNode0 {
         }
     }
 }
-extension SidebarViewState: NavigationNode0 {
+extension SidebarViewState: NavigationNode {
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []

@@ -23,6 +23,7 @@ struct ReferenceView: View {
                     viewStore.send(.removeTab($0))
                 }
             )
+            .environment(\.appNavigation, .tab)
             .toolbar {
                 ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
                     Button(action: {
@@ -51,7 +52,7 @@ struct ReferenceView: View {
         viewStore.items.map { item in
             TabbedDocumentView<ReferenceItemView>.ContentItem(
                 id: item.id,
-                label: Label("Item", systemImage: "book"),
+                label: Label(item.title, systemImage: "doc"),
                 view: {
                     ReferenceItemView(store: store.scope(state: { $0.items[id: item.id]?.state ?? .nullInstance }, action: { .item(item.id, $0) }))
                 }

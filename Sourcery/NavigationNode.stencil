@@ -1,4 +1,4 @@
-protocol NavigationNode0 {
+protocol NavigationNode {
     func topNavigationItems() -> [Any]
     func navigationStackSize() -> Int
     mutating func popLastNavigationStackItem()
@@ -6,7 +6,7 @@ protocol NavigationNode0 {
 
 {% for type in types.implementing.NavigationStackItemState %}
 {% if not type.implements.NavigationStackSourceState and not type.implements.NavigationStackItemStateConvertible and not type.name == "NavigationStackSourceState" %}
-extension {{ type.name }}: NavigationNode0 {
+extension {{ type.name }}: NavigationNode {
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -27,8 +27,8 @@ extension {{ type.name }}: NavigationNode0 {
 {% if var.name == "presentedScreens" %}
 {% set nextScreenType var.typeName.dictionary.valueType %}
 {% if nextScreenType.kind == "enum" %}
-extension {{ nextScreenType.name}}: NavigationNode0 {
-    private var navigationNode0: NavigationNode0 {
+extension {{ nextScreenType.name}}: NavigationNode {
+    private var NavigationNode: NavigationNode {
         get {
             switch self {
 {% for case in nextScreenType.cases %}
@@ -50,15 +50,15 @@ extension {{ nextScreenType.name}}: NavigationNode0 {
     }
 
     func topNavigationItems() -> [Any] {
-        return navigationNode0.topNavigationItems()
+        return NavigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return navigationNode0.navigationStackSize()
+        return NavigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        navigationNode0.popLastNavigationStackItem()
+        NavigationNode.popLastNavigationStackItem()
     }
 }
 {% endif %}
@@ -68,7 +68,7 @@ extension {{ nextScreenType.name}}: NavigationNode0 {
 {% endfor %}
 
 {% for type in types.implementing.NavigationStackSourceState %}
-extension {{ type.name }}: NavigationNode0 {
+extension {{ type.name }}: NavigationNode {
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []

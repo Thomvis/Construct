@@ -55,7 +55,7 @@ struct ReferenceItemViewState: Equatable {
             }
         }
 
-        var navigationNode: NavigationNode0 {
+        var navigationNode: NavigationNode {
             get {
                 switch self {
                 case .home(let h): return h
@@ -73,10 +73,14 @@ struct ReferenceItemViewState: Equatable {
             }
         }
 
+        var tabItemTitle: String? {
+            navigationNode.topNavigationItems().compactMap({ $0 as? NavigationStackItemState }).first?.navigationTitle
+        }
+
         struct Home: Equatable, NavigationStackSourceState {
 
             var navigationStackItemStateId: String = "home"
-            var navigationTitle: String = "home"
+            var navigationTitle: String = "Favorites"
 
             var presentedScreens: [NavigationDestination: NextScreen]
 

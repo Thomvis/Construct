@@ -19,7 +19,7 @@ struct ReferenceViewState: Equatable {
         self.selectedItemId = items.first?.id
     }
 
-    var selectedItemNavigationNode: NavigationNode0? {
+    var selectedItemNavigationNode: NavigationNode? {
         get {
             selectedItemId.flatMap { items[id: $0]?.state.content.navigationNode }
         }
@@ -32,7 +32,19 @@ struct ReferenceViewState: Equatable {
 
     struct Item: Equatable, Identifiable {
         let id = UUID()
+        var title: String
         var state: ReferenceItemViewState
+
+        init(title: String? = nil, state: ReferenceItemViewState) {
+            self.title = title ?? state.content.tabItemTitle ?? "Untitled"
+            self.state = state
+        }
+
+        mutating func updateTitle() {
+            if let title = state.content.tabItemTitle {
+                self.title = title
+            }
+        }
 
         static let reducer: Reducer<Item, ReferenceItemViewAction, Environment> = ReferenceItemViewState.reducer.pullback(state: \.state, action: /ReferenceItemViewAction.self)
     }
@@ -52,9 +64,16 @@ extension ReferenceViewState {
         ReferenceViewState.Item.reducer.forEach(state: \.items, action: /ReferenceViewAction.item, environment: { $0 }),
         Reducer { state, action, env in
             switch action {
-            case .item: break;
+            case .item(let uuid, _):
+                // update titles
+                if let item = state.items[id: uuid], let title = item.state.content.tabItemTitle {
+                    state.items[id: uuid]?.updateTitle()
+                }
             case .onBackTapped:
                 state.selectedItemNavigationNode?.popLastNavigationStackItem()
+                if let id = state.selectedItemId {
+                    state.items[id: id]?.updateTitle()
+                }
             case .onNewTabTapped:
                 let item = Item(state: ReferenceItemViewState())
                 state.items.append(item)
