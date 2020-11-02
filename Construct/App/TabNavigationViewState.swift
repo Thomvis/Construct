@@ -19,8 +19,8 @@ struct TabNavigationViewState: Equatable {
 
     var topNavigationItemState: NavigationStackItemState? {
         switch selectedTab {
-        case .campaign: return campaignBrowser.topNavigationItemState
-        case .compendium: return compendium.topNavigationItemState
+        case .campaign: return campaignBrowser.topNavigationItems().compactMap({ $0 as? NavigationStackItemState }).first
+        case .compendium: return compendium.topNavigationItems().compactMap({ $0 as? NavigationStackItemState }).first
         case .diceRoller: return nil
         }
     }

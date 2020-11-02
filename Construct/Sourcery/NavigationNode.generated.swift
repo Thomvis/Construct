@@ -113,7 +113,7 @@ extension RunningEncounterLogViewState: NavigationNode {
 }
 
 extension CampaignBrowseViewState.NextScreen: NavigationNode {
-    private var NavigationNode: NavigationNode {
+    private var navigationNode: NavigationNode {
         get {
             switch self {
             case .catalogBrowse(let s): return s
@@ -131,20 +131,20 @@ extension CampaignBrowseViewState.NextScreen: NavigationNode {
     }
 
     func topNavigationItems() -> [Any] {
-        return NavigationNode.topNavigationItems()
+        return navigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return NavigationNode.navigationStackSize()
+        return navigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        NavigationNode.popLastNavigationStackItem()
+        navigationNode.popLastNavigationStackItem()
     }
 }
 
 extension CombatantDetailViewState.NextScreen: NavigationNode {
-    private var NavigationNode: NavigationNode {
+    private var navigationNode: NavigationNode {
         get {
             switch self {
             case .combatantTagsView(let s): return s
@@ -168,21 +168,21 @@ extension CombatantDetailViewState.NextScreen: NavigationNode {
     }
 
     func topNavigationItems() -> [Any] {
-        return NavigationNode.topNavigationItems()
+        return navigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return NavigationNode.navigationStackSize()
+        return navigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        NavigationNode.popLastNavigationStackItem()
+        navigationNode.popLastNavigationStackItem()
     }
 }
 
 
 extension CompendiumEntryDetailViewState.NextScreen: NavigationNode {
-    private var NavigationNode: NavigationNode {
+    private var navigationNode: NavigationNode {
         get {
             switch self {
             case .creatureEdit(let s): return s
@@ -200,27 +200,27 @@ extension CompendiumEntryDetailViewState.NextScreen: NavigationNode {
     }
 
     func topNavigationItems() -> [Any] {
-        return NavigationNode.topNavigationItems()
+        return navigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return NavigationNode.navigationStackSize()
+        return navigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        NavigationNode.popLastNavigationStackItem()
+        navigationNode.popLastNavigationStackItem()
     }
 }
 
 extension CompendiumIndexState.NextScreen: NavigationNode {
-    private var NavigationNode: NavigationNode {
+    private var navigationNode: NavigationNode {
         get {
             switch self {
             case .compendiumIndex(let s): return s
             case .groupEdit(let s): return s
             case .itemDetail(let s): return s
             case .creatureEdit(let s): return s
-            case .`import`(let s): return s
+            case .compendiumImport(let s): return s
             }
         }
 
@@ -230,27 +230,27 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
             case let v as CompendiumItemGroupEditState: self = .groupEdit(v)
             case let v as CompendiumEntryDetailViewState: self = .itemDetail(v)
             case let v as CreatureEditViewState: self = .creatureEdit(v)
-            case let v as CompendiumImportViewState: self = .`import`(v)
+            case let v as CompendiumImportViewState: self = .compendiumImport(v)
             default: break
             }
         }
     }
 
     func topNavigationItems() -> [Any] {
-        return NavigationNode.topNavigationItems()
+        return navigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return NavigationNode.navigationStackSize()
+        return navigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        NavigationNode.popLastNavigationStackItem()
+        navigationNode.popLastNavigationStackItem()
     }
 }
 
 extension EncounterDetailViewState.NextScreen: NavigationNode {
-    private var NavigationNode: NavigationNode {
+    private var navigationNode: NavigationNode {
         get {
             switch self {
             case .reference(let s): return s
@@ -266,20 +266,20 @@ extension EncounterDetailViewState.NextScreen: NavigationNode {
     }
 
     func topNavigationItems() -> [Any] {
-        return NavigationNode.topNavigationItems()
+        return navigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return NavigationNode.navigationStackSize()
+        return navigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        NavigationNode.popLastNavigationStackItem()
+        navigationNode.popLastNavigationStackItem()
     }
 }
 
 extension ReferenceItemViewState.Content.Home.NextScreen: NavigationNode {
-    private var NavigationNode: NavigationNode {
+    private var navigationNode: NavigationNode {
         get {
             switch self {
             case .compendium(let s): return s
@@ -295,20 +295,20 @@ extension ReferenceItemViewState.Content.Home.NextScreen: NavigationNode {
     }
 
     func topNavigationItems() -> [Any] {
-        return NavigationNode.topNavigationItems()
+        return navigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return NavigationNode.navigationStackSize()
+        return navigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        NavigationNode.popLastNavigationStackItem()
+        navigationNode.popLastNavigationStackItem()
     }
 }
 
 extension SidebarViewState.NextScreen: NavigationNode {
-    private var NavigationNode: NavigationNode {
+    private var navigationNode: NavigationNode {
         get {
             switch self {
             case .compendium(let s): return s
@@ -328,15 +328,15 @@ extension SidebarViewState.NextScreen: NavigationNode {
     }
 
     func topNavigationItems() -> [Any] {
-        return NavigationNode.topNavigationItems()
+        return navigationNode.topNavigationItems()
     }
 
     func navigationStackSize() -> Int {
-        return NavigationNode.navigationStackSize()
+        return navigationNode.navigationStackSize()
     }
 
     mutating func popLastNavigationStackItem() {
-        NavigationNode.popLastNavigationStackItem()
+        navigationNode.popLastNavigationStackItem()
     }
 }
 
@@ -372,7 +372,7 @@ extension CampaignBrowseViewState: NavigationNode {
         }
     }
 
-    var presentedNextCampaignBrowseViewState: CampaignBrowseViewState? {
+    var presentedNextCatalogBrowse: CampaignBrowseViewState? {
         get { 
             if case .catalogBrowse(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -386,7 +386,7 @@ extension CampaignBrowseViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCampaignBrowseViewState: CampaignBrowseViewState? {
+    var presentedDetailCatalogBrowse: CampaignBrowseViewState? {
         get { 
             if case .catalogBrowse(let s) = presentedScreens[.detail] {
                 return s
@@ -399,7 +399,7 @@ extension CampaignBrowseViewState: NavigationNode {
             }
         }
     }
-    var presentedNextEncounterDetailViewState: EncounterDetailViewState? {
+    var presentedNextEncounter: EncounterDetailViewState? {
         get { 
             if case .encounter(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -413,7 +413,7 @@ extension CampaignBrowseViewState: NavigationNode {
         }
     }
 
-    var presentedDetailEncounterDetailViewState: EncounterDetailViewState? {
+    var presentedDetailEncounter: EncounterDetailViewState? {
         get { 
             if case .encounter(let s) = presentedScreens[.detail] {
                 return s
@@ -458,7 +458,7 @@ extension CombatantDetailViewState: NavigationNode {
         }
     }
 
-    var presentedNextCombatantTagsViewState: CombatantTagsViewState? {
+    var presentedNextCombatantTagsView: CombatantTagsViewState? {
         get { 
             if case .combatantTagsView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -472,7 +472,7 @@ extension CombatantDetailViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCombatantTagsViewState: CombatantTagsViewState? {
+    var presentedDetailCombatantTagsView: CombatantTagsViewState? {
         get { 
             if case .combatantTagsView(let s) = presentedScreens[.detail] {
                 return s
@@ -485,7 +485,7 @@ extension CombatantDetailViewState: NavigationNode {
             }
         }
     }
-    var presentedNextCombatantTagEditViewState: CombatantTagEditViewState? {
+    var presentedNextCombatantTagEditView: CombatantTagEditViewState? {
         get { 
             if case .combatantTagEditView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -499,7 +499,7 @@ extension CombatantDetailViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCombatantTagEditViewState: CombatantTagEditViewState? {
+    var presentedDetailCombatantTagEditView: CombatantTagEditViewState? {
         get { 
             if case .combatantTagEditView(let s) = presentedScreens[.detail] {
                 return s
@@ -512,7 +512,7 @@ extension CombatantDetailViewState: NavigationNode {
             }
         }
     }
-    var presentedNextCreatureEditViewState: CreatureEditViewState? {
+    var presentedNextCreatureEditView: CreatureEditViewState? {
         get { 
             if case .creatureEditView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -526,7 +526,7 @@ extension CombatantDetailViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCreatureEditViewState: CreatureEditViewState? {
+    var presentedDetailCreatureEditView: CreatureEditViewState? {
         get { 
             if case .creatureEditView(let s) = presentedScreens[.detail] {
                 return s
@@ -539,7 +539,7 @@ extension CombatantDetailViewState: NavigationNode {
             }
         }
     }
-    var presentedNextCombatantResourcesViewState: CombatantResourcesViewState? {
+    var presentedNextCombatantResourcesView: CombatantResourcesViewState? {
         get { 
             if case .combatantResourcesView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -553,7 +553,7 @@ extension CombatantDetailViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCombatantResourcesViewState: CombatantResourcesViewState? {
+    var presentedDetailCombatantResourcesView: CombatantResourcesViewState? {
         get { 
             if case .combatantResourcesView(let s) = presentedScreens[.detail] {
                 return s
@@ -566,7 +566,7 @@ extension CombatantDetailViewState: NavigationNode {
             }
         }
     }
-    var presentedNextRunningEncounterLogViewState: RunningEncounterLogViewState? {
+    var presentedNextRunningEncounterLogView: RunningEncounterLogViewState? {
         get { 
             if case .runningEncounterLogView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -580,7 +580,7 @@ extension CombatantDetailViewState: NavigationNode {
         }
     }
 
-    var presentedDetailRunningEncounterLogViewState: RunningEncounterLogViewState? {
+    var presentedDetailRunningEncounterLogView: RunningEncounterLogViewState? {
         get { 
             if case .runningEncounterLogView(let s) = presentedScreens[.detail] {
                 return s
@@ -657,7 +657,7 @@ extension CompendiumEntryDetailViewState: NavigationNode {
         }
     }
 
-    var presentedNextCreatureEditViewState: CreatureEditViewState? {
+    var presentedNextCreatureEdit: CreatureEditViewState? {
         get { 
             if case .creatureEdit(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -671,7 +671,7 @@ extension CompendiumEntryDetailViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCreatureEditViewState: CreatureEditViewState? {
+    var presentedDetailCreatureEdit: CreatureEditViewState? {
         get { 
             if case .creatureEdit(let s) = presentedScreens[.detail] {
                 return s
@@ -684,7 +684,7 @@ extension CompendiumEntryDetailViewState: NavigationNode {
             }
         }
     }
-    var presentedNextCompendiumItemGroupEditState: CompendiumItemGroupEditState? {
+    var presentedNextGroupEdit: CompendiumItemGroupEditState? {
         get { 
             if case .groupEdit(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -698,7 +698,7 @@ extension CompendiumEntryDetailViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCompendiumItemGroupEditState: CompendiumItemGroupEditState? {
+    var presentedDetailGroupEdit: CompendiumItemGroupEditState? {
         get { 
             if case .groupEdit(let s) = presentedScreens[.detail] {
                 return s
@@ -743,7 +743,7 @@ extension CompendiumIndexState: NavigationNode {
         }
     }
 
-    var presentedNextCompendiumIndexState: CompendiumIndexState? {
+    var presentedNextCompendiumIndex: CompendiumIndexState? {
         get { 
             if case .compendiumIndex(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -757,7 +757,7 @@ extension CompendiumIndexState: NavigationNode {
         }
     }
 
-    var presentedDetailCompendiumIndexState: CompendiumIndexState? {
+    var presentedDetailCompendiumIndex: CompendiumIndexState? {
         get { 
             if case .compendiumIndex(let s) = presentedScreens[.detail] {
                 return s
@@ -770,7 +770,7 @@ extension CompendiumIndexState: NavigationNode {
             }
         }
     }
-    var presentedNextCompendiumItemGroupEditState: CompendiumItemGroupEditState? {
+    var presentedNextGroupEdit: CompendiumItemGroupEditState? {
         get { 
             if case .groupEdit(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -784,7 +784,7 @@ extension CompendiumIndexState: NavigationNode {
         }
     }
 
-    var presentedDetailCompendiumItemGroupEditState: CompendiumItemGroupEditState? {
+    var presentedDetailGroupEdit: CompendiumItemGroupEditState? {
         get { 
             if case .groupEdit(let s) = presentedScreens[.detail] {
                 return s
@@ -797,7 +797,7 @@ extension CompendiumIndexState: NavigationNode {
             }
         }
     }
-    var presentedNextCompendiumEntryDetailViewState: CompendiumEntryDetailViewState? {
+    var presentedNextItemDetail: CompendiumEntryDetailViewState? {
         get { 
             if case .itemDetail(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -811,7 +811,7 @@ extension CompendiumIndexState: NavigationNode {
         }
     }
 
-    var presentedDetailCompendiumEntryDetailViewState: CompendiumEntryDetailViewState? {
+    var presentedDetailItemDetail: CompendiumEntryDetailViewState? {
         get { 
             if case .itemDetail(let s) = presentedScreens[.detail] {
                 return s
@@ -824,7 +824,7 @@ extension CompendiumIndexState: NavigationNode {
             }
         }
     }
-    var presentedNextCreatureEditViewState: CreatureEditViewState? {
+    var presentedNextCreatureEdit: CreatureEditViewState? {
         get { 
             if case .creatureEdit(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -838,7 +838,7 @@ extension CompendiumIndexState: NavigationNode {
         }
     }
 
-    var presentedDetailCreatureEditViewState: CreatureEditViewState? {
+    var presentedDetailCreatureEdit: CreatureEditViewState? {
         get { 
             if case .creatureEdit(let s) = presentedScreens[.detail] {
                 return s
@@ -851,30 +851,30 @@ extension CompendiumIndexState: NavigationNode {
             }
         }
     }
-    var presentedNextCompendiumImportViewState: CompendiumImportViewState? {
+    var presentedNextCompendiumImport: CompendiumImportViewState? {
         get { 
-            if case .`import`(let s) = presentedScreens[.nextInStack] {
+            if case .compendiumImport(let s) = presentedScreens[.nextInStack] {
                 return s
             }
             return nil
         }
         set { 
             if let value = newValue {
-                presentedScreens[.nextInStack] = .`import`(value) 
+                presentedScreens[.nextInStack] = .compendiumImport(value) 
             }
         }
     }
 
-    var presentedDetailCompendiumImportViewState: CompendiumImportViewState? {
+    var presentedDetailCompendiumImport: CompendiumImportViewState? {
         get { 
-            if case .`import`(let s) = presentedScreens[.detail] {
+            if case .compendiumImport(let s) = presentedScreens[.detail] {
                 return s
             }
             return nil
         }
         set { 
             if let value = newValue {
-                presentedScreens[.detail] = .`import`(value) 
+                presentedScreens[.detail] = .compendiumImport(value) 
             }
         }
     }
@@ -910,7 +910,7 @@ extension EncounterDetailViewState: NavigationNode {
         }
     }
 
-    var presentedNextReferenceViewState: ReferenceViewState? {
+    var presentedNextReference: ReferenceViewState? {
         get { 
             if case .reference(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -924,7 +924,7 @@ extension EncounterDetailViewState: NavigationNode {
         }
     }
 
-    var presentedDetailReferenceViewState: ReferenceViewState? {
+    var presentedDetailReference: ReferenceViewState? {
         get { 
             if case .reference(let s) = presentedScreens[.detail] {
                 return s
@@ -969,7 +969,7 @@ extension ReferenceItemViewState.Content.Home: NavigationNode {
         }
     }
 
-    var presentedNextCompendiumIndexState: CompendiumIndexState? {
+    var presentedNextCompendium: CompendiumIndexState? {
         get { 
             if case .compendium(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -983,7 +983,7 @@ extension ReferenceItemViewState.Content.Home: NavigationNode {
         }
     }
 
-    var presentedDetailCompendiumIndexState: CompendiumIndexState? {
+    var presentedDetailCompendium: CompendiumIndexState? {
         get { 
             if case .compendium(let s) = presentedScreens[.detail] {
                 return s
@@ -1028,7 +1028,7 @@ extension SidebarViewState: NavigationNode {
         }
     }
 
-    var presentedNextCompendiumIndexState: CompendiumIndexState? {
+    var presentedNextCompendium: CompendiumIndexState? {
         get { 
             if case .compendium(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -1042,7 +1042,7 @@ extension SidebarViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCompendiumIndexState: CompendiumIndexState? {
+    var presentedDetailCompendium: CompendiumIndexState? {
         get { 
             if case .compendium(let s) = presentedScreens[.detail] {
                 return s
@@ -1055,7 +1055,7 @@ extension SidebarViewState: NavigationNode {
             }
         }
     }
-    var presentedNextEncounterDetailViewState: EncounterDetailViewState? {
+    var presentedNextEncounter: EncounterDetailViewState? {
         get { 
             if case .encounter(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -1069,7 +1069,7 @@ extension SidebarViewState: NavigationNode {
         }
     }
 
-    var presentedDetailEncounterDetailViewState: EncounterDetailViewState? {
+    var presentedDetailEncounter: EncounterDetailViewState? {
         get { 
             if case .encounter(let s) = presentedScreens[.detail] {
                 return s
@@ -1082,7 +1082,7 @@ extension SidebarViewState: NavigationNode {
             }
         }
     }
-    var presentedNextCampaignBrowseViewState: CampaignBrowseViewState? {
+    var presentedNextCampaignBrowse: CampaignBrowseViewState? {
         get { 
             if case .campaignBrowse(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -1096,7 +1096,7 @@ extension SidebarViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCampaignBrowseViewState: CampaignBrowseViewState? {
+    var presentedDetailCampaignBrowse: CampaignBrowseViewState? {
         get { 
             if case .campaignBrowse(let s) = presentedScreens[.detail] {
                 return s

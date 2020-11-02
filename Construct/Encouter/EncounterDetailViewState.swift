@@ -174,14 +174,8 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
         case selection
     }
 
-    enum NextScreen: Equatable, NavigationStackItemStateConvertible, NavigationStackItemState {
+    enum NextScreen: Equatable {
         case reference(ReferenceViewState)
-
-        var navigationStackItemState: NavigationStackItemState {
-            switch self {
-            case .reference(let s): return s
-            }
-        }
     }
 }
 

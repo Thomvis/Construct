@@ -65,7 +65,7 @@ struct CompendiumIndexView: View {
         .navigationBarItems(trailing: Group {
             if localViewStore.state.properties.showImport {
                 Button(action: {
-                    self.viewStore.send(.setNextScreen(.import(CompendiumImportViewState())))
+                    self.viewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
                 }) {
                     Text("Import").bold()
                 }
@@ -82,7 +82,7 @@ struct CompendiumIndexView: View {
         // when the document picker of the import view is dismissed
         .stateDrivenNavigationLink(
             store: store,
-            state: /CompendiumIndexState.NextScreen.import,
+            state: /CompendiumIndexState.NextScreen.compendiumImport,
             action: /CompendiumIndexAction.NextScreenAction.import,
             isActive: { _ in true },
             destination: { _ in CompendiumImportView() })

@@ -32,24 +32,6 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
     var navigationTitle: String { item.title }
     var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
 
-    var nextCreatureEditViewState: CreatureEditViewState? {
-        get { nextScreen?.navigationStackItemState as? CreatureEditViewState }
-        set {
-            if let newValue = newValue {
-                nextScreen = .creatureEdit(newValue)
-            }
-        }
-    }
-
-    var nextGroupEditViewState: CompendiumItemGroupEditState? {
-        get { nextScreen?.navigationStackItemState as? CompendiumItemGroupEditState }
-        set {
-            if let newValue = newValue {
-                nextScreen = .groupEdit(newValue)
-            }
-        }
-    }
-
     var createActionPopover: DiceActionViewState? {
         get {
             if case .creatureAction(let s) = popover {
@@ -69,22 +51,15 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         case rollCheck(Int)
     }
 
-    enum NextScreen: NavigationStackItemStateConvertible, NavigationStackItemState, Equatable {
+    enum NextScreen: Equatable {
         case creatureEdit(CreatureEditViewState)
         case groupEdit(CompendiumItemGroupEditState)
-
-        var navigationStackItemState: NavigationStackItemState {
-            switch self {
-            case .creatureEdit(let s): return s
-            case .groupEdit(let s): return s
-            }
-        }
     }
 
     static var reducer: Reducer<Self, CompendiumItemDetailViewAction, Environment> {
         return Reducer.combine(
-            CreatureEditViewState.reducer.optional().pullback(state: \.nextCreatureEditViewState, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.creatureEdit),
-            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.nextGroupEditViewState, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.groupEdit),
+            CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEdit, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.creatureEdit),
+            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.presentedNextGroupEdit, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.groupEdit),
             DiceActionViewState.reducer.optional().pullback(state: \.createActionPopover, action: /CompendiumItemDetailViewAction.creatureActionPopover),
             Reducer { state, action, env in
                 switch action {

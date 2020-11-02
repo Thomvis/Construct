@@ -32,51 +32,6 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         self.presentedScreens = presentedScreens
     }
 
-    var nextCompendiumIndexState: CompendiumIndexState? {
-        get { nextScreen?.navigationStackItemState as? CompendiumIndexState }
-        set {
-            if let newValue = newValue {
-                nextScreen = .compendiumIndex(newValue)
-            }
-        }
-    }
-
-    var nextCreatureEditViewState: CreatureEditViewState? {
-        get { nextScreen?.navigationStackItemState as? CreatureEditViewState }
-        set {
-            if let newValue = newValue {
-                nextScreen = .creatureEdit(newValue)
-            }
-        }
-    }
-
-    var nextItemDetailViewState: CompendiumEntryDetailViewState? {
-        get { nextScreen?.navigationStackItemState as? CompendiumEntryDetailViewState }
-        set {
-            if let newValue = newValue {
-                nextScreen = .itemDetail(newValue)
-            }
-        }
-    }
-
-    var detailItemDetailViewState: CompendiumEntryDetailViewState? {
-        get { detailScreen?.navigationStackItemState as? CompendiumEntryDetailViewState }
-        set {
-            if let newValue = newValue {
-                detailScreen = .itemDetail(newValue)
-            }
-        }
-    }
-
-    var nextGroupEditViewState: CompendiumItemGroupEditState? {
-        get { nextScreen?.navigationStackItemState as? CompendiumItemGroupEditState }
-        set {
-            if let newValue = newValue {
-                nextScreen = .groupEdit(newValue)
-            }
-        }
-    }
-
     var canAddItem: Bool {
         editViewCreatureType != nil || canCreateNewEmptyItem
     }
@@ -101,7 +56,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             case .groupEdit: return .groupEdit(CompendiumItemGroupEditState.nullInstance)
             case .itemDetail: return .itemDetail(CompendiumEntryDetailViewState.nullInstance)
             case .creatureEdit: return .creatureEdit(CreatureEditViewState.nullInstance)
-            case .import: return .import(CompendiumImportViewState())
+            case .compendiumImport: return .compendiumImport(CompendiumImportViewState())
             }
         }
 
@@ -210,28 +165,18 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         }
     }
 
-    enum NextScreen: NavigationStackItemState, NavigationStackItemStateConvertible, Equatable {
+    enum NextScreen: Equatable {
         indirect case compendiumIndex(CompendiumIndexState)
         case groupEdit(CompendiumItemGroupEditState)
         case itemDetail(CompendiumEntryDetailViewState)
         case creatureEdit(CreatureEditViewState)
-        case `import`(CompendiumImportViewState)
-
-        var navigationStackItemState: NavigationStackItemState {
-            switch self {
-            case .compendiumIndex(let s): return s
-            case .groupEdit(let s): return s
-            case .itemDetail(let s): return s
-            case .creatureEdit(let s): return s
-            case .import(let s): return s
-            }
-        }
+        case compendiumImport(CompendiumImportViewState)
     }
 
     static var reducer: Reducer<Self, CompendiumIndexAction, Environment> {
         return Reducer.combine(
-            CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.nextItemDetailViewState, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry),
-            CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.detailItemDetailViewState, action: /CompendiumIndexAction.detailScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry),
+            CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextItemDetail, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry),
+            CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedDetailItemDetail, action: /CompendiumIndexAction.detailScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry),
             Reducer { state, action, env in
                 switch action {
                 case .results: break
@@ -330,9 +275,9 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     }
                 }.pullback(state: \.results, action: /CompendiumIndexAction.results, environment: { $0 })
             },
-            Reducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.nextCompendiumIndexState, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex),
-            CreatureEditViewState.reducer.optional().pullback(state: \.nextCreatureEditViewState, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.creatureEdit),
-            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.nextGroupEditViewState, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.itemGroupEdit)
+            Reducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex),
+            CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEdit, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.creatureEdit),
+            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.presentedNextGroupEdit, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.itemGroupEdit)
         )
     }
 }

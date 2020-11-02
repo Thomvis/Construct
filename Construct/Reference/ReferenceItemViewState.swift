@@ -84,23 +84,8 @@ struct ReferenceItemViewState: Equatable {
 
             var presentedScreens: [NavigationDestination: NextScreen]
 
-            var nextCompendium: CompendiumIndexState? {
-                get { nextScreen?.navigationStackItemState as? CompendiumIndexState }
-                set {
-                    if let newValue = newValue {
-                        nextScreen = .compendium(newValue)
-                    }
-                }
-            }
-
-            enum NextScreen: Equatable, NavigationStackItemStateConvertible, NavigationStackItemState {
+            enum NextScreen: Equatable {
                 case compendium(CompendiumIndexState)
-
-                var navigationStackItemState: NavigationStackItemState {
-                    switch self {
-                    case .compendium(let s): return s
-                    }
-                }
             }
         }
 
@@ -181,7 +166,7 @@ extension ReferenceItemViewState {
 
 extension ReferenceItemViewState.Content.Home {
     static let reducer: Reducer<Self, ReferenceItemViewAction.Home, Environment> = Reducer.combine(
-        CompendiumIndexState.reducer.optional().pullback(state: \.nextCompendium, action: /ReferenceItemViewAction.Home.nextScreen..ReferenceItemViewAction.Home.NextScreenAction.compendium),
+        CompendiumIndexState.reducer.optional().pullback(state: \.presentedNextCompendium, action: /ReferenceItemViewAction.Home.nextScreen..ReferenceItemViewAction.Home.NextScreenAction.compendium),
         Reducer { state, action, env in
             switch action {
             case .setNextScreen(let s):

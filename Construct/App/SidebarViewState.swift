@@ -18,48 +18,6 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
     var presentedScreens: [NavigationDestination: NextScreen] = [:]
     var sheet: Sheet?
 
-    var selectedCompendiumIndexState: CompendiumIndexState? {
-        get {
-            if case .compendium(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set {
-            if let newValue = newValue {
-                presentedScreens[.detail] = .compendium(newValue)
-            }
-        }
-    }
-
-    var selectedEncounterState: EncounterDetailViewState? {
-        get {
-            if case .encounter(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set {
-            if let newValue = newValue {
-                presentedScreens[.detail] = .encounter(newValue)
-            }
-        }
-    }
-
-    var selectedCampaignBrowseState: CampaignBrowseViewState? {
-        get {
-            if case .campaignBrowse(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set {
-            if let newValue = newValue {
-                presentedScreens[.detail] = .campaignBrowse(newValue)
-            }
-        }
-    }
-
     func nodes(in node: CampaignNode) -> [CampaignNode]? {
         campaignNodes[node.id]?.filter { $0.special == nil && $0.contents == nil }
     }
@@ -69,18 +27,10 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
         return s
     }
 
-    enum NextScreen: NavigationStackItemState, NavigationStackItemStateConvertible, Equatable {
+    enum NextScreen: Equatable {
         case compendium(CompendiumIndexState)
         case encounter(EncounterDetailViewState)
         case campaignBrowse(CampaignBrowseViewState)
-
-        var navigationStackItemState: NavigationStackItemState {
-            switch self {
-            case .compendium(let s): return s
-            case .encounter(let s): return s
-            case .campaignBrowse(let s): return s
-            }
-        }
     }
 
     enum Sheet: Equatable, Identifiable {
@@ -138,9 +88,9 @@ extension SidebarViewState: NavigationStackItemState {
 
 extension SidebarViewState {
     static let reducer: Reducer<Self, SidebarViewAction, Environment> = Reducer.combine(
-        CompendiumIndexState.reducer.optional().pullback(state: \.selectedCompendiumIndexState, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.compendium),
-        EncounterDetailViewState.reducer.optional().pullback(state: \.selectedEncounterState, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.encounter),
-        CampaignBrowseViewState.reducer.optional().pullback(state: \.selectedCampaignBrowseState, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.campaignBrowse),
+        CompendiumIndexState.reducer.optional().pullback(state: \.presentedDetailCompendium, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.compendium),
+        EncounterDetailViewState.reducer.optional().pullback(state: \.presentedDetailEncounter, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.encounter),
+        CampaignBrowseViewState.reducer.optional().pullback(state: \.presentedDetailCampaignBrowse, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.campaignBrowse),
         Reducer { state, action, env in
             switch action {
             case .loadCampaignNode(let node):

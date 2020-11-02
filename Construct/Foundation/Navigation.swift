@@ -25,7 +25,7 @@ extension NavigationStackItemState {
 }
 
 protocol NavigationStackSourceState: NavigationStackItemState {
-    associatedtype NextScreenState: NavigationStackItemState
+    associatedtype NextScreenState
 
     var presentedScreens: [NavigationDestination: NextScreenState] { get set }
 }
@@ -48,7 +48,7 @@ extension NavigationStackSourceState {
 }
 
 protocol NavigationStackSourceAction {
-    associatedtype NextScreenState: NavigationStackItemState
+    associatedtype NextScreenState
     associatedtype NextScreenAction
 
     // BUG: these cannot have the same name as cases in the enum that conforms
@@ -56,34 +56,6 @@ protocol NavigationStackSourceAction {
     static func presentScreen(_ destination: NavigationDestination, _ screen: NextScreenState?) -> Self
     static func presentedScreen(_ destination: NavigationDestination, _ action: NextScreenAction) -> Self
 
-}
-
-extension NavigationStackItemState {
-    var topNavigationItemState: NavigationStackItemState? {
-        if let item = self as? NavigationStackItemStateConvertible {
-            return item.navigationStackItemState.topNavigationItemState
-        }
-        return self
-    }
-}
-
-extension NavigationStackItemState where Self: NavigationStackSourceState {
-    var topNavigationItemState: NavigationStackItemState? {
-        if let next = nextScreen as? NavigationStackItemStateConvertible {
-            return next.navigationStackItemState.topNavigationItemState
-        }
-        return nextScreen?.topNavigationItemState
-    }
-}
-
-protocol NavigationStackItemStateConvertible {
-    var navigationStackItemState: NavigationStackItemState { get }
-}
-
-extension NavigationStackItemState where Self: NavigationStackItemStateConvertible {
-    var navigationStackItemStateId: String { navigationStackItemState.navigationStackItemStateId }
-    var navigationTitle: String { navigationStackItemState.navigationTitle }
-    var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { navigationStackItemState.navigationTitleDisplayMode }
 }
 
 func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination, Label>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, isActive: @escaping (DestinationState) -> Bool, initialState: @escaping () -> DestinationState, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination, label: () -> Label) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, Destination: View, Label: View {
