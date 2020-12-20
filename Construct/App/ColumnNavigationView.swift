@@ -22,6 +22,9 @@ struct ColumnNavigationView: View {
 //                Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
                 ReferenceView(store: store.scope(state: { $0.referenceView }, action: { .referenceView($0) }))
             }
+            .onPreferenceChange(ReferenceViewItemKey.self) { items in
+                ViewStore(store).send(.referenceView(.remoteItemRequests(items)))
+            }
             .navigationViewStyle(DoubleColumnNavigationViewStyle())
             .environment(\.appNavigation, .column)
 

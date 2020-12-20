@@ -149,6 +149,7 @@
 		E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */; };
 		E9869FDA2523BFCB0098A166 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869FD92523BFCB0098A166 /* SidebarView.swift */; };
 		E9869FDE2523BFF60098A166 /* SidebarViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869FDD2523BFF60098A166 /* SidebarViewState.swift */; };
+		E98BF12B257E6D4900CBC174 /* ReferenceViewPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */; };
 		E99095B3249797F400731EB9 /* AddCombatantDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */; };
 		E991F88725449C7D006CE8E8 /* TabbedDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F88625449C7D006CE8E8 /* TabbedDocumentView.swift */; };
 		E991F88C25449D86006CE8E8 /* ReferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F88B25449D86006CE8E8 /* ReferenceView.swift */; };
@@ -156,7 +157,6 @@
 		E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89325449E48006CE8E8 /* ReferenceItemView.swift */; };
 		E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */; };
 		E991F89D2545A791006CE8E8 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = E991F89C2545A791006CE8E8 /* Introspect */; };
-		E991F8A12545FC09006CE8E8 /* EncounterReferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F8A02545FC09006CE8E8 /* EncounterReferenceView.swift */; };
 		E991F8AF2549746C006CE8E8 /* InterposeKit in Frameworks */ = {isa = PBXBuildFile; productRef = E991F8AE2549746C006CE8E8 /* InterposeKit */; };
 		E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */; };
 		E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */; };
@@ -330,6 +330,7 @@
 		E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationViewState.swift; sourceTree = "<group>"; };
 		E9869FD92523BFCB0098A166 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		E9869FDD2523BFF60098A166 /* SidebarViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarViewState.swift; sourceTree = "<group>"; };
+		E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceViewPreference.swift; sourceTree = "<group>"; };
 		E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantDetailView.swift; sourceTree = "<group>"; };
 		E990F4F023706AAC00276EB6 /* StateDrivenNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateDrivenNavigationView.swift; sourceTree = "<group>"; };
 		E991F88625449C7D006CE8E8 /* TabbedDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabbedDocumentView.swift; sourceTree = "<group>"; };
@@ -337,7 +338,6 @@
 		E991F88F25449DA8006CE8E8 /* ReferenceViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceViewState.swift; sourceTree = "<group>"; };
 		E991F89325449E48006CE8E8 /* ReferenceItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemView.swift; sourceTree = "<group>"; };
 		E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemViewState.swift; sourceTree = "<group>"; };
-		E991F8A02545FC09006CE8E8 /* EncounterReferenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterReferenceView.swift; sourceTree = "<group>"; };
 		E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigationNode.generated.swift; sourceTree = "<group>"; };
 		E999896022A6B4F20067BA25 /* Construct.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Construct.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E999896322A6B4F20067BA25 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -732,6 +732,7 @@
 				E991F88F25449DA8006CE8E8 /* ReferenceViewState.swift */,
 				E991F89325449E48006CE8E8 /* ReferenceItemView.swift */,
 				E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */,
+				E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */,
 			);
 			path = Reference;
 			sourceTree = "<group>";
@@ -901,7 +902,6 @@
 				E972BA95247849A900F313D7 /* CombatantDetailViewState.swift */,
 				E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */,
 				E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */,
-				E991F8A02545FC09006CE8E8 /* EncounterReferenceView.swift */,
 			);
 			path = Encouter;
 			sourceTree = "<group>";
@@ -1129,6 +1129,7 @@
 				E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */,
 				E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */,
 				E963CCA72479423E009863D7 /* DiceRollerView.swift in Sources */,
+				E98BF12B257E6D4900CBC174 /* ReferenceViewPreference.swift in Sources */,
 				E9869FDA2523BFCB0098A166 /* SidebarView.swift in Sources */,
 				E9819BE02482E478005B898E /* HealthDialog.swift in Sources */,
 				E97651D6248AE3C600C76865 /* CombatantResourceTrackerView.swift in Sources */,
@@ -1180,7 +1181,6 @@
 				E97651D5248AE2DA00C76865 /* InlineCombatantTagsView.swift in Sources */,
 				E9819BE12482E6AA005B898E /* CombatantResourcesViewState.swift in Sources */,
 				E991F89025449DA8006CE8E8 /* ReferenceViewState.swift in Sources */,
-				E991F8A12545FC09006CE8E8 /* EncounterReferenceView.swift in Sources */,
 				E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */,
 				E97651D4248AE1CF00C76865 /* CombatantDetailView.swift in Sources */,
 				E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */,

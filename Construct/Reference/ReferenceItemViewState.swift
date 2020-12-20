@@ -90,14 +90,24 @@ struct ReferenceItemViewState: Equatable {
         }
 
         struct CombatantDetail: Equatable {
-            var encounter: Encounter // updated from the outside
-            var selectedCombatantId: UUID
+            var encounter: Encounter { // updated from the outside
+                didSet {
+                    updateDetailState()
+                }
+            }
+
+            var selectedCombatantId: UUID {
+                didSet {
+                    updateDetailState()
+                }
+            }
 
             var runningEncounter: RunningEncounter? {
                 didSet {
                     if pinToTurn, let turn = runningEncounter?.turn {
                         selectedCombatantId = turn.combatantId
                     }
+                    updateDetailState()
                 }
             }
 
@@ -117,6 +127,13 @@ struct ReferenceItemViewState: Equatable {
                     ?? Combatant.nullInstance
                 self.detailState = CombatantDetailViewState(runningEncounter: runningEncounter, combatant: combatant)
             }
+
+            private mutating func updateDetailState() {
+                let encounter = runningEncounter?.current ?? self.encounter
+                if let combatant = encounter.combatant(for: selectedCombatantId) {
+                    detailState.combatant = combatant
+                }
+            }
         }
     }
 }
@@ -124,6 +141,8 @@ struct ReferenceItemViewState: Equatable {
 enum ReferenceItemViewAction: Equatable {
     case contentHome(Home)
     case contentCombatantDetail(CombatantDetail)
+
+    case set(ReferenceItemViewState)
 
     enum Home: Equatable, NavigationStackSourceAction {
         case setNextScreen(ReferenceItemViewState.Content.Home.NextScreen?)
@@ -160,7 +179,14 @@ extension ReferenceItemViewState {
 
     static let reducer: Reducer<Self, ReferenceItemViewAction, Environment> = Reducer.combine(
         ReferenceItemViewState.Content.Home.reducer.optional().pullback(state: \.home, action: /ReferenceItemViewAction.contentHome),
-        ReferenceItemViewState.Content.CombatantDetail.reducer.optional().pullback(state: \.combatantDetail, action: /ReferenceItemViewAction.contentCombatantDetail)
+        ReferenceItemViewState.Content.CombatantDetail.reducer.optional().pullback(state: \.combatantDetail, action: /ReferenceItemViewAction.contentCombatantDetail),
+        Reducer { state, action, env in
+            switch action {
+            case .set(let s): state = s
+            case .contentCombatantDetail, .contentHome: break // handled below
+            }
+            return .none
+        }
     )
 }
 

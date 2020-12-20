@@ -22,7 +22,7 @@ struct ColumnNavigationViewState: Equatable {
     var referenceView = ReferenceViewState(
         items: IdentifiedArray(
             [
-                .init(state: ReferenceItemViewState())
+                .local(.init(state: ReferenceItemViewState()))
             ],
             id: \.id
         )

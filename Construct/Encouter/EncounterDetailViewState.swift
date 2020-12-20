@@ -17,10 +17,12 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
         didSet {
             let b = building
             addCombatantState?.encounter = b
-            referenceState?.updateEncounter(b)
+
             if let cds = combatantDetailState, let c = b.combatant(for: cds.combatant.id) {
                 combatantDetailState?.combatant = c
             }
+
+            referenceItem?.state.combatantDetail?.encounter = b
         }
     }
     var running: RunningEncounter? {
@@ -37,10 +39,11 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
                 if let scts = selectedCombatantTagsState {
                     selectedCombatantTagsState?.combatants = scts.combatants.compactMap { running.current.combatant(for: $0.id) }
                 }
-            }
 
-            let r = running
-            referenceState?.updateRunningEncounter(r)
+                referenceItem?.state.combatantDetail?.runningEncounter = running
+            } else {
+                referenceItem?.state.combatantDetail?.runningEncounter = nil
+            }
         }
     }
 
@@ -95,19 +98,7 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
         }
     }
 
-    var referenceState: ReferenceViewState? {
-        get {
-            if case .reference(let state)? = detailScreen {
-                return state
-            }
-            return nil
-        }
-        set {
-            if detailScreen != nil {
-                self.detailScreen = newValue.map { .reference($0) }
-            }
-        }
-    }
+    var referenceItem: ReferenceViewState.Item?
 
     var runningEncounterLogState: RunningEncounterLogViewState? {
         guard case .runningEncounterLog(let state)? = sheet else { return nil }
@@ -210,6 +201,9 @@ extension EncounterDetailViewState {
         case setDetailScreen(EncounterDetailViewState.NextScreen?)
         case detailScreen(NextScreenAction)
 
+        case setReferenceItem(ReferenceViewState.Item?)
+        case referenceItem(ReferenceItemViewAction)
+
         enum SelectionEncounterAction: Hashable {
             case duplicate
             case remove
@@ -217,7 +211,6 @@ extension EncounterDetailViewState {
 
         enum NextScreenAction: Equatable {
             case combatant(CombatantDetailViewAction)
-            case reference(EncounterReferenceViewAction)
         }
 
         static func presentScreen(_ destination: NavigationDestination, _ screen: EncounterDetailViewState.NextScreen?) -> Self {
@@ -362,6 +355,13 @@ extension EncounterDetailViewState {
                     state.presentedScreens[.detail] = s
                 case .nextScreen: break // handled below
                 case .detailScreen: break // handled below
+                case .setReferenceItem(let i):
+                    state.referenceItem = i
+                case .referenceItem(.contentCombatantDetail(.detail(.combatant(let a)))):
+                    if let combatantDetailState = state.referenceItem?.state.combatantDetail?.detailState {
+                        return Effect(value: .encounter(.combatant(combatantDetailState.combatant.id, a)))
+                    }
+                case .referenceItem: break // handled below
                 }
                 return .none
             },
@@ -380,7 +380,7 @@ extension EncounterDetailViewState {
             CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.combatantDetail),
             CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.detailScreen..Action.NextScreenAction.combatant),
             CombatantTagsViewState.reducer.optional().pullback(state: \.selectedCombatantTagsState, action: /Action.selectedCombatantTags),
-            encounterReferenceReducer.optional().pullback(state: \.referenceState, action: /Action.detailScreen..Action.NextScreenAction.reference)
+            ReferenceViewState.Item.reducer.optional().pullback(state: \.referenceItem, action: /Action.referenceItem)
         )
     }
 }

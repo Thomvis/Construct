@@ -54,7 +54,12 @@ struct ReferenceView: View {
                 id: item.id,
                 label: Label(item.title, systemImage: "doc"),
                 view: {
-                    ReferenceItemView(store: store.scope(state: { $0.items[id: item.id]?.state ?? .nullInstance }, action: { .item(item.id, $0) }))
+                    switch item {
+                    case .local:
+                        return ReferenceItemView(store: store.scope(state: { $0.items[id: item.id]?.state ?? .nullInstance }, action: { .item(item.id, $0) }))
+                    case .remote(_, let store):
+                        return ReferenceItemView(store: store)
+                    }
                 }
             )
         }
