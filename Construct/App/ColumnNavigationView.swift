@@ -15,9 +15,10 @@ struct ColumnNavigationView: View {
     var body: some View {
         ZStack {
             NavigationView {
-                SidebarView(store: store.scope(state: { $0.sidebar }, action: { .sidebar($0) }))
+//                SidebarView(store: store.scope(state: { $0.sidebar }, action: { .sidebar($0) }))
+                CampaignBrowseView(store: store.scope(state: { $0.campaignBrowse }, action: { .campaignBrowse($0) }))
 
-                Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+//                Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
 
 //                Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
                 ReferenceView(store: store.scope(state: { $0.referenceView }, action: { .referenceView($0) }))

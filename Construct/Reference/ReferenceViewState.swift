@@ -74,7 +74,11 @@ struct ReferenceViewState: Equatable {
             set {
                 switch self {
                 case .local(let s): self = .local(Local(id: s.id, title: s.title, state: newValue))
-                case .remote(_, let s): ViewStore(s).send(.set(newValue))
+                case .remote(_, let s):
+                    DispatchQueue.main.async {
+                        // work around recursive action, not great
+                        ViewStore(s).send(.set(newValue))
+                    }
                 }
             }
         }

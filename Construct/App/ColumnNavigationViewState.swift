@@ -12,6 +12,8 @@ import ComposableArchitecture
 struct ColumnNavigationViewState: Equatable {
     var sidebar: SidebarViewState = SidebarViewState()
 
+    var campaignBrowse = CampaignBrowseViewState(node: .root, mode: .browse, showSettingsButton: true)
+
     var diceCalculator: DiceCalculatorState = DiceCalculatorState(
         displayOutcomeExternally: false,
         rollOnAppear: false,
@@ -32,6 +34,7 @@ struct ColumnNavigationViewState: Equatable {
 enum ColumnNavigationViewAction: Equatable {
     case diceCalculator(DiceCalculatorAction)
     case sidebar(SidebarViewAction)
+    case campaignBrowse(CampaignBrowseViewAction)
     case referenceView(ReferenceViewAction)
 }
 
@@ -39,6 +42,7 @@ extension ColumnNavigationViewState {
     static let reducer: Reducer<Self, ColumnNavigationViewAction, Environment> = Reducer.combine(
         DiceCalculatorState.reducer.pullback(state: \.diceCalculator, action: /ColumnNavigationViewAction.diceCalculator),
         SidebarViewState.reducer.pullback(state: \.sidebar, action: /ColumnNavigationViewAction.sidebar),
+        CampaignBrowseViewState.reducer.pullback(state: \.campaignBrowse, action: /ColumnNavigationViewAction.campaignBrowse),
         ReferenceViewState.reducer.pullback(state: \.referenceView, action: /ColumnNavigationViewAction.referenceView)
     )
 }

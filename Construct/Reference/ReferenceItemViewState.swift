@@ -111,6 +111,10 @@ struct ReferenceItemViewState: Equatable {
                 }
             }
 
+            var effectiveEncounter: Encounter {
+                runningEncounter?.current ?? self.encounter
+            }
+
             var pinToTurn: Bool
 
             var detailState: CombatantDetailViewState
@@ -129,8 +133,7 @@ struct ReferenceItemViewState: Equatable {
             }
 
             private mutating func updateDetailState() {
-                let encounter = runningEncounter?.current ?? self.encounter
-                if let combatant = encounter.combatant(for: selectedCombatantId) {
+                if let combatant = effectiveEncounter.combatant(for: selectedCombatantId) {
                     detailState.combatant = combatant
                 }
             }
@@ -171,6 +174,9 @@ enum ReferenceItemViewAction: Equatable {
 
     enum CombatantDetail: Equatable {
         case detail(CombatantDetailViewAction)
+        case previousCombatantTapped
+        case nextCombatantTapped
+        case togglePinToTurnTapped
     }
 }
 
@@ -209,6 +215,27 @@ extension ReferenceItemViewState.Content.Home {
 
 extension ReferenceItemViewState.Content.CombatantDetail {
     static let reducer: Reducer<Self, ReferenceItemViewAction.CombatantDetail, Environment> = Reducer.combine(
-        CombatantDetailViewState.reducer.pullback(state: \.detailState, action: /ReferenceItemViewAction.CombatantDetail.detail)
+        CombatantDetailViewState.reducer.pullback(state: \.detailState, action: /ReferenceItemViewAction.CombatantDetail.detail),
+        Reducer { state, action, env in
+            switch action {
+            case .detail: break // handled above
+            case .previousCombatantTapped:
+                if let idx = state.effectiveEncounter.combatants.firstIndex(where: { $0.id == state.selectedCombatantId }), idx > 0 {
+                    state.selectedCombatantId = state.effectiveEncounter.combatants[idx-1].id
+                } else if let last = state.effectiveEncounter.combatants.last {
+                    state.selectedCombatantId = last.id
+                }
+                break
+            case .nextCombatantTapped:
+                if let idx = state.effectiveEncounter.combatants.firstIndex(where: { $0.id == state.selectedCombatantId }), idx < state.effectiveEncounter.combatants.endIndex-1 {
+                    state.selectedCombatantId = state.effectiveEncounter.combatants[idx+1].id
+                } else if let first = state.effectiveEncounter.combatants.first {
+                    state.selectedCombatantId = first.id
+                }
+            case .togglePinToTurnTapped:
+                state.pinToTurn.toggle()
+            }
+            return .none
+        }
     )
 }
