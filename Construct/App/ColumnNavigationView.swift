@@ -13,6 +13,8 @@ import Introspect
 struct ColumnNavigationView: View {
     let store: Store<ColumnNavigationViewState, ColumnNavigationViewAction>
 
+    @State var didApplyPrimaryViewWorkAround = false
+
     var body: some View {
         ZStack {
             NavigationView {
@@ -27,11 +29,12 @@ struct ColumnNavigationView: View {
                 // the supplementary view is determined by the default selection inside the
                 // primary view, but the primary view is not loaded so its selection is not read
                 // We work around that by briefly showing the primary view.
-                if let splitVC = vc.children.first as? UISplitViewController {
+                if !didApplyPrimaryViewWorkAround, let splitVC = vc.children.first as? UISplitViewController {
                     UIView.performWithoutAnimation {
                         splitVC.show(.primary)
                         splitVC.hide(.primary)
                     }
+                    didApplyPrimaryViewWorkAround = true
                 }
             }
             .onPreferenceChange(ReferenceViewItemKey.self) { items in
