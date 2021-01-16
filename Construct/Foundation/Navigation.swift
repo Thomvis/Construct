@@ -60,7 +60,7 @@ protocol NavigationStackSourceAction {
 
 func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination, Label>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, isActive: @escaping (DestinationState) -> Bool, initialState: @escaping () -> DestinationState, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination, label: () -> Label) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, Destination: View, Label: View {
     NavigationLink(
-        destination: IfLetStore(store.scope(state: { $0.presentedScreens[navDest].flatMap(state.extract) }, action: { .presentedScreen(navDest, action.embed($0)) })) { destination($0) }.navigationViewChild,
+        destination: IfLetStore(store.scope(state: replayNonNil({ $0.presentedScreens[navDest].flatMap(state.extract) }), action: { .presentedScreen(navDest, action.embed($0)) })) { destination($0) }.navigationViewChild,
         isActive: Binding(get: {
             if let nextScreen = ViewStore(store).state.presentedScreens[navDest], let state = state.extract(from: nextScreen) {
                 return isActive(state)
