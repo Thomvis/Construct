@@ -213,13 +213,14 @@ extension ReferenceItemViewState.Content.CombatantDetail {
                 } else if let last = state.effectiveEncounter.combatants.last {
                     state.selectedCombatantId = last.id
                 }
-                break
+                state.pinToTurn = false
             case .nextCombatantTapped:
                 if let idx = state.effectiveEncounter.combatants.firstIndex(where: { $0.id == state.selectedCombatantId }), idx < state.effectiveEncounter.combatants.endIndex-1 {
                     state.selectedCombatantId = state.effectiveEncounter.combatants[idx+1].id
                 } else if let first = state.effectiveEncounter.combatants.first {
                     state.selectedCombatantId = first.id
                 }
+                state.pinToTurn = false
             case .togglePinToTurnTapped:
                 state.pinToTurn.toggle()
             }
