@@ -25,6 +25,9 @@ struct CampaignBrowseTwoColumnContainerView: View {
                     }
                 }
             )
+            .onAppear {
+                ViewStore(store).send(.showReferenceView(true))
+            }
     }
 }
 
@@ -38,6 +41,7 @@ struct CampaignBrowseTwoColumnContainerState: Equatable {
 enum CampaignBrowseTwoColumnContainerAction: Equatable {
     case campaignBrowse(CampaignBrowseViewAction)
     case referenceView(ReferenceViewAction)
+    case showReferenceView(Bool)
 }
 
 extension CampaignBrowseTwoColumnContainerState {
@@ -49,6 +53,8 @@ extension CampaignBrowseTwoColumnContainerState {
                     state.showReferenceView = true
                 }
                 break
+            case .showReferenceView(let b):
+                state.showReferenceView = b
             case .referenceView: break // handled below
             case .campaignBrowse: break // handled below
             }

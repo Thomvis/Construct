@@ -8,6 +8,7 @@
 
 import SwiftUI
 import ComposableArchitecture
+import Introspect
 
 struct ColumnNavigationView: View {
     let store: Store<ColumnNavigationViewState, ColumnNavigationViewAction>
@@ -20,6 +21,18 @@ struct ColumnNavigationView: View {
                 Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
 
                 Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+            }
+            .introspectViewController { vc in
+                // workaround for an empty supplementary view on launch
+                // the supplementary view is determined by the default selection inside the
+                // primary view, but the primary view is not loaded so its selection is not read
+                // We work around that by briefly showing the primary view.
+                if let splitVC = vc.children.first as? UISplitViewController {
+                    UIView.performWithoutAnimation {
+                        splitVC.show(.primary)
+                        splitVC.hide(.primary)
+                    }
+                }
             }
             .onPreferenceChange(ReferenceViewItemKey.self) { items in
                 let viewStore = ViewStore(store)
