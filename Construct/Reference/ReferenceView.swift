@@ -44,7 +44,7 @@ struct ReferenceView: View {
                     .disabled((viewStore.selectedItemNavigationNode?.navigationStackSize() ?? 0) <= 1)
                 }
             }
-            .navigationBarTitle("Reference", displayMode: .inline)
+            .navigationBarTitle(viewStore.state.navigationTitle, displayMode: .inline)
         }
     }
 

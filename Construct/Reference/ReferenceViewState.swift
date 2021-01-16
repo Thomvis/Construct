@@ -158,7 +158,12 @@ extension ReferenceViewState {
 
 extension ReferenceViewState: NavigationStackItemState {
     var navigationStackItemStateId: String { return "ReferenceViewState" }
-    var navigationTitle: String { return "Reference" }
+    var navigationTitle: String {
+        if let singleItem = items.elements.single {
+            return singleItem.title
+        }
+        return "Reference"
+    }
 }
 
 extension ReferenceViewState {
