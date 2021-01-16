@@ -49,6 +49,12 @@ extension CampaignBrowseViewState: HavingEntities {
     }
 }
 
+extension CampaignBrowseTwoColumnContainerState: HavingEntities {
+    var entities: [AnyKeyValueStoreEntity] {
+        return campaignBrowse.entities
+    }
+}
+
 extension CampaignBrowseViewState.NextScreen: HavingEntities {
     var entities: [AnyKeyValueStoreEntity] {
         switch self {

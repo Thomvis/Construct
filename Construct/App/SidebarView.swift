@@ -51,15 +51,39 @@ struct SidebarView: View {
                         Text("Monsters")
                     }
 
-                    NavigationLink(destination: EmptyView()) {
+                    StateDrivenNavigationLink(
+                        store: store,
+                        state: /SidebarViewState.NextScreen.compendium,
+                        action: /SidebarViewAction.NextScreenAction.compendium,
+                        navDest: .detail,
+                        isActive: { $0.title == "Characters" }, // not great
+                        initialState: CompendiumIndexState(title: "Characters", properties: .secondary, results: .initial(type: .character)),
+                        destination: { CompendiumIndexView(store: $0) }
+                    ) {
                         Text("Characters")
                     }
 
-                    NavigationLink(destination: EmptyView()) {
+                    StateDrivenNavigationLink(
+                        store: store,
+                        state: /SidebarViewState.NextScreen.compendium,
+                        action: /SidebarViewAction.NextScreenAction.compendium,
+                        navDest: .detail,
+                        isActive: { $0.title == "Adventuring Parties" }, // not great
+                        initialState: CompendiumIndexState(title: "Adventuring Parties", properties: .secondary, results: .initial(type: .group)),
+                        destination: { CompendiumIndexView(store: $0) }
+                    ) {
                         Text("Adventuring Parties")
                     }
 
-                    NavigationLink(destination: EmptyView()) {
+                    StateDrivenNavigationLink(
+                        store: store,
+                        state: /SidebarViewState.NextScreen.compendium,
+                        action: /SidebarViewAction.NextScreenAction.compendium,
+                        navDest: .detail,
+                        isActive: { $0.title == "Spells" }, // not great
+                        initialState: CompendiumIndexState(title: "Spells", properties: .secondary, results: .initial(type: .spell)),
+                        destination: { CompendiumIndexView(store: $0) }
+                    ) {
                         Text("Spells")
                     }
                 }
@@ -81,26 +105,14 @@ struct SidebarView: View {
                 state: /SidebarViewState.NextScreen.campaignBrowse,
                 action: /SidebarViewAction.NextScreenAction.campaignBrowse,
                 navDest: .detail,
-                isActive: { $0.node == CampaignNode.root && $0.presentedScreens.isEmpty },
-                initialState: CampaignBrowseViewState(node: CampaignNode.root, mode: .browse, showSettingsButton: false),
-                destination: CampaignBrowseView.init
+                isActive: { $0.campaignBrowse.node == CampaignNode.root && $0.campaignBrowse.presentedScreens.isEmpty },
+                initialState: CampaignBrowseTwoColumnContainerState(node: .root),
+                destination: CampaignBrowseTwoColumnContainerView.init
             ) {
                 Label("All encounters", systemImage: "shield")
             }
 
             campaignNodes(in: CampaignNode.root, viewStore: viewStore)
-
-//            SimpleAccentedButton(action: {
-//                viewStore.send(.setSheet(.nodeEdit(CampaignBrowseViewState.NodeEditState(name: "", contentType: .encounter))))
-//            }) {
-//                Label("New encounter", systemImage: "shield")
-//            }
-//
-//            SimpleAccentedButton(action: {
-//                viewStore.send(.setSheet(.nodeEdit(CampaignBrowseViewState.NodeEditState(name: ""))))
-//            }) {
-//                Label("New group", systemImage: "folder")
-//            }
         }
     }
 
@@ -119,9 +131,9 @@ struct SidebarView: View {
                     state: /SidebarViewState.NextScreen.campaignBrowse,
                     action: /SidebarViewAction.NextScreenAction.campaignBrowse,
                     navDest: .detail,
-                    isActive: { $0.node == node && $0.presentedScreens.isEmpty },
-                    initialState: CampaignBrowseViewState(node: node, mode: .browse, showSettingsButton: false),
-                    destination: CampaignBrowseView.init
+                    isActive: { $0.campaignBrowse.node == node && $0.campaignBrowse.presentedScreens.isEmpty },
+                    initialState: CampaignBrowseTwoColumnContainerState(node: node),
+                    destination: CampaignBrowseTwoColumnContainerView.init
                 ) {
                     Label(node.title, systemImage: node.iconName)
                 }

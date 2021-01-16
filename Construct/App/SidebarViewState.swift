@@ -15,7 +15,9 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
     var campaignNodes: [UUID: [CampaignNode]] = [:]
     var campaignNodeIsExpanded: [UUID: Bool] = [:]
 
-    var presentedScreens: [NavigationDestination: NextScreen] = [:]
+    var presentedScreens: [NavigationDestination: NextScreen] = [
+        .detail: .campaignBrowse(CampaignBrowseTwoColumnContainerState())
+    ]
     var sheet: Sheet?
 
     func nodes(in node: CampaignNode) -> [CampaignNode]? {
@@ -30,7 +32,7 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
     enum NextScreen: Equatable {
         case compendium(CompendiumIndexState)
         case encounter(EncounterDetailViewState)
-        case campaignBrowse(CampaignBrowseViewState)
+        case campaignBrowse(CampaignBrowseTwoColumnContainerState)
     }
 
     enum Sheet: Equatable, Identifiable {
@@ -76,7 +78,7 @@ enum SidebarViewAction: NavigationStackSourceAction, Equatable {
     enum NextScreenAction: Equatable {
         case compendium(CompendiumIndexAction)
         case encounter(EncounterDetailViewState.Action)
-        case campaignBrowse(CampaignBrowseViewAction)
+        case campaignBrowse(CampaignBrowseTwoColumnContainerAction)
     }
 
 }
@@ -90,7 +92,7 @@ extension SidebarViewState {
     static let reducer: Reducer<Self, SidebarViewAction, Environment> = Reducer.combine(
         CompendiumIndexState.reducer.optional().pullback(state: \.presentedDetailCompendium, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.compendium),
         EncounterDetailViewState.reducer.optional().pullback(state: \.presentedDetailEncounter, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.encounter),
-        CampaignBrowseViewState.reducer.optional().pullback(state: \.presentedDetailCampaignBrowse, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.campaignBrowse),
+        CampaignBrowseTwoColumnContainerState.reducer.optional().pullback(state: \.presentedDetailCampaignBrowse, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.campaignBrowse),
         Reducer { state, action, env in
             switch action {
             case .loadCampaignNode(let node):
@@ -107,7 +109,7 @@ extension SidebarViewState {
             case .onCampaignNodeTap(let node):
                 return [
                     node.contents == nil ? .campaignNodeIsExpanded(node, true) : nil,
-                    .setDetailScreen(.campaignBrowse(CampaignBrowseViewState(node: node, mode: .browse, showSettingsButton: false)))
+                    .setDetailScreen(.campaignBrowse(CampaignBrowseTwoColumnContainerState(node: node)))
                 ].compactMap { $0 }.publisher.eraseToEffect()
             case .setNextScreen(let s):
                 state.presentedScreens[.nextInStack] = s

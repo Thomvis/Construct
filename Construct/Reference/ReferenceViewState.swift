@@ -14,7 +14,7 @@ struct ReferenceViewState: Equatable {
     var items: IdentifiedArray<UUID, Item>
     var selectedItemId: UUID?
 
-    private var remoteItemRequests: [RemoteReferenceViewItemRequest] = []
+    private(set) var remoteItemRequests: [RemoteReferenceViewItemRequest] = []
 
     init(items: IdentifiedArray<UUID, Item>) {
         self.items = items
@@ -36,7 +36,7 @@ struct ReferenceViewState: Equatable {
         var lastNewItem: UUID?
         for req in remoteItemRequests {
             let existing = items.first(where:  { $0.id == req.id })
-            if let existing = existing {
+            if let _ = existing {
                 // todo
             } else {
                 items.append(.remote(req.id, req.store.scope(state: { $0.state })))

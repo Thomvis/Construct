@@ -321,7 +321,7 @@ extension SidebarViewState.NextScreen: NavigationNode {
             switch newValue {
             case let v as CompendiumIndexState: self = .compendium(v)
             case let v as EncounterDetailViewState: self = .encounter(v)
-            case let v as CampaignBrowseViewState: self = .campaignBrowse(v)
+            case let v as CampaignBrowseTwoColumnContainerState: self = .campaignBrowse(v)
             default: break
             }
         }
@@ -1082,7 +1082,7 @@ extension SidebarViewState: NavigationNode {
             }
         }
     }
-    var presentedNextCampaignBrowse: CampaignBrowseViewState? {
+    var presentedNextCampaignBrowse: CampaignBrowseTwoColumnContainerState? {
         get { 
             if case .campaignBrowse(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -1096,7 +1096,7 @@ extension SidebarViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCampaignBrowse: CampaignBrowseViewState? {
+    var presentedDetailCampaignBrowse: CampaignBrowseTwoColumnContainerState? {
         get { 
             if case .campaignBrowse(let s) = presentedScreens[.detail] {
                 return s

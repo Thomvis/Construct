@@ -22,7 +22,7 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
                 combatantDetailState?.combatant = c
             }
 
-            referenceItem?.state.combatantDetail?.encounter = b
+            referenceItem?.state.content.combatantDetailState?.encounter = b
         }
     }
     var running: RunningEncounter? {
@@ -40,9 +40,9 @@ struct EncounterDetailViewState: Equatable, NavigationStackSourceState {
                     selectedCombatantTagsState?.combatants = scts.combatants.compactMap { running.current.combatant(for: $0.id) }
                 }
 
-                referenceItem?.state.combatantDetail?.runningEncounter = running
+                referenceItem?.state.content.combatantDetailState?.runningEncounter = running
             } else {
-                referenceItem?.state.combatantDetail?.runningEncounter = nil
+                referenceItem?.state.content.combatantDetailState?.runningEncounter = nil
             }
         }
     }
@@ -358,7 +358,7 @@ extension EncounterDetailViewState {
                 case .setReferenceItem(let i):
                     state.referenceItem = i
                 case .referenceItem(.contentCombatantDetail(.detail(.combatant(let a)))):
-                    if let combatantDetailState = state.referenceItem?.state.combatantDetail?.detailState {
+                    if let combatantDetailState = state.referenceItem?.state.content.combatantDetailState?.detailState {
                         return Effect(value: .encounter(.combatant(combatantDetailState.combatant.id, a)))
                     }
                 case .referenceItem: break // handled below

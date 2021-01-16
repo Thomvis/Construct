@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */; };
 		E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E905E0BB246D83B800698C0A /* ComposableArchitecture */; };
+		E90B961525B312BB00BD760B /* Memoize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90B961425B312BB00BD760B /* Memoize.swift */; };
 		E91885CB23943BBF0094EC87 /* Sort.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91885CA23943BBF0094EC87 /* Sort.swift */; };
 		E91885CD23944A3F0094EC87 /* ddb_bass.json in Resources */ = {isa = PBXBuildFile; fileRef = E91885CC23944A3F0094EC87 /* ddb_bass.json */; };
 		E91B857F23DA355B009AF6D7 /* software_licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = E91B857E23DA3552009AF6D7 /* software_licenses.md */; };
@@ -127,6 +128,7 @@
 		E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861423BDF398003B2DA2 /* NumberEntryView.swift */; };
 		E978861A23BE3779003B2DA2 /* With.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861923BE3779003B2DA2 /* With.swift */; };
 		E978862023C0B04D003B2DA2 /* CompendiumItemGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */; };
+		E979CBE22594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E979CBE12594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift */; };
 		E97A43AA2332C31A00A8B032 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43A92332C31A00A8B032 /* Entity.swift */; };
 		E97A43AC2334004B00A8B032 /* CompendiumImporterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */; };
 		E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AD233407D000A8B032 /* Fixtures.swift */; };
@@ -214,6 +216,7 @@
 /* Begin PBXFileReference section */
 		E903F71F237F42AF004C1AC8 /* InlineCombatantTagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineCombatantTagsView.swift; sourceTree = "<group>"; };
 		E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagPopover.swift; sourceTree = "<group>"; };
+		E90B961425B312BB00BD760B /* Memoize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memoize.swift; sourceTree = "<group>"; };
 		E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryDetailViewState.swift; sourceTree = "<group>"; };
 		E91885CA23943BBF0094EC87 /* Sort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sort.swift; sourceTree = "<group>"; };
 		E91885CC23944A3F0094EC87 /* ddb_bass.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ddb_bass.json; sourceTree = "<group>"; };
@@ -308,6 +311,7 @@
 		E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroup.swift; sourceTree = "<group>"; };
 		E978862123C20B90003B2DA2 /* CompendiumItemGroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupDetailView.swift; sourceTree = "<group>"; };
 		E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupEditView.swift; sourceTree = "<group>"; };
+		E979CBE12594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseTwoColumnContainer.swift; sourceTree = "<group>"; };
 		E97A43A72332C07200A8B032 /* CompendiumImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporter.swift; sourceTree = "<group>"; };
 		E97A43A92332C31A00A8B032 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
 		E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporterTest.swift; sourceTree = "<group>"; };
@@ -555,6 +559,7 @@
 				E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */,
 				E9869FD92523BFCB0098A166 /* SidebarView.swift */,
 				E9869FDD2523BFF60098A166 /* SidebarViewState.swift */,
+				E979CBE12594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -697,6 +702,7 @@
 				E91C167824029D94004B5C85 /* Apply.swift */,
 				E91E596C2447225500975453 /* Migrated.swift */,
 				E972BA932477F8B100F313D7 /* EquatablePropertyWrappers.swift */,
+				E90B961425B312BB00BD760B /* Memoize.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -1174,6 +1180,7 @@
 				E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */,
 				E972BAA02478574500F313D7 /* DiceCalculatorView.swift in Sources */,
 				E9540FFA23181524008A25EC /* PopoverHost.swift in Sources */,
+				E90B961525B312BB00BD760B /* Memoize.swift in Sources */,
 				E946B026247D9EE3008A407C /* RunningEncounter.swift in Sources */,
 				E9D5A6ED2314FB37004D84E2 /* Creature.swift in Sources */,
 				E978862023C0B04D003B2DA2 /* CompendiumItemGroup.swift in Sources */,
@@ -1191,6 +1198,7 @@
 				E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */,
 				E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */,
 				E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */,
+				E979CBE22594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift in Sources */,
 				E931CF8324FD0E54006CEE78 /* CreatureActionParser.swift in Sources */,
 				E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */,
 				E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */,

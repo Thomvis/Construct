@@ -26,18 +26,6 @@ struct ReferenceItemViewState: Equatable {
         }
     }
 
-    var combatantDetail: Content.CombatantDetail? {
-        get {
-            guard case .combatantDetail(let s) = content else { return nil }
-            return s
-        }
-        set {
-            if let newValue = newValue {
-                content = .combatantDetail(newValue)
-            }
-        }
-    }
-
     enum Content: Equatable {
         case home(Home)
         case combatantDetail(CombatantDetail)
@@ -185,7 +173,7 @@ extension ReferenceItemViewState {
 
     static let reducer: Reducer<Self, ReferenceItemViewAction, Environment> = Reducer.combine(
         ReferenceItemViewState.Content.Home.reducer.optional().pullback(state: \.home, action: /ReferenceItemViewAction.contentHome),
-        ReferenceItemViewState.Content.CombatantDetail.reducer.optional().pullback(state: \.combatantDetail, action: /ReferenceItemViewAction.contentCombatantDetail),
+        ReferenceItemViewState.Content.CombatantDetail.reducer.optional().pullback(state: \.content.combatantDetailState, action: /ReferenceItemViewAction.contentCombatantDetail),
         Reducer { state, action, env in
             switch action {
             case .set(let s): state = s

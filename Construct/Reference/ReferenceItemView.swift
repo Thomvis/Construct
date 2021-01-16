@@ -22,7 +22,7 @@ struct ReferenceItemView: View {
                     Group {
                         IfLetStore(store.scope(state: { $0.home }, action: { .contentHome($0) }), then: HomeView.init)
 
-                        IfLetStore(store.scope(state: { $0.combatantDetail }, action: { .contentCombatantDetail($0) }), then: CombatantDetailView.init)
+                        IfLetStore(store.scope(state: { $0.content.combatantDetailState }, action: { .contentCombatantDetail($0) }), then: CombatantDetailView.init)
                     }
                 }
                 .navigationViewStyle(StackNavigationViewStyle())
