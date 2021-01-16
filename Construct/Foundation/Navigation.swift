@@ -68,7 +68,10 @@ func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, Dest
                 return false
             }
         }, set: { active in
-            if active {
+            let nextScreen = ViewStore(store).state.presentedScreens[navDest]
+            let destinationState = nextScreen.flatMap { state.extract(from: $0) }
+
+            if active && !(destinationState.map(isActive) ?? false) {
                 ViewStore(store).send(.presentScreen(navDest, state.embed(initialState())))
             } else if navDest != .detail, let nextScreen = ViewStore(store).state.presentedScreens[navDest], let state = state.extract(from: nextScreen), isActive(state) {
                 ViewStore(store).send(.presentScreen(navDest, nil))

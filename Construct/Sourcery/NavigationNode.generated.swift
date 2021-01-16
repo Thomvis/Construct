@@ -312,7 +312,6 @@ extension SidebarViewState.NextScreen: NavigationNode {
         get {
             switch self {
             case .compendium(let s): return s
-            case .encounter(let s): return s
             case .campaignBrowse(let s): return s
             }
         }
@@ -320,7 +319,6 @@ extension SidebarViewState.NextScreen: NavigationNode {
         set {
             switch newValue {
             case let v as CompendiumIndexState: self = .compendium(v)
-            case let v as EncounterDetailViewState: self = .encounter(v)
             case let v as CampaignBrowseTwoColumnContainerState: self = .campaignBrowse(v)
             default: break
             }
@@ -1052,33 +1050,6 @@ extension SidebarViewState: NavigationNode {
         set { 
             if let value = newValue {
                 presentedScreens[.detail] = .compendium(value) 
-            }
-        }
-    }
-    var presentedNextEncounter: EncounterDetailViewState? {
-        get { 
-            if case .encounter(let s) = presentedScreens[.nextInStack] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.nextInStack] = .encounter(value) 
-            }
-        }
-    }
-
-    var presentedDetailEncounter: EncounterDetailViewState? {
-        get { 
-            if case .encounter(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.detail] = .encounter(value) 
             }
         }
     }

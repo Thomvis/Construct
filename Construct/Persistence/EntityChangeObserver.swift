@@ -37,7 +37,6 @@ extension SidebarViewState.NextScreen: HavingEntities {
     var entities: [AnyKeyValueStoreEntity] {
         switch self {
         case .compendium: return []
-        case .encounter(let s): return s.entities
         case .campaignBrowse(let s): return s.entities
         }
     }
@@ -51,7 +50,7 @@ extension CampaignBrowseViewState: HavingEntities {
 
 extension CampaignBrowseTwoColumnContainerState: HavingEntities {
     var entities: [AnyKeyValueStoreEntity] {
-        return campaignBrowse.entities
+        return (content.campaignBrowse?.entities ?? []) + (content.encounter?.entities ?? [])
     }
 }
 

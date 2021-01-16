@@ -20,18 +20,18 @@ struct SidebarView: View {
             List {
                 StateDrivenNavigationLink(
                     store: store,
-                    state: /SidebarViewState.NextScreen.encounter,
-                    action: /SidebarViewAction.NextScreenAction.encounter,
+                    state: /SidebarViewState.NextScreen.campaignBrowse,
+                    action: /SidebarViewAction.NextScreenAction.campaignBrowse,
                     navDest: .detail,
-                    isActive: { $0.encounter.key == Encounter.key(Encounter.scratchPadEncounterId) },
+                    isActive: { $0.content.encounter?.encounter.key == Encounter.key(Encounter.scratchPadEncounterId) },
                     initialState: {
                         if let encounter: Encounter = try? self.env.database.keyValueStore.get(Encounter.key(Encounter.scratchPadEncounterId)) {
-                            return EncounterDetailViewState(building: encounter)
+                            return CampaignBrowseTwoColumnContainerState(encounter: encounter)
                         } else {
-                            return EncounterDetailViewState.nullInstance
+                            return CampaignBrowseTwoColumnContainerState.nullInstance
                         }
                     },
-                    destination: { EncounterDetailView(store: $0) }
+                    destination: CampaignBrowseTwoColumnContainerView.init
                 ) {
                     Label("Scatch pad encounter", systemImage: "shield")
                 }
@@ -105,7 +105,7 @@ struct SidebarView: View {
                 state: /SidebarViewState.NextScreen.campaignBrowse,
                 action: /SidebarViewAction.NextScreenAction.campaignBrowse,
                 navDest: .detail,
-                isActive: { $0.campaignBrowse.node == CampaignNode.root && $0.campaignBrowse.presentedScreens.isEmpty },
+                isActive: { $0.content.campaignBrowse?.node == CampaignNode.root && $0.content.campaignBrowse?.presentedScreens.isEmpty == true },
                 initialState: CampaignBrowseTwoColumnContainerState(node: .root),
                 destination: CampaignBrowseTwoColumnContainerView.init
             ) {
@@ -131,7 +131,7 @@ struct SidebarView: View {
                     state: /SidebarViewState.NextScreen.campaignBrowse,
                     action: /SidebarViewAction.NextScreenAction.campaignBrowse,
                     navDest: .detail,
-                    isActive: { $0.campaignBrowse.node == node && $0.campaignBrowse.presentedScreens.isEmpty },
+                    isActive: { $0.content.campaignBrowse?.node == node && $0.content.campaignBrowse?.presentedScreens.isEmpty == true },
                     initialState: CampaignBrowseTwoColumnContainerState(node: node),
                     destination: CampaignBrowseTwoColumnContainerView.init
                 ) {

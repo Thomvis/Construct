@@ -14,32 +14,75 @@ struct CampaignBrowseTwoColumnContainerView: View {
     let store: Store<CampaignBrowseTwoColumnContainerState, CampaignBrowseTwoColumnContainerAction>
 
     var body: some View {
-        CampaignBrowseView(store: store.scope(state: { $0.campaignBrowse }, action: { .campaignBrowse($0) }))
-            .background(
-                WithViewStore(store) { viewStore in
-                    NavigationLink(
-                        destination: ReferenceView(store: store.scope(state: { $0.referenceView }, action: { .referenceView($0) })),
-                        isActive: Binding(get: { viewStore.state.showReferenceView }, set: { _ in })
-                    ) {
-                        EmptyView()
-                    }
-                }
-            )
-            .onAppear {
-                ViewStore(store).send(.showReferenceView(true))
+        Group {
+            IfLetStore(store.scope(state: { $0.content.campaignBrowse}, action: { .contentCampaignBrowse($0) })) { store in
+                CampaignBrowseView(store: store)
             }
+
+            IfLetStore(store.scope(state: { $0.content.encounter }, action: { .contentEncounter($0) })) { store in
+                EncounterDetailView(store: store)
+            }
+        }
+        .background(
+            WithViewStore(store) { viewStore in
+                NavigationLink(
+                    destination: ReferenceView(store: store.scope(state: { $0.referenceView }, action: { .referenceView($0) })),
+                    isActive: Binding(get: { viewStore.state.showReferenceView }, set: { _ in })
+                ) {
+                    EmptyView()
+                }
+            }
+        )
+        .onAppear {
+            ViewStore(store).send(.showReferenceView(true))
+        }
     }
 }
 
 struct CampaignBrowseTwoColumnContainerState: Equatable {
-    var campaignBrowse: CampaignBrowseViewState
+    var content: Content
     var referenceView: ReferenceViewState
 
     var showReferenceView = false
+
+    enum Content: Equatable {
+        case browse(CampaignBrowseViewState)
+        case encounter(EncounterDetailViewState)
+
+        var campaignBrowse: CampaignBrowseViewState? {
+            get {
+                if case .browse(let b) = self {
+                    return b
+                }
+                return nil
+            }
+            set {
+                if let b = newValue {
+                    self = .browse(b)
+                }
+            }
+        }
+
+        var encounter: EncounterDetailViewState? {
+            get {
+                if case .encounter(let e) = self {
+                    return e
+                }
+                return nil
+            }
+            set {
+                if let e = newValue {
+                    self = .encounter(e)
+                }
+            }
+        }
+    }
 }
 
 enum CampaignBrowseTwoColumnContainerAction: Equatable {
-    case campaignBrowse(CampaignBrowseViewAction)
+    case contentCampaignBrowse(CampaignBrowseViewAction)
+    case contentEncounter(EncounterDetailViewState.Action)
+
     case referenceView(ReferenceViewAction)
     case showReferenceView(Bool)
 }
@@ -56,37 +99,59 @@ extension CampaignBrowseTwoColumnContainerState {
             case .showReferenceView(let b):
                 state.showReferenceView = b
             case .referenceView: break // handled below
-            case .campaignBrowse: break // handled below
+            case .contentCampaignBrowse: break // handled below
+            case .contentEncounter: break // handled below
             }
             return .none
         },
-        CampaignBrowseViewState.reducer.pullback(state: \.campaignBrowse, action: /CampaignBrowseTwoColumnContainerAction.campaignBrowse),
+        CampaignBrowseViewState.reducer.optional().pullback(state: \.content.campaignBrowse, action: /CampaignBrowseTwoColumnContainerAction.contentCampaignBrowse),
+        EncounterDetailViewState.reducer.optional().pullback(state: \.content.encounter, action: /CampaignBrowseTwoColumnContainerAction.contentEncounter),
         ReferenceViewState.reducer.pullback(state: \.referenceView, action: /CampaignBrowseTwoColumnContainerAction.referenceView)
     )
 
     init(node: CampaignNode) {
-        self.campaignBrowse = CampaignBrowseViewState(node: node, mode: .browse, showSettingsButton: false)
+        self.content = .browse(CampaignBrowseViewState(node: node, mode: .browse, showSettingsButton: false))
+        self.referenceView = ReferenceViewState(items: IdentifiedArray([]))
+    }
+
+    init(encounter: Encounter) {
+        self.content = .encounter(EncounterDetailViewState(building: encounter))
         self.referenceView = ReferenceViewState(items: IdentifiedArray([]))
     }
 
     init() {
-        self.campaignBrowse = CampaignBrowseViewState(node: .root, mode: .browse, showSettingsButton: false)
+        self.content = .browse(CampaignBrowseViewState(node: .root, mode: .browse, showSettingsButton: false))
         self.referenceView = ReferenceViewState(items: IdentifiedArray([]))
     }
 }
 
 extension CampaignBrowseTwoColumnContainerState: NavigationNode {
     func topNavigationItems() -> [Any] {
-        campaignBrowse.topNavigationItems()
+        switch content {
+        case .browse(let b): return b.topNavigationItems()
+        case .encounter(let e): return e.topNavigationItems()
+        }
     }
 
     func navigationStackSize() -> Int {
-        campaignBrowse.navigationStackSize()
+        switch content {
+        case .browse(let b): return b.navigationStackSize()
+        case .encounter(let e): return e.navigationStackSize()
+        }
     }
 
     mutating func popLastNavigationStackItem() {
-        campaignBrowse.popLastNavigationStackItem()
+        switch content {
+        case .browse(var b):
+            b.popLastNavigationStackItem()
+            content = .browse(b)
+        case .encounter(var e):
+            e.popLastNavigationStackItem()
+            content = .encounter(e)
+        }
     }
+}
 
-
+extension CampaignBrowseTwoColumnContainerState {
+    static let nullInstance = CampaignBrowseTwoColumnContainerState(node: .root)
 }

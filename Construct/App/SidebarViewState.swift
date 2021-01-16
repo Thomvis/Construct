@@ -31,7 +31,6 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
 
     enum NextScreen: Equatable {
         case compendium(CompendiumIndexState)
-        case encounter(EncounterDetailViewState)
         case campaignBrowse(CampaignBrowseTwoColumnContainerState)
     }
 
@@ -91,7 +90,6 @@ extension SidebarViewState: NavigationStackItemState {
 extension SidebarViewState {
     static let reducer: Reducer<Self, SidebarViewAction, Environment> = Reducer.combine(
         CompendiumIndexState.reducer.optional().pullback(state: \.presentedDetailCompendium, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.compendium),
-        EncounterDetailViewState.reducer.optional().pullback(state: \.presentedDetailEncounter, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.encounter),
         CampaignBrowseTwoColumnContainerState.reducer.optional().pullback(state: \.presentedDetailCampaignBrowse, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.campaignBrowse),
         Reducer { state, action, env in
             switch action {
