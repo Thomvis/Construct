@@ -10,6 +10,10 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 
+/// Manages a two-column campaign browse layout using the supplementary and secondary
+/// columns of a split layout (managed by ColumnNavigationView).
+///
+/// The root view displayed by this view is either an encounter detail view or a campaign browse view.
 struct CampaignBrowseTwoColumnContainerView: View {
     let store: Store<CampaignBrowseTwoColumnContainerState, CampaignBrowseTwoColumnContainerAction>
 
@@ -24,7 +28,7 @@ struct CampaignBrowseTwoColumnContainerView: View {
             }
         }
         .background(
-            WithViewStore(store) { viewStore in
+            WithViewStore(store, removeDuplicates: { $0.showReferenceView != $1.showReferenceView }) { viewStore in
                 NavigationLink(
                     destination: ReferenceView(store: store.scope(state: { $0.referenceView }, action: { .referenceView($0) })),
                     isActive: Binding(get: { viewStore.state.showReferenceView }, set: { _ in })
@@ -76,6 +80,30 @@ struct CampaignBrowseTwoColumnContainerState: Equatable {
                 }
             }
         }
+
+        var referenceContext: EncounterReferenceContext? {
+            switch self {
+            case .browse(let s): return s.referenceContext
+            case .encounter(let s): return s.referenceContext
+            }
+        }
+
+        var toReferenceContextAction: ((EncounterReferenceContextAction) -> CampaignBrowseTwoColumnContainerAction)? {
+            switch self {
+            case .browse(let s):
+                if let nextToContextAction = s.toReferenceContextAction {
+                    return { action in
+                        .contentCampaignBrowse(nextToContextAction(action))
+                    }
+                }
+            case .encounter(let s):
+                return { action in
+                    .contentEncounter(s.toReferenceContextAction(action))
+                }
+            }
+
+            return nil
+        }
     }
 }
 
@@ -106,7 +134,22 @@ extension CampaignBrowseTwoColumnContainerState {
         },
         CampaignBrowseViewState.reducer.optional().pullback(state: \.content.campaignBrowse, action: /CampaignBrowseTwoColumnContainerAction.contentCampaignBrowse),
         EncounterDetailViewState.reducer.optional().pullback(state: \.content.encounter, action: /CampaignBrowseTwoColumnContainerAction.contentEncounter),
-        ReferenceViewState.reducer.pullback(state: \.referenceView, action: /CampaignBrowseTwoColumnContainerAction.referenceView)
+        ReferenceViewState.reducer.pullback(state: \.referenceView, action: /CampaignBrowseTwoColumnContainerAction.referenceView),
+        Reducer { state, action, env in
+            let context = state.content.referenceContext
+            if context != state.referenceView.context {
+                state.referenceView.context = context
+            }
+
+            if case .referenceView(.item(_, .inContext(let action))) = action {
+                // forward to context
+                if let toContext = state.content.toReferenceContextAction {
+                    return Effect(value: toContext(action))
+                }
+            }
+
+            return .none
+        }
     )
 
     init(node: CampaignNode) {

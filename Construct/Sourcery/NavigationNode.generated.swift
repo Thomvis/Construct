@@ -85,6 +85,19 @@ extension CreatureEditViewState: NavigationNode {
         // no-op
     }
 }
+extension EncounterDetailViewState: NavigationNode {
+    func topNavigationItems() -> [Any] {
+        return [self]
+    }
+
+    func navigationStackSize() -> Int {
+        return 1
+    }
+
+    mutating func popLastNavigationStackItem() {
+        // no-op
+    }
+}
 extension ReferenceViewState: NavigationNode {
     func topNavigationItems() -> [Any] {
         return [self]
@@ -249,46 +262,19 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
     }
 }
 
-extension EncounterDetailViewState.NextScreen: NavigationNode {
-    private var navigationNode: NavigationNode {
-        get {
-            switch self {
-            case .reference(let s): return s
-            }
-        }
-
-        set {
-            switch newValue {
-            case let v as ReferenceViewState: self = .reference(v)
-            default: break
-            }
-        }
-    }
-
-    func topNavigationItems() -> [Any] {
-        return navigationNode.topNavigationItems()
-    }
-
-    func navigationStackSize() -> Int {
-        return navigationNode.navigationStackSize()
-    }
-
-    mutating func popLastNavigationStackItem() {
-        navigationNode.popLastNavigationStackItem()
-    }
-}
-
 extension ReferenceItemViewState.Content.Home.NextScreen: NavigationNode {
     private var navigationNode: NavigationNode {
         get {
             switch self {
             case .compendium(let s): return s
+            case .addCombatant(let s): return s
             }
         }
 
         set {
             switch newValue {
             case let v as CompendiumIndexState: self = .compendium(v)
+            case let v as AddCombatantState: self = .addCombatant(v)
             default: break
             }
         }
@@ -877,65 +863,6 @@ extension CompendiumIndexState: NavigationNode {
         }
     }
 }
-extension EncounterDetailViewState: NavigationNode {
-
-    func topNavigationItems() -> [Any] {
-        var result: [Any] = []
-        if let next = presentedScreens[.nextInStack] {
-            result.append(contentsOf: next.topNavigationItems())
-        } else {
-            result.append(self)
-        }
-
-        if let detail = presentedScreens[.detail] {
-            result.append(contentsOf: detail.topNavigationItems())
-        }
-        return result
-    }
-
-    func navigationStackSize() -> Int {
-        if let next = presentedScreens[.nextInStack] {
-            return 1 + next.navigationStackSize()
-        }
-        return 1
-    }
-
-    mutating func popLastNavigationStackItem() {
-        if navigationStackSize() <= 2 {
-            presentedScreens[.nextInStack] = nil
-        } else {
-            presentedScreens[.nextInStack]?.popLastNavigationStackItem()
-        }
-    }
-
-    var presentedNextReference: ReferenceViewState? {
-        get { 
-            if case .reference(let s) = presentedScreens[.nextInStack] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.nextInStack] = .reference(value) 
-            }
-        }
-    }
-
-    var presentedDetailReference: ReferenceViewState? {
-        get { 
-            if case .reference(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.detail] = .reference(value) 
-            }
-        }
-    }
-}
 extension ReferenceItemViewState.Content.Home: NavigationNode {
 
     func topNavigationItems() -> [Any] {
@@ -991,6 +918,33 @@ extension ReferenceItemViewState.Content.Home: NavigationNode {
         set { 
             if let value = newValue {
                 presentedScreens[.detail] = .compendium(value) 
+            }
+        }
+    }
+    var presentedNextAddCombatant: AddCombatantState? {
+        get { 
+            if case .addCombatant(let s) = presentedScreens[.nextInStack] {
+                return s
+            }
+            return nil
+        }
+        set { 
+            if let value = newValue {
+                presentedScreens[.nextInStack] = .addCombatant(value) 
+            }
+        }
+    }
+
+    var presentedDetailAddCombatant: AddCombatantState? {
+        get { 
+            if case .addCombatant(let s) = presentedScreens[.detail] {
+                return s
+            }
+            return nil
+        }
+        set { 
+            if let value = newValue {
+                presentedScreens[.detail] = .addCombatant(value) 
             }
         }
     }

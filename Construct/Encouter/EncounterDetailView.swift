@@ -204,28 +204,9 @@ struct EncounterDetailView: View {
         switch sheet {
         case .add:
             return IfLetStore(store.scope(state: { $0.addCombatantState }, action: { .addCombatant($0) })) { store in
-                AddCombatantView(store: store) { action, dismiss in
-                    switch action {
-                    case .add(let combatants):
-                        for c in combatants {
-                            self.viewStore.send(.encounter(.add(c)))
-                        }
-                    case .addByKey(let keys, let party):
-                        for key in keys {
-                            self.viewStore.send(.encounter(.addByKey(key, party)))
-                        }
-                    case .remove(let definitionID, let quantity):
-                        quantity.times {
-                            if let combatant = self.viewStore.state.encounter.combatants(with: definitionID).last {
-                                self.viewStore.send(.encounter(.remove(combatant)))
-                            }
-                        }
-                    }
-
-                    if dismiss {
-                        self.viewStore.send(.sheet(nil))
-                    }
-                }.environmentObject(self.environment)
+                AddCombatantView(store: store, onSelection: {
+                    viewStore.send(.addCombatantAction($0, $1))
+                }).environmentObject(self.environment)
             }.eraseToAnyView
         case .combatant:
             return IfLetStore(store.scope(state: { $0.combatantDetailState }, action: { .combatantDetail($0) })) { store in
@@ -245,6 +226,31 @@ struct EncounterDetailView: View {
             }.eraseToAnyView
         case .settings:
             return EncounterSettingsView(store: self.store).environmentObject(self.environment).eraseToAnyView
+        }
+    }
+
+    private var addCombatantOnSelection: (AddCombatantView.Action, Bool) -> Void {
+        return { action, dismiss in
+            switch action {
+            case .add(let combatants):
+                for c in combatants {
+                    self.viewStore.send(.encounter(.add(c)))
+                }
+            case .addByKey(let keys, let party):
+                for key in keys {
+                    self.viewStore.send(.encounter(.addByKey(key, party)))
+                }
+            case .remove(let definitionID, let quantity):
+                quantity.times {
+                    if let combatant = self.viewStore.state.encounter.combatants(with: definitionID).last {
+                        self.viewStore.send(.encounter(.remove(combatant)))
+                    }
+                }
+            }
+
+            if dismiss {
+                self.viewStore.send(.sheet(nil))
+            }
         }
     }
 

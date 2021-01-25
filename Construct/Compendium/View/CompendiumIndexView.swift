@@ -19,6 +19,8 @@ struct CompendiumIndexView: View {
     @ObservedObject var localViewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
     let viewProvider: ViewProvider
 
+    @State var didFocusOnSearch = false
+
     init(store: Store<CompendiumIndexState, CompendiumIndexAction>, viewProvider: ViewProvider = .default) {
         self.store = store
         self.viewStore = ViewStore(store)
@@ -34,6 +36,12 @@ struct CompendiumIndexView: View {
                 text: localViewStore.binding(get: { $0.results.input.text.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
                 accessory: filterButton()
             )
+            .introspectTextField { textField in
+                if !textField.isFirstResponder, viewStore.state.properties.initiallyFocusOnSearch, !didFocusOnSearch {
+                    textField.becomeFirstResponder()
+                    didFocusOnSearch = true
+                }
+            }
             .padding([.leading, .trailing], 8)
 
             if localViewStore.state.results.value != nil {

@@ -71,11 +71,29 @@ struct AddCombatantState: Equatable {
 extension AddCombatantState {
     static let nullInstance = AddCombatantState(encounter: Encounter.nullInstance)
 
-    init(encounter: Encounter, creatureEditViewState: CreatureEditViewState? = nil) {
-        self.compendiumState = CompendiumIndexState(title: "Add Combatant", properties: CompendiumIndexState.Properties(showImport: false, showAdd: false, initialContent: .initial(types: [.monster, .character, .group], destinationProperties: .init(showImport: false, showAdd: false, initialContent: .searchResults))), results: .initial(types: [.monster, .character, .group]))
+    init(
+        compendiumState: CompendiumIndexState = CompendiumIndexState(title: "Add Combatant", properties: CompendiumIndexState.Properties(showImport: false, showAdd: false, initiallyFocusOnSearch: false, initialContent: .initial(types: [.monster, .character, .group], destinationProperties: .init(showImport: false, showAdd: false, initiallyFocusOnSearch: false, initialContent: .searchResults))), results: .initial(types: [.monster, .character, .group])),
+        encounter: Encounter,
+        creatureEditViewState: CreatureEditViewState? = nil
+    ) {
+        self.compendiumState = compendiumState
         self.encounter = encounter
         self.creatureEditViewState = creatureEditViewState
 
         updateCombatantsByDefinitionCache()
+    }
+}
+
+extension AddCombatantState: NavigationNode {
+    func topNavigationItems() -> [Any] {
+        compendiumState.topNavigationItems()
+    }
+
+    func navigationStackSize() -> Int {
+        compendiumState.navigationStackSize()
+    }
+
+    mutating func popLastNavigationStackItem() {
+        compendiumState.popLastNavigationStackItem()
     }
 }

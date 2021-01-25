@@ -66,17 +66,20 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     struct Properties: Equatable {
         let showImport: Bool
         let showAdd: Bool
+        let initiallyFocusOnSearch: Bool
         @EqIgnore var initialContent: ContentDefinition
 
         static let index = Properties(
             showImport: true,
             showAdd: true,
+            initiallyFocusOnSearch: false,
             initialContent: .initial
         )
 
         static let secondary = Properties(
             showImport: false,
             showAdd: true,
+            initiallyFocusOnSearch: false,
             initialContent: .searchResults
         )
 

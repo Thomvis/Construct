@@ -11,6 +11,13 @@ import ComposableArchitecture
 
 struct ReferenceViewState: Equatable {
 
+    var context: EncounterReferenceContext? = nil {
+        didSet {
+            for i in items.indices {
+                items[i].localState?.setContext(context)
+            }
+        }
+    }
     var items: IdentifiedArray<UUID, Item>
     var selectedItemId: UUID?
 
@@ -47,6 +54,11 @@ struct ReferenceViewState: Equatable {
             selectedItemId = i
         }
         self.remoteItemRequests = remoteItemRequests
+
+        // add default item if no other tabs
+        if items.isEmpty {
+            items.append(.local(Item.Local(state: Self.defaultItem)))
+        }
     }
 
     enum Item: Equatable, Identifiable {
@@ -141,7 +153,7 @@ extension ReferenceViewState {
             case .onBackTapped:
                 state.selectedItemNavigationNode?.popLastNavigationStackItem()
             case .onNewTabTapped:
-                let item = Item.local(Item.Local(state: ReferenceItemViewState()))
+                let item = Item.local(Item.Local(state: ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home(context: state.context)))))
                 state.items.append(item)
                 state.selectedItemId = item.id
             case .removeTab(let id):
@@ -168,4 +180,6 @@ extension ReferenceViewState: NavigationStackItemState {
 
 extension ReferenceViewState {
     static let nullInstance = ReferenceViewState(items: [])
+
+    static let defaultItem = ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home()))
 }
