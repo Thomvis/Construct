@@ -15,7 +15,7 @@ struct TabNavigationView: View {
     var store: Store<TabNavigationViewState, TabNavigationViewAction>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, removeDuplicates: { $0.selectedTab == $1.selectedTab }) { viewStore in
             TabView(
                 selection: viewStore.binding(
                     get: { $0.selectedTab },

@@ -17,8 +17,7 @@ struct ContentView: View {
     var store: Store<AppState, AppState.Action>
 
     var body: some View {
-        #warning("fix removeDuplicates")
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication }) { viewStore in
             IfLetStore(store.scope(state: { $0.navigation.tabState }, action: { .navigation(.tab($0)) }), then: { store in
                 TabNavigationView(store: store)
             }, else: IfLetStore(store.scope(state: { $0.navigation.columnState }, action: {.navigation(.column($0)) })) { store in

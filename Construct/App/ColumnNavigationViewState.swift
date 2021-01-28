@@ -37,4 +37,7 @@ extension ColumnNavigationViewState {
         DiceCalculatorState.reducer.pullback(state: \.diceCalculator, action: /ColumnNavigationViewAction.diceCalculator),
         SidebarViewState.reducer.pullback(state: \.sidebar, action: /ColumnNavigationViewAction.sidebar)
     )
+
+    static let nullInstance = ColumnNavigationViewState()
+
 }

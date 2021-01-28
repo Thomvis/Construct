@@ -55,4 +55,11 @@ extension TabNavigationViewState {
             return .none
         }
     )
+
+    static let nullInstance = TabNavigationViewState(
+        selectedTab: .campaign,
+        campaignBrowser: .nullInstance,
+        compendium: .nullInstance,
+        diceRoller: .nullInstance
+    )
 }

@@ -165,3 +165,16 @@ extension EnvironmentValues {
         set { self[AppNavigationEnvironmentKey.self] = newValue }
     }
 }
+
+extension AppState {
+    var normalizedForDeduplication: AppState {
+        var res = self
+        switch res.navigation {
+        case .column:
+            res.navigation = .column(ColumnNavigationViewState.nullInstance)
+        case .tab:
+            res.navigation = .tab(TabNavigationViewState.nullInstance)
+        }
+        return res
+    }
+}
