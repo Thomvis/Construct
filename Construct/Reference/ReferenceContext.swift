@@ -20,6 +20,7 @@ struct EncounterReferenceContext: Equatable {
 
 enum EncounterReferenceContextAction: Equatable {
     case addCombatant(AddCombatantView.Action)
+    case combatantAction(UUID, CombatantAction)
 }
 
 extension CampaignBrowseViewState {
@@ -32,6 +33,17 @@ extension CampaignBrowseViewState {
             return state.referenceContext
         }
         return nil
+    }
+
+    var referenceItemRequests: [ReferenceViewItemRequest] {
+        if let state = presentedNextCatalogBrowse {
+            return state.referenceItemRequests
+        } else if let state = presentedNextEncounter {
+            return state.referenceItemRequests
+        } else if let state = presentedDetailEncounter {
+            return state.referenceItemRequests
+        }
+        return []
     }
 
     var toReferenceContextAction: ((EncounterReferenceContextAction) -> CampaignBrowseViewAction)? {
@@ -61,11 +73,17 @@ extension EncounterDetailViewState {
         EncounterReferenceContext(building: building, running: running)
     }
 
+    var referenceItemRequests: [ReferenceViewItemRequest] {
+        combatantDetailReferenceItemRequest.map { [$0] } ?? []
+    }
+
     var toReferenceContextAction: ((EncounterReferenceContextAction) -> EncounterDetailViewState.Action) {
         return { action in
             switch action {
             case .addCombatant(let a):
                 return .addCombatantAction(a, false)
+            case .combatantAction(let id, let a):
+                return .encounter(.combatant(id, a))
             }
         }
     }

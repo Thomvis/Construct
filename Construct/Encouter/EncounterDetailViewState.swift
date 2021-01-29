@@ -21,8 +21,6 @@ struct EncounterDetailViewState: Equatable {
             if let cds = combatantDetailState, let c = b.combatant(for: cds.combatant.id) {
                 combatantDetailState?.combatant = c
             }
-
-            referenceItem?.state.content.combatantDetailState?.encounter = b
         }
     }
     var running: RunningEncounter? {
@@ -39,10 +37,6 @@ struct EncounterDetailViewState: Equatable {
                 if let scts = selectedCombatantTagsState {
                     selectedCombatantTagsState?.combatants = scts.combatants.compactMap { running.current.combatant(for: $0.id) }
                 }
-
-                referenceItem?.state.content.combatantDetailState?.runningEncounter = running
-            } else {
-                referenceItem?.state.content.combatantDetailState?.runningEncounter = nil
             }
         }
     }
@@ -96,7 +90,7 @@ struct EncounterDetailViewState: Equatable {
         }
     }
 
-    var referenceItem: ReferenceViewState.Item?
+    var combatantDetailReferenceItemRequest: ReferenceViewItemRequest?
 
     var runningEncounterLogState: RunningEncounterLogViewState? {
         guard case .runningEncounterLog(let state)? = sheet else { return nil }
@@ -186,8 +180,7 @@ extension EncounterDetailViewState {
 
         case selectedCombatantTags(CombatantTagsViewAction)
 
-        case setReferenceItem(ReferenceViewState.Item?)
-        case referenceItem(ReferenceItemViewAction)
+        case showCombatantDetailReferenceItem(Combatant)
 
         enum SelectionEncounterAction: Hashable {
             case duplicate
@@ -342,13 +335,17 @@ extension EncounterDetailViewState {
                 case .selectedCombatantTags(.combatant(let c, let a)):
                     return Effect(value: .encounter(.combatant(c.id, a)))
                 case .selectedCombatantTags: break // handled below
-                case .setReferenceItem(let i):
-                    state.referenceItem = i
-                case .referenceItem(.contentCombatantDetail(.detail(.combatant(let a)))):
-                    if let combatantDetailState = state.referenceItem?.state.content.combatantDetailState?.detailState {
-                        return Effect(value: .encounter(.combatant(combatantDetailState.combatant.id, a)))
-                    }
-                case .referenceItem: break // handled below
+                case .showCombatantDetailReferenceItem(let combatant):
+                    let detailState = ReferenceItemViewState.Content.CombatantDetail(
+                        encounter: state.encounter,
+                        selectedCombatantId: combatant.id,
+                        runningEncounter: state.running
+                    )
+
+                    state.combatantDetailReferenceItemRequest = ReferenceViewItemRequest(
+                        id: state.combatantDetailReferenceItemRequest?.id ?? UUID(),
+                        state: ReferenceItemViewState(content: .combatantDetail(detailState))
+                    )
                 }
                 return .none
             },
@@ -365,8 +362,7 @@ extension EncounterDetailViewState {
                 }.pullback(state: \.resumableRunningEncounters, action: /Action.resumableRunningEncounters)
             },
             CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.combatantDetail),
-            CombatantTagsViewState.reducer.optional().pullback(state: \.selectedCombatantTagsState, action: /Action.selectedCombatantTags),
-            ReferenceViewState.Item.reducer.optional().pullback(state: \.referenceItem, action: /Action.referenceItem)
+            CombatantTagsViewState.reducer.optional().pullback(state: \.selectedCombatantTagsState, action: /Action.selectedCombatantTags)
         )
     }
 }

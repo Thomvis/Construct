@@ -99,7 +99,6 @@ struct EncounterDetailView: View {
         }, content: self.sheetView)
         .actionSheet(store.scope(state: { $0.actionSheet }), dismiss: .actionSheet(nil))
         .popover(popover)
-        .referenceItem(store.scope(state: { $0.referenceItem }, action: { .referenceItem($0) }), dismiss: { })
         .onAppear {
             self.viewStore.send(.onAppear)
         }
@@ -380,11 +379,7 @@ struct CombatantSection: View {
                     if parent.appNavigation == .tab {
                         self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
                     } else {
-                        self.parent.viewStore.send(.setReferenceItem(ReferenceViewState.Item.local(ReferenceViewState.Item.Local(state: ReferenceItemViewState(content: .combatantDetail(ReferenceItemViewState.Content.CombatantDetail(
-                            encounter: encounter,
-                            selectedCombatantId: combatant.id,
-                            runningEncounter: self.parent.viewStore.state.running
-                        )))))))
+                        self.parent.viewStore.send(.showCombatantDetailReferenceItem(combatant))
                     }
                 }
                 .contextMenu {

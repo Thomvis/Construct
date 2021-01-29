@@ -28,6 +28,10 @@ struct ReferenceItemViewState: Equatable {
 
     mutating func setContext(_ context: EncounterReferenceContext?) {
         home?.context = context
+        if let encounter = context?.encounter {
+            content.combatantDetailState?.encounter = encounter
+        }
+        content.combatantDetailState?.runningEncounter = context?.running
     }
 
     enum Content: Equatable {
@@ -201,9 +205,14 @@ extension ReferenceItemViewState {
         Reducer { state, action, env in
             switch action {
             case .set(let s): state = s
-            // forward actions to ones that need to be executed in the EncounterReferenceContext
+            // lift actions that need to be executed in the EncounterReferenceContext to .inContext
             case .contentHome(.addCombatantAction(let a)):
                 return Effect(value: .inContext(.addCombatant(a)))
+            case .contentCombatantDetail(.detail(.combatant(let a))):
+                guard let combatant = state.content.combatantDetailState?.detailState.combatant else {
+                    return .none
+                }
+                return Effect(value: .inContext(.combatantAction(combatant.id, a)))
             case .contentCombatantDetail, .contentHome: break // handled below
             case .inContext: break // handled by parent
             }

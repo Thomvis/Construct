@@ -14,14 +14,14 @@ struct ReferenceViewState: Equatable {
     var context: EncounterReferenceContext? = nil {
         didSet {
             for i in items.indices {
-                items[i].localState?.setContext(context)
+                items[i].state.setContext(context)
             }
         }
     }
     var items: IdentifiedArray<UUID, Item>
     var selectedItemId: UUID?
 
-    private(set) var remoteItemRequests: [RemoteReferenceViewItemRequest] = []
+    private(set) var itemRequests: [ReferenceViewItemRequest] = []
 
     init(items: IdentifiedArray<UUID, Item>) {
         self.items = items
@@ -39,97 +39,59 @@ struct ReferenceViewState: Equatable {
         }
     }
 
-    mutating func updateRequests(remoteItemRequests: [RemoteReferenceViewItemRequest]) {
+    mutating func updateRequests(itemRequests: [ReferenceViewItemRequest]) {
         var lastNewItem: UUID?
-        for req in remoteItemRequests {
-            let existing = items.first(where:  { $0.id == req.id })
+
+        var unmatchedItemRequests = self.itemRequests
+        for req in itemRequests {
+            let existing = items[id: req.id]
+            unmatchedItemRequests.removeAll(where: { $0.id == req.id })
             if let _ = existing {
-                // todo
+                let previousRequest = self.itemRequests.first(where: { $0.id == req.id })
+
+                if previousRequest?.stateGeneration != req.stateGeneration {
+                    items[id: req.id]?.state = req.state
+                }
+
+                if previousRequest?.focusRequest != req.focusRequest {
+                    selectedItemId = req.id
+                }
             } else {
-                items.append(.remote(req.id, req.store.scope(state: { $0.state })))
+                items.append(Item(id: req.id, state: req.state))
                 lastNewItem = req.id
             }
         }
+
+        // remove items that are no longer requested
+        for req in unmatchedItemRequests {
+            items.removeAll(where: { $0.id == req.id })
+        }
+
         if let i = lastNewItem {
             selectedItemId = i
         }
-        self.remoteItemRequests = remoteItemRequests
+
+        self.itemRequests = itemRequests
 
         // add default item if no other tabs
         if items.isEmpty {
-            items.append(.local(Item.Local(state: Self.defaultItem)))
+            items.append(Item(state: Self.defaultItem))
         }
     }
 
-    enum Item: Equatable, Identifiable {
-        case local(Local)
-        case remote(UUID, Store<ReferenceItemViewState, ReferenceItemViewAction>)
+    struct Item: Equatable, Identifiable {
+        let id: UUID
+        var title: String
+        var state: ReferenceItemViewState
 
-        var id: UUID {
-            switch self {
-            case .local(let s): return s.id
-            case .remote(let id, _): return id
-            }
+        #warning("title is not updated")
+        init(id: UUID = UUID(), title: String? = nil, state: ReferenceItemViewState) {
+            self.id = id
+            self.title = title ?? state.content.tabItemTitle ?? "Untitled"
+            self.state = state
         }
 
-        var title: String {
-            state.content.tabItemTitle ?? ""
-        }
-
-        var state: ReferenceItemViewState {
-            get {
-                switch self {
-                case .local(let s): return s.state
-                case .remote(_, let s): return ViewStore(s).state
-                }
-            }
-            set {
-                switch self {
-                case .local(let s): self = .local(Local(id: s.id, title: s.title, state: newValue))
-                case .remote(_, let s):
-                    DispatchQueue.main.async {
-                        // work around recursive action, not great
-                        ViewStore(s).send(.set(newValue))
-                    }
-                }
-            }
-        }
-
-        var localState: ReferenceItemViewState? {
-            get {
-                if case .local(let s) = self {
-                    return s.state
-                }
-                return nil
-            }
-            set {
-                if let s = newValue, case .local(let l) = self {
-                    self = .local(Local(id: l.id, title: l.title, state: s))
-                }
-            }
-        }
-
-        struct Local: Equatable {
-            let id: UUID
-            var title: String
-            var state: ReferenceItemViewState
-
-            init(id: UUID = UUID(), title: String? = nil, state: ReferenceItemViewState) {
-                self.id = id
-                self.title = title ?? state.content.tabItemTitle ?? "Untitled"
-                self.state = state
-            }
-        }
-
-        static let reducer: Reducer<Item, ReferenceItemViewAction, Environment> = ReferenceItemViewState.reducer.optional().pullback(state: \.localState, action: /ReferenceItemViewAction.self)
-
-        static func ==(lhs: Item, rhs: Item) -> Bool {
-            switch (lhs, rhs) {
-            case (.local(let l), .local(let r)): return l == r
-            case (.remote(let l, _), .remote(let r, _)): return l == r
-            default: return false
-            }
-        }
+        static let reducer: Reducer<Item, ReferenceItemViewAction, Environment> = ReferenceItemViewState.reducer.pullback(state: \.state, action: /ReferenceItemViewAction.self)
     }
 
 }
@@ -141,7 +103,7 @@ enum ReferenceViewAction: Equatable {
     case removeTab(UUID)
     case selectItem(UUID?)
 
-    case remoteItemRequests([RemoteReferenceViewItemRequest])
+    case itemRequests([ReferenceViewItemRequest])
 }
 
 extension ReferenceViewState {
@@ -153,15 +115,15 @@ extension ReferenceViewState {
             case .onBackTapped:
                 state.selectedItemNavigationNode?.popLastNavigationStackItem()
             case .onNewTabTapped:
-                let item = Item.local(Item.Local(state: ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home(context: state.context)))))
+                let item = Item(state: ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home(context: state.context))))
                 state.items.append(item)
                 state.selectedItemId = item.id
             case .removeTab(let id):
                 state.items.removeAll(where: { $0.id == id })
             case .selectItem(let id):
                 state.selectedItemId = id ?? state.items.first?.id
-            case .remoteItemRequests(let reqs):
-                state.updateRequests(remoteItemRequests: reqs)
+            case .itemRequests(let reqs):
+                state.updateRequests(itemRequests: reqs)
             }
             return .none
         }
@@ -182,4 +144,17 @@ extension ReferenceViewState {
     static let nullInstance = ReferenceViewState(items: [])
 
     static let defaultItem = ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home()))
+
+    //Is this correct?
+    var normalizedForDeduplication: (UUID?, [Item]) {
+        (selectedItemId, items.map { item in
+            if item.id == selectedItemId {
+                var res = item
+                res.state = ReferenceItemViewState.nullInstance
+                return res
+            } else {
+                return Item(id: item.id, title: "", state: ReferenceItemViewState.nullInstance)
+            }
+        })
+    }
 }

@@ -88,6 +88,13 @@ struct CampaignBrowseTwoColumnContainerState: Equatable {
             }
         }
 
+        var referenceItemRequests: [ReferenceViewItemRequest] {
+            switch self {
+            case .browse(let s): return s.referenceItemRequests
+            case .encounter(let s): return s.referenceItemRequests
+            }
+        }
+
         var toReferenceContextAction: ((EncounterReferenceContextAction) -> CampaignBrowseTwoColumnContainerAction)? {
             switch self {
             case .browse(let s):
@@ -119,8 +126,8 @@ extension CampaignBrowseTwoColumnContainerState {
     static let reducer: Reducer<Self, CampaignBrowseTwoColumnContainerAction, Environment> = Reducer.combine(
         Reducer { state, action, env in
             switch action {
-            case .referenceView(.remoteItemRequests(let items)):
-                if items != state.referenceView.remoteItemRequests {
+            case .referenceView(.itemRequests(let items)):
+                if items != state.referenceView.itemRequests {
                     state.showReferenceView = true
                 }
                 break
@@ -136,19 +143,26 @@ extension CampaignBrowseTwoColumnContainerState {
         EncounterDetailViewState.reducer.optional().pullback(state: \.content.encounter, action: /CampaignBrowseTwoColumnContainerAction.contentEncounter),
         ReferenceViewState.reducer.pullback(state: \.referenceView, action: /CampaignBrowseTwoColumnContainerAction.referenceView),
         Reducer { state, action, env in
+            var actions: [CampaignBrowseTwoColumnContainerAction] = []
+
             let context = state.content.referenceContext
             if context != state.referenceView.context {
                 state.referenceView.context = context
             }
 
+            let itemRequests = state.content.referenceItemRequests
+            if itemRequests != state.referenceView.itemRequests {
+                actions.append(.referenceView(.itemRequests(itemRequests)))
+            }
+
             if case .referenceView(.item(_, .inContext(let action))) = action {
                 // forward to context
                 if let toContext = state.content.toReferenceContextAction {
-                    return Effect(value: toContext(action))
+                    actions.append(toContext(action))
                 }
             }
 
-            return .none
+            return actions.publisher.eraseToEffect()
         }
     )
 

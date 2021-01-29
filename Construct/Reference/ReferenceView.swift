@@ -15,7 +15,7 @@ struct ReferenceView: View {
     let store: Store<ReferenceViewState, ReferenceViewAction>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication }) { viewStore in
             TabbedDocumentView<ReferenceItemView>(
                 items: tabItems(viewStore),
                 selection: viewStore.binding(get: { $0.selectedItemId }, send: { .selectItem($0) }),
@@ -54,12 +54,7 @@ struct ReferenceView: View {
                 id: item.id,
                 label: Label(item.title, systemImage: "doc"),
                 view: {
-                    switch item {
-                    case .local:
-                        return ReferenceItemView(store: store.scope(state: { $0.items[id: item.id]?.state ?? .nullInstance }, action: { .item(item.id, $0) }))
-                    case .remote(_, let store):
-                        return ReferenceItemView(store: store)
-                    }
+                    return ReferenceItemView(store: store.scope(state: { $0.items[id: item.id]?.state ?? .nullInstance }, action: { .item(item.id, $0) }))
                 }
             )
         }

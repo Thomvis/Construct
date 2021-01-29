@@ -37,12 +37,6 @@ struct ColumnNavigationView: View {
                     didApplyPrimaryViewWorkAround = true
                 }
             }
-            .onPreferenceChange(ReferenceViewItemKey.self) { items in
-                let viewStore = ViewStore(store)
-                if viewStore.state.sidebar.presentedDetailCampaignBrowse != nil {
-                    viewStore.send(.sidebar(.detailScreen(.campaignBrowse(.referenceView(.remoteItemRequests(items))))))
-                }
-            }
             .navigationViewStyle(DoubleColumnNavigationViewStyle())
             .environment(\.appNavigation, .column)
 
