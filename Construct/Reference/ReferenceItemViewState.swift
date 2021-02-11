@@ -157,6 +157,7 @@ enum ReferenceItemViewAction: Equatable {
     /// (aka the EncounterDetailView)
     case inContext(EncounterReferenceContextAction)
 
+    case onBackTapped
     case set(ReferenceItemViewState)
 
     enum Home: Equatable, NavigationStackSourceAction {
@@ -204,6 +205,8 @@ extension ReferenceItemViewState {
         ReferenceItemViewState.Content.CombatantDetail.reducer.optional().pullback(state: \.content.combatantDetailState, action: /ReferenceItemViewAction.contentCombatantDetail),
         Reducer { state, action, env in
             switch action {
+            case .onBackTapped:
+                state.content.navigationNode.popLastNavigationStackItem()
             case .set(let s): state = s
             // lift actions that need to be executed in the EncounterReferenceContext to .inContext
             case .contentHome(.addCombatantAction(let a)):

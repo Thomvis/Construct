@@ -84,14 +84,25 @@ struct ReferenceViewState: Equatable {
         var title: String
         var state: ReferenceItemViewState
 
-        #warning("title is not updated")
         init(id: UUID = UUID(), title: String? = nil, state: ReferenceItemViewState) {
             self.id = id
             self.title = title ?? state.content.tabItemTitle ?? "Untitled"
             self.state = state
         }
 
-        static let reducer: Reducer<Item, ReferenceItemViewAction, Environment> = ReferenceItemViewState.reducer.pullback(state: \.state, action: /ReferenceItemViewAction.self)
+        static let reducer: Reducer<Item, ReferenceItemViewAction, Environment> = Reducer.combine(
+            ReferenceItemViewState.reducer.pullback(state: \.state, action: /ReferenceItemViewAction.self),
+            Reducer { state, action, env in
+                switch action {
+                case .contentCombatantDetail, .contentHome, .onBackTapped, .set:
+                    if let title = state.state.content.tabItemTitle {
+                        state.title = title;
+                    }
+                case .inContext: break
+                }
+                return .none
+            }
+        )
     }
 
 }
@@ -113,7 +124,9 @@ extension ReferenceViewState {
             switch action {
             case .item: break // handled above
             case .onBackTapped:
-                state.selectedItemNavigationNode?.popLastNavigationStackItem()
+                if let id = state.selectedItemId {
+                    return .init(value: .item(id, .onBackTapped))
+                }
             case .onNewTabTapped:
                 let item = Item(state: ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home(context: state.context))))
                 state.items.append(item)
