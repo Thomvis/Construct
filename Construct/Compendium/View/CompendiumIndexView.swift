@@ -42,7 +42,7 @@ struct CompendiumIndexView: View {
                     didFocusOnSearch = true
                 }
             }
-            .padding([.leading, .trailing], 8)
+            .padding([.leading, .top, .trailing], 8)
 
             if localViewStore.state.results.value != nil {
                 CompendiumItemList(store: store, viewStore: ViewStore(store), entries: localViewStore.state.results.value!, viewProvider: viewProvider)
