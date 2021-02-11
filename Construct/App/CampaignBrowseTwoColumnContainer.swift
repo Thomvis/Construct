@@ -166,19 +166,19 @@ extension CampaignBrowseTwoColumnContainerState {
         }
     )
 
-    init(node: CampaignNode) {
+    init(node: CampaignNode, referenceView: ReferenceViewState? = nil) {
         self.content = .browse(CampaignBrowseViewState(node: node, mode: .browse, showSettingsButton: false))
-        self.referenceView = ReferenceViewState(items: IdentifiedArray([]))
+        self.referenceView = referenceView ?? ReferenceViewState(items: IdentifiedArray([]))
     }
 
-    init(encounter: Encounter) {
+    init(encounter: Encounter, referenceView: ReferenceViewState? = nil) {
         self.content = .encounter(EncounterDetailViewState(building: encounter))
-        self.referenceView = ReferenceViewState(items: IdentifiedArray([]))
+        self.referenceView = referenceView ?? ReferenceViewState(items: IdentifiedArray([]))
     }
 
-    init() {
+    init(referenceView: ReferenceViewState? = nil) {
         self.content = .browse(CampaignBrowseViewState(node: .root, mode: .browse, showSettingsButton: false))
-        self.referenceView = ReferenceViewState(items: IdentifiedArray([]))
+        self.referenceView = referenceView ?? ReferenceViewState(items: IdentifiedArray([]))
     }
 }
 

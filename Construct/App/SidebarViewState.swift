@@ -29,6 +29,10 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
         return s
     }
 
+    var referenceViewState: ReferenceViewState? {
+        presentedDetailCampaignBrowse?.referenceView
+    }
+
     enum NextScreen: Equatable {
         case compendium(CompendiumIndexState)
         case campaignBrowse(CampaignBrowseTwoColumnContainerState)
@@ -107,7 +111,7 @@ extension SidebarViewState {
             case .onCampaignNodeTap(let node):
                 return [
                     node.contents == nil ? .campaignNodeIsExpanded(node, true) : nil,
-                    .setDetailScreen(.campaignBrowse(CampaignBrowseTwoColumnContainerState(node: node)))
+                    .setDetailScreen(.campaignBrowse(CampaignBrowseTwoColumnContainerState(node: node, referenceView: state.referenceViewState)))
                 ].compactMap { $0 }.publisher.eraseToEffect()
             case .setNextScreen(let s):
                 state.presentedScreens[.nextInStack] = s

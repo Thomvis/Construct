@@ -26,7 +26,7 @@ struct SidebarView: View {
                     isActive: { $0.content.encounter?.encounter.key == Encounter.key(Encounter.scratchPadEncounterId) },
                     initialState: {
                         if let encounter: Encounter = try? self.env.database.keyValueStore.get(Encounter.key(Encounter.scratchPadEncounterId)) {
-                            return CampaignBrowseTwoColumnContainerState(encounter: encounter)
+                            return CampaignBrowseTwoColumnContainerState(encounter: encounter, referenceView: viewStore.state.referenceViewState)
                         } else {
                             return CampaignBrowseTwoColumnContainerState.nullInstance
                         }
@@ -106,7 +106,7 @@ struct SidebarView: View {
                 action: /SidebarViewAction.NextScreenAction.campaignBrowse,
                 navDest: .detail,
                 isActive: { $0.content.campaignBrowse?.node == CampaignNode.root && $0.content.campaignBrowse?.presentedScreens.isEmpty == true },
-                initialState: CampaignBrowseTwoColumnContainerState(node: .root),
+                initialState: CampaignBrowseTwoColumnContainerState(node: .root, referenceView: viewStore.state.referenceViewState),
                 destination: CampaignBrowseTwoColumnContainerView.init
             ) {
                 Label("All encounters", systemImage: "shield")
