@@ -115,7 +115,11 @@ struct EncounterDetailView: View {
             }
 
             RoundedButton(action: {
-                self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter: self.viewStore.state.encounter)))))
+                if appNavigation == .tab {
+                    self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter: self.viewStore.state.encounter)))))
+                } else {
+                    self.viewStore.send(.showAddCombatantReferenceItem)
+                }
             }) {
                 Label("Add combatants", systemImage: "plus.circle")
             }

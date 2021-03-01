@@ -91,6 +91,7 @@ struct EncounterDetailViewState: Equatable {
     }
 
     var combatantDetailReferenceItemRequest: ReferenceViewItemRequest?
+    var addCombatantReferenceItemRequest: ReferenceViewItemRequest?
 
     var runningEncounterLogState: RunningEncounterLogViewState? {
         guard case .runningEncounterLog(let state)? = sheet else { return nil }
@@ -181,6 +182,7 @@ extension EncounterDetailViewState {
         case selectedCombatantTags(CombatantTagsViewAction)
 
         case showCombatantDetailReferenceItem(Combatant)
+        case showAddCombatantReferenceItem
 
         enum SelectionEncounterAction: Hashable {
             case duplicate
@@ -345,6 +347,11 @@ extension EncounterDetailViewState {
                     state.combatantDetailReferenceItemRequest = ReferenceViewItemRequest(
                         id: state.combatantDetailReferenceItemRequest?.id ?? UUID(),
                         state: ReferenceItemViewState(content: .combatantDetail(detailState))
+                    )
+                case .showAddCombatantReferenceItem:
+                    state.addCombatantReferenceItemRequest = ReferenceViewItemRequest(
+                        id: state.addCombatantReferenceItemRequest?.id ?? UUID(),
+                        state: ReferenceItemViewState(content: .addCombatant(ReferenceItemViewState.Content.AddCombatant(addCombatantState: AddCombatantState(encounter: state.encounter))))
                     )
                 }
                 return .none

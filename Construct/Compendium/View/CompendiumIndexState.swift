@@ -17,7 +17,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     typealias RS = ResultSet<Query, [CompendiumEntry], Error>
 
     let title: String
-    let properties: Properties
+    var properties: Properties
 
     var results: RS
     var scrollTo: String? // the key of the entry to scroll to
@@ -84,12 +84,12 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         )
 
         enum ContentDefinition {
-            case fixed((Environment, CompendiumIndexView) -> AnyView)
+            indirect case toc(Toc)
             case searchResults
 
             func view(_ env: Environment, _ parent: CompendiumIndexView) -> AnyView? {
                 switch self {
-                case .fixed(let v): return v(env, parent)
+                case .toc: return nil
                 case .searchResults: return nil
                 }
             }
@@ -104,66 +104,13 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             }
 
             static func initial(types: [CompendiumItemType], destinationProperties: Properties = .secondary) -> ContentDefinition {
-                ContentDefinition.fixed({ env, parent in
-                    List {
-                        Section {
-                            if types.contains(.monster) {
-                                StateDrivenNavigationLink(
-                                    store: parent.store,
-                                    state: /CompendiumIndexState.NextScreen.compendiumIndex,
-                                    action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
-                                    isActive: { $0.title == "Monsters" }, // not great
-                                    initialState: CompendiumIndexState(title: "Monsters", properties: destinationProperties, results: .initial(type: .monster)),
-                                    destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
-                                ) {
-                                    Text("Monsters").font(.headline).padding([.top, .bottom], 8)
-                                }
-                            }
+                .toc(Toc(types: types, destinationProperties: destinationProperties, suggested: []))
+            }
 
-                            if types.contains(.character) {
-                                StateDrivenNavigationLink(
-                                    store: parent.store,
-                                    state: /CompendiumIndexState.NextScreen.compendiumIndex,
-                                    action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
-                                    isActive: { $0.title == "Characters" }, // not great
-                                    initialState: CompendiumIndexState(title: "Characters", properties: destinationProperties, results: .initial(type: .character)),
-                                    destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
-                                ) {
-                                    Text("Characters").font(.headline).padding([.top, .bottom], 8)
-                                }
-                            }
-
-                            if types.contains(.group) {
-                                StateDrivenNavigationLink(
-                                    store: parent.store,
-                                    state: /CompendiumIndexState.NextScreen.compendiumIndex,
-                                    action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
-                                    isActive: { $0.title == "Adventuring Parties" }, // not great
-                                    initialState: CompendiumIndexState(title: "Adventuring Parties", properties: destinationProperties, results: .initial(type: .group)),
-                                    destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
-                                ) {
-                                    Text("Adventuring Parties").font(.headline).padding([.top, .bottom], 8)
-                                }
-                            }
-
-                            if types.contains(.spell) {
-                                StateDrivenNavigationLink(
-                                    store: parent.store,
-                                    state: /CompendiumIndexState.NextScreen.compendiumIndex,
-                                    action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
-                                    isActive: { $0.title == "Spells" }, // not great
-                                    initialState: CompendiumIndexState(title: "Spells", properties: destinationProperties, results: .initial(type: .spell)),
-                                    destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
-                                ) {
-                                    Text("Spells").font(.headline).padding([.top, .bottom], 8)
-                                }
-                            }
-                        }
-                    }
-                    // BUG: explicitly specify the listStyle or else it will pick side-bar style
-                    .listStyle(PlainListStyle())
-                    .eraseToAnyView
-                })
+            struct Toc: Equatable {
+                let types: [CompendiumItemType]
+                let destinationProperties: Properties
+                let suggested: [CompendiumEntry]
             }
         }
     }

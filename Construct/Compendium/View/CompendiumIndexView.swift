@@ -12,6 +12,7 @@ import ComposableArchitecture
 
 struct CompendiumIndexView: View {
     @EnvironmentObject var env: Environment
+    @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
     var store: Store<CompendiumIndexState, CompendiumIndexAction>
     var viewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
@@ -51,7 +52,10 @@ struct CompendiumIndexView: View {
             } else if localViewStore.state.results.result.isLoading {
                 Text("Loading...").frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                localViewStore.state.properties.initialContent.view(env, self).replaceNilWith {
+                switch localViewStore.state.properties.initialContent {
+                case .toc(let toc):
+                    CompendiumTocView(parent: self, toc: toc, store: store, viewStore: viewStore)
+                case .searchResults:
                     Text("").frame(maxHeight: .infinity)
                 }
             }
@@ -120,6 +124,94 @@ extension CompendiumIndexView {
                 CompendiumItemDetailView(store: store).eraseToAnyView
             }
         )
+    }
+}
+
+fileprivate struct CompendiumTocView: View {
+    var parent: CompendiumIndexView
+
+    @EnvironmentObject var env: Environment
+    @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
+
+    var toc: CompendiumIndexState.Properties.ContentDefinition.Toc
+    var store: Store<CompendiumIndexState, CompendiumIndexAction>
+    var viewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
+
+    var body: some View {
+        List {
+            Section {
+                if toc.types.contains(.monster) {
+                    StateDrivenNavigationLink(
+                        store: store,
+                        state: /CompendiumIndexState.NextScreen.compendiumIndex,
+                        action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
+                        isActive: { $0.title == "Monsters" }, // not great
+                        initialState: CompendiumIndexState(title: "Monsters", properties: toc.destinationProperties, results: .initial(type: .monster)),
+                        destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
+                    ) {
+                        Text("Monsters").font(.headline).padding([.top, .bottom], 8)
+                    }
+                }
+
+                if toc.types.contains(.character) {
+                    StateDrivenNavigationLink(
+                        store: store,
+                        state: /CompendiumIndexState.NextScreen.compendiumIndex,
+                        action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
+                        isActive: { $0.title == "Characters" }, // not great
+                        initialState: CompendiumIndexState(title: "Characters", properties: toc.destinationProperties, results: .initial(type: .character)),
+                        destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
+                    ) {
+                        Text("Characters").font(.headline).padding([.top, .bottom], 8)
+                    }
+                }
+
+                if toc.types.contains(.group) {
+                    StateDrivenNavigationLink(
+                        store: store,
+                        state: /CompendiumIndexState.NextScreen.compendiumIndex,
+                        action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
+                        isActive: { $0.title == "Adventuring Parties" }, // not great
+                        initialState: CompendiumIndexState(title: "Adventuring Parties", properties: toc.destinationProperties, results: .initial(type: .group)),
+                        destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
+                    ) {
+                        Text("Adventuring Parties").font(.headline).padding([.top, .bottom], 8)
+                    }
+                }
+
+                if toc.types.contains(.spell) {
+                    StateDrivenNavigationLink(
+                        store: store,
+                        state: /CompendiumIndexState.NextScreen.compendiumIndex,
+                        action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
+                        isActive: { $0.title == "Spells" }, // not great
+                        initialState: CompendiumIndexState(title: "Spells", properties: toc.destinationProperties, results: .initial(type: .spell)),
+                        destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
+                    ) {
+                        Text("Spells").font(.headline).padding([.top, .bottom], 8)
+                    }
+                }
+            }
+
+            if !toc.suggested.isEmpty {
+                Section(header: Text("Suggested")) {
+                    ForEach(toc.suggested, id: \.key) { entry in
+                        StateDrivenNavigationLink(
+                            store: store,
+                            state: /CompendiumIndexState.NextScreen.itemDetail,
+                            action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
+                            navDest: appNavigation == .tab ? .nextInStack : .detail,
+                            isActive: { $0.entry.key == entry.key },
+                            initialState: CompendiumEntryDetailViewState(entry: entry),
+                            destination: { parent.viewProvider.detail($0) }
+                        ) {
+                            self.parent.viewProvider.row(self.store, entry)
+                        }
+                    }
+                }
+            }
+        }
+        .listStyle(InsetGroupedListStyle())
     }
 }
 
