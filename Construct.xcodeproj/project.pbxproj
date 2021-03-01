@@ -10,6 +10,7 @@
 		E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */; };
 		E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E905E0BB246D83B800698C0A /* ComposableArchitecture */; };
 		E90B961525B312BB00BD760B /* Memoize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90B961425B312BB00BD760B /* Memoize.swift */; };
+		E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */; };
 		E91885CB23943BBF0094EC87 /* Sort.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91885CA23943BBF0094EC87 /* Sort.swift */; };
 		E91885CD23944A3F0094EC87 /* ddb_bass.json in Resources */ = {isa = PBXBuildFile; fileRef = E91885CC23944A3F0094EC87 /* ddb_bass.json */; };
 		E91B857F23DA355B009AF6D7 /* software_licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = E91B857E23DA3552009AF6D7 /* software_licenses.md */; };
@@ -221,6 +222,7 @@
 		E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagPopover.swift; sourceTree = "<group>"; };
 		E90B961425B312BB00BD760B /* Memoize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memoize.swift; sourceTree = "<group>"; };
 		E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryDetailViewState.swift; sourceTree = "<group>"; };
+		E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantReferenceItemView.swift; sourceTree = "<group>"; };
 		E91885CA23943BBF0094EC87 /* Sort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sort.swift; sourceTree = "<group>"; };
 		E91885CC23944A3F0094EC87 /* ddb_bass.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ddb_bass.json; sourceTree = "<group>"; };
 		E91885CE239674DB0094EC87 /* Construct.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Construct.entitlements; sourceTree = "<group>"; };
@@ -747,6 +749,7 @@
 				E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */,
 				E957C08025BB30580042ECF6 /* ReferenceContext.swift */,
 				E957C08A25BF57A30042ECF6 /* HomeView.swift */,
+				E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */,
 			);
 			path = Reference;
 			sourceTree = "<group>";
@@ -1176,6 +1179,7 @@
 				E972BA942477F8B200F313D7 /* EquatablePropertyWrappers.swift in Sources */,
 				E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */,
 				E91E4718231E8CD0005D1E6F /* CompendiumDataSource.swift in Sources */,
+				E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */,
 				E946B025247D9ED9008A407C /* Duration.swift in Sources */,
 				E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */,
 				E946B02C247E6225008A407C /* CompendiumItemGroupDetailView.swift in Sources */,

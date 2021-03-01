@@ -94,7 +94,7 @@ struct ReferenceViewState: Equatable {
             ReferenceItemViewState.reducer.pullback(state: \.state, action: /ReferenceItemViewAction.self),
             Reducer { state, action, env in
                 switch action {
-                case .contentCombatantDetail, .contentHome, .onBackTapped, .set:
+                case .contentCombatantDetail, .contentHome, .contentAddCombatant, .onBackTapped, .set:
                     if let title = state.state.content.tabItemTitle {
                         state.title = title;
                     }

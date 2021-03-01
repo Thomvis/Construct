@@ -43,22 +43,9 @@ struct HomeView: View {
                                     id: \.rawValue
                                 ) { type in
                                     Button(action: {
-                                        if type == .spell {
-                                            let compendiumIndexState = CompendiumIndexState.init(
-                                                title: "Spells",
-                                                properties: .init(
-                                                    showImport: false,
-                                                    showAdd: false,
-                                                    initiallyFocusOnSearch: false,
-                                                    initialContent: .searchResults),
-                                                results: .initial(type: .spell)
-                                            )
-                                            viewStore.send(.setNextScreen(.compendium(compendiumIndexState)))
-                                        } else {
-                                            viewStore.send(.addCombatantTapped(type))
-                                        }
+                                        viewStore.send(.compendiumSectionTapped(type))
                                     }) {
-                                        Text(type.localizedScreenDisplayName)
+                                        Text(type.localizedScreenDisplayName).frame(maxWidth: .infinity, alignment: .leading)
                                     }
                                 }
                             }
@@ -73,15 +60,6 @@ struct HomeView: View {
                 action: /ReferenceItemViewAction.Home.NextScreenAction.compendium,
                 isActive: { _ in true },
                 destination: { CompendiumIndexView(store: $0) }
-            )
-            .stateDrivenNavigationLink(
-                store: store,
-                state: /ReferenceItemViewState.Content.Home.NextScreenState.addCombatant,
-                action: /ReferenceItemViewAction.Home.NextScreenAction.addCombatant,
-                isActive: { _ in true },
-                destination: { AddCombatantCompendiumView(store: $0, onSelection: { action, _ in
-                    viewStore.send(.addCombatantAction(action))
-                }) }
             )
         }
     }

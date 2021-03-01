@@ -14,22 +14,11 @@ struct ReferenceItemViewState: Equatable {
 
     var content: Content
 
-    var home: Content.Home? {
-        get {
-            guard case .home(let s) = content else { return nil }
-            return s
-        }
-        set {
-            if let newValue = newValue {
-                content = .home(newValue)
-            }
-        }
-    }
-
     mutating func setContext(_ context: EncounterReferenceContext?) {
-        home?.context = context
+        content.homeState?.context = context
         if let encounter = context?.encounter {
             content.combatantDetailState?.encounter = encounter
+            content.addCombatantState?.addCombatantState.encounter = encounter
         }
         content.combatantDetailState?.runningEncounter = context?.running
     }
@@ -37,6 +26,19 @@ struct ReferenceItemViewState: Equatable {
     enum Content: Equatable {
         case home(Home)
         case combatantDetail(CombatantDetail)
+        case addCombatant(AddCombatant)
+
+        var homeState: Content.Home? {
+            get {
+                guard case .home(let s) = self else { return nil }
+                return s
+            }
+            set {
+                if let newValue = newValue {
+                    self = .home(newValue)
+                }
+            }
+        }
 
         var combatantDetailState: CombatantDetail? {
             get {
@@ -51,11 +53,25 @@ struct ReferenceItemViewState: Equatable {
             }
         }
 
+        var addCombatantState: AddCombatant? {
+            get {
+                if case .addCombatant(let s) = self {
+                    return s
+                }
+                return nil
+            }
+            set {
+                guard case .addCombatant = self, let newValue = newValue else { return }
+                self = .addCombatant(newValue)
+            }
+        }
+
         var navigationNode: NavigationNode {
             get {
                 switch self {
                 case .home(let h): return h
                 case .combatantDetail(let cd): return cd.detailState
+                case .addCombatant(let ad): return ad.addCombatantState
                 }
             }
             set {
@@ -64,7 +80,10 @@ struct ReferenceItemViewState: Equatable {
                     self = .home(v)
                 case let v as CombatantDetailViewState:
                     self.combatantDetailState?.detailState = v
-                default: break
+                case let v as AddCombatantState:
+                    self.addCombatantState?.addCombatantState = v
+                default:
+                    fatalError("Tried to set unexpected NavigationNode in a reference view item")
                 }
             }
         }
@@ -80,19 +99,11 @@ struct ReferenceItemViewState: Equatable {
             var navigationStackItemStateId: String = "home"
             var navigationTitle: String = "Reference"
 
-            var context: EncounterReferenceContext? {
-                didSet {
-                    if let encounter = context?.encounter {
-                        presentedNextAddCombatant?.encounter = encounter
-                        presentedDetailAddCombatant?.encounter = encounter
-                    }
-                }
-            }
+            var context: EncounterReferenceContext?
             var presentedScreens: [NavigationDestination: NextScreen] = [:]
 
             enum NextScreen: Equatable {
                 case compendium(CompendiumIndexState)
-                case addCombatant(AddCombatantState)
             }
         }
 
@@ -146,12 +157,17 @@ struct ReferenceItemViewState: Equatable {
                 }
             }
         }
+
+        struct AddCombatant: Equatable {
+            var addCombatantState: AddCombatantState
+        }
     }
 }
 
 enum ReferenceItemViewAction: Equatable {
     case contentHome(Home)
     case contentCombatantDetail(CombatantDetail)
+    case contentAddCombatant(AddCombatant)
 
     /// Wraps actions that need to be executed inside the EncounterReferenceContext
     /// (aka the EncounterDetailView)
@@ -162,8 +178,7 @@ enum ReferenceItemViewAction: Equatable {
 
     enum Home: Equatable, NavigationStackSourceAction {
         case compendiumSearchTapped
-        case addCombatantTapped(CompendiumItemType)
-        case addCombatantAction(AddCombatantView.Action)
+        case compendiumSectionTapped(CompendiumItemType)
         case setNextScreen(ReferenceItemViewState.Content.Home.NextScreen?)
         indirect case nextScreen(NextScreenAction)
         case setDetailScreen(ReferenceItemViewState.Content.Home.NextScreen?)
@@ -195,28 +210,34 @@ enum ReferenceItemViewAction: Equatable {
         case nextCombatantTapped
         case togglePinToTurnTapped
     }
+
+    enum AddCombatant: Equatable {
+        case addCombatant(AddCombatantState.Action)
+        case onSelection(AddCombatantView.Action)
+    }
 }
 
 extension ReferenceItemViewState {
     static let nullInstance = ReferenceItemViewState(content: .home(Content.Home()))
 
     static let reducer: Reducer<Self, ReferenceItemViewAction, Environment> = Reducer.combine(
-        ReferenceItemViewState.Content.Home.reducer.optional().pullback(state: \.home, action: /ReferenceItemViewAction.contentHome),
+        ReferenceItemViewState.Content.Home.reducer.optional().pullback(state: \.content.homeState, action: /ReferenceItemViewAction.contentHome),
         ReferenceItemViewState.Content.CombatantDetail.reducer.optional().pullback(state: \.content.combatantDetailState, action: /ReferenceItemViewAction.contentCombatantDetail),
+        ReferenceItemViewState.Content.AddCombatant.reducer.optional().pullback(state: \.content.addCombatantState, action: /ReferenceItemViewAction.contentAddCombatant),
         Reducer { state, action, env in
             switch action {
             case .onBackTapped:
                 state.content.navigationNode.popLastNavigationStackItem()
             case .set(let s): state = s
             // lift actions that need to be executed in the EncounterReferenceContext to .inContext
-            case .contentHome(.addCombatantAction(let a)):
+            case .contentAddCombatant(.onSelection(let a)):
                 return Effect(value: .inContext(.addCombatant(a)))
             case .contentCombatantDetail(.detail(.combatant(let a))):
                 guard let combatant = state.content.combatantDetailState?.detailState.combatant else {
                     return .none
                 }
                 return Effect(value: .inContext(.combatantAction(combatant.id, a)))
-            case .contentCombatantDetail, .contentHome: break // handled below
+            case .contentCombatantDetail, .contentHome, .contentAddCombatant: break // handled above
             case .inContext: break // handled by parent
             }
             return .none
@@ -227,7 +248,6 @@ extension ReferenceItemViewState {
 extension ReferenceItemViewState.Content.Home {
     static let reducer: Reducer<Self, ReferenceItemViewAction.Home, Environment> = Reducer.combine(
         CompendiumIndexState.reducer.optional().pullback(state: \.presentedNextCompendium, action: /ReferenceItemViewAction.Home.nextScreen..ReferenceItemViewAction.Home.NextScreenAction.compendium),
-        AddCombatantState.reducer.optional().pullback(state: \.presentedNextAddCombatant, action: /ReferenceItemViewAction.Home.nextScreen..ReferenceItemViewAction.Home.NextScreenAction.addCombatant),
         Reducer { state, action, env in
             switch action {
             case .compendiumSearchTapped:
@@ -242,17 +262,13 @@ extension ReferenceItemViewState.Content.Home {
                     results: .initial
                 )
                 return Effect(value: .setNextScreen(.compendium(state)))
-            case .addCombatantTapped(let t):
-                let addCombatantState = AddCombatantState(
-                    compendiumState: CompendiumIndexState(
-                        title: t.localizedScreenDisplayName,
-                        properties: .init(showImport: false, showAdd: false, initiallyFocusOnSearch: false, initialContent: .searchResults),
-                        results: .initial(type: t)
-                    ),
-                    encounter: state.context?.encounter ?? Encounter.nullInstance
+            case .compendiumSectionTapped(let t):
+                let compendiumIndexState = CompendiumIndexState.init(
+                    title: t.localizedScreenDisplayName,
+                    properties: .init(showImport: false, showAdd: false, initiallyFocusOnSearch: false, initialContent: .searchResults),
+                    results: .initial(type: t)
                 )
-                return Effect(value: .setNextScreen(.addCombatant(addCombatantState)))
-            case .addCombatantAction: break // handled by parent
+                return Effect(value: .setNextScreen(.compendium(compendiumIndexState)))
             case .setNextScreen(let s):
                 state.presentedScreens[.nextInStack] = s
             case .nextScreen: break // handled above
@@ -290,5 +306,11 @@ extension ReferenceItemViewState.Content.CombatantDetail {
             }
             return .none
         }
+    )
+}
+
+extension ReferenceItemViewState.Content.AddCombatant {
+    static let reducer: Reducer<Self, ReferenceItemViewAction.AddCombatant, Environment> = Reducer.combine(
+        AddCombatantState.reducer.pullback(state: \.addCombatantState, action: /ReferenceItemViewAction.AddCombatant.addCombatant)
     )
 }

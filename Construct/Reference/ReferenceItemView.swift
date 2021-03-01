@@ -20,9 +20,11 @@ struct ReferenceItemView: View {
             NavigationViewHost {
                 NavigationView {
                     Group {
-                        IfLetStore(store.scope(state: { $0.home }, action: { .contentHome($0) }), then: HomeView.init)
+                        IfLetStore(store.scope(state: { $0.content.homeState }, action: { .contentHome($0) }), then: HomeView.init)
 
                         IfLetStore(store.scope(state: { $0.content.combatantDetailState }, action: { .contentCombatantDetail($0) }), then: CombatantDetailView.init)
+
+                        IfLetStore(store.scope(state: { $0.content.addCombatantState }, action: { .contentAddCombatant($0) }), then: AddCombatantReferenceItemView.init)
                     }
                 }
                 .navigationViewStyle(StackNavigationViewStyle())

@@ -74,7 +74,7 @@ extension EncounterDetailViewState {
     }
 
     var referenceItemRequests: [ReferenceViewItemRequest] {
-        combatantDetailReferenceItemRequest.map { [$0] } ?? []
+        [combatantDetailReferenceItemRequest, addCombatantReferenceItemRequest].compactMap { $0 }
     }
 
     var toReferenceContextAction: ((EncounterReferenceContextAction) -> EncounterDetailViewState.Action) {

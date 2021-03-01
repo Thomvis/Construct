@@ -267,14 +267,12 @@ extension ReferenceItemViewState.Content.Home.NextScreen: NavigationNode {
         get {
             switch self {
             case .compendium(let s): return s
-            case .addCombatant(let s): return s
             }
         }
 
         set {
             switch newValue {
             case let v as CompendiumIndexState: self = .compendium(v)
-            case let v as AddCombatantState: self = .addCombatant(v)
             default: break
             }
         }
@@ -918,33 +916,6 @@ extension ReferenceItemViewState.Content.Home: NavigationNode {
         set { 
             if let value = newValue {
                 presentedScreens[.detail] = .compendium(value) 
-            }
-        }
-    }
-    var presentedNextAddCombatant: AddCombatantState? {
-        get { 
-            if case .addCombatant(let s) = presentedScreens[.nextInStack] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.nextInStack] = .addCombatant(value) 
-            }
-        }
-    }
-
-    var presentedDetailAddCombatant: AddCombatantState? {
-        get { 
-            if case .addCombatant(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.detail] = .addCombatant(value) 
             }
         }
     }
