@@ -11,13 +11,14 @@ import ComposableArchitecture
 
 struct ReferenceViewState: Equatable {
 
-    var context: EncounterReferenceContext? = nil {
+    var encounterReferenceContext: EncounterReferenceContext? {
         didSet {
             for i in items.indices {
-                items[i].state.setContext(context)
+                items[i].state.content.context.encounterDetailView = encounterReferenceContext
             }
         }
     }
+
     var items: IdentifiedArray<UUID, Item>
     var selectedItemId: UUID?
 
@@ -79,6 +80,33 @@ struct ReferenceViewState: Equatable {
         }
     }
 
+    fileprivate func itemContext(for item: Item) -> ReferenceContext {
+        itemContext(for: item, openCompendiumEntries: openCompendiumEntries())
+    }
+
+    fileprivate func itemContext(for item: Item, openCompendiumEntries: [(UUID, CompendiumEntry)]) -> ReferenceContext {
+        ReferenceContext(
+            encounterDetailView: encounterReferenceContext,
+            openCompendiumEntries: openCompendiumEntries.compactMap { (itemId, entry) -> CompendiumEntry? in
+                guard itemId != item.id else { return nil }
+                return entry
+            }
+        )
+    }
+
+    fileprivate func openCompendiumEntries() -> [(UUID, CompendiumEntry)] {
+        items
+            .flatMap { item -> [(UUID, Any)] in item.state.content.navigationNode.topNavigationItems().map { (item.id, $0) } }
+            .compactMap { (itemId, anyItem) -> (UUID, CompendiumEntry)? in
+                switch anyItem {
+                case let item as CompendiumEntryDetailViewState:
+                    return (itemId, item.entry)
+                default:
+                    return nil
+                }
+            }
+    }
+
     struct Item: Equatable, Identifiable {
         let id: UUID
         var title: String
@@ -98,7 +126,7 @@ struct ReferenceViewState: Equatable {
                     if let title = state.state.content.tabItemTitle {
                         state.title = title;
                     }
-                case .inContext: break
+                case .inEncounterDetailContext: break
                 }
                 return .none
             }
@@ -128,7 +156,8 @@ extension ReferenceViewState {
                     return .init(value: .item(id, .onBackTapped))
                 }
             case .onNewTabTapped:
-                let item = Item(state: ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home(context: state.context))))
+                var item = Item(state: ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home())))
+                item.state.content.context = state.itemContext(for: item)
                 state.items.append(item)
                 state.selectedItemId = item.id
             case .removeTab(let id):
@@ -138,6 +167,23 @@ extension ReferenceViewState {
             case .itemRequests(let reqs):
                 state.updateRequests(itemRequests: reqs)
             }
+            return .none
+        },
+        Reducer { state, action, env in
+            switch action {
+            // actions that can affect the open compendium entries
+            case .item, .onBackTapped, .removeTab, .itemRequests:
+                let entries = state.openCompendiumEntries()
+                for idx in state.items.indices {
+                    state.items[idx].state.content.context.openCompendiumEntries = entries.compactMap { (itemId, entry) -> CompendiumEntry? in
+                        guard itemId != state.items[idx].id else { return nil }
+                        return entry
+                    }
+                }
+            // actions that don't affect the open compendium entries
+            case .onNewTabTapped, .selectItem: break
+            }
+
             return .none
         }
     )

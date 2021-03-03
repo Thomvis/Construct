@@ -17,24 +17,37 @@ struct AddCombatantView: View {
     var store: Store<AddCombatantState, AddCombatantState.Action>
     @ObservedObject var viewStore: ViewStore<AddCombatantState, AddCombatantState.Action>
 
+    let externalNavigation: Bool
+    let showEncounterDifficulty: Bool
     let onSelection: (Action, _ dismiss: Bool) -> Void
 
-    init(store: Store<AddCombatantState, AddCombatantState.Action>, onSelection: @escaping (Action, _ dismiss: Bool) -> Void) {
+    init(
+        store: Store<AddCombatantState, AddCombatantState.Action>,
+        externalNavigation: Bool = false,
+        showEncounterDifficulty: Bool = true,
+        onSelection: @escaping (Action, _ dismiss: Bool) -> Void
+    ) {
         self.store = store
         self.viewStore = ViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication })
+        self.externalNavigation = externalNavigation
+        self.showEncounterDifficulty = showEncounterDifficulty
         self.onSelection = onSelection
     }
 
     var body: some View {
         return VStack(spacing: 0) {
             ZStack {
-                NavigationView {
+                if externalNavigation {
                     AddCombatantCompendiumView(store: store, viewStore: viewStore, onSelection: onSelection)
-                    .navigationBarItems(trailing: Button(action: {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Text("Done").bold()
-                    })
+                } else {
+                    NavigationView {
+                        AddCombatantCompendiumView(store: store, viewStore: viewStore, onSelection: onSelection)
+                        .navigationBarItems(trailing: Button(action: {
+                            self.presentationMode.wrappedValue.dismiss()
+                        }) {
+                            Text("Done").bold()
+                        })
+                    }
                 }
 
                 HStack {
@@ -47,14 +60,16 @@ struct AddCombatantView: View {
                 .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
             }
 
-            VStack {
-                Divider()
+            if showEncounterDifficulty {
+                VStack {
+                    Divider()
 
-                EncounterDifficultyView(encounter: viewStore.state.encounter)
-                    .padding(12)
+                    EncounterDifficultyView(encounter: viewStore.state.encounter)
+                        .padding(12)
+                }
+                .padding(.bottom, 30) // fixme: static value because I can't make this view not ignore the safe area
+                .background(Color(UIColor.tertiarySystemBackground))
             }
-            .padding(.bottom, 30) // fixme: static value because I can't make this view not ignore the safe area
-            .background(Color(UIColor.tertiarySystemBackground))
         }
         .sheet(isPresented: Binding(get: {
             self.viewStore.state.creatureEditViewState != nil
@@ -63,7 +78,7 @@ struct AddCombatantView: View {
                 self.viewStore.send(.onCreatureEditViewDismiss)
             }
         })) {
-            IfLetStore(self.store.scope(state: { $0.creatureEditViewState }, action: { .creatureEditView($0) })) { store in
+            IfLetStore(self.store.scope(state: replayNonNil({ $0.creatureEditViewState }), action: { .creatureEditView($0) })) { store in
                 NavigationView {
                     CreatureEditView(store: store)
                         .navigationBarTitle(Text("Quick create"), displayMode: .inline)

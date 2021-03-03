@@ -8,6 +8,18 @@
 
 import Foundation
 
+struct ReferenceContext: Equatable {
+    /// Non-nil if there is an EncounterDetailView open
+    var encounterDetailView: EncounterReferenceContext?
+
+    /// The compendium entries that are open in the reference view
+    /// Upon forwarding the context to each reference item,
+    /// the compendium entry of the reference item itself is filtered out.
+    var openCompendiumEntries: [CompendiumEntry]
+
+    static let empty = ReferenceContext(encounterDetailView: nil, openCompendiumEntries: [])
+}
+
 /// Context for ReferenceView
 struct EncounterReferenceContext: Equatable {
     let building: Encounter

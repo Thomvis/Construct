@@ -28,6 +28,7 @@ struct ReferenceItemView: View {
                     }
                 }
                 .navigationViewStyle(StackNavigationViewStyle())
+                .environment(\.appNavigation, .tab)
             }
         }
     }

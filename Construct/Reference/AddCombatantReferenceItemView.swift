@@ -14,8 +14,13 @@ struct AddCombatantReferenceItemView: View {
     let store: Store<ReferenceItemViewState.Content.AddCombatant, ReferenceItemViewAction.AddCombatant>
     
     var body: some View {
-        AddCombatantCompendiumView(store: store.scope(state: { $0.addCombatantState }, action: { .addCombatant($0) }), onSelection: { action, _ in
-            ViewStore(store).send(.onSelection(action))
-        })
+        AddCombatantView(
+            store: store.scope(state: { $0.addCombatantState }, action: { .addCombatant($0) }),
+            externalNavigation: true,
+            showEncounterDifficulty: false,
+            onSelection: { action, _ in
+                ViewStore(store).send(.onSelection(action))
+            }
+        )
     }
 }

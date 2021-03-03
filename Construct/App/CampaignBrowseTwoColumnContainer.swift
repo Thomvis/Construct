@@ -81,7 +81,7 @@ struct CampaignBrowseTwoColumnContainerState: Equatable {
             }
         }
 
-        var referenceContext: EncounterReferenceContext? {
+        var encounterReferenceContext: EncounterReferenceContext? {
             switch self {
             case .browse(let s): return s.referenceContext
             case .encounter(let s): return s.referenceContext
@@ -145,9 +145,9 @@ extension CampaignBrowseTwoColumnContainerState {
         Reducer { state, action, env in
             var actions: [CampaignBrowseTwoColumnContainerAction] = []
 
-            let context = state.content.referenceContext
-            if context != state.referenceView.context {
-                state.referenceView.context = context
+            let encounterContext = state.content.encounterReferenceContext
+            if encounterContext != state.referenceView.encounterReferenceContext {
+                state.referenceView.encounterReferenceContext = encounterContext
             }
 
             let itemRequests = state.content.referenceItemRequests
@@ -155,7 +155,7 @@ extension CampaignBrowseTwoColumnContainerState {
                 actions.append(.referenceView(.itemRequests(itemRequests)))
             }
 
-            if case .referenceView(.item(_, .inContext(let action))) = action {
+            if case .referenceView(.item(_, .inEncounterDetailContext(let action))) = action {
                 // forward to context
                 if let toContext = state.content.toReferenceContextAction {
                     actions.append(toContext(action))

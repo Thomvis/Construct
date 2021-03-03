@@ -14,15 +14,6 @@ struct ReferenceItemViewState: Equatable {
 
     var content: Content
 
-    mutating func setContext(_ context: EncounterReferenceContext?) {
-        content.homeState?.context = context
-        if let encounter = context?.encounter {
-            content.combatantDetailState?.encounter = encounter
-            content.addCombatantState?.addCombatantState.encounter = encounter
-        }
-        content.combatantDetailState?.runningEncounter = context?.running
-    }
-
     enum Content: Equatable {
         case home(Home)
         case combatantDetail(CombatantDetail)
@@ -66,6 +57,29 @@ struct ReferenceItemViewState: Equatable {
             }
         }
 
+        var context: ReferenceContext {
+            get {
+                switch self {
+                case .home(let state): return state.context
+                case .combatantDetail(let state): return state.context
+                case .addCombatant(let state): return state.context
+                }
+            }
+            set {
+                switch self {
+                case .home(var state):
+                    state.context = newValue
+                    self = .home(state)
+                case .combatantDetail(var state):
+                    state.context = newValue
+                    self = .combatantDetail(state)
+                case .addCombatant(var state):
+                    state.context = newValue
+                    self = .addCombatant(state)
+                }
+            }
+        }
+
         var navigationNode: NavigationNode {
             get {
                 switch self {
@@ -99,7 +113,7 @@ struct ReferenceItemViewState: Equatable {
             var navigationStackItemStateId: String = "home"
             var navigationTitle: String = "Reference"
 
-            var context: EncounterReferenceContext?
+            var context: ReferenceContext = .empty
             var presentedScreens: [NavigationDestination: NextScreen] = [:]
 
             enum NextScreen: Equatable {
@@ -109,6 +123,15 @@ struct ReferenceItemViewState: Equatable {
 
         /// Displays the details of combatants in the encounter, one at a time
         struct CombatantDetail: Equatable {
+            var context: ReferenceContext = .empty {
+                didSet {
+                    if let encounterContext = context.encounterDetailView {
+                        self.encounter = encounterContext.encounter
+                        self.runningEncounter = encounterContext.running
+                    }
+                }
+            }
+
             var encounter: Encounter { // updated from the outside
                 didSet {
                     updateDetailState()
@@ -160,6 +183,24 @@ struct ReferenceItemViewState: Equatable {
 
         struct AddCombatant: Equatable {
             var addCombatantState: AddCombatantState
+
+            var context: ReferenceContext = .empty {
+                didSet {
+                    if let encounter = context.encounterDetailView?.encounter {
+                        addCombatantState.encounter = encounter
+                    }
+
+                    // Add open items to the suggestions displayed on the compendium toc
+                    if case .toc(var toc) = addCombatantState.compendiumState.properties.initialContent {
+                        // Add new open compendium entries
+                        toc.suggested += context.openCompendiumEntries.filter { entry in
+                            [.character, .group, .monster].contains(entry.itemType)
+                                && !toc.suggested.contains(where: { $0.key == entry.key })
+                        }
+                        addCombatantState.compendiumState.properties.initialContent = .toc(toc)
+                    }
+                }
+            }
         }
     }
 }
@@ -171,7 +212,7 @@ enum ReferenceItemViewAction: Equatable {
 
     /// Wraps actions that need to be executed inside the EncounterReferenceContext
     /// (aka the EncounterDetailView)
-    case inContext(EncounterReferenceContextAction)
+    case inEncounterDetailContext(EncounterReferenceContextAction)
 
     case onBackTapped
     case set(ReferenceItemViewState)
@@ -230,15 +271,17 @@ extension ReferenceItemViewState {
                 state.content.navigationNode.popLastNavigationStackItem()
             case .set(let s): state = s
             // lift actions that need to be executed in the EncounterReferenceContext to .inContext
+            case .contentAddCombatant(.addCombatant(.onSelect(let combatants, dismiss: _))):
+                return Effect(value: .inEncounterDetailContext(.addCombatant(.add(combatants))))
             case .contentAddCombatant(.onSelection(let a)):
-                return Effect(value: .inContext(.addCombatant(a)))
+                return Effect(value: .inEncounterDetailContext(.addCombatant(a)))
             case .contentCombatantDetail(.detail(.combatant(let a))):
                 guard let combatant = state.content.combatantDetailState?.detailState.combatant else {
                     return .none
                 }
-                return Effect(value: .inContext(.combatantAction(combatant.id, a)))
+                return Effect(value: .inEncounterDetailContext(.combatantAction(combatant.id, a)))
             case .contentCombatantDetail, .contentHome, .contentAddCombatant: break // handled above
-            case .inContext: break // handled by parent
+            case .inEncounterDetailContext: break // handled by parent
             }
             return .none
         }

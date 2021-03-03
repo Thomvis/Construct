@@ -52,11 +52,8 @@ struct CompendiumIndexView: View {
             } else if localViewStore.state.results.result.isLoading {
                 Text("Loading...").frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                switch localViewStore.state.properties.initialContent {
-                case .toc(let toc):
-                    CompendiumTocView(parent: self, toc: toc, store: store, viewStore: viewStore)
-                case .searchResults:
-                    Text("").frame(maxHeight: .infinity)
+                IfLetStore(store.scope(state: { $0.properties.initialContent.toc }).actionless) { store in
+                    CompendiumTocView(parent: self, viewStore: ViewStore(store))
                 }
             }
 
@@ -133,85 +130,63 @@ fileprivate struct CompendiumTocView: View {
     @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
-    var toc: CompendiumIndexState.Properties.ContentDefinition.Toc
-    var store: Store<CompendiumIndexState, CompendiumIndexAction>
-    var viewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
+    @ObservedObject var viewStore: ViewStore<CompendiumIndexState.Properties.ContentDefinition.Toc, Never>
 
     var body: some View {
         List {
             Section {
-                if toc.types.contains(.monster) {
-                    StateDrivenNavigationLink(
-                        store: store,
-                        state: /CompendiumIndexState.NextScreen.compendiumIndex,
-                        action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
-                        isActive: { $0.title == "Monsters" }, // not great
-                        initialState: CompendiumIndexState(title: "Monsters", properties: toc.destinationProperties, results: .initial(type: .monster)),
-                        destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
-                    ) {
-                        Text("Monsters").font(.headline).padding([.top, .bottom], 8)
-                    }
-                }
-
-                if toc.types.contains(.character) {
-                    StateDrivenNavigationLink(
-                        store: store,
-                        state: /CompendiumIndexState.NextScreen.compendiumIndex,
-                        action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
-                        isActive: { $0.title == "Characters" }, // not great
-                        initialState: CompendiumIndexState(title: "Characters", properties: toc.destinationProperties, results: .initial(type: .character)),
-                        destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
-                    ) {
-                        Text("Characters").font(.headline).padding([.top, .bottom], 8)
-                    }
-                }
-
-                if toc.types.contains(.group) {
-                    StateDrivenNavigationLink(
-                        store: store,
-                        state: /CompendiumIndexState.NextScreen.compendiumIndex,
-                        action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
-                        isActive: { $0.title == "Adventuring Parties" }, // not great
-                        initialState: CompendiumIndexState(title: "Adventuring Parties", properties: toc.destinationProperties, results: .initial(type: .group)),
-                        destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
-                    ) {
-                        Text("Adventuring Parties").font(.headline).padding([.top, .bottom], 8)
-                    }
-                }
-
-                if toc.types.contains(.spell) {
-                    StateDrivenNavigationLink(
-                        store: store,
-                        state: /CompendiumIndexState.NextScreen.compendiumIndex,
-                        action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
-                        isActive: { $0.title == "Spells" }, // not great
-                        initialState: CompendiumIndexState(title: "Spells", properties: toc.destinationProperties, results: .initial(type: .spell)),
-                        destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
-                    ) {
-                        Text("Spells").font(.headline).padding([.top, .bottom], 8)
+                ForEach(viewStore.state.types, id: \.self) { type in
+                    NavigationRowButton(action: {
+                        let destination = CompendiumIndexState(
+                            title: type.localizedScreenDisplayName,
+                            properties: viewStore.state.destinationProperties,
+                            results: .initial(type: type)
+                        )
+                        parent.viewStore.send(.setNextScreen(.compendiumIndex(destination)))
+                    }) {
+                        Text(type.localizedScreenDisplayName)
+                            .foregroundColor(Color.primary)
+                            .font(.headline)
+                            .padding([.top, .bottom], 8)
                     }
                 }
             }
 
-            if !toc.suggested.isEmpty {
+            if !viewStore.state.suggested.isEmpty {
                 Section(header: Text("Suggested")) {
-                    ForEach(toc.suggested, id: \.key) { entry in
-                        StateDrivenNavigationLink(
-                            store: store,
-                            state: /CompendiumIndexState.NextScreen.itemDetail,
-                            action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
-                            navDest: appNavigation == .tab ? .nextInStack : .detail,
-                            isActive: { $0.entry.key == entry.key },
-                            initialState: CompendiumEntryDetailViewState(entry: entry),
-                            destination: { parent.viewProvider.detail($0) }
-                        ) {
-                            self.parent.viewProvider.row(self.store, entry)
+                    ForEach(viewStore.state.suggested, id: \.key) { entry in
+                        NavigationRowButton(action: {
+                            if appNavigation == .tab {
+                                parent.viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                            } else {
+                                parent.viewStore.send(.setDetailScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                            }
+                        }) {
+                            self.parent.viewProvider.row(self.parent.store, entry)
                         }
                     }
                 }
             }
         }
-        .listStyle(InsetGroupedListStyle())
+        .listStyle(GroupedListStyle())
+        // Workaround: we use a single NavigationLink instead of one per row because that breaks
+        // programmatic navigation inside the reference view.
+        // Apparently NavigationLinks inside a List work slightly differently
+        .stateDrivenNavigationLink(
+            store: parent.store,
+            state: /CompendiumIndexState.NextScreen.compendiumIndex,
+            action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
+            isActive: { _ in true },
+            destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
+        )
+        .stateDrivenNavigationLink(
+            store: parent.store,
+            state: /CompendiumIndexState.NextScreen.itemDetail,
+            action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
+            navDest: appNavigation == .tab ? .nextInStack : .detail,
+            isActive: { _ in true },
+            destination: { parent.viewProvider.detail($0) }
+        )
     }
 }
 
@@ -233,21 +208,29 @@ fileprivate struct CompendiumItemList: View {
                         Text("No results")
                     } else {
                         ForEach(entries, id: \.key) { entry in
-                            StateDrivenNavigationLink(
-                                store: store,
-                                state: /CompendiumIndexState.NextScreen.itemDetail,
-                                action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
-                                navDest: appNavigation == .tab ? .nextInStack : .detail,
-                                isActive: { $0.entry.key == entry.key },
-                                initialState: CompendiumEntryDetailViewState(entry: entry),
-                                destination: { viewProvider.detail($0) }
-                            ) {
+                            NavigationRowButton(action: {
+                                if appNavigation == .tab {
+                                    self.viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                                } else {
+                                    self.viewStore.send(.setDetailScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                                }
+                            }) {
                                 self.viewProvider.row(self.store, entry)
                             }
                         }
                     }
                 }
             }
+            // Workaround: we use a single NavigationLink instead of one per row because that breaks
+            // programmatic navigation inside the reference view
+            .stateDrivenNavigationLink(
+                store: store,
+                state: /CompendiumIndexState.NextScreen.itemDetail,
+                action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
+                navDest: appNavigation == .tab ? .nextInStack : .detail,
+                isActive: { _ in true },
+                destination: { viewProvider.detail($0) }
+            )
             .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _ in
                 // workaround: this closure is called with `self.entries` still out of date,
                 // that's why we access it from viewStore

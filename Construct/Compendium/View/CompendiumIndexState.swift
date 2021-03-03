@@ -99,6 +99,11 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 return false
             }
 
+            var toc: Toc? {
+                guard case .toc(let toc) = self else { return nil }
+                return toc
+            }
+
             static var initial: ContentDefinition {
                 initial(types: CompendiumItemType.allCases)
             }
@@ -108,9 +113,9 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             }
 
             struct Toc: Equatable {
-                let types: [CompendiumItemType]
-                let destinationProperties: Properties
-                let suggested: [CompendiumEntry]
+                var types: [CompendiumItemType]
+                var destinationProperties: Properties
+                var suggested: [CompendiumEntry]
             }
         }
     }
