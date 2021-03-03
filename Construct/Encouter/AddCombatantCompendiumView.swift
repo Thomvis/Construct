@@ -63,7 +63,7 @@ struct AddCombatantCompendiumView: View {
         var body: some View {
             HStack {
                 VStack(alignment: .leading) {
-                    Text(combatant.title)
+                    Text(combatant.title).foregroundColor(Color.primary)
                     combatant.localizedSummary(in: compendiumIndexViewStore.state, env: parent.env).font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
                 }
 

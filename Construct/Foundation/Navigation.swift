@@ -60,7 +60,7 @@ protocol NavigationStackSourceAction {
 
 func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination, Label>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, isActive: @escaping (DestinationState) -> Bool, initialState: @escaping () -> DestinationState, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination, label: () -> Label) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, Destination: View, Label: View {
     NavigationLink(
-        destination: IfLetStore(store.scope(state: replayNonNil({ $0.presentedScreens[navDest].flatMap(state.extract) }), action: { .presentedScreen(navDest, action.embed($0)) })) { destination($0) }.navigationViewChild,
+        destination: IfLetStore(store.scope(state: replayNonNil({ $0.presentedScreens[navDest].flatMap(state.extract) }), action: { .presentedScreen(navDest, action.embed($0)) })) { destination($0) },
         isActive: Binding(get: {
             if let nextScreen = ViewStore(store).state.presentedScreens[navDest], let state = state.extract(from: nextScreen) {
                 return isActive(state)
@@ -90,37 +90,5 @@ func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, Dest
 extension View {
     func stateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, isActive: @escaping (DestinationState) -> Bool, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, Destination: View {
         self.background(StateDrivenNavigationLink(store: store, state: state, action: action, navDest: navDest, isActive: isActive, initialState: { fatalError() }, destination: destination, label: { EmptyView() }))
-    }
-}
-
-struct NavigationViewChild<Content>: View where Content: View {
-    @SwiftUI.Environment(\.nestedNavigationViewHidesBar) private var hideBar: Bool?
-
-    let content: Content
-
-    var body: some View {
-        content
-            .if(hideBar == true) { view in
-                view
-                    .navigationBarTitle("sds")
-                    .navigationBarHidden(true)
-            }
-    }
-}
-
-extension View {
-    var navigationViewChild: NavigationViewChild<Self> {
-        NavigationViewChild(content: self)
-    }
-}
-
-struct NestedNavigationViewHidesBar: EnvironmentKey {
-    static let defaultValue: Bool? = nil
-}
-
-extension EnvironmentValues {
-    var nestedNavigationViewHidesBar: Bool? {
-        get { self[NestedNavigationViewHidesBar.self] }
-        set { self[NestedNavigationViewHidesBar.self] = newValue }
     }
 }

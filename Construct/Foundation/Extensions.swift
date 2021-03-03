@@ -135,44 +135,6 @@ extension Optional: OptionalProtocol {
     var optional: Optional<Wrapped> { self }
 }
 
-
-protocol StoreProtocol {
-    associatedtype Value
-    associatedtype Action
-
-    var value: Value { get }
-
-    func perform(_ action: Action)
-
-//    func view<LocalValue, LocalAction>(value toValue: @escaping (Value) -> LocalValue, action toAction: @escaping (LocalAction) -> Action) -> Store<LocalValue, LocalAction>
-//    func optionalView<LocalValue, LocalAction>(value toValue: @escaping (Value) -> LocalValue?, action toAction: @escaping (LocalAction) -> Action) -> Store<LocalValue, LocalAction>?
-
-    func scope<LocalState, LocalAction>(
-      state toLocalState: @escaping (Value) -> LocalState,
-      action fromLocalAction: @escaping (LocalAction) -> Action
-    ) -> Store<LocalState, LocalAction>
-}
-
-struct HybridStore<State, Action>: StoreProtocol {
-    let store: Store<State, Action>
-    let viewStore: ViewStore<State, Action>
-
-    var value: State {
-        viewStore.state
-    }
-
-    func perform(_ action: Action) {
-        viewStore.send(action)
-    }
-
-    func scope<LocalState, LocalAction>(
-      state toLocalState: @escaping (State) -> LocalState,
-      action fromLocalAction: @escaping (LocalAction) -> Action
-    ) -> Store<LocalState, LocalAction> {
-        store.scope(state: toLocalState, action: fromLocalAction)
-    }
-}
-
 extension Reducer {
     static func withState(_ changed: @escaping (State, State) -> Bool, _ reducer: @escaping (State) -> Reducer<State, Action, Environment>) -> Reducer<State, Action, Environment> {
         var innerReducer: Reducer<State, Action, Environment>?
