@@ -276,10 +276,8 @@ extension EncounterDetailViewState {
                                 subscriber.send(.encounter(.addByKey(key, party)))
                             }
                         case .remove(let definitionID, let quantity):
-                            quantity.times {
-                                if let combatant = state.encounter.combatants(with: definitionID).last {
-                                    subscriber.send(.encounter(.remove(combatant)))
-                                }
+                            for c in state.encounter.combatants(with: definitionID).reversed().prefix(quantity) {
+                                subscriber.send(.encounter(.remove(c)))
                             }
                         }
 
