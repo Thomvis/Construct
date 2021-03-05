@@ -103,7 +103,17 @@ struct ReferenceItemViewState: Equatable {
         }
 
         var tabItemTitle: String? {
-            navigationNode.topNavigationItems().compactMap({ $0 as? NavigationStackItemState }).first?.navigationTitle
+            switch self {
+            case .home(let home):
+                return home.presentedNextCompendium?.presentedNextGroupEdit?.navigationTitle
+                    ?? home.presentedNextCompendium?.presentedNextItemDetail?.navigationTitle
+                    ?? home.presentedNextCompendium?.title
+                    ?? "Compendium"
+            case .addCombatant(let addCombatant):
+                return "\(addCombatant.addCombatantState.compendiumState.title) - \(addCombatant.addCombatantState.encounter.name)"
+            case .combatantDetail(let combatantDetail):
+                return "\(combatantDetail.detailState.navigationTitle) - \(combatantDetail.encounter.name)"
+            }
         }
 
         /// Provides access to the compendium to be used as reference material

@@ -163,7 +163,6 @@
 		E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89325449E48006CE8E8 /* ReferenceItemView.swift */; };
 		E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */; };
 		E991F89D2545A791006CE8E8 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = E991F89C2545A791006CE8E8 /* Introspect */; };
-		E991F8AF2549746C006CE8E8 /* InterposeKit in Frameworks */ = {isa = PBXBuildFile; productRef = E991F8AE2549746C006CE8E8 /* InterposeKit */; };
 		E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */; };
 		E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */; };
 		E9969199247C3C0100A8B1A0 /* Spell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E940B5D8237B45FC00A8DAF4 /* Spell.swift */; };
@@ -420,7 +419,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E991F8AF2549746C006CE8E8 /* InterposeKit in Frameworks */,
 				E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */,
 				E991F89D2545A791006CE8E8 /* Introspect in Frameworks */,
 				E9869F7D2520A64B0098A166 /* GRDB in Frameworks */,
@@ -978,7 +976,6 @@
 				E9869F752520A17A0098A166 /* AppCenterCrashes */,
 				E9869F7C2520A64B0098A166 /* GRDB */,
 				E991F89C2545A791006CE8E8 /* Introspect */,
-				E991F8AE2549746C006CE8E8 /* InterposeKit */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -1040,7 +1037,6 @@
 				E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
 				E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 				E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
-				E991F8AD2549746C006CE8E8 /* XCRemoteSwiftPackageReference "InterposeKit" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -1601,14 +1597,6 @@
 				minimumVersion = 0.1.1;
 			};
 		};
-		E991F8AD2549746C006CE8E8 /* XCRemoteSwiftPackageReference "InterposeKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/steipete/InterposeKit.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.2;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1646,11 +1634,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */;
 			productName = Introspect;
-		};
-		E991F8AE2549746C006CE8E8 /* InterposeKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E991F8AD2549746C006CE8E8 /* XCRemoteSwiftPackageReference "InterposeKit" */;
-			productName = InterposeKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

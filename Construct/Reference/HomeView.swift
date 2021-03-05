@@ -61,6 +61,7 @@ struct HomeView: View {
                 isActive: { _ in true },
                 destination: { CompendiumIndexView(store: $0) }
             )
+            .navigationBarHidden(true)
         }
     }
 

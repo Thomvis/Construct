@@ -86,7 +86,7 @@ struct AddCombatantView: View {
                 .environmentObject(self.env)
             }
         }
-        .edgesIgnoringSafeArea(.all)
+        .edgesIgnoringSafeArea(.bottom)
     }
 
     enum Action: Equatable {
