@@ -1582,7 +1582,7 @@
 			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 3.3.4;
+				minimumVersion = 4.0.0;
 			};
 		};
 		E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
