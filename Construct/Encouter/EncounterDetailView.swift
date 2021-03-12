@@ -311,23 +311,23 @@ extension ActionSheetState where Action == EncounterDetailViewState.Action {
 
         let resumeButtons: [Button] = resumables.map { r -> Button in
             let relativeDate = formatter.localizedString(for: r.modifiedAt, relativeTo: Date())
-            return .default("Resume run from \(relativeDate)", send: .onResumeRunningEncounterTap(r.key)) // used to be wrapped in withAnimation
+            return .default(TextState("Resume run from \(relativeDate)"), send: .onResumeRunningEncounterTap(r.key)) // used to be wrapped in withAnimation
         }
 
         return ActionSheetState(
-            title: "Run encounter",
+            title: TextState("Run encounter"),
             buttons: resumeButtons + [
-                .default("Start new run", send: .run(nil)),
+                .default(TextState("Start new run"), send: .run(nil)),
                 .cancel(send: .actionSheet(nil))
             ]
         )
     }
 
     static let reset: Self = ActionSheetState(
-        title: "Reset encounter",
+        title: TextState("Reset encounter"),
         buttons: [
-            .destructive("Clear monsters", send: .resetEncounter(false)),
-            .destructive("Clear all", send: .resetEncounter(true)),
+            .destructive(TextState("Clear monsters"), send: .resetEncounter(false)),
+            .destructive(TextState("Clear all"), send: .resetEncounter(true)),
             .cancel(send: .actionSheet(nil))
         ]
     )
