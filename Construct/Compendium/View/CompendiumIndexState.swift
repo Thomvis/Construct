@@ -24,6 +24,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
     var presentedScreens: [NavigationDestination: NextScreen]
     var alert: AlertState<CompendiumIndexAction>?
+    var sheet: Sheet?
 
     init(title: String, properties: CompendiumIndexState.Properties, results: CompendiumIndexState.RS, presentedScreens: [NavigationDestination: NextScreen] = [:]) {
         self.title = title
@@ -53,14 +54,46 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         res.presentedScreens = presentedScreens.mapValues {
             switch $0 {
             case .compendiumIndex: return .compendiumIndex(CompendiumIndexState.nullInstance)
-            case .groupEdit: return .groupEdit(CompendiumItemGroupEditState.nullInstance)
             case .itemDetail: return .itemDetail(CompendiumEntryDetailViewState.nullInstance)
-            case .creatureEdit: return .creatureEdit(CreatureEditViewState.nullInstance)
             case .compendiumImport: return .compendiumImport(CompendiumImportViewState())
+            }
+        }
+        res.sheet = sheet.map {
+            switch $0 {
+            case .creatureEdit: return .creatureEdit(CreatureEditViewState.nullInstance)
+            case .groupEdit: return .groupEdit(CompendiumItemGroupEditState.nullInstance)
             }
         }
 
         return res
+    }
+
+    var creatureEditSheet: CreatureEditViewState? {
+        get {
+            if case .creatureEdit(let state)? = sheet {
+                return state
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                sheet = .creatureEdit(newValue)
+            }
+        }
+    }
+
+    var groupEditSheet: CompendiumItemGroupEditState? {
+        get {
+            if case .groupEdit(let state)? = sheet {
+                return state
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                sheet = .groupEdit(newValue)
+            }
+        }
     }
 
     struct Properties: Equatable {
@@ -122,10 +155,20 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
     enum NextScreen: Equatable {
         indirect case compendiumIndex(CompendiumIndexState)
-        case groupEdit(CompendiumItemGroupEditState)
         case itemDetail(CompendiumEntryDetailViewState)
-        case creatureEdit(CreatureEditViewState)
         case compendiumImport(CompendiumImportViewState)
+    }
+
+    enum Sheet: Equatable, Identifiable {
+        case creatureEdit(CreatureEditViewState)
+        case groupEdit(CompendiumItemGroupEditState)
+
+        var id: Int {
+            switch self {
+            case .creatureEdit: return 1
+            case .groupEdit: return 2
+            }
+        }
     }
 
     static var reducer: Reducer<Self, CompendiumIndexAction, Environment> {
@@ -139,15 +182,15 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     state.scrollTo = id
                 case .onAddButtonTap:
                     if let type = state.editViewCreatureType {
-                        state.nextScreen = .creatureEdit(CreatureEditViewState(create: type))
+                        state.sheet = .creatureEdit(CreatureEditViewState(create: type))
                     } else if state.results.input.filters?.types?.single == .group {
-                        state.nextScreen = .groupEdit(CompendiumItemGroupEditState(mode: .create, group: CompendiumItemGroup(id: UUID(), title: "", members: [])))
+                        state.sheet = .groupEdit(CompendiumItemGroupEditState(mode: .create, group: CompendiumItemGroup(id: UUID(), title: "", members: [])))
                     }
                 case .setNextScreen(let n):
                     state.presentedScreens[.nextInStack] = n
                 case .setDetailScreen(let s):
                     state.presentedScreens[.detail] = s
-                case .nextScreen(.creatureEdit(CreatureEditViewAction.onAddTap(let editState))):
+                case .creatureEditSheet(CreatureEditViewAction.onAddTap(let editState)):
                     return Effect.run { subscriber in
                         if let item = editState.compendiumItem {
                             let entry = CompendiumEntry(item)
@@ -155,18 +198,18 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                             subscriber.send(.scrollTo(entry.key))
                         }
                         subscriber.send(.results(.reload))
-                        subscriber.send(.setNextScreen(nil))
+                        subscriber.send(.setSheet(nil))
                         subscriber.send(completion: .finished)
                         return AnyCancellable { }
                     }
-                case .nextScreen(.itemGroupEdit(CompendiumItemGroupEditAction.onAddTap(let group))):
+                case .groupEditSheet(CompendiumItemGroupEditAction.onAddTap(let group)):
                     return Effect.run { subscriber in
                         let entry = CompendiumEntry(group)
                         try? env.compendium.put(entry)
 
                         subscriber.send(.results(.reload))
                         subscriber.send(.scrollTo(entry.key))
-                        subscriber.send(.setNextScreen(nil))
+                        subscriber.send(.setSheet(nil))
                         subscriber.send(completion: .finished)
 
                         return AnyCancellable { }
@@ -201,6 +244,9 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     break
                 case .alert(let s):
                     state.alert = s
+                case .setSheet(let s):
+                    state.sheet = s
+                case .creatureEditSheet, .groupEditSheet: break // handled below
                 }
                 return .none
             },
@@ -231,8 +277,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 }.pullback(state: \.results, action: /CompendiumIndexAction.results, environment: { $0 })
             },
             Reducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex),
-            CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEdit, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.creatureEdit),
-            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.presentedNextGroupEdit, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.itemGroupEdit)
+            CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumIndexAction.creatureEditSheet),
+            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet)
         )
     }
 }
@@ -270,6 +316,10 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 
     indirect case alert(AlertState<CompendiumIndexAction>?)
 
+    case setSheet(CompendiumIndexState.Sheet?)
+    case creatureEditSheet(CreatureEditViewAction)
+    case groupEditSheet(CompendiumItemGroupEditAction)
+
     static func presentScreen(_ destination: NavigationDestination, _ screen: CompendiumIndexState.NextScreen?) -> Self {
         switch destination {
         case .nextInStack: return .setNextScreen(screen)
@@ -286,9 +336,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 
     enum NextScreenAction: Equatable {
         case compendiumIndex(CompendiumIndexAction)
-        case creatureEdit(CreatureEditViewAction)
         case compendiumEntry(CompendiumItemDetailViewAction)
-        case itemGroupEdit(CompendiumItemGroupEditAction)
         case `import`
     }
 

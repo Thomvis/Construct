@@ -54,7 +54,13 @@ struct EncounterDetailView: View {
                         }.frame(maxWidth: .infinity).padding(18)
                     }
                 } else {
-                    CombatantSection(parent: self, title: "Combatants", encounter: viewStore.state.encounter, running: viewStore.state.running, combatants: viewStore.state.encounter.combatantsInDisplayOrder)
+                    CombatantSection(
+                        parent: self,
+                        title: "Combatants",
+                        encounter: viewStore.state.encounter,
+                        running: viewStore.state.running,
+                        combatants: viewStore.state.encounter.combatantsInDisplayOrder
+                    )
                 }
 
                 // Adds padding for the bottom action bar
@@ -140,6 +146,7 @@ struct EncounterDetailView: View {
                 Label("Run encounter", systemImage: "play")
             }.disabled(self.viewStore.state.building.combatants.isEmpty)
         }
+        .equalSizes(horizontal: false, vertical: true)
         .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
     }
 
@@ -165,6 +172,7 @@ struct EncounterDetailView: View {
             }
             .disabled(viewStore.state.selection.isEmpty)
         }
+        .equalSizes(horizontal: false, vertical: true)
     }
 
     func runningEditModeActionBar() -> some View {
@@ -201,6 +209,7 @@ struct EncounterDetailView: View {
             }
             .disabled(viewStore.state.selection.isEmpty)
         }
+        .equalSizes(horizontal: false, vertical: true)
     }
 
     func sheetView(_ sheet: EncounterDetailViewState.Sheet) -> some View {

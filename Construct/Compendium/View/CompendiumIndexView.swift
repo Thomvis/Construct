@@ -88,8 +88,6 @@ struct CompendiumIndexView: View {
         .onChange(of: viewStore.state.title) { _ in
             loadResultsIfNeeded()
         }
-        .stateDrivenNavigationLink(store: store, state: /CompendiumIndexState.NextScreen.creatureEdit, action: /CompendiumIndexAction.NextScreenAction.creatureEdit, isActive: { _ in true }, destination: { CreatureEditView(store: $0) })
-        .stateDrivenNavigationLink(store: store, state: /CompendiumIndexState.NextScreen.groupEdit, action: /CompendiumIndexAction.NextScreenAction.itemGroupEdit, isActive: { _ in true }, destination: CompendiumItemGroupEditView.init)
         // workaround: an inline NavigationLink inside navigationBarItems would be set to inactive
         // when the document picker of the import view is dismissed
         .stateDrivenNavigationLink(
@@ -99,6 +97,7 @@ struct CompendiumIndexView: View {
             isActive: { _ in true },
             destination: { _ in CompendiumImportView() })
         .alert(store.scope(state: \.alert), dismiss: .alert(nil))
+        .sheet(item: viewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
     }
 
     @ViewBuilder
@@ -114,6 +113,26 @@ struct CompendiumIndexView: View {
         if self.viewStore.state.properties.initialContent.isSearchResults, self.viewStore.state.results.value == nil {
             self.viewStore.send(.query(.onTextDidChange(viewStore.state.results.input.text), debounce: false)) // kick-start search, fixme?
         }
+    }
+
+    @ViewBuilder
+    private func sheetView(_ sheet: CompendiumIndexState.Sheet) -> some View {
+        IfLetStore(
+            store.scope(state: replayNonNil({ $0.creatureEditSheet }), action: { .creatureEditSheet($0) }),
+            then: { store in
+                SheetNavigationContainer {
+                    CreatureEditView(store: store)
+                }
+            },
+            else: IfLetStore(
+                store.scope(state: replayNonNil({ $0.groupEditSheet }), action: { .groupEditSheet($0) }),
+                then: { store in
+                    SheetNavigationContainer {
+                        CompendiumItemGroupEditView(store: store)
+                    }
+                }
+            )
+        )
     }
 }
 

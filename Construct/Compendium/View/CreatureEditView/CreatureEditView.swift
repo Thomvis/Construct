@@ -168,6 +168,11 @@ struct CreatureEditView: View {
             } else {
                 EmptyView()
                     .navigationBarItems(
+                        leading: Button(action: {
+                            self.presentationMode.wrappedValue.dismiss()
+                        }) {
+                            Text("Cancel")
+                        },
                         trailing: Button(action: {
                             self.viewStore.send(.onAddTap(self.viewStore.state))
                         }) {

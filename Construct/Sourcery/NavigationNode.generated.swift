@@ -230,9 +230,7 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
         get {
             switch self {
             case .compendiumIndex(let s): return s
-            case .groupEdit(let s): return s
             case .itemDetail(let s): return s
-            case .creatureEdit(let s): return s
             case .compendiumImport(let s): return s
             }
         }
@@ -240,9 +238,7 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
         set {
             switch newValue {
             case let v as CompendiumIndexState: self = .compendiumIndex(v)
-            case let v as CompendiumItemGroupEditState: self = .groupEdit(v)
             case let v as CompendiumEntryDetailViewState: self = .itemDetail(v)
-            case let v as CreatureEditViewState: self = .creatureEdit(v)
             case let v as CompendiumImportViewState: self = .compendiumImport(v)
             default: break
             }
@@ -752,33 +748,6 @@ extension CompendiumIndexState: NavigationNode {
             }
         }
     }
-    var presentedNextGroupEdit: CompendiumItemGroupEditState? {
-        get { 
-            if case .groupEdit(let s) = presentedScreens[.nextInStack] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.nextInStack] = .groupEdit(value) 
-            }
-        }
-    }
-
-    var presentedDetailGroupEdit: CompendiumItemGroupEditState? {
-        get { 
-            if case .groupEdit(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.detail] = .groupEdit(value) 
-            }
-        }
-    }
     var presentedNextItemDetail: CompendiumEntryDetailViewState? {
         get { 
             if case .itemDetail(let s) = presentedScreens[.nextInStack] {
@@ -803,33 +772,6 @@ extension CompendiumIndexState: NavigationNode {
         set { 
             if let value = newValue {
                 presentedScreens[.detail] = .itemDetail(value) 
-            }
-        }
-    }
-    var presentedNextCreatureEdit: CreatureEditViewState? {
-        get { 
-            if case .creatureEdit(let s) = presentedScreens[.nextInStack] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.nextInStack] = .creatureEdit(value) 
-            }
-        }
-    }
-
-    var presentedDetailCreatureEdit: CreatureEditViewState? {
-        get { 
-            if case .creatureEdit(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.detail] = .creatureEdit(value) 
             }
         }
     }
