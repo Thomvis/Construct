@@ -17,36 +17,34 @@ struct HomeView: View {
         WithViewStore(store) { viewStore in
             ScrollView {
                 VStack(alignment: .leading) {
-                    VStack(alignment: .leading) {
-                        SectionContainer(title: "Compendium") {
-                            VStack {
-                                // fake search field
+                    SectionContainer {
+                        VStack {
+                            // fake search field
+                            Button(action: {
+                                viewStore.send(.compendiumSearchTapped)
+                            }) {
+                                SearchField(text: Binding.constant(""), accessory: EmptyView())
+                                    .allowsHitTesting(false)
+                                    .padding(8)
+                                    .background(Color(UIColor.systemBackground).cornerRadius(4))
+                                    .contentShape(Rectangle())
+                            }
+
+                            Divider()
+
+                            SimpleList(
+                                data: [
+                                    CompendiumItemType.monster,
+                                    CompendiumItemType.character,
+                                    CompendiumItemType.group,
+                                    CompendiumItemType.spell
+                                ],
+                                id: \.rawValue
+                            ) { type in
                                 Button(action: {
-                                    viewStore.send(.compendiumSearchTapped)
+                                    viewStore.send(.compendiumSectionTapped(type))
                                 }) {
-                                    SearchField(text: Binding.constant(""), accessory: EmptyView())
-                                        .allowsHitTesting(false)
-                                        .padding(8)
-                                        .background(Color(UIColor.systemBackground).cornerRadius(4))
-                                        .contentShape(Rectangle())
-                                }
-
-                                Divider()
-
-                                SimpleList(
-                                    data: [
-                                        CompendiumItemType.monster,
-                                        CompendiumItemType.character,
-                                        CompendiumItemType.group,
-                                        CompendiumItemType.spell
-                                    ],
-                                    id: \.rawValue
-                                ) { type in
-                                    Button(action: {
-                                        viewStore.send(.compendiumSectionTapped(type))
-                                    }) {
-                                        Text(type.localizedScreenDisplayName).frame(maxWidth: .infinity, alignment: .leading)
-                                    }
+                                    Text(type.localizedScreenDisplayName).frame(maxWidth: .infinity, alignment: .leading)
                                 }
                             }
                         }
@@ -54,6 +52,7 @@ struct HomeView: View {
                 }
                 .padding(12)
             }
+            .background(Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 400).opacity(0.66).blur(radius: 10))
             .stateDrivenNavigationLink(
                 store: store,
                 state: /ReferenceItemViewState.Content.Home.NextScreenState.compendium,

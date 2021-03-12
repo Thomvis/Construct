@@ -73,11 +73,6 @@ struct ReferenceViewState: Equatable {
         }
 
         self.itemRequests = itemRequests
-
-        // add default item if no other tabs
-        if items.isEmpty {
-            items.append(Item(state: Self.defaultItem))
-        }
     }
 
     fileprivate func itemContext(for item: Item) -> ReferenceContext {
@@ -140,6 +135,7 @@ enum ReferenceViewAction: Equatable {
     case onBackTapped
     case onNewTabTapped
     case removeTab(UUID)
+    case moveTab(Int, Int)
     case selectItem(UUID?)
 
     case itemRequests([ReferenceViewItemRequest])
@@ -162,6 +158,11 @@ extension ReferenceViewState {
                 state.selectedItemId = item.id
             case .removeTab(let id):
                 state.items.removeAll(where: { $0.id == id })
+                if state.selectedItemId == id {
+                    state.selectedItemId = nil
+                }
+            case .moveTab(let from, let to):
+                state.items.move(fromOffsets: IndexSet(integer: from), toOffset: to)
             case .selectItem(let id):
                 state.selectedItemId = id ?? state.items.first?.id
             case .itemRequests(let reqs):
@@ -181,7 +182,7 @@ extension ReferenceViewState {
                     }
                 }
             // actions that don't affect the open compendium entries
-            case .onNewTabTapped, .selectItem: break
+            case .onNewTabTapped, .moveTab, .selectItem: break
             }
 
             return .none
@@ -199,7 +200,8 @@ extension ReferenceViewState: NavigationStackItemState {
 extension ReferenceViewState {
     static let nullInstance = ReferenceViewState(items: [])
 
-    static let defaultItem = ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home()))
+    static let defaultInstance = ReferenceViewState(items: [.init(state: defaultItemState)])
+    private static let defaultItemState = ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home()))
 
     //Is this correct?
     var normalizedForDeduplication: (UUID?, [Item]) {

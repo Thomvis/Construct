@@ -12,15 +12,25 @@ import ComposableArchitecture
 
 struct ReferenceView: View {
 
+    static let maxItems = 8
+
     let store: Store<ReferenceViewState, ReferenceViewAction>
 
     var body: some View {
         WithViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication }) { viewStore in
-            TabbedDocumentView<ReferenceItemView>(
+            TabbedDocumentView(
                 items: tabItems(viewStore),
+                content: { item in
+                    IfLetStore(store.scope(state: replayNonNil({ $0.items[id: item.id]?.state }), action: { .item(item.id, $0) }), then: ReferenceItemView.init)
+                },
                 selection: viewStore.binding(get: { $0.selectedItemId }, send: { .selectItem($0) }),
-                _onDelete: {
-                    viewStore.send(.removeTab($0))
+                onDelete: { tab in
+                    withAnimation {
+                        viewStore.send(.removeTab(tab))
+                    }
+                },
+                onMove: { from, to in
+                    viewStore.send(.moveTab(from, to))
                 }
             )
             .environment(\.appNavigation, .tab)
@@ -33,20 +43,18 @@ struct ReferenceView: View {
                     }) {
                         Label("New Tab", systemImage: "plus")
                     }
+                    .disabled(viewStore.state.items.count >= Self.maxItems)
                 }
             }
             .navigationBarTitle(viewStore.state.navigationTitle, displayMode: .inline)
         }
     }
 
-    func tabItems(_ viewStore: ViewStore<ReferenceViewState, ReferenceViewAction>) -> [TabbedDocumentView<ReferenceItemView>.ContentItem] {
-        viewStore.items.map { item in
-            TabbedDocumentView<ReferenceItemView>.ContentItem(
+    func tabItems(_ viewStore: ViewStore<ReferenceViewState, ReferenceViewAction>) -> [TabbedDocumentViewContentItem] {
+        viewStore.items.suffix(Self.maxItems).map { item in
+            TabbedDocumentViewContentItem(
                 id: item.id,
-                label: Label(item.title, systemImage: "doc"),
-                view: {
-                    return ReferenceItemView(store: store.scope(state: { $0.items[id: item.id]?.state ?? .nullInstance }, action: { .item(item.id, $0) }))
-                }
+                label: Label(item.title, systemImage: "doc")
             )
         }
     }

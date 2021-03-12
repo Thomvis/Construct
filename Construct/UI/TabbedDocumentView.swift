@@ -12,14 +12,18 @@ import Introspect
 
 struct TabbedDocumentView<Content>: View where Content: View {
 
-    var items: [ContentItem]
+    var items: [TabbedDocumentViewContentItem]
+    var content: (TabbedDocumentViewContentItem) -> Content
     @Binding var selection: UUID?
 
-    var _onDelete: ((UUID) -> Void)?
+    var onDelete: ((UUID) -> Void)?
+    var onMove: ((Int, Int) -> Void)?
 
     var body: some View {
         VStack(spacing: 0) {
-            if items.count > 1 {
+            if items.count > 0 {
+                Divider()
+
                 TabBar(items: items, selection: $selection) { id in
                     if let idx = items.firstIndex(where: { $0.id == id }) {
                         if idx < items.count - 1 {
@@ -30,17 +34,20 @@ struct TabbedDocumentView<Content>: View where Content: View {
                             selection = nil
                         }
                     }
-                    _onDelete?(id)
+                    onDelete?(id)
+                } onMove: { from, to in
+                    onMove?(from, to)
                 }
-            }
 
-            Divider()
+                Divider()
+            }
 
             TabView(selection: $selection) {
                 ForEach(items, id: \.id) { item in
-                    item.view().tag(Optional.some(item.id))
+                    content(item).tag(Optional.some(item.id))
                 }
             }
+            .opacity(items.isEmpty ? 0 : 1)
             .introspectTabBarController { vc in
                 vc.tabBar.isHidden = true
             }
@@ -50,22 +57,22 @@ struct TabbedDocumentView<Content>: View where Content: View {
         }
     }
 
-    func onDelete(_ delete: @escaping (UUID) -> Void) -> Self {
-        return TabbedDocumentView(items: items, selection: $selection, _onDelete: delete)
-    }
-
-    struct ContentItem {
-        let id: UUID
-        let label: Label<Text, Image>
-        let view: () -> Content
-    }
-
     struct TabBar: View {
 
-        var items: [ContentItem]
+        var items: [TabbedDocumentViewContentItem]
         @Binding var selection: UUID?
 
         let onDelete: (UUID) -> Void
+        let onMove: (Int, Int) -> Void
+
+        @State private var frames: [UUID: CGRect] = [:]
+
+        // Tab dragging
+        @State private var dragTarget: UUID? = nil
+        @State private var dragLocation: CGPoint = .zero
+        @State private var dragOffset: CGFloat = 0 // horizontal offset
+
+        @State private var lastDragTarget: UUID? = nil
 
         var body: some View {
             HStack(spacing: 0) {
@@ -79,29 +86,98 @@ struct TabbedDocumentView<Content>: View where Content: View {
                     }), onDelete: {
                         onDelete(item.id)
                     })
-                    // if we set both onDrag and gesture, the drag is never called
-//                    .if(item.id == selection) {
-//                        $0.onDrag {
-//                            NSItemProvider()
-//                        }
-//                    }
-                    .if(item.id != selection) {
-                        $0.gesture(LongPressGesture().onChanged { _ in
-                            selection = item.id
-                        })
+                    .offset(self.offset(for: item))
+                    .propagateFrame(id: item.id, coordinateSpace: .named("TabbedDocumentView.TabBar"))
+                    .zIndex((item.id == dragTarget || item.id == lastDragTarget) ? 10 : 0)
+                    .onTapGesture {
+                        selection = item.id
                     }
-                    // add divider between two unselected tabs
-                    .if(addDivider(after: item.id)) {
-                        $0.overlay(HStack {
+                    .gesture(item.id != selection
+                                ? nil
+                                : DragGesture(coordinateSpace: .named("TabbedDocumentView.TabBar"))
+                                    .onChanged { value in
+                                        withAnimation(.interactiveSpring()) {
+                                            dragTarget = item.id
+                                            dragOffset = value.translation.width
+                                            dragLocation = value.location
+                                            lastDragTarget = nil
+                                        }
+                                    }.onEnded { _ in
+                                        withAnimation {
+                                            commitDrag()
+                                            dragTarget = nil
+                                            lastDragTarget = item.id
+                                        }
+                                    }
+                    )
+                    .overlay(
+                        HStack {
                             Spacer()
                             Divider()
-                        })
+                        }.opacity(addDivider(after: item.id) ? 1.0 : 0.0)
+                    )
+                }
+            }
+            .coordinateSpace(name: "TabbedDocumentView.TabBar")
+            .onPreferenceChange(PropagatedFramesKey<UUID>.self) {
+                self.frames = $0
+            }
+            .background(Color(UIColor.systemGray5))
+        }
+
+        private func offset(for item: TabbedDocumentViewContentItem) -> CGSize {
+            // Early exit if we are not dragging
+            guard let dragTarget = self.dragTarget else { return .zero }
+
+            // Early exit for the drag target
+            if item.id == dragTarget {
+                return CGSize(width: dragOffset, height: 0)
+            }
+
+            guard let draggedItemIdx = items.firstIndex(where: { $0.id == dragTarget }),
+                  let itemIdx = items.firstIndex(where: { $0.id == item.id }) else {
+                assertionFailure("Cannot find involved items in array")
+                return .zero
+            }
+
+            guard let itemFrame = frames[item.id], let draggedItemFrame = frames[dragTarget] else { return .zero }
+
+            if draggedItemIdx < itemIdx && dragLocation.x > itemFrame.minX {
+                return CGSize(width: -draggedItemFrame.width, height:0)
+            } else if draggedItemIdx > itemIdx && dragLocation.x < itemFrame.maxX {
+                return CGSize(width: draggedItemFrame.width, height: 0)
+            }
+
+            return .zero
+        }
+
+        /// Calls onMove if needed
+        private func commitDrag() {
+            guard let dragTarget = dragTarget,
+                  let dragTargetIdx = items.firstIndex(where: { $0.id == dragTarget }) else {
+                assertionFailure("commitDrag() called outside of the scope of a drag")
+                return
+            }
+
+            for (idx, item) in items.enumerated().reversed() {
+                guard let frame = frames[item.id] else {
+                    assertionFailure("Could not find frame for item")
+                    continue
+                }
+
+                if dragLocation.x > frame.minX {
+                    if idx > dragTargetIdx {
+                        onMove(dragTargetIdx, idx+1)
+                        return
+                    } else if idx < dragTargetIdx {
+                        onMove(dragTargetIdx, idx)
+                        return
                     }
                 }
             }
         }
 
-        func addDivider(after id: UUID) -> Bool {
+        private func addDivider(after id: UUID) -> Bool {
             guard selection != id,
                   let idx = items.firstIndex(where: { $0.id == id }),
                   idx < items.count-1,
@@ -140,8 +216,8 @@ struct TabbedDocumentView<Content>: View where Content: View {
 
             func makeBody(configuration: Configuration) -> some View {
                 HStack {
-                    configuration.icon
-                        .foregroundColor(Color(UIColor.gray))
+//                    configuration.icon
+//                        .foregroundColor(Color(UIColor.gray))
 
                     configuration.title
                         .lineLimit(1)
@@ -150,5 +226,36 @@ struct TabbedDocumentView<Content>: View where Content: View {
                 }
             }
         }
+    }
+}
+
+struct TabbedDocumentViewContentItem {
+    let id: UUID
+    let label: Label<Text, Image>
+}
+
+struct PropagatedFramesKey<ID: Hashable>: PreferenceKey {
+    typealias Value = [ID: CGRect]
+
+    static var defaultValue: [ID: CGRect] { [:] }
+    static func reduce(value: inout [ID:CGRect], nextValue: () -> [ID:CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { $1 })
+    }
+}
+
+struct PropagateFrame<V: View, ID: Hashable>: View {
+    var content: V
+    var id: ID
+    var coordinateSpace: CoordinateSpace
+    var body: some View {
+        content.background(GeometryReader { proxy in
+            Color.clear.preference(key: PropagatedFramesKey<ID>.self, value: [self.id: proxy.frame(in: coordinateSpace)])
+        })
+    }
+}
+
+extension View {
+    func propagateFrame<ID: Hashable>(id: ID, coordinateSpace: CoordinateSpace) -> some View {
+        PropagateFrame(content: self, id: id, coordinateSpace: coordinateSpace)
     }
 }

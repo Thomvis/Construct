@@ -28,7 +28,7 @@ struct CampaignBrowseTwoColumnContainerView: View {
             }
         }
         .background(
-            WithViewStore(store, removeDuplicates: { $0.showReferenceView != $1.showReferenceView }) { viewStore in
+            WithViewStore(store, removeDuplicates: { $0.showReferenceView == $1.showReferenceView }) { viewStore in
                 NavigationLink(
                     destination: ReferenceView(store: store.scope(state: { $0.referenceView }, action: { .referenceView($0) })),
                     isActive: Binding(get: { viewStore.state.showReferenceView }, set: { _ in })
@@ -168,17 +168,17 @@ extension CampaignBrowseTwoColumnContainerState {
 
     init(node: CampaignNode, referenceView: ReferenceViewState? = nil) {
         self.content = .browse(CampaignBrowseViewState(node: node, mode: .browse, showSettingsButton: false))
-        self.referenceView = referenceView ?? ReferenceViewState(items: IdentifiedArray([]))
+        self.referenceView = referenceView ?? .defaultInstance
     }
 
     init(encounter: Encounter, referenceView: ReferenceViewState? = nil) {
         self.content = .encounter(EncounterDetailViewState(building: encounter))
-        self.referenceView = referenceView ?? ReferenceViewState(items: IdentifiedArray([]))
+        self.referenceView = referenceView ?? .defaultInstance
     }
 
     init(referenceView: ReferenceViewState? = nil) {
         self.content = .browse(CampaignBrowseViewState(node: .root, mode: .browse, showSettingsButton: false))
-        self.referenceView = referenceView ?? ReferenceViewState(items: IdentifiedArray([]))
+        self.referenceView = referenceView ?? .defaultInstance
     }
 }
 
