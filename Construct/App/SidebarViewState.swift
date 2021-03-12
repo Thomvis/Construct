@@ -33,6 +33,23 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
         presentedDetailCampaignBrowse?.referenceView
     }
 
+    var normalizedForDeduplication: SidebarViewState {
+        var res = self
+        res.presentedScreens = presentedScreens.mapValues { value in
+            switch value {
+            case .compendium: return .compendium(.nullInstance)
+            case .campaignBrowse: return .campaignBrowse(.nullInstance)
+            }
+        }
+        res.sheet = sheet.map {
+            switch $0 {
+            case .nodeEdit: return .nodeEdit(.nullInstance)
+            case .about: return .about
+            }
+        }
+        return res
+    }
+
     enum NextScreen: Equatable {
         case compendium(CompendiumIndexState)
         case campaignBrowse(CampaignBrowseTwoColumnContainerState)
@@ -40,10 +57,12 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
 
     enum Sheet: Equatable, Identifiable {
         case nodeEdit(CampaignBrowseViewState.NodeEditState)
+        case about
 
         var id: String {
             switch self {
             case .nodeEdit(let s): return s.id.uuidString
+            case .about: return "\(self)"
             }
         }
     }
@@ -63,6 +82,8 @@ enum SidebarViewAction: NavigationStackSourceAction, Equatable {
     indirect case detailScreen(NextScreenAction)
 
     case setSheet(SidebarViewState.Sheet?)
+
+    case onDiceRollerButtonTap
 
     static func presentScreen(_ destination: NavigationDestination, _ screen: SidebarViewState.NextScreen?) -> Self {
         switch destination {
@@ -121,6 +142,7 @@ extension SidebarViewState {
             case .detailScreen: break // handled above
             case .setSheet(let s):
                 state.sheet = s
+            case .onDiceRollerButtonTap: break // handled by parent
             }
             return .none
         }

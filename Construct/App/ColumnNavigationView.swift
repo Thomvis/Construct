@@ -40,10 +40,10 @@ struct ColumnNavigationView: View {
             .navigationViewStyle(DoubleColumnNavigationViewStyle())
             .environment(\.appNavigation, .column)
 
-//            FloatingDiceRollerContainerView(store: store.scope(
-//                state: { $0.diceCalculator },
-//                action: { .diceCalculator($0) }
-//            ))
+            FloatingDiceRollerContainerView(store: store.scope(
+                state: { $0.diceCalculator },
+                action: { .diceCalculator($0) }
+            ))
         }
     }
 }

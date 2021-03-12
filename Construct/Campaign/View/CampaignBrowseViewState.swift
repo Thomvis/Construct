@@ -316,3 +316,7 @@ extension CampaignBrowseViewState {
 extension CampaignBrowseViewState {
     static let nullInstance = CampaignBrowseViewState(node: CampaignNode.root, mode: .browse, showSettingsButton: false)
 }
+
+extension CampaignBrowseViewState.NodeEditState {
+    static let nullInstance = CampaignBrowseViewState.NodeEditState(name: "")
+}

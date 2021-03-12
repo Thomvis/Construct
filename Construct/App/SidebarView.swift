@@ -16,7 +16,7 @@ struct SidebarView: View {
     let store: Store<SidebarViewState, SidebarViewAction>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication }) { viewStore in
             List {
                 StateDrivenNavigationLink(
                     store: store,
@@ -94,6 +94,26 @@ struct SidebarView: View {
             .onAppear {
                 viewStore.send(.loadCampaignNode(CampaignNode.root))
             }
+            .toolbar {
+                ToolbarItem(placement: .bottomBar) {
+                    Button(action: {
+                        viewStore.send(.onDiceRollerButtonTap)
+                    }) {
+                        HStack {
+                            Image("tabbar_d20")
+                            Text("Dice Roller")
+                        }
+                    }
+                }
+
+                ToolbarItem(placement: .navigation) {
+                    Button(action: {
+                        viewStore.send(.setSheet(.about))
+                    }) {
+                        Text("About")
+                    }
+                }
+            }
         }
     }
 
@@ -155,6 +175,8 @@ struct SidebarView: View {
                         viewStore.send(.setSheet(.nodeEdit($0)))
                     })
                 )
+            case .about:
+                SettingsContainerView().environmentObject(env)
             }
         }
         .eraseToAnyView
