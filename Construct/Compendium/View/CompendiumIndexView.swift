@@ -81,9 +81,12 @@ struct CompendiumIndexView: View {
             }
         })
         .onAppear {
-            if self.viewStore.state.properties.initialContent.isSearchResults, self.viewStore.state.results.value == nil {
-                self.viewStore.send(.query(.onTextDidChange(viewStore.state.results.input.text), debounce: false)) // kick-start search, fixme?
-            }
+            loadResultsIfNeeded()
+        }
+        // workaround for onAppear not getting called when a compendium index view is replaced by another
+        // through the sidebar
+        .onChange(of: viewStore.state.title) { _ in
+            loadResultsIfNeeded()
         }
         .stateDrivenNavigationLink(store: store, state: /CompendiumIndexState.NextScreen.creatureEdit, action: /CompendiumIndexAction.NextScreenAction.creatureEdit, isActive: { _ in true }, destination: { CreatureEditView(store: $0) })
         .stateDrivenNavigationLink(store: store, state: /CompendiumIndexState.NextScreen.groupEdit, action: /CompendiumIndexAction.NextScreenAction.itemGroupEdit, isActive: { _ in true }, destination: CompendiumItemGroupEditView.init)
@@ -104,6 +107,12 @@ struct CompendiumIndexView: View {
             FilterButton(viewStore: viewStore)
         } else {
             EmptyView()
+        }
+    }
+
+    private func loadResultsIfNeeded() {
+        if self.viewStore.state.properties.initialContent.isSearchResults, self.viewStore.state.results.value == nil {
+            self.viewStore.send(.query(.onTextDidChange(viewStore.state.results.input.text), debounce: false)) // kick-start search, fixme?
         }
     }
 }

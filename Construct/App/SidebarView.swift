@@ -39,52 +39,23 @@ struct SidebarView: View {
                 adventureSection(viewStore)
 
                 Section(header: Text("Compendium")) {
-                    StateDrivenNavigationLink(
-                        store: store,
-                        state: /SidebarViewState.NextScreen.compendium,
-                        action: /SidebarViewAction.NextScreenAction.compendium,
-                        navDest: .detail,
-                        isActive: { $0.title == "Monsters" }, // not great
-                        initialState: CompendiumIndexState(title: "Monsters", properties: .secondary, results: .initial(type: .monster)),
-                        destination: { CompendiumIndexView(store: $0) }
-                    ) {
-                        Text("Monsters")
-                    }
-
-                    StateDrivenNavigationLink(
-                        store: store,
-                        state: /SidebarViewState.NextScreen.compendium,
-                        action: /SidebarViewAction.NextScreenAction.compendium,
-                        navDest: .detail,
-                        isActive: { $0.title == "Characters" }, // not great
-                        initialState: CompendiumIndexState(title: "Characters", properties: .secondary, results: .initial(type: .character)),
-                        destination: { CompendiumIndexView(store: $0) }
-                    ) {
-                        Text("Characters")
-                    }
-
-                    StateDrivenNavigationLink(
-                        store: store,
-                        state: /SidebarViewState.NextScreen.compendium,
-                        action: /SidebarViewAction.NextScreenAction.compendium,
-                        navDest: .detail,
-                        isActive: { $0.title == "Adventuring Parties" }, // not great
-                        initialState: CompendiumIndexState(title: "Adventuring Parties", properties: .secondary, results: .initial(type: .group)),
-                        destination: { CompendiumIndexView(store: $0) }
-                    ) {
-                        Text("Adventuring Parties")
-                    }
-
-                    StateDrivenNavigationLink(
-                        store: store,
-                        state: /SidebarViewState.NextScreen.compendium,
-                        action: /SidebarViewAction.NextScreenAction.compendium,
-                        navDest: .detail,
-                        isActive: { $0.title == "Spells" }, // not great
-                        initialState: CompendiumIndexState(title: "Spells", properties: .secondary, results: .initial(type: .spell)),
-                        destination: { CompendiumIndexView(store: $0) }
-                    ) {
-                        Text("Spells")
+                    ForEach([
+                        CompendiumItemType.monster,
+                        CompendiumItemType.character,
+                        CompendiumItemType.group,
+                        CompendiumItemType.spell
+                    ], id: \.self) { type in
+                        StateDrivenNavigationLink(
+                            store: store,
+                            state: /SidebarViewState.NextScreen.compendium,
+                            action: /SidebarViewAction.NextScreenAction.compendium,
+                            navDest: .detail,
+                            isActive: { $0.title == type.localizedScreenDisplayName }, // not great
+                            initialState: CompendiumIndexState(title: type.localizedScreenDisplayName, properties: .secondary, results: .initial(type: type)),
+                            destination: { CompendiumIndexView(store: $0).id(type.localizedScreenDisplayName) }
+                        ) {
+                            Text(type.localizedScreenDisplayName)
+                        }
                     }
                 }
             }
