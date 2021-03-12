@@ -15,9 +15,10 @@ protocol HavingEntities {
 
 extension AppState: HavingEntities {
     var entities: [AnyKeyValueStoreEntity] {
-        return (navigation.tabState.map { $0.entities } ?? [])
-            + (navigation.columnState.map { $0.entities } ?? [])
-            + [AnyKeyValueStoreEntity(preferences)]
+        return [
+            navigation.tabState?.entities,
+            navigation.columnState?.entities
+        ].compactMap { $0 }.flatMap { $0 } + [AnyKeyValueStoreEntity(preferences)]
     }
 }
 
