@@ -36,7 +36,9 @@ struct FloatingDiceRollerContainerView: View {
                     Spacer()
 
                     Button(action: {
-                        viewStore.send(.hide)
+                        withAnimation {
+                            viewStore.send(.hide)
+                        }
                     }) {
                         Image(systemName: "pip.remove")
                     }
@@ -52,7 +54,7 @@ struct FloatingDiceRollerContainerView: View {
 
                 DiceCalculatorView(store: store.scope(state: { $0.diceCalculator }, action: { .diceCalculator($0) }))
             }
-            .frame(minWidth: 280)
+            .frame(width: 280)
             .fixedSize()
             .padding([.leading, .trailing, .bottom], Self.innerPanelPadding)
             .background(Color(UIColor.systemBackground))

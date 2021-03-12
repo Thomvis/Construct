@@ -23,7 +23,7 @@ struct DiceCalculatorView: View {
                 Divider()
 
                 if viewStore.showDicePad {
-                    DicePadView(store: viewStore).transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
+                    DicePadView(store: ViewStore(store)).transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
                 } else {
                     OutcomeView(store: store).transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
                 }
@@ -93,9 +93,14 @@ struct DiceCalculatorState: Equatable {
         case .mode(let m):
             state.mode = m
         case .onRerollButtonTap:
-            state.result = state.expression.roll
-
-            return Effect(value: .startGeneratingIntermediaryResults(state.expression))
+            if state.expression.diceCount == 0 {
+                return Effect(value: .mode(.editingExpression))
+                    .receive(on: DispatchQueue.main.animation())
+                    .eraseToEffect()
+            } else {
+                state.result = state.expression.roll
+                return Effect(value: .startGeneratingIntermediaryResults(state.expression))
+            }
         case .onShowDiceButtonTap:
             state.showDice.toggle()
         case .onExpressionEditButtonTap:
@@ -121,6 +126,8 @@ struct DiceCalculatorState: Equatable {
             state.previousExpressions.append(state.expression)
             let effectiveExpression = (state.entryContext.subtract ? e.opposite : e).color(state.entryContext.color)
             state.expression.append(effectiveExpression)
+
+            state.result = nil
         case .onColorCycleButtonTap:
             let current = DiceCalculatorState.colors.firstIndex(of: state.entryContext.color) ?? 0
             state.entryContext.color = DiceCalculatorState.colors[(current + 1) % DiceCalculatorState.colors.count]
@@ -129,6 +136,8 @@ struct DiceCalculatorState: Equatable {
         case .clearExpression:
             state.expression = .number(0)
             state.previousExpressions = []
+
+            state.result = nil
         case .startGeneratingIntermediaryResults(let expression):
             return Effect(value: .intermediaryResultsStep(expression, 6))
         case .intermediaryResultsStep(let expression, let remaining):
@@ -177,7 +186,10 @@ extension DiceCalculatorState {
     }
 
     var canRerollResult: Bool {
-        return result != nil
+        if let result = result {
+            return result.dice.count > 0
+        }
+        return false
     }
 
     var showDicePad: Bool {
@@ -220,7 +232,11 @@ fileprivate struct DiceExpressionView: View {
                 viewStore.state.expression.text
                     .font(viewStore.state.showMinimizedExpressionView ? .body : .largeTitle)
                     .fixedSize(horizontal: false, vertical: true)
-                    .onTapGesture { viewStore.send(.onExpressionEditButtonTap) }
+                    .onTapGesture {
+                        withAnimation(.spring()) {
+                            viewStore.send(.onExpressionEditButtonTap)
+                        }
+                    }
 
                 Spacer()
                 if viewStore.state.showExpressionEditUndoButton {
@@ -264,7 +280,6 @@ struct OutcomeView: View {
                                         Throphy()
                                     }
                                     Text("\(result.total)").font(.largeTitle)
-//                                        .animation(nil)
                                     if viewStore.state.shouldCelebrateRoll && !viewStore.state.resultIsIntermediary {
                                         Throphy()
                                     }
@@ -274,7 +289,6 @@ struct OutcomeView: View {
                                 }
                             }
                             .opacity(viewStore.state.resultIsIntermediary ? 0.66 : 1.0)
-//                            .animation(nil)
                         }.replaceNilWith {
                             Button(action: {
                                 viewStore.send(.onRerollButtonTap)
@@ -291,7 +305,11 @@ struct OutcomeView: View {
                     .frame(maxWidth: .infinity, alignment: .trailing)
             )
             .overlay(Group {
-                Button(action: { viewStore.send(.onShowDiceButtonTap) }) {
+                Button(action: {
+                    withAnimation {
+                        viewStore.send(.onShowDiceButtonTap)
+                    }
+                }) {
                     Text(viewStore.state.showDice && viewStore.state.showDiceSummary ? "Hide dice" : "Show dice").font(.footnote)
                 }
                 .disabled(!viewStore.state.showDiceSummary)
@@ -309,7 +327,7 @@ struct OutcomeView: View {
     func diceSummary(_ expr: RolledDiceExpression) -> some View {
         WithViewStore(store) { viewStore in
             if viewStore.state.showDiceSummary {
-                expr.text.font(.footnote).lineLimit(nil).foregroundColor(Color(UIColor.tertiaryLabel)).animation(nil)
+                expr.text.font(.footnote).lineLimit(nil).foregroundColor(Color(UIColor.tertiaryLabel))
             }
         }
     }
@@ -366,7 +384,7 @@ struct ResultDetailView: View {
         return Text("\(die.value)")
             .bold().underline(die.value == die.die.sides)
             .frame(width: 44, height: 44)
-            .background((die.die.color?.UIColor).map(Color.init) ?? Color(UIColor.systemGray))
+            .background((die.die.color?.UIColor).map(Color.init) ?? Color(UIColor.systemGray3))
     }
 
 }
@@ -410,7 +428,10 @@ fileprivate struct DicePadView: View {
                     }
                 }) {
                     Text("Roll")
-                }.buttonStyle(ButtonStyle(color: Color(UIColor.systemBlue).opacity(0.5)))
+                }
+                .buttonStyle(ButtonStyle(color: Color(UIColor.systemBlue).opacity(0.5)))
+                .disabled(store.state.expression.diceCount == 0)
+                .opacity(store.state.expression.diceCount == 0 ? 0.33 : 1.0)
             }
         }
     }
@@ -496,7 +517,8 @@ extension RolledDiceExpression {
     var text: Text {
         switch self {
         case .dice(let die, let values):
-            return Text("(" + values.map({ "\($0)" }).joined(separator: " + ") + ")").foregroundColor((die.color?.UIColor).map(Color.init) ?? Color(UIColor.tertiaryLabel))
+            return Text("(" + values.map({ "\($0)" }).joined(separator: ", ") + ")").foregroundColor((die.color?.UIColor).map(Color.init) ?? Color(UIColor.tertiaryLabel))
+                + Text("/\(die.sides)").foregroundColor(Color(UIColor.quaternaryLabel))
         case .compound(let lhs, let op, let rhs):
             return lhs.text + Text(" \(op.string) ") + rhs.text
         case .number(let n):

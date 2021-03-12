@@ -101,7 +101,7 @@ struct SidebarView: View {
                     }) {
                         HStack {
                             Image("tabbar_d20")
-                            Text("Dice Roller")
+                            Text("Dice roller")
                         }
                     }
                 }
