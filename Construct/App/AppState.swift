@@ -134,6 +134,8 @@ extension AppState.Navigation {
                 state = .column(ColumnNavigationViewState())
             case (.tab, .openEncounter(let e)):
                 return Effect(value: .tab(.campaignBrowser(.setNextScreen(.encounter(EncounterDetailViewState(building: e))))))
+            case (.column, .openEncounter(let e)):
+                return Effect(value: .column(.sidebar(.openEncounter(e))))
             default:
                 break
             }

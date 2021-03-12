@@ -84,6 +84,7 @@ enum SidebarViewAction: NavigationStackSourceAction, Equatable {
     case setSheet(SidebarViewState.Sheet?)
 
     case onDiceRollerButtonTap
+    case openEncounter(Encounter)
 
     static func presentScreen(_ destination: NavigationDestination, _ screen: SidebarViewState.NextScreen?) -> Self {
         switch destination {
@@ -143,6 +144,8 @@ extension SidebarViewState {
             case .setSheet(let s):
                 state.sheet = s
             case .onDiceRollerButtonTap: break // handled by parent
+            case .openEncounter(let encounter):
+                return Effect(value: .setDetailScreen(.campaignBrowse(.init(encounter: encounter, referenceView: state.referenceViewState))))
             }
             return .none
         }
