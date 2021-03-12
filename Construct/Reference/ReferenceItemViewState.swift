@@ -105,14 +105,14 @@ struct ReferenceItemViewState: Equatable {
         var tabItemTitle: String? {
             switch self {
             case .home(let home):
-                return home.presentedNextCompendium?.presentedNextGroupEdit?.navigationTitle
-                    ?? home.presentedNextCompendium?.presentedNextItemDetail?.navigationTitle
+                let title = home.presentedNextCompendium?.presentedNextItemDetail?.navigationTitle
                     ?? home.presentedNextCompendium?.title
-                    ?? "Compendium"
+
+                return title.map { "\($0) - Compendium" } ?? "Compendium"
             case .addCombatant(let addCombatant):
                 return "\(addCombatant.addCombatantState.compendiumState.title) - \(addCombatant.addCombatantState.encounter.name)"
             case .combatantDetail(let combatantDetail):
-                return "\(combatantDetail.detailState.navigationTitle) - \(combatantDetail.encounter.name)"
+                return "Combatant details - \(combatantDetail.encounter.name)"
             }
         }
 

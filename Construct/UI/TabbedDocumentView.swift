@@ -83,7 +83,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
                         if $0 {
                             selection = item.id
                         }
-                    }), onDelete: {
+                    }), showDeleteButton: items.count > 1, onDelete: {
                         onDelete(item.id)
                     })
                     .offset(self.offset(for: item))
@@ -190,25 +190,29 @@ struct TabbedDocumentView<Content>: View where Content: View {
         let label: Label<Text, Image>
         @Binding var selected: Bool
 
+        let showDeleteButton: Bool
         let onDelete: () -> Void
 
         var body: some View {
-            label.labelStyle(LabelStyle(selected: selected))
-                .font(.footnote)
-                .frame(maxWidth: .infinity)
-                .if(selected) {
-                    $0.overlay(
-                        Button(action: {
-                            onDelete()
-                        }) {
-                            Image(systemName: "xmark.square.fill")
-                        }.frame(maxWidth: .infinity, alignment: .leading)
-                    )
-                }
-                .padding(10)
-                .frame(minHeight: 32)
-                .background(Color(selected ? UIColor.systemGray6 : UIColor.systemGray5))
-                .accentColor(Color(UIColor.gray))
+            let deleteButton = Button(action: {
+                onDelete()
+            }) {
+                Image(systemName: "xmark.square.fill")
+            }
+
+            HStack(spacing: 2) {
+                deleteButton.opacity(selected && showDeleteButton ? 1 : 0)
+
+                label.labelStyle(LabelStyle(selected: selected))
+                    .font(.footnote)
+                    .frame(maxWidth: .infinity)
+
+                deleteButton.opacity(0)
+            }
+            .padding(10)
+            .frame(minHeight: 32)
+            .background(Color(selected ? UIColor.systemGray6 : UIColor.systemGray5))
+            .accentColor(Color(UIColor.gray))
         }
 
         struct LabelStyle: SwiftUI.LabelStyle {
