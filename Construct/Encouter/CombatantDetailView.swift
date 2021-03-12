@@ -405,7 +405,7 @@ struct CombatantDetailView: View {
                     RoundedButton(action: { }) {
                         Label("Roll...", systemImage: "die.face.6")
                     }
-                    .frame(minWidth: 100)
+                    .frame(minWidth: 100, maxWidth: 250)
                 }
             }
         }

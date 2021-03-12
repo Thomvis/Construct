@@ -29,6 +29,7 @@ private struct RoundedButtonStyle: SwiftUI.ButtonStyle {
             .font(.caption)
             .padding(10)
             .frame(maxWidth: .infinity)
+            .equalSize()
             .background(Color(UIColor.systemBackground).opacity(configuration.isPressed ? 0.33 : 0).cornerRadius(8))
             .background(color.cornerRadius(8))
     }

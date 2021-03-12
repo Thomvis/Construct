@@ -67,6 +67,7 @@ struct CampaignBrowseView: View {
                     }
                 }
             }
+            .equalSizes(horizontal: false, vertical: true)
             .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
         }
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, content: self.sheetView)
