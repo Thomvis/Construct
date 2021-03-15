@@ -115,7 +115,7 @@ struct CampaignBrowseTwoColumnContainerState: Equatable {
 }
 
 enum CampaignBrowseTwoColumnContainerAction: Equatable {
-    case contentCampaignBrowse(CampaignBrowseViewAction)
+    indirect case contentCampaignBrowse(CampaignBrowseViewAction)
     case contentEncounter(EncounterDetailViewState.Action)
 
     case referenceView(ReferenceViewAction)
