@@ -215,23 +215,23 @@ struct EncounterDetailView: View {
     func sheetView(_ sheet: EncounterDetailViewState.Sheet) -> some View {
         switch sheet {
         case .add:
-            return IfLetStore(store.scope(state: { $0.addCombatantState }, action: { .addCombatant($0) })) { store in
+            return IfLetStore(store.scope(state: replayNonNil({ $0.addCombatantState }), action: { .addCombatant($0) })) { store in
                 AddCombatantView(store: store, onSelection: {
                     viewStore.send(.addCombatantAction($0, $1))
                 }).environmentObject(self.environment)
             }.eraseToAnyView
         case .combatant:
-            return IfLetStore(store.scope(state: { $0.combatantDetailState }, action: { .combatantDetail($0) })) { store in
+            return IfLetStore(store.scope(state: replayNonNil({ $0.combatantDetailState }), action: { .combatantDetail($0) })) { store in
                 CombatantDetailContainerView(store: store).environmentObject(self.environment)
             }.eraseToAnyView
         case .runningEncounterLog:
-            return IfLetStore(store.scope(state: { $0.runningEncounterLogState }, action: { fatalError() })) { store in
+            return IfLetStore(store.scope(state: replayNonNil({ $0.runningEncounterLogState }), action: { fatalError() })) { store in
                 SheetNavigationContainer {
                     RunningEncounterLogView(store: store).environmentObject(self.environment)
                 }
             }.eraseToAnyView
         case .selectedCombatantTags:
-            return IfLetStore(store.scope(state: { $0.selectedCombatantTagsState }, action: { .selectedCombatantTags($0) })) { store in
+            return IfLetStore(store.scope(state: replayNonNil({ $0.selectedCombatantTagsState }), action: { .selectedCombatantTags($0) })) { store in
                 SheetNavigationContainer {
                     CombatantTagsView(store: store)
                 }.environmentObject(self.environment)
