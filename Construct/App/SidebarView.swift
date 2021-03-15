@@ -23,7 +23,7 @@ struct SidebarView: View {
                     state: /SidebarViewState.NextScreen.campaignBrowse,
                     action: /SidebarViewAction.NextScreenAction.campaignBrowse,
                     navDest: .detail,
-                    isActive: { $0.content.encounter?.encounter.key == Encounter.key(Encounter.scratchPadEncounterId) },
+                    isActive: { $0.content.encounterState?.encounter.key == Encounter.key(Encounter.scratchPadEncounterId) },
                     initialState: {
                         if let encounter: Encounter = try? self.env.database.keyValueStore.get(Encounter.key(Encounter.scratchPadEncounterId)) {
                             return CampaignBrowseTwoColumnContainerState(encounter: encounter, referenceView: viewStore.state.referenceViewState)
@@ -96,7 +96,7 @@ struct SidebarView: View {
                 state: /SidebarViewState.NextScreen.campaignBrowse,
                 action: /SidebarViewAction.NextScreenAction.campaignBrowse,
                 navDest: .detail,
-                isActive: { $0.content.campaignBrowse?.node == CampaignNode.root && $0.content.campaignBrowse?.presentedScreens.isEmpty == true },
+                isActive: { $0.content.browseState?.node == CampaignNode.root && $0.content.browseState?.presentedScreens.isEmpty == true },
                 initialState: CampaignBrowseTwoColumnContainerState(node: .root, referenceView: viewStore.state.referenceViewState),
                 destination: CampaignBrowseTwoColumnContainerView.init
             ) {
@@ -122,7 +122,7 @@ struct SidebarView: View {
                     state: /SidebarViewState.NextScreen.campaignBrowse,
                     action: /SidebarViewAction.NextScreenAction.campaignBrowse,
                     navDest: .detail,
-                    isActive: { $0.content.campaignBrowse?.node == node && $0.content.campaignBrowse?.presentedScreens.isEmpty == true },
+                    isActive: { $0.content.browseState?.node == node && $0.content.browseState?.presentedScreens.isEmpty == true },
                     initialState: CampaignBrowseTwoColumnContainerState(node: node),
                     destination: CampaignBrowseTwoColumnContainerView.init
                 ) {

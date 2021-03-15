@@ -51,7 +51,7 @@ extension CampaignBrowseViewState: HavingEntities {
 
 extension CampaignBrowseTwoColumnContainerState: HavingEntities {
     var entities: [AnyKeyValueStoreEntity] {
-        return (content.campaignBrowse?.entities ?? []) + (content.encounter?.entities ?? [])
+        return (content.browseState?.entities ?? []) + (content.encounterState?.entities ?? [])
     }
 }
 

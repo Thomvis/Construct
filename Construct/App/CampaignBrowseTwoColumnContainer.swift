@@ -19,11 +19,11 @@ struct CampaignBrowseTwoColumnContainerView: View {
 
     var body: some View {
         Group {
-            IfLetStore(store.scope(state: { $0.content.campaignBrowse}, action: { .contentCampaignBrowse($0) })) { store in
+            IfLetStore(store.scope(state: { $0.content.browseState }, action: { .contentCampaignBrowse($0) })) { store in
                 CampaignBrowseView(store: store)
             }
 
-            IfLetStore(store.scope(state: { $0.content.encounter }, action: { .contentEncounter($0) })) { store in
+            IfLetStore(store.scope(state: { $0.content.encounterState }, action: { .contentEncounter($0) })) { store in
                 EncounterDetailView(store: store)
             }
         }
@@ -53,7 +53,7 @@ struct CampaignBrowseTwoColumnContainerState: Equatable {
         case browse(CampaignBrowseViewState)
         case encounter(EncounterDetailViewState)
 
-        var campaignBrowse: CampaignBrowseViewState? {
+        var browseState: CampaignBrowseViewState? {
             get {
                 if case .browse(let b) = self {
                     return b
@@ -67,7 +67,7 @@ struct CampaignBrowseTwoColumnContainerState: Equatable {
             }
         }
 
-        var encounter: EncounterDetailViewState? {
+        var encounterState: EncounterDetailViewState? {
             get {
                 if case .encounter(let e) = self {
                     return e
@@ -139,8 +139,8 @@ extension CampaignBrowseTwoColumnContainerState {
             }
             return .none
         },
-        CampaignBrowseViewState.reducer.optional().pullback(state: \.content.campaignBrowse, action: /CampaignBrowseTwoColumnContainerAction.contentCampaignBrowse),
-        EncounterDetailViewState.reducer.optional().pullback(state: \.content.encounter, action: /CampaignBrowseTwoColumnContainerAction.contentEncounter),
+        CampaignBrowseViewState.reducer.optional().pullback(state: \.content.browseState, action: /CampaignBrowseTwoColumnContainerAction.contentCampaignBrowse),
+        EncounterDetailViewState.reducer.optional().pullback(state: \.content.encounterState, action: /CampaignBrowseTwoColumnContainerAction.contentEncounter),
         ReferenceViewState.reducer.pullback(state: \.referenceView, action: /CampaignBrowseTwoColumnContainerAction.referenceView),
         Reducer { state, action, env in
             var actions: [CampaignBrowseTwoColumnContainerAction] = []
