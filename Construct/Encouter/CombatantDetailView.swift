@@ -65,25 +65,24 @@ struct CombatantDetailView: View {
                             VStack {
                                 Text("Hit Points")
                                 combatant.hp.map { hp in
-                                    HStack {
+                                    HStack(alignment: .firstTextBaseline) {
                                         VStack {
                                             Text("\(hp.current)").font(.title)
-                                            Text("Cur").font(.subheadline)
-                                        }.equalSize()
+                                            Text("Cur").font(.subheadline).foregroundColor(Color(UIColor.secondaryLabel))
+                                        }
                                         VStack {
                                             Text("/").font(.title)
-                                            Text("").font(.subheadline)
-                                        }.fixedSize()
+                                            Text("").font(.subheadline).foregroundColor(Color(UIColor.secondaryLabel))
+                                        }
                                         VStack {
                                             Text("\(hp.maximum)").font(.title)
-                                            Text("Max").font(.subheadline)
-                                        }.equalSize()
+                                            Text("Max").font(.subheadline).foregroundColor(Color(UIColor.secondaryLabel))
+                                        }
                                         VStack {
                                             Text("\(hp.temporary)").font(.title)
-                                            Text("Temp").font(.subheadline)
-                                        }.equalSize()
+                                            Text("Temp").font(.subheadline).foregroundColor(Color(UIColor.secondaryLabel))
+                                        }
                                     }
-                                    .equalSizes(horizontal: true, vertical: false)
                                 }.replaceNilWith {
                                     Text("--").font(.subheadline)
                                 }
@@ -116,7 +115,7 @@ struct CombatantDetailView: View {
                                     combatant.definition.initiativeModifier.map {
                                         Text(env.modifierFormatter.stringWithFallback(for: $0)).italic().opacity(0.6)
                                     }.replaceNilWith {
-                                        Text("--").italic().opacity(0.6)
+                                        Text("--").italic().foregroundColor(Color(UIColor.secondaryLabel))
                                     }
                                 }
                                 .font(.title)

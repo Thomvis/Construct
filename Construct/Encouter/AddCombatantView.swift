@@ -47,6 +47,7 @@ struct AddCombatantView: View {
                         }) {
                             Text("Done").bold()
                         })
+                        .navigationBarTitleDisplayMode(.inline)
                     }
                 }
 
