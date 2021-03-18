@@ -70,6 +70,10 @@ struct CompendiumIndexView: View {
                 }
             }
         }
+        .simultaneousGesture(DragGesture().onChanged { _ in
+            // Dismiss the keyboard when the user starts scrolling in the list
+            env.dismissKeyboard()
+        })
         .navigationBarTitle(localViewStore.state.navigationTitle)
         .navigationBarItems(trailing: Group {
             if localViewStore.state.properties.showImport {
