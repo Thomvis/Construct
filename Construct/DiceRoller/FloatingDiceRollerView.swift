@@ -11,7 +11,8 @@ import SwiftUI
 import ComposableArchitecture
 
 struct FloatingDiceRollerContainerView: View {
-    static let anchors: [UnitPoint] = [.bottomTrailing, .topLeading, .topTrailing, .bottomLeading]
+    static let alignments: [SwiftUI.Alignment] = [.bottomTrailing, .topLeading, .topTrailing, .bottomLeading]
+    static let containerCoordinateSpaceName = "FloatingDiceRollerContainerView"
 
     static let innerPanelPadding: CGFloat = 12.0
     static let panelToolbarVerticalPadding: CGFloat = 6.0
@@ -19,8 +20,7 @@ struct FloatingDiceRollerContainerView: View {
     let store: Store<FloatingDiceRollerViewState, FloatingDiceRollerViewAction>
     @ObservedObject var viewStore: ViewStore<FloatingDiceRollerViewState, FloatingDiceRollerViewAction>
 
-    @State var anchor: UnitPoint = .bottomTrailing
-    @State var panelSize: CGSize = .zero
+    @State var alignment: SwiftUI.Alignment = .bottomTrailing
 
     @State var dragOffset: CGSize = .zero
 
@@ -31,76 +31,87 @@ struct FloatingDiceRollerContainerView: View {
 
     var body: some View {
         GeometryReader { containerProxy in
-            VStack {
-                HStack {
-                    Spacer()
+            ZStack(alignment: alignment) {
+                Color.clear // to make the ZStack fill all available space
 
-                    Button(action: {
-                        withAnimation {
-                            viewStore.send(.hide)
+                VStack {
+                    HStack {
+                        Spacer()
+
+                        Button(action: {
+                            withAnimation {
+                                viewStore.send(.hide)
+                            }
+                        }) {
+                            Image(systemName: "pip.remove")
                         }
-                    }) {
-                        Image(systemName: "pip.remove")
                     }
+                    .background(Color(UIColor.systemGray6).padding(EdgeInsets(
+                                                                    top: -Self.panelToolbarVerticalPadding,
+                                                                    leading: -Self.innerPanelPadding,
+                                                                    bottom: -Self.panelToolbarVerticalPadding,
+                                                                    trailing: -Self.innerPanelPadding))
+                    )
+                    .padding([.top, .bottom], Self.panelToolbarVerticalPadding)
+                    .padding(.bottom, Self.panelToolbarVerticalPadding)
+
+                    DiceCalculatorView(store: store.scope(state: { $0.diceCalculator }, action: { .diceCalculator($0) }))
                 }
-                .background(Color(UIColor.systemGray6).padding(EdgeInsets(
-                                                                top: -Self.panelToolbarVerticalPadding,
-                                                                leading: -Self.innerPanelPadding,
-                                                                bottom: -Self.panelToolbarVerticalPadding,
-                                                                trailing: -Self.innerPanelPadding))
+                .frame(width: 280)
+                .fixedSize()
+                .padding([.leading, .trailing, .bottom], Self.innerPanelPadding)
+                .background(Color(UIColor.systemBackground))
+                .cornerRadius(12)
+                .shadow(radius: 5)
+                .offset(dragOffset)
+                .gesture(
+                    DragGesture(coordinateSpace: .named(Self.containerCoordinateSpaceName))
+                        .onChanged { value in
+                            withAnimation(.interactiveSpring()) {
+                                dragOffset = value.translation
+                            }
+                        }
+                        .onEnded { value in
+                            withAnimation(.spring()) {
+                                self.dragOffset = .zero
+                                guard let up = self.alignment.unitPoint else { return }
+                                self.alignment = targetAlignment(
+                                    for: CGPoint(x: containerProxy.size.width * up.x, y: containerProxy.size.height * up.y)
+                                        + CGPoint(x: 140, y: 200) // approximate panel size, removes the need for a GeometryReader/anchorPreference
+                                        + CGPoint(value.predictedEndTranslation),
+                                    in: containerProxy.size
+                                )
+                            }
+                        }
                 )
-                .padding([.top, .bottom], Self.panelToolbarVerticalPadding)
-                .padding(.bottom, Self.panelToolbarVerticalPadding)
-
-                DiceCalculatorView(store: store.scope(state: { $0.diceCalculator }, action: { .diceCalculator($0) }))
             }
-            .frame(width: 280)
-            .fixedSize()
-            .padding([.leading, .trailing, .bottom], Self.innerPanelPadding)
-            .background(Color(UIColor.systemBackground))
-            .cornerRadius(12)
-            .shadow(radius: 5)
-            .background(GeometryReader { panelProxy in
-                Color.clear.preference(key: CollectionViewSizeKey<Int>.self, value: [0: panelProxy.size])
-            })
-            .position(panelPosition(for: anchor, in: containerProxy.size))
-            .offset(dragOffset)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        withAnimation(.interactiveSpring()) {
-                            dragOffset = value.translation
-                        }
-                    }
-                    .onEnded { value in
-                        withAnimation(.spring()) {
-                            self.dragOffset = .zero
-                            self.anchor = anchorNearest(
-                                to: panelPosition(for: anchor, in: containerProxy.size) + CGPoint(value.predictedEndTranslation),
-                                in: containerProxy.size
-                            )
-                        }
-                    }
-            )
-        }.onPreferenceChange(CollectionViewSizeKey<Int>.self) {
-            self.panelSize = $0[0] ?? .zero
+            .coordinateSpace(name: Self.containerCoordinateSpaceName)
+            .padding(12)
+            .opacity(viewStore.state.hidden ? 0 : 1)
         }
-        .padding(12)
-        .opacity(viewStore.state.hidden ? 0 : 1)
     }
 
-    func panelPosition(for anchor: UnitPoint, in containerSize: CGSize) -> CGPoint {
-        CGPoint(
-            x: (containerSize.width - panelSize.width) * anchor.x + panelSize.width*0.5,
-            y: (containerSize.height - panelSize.height) * anchor.y + panelSize.height*0.5
-        )
-    }
-
-    func anchorNearest(to position: CGPoint, in containerSize: CGSize) -> UnitPoint {
-        return Self.anchors
-            .map { ($0, panelPosition(for: $0, in: containerSize).distance(to: position)) }
+    func targetAlignment(for location: CGPoint, in containerSize: CGSize) -> SwiftUI.Alignment {
+        return Self.alignments
+            .compactMap { alignment -> (SwiftUI.Alignment, CGFloat)? in
+                alignment.unitPoint.map { up in
+                    (alignment, CGPoint(x: containerSize.width * up.x, y: containerSize.height * up.y).distance(to: location))
+                }
+            }
             .sorted { $0.1 < $1.1 }
             .first?.0 ?? .bottomTrailing
     }
 
+}
+
+private extension SwiftUI.Alignment {
+    var unitPoint: UnitPoint? {
+        switch self {
+        case .topLeading: return .topLeading
+        case .topTrailing: return .topTrailing
+        case .bottomLeading: return .bottomLeading
+        case .bottomTrailing: return .bottomTrailing
+        default: return nil
+        }
+    }
 }
