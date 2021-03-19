@@ -122,8 +122,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 10
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "aberration"
   ▿ Monster
@@ -339,8 +338,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 7
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -471,8 +469,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -611,8 +608,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -756,8 +752,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -895,8 +890,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -1044,8 +1038,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 8
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -1195,8 +1188,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -1330,8 +1322,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -1473,8 +1464,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -1611,8 +1601,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -1664,7 +1653,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "lightning; thunder; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "lightning, thunder; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 1 element
         ▿ CreatureFeature
@@ -1702,8 +1691,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -1840,8 +1828,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 9
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -1972,8 +1959,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 7
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -2115,8 +2101,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -2260,8 +2245,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 7
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -2402,8 +2386,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 8
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -2551,8 +2534,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 9
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -2697,8 +2679,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 8
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -2832,8 +2813,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 7
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -2975,8 +2955,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 7
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -3113,8 +3092,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -3174,7 +3152,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "charmed, frightened"
       ▿ damageImmunities: Optional<String>
-        - some: "psychic; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "psychic; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
@@ -3247,8 +3225,7 @@
           - key: Skill.religion
           ▿ value: Modifier
             - modifier: 15
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -3340,8 +3317,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "construct"
   ▿ Monster
@@ -3425,8 +3401,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -3509,8 +3484,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -3800,8 +3774,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.small
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "plant"
   ▿ Monster
@@ -3883,8 +3856,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.huge
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "plant"
   ▿ Monster
@@ -3950,8 +3922,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -4051,8 +4022,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -4124,8 +4094,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.small
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -4194,8 +4163,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -4263,7 +4231,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire, poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold, lightning; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "cold, lightning; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 4 elements
         ▿ CreatureFeature
@@ -4575,7 +4543,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire, poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "cold; bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
         ▿ CreatureFeature
@@ -4729,8 +4697,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -4805,8 +4772,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -4868,7 +4834,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire, poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "cold; bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
         ▿ CreatureFeature
@@ -5031,8 +4997,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 7
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -5200,8 +5165,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -5323,8 +5287,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -5409,8 +5372,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "ooze"
   ▿ Monster
@@ -5494,8 +5456,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "fey"
   ▿ Monster
@@ -5574,8 +5535,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -5691,8 +5651,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -5774,8 +5733,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -5837,7 +5795,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire, poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "cold; bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -6015,8 +5973,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -6138,8 +6095,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -6231,8 +6187,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -6426,8 +6381,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -6493,8 +6447,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -6574,8 +6527,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -6674,8 +6626,7 @@
           - key: Skill.survival
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -6737,7 +6688,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire, poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "cold; bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -6880,8 +6831,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 8
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -6987,8 +6937,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "aberration"
   ▿ Monster
@@ -7045,7 +6994,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "charmed, exhaustion, frightened, paralyzed, petrified, poisoned"
       ▿ damageImmunities: Optional<String>
-        - some: "acid, poison, psychic; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t adamantine"
+        - some: "acid, poison, psychic; bludgeoning, piercing, and slashing from nonmagical attacks not made with adamantine weapons"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 5 elements
@@ -7093,8 +7042,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "construct"
   ▿ Monster
@@ -7207,8 +7155,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "aberration"
   ▿ Monster
@@ -7321,8 +7268,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 7
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "giant"
   ▿ Monster
@@ -7396,8 +7342,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.small
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -7537,8 +7482,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -7657,8 +7601,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -7717,7 +7660,7 @@
           - numenator: 4
       - conditionImmunities: Optional<String>.none
       ▿ damageImmunities: Optional<String>
-        - some: "psychic; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "psychic; bludgeoning, piercing, and slashing from nonmagical attacks"
       ▿ damageResistances: Optional<String>
         - some: "radiant"
       - damageVulnerabilities: Optional<String>.none
@@ -7775,8 +7718,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "celestial"
   ▿ Monster
@@ -7862,8 +7804,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -7949,8 +7890,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -8223,8 +8163,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -8307,8 +8246,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -8479,8 +8417,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -8544,7 +8481,7 @@
         - some: "charmed, exhaustion, frightened"
       - damageImmunities: Optional<String>.none
       ▿ damageResistances: Optional<String>
-        - some: "radiant; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "radiant; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
         ▿ CreatureFeature
@@ -8604,8 +8541,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 9
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "celestial"
   ▿ Monster
@@ -8695,8 +8631,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -8812,8 +8747,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -8976,8 +8910,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -9093,8 +9026,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.gargantuan
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -9312,8 +9244,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 9
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -9610,8 +9541,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "fey"
   ▿ Monster
@@ -9809,8 +9739,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -9886,8 +9815,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -9946,7 +9874,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks"
       ▿ damageVulnerabilities: Optional<String>
         - some: "thunder"
       ▿ features: 2 elements
@@ -9985,8 +9913,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -10053,7 +9980,7 @@
           - description: "If the efreeti dies, its body disintegrates in a flash of fire and puff of smoke, leaving behind only equipment the djinni was wearing or carrying."
           - name: "Elemental Demise"
         ▿ CreatureFeature
-          - description: "The efreeti\'s innate spell casting ability is Charisma (spell save DC 15, +7 to hit with spell attacks). It can innately cast the following spells, requiring no material components:\n\nAt will: detect magic\n3/day: enlarge/reduce, tongues\n1/day each: conjure elemental (fire elemental only), gaseous form, invisibility, major image, plane shift, wall of fire"
+          - description: "The efreeti\'s innate spell casting ability is Charisma (spell save DC 15, +7 to hit with spell attacks). It can innately cast the following spells, requiring no material components:\n\nAt will: detect magic\n3/day each: enlarge/reduce, tongues\n1/day each: conjure elemental (fire elemental only), gaseous form, invisibility, major image, plane shift, wall of fire"
           - name: "Innate Spellcasting"
         ▿ CreatureFeature
           - description: "Genies have a variety of magical capabilities, including spells. A few have even greater powers that allow them to alter their appearance or the nature of reality.\n\n**Disguises.** Some genies can veil themselves in illusion to pass as other similarly shaped creatures. Such genies can innately cast the disguise self spell at will, often with a longer duration than is normal for that spell. Mightier genies can cast the true polymorph spell one to three times per day, possibly with a longer duration than normal. Such genies can change only their own shape, but a rare few can use the spell on other creatures and objects as well.\n**Wishes.** The genie power to grant wishes is legendary among mortals. Only the most potent genies, such as those among the nobility, can do so. A particular genie that has this power can grant one to three wishes to a creature that isn\'t a genie. Once a genie has granted its limit of wishes, it can\'t grant wishes again for some amount of time (usually 1 year). and cosmic law dictates that the same genie can expend its limit of wishes on a specific creature only once in that creature\'s existence.\nTo be granted a wish, a creature within 60 feet of the genie states a desired effect to it. The genie can then cast the wish spell on the creature\'s behalf to bring about the effect. Depending on the genie\'s nature, the genie might try to pervert the intent of the wish by exploiting the wish\'s poor wording. The perversion of the wording is usually crafted to be to the genie\'s benefit."
@@ -10102,8 +10029,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -10185,8 +10111,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.huge
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -10258,8 +10183,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -10324,7 +10248,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire, poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "cold; bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -10502,8 +10426,7 @@
           - key: Skill.survival
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -10604,8 +10527,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "giant"
   ▿ Monster
@@ -10654,7 +10576,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire, poison"
       ▿ damageResistances: Optional<String>
-        - some: "bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
         ▿ CreatureFeature
@@ -10695,8 +10617,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -10808,8 +10729,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "giant"
   ▿ Monster
@@ -10856,7 +10776,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "charmed, exhaustion, frightened, paralyzed, petrified, poisoned"
       ▿ damageImmunities: Optional<String>
-        - some: "lightning, poison; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t adamantine"
+        - some: "lightning, poison; bludgeoning, piercing, and slashing from nonmagical attacks not made with adamantine weapons"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 6 elements
@@ -10907,8 +10827,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "construct"
   ▿ Monster
@@ -10983,8 +10902,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -11075,8 +10993,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.small
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "construct"
   ▿ Monster
@@ -11156,8 +11073,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -11269,8 +11185,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "giant"
   ▿ Monster
@@ -11332,7 +11247,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t adamantine"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks not made with adamantine weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 1 element
         ▿ CreatureFeature
@@ -11370,8 +11285,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -11452,8 +11366,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "ooze"
   ▿ Monster
@@ -11534,8 +11447,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -11587,7 +11499,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "cold, necrotic, poison"
       ▿ damageResistances: Optional<String>
-        - some: "acid, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "acid, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -11623,8 +11535,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -11699,8 +11610,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -11783,8 +11693,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -11859,8 +11768,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -11935,8 +11843,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12018,8 +11925,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12098,8 +12004,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.small
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12175,8 +12080,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12262,8 +12166,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12355,8 +12258,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12442,8 +12344,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12530,8 +12431,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12610,8 +12510,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.small
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12697,8 +12596,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12780,8 +12678,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12854,8 +12751,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -12940,8 +12836,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13030,8 +12925,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13118,8 +13012,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13192,8 +13085,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13265,8 +13157,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.small
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13332,8 +13223,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.small
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13415,8 +13305,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13501,8 +13390,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13588,8 +13476,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13684,8 +13571,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 7
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13763,8 +13649,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13853,8 +13738,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -13923,8 +13807,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -14001,8 +13884,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -14088,8 +13970,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 7
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -14179,8 +14060,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "aberration"
   ▿ Monster
@@ -14245,7 +14125,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -14572,8 +14452,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -14786,8 +14665,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -14882,8 +14760,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -14972,8 +14849,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "ooze"
   ▿ Monster
@@ -15096,8 +14972,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -15222,8 +15097,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "fey"
   ▿ Monster
@@ -15283,7 +15157,7 @@
       - conditionImmunities: Optional<String>.none
       - damageImmunities: Optional<String>.none
       ▿ damageResistances: Optional<String>
-        - some: "bludgeoning, piercing, and slashing damage from nonmagical weapons"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 1 element
         ▿ CreatureFeature
@@ -15315,8 +15189,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -15403,8 +15276,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -15700,8 +15572,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -15760,7 +15631,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "psychic"
       ▿ damageResistances: Optional<String>
-        - some: "bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
         ▿ CreatureFeature
@@ -15820,8 +15691,7 @@
           - key: Skill.religion
           ▿ value: Modifier
             - modifier: 8
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -16004,8 +15874,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -16081,8 +15950,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -16181,8 +16049,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "fiend"
   ▿ Monster
@@ -16247,7 +16114,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -16393,8 +16260,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "giant"
   ▿ Monster
@@ -16481,8 +16347,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -16662,8 +16527,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "construct"
   ▿ Monster
@@ -16728,7 +16592,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire, poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "cold; bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -16872,8 +16736,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -16976,8 +16839,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -17050,8 +16912,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -17119,7 +16980,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire, poison"
       ▿ damageResistances: Optional<String>
-        - some: "bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -17273,8 +17134,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -17436,7 +17296,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -17485,8 +17345,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 10
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -17546,7 +17405,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "charmed, exhaustion, frightened, paralyzed, petrified, poisoned"
       ▿ damageImmunities: Optional<String>
-        - some: "fire, poison, psychic; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t adamantine"
+        - some: "fire, poison, psychic; bludgeoning, piercing, and slashing from nonmagical attacks not made with adamantine weapons"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 4 elements
@@ -17591,8 +17450,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "construct"
   ▿ Monster
@@ -17668,8 +17526,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -17758,8 +17615,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -18008,7 +17864,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "frightened, paralyzed"
       ▿ damageImmunities: Optional<String>
-        - some: "lightning; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "lightning; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
@@ -18183,8 +18039,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -18314,7 +18169,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "charmed, exhaustion, frightened, paralyzed, poisoned"
       ▿ damageImmunities: Optional<String>
-        - some: "poison; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "poison; bludgeoning, piercing, and slashing from nonmagical attacks"
       ▿ damageResistances: Optional<String>
         - some: "cold, lightning, necrotic"
       - damageVulnerabilities: Optional<String>.none
@@ -18375,7 +18230,7 @@
         ▿ (2 elements)
           - key: Skill.arcana
           ▿ value: Modifier
-            - modifier: 18
+            - modifier: 19
         ▿ (2 elements)
           - key: Skill.history
           ▿ value: Modifier
@@ -18388,8 +18243,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 9
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -18478,8 +18332,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -18548,8 +18401,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -18862,8 +18714,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -18918,7 +18769,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire"
       ▿ damageResistances: Optional<String>
-        - some: "bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -18956,8 +18807,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.small
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -19039,8 +18889,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.huge
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -19139,8 +18988,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -19208,7 +19056,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
         ▿ CreatureFeature
@@ -19339,8 +19187,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -19453,8 +19300,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -19640,8 +19486,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -19848,8 +19693,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 7
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -19943,8 +19787,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -20016,8 +19859,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -20077,7 +19919,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "necrotic, poisoned"
       ▿ damageImmunities: Optional<String>
-        - some: "bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageResistances: Optional<String>.none
       ▿ damageVulnerabilities: Optional<String>
         - some: "fire"
@@ -20115,8 +19957,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -20176,7 +20017,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "charmed, exhaustion, frightened, paralyzed, poisoned"
       ▿ damageImmunities: Optional<String>
-        - some: "necrotic, poison; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "necrotic, poison; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageResistances: Optional<String>.none
       ▿ damageVulnerabilities: Optional<String>
         - some: "bludgeoning"
@@ -20243,8 +20084,7 @@
           - key: Skill.religion
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -20315,7 +20155,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 1 element
         ▿ CreatureFeature
@@ -20434,7 +20274,7 @@
         - some: "charmed"
       - damageImmunities: Optional<String>.none
       ▿ damageResistances: Optional<String>
-        - some: "cold, fire; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "cold, fire; bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 6 elements
         ▿ CreatureFeature
@@ -20500,8 +20340,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "fiend"
   ▿ Monster
@@ -20599,8 +20438,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "fiend"
   ▿ Monster
@@ -20773,8 +20611,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "ooze"
   ▿ Monster
@@ -20863,8 +20700,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -20952,8 +20788,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "giant"
   ▿ Monster
@@ -21037,8 +20872,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -21172,8 +21006,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "giant"
   ▿ Monster
@@ -21370,8 +21203,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "aberration"
   ▿ Monster
@@ -21454,8 +21286,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -21549,8 +21380,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -21636,8 +21466,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -21731,8 +21560,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "celestial"
   ▿ Monster
@@ -21824,8 +21652,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -21893,7 +21720,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire, poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "cold; bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 4 elements
         ▿ CreatureFeature
@@ -22014,7 +21841,7 @@
         - some: "charmed, exhaustion, frightened"
       - damageImmunities: Optional<String>.none
       ▿ damageResistances: Optional<String>
-        - some: "radiant; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "radiant; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 4 elements
         ▿ CreatureFeature
@@ -22077,8 +21904,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 11
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "celestial"
   ▿ Monster
@@ -22173,8 +21999,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -22243,8 +22068,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -22336,8 +22160,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -22403,8 +22226,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -22498,7 +22320,7 @@
         ▿ (2 elements)
           - key: Skill.religion
           ▿ value: Modifier
-            - modifier: 4
+            - modifier: 5
       ▿ subtype: Optional<String>
         - some: "any race"
       ▿ type: Optional<String>
@@ -22611,8 +22433,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -22644,10 +22465,10 @@
           - description: "The worm makes two attacks: one with its bite and one with its stinger."
           - name: "Multiattack"
         ▿ CreatureAction
-          - description: "Melee Weapon Attack: +9 to hit, reach 10 ft., one target. Hit: 22 (3d8 + 9) piercing damage. If the target is a Large or smaller creature, it must succeed on a DC 19 Dexterity saving throw or be swallowed by the worm. A swallowed creature is blinded and restrained, it has total cover against attacks and other effects outside the worm, and it takes 21 (6d6) acid damage at the start of each of the worm\'s turns.\nIf the worm takes 30 damage or more on a single turn from a creature inside it, the worm must succeed on a DC 21 Constitution saving throw at the end of that turn or regurgitate all swallowed creatures, which fall prone in a space within 10 feet of the worm. If the worm dies, a swallowed creature is no longer restrained by it and can escape from the corpse by using 20 feet of movement, exiting prone."
+          - description: "Melee Weapon Attack: +14 to hit, reach 10 ft., one target. Hit: 22 (3d8 + 9) piercing damage. If the target is a Large or smaller creature, it must succeed on a DC 19 Dexterity saving throw or be swallowed by the worm. A swallowed creature is blinded and restrained, it has total cover against attacks and other effects outside the worm, and it takes 21 (6d6) acid damage at the start of each of the worm\'s turns.\nIf the worm takes 30 damage or more on a single turn from a creature inside it, the worm must succeed on a DC 21 Constitution saving throw at the end of that turn or regurgitate all swallowed creatures, which fall prone in a space within 10 feet of the worm. If the worm dies, a swallowed creature is no longer restrained by it and can escape from the corpse by using 20 feet of movement, exiting prone."
           - name: "Bite"
         ▿ CreatureAction
-          - description: "Melee Weapon Attack: +9 to hit, reach 10 ft., one creature. Hit: 19 (3d6 + 9) piercing damage, and the target must make a DC 19 Constitution saving throw, taking 42 (12d6) poison damage on a failed save, or half as much damage on a successful one."
+          - description: "Melee Weapon Attack: +14 to hit, reach 10 ft., one creature. Hit: 19 (3d6 + 9) piercing damage, and the target must make a DC 19 Constitution saving throw, taking 42 (12d6) poison damage on a failed save, or half as much damage on a successful one."
           - name: "Tail Stinger"
       ▿ armor: 1 element
         ▿ Armor
@@ -22710,8 +22531,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.gargantuan
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -22763,7 +22583,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold; fire; lightning; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
         ▿ CreatureFeature
@@ -22876,8 +22696,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -22933,7 +22752,7 @@
           - numenator: 13
       - conditionImmunities: Optional<String>.none
       ▿ damageImmunities: Optional<String>
-        - some: "bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageResistances: Optional<String>.none
       ▿ damageVulnerabilities: Optional<String>
         - some: "piercing from magic weapons wielded by good creatures"
@@ -22981,8 +22800,7 @@
           - key: Skill.insight
           ▿ value: Modifier
             - modifier: 8
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "fiend"
   ▿ Monster
@@ -23051,8 +22869,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -23128,8 +22945,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -23164,7 +22980,7 @@
           - description: "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 9 (1d10 + 4) piercing damage plus 3 (1d6) fire damage."
           - name: "Bite"
         ▿ CreatureAction
-          - description: "The dragon exhales fire in a 15-foot cone. Each creature in that area must make a DC l3 Dexterity saving throw, taking 24 (7d6) fire damage on a failed save, or half as much damage on a successful one."
+          - description: "The dragon exhales fire in a 15-foot cone. Each creature in that area must make a DC 13 Dexterity saving throw, taking 24 (7d6) fire damage on a failed save, or half as much damage on a successful one."
           - name: "Fire Breath (Recharge 5-6)"
       ▿ armor: 1 element
         ▿ Armor
@@ -23248,8 +23064,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -23335,8 +23150,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -23424,8 +23238,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.huge
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -23504,8 +23317,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -23571,8 +23383,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -23685,8 +23496,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -23799,8 +23609,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -23877,8 +23686,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "construct"
   ▿ Monster
@@ -23968,8 +23776,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -24052,8 +23859,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -24225,7 +24031,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "fire"
       ▿ damageResistances: Optional<String>
-        - some: "bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks"
       ▿ damageVulnerabilities: Optional<String>
         - some: "cold"
       ▿ features: 2 elements
@@ -24264,8 +24070,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -24369,8 +24174,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "fey"
   ▿ Monster
@@ -24446,8 +24250,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -24659,8 +24462,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "fey"
   ▿ Monster
@@ -24726,8 +24528,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -24773,7 +24574,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "necrotic, poison"
       ▿ damageResistances: Optional<String>
-        - some: "acid, cold, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "acid, cold, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical attacks"
       ▿ damageVulnerabilities: Optional<String>
         - some: "radiant"
       ▿ features: 3 elements
@@ -24818,8 +24619,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -24919,8 +24719,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "plant"
   ▿ Monster
@@ -25016,8 +24815,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "construct"
   ▿ Monster
@@ -25087,8 +24885,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "plant"
   ▿ Monster
@@ -25204,8 +25001,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -25296,8 +25092,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -25365,7 +25160,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "necrotic, poison"
       ▿ damageResistances: Optional<String>
-        - some: "radiant; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "radiant; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 4 elements
         ▿ CreatureFeature
@@ -25428,8 +25223,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 14
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "celestial"
   ▿ Monster
@@ -25475,7 +25269,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "necrotic, poison"
       ▿ damageResistances: Optional<String>
-        - some: "acid, cold, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "acid, cold, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -25511,8 +25305,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -25594,8 +25387,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -25704,8 +25496,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -25805,8 +25596,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 8
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "fey"
   ▿ Monster
@@ -25997,8 +25787,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.small
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -26077,8 +25866,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -26192,8 +25980,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "giant"
   ▿ Monster
@@ -26250,7 +26037,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "charmed, exhaustion, frightened, paralyzed, petrified, poisoned"
       ▿ damageImmunities: Optional<String>
-        - some: "poison, psychic; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t adamantine"
+        - some: "poison, psychic; bludgeoning, piercing, and slashing from nonmagical attacks not made with adamantine weapons"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
@@ -26292,8 +26079,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "construct"
   ▿ Monster
@@ -26430,8 +26216,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 9
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "giant"
   ▿ Monster
@@ -26494,7 +26279,7 @@
       - conditionImmunities: Optional<String>.none
       - damageImmunities: Optional<String>.none
       ▿ damageResistances: Optional<String>
-        - some: "cold, fire, lightning, poison; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "cold, fire, lightning, poison; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -26636,8 +26421,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "swarm of Tiny beasts"
   ▿ Monster
@@ -26721,8 +26505,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "swarm of Tiny beasts"
   ▿ Monster
@@ -26806,8 +26589,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "swarm of Tiny beasts"
   ▿ Monster
@@ -26891,8 +26673,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "swarm of Tiny beasts"
   ▿ Monster
@@ -26966,8 +26747,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "swarm of Tiny beasts"
   ▿ Monster
@@ -27047,8 +26827,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "swarm of Tiny beasts"
   ▿ Monster
@@ -27122,8 +26901,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "swarm of Tiny beasts"
   ▿ Monster
@@ -27197,8 +26975,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "swarm of Tiny beasts"
   ▿ Monster
@@ -27291,8 +27068,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "swarm of Tiny beasts"
   ▿ Monster
@@ -27376,8 +27152,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "swarm of Tiny beasts"
   ▿ Monster
@@ -27446,7 +27221,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "charmed, frightened, paralyzed, poisoned"
       ▿ damageImmunities: Optional<String>
-        - some: "fire, poison; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "fire, poison; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 4 elements
@@ -27676,8 +27451,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -27779,8 +27553,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.huge
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "plant"
   ▿ Monster
@@ -27948,8 +27721,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.huge
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -28053,8 +27825,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "giant"
   ▿ Monster
@@ -28145,8 +27916,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -28247,8 +28017,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "celestial"
   ▿ Monster
@@ -28314,7 +28083,7 @@
       - conditionImmunities: Optional<String>.none
       - damageImmunities: Optional<String>.none
       ▿ damageResistances: Optional<String>
-        - some: "necrotic; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "necrotic; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 6 elements
         ▿ CreatureFeature
@@ -28445,7 +28214,7 @@
       - conditionImmunities: Optional<String>.none
       - damageImmunities: Optional<String>.none
       ▿ damageResistances: Optional<String>
-        - some: "necrotic; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "necrotic; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
         ▿ CreatureFeature
@@ -28502,8 +28271,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -28671,8 +28439,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "plant"
   ▿ Monster
@@ -28743,7 +28510,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 1 element
         ▿ CreatureFeature
@@ -28873,8 +28640,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -28943,8 +28709,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -29031,8 +28796,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -29094,7 +28858,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "poison"
       ▿ damageResistances: Optional<String>
-        - some: "acid; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "acid; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -29135,8 +28899,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.large
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -29213,8 +28976,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -29276,7 +29038,7 @@
           - numenator: 5
       - conditionImmunities: Optional<String>.none
       ▿ damageImmunities: Optional<String>
-        - some: "bludgeoning, piercing, and slashing damage from nonmagical weapons that aren\'t silvered"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
@@ -29379,7 +29141,7 @@
           - numenator: 4
       - conditionImmunities: Optional<String>.none
       ▿ damageImmunities: Optional<String>
-        - some: "bludgeoning, piercing, and slashing damage from nonmagical weapons that aren\'t silvered"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
@@ -29478,7 +29240,7 @@
           - numenator: 2
       - conditionImmunities: Optional<String>.none
       ▿ damageImmunities: Optional<String>
-        - some: "bludgeoning, piercing, and slashing damage from nonmagical weapons that aren\'t silvered"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
@@ -29581,7 +29343,7 @@
           - numenator: 4
       - conditionImmunities: Optional<String>.none
       ▿ damageImmunities: Optional<String>
-        - some: "bludgeoning, piercing, and slashing damage from nonmagical weapons that aren\'t silvered"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
@@ -29664,7 +29426,7 @@
             - score: 11
       ▿ actions: 4 elements
         ▿ CreatureAction
-          - description: "The werewolf makes two attacks: one with its bite and one with its claws or spear."
+          - description: "The werewolf makes two attacks: two with its spear (humanoid form) or one with its bite and one with its claws (hybrid form)."
           - name: "Multiattack (Humanoid or Hybrid Form Only)"
         ▿ CreatureAction
           - description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 6 (1d8 + 2) piercing damage. If the target is a humanoid, it must succeed on a DC 12 Constitution saving throw or be cursed with werewolf lycanthropy."
@@ -29694,7 +29456,7 @@
           - numenator: 3
       - conditionImmunities: Optional<String>.none
       ▿ damageImmunities: Optional<String>
-        - some: "bludgeoning, piercing, and slashing damage from nonmagical weapons that aren\'t silvered"
+        - some: "bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
@@ -29857,8 +29619,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 2
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -29921,7 +29682,7 @@
       ▿ conditionImmunities: Optional<String>
         - some: "poisoned"
       ▿ damageImmunities: Optional<String>
-        - some: "necrotic; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "necrotic; bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 1 element
@@ -29965,8 +29726,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -30015,7 +29775,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "lightning, poison"
       ▿ damageResistances: Optional<String>
-        - some: "acid, cold, fire, necrotic, thunder; bludgeoning, piercing, and slashing from nonmagical weapons"
+        - some: "acid, cold, fire, necrotic, thunder; bludgeoning, piercing, and slashing from nonmagical attacks"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 4 elements
         ▿ CreatureFeature
@@ -30057,8 +29817,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.tiny
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -30159,8 +29918,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -30250,8 +30008,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "beast"
   ▿ Monster
@@ -30338,8 +30095,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "monstrosity"
   ▿ Monster
@@ -30388,7 +30144,7 @@
       ▿ damageImmunities: Optional<String>
         - some: "necrotic, poison"
       ▿ damageResistances: Optional<String>
-        - some: "acid, cold, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical weapons that aren\'t silvered"
+        - some: "acid, cold, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical attacks not made with silvered weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
         ▿ CreatureFeature
@@ -30429,8 +30185,7 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
   ▿ Monster
@@ -30527,8 +30282,7 @@
           - key: Skill.perception
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -30588,7 +30342,7 @@
       - conditionImmunities: Optional<String>.none
       - damageImmunities: Optional<String>.none
       ▿ damageResistances: Optional<String>
-        - some: "piercing and slashing from nonmagical weapons that aren\'t adamantine"
+        - some: "piercing and slashing from nonmagical attacks not made with adamantine weapons"
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 3 elements
         ▿ CreatureFeature
@@ -30637,8 +30391,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "elemental"
   ▿ Monster
@@ -30766,8 +30519,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 5
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -30889,8 +30641,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -31016,8 +30767,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -31149,8 +30899,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -31279,8 +31028,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -31416,8 +31164,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 6
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -31550,8 +31297,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -31676,8 +31422,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -31807,8 +31552,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 4
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -31936,8 +31680,7 @@
           - key: Skill.stealth
           ▿ value: Modifier
             - modifier: 3
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "dragon"
   ▿ Monster
@@ -32020,7 +31763,6 @@
       ▿ size: Optional<CreatureSize>
         - some: CreatureSize.medium
       - skills: 0 key/value pairs
-      ▿ subtype: Optional<String>
-        - some: ""
+      - subtype: Optional<String>.none
       ▿ type: Optional<String>
         - some: "undead"
