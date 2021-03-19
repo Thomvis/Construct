@@ -272,7 +272,7 @@ struct OutcomeView: View {
                     if let result = viewStore.state.result(includingIntermediary: true) {
                         VStack {
                             if viewStore.state.showDiceSummary {
-                                diceSummary(result)
+                                diceSummary(result).animation(nil, value: result)
                             }
                             HStack {
                                 if viewStore.state.shouldCelebrateRoll && !viewStore.state.resultIsIntermediary {
@@ -280,6 +280,7 @@ struct OutcomeView: View {
                                 }
 
                                 Text("\(result.total)").font(.largeTitle)
+                                    .animation(nil, value: result)
 
                                 if viewStore.state.shouldCelebrateRoll && !viewStore.state.resultIsIntermediary {
                                     Throphy()
