@@ -40,6 +40,7 @@ struct ReferenceView: View {
             )
             .environment(\.appNavigation, .tab)
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 
     func tabItems(_ viewStore: ViewStore<ReferenceViewState, ReferenceViewAction>) -> [TabbedDocumentViewContentItem] {
