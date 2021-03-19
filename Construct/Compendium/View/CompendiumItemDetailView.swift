@@ -84,14 +84,12 @@ struct CompendiumItemDetailView: View {
             store: store,
             state: /CompendiumEntryDetailViewState.NextScreenState.creatureEdit,
             action: /CompendiumItemDetailViewAction.NextScreenAction.creatureEdit,
-            isActive: { _ in true },
             destination: CreatureEditView.init
         )
         .stateDrivenNavigationLink(
             store: store,
             state: /CompendiumEntryDetailViewState.NextScreenState.groupEdit,
             action: /CompendiumItemDetailViewAction.NextScreenAction.groupEdit,
-            isActive: { _ in true },
             destination: CompendiumItemGroupEditView.init
         )
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)

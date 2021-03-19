@@ -88,7 +88,20 @@ func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, Dest
 }
 
 extension View {
-    func stateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, isActive: @escaping (DestinationState) -> Bool, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, Destination: View {
-        self.background(StateDrivenNavigationLink(store: store, state: state, action: action, navDest: navDest, isActive: isActive, initialState: { fatalError() }, destination: destination, label: { EmptyView() }))
+    func stateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, DestinationState: Equatable, DestinationState: NavigationStackItemState, Destination: View {
+        self.background(
+            StateDrivenNavigationLink(
+                store: store,
+                state: state,
+                action: action,
+                navDest: navDest,
+                isActive: { _ in true },
+                initialState: { fatalError() },
+                destination: { store in
+                    destination(store).id(ViewStore(store).state.navigationStackItemStateId)
+                },
+                label: { EmptyView() }
+            )
+        )
     }
 }

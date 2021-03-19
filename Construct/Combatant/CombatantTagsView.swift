@@ -105,7 +105,7 @@ struct CombatantTagsView: View {
                 }
             }
         }
-        .stateDrivenNavigationLink(store: store, state: CasePath.`self`, action: CasePath.`self`, isActive: { _ in true }, destination: CombatantTagEditView.init)
+        .stateDrivenNavigationLink(store: store, state: CasePath.`self`, action: CasePath.`self`, destination: CombatantTagEditView.init)
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .navigationBarItems(trailing: Group {
             if self.sheetPresentationMode != nil {

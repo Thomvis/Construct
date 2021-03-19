@@ -57,7 +57,6 @@ struct HomeView: View {
                 store: store,
                 state: /ReferenceItemViewState.Content.Home.NextScreenState.compendium,
                 action: /ReferenceItemViewAction.Home.NextScreenAction.compendium,
-                isActive: { _ in true },
                 destination: { CompendiumIndexView(store: $0) }
             )
             .navigationBarHidden(true)

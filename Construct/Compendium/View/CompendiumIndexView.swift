@@ -98,7 +98,6 @@ struct CompendiumIndexView: View {
             store: store,
             state: /CompendiumIndexState.NextScreen.compendiumImport,
             action: /CompendiumIndexAction.NextScreenAction.import,
-            isActive: { _ in true },
             destination: { _ in CompendiumImportView() })
         .alert(store.scope(state: \.alert), dismiss: .alert(nil))
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
@@ -208,7 +207,6 @@ fileprivate struct CompendiumTocView: View {
             store: parent.store,
             state: /CompendiumIndexState.NextScreen.compendiumIndex,
             action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
-            isActive: { _ in true },
             destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
         )
         .stateDrivenNavigationLink(
@@ -216,7 +214,6 @@ fileprivate struct CompendiumTocView: View {
             state: /CompendiumIndexState.NextScreen.itemDetail,
             action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
             navDest: appNavigation == .tab ? .nextInStack : .detail,
-            isActive: { _ in true },
             destination: { parent.viewProvider.detail($0) }
         )
     }
@@ -260,7 +257,6 @@ fileprivate struct CompendiumItemList: View {
                 state: /CompendiumIndexState.NextScreen.itemDetail,
                 action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
                 navDest: appNavigation == .tab ? .nextInStack : .detail,
-                isActive: { _ in true },
                 destination: { viewProvider.detail($0) }
             )
             .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _ in
