@@ -33,12 +33,12 @@ extension ColumnNavigationViewState {
             switch action {
             case .sidebar(.onDiceRollerButtonTap):
                 return Effect(value: .diceCalculator(.show))
-                    .receive(on: DispatchQueue.main.animation())
+                    .receive(on: env.mainQueue.animation())
                     .eraseToEffect()
             case .sidebar:
                 if state.diceCalculator.canCollapse {
                     return Effect(value: .diceCalculator(.collapse))
-                        .receive(on: DispatchQueue.main.animation())
+                        .receive(on: env.mainQueue.animation())
                         .eraseToEffect()
                 }
             default: break

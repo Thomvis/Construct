@@ -207,7 +207,7 @@ extension EncounterDetailViewState {
                         return Effect(value: .actionSheet(.runEncounter(resumables)))
                     } else {
                         return Effect(value: .run(nil))
-                            .receive(on: DispatchQueue.main.animation()).eraseToEffect()
+                            .receive(on: env.mainQueue.animation()).eraseToEffect()
                     }
                 case .onResumeRunningEncounterTap(let resumableKey):
                     return Effect.future { callback in
@@ -222,7 +222,7 @@ extension EncounterDetailViewState {
                             assertionFailure("Could not resume run: \(error)")
                             callback(.success(nil))
                         }
-                    }.compactMap { $0 }.receive(on: DispatchQueue.main.animation()).eraseToEffect()
+                    }.compactMap { $0 }.receive(on: env.mainQueue.animation()).eraseToEffect()
                 case .run(let runningEncounter):
                     let base = apply(state.building) {
                         $0.ensureStableDiscriminators = true
@@ -260,7 +260,7 @@ extension EncounterDetailViewState {
                     }.publisher.append(
                         // Async is needed if this action also dismissed a
                         dismiss
-                            ? Just(Action.sheet(nil)).delay(for: 0, scheduler: DispatchQueue.main).eraseToAnyPublisher()
+                            ? Just(Action.sheet(nil)).delay(for: 0, scheduler: env.mainQueue).eraseToAnyPublisher()
                             : Empty().eraseToAnyPublisher()
                     ).eraseToEffect()
                 case .addCombatant: break // handled by AddCombatantState.reducer

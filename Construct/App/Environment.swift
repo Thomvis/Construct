@@ -11,6 +11,7 @@ import SwiftUI
 import Combine
 import CoreHaptics
 import MessageUI
+import CombineSchedulers
 
 class Environment: ObservableObject {
     let urlSession = URLSession(configuration: URLSessionConfiguration.default)
@@ -34,8 +35,14 @@ class Environment: ObservableObject {
 
     let generateUUID: () -> UUID
     var rng: AnyRandomNumberGenerator
+    let mainQueue: AnySchedulerOf<DispatchQueue>
 
-    init(window: UIWindow, generateUUID: @escaping () -> UUID = UUID.init, rng: RandomNumberGenerator = SystemRandomNumberGenerator()) {
+    init(
+        window: UIWindow,
+        generateUUID: @escaping () -> UUID = UUID.init,
+        rng: RandomNumberGenerator = SystemRandomNumberGenerator(),
+        mainQueue: AnySchedulerOf<DispatchQueue> = DispatchQueue.main.eraseToAnyScheduler()
+    ) {
         self.modifierFormatter = NumberFormatter()
         modifierFormatter.positivePrefix = modifierFormatter.plusSign
 
@@ -97,6 +104,7 @@ class Environment: ObservableObject {
 
         self.generateUUID = generateUUID
         self.rng = AnyRandomNumberGenerator(wrapped: rng)
+        self.mainQueue = mainQueue
     }
 
     func dismissKeyboard() {

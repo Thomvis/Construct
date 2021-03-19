@@ -88,14 +88,14 @@ struct DiceCalculatorState: Equatable {
         )
     }
 
-    static var reducer = Reducer<DiceCalculatorState, DiceCalculatorAction, Environment> { state, action, _ in
+    static var reducer = Reducer<DiceCalculatorState, DiceCalculatorAction, Environment> { state, action, env in
         switch action {
         case .mode(let m):
             state.mode = m
         case .onRerollButtonTap:
             if state.expression.diceCount == 0 {
                 return Effect(value: .mode(.editingExpression))
-                    .receive(on: DispatchQueue.main.animation())
+                    .receive(on: env.mainQueue.animation())
                     .eraseToEffect()
             } else {
                 state.result = state.expression.roll
@@ -148,7 +148,7 @@ struct DiceCalculatorState: Equatable {
             state.intermediaryResult = expression.roll
 
             return Effect(value: .intermediaryResultsStep(expression, remaining-1))
-                .delay(for: 0.08, scheduler: DispatchQueue.main)
+                .delay(for: 0.08, scheduler: env.mainQueue)
                 .eraseToEffect()
         }
         return .none
