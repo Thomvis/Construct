@@ -49,10 +49,12 @@ struct CompendiumItemGroupEditView: View {
             }
 
             Section(header: Text("All Characters")) {
-                if viewStore.state.allCharacters.value == nil {
-                    Text("Loading...")
-                } else {
-                    ForEach(viewStore.state.allCharacters.value ?? [], id: \.key) { character in
+                if let characters = viewStore.state.allCharacters.value {
+                    if characters.isEmpty {
+                        Text("No characters found in the compendium").italic()
+                    }
+
+                    ForEach(characters, id: \.key) { character in
                         HStack {
                             Button(action: {
                                 self.viewStore.send(.addMember(character))
@@ -66,6 +68,8 @@ struct CompendiumItemGroupEditView: View {
                             }
                         }.disabled(self.viewStore.state.group.contains(character))
                     }
+                } else {
+                    Text("Loading...")
                 }
             }
 

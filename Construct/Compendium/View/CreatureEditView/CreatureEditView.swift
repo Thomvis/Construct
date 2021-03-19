@@ -71,7 +71,7 @@ struct CreatureEditView: View {
                         if mode == self.model.wrappedValue.statBlock.movementModes.first {
                             Image(systemName: "hare").frame(width: Self.iconColumnWidth)
                         } else {
-                            Spacer().frame(width: Self.iconColumnWidth + 8)
+                            Spacer().frame(width: Self.iconColumnWidth)
                         }
 
                         Menu(mode.localizedDisplayName) {
