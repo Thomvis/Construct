@@ -38,7 +38,7 @@ extension Character {
         }
 
         if let type = self.stats.type {
-            if let subtype = self.stats.subtype {
+            if let subtype = self.stats.subtype?.nonEmptyString {
                 components.append("\(subtype) \(type)")
             } else {
                 components.append(type)
