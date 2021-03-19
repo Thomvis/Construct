@@ -16,15 +16,31 @@ struct TabbedDocumentView<Content>: View where Content: View {
     var content: (TabbedDocumentViewContentItem) -> Content
     @Binding var selection: UUID?
 
+    var onAdd: (() -> Void)?
     var onDelete: ((UUID) -> Void)?
     var onMove: ((Int, Int) -> Void)?
 
     var body: some View {
         VStack(spacing: 0) {
+
+            TabView(selection: $selection) {
+                ForEach(items, id: \.id) { item in
+                    content(item).tag(Optional.some(item.id))
+                        .navigationBarHidden(true)
+                }
+            }
+            .opacity(items.isEmpty ? 0 : 1)
+            .introspectTabBarController { vc in
+                vc.tabBar.isHidden = true
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             if items.count > 0 {
                 Divider()
 
-                TabBar(items: items, selection: $selection) { id in
+                TabBar(items: items, selection: $selection) {
+                    onAdd?()
+                } onDelete: { id in
                     if let idx = items.firstIndex(where: { $0.id == id }) {
                         if idx < items.count - 1 {
                             selection = items[idx+1].id
@@ -38,20 +54,8 @@ struct TabbedDocumentView<Content>: View where Content: View {
                 } onMove: { from, to in
                     onMove?(from, to)
                 }
-
-                Divider()
             }
 
-            TabView(selection: $selection) {
-                ForEach(items, id: \.id) { item in
-                    content(item).tag(Optional.some(item.id))
-                }
-            }
-            .opacity(items.isEmpty ? 0 : 1)
-            .introspectTabBarController { vc in
-                vc.tabBar.isHidden = true
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }.onAppear {
             selection = items.first?.id
         }
@@ -62,6 +66,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
         var items: [TabbedDocumentViewContentItem]
         @Binding var selection: UUID?
 
+        let onAdd: () -> Void
         let onDelete: (UUID) -> Void
         let onMove: (Int, Int) -> Void
 
@@ -117,12 +122,21 @@ struct TabbedDocumentView<Content>: View where Content: View {
                         }.opacity(addDivider(after: item.id) ? 1.0 : 0.0)
                     )
                 }
+
+                Button(action: {
+                    onAdd()
+                }) {
+                    Image(systemName: "plus")
+                        .foregroundColor(Color(UIColor.secondaryLabel))
+                        .padding(4)
+                        .frame(minWidth: 44)
+                }
             }
             .coordinateSpace(name: "TabbedDocumentView.TabBar")
             .onPreferenceChange(PropagatedFramesKey<UUID>.self) {
                 self.frames = $0
             }
-            .background(Color(UIColor.systemGray5))
+            .background(Color(UIColor.systemGray5).ignoresSafeArea(.all, edges: .bottom))
         }
 
         private func offset(for item: TabbedDocumentViewContentItem) -> CGSize {
@@ -211,7 +225,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
             }
             .padding(10)
             .frame(minHeight: 32)
-            .background(Color(selected ? UIColor.systemGray6 : UIColor.systemGray5))
+            .background(Color(selected ? UIColor.systemGray6 : UIColor.systemGray5).ignoresSafeArea(.all, edges: .bottom))
             .accentColor(Color(UIColor.gray))
         }
 

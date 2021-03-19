@@ -24,6 +24,11 @@ struct ReferenceView: View {
                     IfLetStore(store.scope(state: replayNonNil({ $0.items[id: item.id]?.state }), action: { .item(item.id, $0) }), then: ReferenceItemView.init)
                 },
                 selection: viewStore.binding(get: { $0.selectedItemId }, send: { .selectItem($0) }),
+                onAdd: {
+                    withAnimation {
+                        viewStore.send(.onNewTabTapped)
+                    }
+                },
                 onDelete: { tab in
                     withAnimation {
                         viewStore.send(.removeTab(tab))
@@ -34,19 +39,6 @@ struct ReferenceView: View {
                 }
             )
             .environment(\.appNavigation, .tab)
-            .toolbar {
-                ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
-                    Button(action: {
-                        withAnimation {
-                            viewStore.send(.onNewTabTapped)
-                        }
-                    }) {
-                        Label("New Tab", systemImage: "plus")
-                    }
-                    .disabled(viewStore.state.items.count >= Self.maxItems)
-                }
-            }
-            .navigationBarTitle(viewStore.state.navigationTitle, displayMode: .inline)
         }
     }
 
