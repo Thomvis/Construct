@@ -51,7 +51,16 @@ struct SidebarView: View {
                             action: /SidebarViewAction.NextScreenAction.compendium,
                             navDest: .detail,
                             isActive: { $0.title == type.localizedScreenDisplayName }, // not great
-                            initialState: CompendiumIndexState(title: type.localizedScreenDisplayName, properties: .secondary, results: .initial(type: type)),
+                            initialState: CompendiumIndexState(
+                                title: type.localizedScreenDisplayName,
+                                properties: CompendiumIndexState.Properties(
+                                    showImport: type == CompendiumItemType.monster,
+                                    showAdd: true,
+                                    initiallyFocusOnSearch: false,
+                                    initialContent: .searchResults
+                                ),
+                                results: .initial(type: type)
+                            ),
                             destination: { CompendiumIndexView(store: $0).id(type.localizedScreenDisplayName) }
                         ) {
                             Text(type.localizedScreenDisplayName)
