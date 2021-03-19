@@ -19,7 +19,7 @@ struct DiceCalculatorView: View {
     var body: some View {
         WithViewStore(store, removeDuplicates: { $0.showDicePad == $1.showDicePad }) { viewStore in
             VStack {
-                DiceExpressionView(store: self.store).transition(AnyTransition.move(edge: .top).combined(with: .opacity))
+                DiceExpressionView(store: self.store)
                 Divider()
 
                 if viewStore.showDicePad {
@@ -262,39 +262,39 @@ struct OutcomeView: View {
 
     var body: some View {
         WithViewStore(store) { viewStore in
-            Group {
-                Group {
-                    if viewStore.state.showDice && viewStore.state.showDiceSummary {
-                        IfLetStore(store.scope(state: { $0.result(includingIntermediary: true) })) { store in
-                            ResultDetailView(store: store)
-                                .opacity(viewStore.state.resultIsIntermediary ? 0.66 : 1.0)
-                        }
-                    } else {
-                        viewStore.state.result(includingIntermediary: true).map { result in
-                            VStack {
-                                if viewStore.state.showDiceSummary {
-                                    diceSummary(result)
-                                }
-                                HStack {
-                                    if viewStore.state.shouldCelebrateRoll && !viewStore.state.resultIsIntermediary {
-                                        Throphy()
-                                    }
-                                    Text("\(result.total)").font(.largeTitle)
-                                    if viewStore.state.shouldCelebrateRoll && !viewStore.state.resultIsIntermediary {
-                                        Throphy()
-                                    }
-                                }
-                                if viewStore.state.showDiceSummary {
-                                    diceSummary(result).opacity(0.0) // just to reserve space for symmetry
-                                }
-                            }
+            ZStack {
+                if viewStore.state.showDice && viewStore.state.showDiceSummary {
+                    IfLetStore(store.scope(state: { $0.result(includingIntermediary: true) })) { store in
+                        ResultDetailView(store: store)
                             .opacity(viewStore.state.resultIsIntermediary ? 0.66 : 1.0)
-                        }.replaceNilWith {
-                            Button(action: {
-                                viewStore.send(.onRerollButtonTap)
-                            }) {
-                                Text("Roll").font(.largeTitle)
+                    }
+                } else {
+                    if let result = viewStore.state.result(includingIntermediary: true) {
+                        VStack {
+                            if viewStore.state.showDiceSummary {
+                                diceSummary(result)
                             }
+                            HStack {
+                                if viewStore.state.shouldCelebrateRoll && !viewStore.state.resultIsIntermediary {
+                                    Throphy()
+                                }
+
+                                Text("\(result.total)").font(.largeTitle)
+
+                                if viewStore.state.shouldCelebrateRoll && !viewStore.state.resultIsIntermediary {
+                                    Throphy()
+                                }
+                            }
+                            if viewStore.state.showDiceSummary {
+                                diceSummary(result).opacity(0.0) // just to reserve space for symmetry
+                            }
+                        }
+                        .opacity(viewStore.state.resultIsIntermediary ? 0.66 : 1.0)
+                    } else {
+                        Button(action: {
+                            viewStore.send(.onRerollButtonTap)
+                        }) {
+                            Text("Roll").font(.largeTitle)
                         }
                     }
                 }
@@ -315,7 +315,6 @@ struct OutcomeView: View {
                 .disabled(!viewStore.state.showDiceSummary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             })
-            .transition(.opacity)
         }
     }
 
@@ -325,11 +324,7 @@ struct OutcomeView: View {
 
     @ViewBuilder
     func diceSummary(_ expr: RolledDiceExpression) -> some View {
-        WithViewStore(store) { viewStore in
-            if viewStore.state.showDiceSummary {
-                expr.text.font(.footnote).lineLimit(nil).foregroundColor(Color(UIColor.tertiaryLabel))
-            }
-        }
+        expr.text.font(.footnote).lineLimit(nil).foregroundColor(Color(UIColor.tertiaryLabel))
     }
 
     struct TrailingButtons: View {
@@ -384,7 +379,7 @@ struct ResultDetailView: View {
         return Text("\(die.value)")
             .bold().underline(die.value == die.die.sides)
             .frame(width: 44, height: 44)
-            .background((die.die.color?.UIColor).map(Color.init) ?? Color(UIColor.systemGray3))
+            .background(((die.die.color?.UIColor).map(Color.init) ?? Color(UIColor.systemGray5)).cornerRadius(4))
     }
 
 }
