@@ -41,15 +41,6 @@ struct TabbedDocumentView<Content>: View where Content: View {
                 TabBar(items: items, selection: $selection) {
                     onAdd?()
                 } onDelete: { id in
-                    if let idx = items.firstIndex(where: { $0.id == id }) {
-                        if idx < items.count - 1 {
-                            selection = items[idx+1].id
-                        } else if idx > 0 {
-                            selection = items[idx-1].id
-                        } else {
-                            selection = nil
-                        }
-                    }
                     onDelete?(id)
                 } onMove: { from, to in
                     onMove?(from, to)

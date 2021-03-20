@@ -75,6 +75,18 @@ struct ReferenceViewState: Equatable {
         self.itemRequests = itemRequests
     }
 
+    fileprivate mutating func updateSelectionForRemovalOfCurrentItem() {
+        if let idx = items.firstIndex(where: { $0.id == selectedItemId }) {
+            if idx < items.count - 1 {
+                selectedItemId = items[idx+1].id
+            } else if idx > 0 {
+                selectedItemId = items[idx-1].id
+            } else {
+                selectedItemId = nil
+            }
+        }
+    }
+
     fileprivate func itemContext(for item: Item) -> ReferenceContext {
         itemContext(for: item, openCompendiumEntries: openCompendiumEntries())
     }
@@ -157,16 +169,20 @@ extension ReferenceViewState {
                 state.items.append(item)
                 state.selectedItemId = item.id
             case .removeTab(let id):
-                state.items.removeAll(where: { $0.id == id })
                 if state.selectedItemId == id {
-                    state.selectedItemId = nil
+                    state.updateSelectionForRemovalOfCurrentItem()
                 }
+                state.items.removeAll(where: { $0.id == id })
             case .moveTab(let from, let to):
                 state.items.move(fromOffsets: IndexSet(integer: from), toOffset: to)
             case .selectItem(let id):
                 state.selectedItemId = id ?? state.items.first?.id
             case .itemRequests(let reqs):
                 state.updateRequests(itemRequests: reqs)
+
+                if !state.items.contains(where: { $0.id == state.selectedItemId }) {
+                    state.selectedItemId = state.items.first?.id
+                }
             }
             return .none
         },
