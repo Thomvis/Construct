@@ -38,35 +38,7 @@ struct SidebarView: View {
 
                 adventureSection(viewStore)
 
-                Section(header: Text("Compendium")) {
-                    ForEach([
-                        CompendiumItemType.monster,
-                        CompendiumItemType.character,
-                        CompendiumItemType.group,
-                        CompendiumItemType.spell
-                    ], id: \.self) { type in
-                        StateDrivenNavigationLink(
-                            store: store,
-                            state: /SidebarViewState.NextScreen.compendium,
-                            action: /SidebarViewAction.NextScreenAction.compendium,
-                            navDest: .detail,
-                            isActive: { $0.title == type.localizedScreenDisplayName }, // not great
-                            initialState: CompendiumIndexState(
-                                title: type.localizedScreenDisplayName,
-                                properties: CompendiumIndexState.Properties(
-                                    showImport: type == CompendiumItemType.monster,
-                                    showAdd: true,
-                                    initiallyFocusOnSearch: false,
-                                    initialContent: .searchResults
-                                ),
-                                results: .initial(type: type)
-                            ),
-                            destination: { CompendiumIndexView(store: $0).id(type.localizedScreenDisplayName) }
-                        ) {
-                            Text(type.localizedScreenDisplayName)
-                        }
-                    }
-                }
+                compendiumSection(viewStore)
             }
             .listStyle(SidebarListStyle())
             .navigationTitle("Construct")
@@ -113,6 +85,39 @@ struct SidebarView: View {
             }
 
             campaignNodes(in: CampaignNode.root, viewStore: viewStore)
+        }
+    }
+
+    @ViewBuilder
+    func compendiumSection(_ viewStore: ViewStore<SidebarViewState, SidebarViewAction>) -> some View {
+        Section(header: Text("Compendium")) {
+            ForEach([
+                CompendiumItemType.monster,
+                CompendiumItemType.character,
+                CompendiumItemType.group,
+                CompendiumItemType.spell
+            ], id: \.self) { type in
+                StateDrivenNavigationLink(
+                    store: store,
+                    state: /SidebarViewState.NextScreen.compendium,
+                    action: /SidebarViewAction.NextScreenAction.compendium,
+                    navDest: .detail,
+                    isActive: { $0.title == type.localizedScreenDisplayName }, // not great
+                    initialState: CompendiumIndexState(
+                        title: type.localizedScreenDisplayName,
+                        properties: CompendiumIndexState.Properties(
+                            showImport: type == CompendiumItemType.monster,
+                            showAdd: true,
+                            initiallyFocusOnSearch: false,
+                            initialContent: .searchResults
+                        ),
+                        results: CompendiumIndexState.RS.initial(type: type)
+                    ),
+                    destination: { CompendiumIndexView(store: $0).id(type.localizedScreenDisplayName) }
+                ) {
+                    Text(type.localizedScreenDisplayName)
+                }
+            }
         }
     }
 
