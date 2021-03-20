@@ -118,7 +118,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
                     .overlay(
                         HStack {
                             Spacer()
-                            Divider()
+                            Divider().ignoresSafeArea(.all, edges: .bottom)
                         }.opacity(addDivider(after: item.id) ? 1.0 : 0.0)
                     )
                 }
@@ -194,8 +194,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
         private func addDivider(after id: UUID) -> Bool {
             guard selection != id,
                   let idx = items.firstIndex(where: { $0.id == id }),
-                  idx < items.count-1,
-                  items[idx+1].id != selection else { return false }
+                  idx == items.count-1 || items[idx+1].id != selection else { return false }
             return true
         }
     }
