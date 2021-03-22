@@ -196,7 +196,7 @@ extension CompendiumItemGroupEditState {
 }
 
 extension CompendiumItemGroupEditState: NavigationStackItemState {
-    var navigationStackItemStateId: String { "CompendiumItemGroupEditView" }
+    var navigationStackItemStateId: String { "CompendiumItemGroupEditView:\(group.id)" }
     var navigationTitle: String {
         if mode.isEdit {
             return ""

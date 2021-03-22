@@ -14,71 +14,67 @@ struct CompendiumIndexView: View {
     @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
-    var store: Store<CompendiumIndexState, CompendiumIndexAction>
-    var viewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
+    let store: Store<CompendiumIndexState, CompendiumIndexAction>
+    @ObservedObject var localViewStore: ViewStore<LocalState, CompendiumIndexAction>
 
-    @ObservedObject var localViewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
     let viewProvider: ViewProvider
 
     @State var didFocusOnSearch = false
 
     init(store: Store<CompendiumIndexState, CompendiumIndexAction>, viewProvider: ViewProvider = .default) {
         self.store = store
-        self.viewStore = ViewStore(store)
-        self.localViewStore = ViewStore(store, removeDuplicates: {
-            $0.normalizedForDeduplication == $1.normalizedForDeduplication
-        })
+        self.localViewStore = ViewStore(store.scope(state: { LocalState($0) }))
         self.viewProvider = viewProvider
     }
 
     var body: some View {
         return VStack {
-            BorderedSearchField(
-                text: localViewStore.binding(get: { $0.results.input.text.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
-                accessory: filterButton()
-            )
+            WithViewStore(store.scope(state: { $0.results.input })) { viewStore in
+                BorderedSearchField(
+                    text: viewStore.binding(get: { $0.text.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
+                    accessory: Self.filterButton(viewStore)
+                )
+            }
             .introspectTextField { textField in
-                if !textField.isFirstResponder, viewStore.state.properties.initiallyFocusOnSearch, !didFocusOnSearch {
+                if !textField.isFirstResponder, localViewStore.state.initiallyFocusOnSearch, !didFocusOnSearch {
                     textField.becomeFirstResponder()
                     didFocusOnSearch = true
                 }
             }
             .padding([.leading, .top, .trailing], 8)
 
-            if localViewStore.state.results.value != nil {
-                CompendiumItemList(store: store, viewStore: ViewStore(store), entries: localViewStore.state.results.value!, viewProvider: viewProvider)
-            } else if localViewStore.state.results.error != nil {
+            if localViewStore.state.resultsValueNonNil {
+                CompendiumItemList(store: store, viewProvider: viewProvider)
+            } else if localViewStore.state.resultsErrorNonNil {
                 Text("Loading failed").frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if localViewStore.state.results.result.isLoading {
+            } else if localViewStore.state.resultsIsLoading {
                 Text("Loading...").frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                IfLetStore(store.scope(state: { $0.properties.initialContent.toc }).actionless) { store in
-                    CompendiumTocView(parent: self, viewStore: ViewStore(store))
+                IfLetStore(store.scope(state: { CompendiumTocView.LocalState($0) })) { store in
+                    CompendiumTocView(parentStore: self.store, viewStore: ViewStore(store), viewProvider: viewProvider)
                 }
             }
 
-            if localViewStore.state.properties.showAdd && localViewStore.state.canAddItem {
-                (localViewStore.state.results.input.filters?.types?.single).map { type in
-                    HStack {
-                        RoundedButton(action: {
-                            self.localViewStore.send(.onAddButtonTap)
-                        }) {
-                            Label("Add \(type.localizedDisplayName)", systemImage: "plus.circle")
-                        }
+            if let type = localViewStore.state.addButtonItemType {
+                HStack {
+                    RoundedButton(action: {
+                        self.localViewStore.send(.onAddButtonTap)
+                    }) {
+                        Label("Add \(type.localizedDisplayName)", systemImage: "plus.circle")
                     }
-                    .padding([.leading, .trailing, .bottom], 8)
                 }
+                .padding([.leading, .trailing, .bottom], 8)
             }
         }
         .simultaneousGesture(DragGesture().onChanged { _ in
             // Dismiss the keyboard when the user starts scrolling in the list
             env.dismissKeyboard()
         })
-        .navigationBarTitle(localViewStore.state.navigationTitle)
+        .navigationBarTitle(localViewStore.state.title)
         .navigationBarItems(trailing: Group {
-            if localViewStore.state.properties.showImport {
+            if localViewStore.state.showImportButton {
                 Button(action: {
-                    self.viewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
+                    localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
                 }) {
                     Text("Import").bold()
                 }
@@ -89,7 +85,7 @@ struct CompendiumIndexView: View {
         }
         // workaround for onAppear not getting called when a compendium index view is replaced by another
         // through the sidebar
-        .onChange(of: viewStore.state.title) { _ in
+        .onChange(of: localViewStore.state.title) { _ in
             loadResultsIfNeeded()
         }
         // workaround: an inline NavigationLink inside navigationBarItems would be set to inactive
@@ -98,14 +94,15 @@ struct CompendiumIndexView: View {
             store: store,
             state: /CompendiumIndexState.NextScreen.compendiumImport,
             action: /CompendiumIndexAction.NextScreenAction.import,
-            destination: { _ in CompendiumImportView() })
+            destination: { _ in CompendiumImportView() }
+        )
         .alert(store.scope(state: \.alert), dismiss: .alert(nil))
-        .sheet(item: viewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
+        .sheet(item: localViewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
     }
 
     @ViewBuilder
-    func filterButton() -> some View {
-        if !localViewStore.state.compatibleFilterProperties.isEmpty {
+    static func filterButton(_ viewStore: ViewStore<CompendiumIndexState.Query, CompendiumIndexAction>) -> some View {
+        if !viewStore.state.compatibleFilterProperties.isEmpty {
             FilterButton(viewStore: viewStore)
         } else {
             EmptyView()
@@ -113,8 +110,8 @@ struct CompendiumIndexView: View {
     }
 
     private func loadResultsIfNeeded() {
-        if self.viewStore.state.properties.initialContent.isSearchResults, self.viewStore.state.results.value == nil {
-            self.viewStore.send(.query(.onTextDidChange(viewStore.state.results.input.text), debounce: false)) // kick-start search, fixme?
+        if localViewStore.state.initialContentIsSearchResults, !localViewStore.state.resultsValueNonNil {
+            localViewStore.send(.query(.onTextDidChange(ViewStore(store).state.results.input.text), debounce: false)) // kick-start search, fixme?
         }
     }
 
@@ -137,6 +134,45 @@ struct CompendiumIndexView: View {
             )
         )
     }
+
+    struct LocalState: Equatable {
+        let initiallyFocusOnSearch: Bool
+        let initialContentIsSearchResults: Bool
+
+        let resultsValueNonNil: Bool
+        let resultsErrorNonNil: Bool
+        let resultsIsLoading: Bool
+
+        let addButtonItemType: CompendiumItemType?
+
+        let title: String
+        let showImportButton: Bool
+
+        let isShowingImport: Bool
+        @EqKey({ $0?.id })
+        var sheet: CompendiumIndexState.Sheet?
+
+        init(_ state: CompendiumIndexState) {
+            initiallyFocusOnSearch = state.properties.initiallyFocusOnSearch
+            initialContentIsSearchResults = state.properties.initialContent.isSearchResults
+
+            resultsValueNonNil = state.results.value != nil
+            resultsErrorNonNil = state.results.error != nil
+            resultsIsLoading = state.results.result.isLoading
+
+            if state.properties.showAdd && state.canAddItem {
+                addButtonItemType = state.results.input.filters?.types?.single
+            } else {
+                addButtonItemType = nil
+            }
+
+            title = state.title
+            showImportButton = state.properties.showImport
+
+            isShowingImport = state.presentedNextCompendiumImport != nil || state.presentedDetailCompendiumImport != nil
+            sheet = state.sheet
+        }
+    }
 }
 
 extension CompendiumIndexView {
@@ -156,24 +192,25 @@ extension CompendiumIndexView {
 }
 
 fileprivate struct CompendiumTocView: View {
-    var parent: CompendiumIndexView
-
     @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
-    @ObservedObject var viewStore: ViewStore<CompendiumIndexState.Properties.ContentDefinition.Toc, Never>
+    let parentStore: Store<CompendiumIndexState, CompendiumIndexAction>
+
+    @ObservedObject var viewStore: ViewStore<LocalState, CompendiumIndexAction>
+    let viewProvider: CompendiumIndexView.ViewProvider
 
     var body: some View {
         List {
             Section {
-                ForEach(viewStore.state.types, id: \.self) { type in
+                ForEach(viewStore.state.toc.types, id: \.self) { type in
                     NavigationRowButton(action: {
                         let destination = CompendiumIndexState(
                             title: type.localizedScreenDisplayName,
-                            properties: viewStore.state.destinationProperties,
+                            properties: viewStore.state.toc.destinationProperties,
                             results: .initial(type: type)
                         )
-                        parent.viewStore.send(.setNextScreen(.compendiumIndex(destination)))
+                        viewStore.send(.setNextScreen(.compendiumIndex(destination)))
                     }) {
                         Text(type.localizedScreenDisplayName)
                             .foregroundColor(Color.primary)
@@ -183,17 +220,17 @@ fileprivate struct CompendiumTocView: View {
                 }
             }
 
-            if !viewStore.state.suggested.isEmpty {
+            if !viewStore.state.toc.suggested.isEmpty {
                 Section(header: Text("Suggested")) {
-                    ForEach(viewStore.state.suggested, id: \.key) { entry in
+                    ForEach(viewStore.state.toc.suggested, id: \.key) { entry in
                         NavigationRowButton(action: {
                             if appNavigation == .tab {
-                                parent.viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                                viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
                             } else {
-                                parent.viewStore.send(.setDetailScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                                viewStore.send(.setDetailScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
                             }
                         }) {
-                            self.parent.viewProvider.row(self.parent.store, entry)
+                            viewProvider.row(parentStore, entry)
                         }
                     }
                 }
@@ -204,18 +241,36 @@ fileprivate struct CompendiumTocView: View {
         // programmatic navigation inside the reference view.
         // Apparently NavigationLinks inside a List work slightly differently
         .stateDrivenNavigationLink(
-            store: parent.store,
+            store: parentStore,
             state: /CompendiumIndexState.NextScreen.compendiumIndex,
             action: /CompendiumIndexAction.NextScreenAction.compendiumIndex,
-            destination: { CompendiumIndexView(store: $0, viewProvider: parent.viewProvider) }
+            destination: { CompendiumIndexView(store: $0, viewProvider: viewProvider) }
         )
         .stateDrivenNavigationLink(
-            store: parent.store,
+            store: parentStore,
             state: /CompendiumIndexState.NextScreen.itemDetail,
             action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
             navDest: appNavigation == .tab ? .nextInStack : .detail,
-            destination: { parent.viewProvider.detail($0) }
+            destination: { viewProvider.detail($0) }
         )
+    }
+
+    struct LocalState: Equatable {
+        let toc: CompendiumIndexState.Properties.ContentDefinition.Toc
+        // not used by the view (store is used directly) but here to ensure the view is re-evaluated
+        let presentedCompendiumIndex: String?
+        let presentedItemDetail: String?
+
+        init?(_ state: CompendiumIndexState) {
+            guard let toc = state.properties.initialContent.toc else { return nil }
+
+            self.toc = toc
+            self.presentedCompendiumIndex = state.presentedNextCompendiumIndex?.navigationStackItemStateId
+                ?? state.presentedDetailCompendiumIndex?.navigationStackItemStateId
+
+            self.presentedItemDetail = state.presentedNextItemDetail?.navigationStackItemStateId
+                ?? state.presentedDetailItemDetail?.navigationStackItemStateId
+        }
     }
 }
 
@@ -223,33 +278,42 @@ fileprivate struct CompendiumItemList: View {
     @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
     var store: Store<CompendiumIndexState, CompendiumIndexAction>
-    @ObservedObject var viewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
+    @ObservedObject var viewStore: ViewStore<LocalState, CompendiumIndexAction>
 
-    let entries: [CompendiumEntry]
     let viewProvider: CompendiumIndexView.ViewProvider
 
+    init(store: Store<CompendiumIndexState, CompendiumIndexAction>, viewProvider: CompendiumIndexView.ViewProvider) {
+        self.store = store
+        self.viewStore = ViewStore(store.scope(state: { LocalState($0) }))
+        self.viewProvider = viewProvider
+    }
+
     var body: some View {
-        let listHash = AnyHashable(entries.map { $0.key })
+        let listHash = AnyHashable(viewStore.state.entries.map { $0.key })
         return ScrollViewReader { scrollView in
             List {
-                Section {
-                    if entries.isEmpty {
-                        Text("No results")
-                    } else {
-                        ForEach(entries, id: \.key) { entry in
-                            NavigationRowButton(action: {
-                                if appNavigation == .tab {
-                                    self.viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
-                                } else {
-                                    self.viewStore.send(.setDetailScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
-                                }
-                            }) {
-                                self.viewProvider.row(self.store, entry)
-                            }
+                if viewStore.state.entries.isEmpty {
+                    Text("No results")
+                }
+
+                ForEach(viewStore.state.entries, id: \.key) { entry in
+                    NavigationRowButton(action: {
+                        if appNavigation == .tab {
+                            self.viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                        } else {
+                            self.viewStore.send(.setDetailScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
                         }
+                    }) {
+                        self.viewProvider.row(self.store, entry)
                     }
                 }
             }
+            // Workaround: without the id, the ForEach above would sometimes not be re-evaluated
+            // (e.g. when switching between compendium types)
+            // At the moment of writing, the sidebar navigation link to the compendium is made in a way
+            // that a switch from one compendium type to another does not create a new CompendiumIndexView
+            // instance
+            .id(viewStore.state.title)
             // Workaround: we use a single NavigationLink instead of one per row because that breaks
             // programmatic navigation inside the reference view
             .stateDrivenNavigationLink(
@@ -262,7 +326,7 @@ fileprivate struct CompendiumItemList: View {
             .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _ in
                 // workaround: this closure is called with `self.entries` still out of date,
                 // that's why we access it from viewStore
-                let entries = viewStore.state.results.value ?? []
+                let entries = viewStore.state.entries
                 if let id = viewStore.state.scrollTo, entries.contains(where: { $0.key == id }) {
                     withAnimation {
                         scrollView.scrollTo(id)
@@ -270,6 +334,24 @@ fileprivate struct CompendiumItemList: View {
                     viewStore.send(.scrollTo(nil))
                 }
             }
+        }
+    }
+
+    struct LocalState: Equatable {
+        let title: String
+        let entries: [CompendiumEntry]
+        // not used by the view (store is used directly) but here to ensure the view is re-evaluated
+        let presentedItemDetail: String?
+
+        let scrollTo: String?
+
+        init(_ state: CompendiumIndexState) {
+            self.title = state.title
+            self.entries = state.results.value ?? []
+            self.presentedItemDetail = state.presentedNextItemDetail?.navigationStackItemStateId
+                ?? state.presentedDetailItemDetail?.navigationStackItemStateId
+
+            self.scrollTo = state.scrollTo
         }
     }
 }
@@ -292,16 +374,16 @@ fileprivate struct CompendiumItemRow: View {
 struct FilterButton: View {
     @EnvironmentObject var env: Environment
 
-    @ObservedObject var viewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
+    @ObservedObject var viewStore: ViewStore<CompendiumIndexState.Query, CompendiumIndexAction>
 
     @State var popover: Popover?
 
     var body: some View {
         SimpleButton(action: {
-            let state = CompendiumFilterPopoverState(self.viewStore.state.results.input.filters, self.viewStore.state.compatibleFilterProperties)
+            let state = CompendiumFilterPopoverState(self.viewStore.state.filters, self.viewStore.state.compatibleFilterProperties)
 
             self.popover = CompendiumFilterPopover(store: Store(initialState: state, reducer: CompendiumFilterPopoverState.reducer, environment: self.env)) { filterValues in
-                var filters = self.viewStore.state.results.input.filters ?? CompendiumIndexState.Query.Filters(types: nil)
+                var filters = self.viewStore.state.filters ?? CompendiumIndexState.Query.Filters(types: nil)
                 filters.minMonsterChallengeRating = filterValues.minMonsterCR
                 filters.maxMonsterChallengeRating = filterValues.maxMonsterCR
                 self.viewStore.send(.query(.onFiltersDidChange(filters), debounce: false))
@@ -316,7 +398,7 @@ struct FilterButton: View {
     }
 
     var filtersAreActive: Bool {
-        viewStore.state.results.input.filters?.test != nil
+        viewStore.state.filters?.test != nil
     }
 }
 

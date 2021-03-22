@@ -16,7 +16,7 @@ struct SidebarView: View {
     let store: Store<SidebarViewState, SidebarViewAction>
 
     var body: some View {
-        WithViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication }) { viewStore in
+        WithViewStore(store.scope(state: { LocalState($0) })) { viewStore in
             List {
                 StateDrivenNavigationLink(
                     store: store,

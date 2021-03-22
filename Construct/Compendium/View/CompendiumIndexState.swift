@@ -163,10 +163,10 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         case creatureEdit(CreatureEditViewState)
         case groupEdit(CompendiumItemGroupEditState)
 
-        var id: Int {
+        var id: String {
             switch self {
-            case .creatureEdit: return 1
-            case .groupEdit: return 2
+            case .creatureEdit(let s): return s.navigationStackItemStateId
+            case .groupEdit(let s): return s.navigationStackItemStateId
             }
         }
     }
@@ -240,6 +240,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                         return AnyCancellable { }
                     }
+                case .nextScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onDoneTap)))):
+                    return Effect(value: .results(.reload))
                 case .nextScreen, .detailScreen:
                     break
                 case .alert(let s):

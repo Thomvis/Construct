@@ -156,8 +156,6 @@ struct ResultSet<Input, Success, Failure> where Failure: Error {
                     } else {
                         return Effect(value: .reset)
                     }
-                case .result(.didFinishLoading(.success(let value))):
-                    state.lastResult = LastResult(input: state.input, value: value)
                 case .reset:
                     state.lastResult = nil
                     return Effect(value: .result(.reset))
@@ -170,11 +168,15 @@ struct ResultSet<Input, Success, Failure> where Failure: Error {
                         return Effect(value: .reset)
                     }
                 case .result(let a): // forward all result actions
+                    if case .result(.didFinishLoading(.success(let value))) = action {
+                        state.lastResult = LastResult(input: state.input, value: value)
+                    }
+
+                    assert(asyncReducer != nil)
                     return asyncReducer?(&state.result, a, env).map { action in
                         .result(action)
                     } ?? .none
                 }
-                return .none
             }
         )
     }
