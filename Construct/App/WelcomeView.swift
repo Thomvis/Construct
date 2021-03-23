@@ -17,10 +17,11 @@ struct WelcomeView: View {
 
             ScrollView(.vertical) {
                 Text("Welcome to Construct").font(Font.largeTitle.bold())
+                    .multilineTextAlignment(.center)
                     .padding(.top, 22)
                     .padding(.bottom, 14)
                 
-                VStack(spacing: 18) {
+                VStack(alignment: .leading, spacing: 18) {
                     ForEach(Self.items) { item in
                         HStack(spacing: 25) {
                             Image(systemName: item.icon)

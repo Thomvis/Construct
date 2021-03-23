@@ -11,38 +11,18 @@ import Combine
 import ComposableArchitecture
 
 struct ContentView: View {
+    @SwiftUI.Environment(\.horizontalSizeClass) var horizontalSizeClass
+
     @EnvironmentObject var env: Environment
     var store: Store<AppState, AppState.Action>
 
     var body: some View {
-        WithViewStore(store.scope(state: State.init)) { viewStore in
-            TabView(
-                selection: viewStore.binding(
-                    get: { $0.selectedTab },
-                    send: { AppState.Action.selectedTab($0) }
-                )
-            ) {
-                CampaignBrowserContainerView(store: self.store)
-                    .tabItem {
-                        Image(systemName: "shield")
-                        Text("Adventure")
-                    }
-                    .tag(AppState.Tabs.campaign)
-
-                CompendiumContainerView(store: self.store)
-                    .tabItem {
-                        Image(systemName: "book")
-                        Text("Compendium")
-                    }
-                    .tag(AppState.Tabs.compendium)
-
-                DiceRollerView(store: self.store.scope(state: { $0.diceRoller }, action: { .diceRoller($0) }), isVisible: viewStore.selectedTab == .diceRoller)
-                    .tabItem {
-                        Image("tabbar_d20")
-                        Text("Dice")
-                    }
-                    .tag(AppState.Tabs.diceRoller)
-            }
+        WithViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication }) { viewStore in
+            IfLetStore(store.scope(state: { $0.navigation.tabState }, action: { .navigation(.tab($0)) }), then: { store in
+                TabNavigationView(store: store)
+            }, else: IfLetStore(store.scope(state: { $0.navigation.columnState }, action: {.navigation(.column($0)) })) { store in
+                ColumnNavigationView(store: store)
+            })
             .sheet(isPresented: viewStore.binding(get: { $0.showWelcomeSheet }, send: { _ in .welcomeSheet(false) })) {
                 WelcomeView { tap in
                     switch tap {
@@ -54,18 +34,16 @@ struct ContentView: View {
                 }
             }
             .onAppear {
+                if let sizeClass = horizontalSizeClass {
+                    viewStore.send(.navigation(.onHorizontalSizeClassChange(sizeClass)))
+                }
                 viewStore.send(.onAppear)
             }
-        }
-    }
-
-    struct State: Equatable {
-        var selectedTab: AppState.Tabs
-        var showWelcomeSheet: Bool
-
-        init(_ state: AppState) {
-            self.selectedTab = state.selectedTab
-            self.showWelcomeSheet = state.showWelcomeSheet
+            .onChange(of: horizontalSizeClass) { sizeClass in
+                if let sizeClass = sizeClass {
+                    viewStore.send(.navigation(.onHorizontalSizeClassChange(sizeClass)))
+                }
+            }
         }
     }
 }

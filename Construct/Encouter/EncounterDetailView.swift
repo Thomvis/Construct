@@ -12,6 +12,8 @@ import ComposableArchitecture
 
 struct EncounterDetailView: View {
     @EnvironmentObject var environment: Environment
+    @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
+
     var store: Store<EncounterDetailViewState, EncounterDetailViewState.Action>
     @ObservedObject var viewStore: ViewStore<EncounterDetailViewState, EncounterDetailViewState.Action>
 
@@ -52,7 +54,13 @@ struct EncounterDetailView: View {
                         }.frame(maxWidth: .infinity).padding(18)
                     }
                 } else {
-                    CombatantSection(parent: self, title: "Combatants", encounter: viewStore.state.encounter, running: viewStore.state.running, combatants: viewStore.state.encounter.combatantsInDisplayOrder)
+                    CombatantSection(
+                        parent: self,
+                        title: "Combatants",
+                        encounter: viewStore.state.encounter,
+                        running: viewStore.state.running,
+                        combatants: viewStore.state.encounter.combatantsInDisplayOrder
+                    )
                 }
 
                 // Adds padding for the bottom action bar
@@ -113,7 +121,11 @@ struct EncounterDetailView: View {
             }
 
             RoundedButton(action: {
-                self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter: self.viewStore.state.encounter)))))
+                if appNavigation == .tab {
+                    self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter: self.viewStore.state.encounter)))))
+                } else {
+                    self.viewStore.send(.showAddCombatantReferenceItem)
+                }
             }) {
                 Label("Add combatants", systemImage: "plus.circle")
             }
@@ -134,6 +146,7 @@ struct EncounterDetailView: View {
                 Label("Run encounter", systemImage: "play")
             }.disabled(self.viewStore.state.building.combatants.isEmpty)
         }
+        .equalSizes(horizontal: false, vertical: true)
         .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
     }
 
@@ -159,6 +172,7 @@ struct EncounterDetailView: View {
             }
             .disabled(viewStore.state.selection.isEmpty)
         }
+        .equalSizes(horizontal: false, vertical: true)
     }
 
     func runningEditModeActionBar() -> some View {
@@ -195,53 +209,60 @@ struct EncounterDetailView: View {
             }
             .disabled(viewStore.state.selection.isEmpty)
         }
+        .equalSizes(horizontal: false, vertical: true)
     }
 
     func sheetView(_ sheet: EncounterDetailViewState.Sheet) -> some View {
         switch sheet {
         case .add:
-            return IfLetStore(store.scope(state: { $0.addCombatantState }, action: { .addCombatant($0) })) { store in
-                AddCombatantView(store: store) { action, dismiss in
-                    switch action {
-                    case .add(let combatants):
-                        for c in combatants {
-                            self.viewStore.send(.encounter(.add(c)))
-                        }
-                    case .addByKey(let keys, let party):
-                        for key in keys {
-                            self.viewStore.send(.encounter(.addByKey(key, party)))
-                        }
-                    case .remove(let definitionID, let quantity):
-                        quantity.times {
-                            if let combatant = self.viewStore.state.encounter.combatants(with: definitionID).last {
-                                self.viewStore.send(.encounter(.remove(combatant)))
-                            }
-                        }
-                    }
-
-                    if dismiss {
-                        self.viewStore.send(.sheet(nil))
-                    }
-                }.environmentObject(self.environment)
+            return IfLetStore(store.scope(state: replayNonNil({ $0.addCombatantState }), action: { .addCombatant($0) })) { store in
+                AddCombatantView(store: store, onSelection: {
+                    viewStore.send(.addCombatantAction($0, $1))
+                }).environmentObject(self.environment)
             }.eraseToAnyView
         case .combatant:
-            return IfLetStore(store.scope(state: { $0.combatantDetailState }, action: { .combatantDetail($0) })) { store in
+            return IfLetStore(store.scope(state: replayNonNil({ $0.combatantDetailState }), action: { .combatantDetail($0) })) { store in
                 CombatantDetailContainerView(store: store).environmentObject(self.environment)
             }.eraseToAnyView
         case .runningEncounterLog:
-            return IfLetStore(store.scope(state: { $0.runningEncounterLogState }, action: { fatalError() })) { store in
+            return IfLetStore(store.scope(state: replayNonNil({ $0.runningEncounterLogState }), action: { fatalError() })) { store in
                 SheetNavigationContainer {
                     RunningEncounterLogView(store: store).environmentObject(self.environment)
                 }
             }.eraseToAnyView
         case .selectedCombatantTags:
-            return IfLetStore(store.scope(state: { $0.selectedCombatantTagsState }, action: { .selectedCombatantTags($0) })) { store in
+            return IfLetStore(store.scope(state: replayNonNil({ $0.selectedCombatantTagsState }), action: { .selectedCombatantTags($0) })) { store in
                 SheetNavigationContainer {
                     CombatantTagsView(store: store)
                 }.environmentObject(self.environment)
             }.eraseToAnyView
         case .settings:
             return EncounterSettingsView(store: self.store).environmentObject(self.environment).eraseToAnyView
+        }
+    }
+
+    private var addCombatantOnSelection: (AddCombatantView.Action, Bool) -> Void {
+        return { action, dismiss in
+            switch action {
+            case .add(let combatants):
+                for c in combatants {
+                    self.viewStore.send(.encounter(.add(c)))
+                }
+            case .addByKey(let keys, let party):
+                for key in keys {
+                    self.viewStore.send(.encounter(.addByKey(key, party)))
+                }
+            case .remove(let definitionID, let quantity):
+                quantity.times {
+                    if let combatant = self.viewStore.state.encounter.combatants(with: definitionID).last {
+                        self.viewStore.send(.encounter(.remove(combatant)))
+                    }
+                }
+            }
+
+            if dismiss {
+                self.viewStore.send(.sheet(nil))
+            }
         }
     }
 
@@ -299,23 +320,23 @@ extension ActionSheetState where Action == EncounterDetailViewState.Action {
 
         let resumeButtons: [Button] = resumables.map { r -> Button in
             let relativeDate = formatter.localizedString(for: r.modifiedAt, relativeTo: Date())
-            return .default("Resume run from \(relativeDate)", send: .onResumeRunningEncounterTap(r.key)) // used to be wrapped in withAnimation
+            return .default(TextState("Resume run from \(relativeDate)"), send: .onResumeRunningEncounterTap(r.key)) // used to be wrapped in withAnimation
         }
 
         return ActionSheetState(
-            title: "Run encounter",
+            title: TextState("Run encounter"),
             buttons: resumeButtons + [
-                .default("Start new run", send: .run(nil)),
+                .default(TextState("Start new run"), send: .run(nil)),
                 .cancel(send: .actionSheet(nil))
             ]
         )
     }
 
     static let reset: Self = ActionSheetState(
-        title: "Reset encounter",
+        title: TextState("Reset encounter"),
         buttons: [
-            .destructive("Clear monsters", send: .resetEncounter(false)),
-            .destructive("Clear all", send: .resetEncounter(true)),
+            .destructive(TextState("Clear monsters"), send: .resetEncounter(false)),
+            .destructive(TextState("Clear all"), send: .resetEncounter(true)),
             .cancel(send: .actionSheet(nil))
         ]
     )
@@ -368,7 +389,11 @@ struct CombatantSection: View {
                 // scale is used to make the row easier selectable in edit mode
                 .contentShape(Rectangle().scale(self.parent.viewStore.state.editMode ? 0 : 1))
                 .onTapGesture {
-                    self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, encounter: self.parent.viewStore.state.encounter, combatant: combatant))))
+                    if parent.appNavigation == .tab {
+                        self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
+                    } else {
+                        self.parent.viewStore.send(.showCombatantDetailReferenceItem(combatant))
+                    }
                 }
                 .contextMenu {
                     Button(action: {

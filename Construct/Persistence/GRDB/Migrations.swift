@@ -156,6 +156,14 @@ extension Database {
             }
         }
 
+        migrator.registerMigration("v8-updatedOpen5eFixtures") { db in
+            if importDefaultContent && !didImportDefaultContent {
+                // v1 or v7 was applied before, let's re-import defaults
+                try Compendium(self).importDefaultContent(db)
+                didImportDefaultContent = true
+            }
+        }
+
         return migrator
     }
 }

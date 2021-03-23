@@ -73,6 +73,17 @@ enum DiceExpression: Hashable {
         }
     }
 
+    var diceCount: Int {
+        switch self {
+        case .dice(let count, _):
+            return count
+        case .compound(let lhs, _, let rhs):
+            return lhs.diceCount + rhs.diceCount
+        case .number:
+            return 0
+        }
+    }
+
     // Ensures that the following is true:
     // - dice counts are non-negative
     // - zero-count dice are removed

@@ -11,9 +11,8 @@ import SwiftUI
 import ComposableArchitecture
 
 struct CampaignBrowserContainerView: View {
-    @SwiftUI.Environment(\.horizontalSizeClass) var horizontalSizeClass
     @EnvironmentObject var env: Environment
-    var store: Store<AppState, AppState.Action>
+    var store: Store<CampaignBrowseViewState, CampaignBrowseViewAction>
 
     var body: some View {
         navigationView
@@ -24,18 +23,9 @@ struct CampaignBrowserContainerView: View {
 
     @ViewBuilder
     var navigationView: some View {
-        if horizontalSizeClass == .regular {
-            NavigationView {
-                CampaignBrowseView(env, store.scope(state: { $0.campaignBrowser }, action: { .campaignBrowser($0) }))
-
-                Text("EMPTY")
-            }
-            .navigationViewStyle(DoubleColumnNavigationViewStyle())
-        } else {
-            NavigationView {
-                CampaignBrowseView(env, store.scope(state: { $0.campaignBrowser }, action: { .campaignBrowser($0) }))
-            }
-            .navigationViewStyle(StackNavigationViewStyle())
+        NavigationView {
+            CampaignBrowseView(store: store)
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }

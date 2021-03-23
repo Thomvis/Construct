@@ -13,7 +13,10 @@ struct AddCombatantState: Equatable {
     var compendiumState: CompendiumIndexState
 
     var encounter: Encounter {
-        didSet { updateCombatantsByDefinitionCache() }
+        didSet {
+            updateCombatantsByDefinitionCache()
+            updateSuggestedCombatants()
+        }
     }
     var creatureEditViewState: CreatureEditViewState?
 
@@ -25,6 +28,30 @@ struct AddCombatantState: Equatable {
             result[combatant.definition.definitionID, default: []].append(combatant)
         }
         self.combatantsByDefinitionCache = result
+    }
+
+    /// Suggestions are built from the encounter. Each non-unique compendium combatant is a suggested combatant
+    /// If a combatant is removed from the encounter, it is not removed from the suggestions. (Until a whole new state
+    /// is created.)
+    private mutating func updateSuggestedCombatants() {
+        if case .toc(let toc) = compendiumState.properties.initialContent {
+            let newSuggestions = combatantsByDefinitionCache.values.compactMap { combatants in
+                combatants.first?.definition as? CompendiumCombatantDefinition
+            }.compactMap { definition -> CompendiumEntry? in
+                if !definition.isUnique {
+                    // FIXME: we don't have all the info here to properly create the entry
+                    return CompendiumEntry(definition.item)
+                }
+                return nil
+            }.filter { c in !toc.suggested.contains(where: { $0.key == c.key })}
+
+            let toc = CompendiumIndexState.Properties.ContentDefinition.Toc(
+                types: toc.types,
+                destinationProperties: toc.destinationProperties,
+                suggested: toc.suggested + newSuggestions
+            )
+            compendiumState.properties.initialContent = .toc(toc)
+        }
     }
 
     var normalizedForDeduplication: Self {
@@ -71,11 +98,34 @@ struct AddCombatantState: Equatable {
 extension AddCombatantState {
     static let nullInstance = AddCombatantState(encounter: Encounter.nullInstance)
 
-    init(encounter: Encounter, creatureEditViewState: CreatureEditViewState? = nil) {
-        self.compendiumState = CompendiumIndexState(title: "Add Combatant", properties: CompendiumIndexState.Properties(showImport: false, showAdd: false, initialContent: .initial(types: [.monster, .character, .group], destinationProperties: .init(showImport: false, showAdd: false, initialContent: .searchResults))), results: .initial(types: [.monster, .character, .group]))
+    init(
+        compendiumState: CompendiumIndexState = CompendiumIndexState(title: "Add Combatant", properties: CompendiumIndexState.Properties(showImport: false, showAdd: false, initiallyFocusOnSearch: false, initialContent: .initial(types: [.monster, .character, .group], destinationProperties: .init(showImport: false, showAdd: false, initiallyFocusOnSearch: false, initialContent: .searchResults))), results: .initial(types: [.monster, .character, .group])),
+        encounter: Encounter,
+        creatureEditViewState: CreatureEditViewState? = nil
+    ) {
+        self.compendiumState = compendiumState
         self.encounter = encounter
         self.creatureEditViewState = creatureEditViewState
 
         updateCombatantsByDefinitionCache()
+        updateSuggestedCombatants()
+    }
+}
+
+extension AddCombatantState: NavigationNode {
+    var nodeId: String {
+        "AddCombatantState"
+    }
+
+    func topNavigationItems() -> [Any] {
+        compendiumState.topNavigationItems()
+    }
+
+    func navigationStackSize() -> Int {
+        compendiumState.navigationStackSize()
+    }
+
+    mutating func popLastNavigationStackItem() {
+        compendiumState.popLastNavigationStackItem()
     }
 }

@@ -17,6 +17,7 @@ struct EncounterDetailViewState: Equatable {
         didSet {
             let b = building
             addCombatantState?.encounter = b
+
             if let cds = combatantDetailState, let c = b.combatant(for: cds.combatant.id) {
                 combatantDetailState?.combatant = c
             }
@@ -77,17 +78,20 @@ struct EncounterDetailViewState: Equatable {
 
     var combatantDetailState: CombatantDetailViewState? {
         get {
-            guard case .combatant(let state)? = sheet else { return nil }
-            return state
+            if case .combatant(let state)? = sheet {
+                return state
+            }
+            return nil
         }
         set {
-            if let state = newValue {
-                self.sheet = .combatant(state)
-            } else {
-                self.sheet = nil
+            if sheet != nil {
+                self.sheet = newValue.map { .combatant($0) }
             }
         }
     }
+
+    var combatantDetailReferenceItemRequest: ReferenceViewItemRequest?
+    var addCombatantReferenceItemRequest: ReferenceViewItemRequest?
 
     var runningEncounterLogState: RunningEncounterLogViewState? {
         guard case .runningEncounterLog(let state)? = sheet else { return nil }
@@ -126,6 +130,7 @@ struct EncounterDetailViewState: Equatable {
             case .health: return .health(.single(Combatant.nullInstance))
             }
         }
+
         return res
     }
 
@@ -163,6 +168,7 @@ extension EncounterDetailViewState {
         case sheet(Sheet?)
         case popover(Popover?)
         case addCombatant(AddCombatantState.Action)
+        case addCombatantAction(AddCombatantView.Action, Bool)
         case combatantDetail(CombatantDetailViewAction)
         case resumableRunningEncounters(ResumableRunningEncounters.Action)
         case removeResumableRunningEncounter(String) // key of the running encounter
@@ -174,6 +180,9 @@ extension EncounterDetailViewState {
         case selectionCombatantAction(CombatantAction)
 
         case selectedCombatantTags(CombatantTagsViewAction)
+
+        case showCombatantDetailReferenceItem(Combatant)
+        case showAddCombatantReferenceItem
 
         enum SelectionEncounterAction: Hashable {
             case duplicate
@@ -198,6 +207,7 @@ extension EncounterDetailViewState {
                         return Effect(value: .actionSheet(.runEncounter(resumables)))
                     } else {
                         return Effect(value: .run(nil))
+                            .receive(on: env.mainQueue.animation()).eraseToEffect()
                     }
                 case .onResumeRunningEncounterTap(let resumableKey):
                     return Effect.future { callback in
@@ -212,7 +222,7 @@ extension EncounterDetailViewState {
                             assertionFailure("Could not resume run: \(error)")
                             callback(.success(nil))
                         }
-                    }.compactMap { $0 }.eraseToEffect()
+                    }.compactMap { $0 }.receive(on: env.mainQueue.animation()).eraseToEffect()
                 case .run(let runningEncounter):
                     let base = apply(state.building) {
                         $0.ensureStableDiscriminators = true
@@ -250,15 +260,41 @@ extension EncounterDetailViewState {
                     }.publisher.append(
                         // Async is needed if this action also dismissed a
                         dismiss
-                            ? Just(Action.sheet(nil)).delay(for: 0, scheduler: DispatchQueue.main).eraseToAnyPublisher()
+                            ? Just(Action.sheet(nil)).delay(for: 0, scheduler: env.mainQueue).eraseToAnyPublisher()
                             : Empty().eraseToAnyPublisher()
                     ).eraseToEffect()
                 case .addCombatant: break // handled by AddCombatantState.reducer
+                case .addCombatantAction(let action, let dismiss):
+                    let state = state
+                    return Effect.run { subscriber in
+                        switch action {
+                        case .add(let combatants):
+                            for c in combatants {
+                                subscriber.send(.encounter(.add(c)))
+                            }
+                        case .addByKey(let keys, let party):
+                            for key in keys {
+                                subscriber.send(.encounter(.addByKey(key, party)))
+                            }
+                        case .remove(let definitionID, let quantity):
+                            for c in state.encounter.combatants(with: definitionID).reversed().prefix(quantity) {
+                                subscriber.send(.encounter(.remove(c)))
+                            }
+                        }
+
+                        if dismiss {
+                            subscriber.send(.sheet(nil))
+                        }
+                        subscriber.send(completion: .finished)
+                        return AnyCancellable { }
+                    }
                 case .combatantDetail(.combatant(let a)):
                     if let combatantDetailState = state.combatantDetailState {
                         return Effect(value: .encounter(.combatant(combatantDetailState.combatant.id, a)))
                     }
                 case .combatantDetail: break // handled by CombatantDetailViewState.reducer
+//                case .detailScreen(.combatantColumn(.combatantDetail(let id, .combatant(let a)))):
+//                    return Effect(value: .encounter(.combatant(id, a)))
                 case .popover(let p):
                     state.popover = p
                 case .resetEncounter(let clearAll):
@@ -300,6 +336,22 @@ extension EncounterDetailViewState {
                 case .selectedCombatantTags(.combatant(let c, let a)):
                     return Effect(value: .encounter(.combatant(c.id, a)))
                 case .selectedCombatantTags: break // handled below
+                case .showCombatantDetailReferenceItem(let combatant):
+                    let detailState = ReferenceItemViewState.Content.CombatantDetail(
+                        encounter: state.encounter,
+                        selectedCombatantId: combatant.id,
+                        runningEncounter: state.running
+                    )
+
+                    state.combatantDetailReferenceItemRequest = ReferenceViewItemRequest(
+                        id: state.combatantDetailReferenceItemRequest?.id ?? UUID(),
+                        state: ReferenceItemViewState(content: .combatantDetail(detailState))
+                    )
+                case .showAddCombatantReferenceItem:
+                    state.addCombatantReferenceItemRequest = ReferenceViewItemRequest(
+                        id: state.addCombatantReferenceItemRequest?.id ?? UUID(),
+                        state: ReferenceItemViewState(content: .addCombatant(ReferenceItemViewState.Content.AddCombatant(addCombatantState: AddCombatantState(encounter: state.encounter))))
+                    )
                 }
                 return .none
             },

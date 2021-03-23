@@ -48,4 +48,6 @@ extension DiceRollerViewState {
         },
         DiceCalculatorState.reducer.pullback(state: \.calculatorState, action: /DiceRollerViewAction.calculatorState, environment: { $0 })
     )
+
+    static let nullInstance = DiceRollerViewState()
 }

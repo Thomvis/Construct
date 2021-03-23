@@ -28,30 +28,10 @@ struct CompendiumItemDetailView: View {
     var body: some View {
         return ScrollView {
             VStack {
-                Group {
-                    (item as? Monster).map {
-                        CompendiumMonsterDetailView(monster: $0) { m in
-                            StatBlockView(stats: m.stats, onTap: onTap(m.stats))
-                        }
-                    }
+                contentView()
 
-                    (item as? Spell).map {
-                        CompendiumSpellDetailView(spell: $0)
-                    }
-
-                    (item as? Character).map {
-                        CompendiumCharacterDetailView(character: $0) { c in
-                            StatBlockView(stats: c.stats, onTap: onTap(c.stats))
-                        }
-                    }
-
-                    (item as? CompendiumItemGroup).map {
-                        CompendiumItemGroupDetailView(group: $0)
-                    }
-                }
-
-                (viewStore.state.entry.source?.displayName).map {
-                    Text($0)
+                if let sourceDisplayName = viewStore.state.entry.source?.displayName {
+                    Text(sourceDisplayName)
                         .font(.footnote).italic()
                         .foregroundColor(Color(UIColor.secondaryLabel))
                         .frame(maxWidth: .infinity, alignment: .trailing)
@@ -59,43 +39,56 @@ struct CompendiumItemDetailView: View {
             }
             .padding(12)
         }
-        .background(Group {
-            with(menuItems) { items in
-                if items.count == 1 {
-                    EmptyView().navigationBarItems(trailing: Button(action: {
-                        items[0].action()
-                    }) {
-                        Text(items[0].text)
-                    })
-                } else if items.count > 1 {
-                    EmptyView().navigationBarItems(trailing: Menu(content: {
-                        ForEach(menuItems, id: \.text) { item in
-                            Button(action: item.action) {
-                                Label(item.text, systemImage: item.systemImage)
-                            }
+        .background(with(menuItems) { items in
+            if items.count == 1 {
+                EmptyView().navigationBarItems(trailing: Button(action: {
+                    items[0].action()
+                }) {
+                    Text(items[0].text)
+                })
+            } else if items.count > 1 {
+                EmptyView().navigationBarItems(trailing: Menu(content: {
+                    ForEach(menuItems, id: \.text) { item in
+                        Button(action: item.action) {
+                            Label(item.text, systemImage: item.systemImage)
                         }
-                    }) {
-                        Image(systemName: "ellipsis.circle").frame(width: 30, height: 30, alignment: .trailing)
-                    })
-                }
+                    }
+                }) {
+                    Image(systemName: "ellipsis.circle").frame(width: 30, height: 30, alignment: .trailing)
+                })
             }
         })
         .stateDrivenNavigationLink(
             store: store,
             state: /CompendiumEntryDetailViewState.NextScreenState.creatureEdit,
             action: /CompendiumItemDetailViewAction.NextScreenAction.creatureEdit,
-            isActive: { _ in true },
             destination: CreatureEditView.init
         )
         .stateDrivenNavigationLink(
             store: store,
             state: /CompendiumEntryDetailViewState.NextScreenState.groupEdit,
             action: /CompendiumItemDetailViewAction.NextScreenAction.groupEdit,
-            isActive: { _ in true },
             destination: CompendiumItemGroupEditView.init
         )
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .popover(popoverBinding)
+    }
+
+    @ViewBuilder
+    func contentView() -> some View {
+        if let monster = item as? Monster {
+            CompendiumMonsterDetailView(monster: monster) { m in
+                StatBlockView(stats: m.stats, onTap: onTap(m.stats))
+            }
+        } else if let spell = item as? Spell {
+            CompendiumSpellDetailView(spell: spell)
+        } else if let character = item as? Character {
+            CompendiumCharacterDetailView(character: character) { c in
+                StatBlockView(stats: c.stats, onTap: onTap(c.stats))
+            }
+        } else if let group = item as? CompendiumItemGroup {
+            CompendiumItemGroupDetailView(group: group)
+        }
     }
 
     var editViewState: CreatureEditViewState? {

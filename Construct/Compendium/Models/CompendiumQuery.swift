@@ -10,20 +10,20 @@ import Foundation
 
 extension CompendiumIndexState {
 
-    var compatibleFilterProperties: [Query.Filters.Property] {
-        var result: [Query.Filters.Property] = []
-        if (self.results.input.filters?.types ?? [.monster]).contains(.monster) {
-            // monster is included or there is no filter at all
-            result.append(.minMonsterCR)
-            result.append(.maxMonsterCR)
-        }
-        return result
-    }
-
     struct Query: Equatable {
         var text: String?
         var filters: Filters?
         var order: Order?
+
+        var compatibleFilterProperties: [Query.Filters.Property] {
+            var result: [Query.Filters.Property] = []
+            if (filters?.types ?? [.monster]).contains(.monster) {
+                // monster is included or there is no filter at all
+                result.append(.minMonsterCR)
+                result.append(.maxMonsterCR)
+            }
+            return result
+        }
 
         struct Filters: Equatable {
             let types: [CompendiumItemType]?

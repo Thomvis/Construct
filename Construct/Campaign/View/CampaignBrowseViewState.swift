@@ -69,16 +69,9 @@ struct CampaignBrowseViewState: NavigationStackSourceState, Equatable {
         var node: CampaignNode? // nil if new node
     }
 
-    enum NextScreen: NavigationStackItemStateConvertible, NavigationStackItemState, Equatable {
+    enum NextScreen: Equatable {
         indirect case catalogBrowse(CampaignBrowseViewState)
         case encounter(EncounterDetailViewState)
-
-        var navigationStackItemState: NavigationStackItemState {
-            switch self {
-            case .catalogBrowse(let s): return s
-            case .encounter(let s): return s
-            }
-        }
     }
 }
 
@@ -178,33 +171,6 @@ protocol CampaignBrowseViewNextScreenAction {
 }
 
 extension CampaignBrowseViewState {
-    var nextCampaignBrowseView: CampaignBrowseViewState? {
-        get { nextScreen?.navigationStackItemState as? CampaignBrowseViewState }
-        set {
-            if let newValue = newValue {
-                nextScreen = .catalogBrowse(newValue)
-            }
-        }
-    }
-
-    var nextEncounterDetailView: EncounterDetailViewState? {
-        get { nextScreen?.navigationStackItemState as? EncounterDetailViewState}
-        set {
-            if let newValue = newValue {
-                nextScreen = .encounter(newValue)
-            }
-        }
-    }
-
-    var detailEncounterDetailView: EncounterDetailViewState? {
-        get { detailScreen?.navigationStackItemState as? EncounterDetailViewState}
-        set {
-            if let newValue = newValue {
-                detailScreen = .encounter(newValue)
-            }
-        }
-    }
-
     var nodeEditState: NodeEditState? {
         get {
             guard case .nodeEdit(let s)? = sheet else { return nil }
@@ -339,14 +305,18 @@ extension CampaignBrowseViewState {
                     }
                 }.pullback(state: \.items, action: /CampaignBrowseViewAction.items)
             },
-            Reducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.nextCampaignBrowseView, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.campaignBrowse($0)) }, extract: { $0.nextCampaignBrowse })),
-            EncounterDetailViewState.reducer.optional().pullback(state: \.nextEncounterDetailView, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.encounterDetail($0)) }, extract: { $0.nextEncounterDetail })),
-            EncounterDetailViewState.reducer.optional().pullback(state: \.detailEncounterDetailView, action: CasePath(embed: { CampaignBrowseViewAction.detailScreen(.encounterDetail($0)) }, extract: { $0.detailEncounterDetail })),
-            Reducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.moveSheetState as WritableKeyPath<CampaignBrowseViewState, CampaignBrowseViewState?>, action: CasePath(embed: { CampaignBrowseViewAction.moveSheet($0) }, extract: { $0.moveSheet }))
+            Reducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.presentedNextCatalogBrowse, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.campaignBrowse($0)) }, extract: { $0.nextCampaignBrowse })),
+            EncounterDetailViewState.reducer.optional().pullback(state: \.presentedNextEncounter, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.encounterDetail($0)) }, extract: { $0.nextEncounterDetail })),
+            EncounterDetailViewState.reducer.optional().pullback(state: \.presentedDetailEncounter, action: CasePath(embed: { CampaignBrowseViewAction.detailScreen(.encounterDetail($0)) }, extract: { $0.detailEncounterDetail })),
+            Reducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.moveSheetState, action: CasePath(embed: { CampaignBrowseViewAction.moveSheet($0) }, extract: { $0.moveSheet }))
         )
     }
 }
 
 extension CampaignBrowseViewState {
     static let nullInstance = CampaignBrowseViewState(node: CampaignNode.root, mode: .browse, showSettingsButton: false)
+}
+
+extension CampaignBrowseViewState.NodeEditState {
+    static let nullInstance = CampaignBrowseViewState.NodeEditState(name: "")
 }

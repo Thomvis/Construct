@@ -32,13 +32,6 @@ struct InlineCombatantTagsView: View {
                             self.viewStore.send(.combatant(.removeTag(tag)))
                         }
                     })
-                    .stateDrivenNavigationLink(
-                        store: store,
-                        state: /CombatantDetailViewState.NextScreen.combatantTagEditView,
-                        action: /CombatantDetailViewAction.NextScreenAction.combatantTagEditView,
-                        isActive: { $0.tag.id == tag.id },
-                        destination: CombatantTagEditView.init
-                    )
                 }
                 .onAppear {
                     guard !self.appeared.wrappedValue else { return }
@@ -50,6 +43,12 @@ struct InlineCombatantTagsView: View {
                         self.viewStore.send(.combatant(.removeTag(CombatantTag.nullInstance)))
                     }
                 }
+                .stateDrivenNavigationLink(
+                    store: store,
+                    state: /CombatantDetailViewState.NextScreen.combatantTagEditView,
+                    action: /CombatantDetailViewAction.NextScreenAction.combatantTagEditView,
+                    destination: CombatantTagEditView.init
+                )
             }
         }
     }

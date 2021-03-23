@@ -77,7 +77,7 @@ private extension StatBlock {
             name: m.name,
             size: CreatureSize(englishName: m.size.rawValue)!,
             type: m.type.rawValue,
-            subtype: m.subtype,
+            subtype: m.subtype.nonEmptyString,
             alignment: Alignment(englishName: m.alignment.rawValue),
 
             armorClass: m.armorClass,
