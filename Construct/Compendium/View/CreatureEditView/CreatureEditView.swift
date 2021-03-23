@@ -71,7 +71,7 @@ struct CreatureEditView: View {
                         if mode == self.model.wrappedValue.statBlock.movementModes.first {
                             Image(systemName: "hare").frame(width: Self.iconColumnWidth)
                         } else {
-                            Spacer().frame(width: Self.iconColumnWidth + 8)
+                            Spacer().frame(width: Self.iconColumnWidth)
                         }
 
                         Menu(mode.localizedDisplayName) {
@@ -129,7 +129,7 @@ struct CreatureEditView: View {
 
             FormSection(.player) {
                 Toggle(isOn: model.isPlayer.animation()) {
-                    Text("Controlled by player")
+                    Text("Controlled by player").bold()
                 }
                 if model.wrappedValue.isPlayer {
                     ClearableTextField("Player name (Optional)", text: model.playerName).textContentType(.name)
@@ -168,6 +168,11 @@ struct CreatureEditView: View {
             } else {
                 EmptyView()
                     .navigationBarItems(
+                        leading: Button(action: {
+                            self.presentationMode.wrappedValue.dismiss()
+                        }) {
+                            Text("Cancel")
+                        },
                         trailing: Button(action: {
                             self.viewStore.send(.onAddTap(self.viewStore.state))
                         }) {

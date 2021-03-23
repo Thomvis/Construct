@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */; };
 		E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E905E0BB246D83B800698C0A /* ComposableArchitecture */; };
+		E90B961525B312BB00BD760B /* Memoize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90B961425B312BB00BD760B /* Memoize.swift */; };
+		E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */; };
+		E9121E2925FA75D50048BE32 /* FloatingDiceRollerViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9121E2825FA75D50048BE32 /* FloatingDiceRollerViewState.swift */; };
 		E91885CB23943BBF0094EC87 /* Sort.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91885CA23943BBF0094EC87 /* Sort.swift */; };
 		E91885CD23944A3F0094EC87 /* ddb_bass.json in Resources */ = {isa = PBXBuildFile; fileRef = E91885CC23944A3F0094EC87 /* ddb_bass.json */; };
 		E91B857F23DA355B009AF6D7 /* software_licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = E91B857E23DA3552009AF6D7 /* software_licenses.md */; };
@@ -79,7 +82,11 @@
 		E9517FD9235F9547005A51FC /* SectionContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9517FD8235F9547005A51FC /* SectionContainer.swift */; };
 		E9517FDD2360C09D005A51FC /* CancellableBag.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9517FDC2360C09D005A51FC /* CancellableBag.swift */; };
 		E9540FFA23181524008A25EC /* PopoverHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9540FF923181524008A25EC /* PopoverHost.swift */; };
+		E957C08125BB30580042ECF6 /* ReferenceContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08025BB30580042ECF6 /* ReferenceContext.swift */; };
+		E957C08725BEFC110042ECF6 /* AddCombatantCompendiumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */; };
+		E957C08B25BF57A30042ECF6 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08A25BF57A30042ECF6 /* HomeView.swift */; };
 		E95B3D7C2354F35700F93BA8 /* EntityChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */; };
+		E95DE630251E8D160085D550 /* FloatingDiceRollerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */; };
 		E95FA115231C58A30098BD83 /* DiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */; };
 		E95FD429249BF26C0023F363 /* DDBCharacterDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95173233B87E300141552 /* DDBCharacterDataSourceReader.swift */; };
 		E95FD42F249BFA280023F363 /* EncounterDetailTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */; };
@@ -126,6 +133,7 @@
 		E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861423BDF398003B2DA2 /* NumberEntryView.swift */; };
 		E978861A23BE3779003B2DA2 /* With.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861923BE3779003B2DA2 /* With.swift */; };
 		E978862023C0B04D003B2DA2 /* CompendiumItemGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */; };
+		E979CBE22594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E979CBE12594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift */; };
 		E97A43AA2332C31A00A8B032 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43A92332C31A00A8B032 /* Entity.swift */; };
 		E97A43AC2334004B00A8B032 /* CompendiumImporterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */; };
 		E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AD233407D000A8B032 /* Fixtures.swift */; };
@@ -142,7 +150,21 @@
 		E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F732520A17A0098A166 /* AppCenterAnalytics */; };
 		E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F752520A17A0098A166 /* AppCenterCrashes */; };
 		E9869F7D2520A64B0098A166 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F7C2520A64B0098A166 /* GRDB */; };
+		E9869F8D252203BA0098A166 /* TabNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F8C252203BA0098A166 /* TabNavigationView.swift */; };
+		E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F90252203F40098A166 /* TabNavigationViewState.swift */; };
+		E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9425223E870098A166 /* ColumnNavigationView.swift */; };
+		E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */; };
+		E9869FDA2523BFCB0098A166 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869FD92523BFCB0098A166 /* SidebarView.swift */; };
+		E9869FDE2523BFF60098A166 /* SidebarViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869FDD2523BFF60098A166 /* SidebarViewState.swift */; };
+		E98BF12B257E6D4900CBC174 /* ReferenceViewPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */; };
 		E99095B3249797F400731EB9 /* AddCombatantDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */; };
+		E991F88725449C7D006CE8E8 /* TabbedDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F88625449C7D006CE8E8 /* TabbedDocumentView.swift */; };
+		E991F88C25449D86006CE8E8 /* ReferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F88B25449D86006CE8E8 /* ReferenceView.swift */; };
+		E991F89025449DA8006CE8E8 /* ReferenceViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F88F25449DA8006CE8E8 /* ReferenceViewState.swift */; };
+		E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89325449E48006CE8E8 /* ReferenceItemView.swift */; };
+		E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */; };
+		E991F89D2545A791006CE8E8 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = E991F89C2545A791006CE8E8 /* Introspect */; };
+		E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */; };
 		E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */; };
 		E9969199247C3C0100A8B1A0 /* Spell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E940B5D8237B45FC00A8DAF4 /* Spell.swift */; };
 		E996919A247C40E500A8B1A0 /* CreatureEditViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */; };
@@ -198,7 +220,10 @@
 /* Begin PBXFileReference section */
 		E903F71F237F42AF004C1AC8 /* InlineCombatantTagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineCombatantTagsView.swift; sourceTree = "<group>"; };
 		E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagPopover.swift; sourceTree = "<group>"; };
+		E90B961425B312BB00BD760B /* Memoize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memoize.swift; sourceTree = "<group>"; };
 		E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryDetailViewState.swift; sourceTree = "<group>"; };
+		E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantReferenceItemView.swift; sourceTree = "<group>"; };
+		E9121E2825FA75D50048BE32 /* FloatingDiceRollerViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerViewState.swift; sourceTree = "<group>"; };
 		E91885CA23943BBF0094EC87 /* Sort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sort.swift; sourceTree = "<group>"; };
 		E91885CC23944A3F0094EC87 /* ddb_bass.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ddb_bass.json; sourceTree = "<group>"; };
 		E91885CE239674DB0094EC87 /* Construct.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Construct.entitlements; sourceTree = "<group>"; };
@@ -269,7 +294,11 @@
 		E951BD9723FFD39400F890D5 /* CombatantRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantRow.swift; sourceTree = "<group>"; };
 		E9540FF923181524008A25EC /* PopoverHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverHost.swift; sourceTree = "<group>"; };
 		E9562F28230D1F62008B010F /* DiceCalculatorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiceCalculatorView.swift; sourceTree = "<group>"; };
+		E957C08025BB30580042ECF6 /* ReferenceContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceContext.swift; sourceTree = "<group>"; };
+		E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantCompendiumView.swift; sourceTree = "<group>"; };
+		E957C08A25BF57A30042ECF6 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityChangeObserver.swift; sourceTree = "<group>"; };
+		E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerView.swift; sourceTree = "<group>"; };
 		E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExpressionTest.swift; sourceTree = "<group>"; };
 		E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailTest.swift; sourceTree = "<group>"; };
 		E962FF352504FC2E00919B34 /* AnimatedRollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedRollView.swift; sourceTree = "<group>"; };
@@ -291,6 +320,7 @@
 		E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroup.swift; sourceTree = "<group>"; };
 		E978862123C20B90003B2DA2 /* CompendiumItemGroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupDetailView.swift; sourceTree = "<group>"; };
 		E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupEditView.swift; sourceTree = "<group>"; };
+		E979CBE12594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseTwoColumnContainer.swift; sourceTree = "<group>"; };
 		E97A43A72332C07200A8B032 /* CompendiumImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporter.swift; sourceTree = "<group>"; };
 		E97A43A92332C31A00A8B032 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
 		E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporterTest.swift; sourceTree = "<group>"; };
@@ -307,8 +337,21 @@
 		E985FDC923E4A6AC00F1A62C /* DiceRollerViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceRollerViewState.swift; sourceTree = "<group>"; };
 		E985FDCB23E89F0200F1A62C /* CombatantResourcesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantResourcesView.swift; sourceTree = "<group>"; };
 		E985FDCD23E89F0B00F1A62C /* CombatantResourcesViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantResourcesViewState.swift; sourceTree = "<group>"; };
+		E9869F8C252203BA0098A166 /* TabNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationView.swift; sourceTree = "<group>"; };
+		E9869F90252203F40098A166 /* TabNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationViewState.swift; sourceTree = "<group>"; };
+		E9869F9425223E870098A166 /* ColumnNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationView.swift; sourceTree = "<group>"; };
+		E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationViewState.swift; sourceTree = "<group>"; };
+		E9869FD92523BFCB0098A166 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		E9869FDD2523BFF60098A166 /* SidebarViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarViewState.swift; sourceTree = "<group>"; };
+		E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceViewPreference.swift; sourceTree = "<group>"; };
 		E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantDetailView.swift; sourceTree = "<group>"; };
 		E990F4F023706AAC00276EB6 /* StateDrivenNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateDrivenNavigationView.swift; sourceTree = "<group>"; };
+		E991F88625449C7D006CE8E8 /* TabbedDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabbedDocumentView.swift; sourceTree = "<group>"; };
+		E991F88B25449D86006CE8E8 /* ReferenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceView.swift; sourceTree = "<group>"; };
+		E991F88F25449DA8006CE8E8 /* ReferenceViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceViewState.swift; sourceTree = "<group>"; };
+		E991F89325449E48006CE8E8 /* ReferenceItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemView.swift; sourceTree = "<group>"; };
+		E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemViewState.swift; sourceTree = "<group>"; };
+		E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigationNode.generated.swift; sourceTree = "<group>"; };
 		E999896022A6B4F20067BA25 /* Construct.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Construct.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E999896322A6B4F20067BA25 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E999896522A6B4F20067BA25 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -379,6 +422,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */,
+				E991F89D2545A791006CE8E8 /* Introspect in Frameworks */,
 				E9869F7D2520A64B0098A166 /* GRDB in Frameworks */,
 				E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */,
 				E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */,
@@ -403,6 +447,8 @@
 				E9562F28230D1F62008B010F /* DiceCalculatorView.swift */,
 				E91B858323E4337D009AF6D7 /* DiceRollerView.swift */,
 				E985FDC923E4A6AC00F1A62C /* DiceRollerViewState.swift */,
+				E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */,
+				E9121E2825FA75D50048BE32 /* FloatingDiceRollerViewState.swift */,
 			);
 			path = DiceRoller;
 			sourceTree = "<group>";
@@ -516,6 +562,13 @@
 				E999896722A6B4F20067BA25 /* ContentView.swift */,
 				E92A41E3240D2F0C009AF440 /* WelcomeView.swift */,
 				E92A41E7240D3A66009AF440 /* Preferences.swift */,
+				E9869F8C252203BA0098A166 /* TabNavigationView.swift */,
+				E9869F90252203F40098A166 /* TabNavigationViewState.swift */,
+				E9869F9425223E870098A166 /* ColumnNavigationView.swift */,
+				E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */,
+				E9869FD92523BFCB0098A166 /* SidebarView.swift */,
+				E9869FDD2523BFF60098A166 /* SidebarViewState.swift */,
+				E979CBE12594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -555,6 +608,7 @@
 				E946B02E247E62CD008A407C /* NumberEntryPopover.swift */,
 				E931CF902500C8BF006CEE78 /* DiceActionView.swift */,
 				E962FF352504FC2E00919B34 /* AnimatedRollView.swift */,
+				E991F88625449C7D006CE8E8 /* TabbedDocumentView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -657,6 +711,7 @@
 				E91C167824029D94004B5C85 /* Apply.swift */,
 				E91E596C2447225500975453 /* Migrated.swift */,
 				E972BA932477F8B100F313D7 /* EquatablePropertyWrappers.swift */,
+				E90B961425B312BB00BD760B /* Memoize.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -683,6 +738,29 @@
 				E926176B2398563E004B1958 /* AdHocCombatant.swift */,
 			);
 			path = Domain;
+			sourceTree = "<group>";
+		};
+		E991F88A25449D61006CE8E8 /* Reference */ = {
+			isa = PBXGroup;
+			children = (
+				E991F88B25449D86006CE8E8 /* ReferenceView.swift */,
+				E991F88F25449DA8006CE8E8 /* ReferenceViewState.swift */,
+				E991F89325449E48006CE8E8 /* ReferenceItemView.swift */,
+				E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */,
+				E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */,
+				E957C08025BB30580042ECF6 /* ReferenceContext.swift */,
+				E957C08A25BF57A30042ECF6 /* HomeView.swift */,
+				E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */,
+			);
+			path = Reference;
+			sourceTree = "<group>";
+		};
+		E991F8D9254B250B006CE8E8 /* Sourcery */ = {
+			isa = PBXGroup;
+			children = (
+				E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */,
+			);
+			path = Sourcery;
 			sourceTree = "<group>";
 		};
 		E999895722A6B4F20067BA25 = {
@@ -716,11 +794,13 @@
 				E9CFB306234F9CEC00CA0AF4 /* Campaign */,
 				E931E5492339719500C3FE9A /* UI */,
 				E91E470E231D9C51005D1E6F /* Fixtures */,
+				E991F88A25449D61006CE8E8 /* Reference */,
 				E91E4704231D9913005D1E6F /* Persistence */,
 				E91E46FA231D9378005D1E6F /* Compendium */,
 				E9DF660B2313A978005D4FE5 /* Encouter */,
 				E98F96FF230B32250080372A /* Models */,
 				E98F96FA230B24200080372A /* Foundation */,
+				E991F8D9254B250B006CE8E8 /* Sourcery */,
 				E999896322A6B4F20067BA25 /* AppDelegate.swift */,
 				E999896522A6B4F20067BA25 /* SceneDelegate.swift */,
 				E999896922A6B4F30067BA25 /* Assets.xcassets */,
@@ -840,6 +920,7 @@
 				E972BA95247849A900F313D7 /* CombatantDetailViewState.swift */,
 				E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */,
 				E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */,
+				E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */,
 			);
 			path = Encouter;
 			sourceTree = "<group>";
@@ -881,6 +962,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E999897422A6B4F30067BA25 /* Build configuration list for PBXNativeTarget "Construct" */;
 			buildPhases = (
+				E991F8D8254B22E6006CE8E8 /* Sourcery */,
 				E999895C22A6B4F20067BA25 /* Sources */,
 				E999895D22A6B4F20067BA25 /* Frameworks */,
 				E999895E22A6B4F20067BA25 /* Resources */,
@@ -896,6 +978,7 @@
 				E9869F732520A17A0098A166 /* AppCenterAnalytics */,
 				E9869F752520A17A0098A166 /* AppCenterCrashes */,
 				E9869F7C2520A64B0098A166 /* GRDB */,
+				E991F89C2545A791006CE8E8 /* Introspect */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -956,6 +1039,7 @@
 				E931CF8624FE5D68006CEE78 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 				E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
 				E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+				E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -999,6 +1083,27 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		E991F8D8254B22E6006CE8E8 /* Sourcery */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Sourcery;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which sourcery >/dev/null; then\n  sourcery --sources Construct --templates Sourcery --output Construct/Sourcery\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		E999895C22A6B4F20067BA25 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -1013,6 +1118,7 @@
 				E963CCFE247BDEE8009863D7 /* Monster.swift in Sources */,
 				E972BA9F247856F200F313D7 /* DiceRollerViewState.swift in Sources */,
 				E9D5A6EC2314FB37004D84E2 /* DiceExpression.swift in Sources */,
+				E9121E2925FA75D50048BE32 /* FloatingDiceRollerViewState.swift in Sources */,
 				E942E019247FE9E900170FAC /* CampaignBrowseViewState.swift in Sources */,
 				E97651D3248AE11400C76865 /* HealthFractionView.swift in Sources */,
 				E91C167924029D94004B5C85 /* Apply.swift in Sources */,
@@ -1028,18 +1134,23 @@
 				E931E54F233A230800C3FE9A /* Fraction.swift in Sources */,
 				E999FBC9235BA536000CCC8B /* SimpleList.swift in Sources */,
 				E97651D7248AE50600C76865 /* CombatantResourcesView.swift in Sources */,
+				E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */,
 				E9517FDD2360C09D005A51FC /* CancellableBag.swift in Sources */,
+				E957C08725BEFC110042ECF6 /* AddCombatantCompendiumView.swift in Sources */,
 				E97651D1248AE0AC00C76865 /* CombatantRow.swift in Sources */,
 				E972BAA12478586900F313D7 /* CompendiumItem.swift in Sources */,
 				E942E01C2480090000170FAC /* CombatantDetailViewState.swift in Sources */,
 				E9819BE324852498005B898E /* CampaignBrowserContainerView.swift in Sources */,
 				E9A95177233B8A3A00141552 /* DDBModels.swift in Sources */,
 				E931CF8F2500C8A8006CEE78 /* DiceAction.swift in Sources */,
+				E957C08125BB30580042ECF6 /* ReferenceContext.swift in Sources */,
 				E942E00D247E8F6600170FAC /* StatBlockCombatantResources.swift in Sources */,
 				E91E470D231D9BD2005D1E6F /* Migrations.swift in Sources */,
 				E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */,
 				E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */,
 				E963CCA72479423E009863D7 /* DiceRollerView.swift in Sources */,
+				E98BF12B257E6D4900CBC174 /* ReferenceViewPreference.swift in Sources */,
+				E9869FDA2523BFCB0098A166 /* SidebarView.swift in Sources */,
 				E9819BE02482E478005B898E /* HealthDialog.swift in Sources */,
 				E97651D6248AE3C600C76865 /* CombatantResourceTrackerView.swift in Sources */,
 				E946B027247D9F53008A407C /* Encounter.swift in Sources */,
@@ -1060,6 +1171,7 @@
 				E9AB031323EBF09B0091C908 /* EqualSize.swift in Sources */,
 				E9517FD9235F9547005A51FC /* SectionContainer.swift in Sources */,
 				E9F9EB43231965EF00A70D11 /* RolledDiceExpression.swift in Sources */,
+				E95DE630251E8D160085D550 /* FloatingDiceRollerView.swift in Sources */,
 				E9F56AC6235483780085A72D /* AppState.swift in Sources */,
 				E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */,
 				E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */,
@@ -1067,7 +1179,9 @@
 				E972BA942477F8B200F313D7 /* EquatablePropertyWrappers.swift in Sources */,
 				E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */,
 				E91E4718231E8CD0005D1E6F /* CompendiumDataSource.swift in Sources */,
+				E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */,
 				E946B025247D9ED9008A407C /* Duration.swift in Sources */,
+				E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */,
 				E946B02C247E6225008A407C /* CompendiumItemGroupDetailView.swift in Sources */,
 				E97651DB248BBF1B00C76865 /* RunningEncounterLogView.swift in Sources */,
 				E942E016247EB3D300170FAC /* Open5eSpellDataSourceReader.swift in Sources */,
@@ -1081,24 +1195,32 @@
 				E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */,
 				E972BAA02478574500F313D7 /* DiceCalculatorView.swift in Sources */,
 				E9540FFA23181524008A25EC /* PopoverHost.swift in Sources */,
+				E90B961525B312BB00BD760B /* Memoize.swift in Sources */,
 				E946B026247D9EE3008A407C /* RunningEncounter.swift in Sources */,
 				E9D5A6ED2314FB37004D84E2 /* Creature.swift in Sources */,
 				E978862023C0B04D003B2DA2 /* CompendiumItemGroup.swift in Sources */,
 				E931E540233948AF00C3FE9A /* ParserCombinator.swift in Sources */,
 				E97651D5248AE2DA00C76865 /* InlineCombatantTagsView.swift in Sources */,
+				E957C08B25BF57A30042ECF6 /* HomeView.swift in Sources */,
 				E9819BE12482E6AA005B898E /* CombatantResourcesViewState.swift in Sources */,
+				E991F89025449DA8006CE8E8 /* ReferenceViewState.swift in Sources */,
 				E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */,
 				E97651D4248AE1CF00C76865 /* CombatantDetailView.swift in Sources */,
+				E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */,
 				E946B023247D9E91008A407C /* AdHocCombatant.swift in Sources */,
 				E999896622A6B4F20067BA25 /* SceneDelegate.swift in Sources */,
 				E9AB031823EC52C90091C908 /* SimpleButton.swift in Sources */,
 				E97A43AA2332C31A00A8B032 /* Entity.swift in Sources */,
 				E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */,
+				E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */,
 				E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */,
+				E979CBE22594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift in Sources */,
 				E931CF8324FD0E54006CEE78 /* CreatureActionParser.swift in Sources */,
+				E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */,
 				E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */,
 				E999FBC5235B4AC1000CCC8B /* CollectionView.swift in Sources */,
 				E996919B247C411300A8B1A0 /* CompendiumEntryDetailViewState.swift in Sources */,
+				E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */,
 				E946B024247D9EBE008A407C /* CombatantTag.swift in Sources */,
 				E97A4FB1236240EA0044E424 /* Checkbox.swift in Sources */,
 				E97651CC248ADA0100C76865 /* EncounterDetailView.swift in Sources */,
@@ -1109,6 +1231,7 @@
 				E931E54223394BCF00C3FE9A /* DiceExpressionParser.swift in Sources */,
 				E97651CA248AD9AA00C76865 /* SettingsView.swift in Sources */,
 				E942E011247EA78200170FAC /* CompendiumIndexView.swift in Sources */,
+				E9869FDE2523BFF60098A166 /* SidebarViewState.swift in Sources */,
 				E946B02F247E62CD008A407C /* NumberEntryPopover.swift in Sources */,
 				E9323A3B23205C4700F0D0C6 /* FileDataSource.swift in Sources */,
 				E963CCFC247BDEBF009863D7 /* CompendiumDataSourceReader.swift in Sources */,
@@ -1121,12 +1244,15 @@
 				E962FF362504FC2E00919B34 /* AnimatedRollView.swift in Sources */,
 				E942E015247EB3CE00170FAC /* Open5eMonsterDataSourceReader.swift in Sources */,
 				E931CF932500CA3F006CEE78 /* DiceActionViewState.swift in Sources */,
+				E991F88C25449D86006CE8E8 /* ReferenceView.swift in Sources */,
 				E972BAA22478588800F313D7 /* CompendiumEntry.swift in Sources */,
 				E921E32B230DD7A900D02CD6 /* Extensions.swift in Sources */,
+				E991F88725449C7D006CE8E8 /* TabbedDocumentView.swift in Sources */,
 				E972BA9724784A6400F313D7 /* EncounterDifficulty.swift in Sources */,
 				E972BAA424793DE500F313D7 /* Navigation.swift in Sources */,
 				E97651D0248ADF5A00C76865 /* AddCombatantView.swift in Sources */,
 				E9819BE4248524AA005B898E /* CampaignBrowseView.swift in Sources */,
+				E9869F8D252203BA0098A166 /* TabNavigationView.swift in Sources */,
 				E942E01B247FEA6D00170FAC /* EncounterDetailViewState.swift in Sources */,
 				E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */,
 				E9819BE52485252A005B898E /* SheetNavigationContainer.swift in Sources */,
@@ -1225,7 +1351,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 44;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -1247,6 +1373,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_SWIFT_FLAGS = "";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -1288,7 +1415,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 44;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1303,6 +1430,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -1326,10 +1454,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-function-bodies=1000 -driver-time-compilation";
 				PRODUCT_BUNDLE_IDENTIFIER = me.thomasvisser.construct5e;
 				PRODUCT_NAME = Construct;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -1347,10 +1476,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-function-bodies=1000 -driver-time-compilation";
 				PRODUCT_BUNDLE_IDENTIFIER = me.thomasvisser.construct5e;
 				PRODUCT_NAME = Construct;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -1456,7 +1586,7 @@
 			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 3.3.4;
+				minimumVersion = 4.0.0;
 			};
 		};
 		E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
@@ -1465,6 +1595,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 5.0.0;
+			};
+		};
+		E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/siteline/SwiftUI-Introspect.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -1499,6 +1637,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
 			productName = GRDB;
+		};
+		E991F89C2545A791006CE8E8 /* Introspect */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */;
+			productName = Introspect;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

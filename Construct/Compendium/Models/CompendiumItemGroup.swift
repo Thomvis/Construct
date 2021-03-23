@@ -28,3 +28,7 @@ struct CompendiumItemReference: Codable, Hashable {
     var itemTitle: String
     let itemKey: CompendiumItemKey
 }
+
+extension CompendiumItemGroup {
+    static let nullInstance = CompendiumItemGroup(id: UUID(), title: "", members: [])
+}

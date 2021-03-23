@@ -133,9 +133,9 @@ extension HealthDialog: Popover {
 
     static func otherActionSheet(combatant: Combatant?, value: Int) -> ActionSheetState<CombatantAction> {
         let title = combatant.map { "Edit \($0.name)'s hit points" } ?? "Edit hit points"
-        return ActionSheetState(title: LocalizedStringKey(title), buttons: [
-            .default("Add \(value) temporary hp", send: .hp(.temporary(.add(value)))),
-            .default("Set current hp to \(value)", send: .hp(.current(.set(value)))),
+        return ActionSheetState(title: TextState(title), buttons: [
+            .default(TextState("Add \(value) temporary hp"), send: .hp(.temporary(.add(value)))),
+            .default(TextState("Set current hp to \(value)"), send: .hp(.current(.set(value)))),
             .cancel()
         ])
     }

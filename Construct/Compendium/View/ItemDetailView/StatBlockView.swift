@@ -115,7 +115,7 @@ struct StatBlockView: View {
                     (Text(Image(systemName: "bolt.fill")).foregroundColor(Color.accentColor) + Text(" \(action.name). ").bold().italic().foregroundColor(Color.accentColor) + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
                 })
             } else {
-                (Text(" \(action.name). ").bold().italic() + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
+                (Text("\(action.name). ").bold().italic() + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
             }
         }
     }

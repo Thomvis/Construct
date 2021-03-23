@@ -153,7 +153,7 @@ struct DiceActionView: View {
                             t.fontWeight(.black).foregroundColor(emphasisColor(for: e))
                         }
                         .opacity(final ? 1 : 0.66)
-                        .opacity(rollValue.emphasis(for: roll.other) == nil ? 1 : 0.1)
+                        .opacity(rollValue.emphasis(for: roll.other) == nil ? 1 : 0.33)
                         .font(.headline)
                         .padding(6)
                         .frame(minWidth: 50, minHeight: 50)

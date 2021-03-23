@@ -68,3 +68,7 @@ extension KeyValueStore {
         try remove(itemKey.rawValue)
     }
 }
+
+extension CompendiumEntry {
+    static let nullInstance = CompendiumEntry(Monster(realm: .core, stats: StatBlock.default, challengeRating: .init(integer: 1)))
+}

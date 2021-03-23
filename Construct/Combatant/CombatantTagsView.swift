@@ -38,7 +38,7 @@ struct CombatantTagsView: View {
                                         Spacer()
 
                                         SimpleAccentedButton(action: {
-                                            self.viewStore.send(.removeTag(CombatantTagsViewState.TagId(group.tag), section))
+                                            self.viewStore.send(.removeTag(CombatantTagsViewState.TagId(group.tag), section), animation: .default)
                                         }) {
                                             Image(systemName: "minus.circle").font(Font.title.weight(.light))
                                                 .foregroundColor(Color(UIColor.systemRed))
@@ -77,25 +77,22 @@ struct CombatantTagsView: View {
                                                         if !groups.isEmpty {
                                                             SimpleAccentedButton(action: {
                                                                 if let group = groups.first, let section = section { // will be true because !group.isEmpty
-                                                                    self.viewStore.send(.removeTag(CombatantTagsViewState.TagId(group.tag), section))
+                                                                    self.viewStore.send(.removeTag(CombatantTagsViewState.TagId(group.tag), section), animation: .default)
                                                                 }
                                                             }) {
                                                                 Image(systemName: "minus.circle")
                                                                     .font(Font.title.weight(.light))
+                                                                    .accentColor(Color(UIColor.systemRed))
                                                             }
-
-                                                            ZStack {
-                                                                Text("\(groups.count)")
-                                                                Text("99").opacity(0) // to reserve space
-                                                            }.foregroundColor(Color.accentColor).font(.headline)
+                                                            .disabled(groups.count > 1)
+                                                        } else {
+                                                            SimpleAccentedButton(action: {
+                                                                let tag = CombatantTag(id: UUID(), definition: definition, note: nil, sourceCombatantId: self.viewStore.state.effectContext?.source?.id)
+                                                                self.viewStore.send(.addTag(tag), animation: .default)
+                                                            }) {
+                                                                Image(systemName: "plus.circle").font(Font.title.weight(.light))
+                                                            }
                                                         }
-
-                                                        SimpleAccentedButton(action: {
-                                                            let tag = CombatantTag(id: UUID(), definition: definition, note: nil, sourceCombatantId: self.viewStore.state.effectContext?.source?.id)
-                                                            self.viewStore.send(.addTag(tag))
-                                                        }) {
-                                                            Image(systemName: "plus.circle").font(Font.title.weight(.light))
-                                                        }.disabled(!groups.isEmpty)
                                                     }
                                                 }
                                             }
@@ -108,7 +105,7 @@ struct CombatantTagsView: View {
                 }
             }
         }
-        .stateDrivenNavigationLink(store: store, state: CasePath.`self`, action: CasePath.`self`, isActive: { _ in true }, destination: CombatantTagEditView.init)
+        .stateDrivenNavigationLink(store: store, state: CasePath.`self`, action: CasePath.`self`, destination: CombatantTagEditView.init)
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .navigationBarItems(trailing: Group {
             if self.sheetPresentationMode != nil {

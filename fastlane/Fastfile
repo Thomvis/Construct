@@ -15,13 +15,22 @@
 
 default_platform(:ios)
 
+ENV["FL_XCODE_VERSION"] = "12.1"
+
 platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :beta do
-    xcversion(version: "12.0")
+    xcversion
     increment_build_number(xcodeproj: "Construct.xcodeproj")
     build_app(project: "Construct.xcodeproj", scheme: "Construct")
     upload_to_testflight
+  end
+
+  lane :appstore do
+    xcversion
+    increment_build_number(xcodeproj: "Construct.xcodeproj")
+    build_app(project: "Construct.xcodeproj", scheme: "Construct")
+    upload_to_app_store
   end
 
   lane :update_appcenter_dsyms do
@@ -29,7 +38,6 @@ platform :ios do
 
     lane_context[SharedValues::DSYM_PATHS].each do |dsym|
       appcenter_upload(
-        api_token: "4046b30a07b9bd488fc773545b7ebe9dbee1c382",
         owner_name: "thomas-visser-00ws",
         owner_type: "user", # Default is user - set to organization for appcenter organizations
         app_name: "Construct",

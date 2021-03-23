@@ -46,7 +46,10 @@ struct NumberEntryPopover: Popover, View {
     static func initiative(environment: Environment, combatant: Combatant, onOutcomeSelected: @escaping (Int) -> Void) -> Self {
         let state: NumberEntryViewState
         if combatant.definition.player != nil {
-            state = NumberEntryViewState.pad(value: combatant.initiative ?? 0)
+            state = NumberEntryViewState.pad(
+                value: combatant.initiative ?? 0,
+                expression: combatant.definition.initiativeModifier.map { 1.d(20) + $0 }
+            )
         } else if let mod = combatant.definition.initiativeModifier {
             state = NumberEntryViewState.dice(.rollingExpression(1.d(20) + mod, prefilledResult: combatant.initiative))
         } else if let initiative = combatant.initiative {

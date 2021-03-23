@@ -59,7 +59,7 @@ struct CombatantRow: View {
                             .accessibility(hidden: true)
                     }
                 }
-                .background(Circle().foregroundColor(turnIndicatorColor).frame(width: 33, height: 33))
+                .background(turnIndicator.frame(width: 33, height: 33))
                 .frame(minWidth: 44, maxHeight: .infinity, alignment: .trailing)
                 .padding(.trailing, 5)
             }
@@ -100,13 +100,15 @@ struct CombatantRow: View {
         return nil
     }
 
-    var turnIndicatorColor: Color {
+    @ViewBuilder
+    var turnIndicator: some View {
         if running?.turn?.combatantId == combatant.id {
-            return Color(UIColor.systemGreen)
+            Circle().foregroundColor(Color(UIColor.systemGreen))
         } else if let id = running?.turn?.combatantId, encounter.combatant(for: id)?.initiative == combatant.initiative {
-            return Color(UIColor.systemGreen).opacity(0.33)
+            Circle().strokeBorder(Color(UIColor.systemGreen).opacity(0.33), lineWidth: 4)
+        } else {
+            EmptyView()
         }
-        return Color.clear
     }
 
     var hasExpiredTags: Bool {

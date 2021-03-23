@@ -15,13 +15,13 @@ import CasePaths
 struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 
     var runningEncounter: RunningEncounter?
-    var encounter: Encounter
+//    var encounter: Encounter
 
     var combatant: Combatant {
         didSet {
             let c = combatant
-            nextCombatantTagsViewState?.update(c)
-            nextCombatantResourcesViewState?.combatant = c
+            presentedNextCombatantTagsView?.update(c)
+            presentedNextCombatantResourcesView?.combatant = c
         }
     }
 
@@ -36,42 +36,6 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 
     var navigationTitle: String { combatant.discriminatedName }
     var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
-
-    var nextCombatantTagsViewState: CombatantTagsViewState? {
-        get { nextScreen.flatMap((/NextScreen.combatantTagsView).extract) }
-        set {
-            if let newValue = newValue {
-                nextScreen = (/NextScreen.combatantTagsView).embed(newValue)
-            }
-        }
-    }
-
-    var nextCombatantTagEditViewState: CombatantTagEditViewState? {
-        get { nextScreen.flatMap((/NextScreen.combatantTagEditView).extract) }
-        set {
-            if let newValue = newValue {
-                nextScreen = (/NextScreen.combatantTagEditView).embed(newValue)
-            }
-        }
-    }
-
-    var nextCreatureEditViewState: CreatureEditViewState? {
-        get { nextScreen.flatMap((/NextScreen.creatureEditView).extract) }
-        set {
-            if let newValue = newValue {
-                nextScreen = (/NextScreen.creatureEditView).embed(newValue)
-            }
-        }
-    }
-
-    var nextCombatantResourcesViewState: CombatantResourcesViewState? {
-        get { nextScreen.flatMap((/NextScreen.combatantResourcesView).extract) }
-        set {
-            if let newValue = newValue {
-                nextScreen = (/NextScreen.combatantResourcesView).embed(newValue)
-            }
-        }
-    }
 
     var addLimitedResourceState: CombatantTrackerEditViewState? {
         get {
@@ -147,7 +111,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
     }
 
     static let reducer: Reducer<Self, CombatantDetailViewAction, Environment> = Reducer.combine(
-        CombatantTagEditViewState.reducer.optional().pullback(state: \.nextCombatantTagEditViewState, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagEditView),
+        CombatantTagEditViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagEditView),
         NumberEntryViewState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog),
         DiceActionViewState.reducer.optional().pullback(state: \.diceActionPopoverState, action: /CombatantDetailViewAction.diceActionPopover),
         Reducer { state, action, env in
@@ -189,7 +153,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 // bubble-up action
                 return Effect(value: .combatant(a))
             case .nextScreen(.combatantTagEditView(.onDoneTap)):
-                let tag = state.nextCombatantTagEditViewState?.tag
+                let tag = state.presentedNextCombatantTagEditView?.tag
                 state.nextScreen = nil
 
                 if let tag = tag {
@@ -202,29 +166,19 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             }
             return .none
         },
-        CombatantTagsViewState.reducer.optional().pullback(state: \.nextCombatantTagsViewState, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagsView),
-        CombatantResourcesViewState.reducer.optional().pullback(state: \.nextCombatantResourcesViewState, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantResourcesView),
-        CreatureEditViewState.reducer.optional().pullback(state: \.nextCreatureEditViewState, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.creatureEditView),
+        CombatantTagsViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagsView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagsView),
+        CombatantResourcesViewState.reducer.optional().pullback(state: \.presentedNextCombatantResourcesView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantResourcesView),
+        CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.creatureEditView),
         CombatantTrackerEditViewState.reducer.optional().pullback(state: \.addLimitedResourceState, action: /CombatantDetailViewAction.addLimitedResource),
         HealthDialogState.reducer.optional().pullback(state: \.healthDialogState, action: /CombatantDetailViewAction.healthDialog)
     )
 
-    enum NextScreen: NavigationStackItemStateConvertible, NavigationStackItemState, Equatable {
+    enum NextScreen: Equatable {
         case combatantTagsView(CombatantTagsViewState)
         case combatantTagEditView(CombatantTagEditViewState)
         case creatureEditView(CreatureEditViewState)
         case combatantResourcesView(CombatantResourcesViewState)
         case runningEncounterLogView(RunningEncounterLogViewState)
-
-        var navigationStackItemState: NavigationStackItemState {
-            switch self {
-            case .combatantResourcesView(let s): return s
-            case .combatantTagsView(let s): return s
-            case .combatantTagEditView(let s): return s
-            case .creatureEditView(let s): return s
-            case .runningEncounterLogView(let s): return s
-            }
-        }
     }
 
     enum Popover: Equatable {
@@ -279,5 +233,5 @@ enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
 }
 
 extension CombatantDetailViewState {
-    static let nullInstance = CombatantDetailViewState(encounter: Encounter.nullInstance, combatant: Combatant.nullInstance)
+    static let nullInstance = CombatantDetailViewState(combatant: Combatant.nullInstance)
 }

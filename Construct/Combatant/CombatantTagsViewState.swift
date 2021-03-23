@@ -55,7 +55,7 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
             result.append(ActiveSection(combatants: cs, tagGroups: tags))
         }
 
-        return result.sorted { $0.combatants.count * 100 + $0.tagGroups.count > $1.combatants.count  * 100 + $0.tagGroups.count }
+        return result.sorted { ($0.combatants.count * 100 + $0.tagGroups.count) as Int > ($1.combatants.count  * 100 + $0.tagGroups.count) as Int }
     }
 
     var allCombatantsSection: ActiveSection? {

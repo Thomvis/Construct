@@ -12,11 +12,11 @@ import ComposableArchitecture
 
 struct CompendiumContainerView: View {
     @EnvironmentObject var environment: Environment
-    var store: Store<AppState, AppState.Action>
+    var store: Store<CompendiumIndexState, CompendiumIndexAction>
 
     var body: some View {
         NavigationView {
-            CompendiumIndexView(store: store.scope(state: { $0.compendium }, action: { .compendium($0) }))
+            CompendiumIndexView(store: store)
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .edgesIgnoringSafeArea(.top)
@@ -38,7 +38,7 @@ let compendiumContainerReducer: Reducer<CompendiumIndexState, CompendiumIndexAct
 
                     // workaround: programmatic navigation doesn't work (FB8784916) so we instruct the user
                     // where to find the newly created NPC
-                    callback(.success(.alert(AlertState<CompendiumIndexAction>(title: "Monster saved as NPC", message: "A character named “\(stats.name)” was added to the compendium.", dismissButton: .default("OK")))))
+                    callback(.success(.alert(AlertState<CompendiumIndexAction>(title: TextState("Monster saved as NPC"), message: TextState("A character named “\(stats.name)” was added to the compendium."), dismissButton: .default(TextState("OK"))))))
 
 //                    // navigate to detail view of character
 //                    callback(.success(.setNextScreen(.compendiumIndex(CompendiumIndexState(

@@ -61,8 +61,8 @@ enum NumberEntryViewAction: Equatable {
 }
 
 extension NumberEntryViewState {
-    static func pad(value: Int) -> NumberEntryViewState {
-        return NumberEntryViewState(mode: .pad, padState: NumberPadViewState(value: value), diceState: .editingExpression())
+    static func pad(value: Int, expression: DiceExpression? = nil) -> NumberEntryViewState {
+        return NumberEntryViewState(mode: .pad, padState: NumberPadViewState(value: value), diceState: expression.map { .rollingExpression($0) } ?? .editingExpression())
     }
 
     static func dice(_ state: DiceCalculatorState) -> NumberEntryViewState {
