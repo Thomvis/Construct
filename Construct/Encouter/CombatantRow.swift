@@ -49,11 +49,14 @@ struct CombatantRow: View {
             }) {
                 combatant.initiative.map {
                     Text("\($0)")
+                        .accessibility(label: Text("Initiative: \($0)"))
                 }.replaceNilWith {
                     combatant.definition.initiativeModifier.map {
                         Text(env.modifierFormatter.stringWithFallback(for: $0)).italic().opacity(0.6)
+                            .accessibility(label: Text("Initiative modifier: \(env.modifierFormatter.stringWithFallback(for: $0))"))
                     }.replaceNilWith {
                         Text("--").italic().opacity(0.6)
+                            .accessibility(hidden: true)
                     }
                 }
                 .background(turnIndicator.frame(width: 33, height: 33))
@@ -126,6 +129,8 @@ func ShieldIcon(ac: Int) -> some View {
         Text("\(ac)")
             .font(.caption)
     }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(Text("AC: \(ac)"))
 }
 
 struct CombatantRow_Preview: PreviewProvider {

@@ -34,7 +34,7 @@ struct EncounterDetailView: View {
                 self.viewStore.send(.selection($0))
             })) {
                 if viewStore.state.shouldShowEncounterDifficulty {
-                    Section {
+                    Section(header: EmptyView().accessibilityHidden(true)) {
                         SimpleButton(action: {
                             self.viewStore.send(.sheet(.settings))
                         }) {
@@ -116,7 +116,9 @@ struct EncounterDetailView: View {
                 RoundedButton(action: {
                     self.viewStore.send(.actionSheet(.reset))
                 }) {
-                    Label("Reset...", systemImage: "xmark.circle")
+                    Label("Reset…", systemImage: "xmark.circle")
+                        .accessibility(label: Text("Reset"))
+                        .accessibilityHint(Text("Activate to clear the encounter."))
                 }.disabled(self.viewStore.state.building.combatants.isEmpty)
             }
 
@@ -368,11 +370,13 @@ struct CombatantSection: View {
                     }
                 } else {
                     Image(systemName: "heart").frame(width: 25)
+                        .accessibility(hidden: true)
                     Text(title).bold()
                 }
 
                 Spacer()
                 Image(systemName: "hare")
+                    .accessibility(hidden: true)
             }
         }, footer: Group {
             EmptyView() // TODO

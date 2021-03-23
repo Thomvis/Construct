@@ -18,6 +18,7 @@ struct WelcomeView: View {
             ScrollView(.vertical) {
                 Text("Welcome to Construct").font(Font.largeTitle.bold())
                     .multilineTextAlignment(.center)
+                    .accessibilityAddTraits([.isHeader])
                     .padding(.top, 22)
                     .padding(.bottom, 14)
                 
@@ -29,9 +30,12 @@ struct WelcomeView: View {
                                 .aspectRatio(contentMode: ContentMode.fit)
                                 .frame(width: 45, height: 45)
                                 .foregroundColor(item.iconColor)
+                                .accessibility(hidden: true)
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(item.title).font(.headline)
+                                Text(item.title)
+                                    .font(.headline)
+                                    .accessibilityAddTraits([.isHeader])
                                 Text(item.body)
                                     .multilineTextAlignment(.leading)
                                     .foregroundColor(Color(UIColor.secondaryLabel))
