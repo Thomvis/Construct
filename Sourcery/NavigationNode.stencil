@@ -1,4 +1,6 @@
 protocol NavigationNode {
+    var nodeId: String { get }
+
     func topNavigationItems() -> [Any]
     func navigationStackSize() -> Int
     mutating func popLastNavigationStackItem()
@@ -7,6 +9,10 @@ protocol NavigationNode {
 {% for type in types.implementing.NavigationStackItemState %}
 {% if not type.implements.NavigationStackSourceState and not type.implements.NavigationStackItemStateConvertible and not type.name == "NavigationStackSourceState" %}
 extension {{ type.name }}: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -28,6 +34,10 @@ extension {{ type.name }}: NavigationNode {
 {% set nextScreenType var.typeName.dictionary.valueType %}
 {% if nextScreenType.kind == "enum" %}
 extension {{ nextScreenType.name }}: NavigationNode {
+    var nodeId: String {
+        navigationNode.nodeId
+    }
+
     private var navigationNode: NavigationNode {
         get {
             switch self {
@@ -69,6 +79,10 @@ extension {{ nextScreenType.name }}: NavigationNode {
 
 {% for type in types.implementing.NavigationStackSourceState %}
 extension {{ type.name }}: NavigationNode {
+
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []

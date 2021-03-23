@@ -20,10 +20,6 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
     ]
     var sheet: Sheet?
 
-    func nodes(in node: CampaignNode) -> [CampaignNode]? {
-        campaignNodes[node.id]?.filter { $0.special == nil && $0.contents == nil }
-    }
-
     var nodeEditState: CampaignBrowseViewState.NodeEditState? {
         guard case .nodeEdit(let s)? = sheet else { return nil }
         return s
@@ -31,23 +27,6 @@ struct SidebarViewState: Equatable, NavigationStackSourceState {
 
     var referenceViewState: ReferenceViewState? {
         presentedDetailCampaignBrowse?.referenceView
-    }
-
-    var normalizedForDeduplication: SidebarViewState {
-        var res = self
-        res.presentedScreens = presentedScreens.mapValues { value in
-            switch value {
-            case .compendium: return .compendium(.nullInstance)
-            case .campaignBrowse: return .campaignBrowse(.nullInstance)
-            }
-        }
-        res.sheet = sheet.map {
-            switch $0 {
-            case .nodeEdit: return .nodeEdit(.nullInstance)
-            case .about: return .about
-            }
-        }
-        return res
     }
 
     enum NextScreen: Equatable {
@@ -138,6 +117,10 @@ extension SidebarViewState {
             case .setNextScreen(let s):
                 state.presentedScreens[.nextInStack] = s
             case .nextScreen: break // handled above
+            case .setDetailScreen(.campaignBrowse(var s)):
+                // special treatment for campaignBrowse to ensure the reference view state is maintained
+                s.referenceView = state.referenceViewState ?? s.referenceView
+                state.presentedScreens[.detail] = .campaignBrowse(s)
             case .setDetailScreen(let s):
                 state.presentedScreens[.detail] = s
             case .detailScreen: break // handled above

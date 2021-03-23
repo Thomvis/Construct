@@ -2,12 +2,18 @@
 // DO NOT EDIT
 
 protocol NavigationNode {
+    var nodeId: String { get }
+
     func topNavigationItems() -> [Any]
     func navigationStackSize() -> Int
     mutating func popLastNavigationStackItem()
 }
 
 extension CombatantResourcesViewState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -21,6 +27,10 @@ extension CombatantResourcesViewState: NavigationNode {
     }
 }
 extension CombatantTagEditViewState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -34,6 +44,10 @@ extension CombatantTagEditViewState: NavigationNode {
     }
 }
 extension CombatantTrackerEditViewState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -47,6 +61,10 @@ extension CombatantTrackerEditViewState: NavigationNode {
     }
 }
 extension CompendiumImportViewState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -60,6 +78,10 @@ extension CompendiumImportViewState: NavigationNode {
     }
 }
 extension CompendiumItemGroupEditState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -73,6 +95,10 @@ extension CompendiumItemGroupEditState: NavigationNode {
     }
 }
 extension CreatureEditViewState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -86,6 +112,10 @@ extension CreatureEditViewState: NavigationNode {
     }
 }
 extension EncounterDetailViewState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -99,6 +129,10 @@ extension EncounterDetailViewState: NavigationNode {
     }
 }
 extension ReferenceViewState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -112,6 +146,10 @@ extension ReferenceViewState: NavigationNode {
     }
 }
 extension RunningEncounterLogViewState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         return [self]
     }
@@ -126,6 +164,10 @@ extension RunningEncounterLogViewState: NavigationNode {
 }
 
 extension CampaignBrowseViewState.NextScreen: NavigationNode {
+    var nodeId: String {
+        navigationNode.nodeId
+    }
+
     private var navigationNode: NavigationNode {
         get {
             switch self {
@@ -157,6 +199,10 @@ extension CampaignBrowseViewState.NextScreen: NavigationNode {
 }
 
 extension CombatantDetailViewState.NextScreen: NavigationNode {
+    var nodeId: String {
+        navigationNode.nodeId
+    }
+
     private var navigationNode: NavigationNode {
         get {
             switch self {
@@ -195,6 +241,10 @@ extension CombatantDetailViewState.NextScreen: NavigationNode {
 
 
 extension CompendiumEntryDetailViewState.NextScreen: NavigationNode {
+    var nodeId: String {
+        navigationNode.nodeId
+    }
+
     private var navigationNode: NavigationNode {
         get {
             switch self {
@@ -226,6 +276,10 @@ extension CompendiumEntryDetailViewState.NextScreen: NavigationNode {
 }
 
 extension CompendiumIndexState.NextScreen: NavigationNode {
+    var nodeId: String {
+        navigationNode.nodeId
+    }
+
     private var navigationNode: NavigationNode {
         get {
             switch self {
@@ -259,6 +313,10 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
 }
 
 extension ReferenceItemViewState.Content.Home.NextScreen: NavigationNode {
+    var nodeId: String {
+        navigationNode.nodeId
+    }
+
     private var navigationNode: NavigationNode {
         get {
             switch self {
@@ -288,6 +346,10 @@ extension ReferenceItemViewState.Content.Home.NextScreen: NavigationNode {
 }
 
 extension SidebarViewState.NextScreen: NavigationNode {
+    var nodeId: String {
+        navigationNode.nodeId
+    }
+
     private var navigationNode: NavigationNode {
         get {
             switch self {
@@ -320,6 +382,10 @@ extension SidebarViewState.NextScreen: NavigationNode {
 
 
 extension CampaignBrowseViewState: NavigationNode {
+
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -406,6 +472,10 @@ extension CampaignBrowseViewState: NavigationNode {
     }
 }
 extension CombatantDetailViewState: NavigationNode {
+
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -574,6 +644,10 @@ extension CombatantDetailViewState: NavigationNode {
 }
 extension CombatantTagsViewState: NavigationNode {
 
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
         if let next = presentedScreens[.nextInStack] {
@@ -605,6 +679,10 @@ extension CombatantTagsViewState: NavigationNode {
 
 }
 extension CompendiumEntryDetailViewState: NavigationNode {
+
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -691,6 +769,10 @@ extension CompendiumEntryDetailViewState: NavigationNode {
     }
 }
 extension CompendiumIndexState: NavigationNode {
+
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
@@ -805,6 +887,10 @@ extension CompendiumIndexState: NavigationNode {
 }
 extension ReferenceItemViewState.Content.Home: NavigationNode {
 
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
     func topNavigationItems() -> [Any] {
         var result: [Any] = []
         if let next = presentedScreens[.nextInStack] {
@@ -863,6 +949,10 @@ extension ReferenceItemViewState.Content.Home: NavigationNode {
     }
 }
 extension SidebarViewState: NavigationNode {
+
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
 
     func topNavigationItems() -> [Any] {
         var result: [Any] = []

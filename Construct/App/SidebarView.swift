@@ -26,7 +26,7 @@ struct SidebarView: View {
                     isActive: { $0.content.encounterState?.encounter.key == Encounter.key(Encounter.scratchPadEncounterId) },
                     initialState: {
                         if let encounter: Encounter = try? self.env.database.keyValueStore.get(Encounter.key(Encounter.scratchPadEncounterId)) {
-                            return CampaignBrowseTwoColumnContainerState(encounter: encounter, referenceView: viewStore.state.referenceViewState)
+                            return CampaignBrowseTwoColumnContainerState(encounter: encounter, referenceView: .defaultInstance)
                         } else {
                             return CampaignBrowseTwoColumnContainerState.nullInstance
                         }
@@ -70,7 +70,7 @@ struct SidebarView: View {
     }
 
     @ViewBuilder
-    func adventureSection(_ viewStore: ViewStore<SidebarViewState, SidebarViewAction>) -> some View {
+    func adventureSection(_ viewStore: ViewStore<LocalState, SidebarViewAction>) -> some View {
         Section(header: Text("Adventure")) {
             StateDrivenNavigationLink(
                 store: store,
@@ -78,7 +78,7 @@ struct SidebarView: View {
                 action: /SidebarViewAction.NextScreenAction.campaignBrowse,
                 navDest: .detail,
                 isActive: { $0.content.browseState?.node == CampaignNode.root && $0.content.browseState?.presentedScreens.isEmpty == true },
-                initialState: CampaignBrowseTwoColumnContainerState(node: .root, referenceView: viewStore.state.referenceViewState),
+                initialState: CampaignBrowseTwoColumnContainerState(node: .root, referenceView: .defaultInstance),
                 destination: CampaignBrowseTwoColumnContainerView.init
             ) {
                 Label("All encounters", systemImage: "shield")
@@ -89,7 +89,7 @@ struct SidebarView: View {
     }
 
     @ViewBuilder
-    func compendiumSection(_ viewStore: ViewStore<SidebarViewState, SidebarViewAction>) -> some View {
+    func compendiumSection(_ viewStore: ViewStore<LocalState, SidebarViewAction>) -> some View {
         Section(header: Text("Compendium")) {
             ForEach([
                 CompendiumItemType.monster,
@@ -122,7 +122,7 @@ struct SidebarView: View {
     }
 
     @ViewBuilder
-    func campaignNodes(in node: CampaignNode, viewStore: ViewStore<SidebarViewState, SidebarViewAction>) -> some View {
+    func campaignNodes(in node: CampaignNode, viewStore: ViewStore<LocalState, SidebarViewAction>) -> some View {
         ForEach(viewStore.state.nodes(in: node) ?? [], id: \.id) { node in
             DisclosureGroup(isExpanded: Binding(get: {
                 viewStore.campaignNodeIsExpanded[node.id] ?? false
@@ -165,5 +165,27 @@ struct SidebarView: View {
             }
         }
         .eraseToAnyView
+    }
+
+    struct LocalState: Equatable {
+        var presentedScreenIds: [NavigationDestination: String]
+        @EqKey({ $0?.id })
+        var sheet: SidebarViewState.Sheet?
+
+        var campaignNodes: [UUID: [CampaignNode]] = [:]
+        var campaignNodeIsExpanded: [UUID: Bool] = [:]
+
+        init(_ state: SidebarViewState) {
+            presentedScreenIds = state.presentedScreens.mapValues {
+                $0.nodeId
+            }
+            self.sheet = state.sheet
+            self.campaignNodes = state.campaignNodes
+            self.campaignNodeIsExpanded = state.campaignNodeIsExpanded
+        }
+
+        func nodes(in node: CampaignNode) -> [CampaignNode]? {
+            campaignNodes[node.id]?.filter { $0.special == nil && $0.contents == nil }
+        }
     }
 }

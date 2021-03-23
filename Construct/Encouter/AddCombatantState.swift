@@ -113,6 +113,10 @@ extension AddCombatantState {
 }
 
 extension AddCombatantState: NavigationNode {
+    var nodeId: String {
+        "AddCombatantState"
+    }
+
     func topNavigationItems() -> [Any] {
         compendiumState.topNavigationItems()
     }
