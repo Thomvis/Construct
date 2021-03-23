@@ -297,6 +297,7 @@ struct OutcomeView: View {
                         }) {
                             Text("Roll").font(.largeTitle)
                         }
+                        .transition(.identity)
                     }
                 }
             }
