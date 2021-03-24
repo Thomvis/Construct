@@ -35,36 +35,31 @@ struct ReferenceItemView: View {
         let store: Store<ReferenceItemViewState.Content.CombatantDetail, ReferenceItemViewAction.CombatantDetail>
 
         var body: some View {
-            ZStack {
-                WithViewStore(store) { viewStore in
-                    Construct.CombatantDetailView(store: store.scope(state: { $0.detailState }, action: { .detail($0) }))
-                        .id(viewStore.state.selectedCombatantId)
+            WithViewStore(store) { viewStore in
+                Construct.CombatantDetailView(store: store.scope(state: { $0.detailState }, action: { .detail($0) }))
+                    .id(viewStore.state.selectedCombatantId)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .primaryAction) {
+                            Button(action: {
+                                viewStore.send(.previousCombatantTapped)
+                            }) {
+                                Image(systemName: "chevron.left")
+                            }
 
-                    HStack {
-                        Button(action: {
-                            viewStore.send(.previousCombatantTapped)
-                        }) {
-                            Image(systemName: "chevron.left")
-                        }
+                            Button(action: {
+                                viewStore.send(.togglePinToTurnTapped)
+                            }) {
+                                Image(systemName: viewStore.state.pinToTurn ? "pin.fill" : "pin.slash")
+                            }
+                            .disabled(viewStore.state.selectedCombatantId != viewStore.state.runningEncounter?.turn?.combatantId)
 
-                        Button(action: {
-                            viewStore.send(.togglePinToTurnTapped)
-                        }) {
-                            Image(systemName: viewStore.state.pinToTurn ? "pin.fill" : "pin.slash")
-                        }
-                        .disabled(viewStore.state.selectedCombatantId != viewStore.state.runningEncounter?.turn?.combatantId)
-
-                        Button(action: {
-                            viewStore.send(.nextCombatantTapped)
-                        }) {
-                            Image(systemName: "chevron.right")
+                            Button(action: {
+                                viewStore.send(.nextCombatantTapped)
+                            }) {
+                                Image(systemName: "chevron.right")
+                            }
                         }
                     }
-                    .padding(8)
-                    .background(Color(UIColor.systemGray4).cornerRadius(8))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .padding(12)
-                }
             }
         }
     }
