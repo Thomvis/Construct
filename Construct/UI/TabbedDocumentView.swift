@@ -24,7 +24,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
         VStack(spacing: 0) {
 
             TabView(selection: $selection) {
-                ForEach(items, id: \.id) { item in
+                ForEach(items.sorted(by: { $0.id.uuidString < $1.id.uuidString }), id: \.id) { item in
                     content(item).tag(Optional.some(item.id))
                         .navigationBarHidden(true)
                 }
