@@ -25,6 +25,14 @@ struct CompendiumItemDetailView: View {
         viewStore.state.item
     }
 
+    var itemStatBlock: StatBlock? {
+        switch item {
+        case let monster as Monster: return monster.stats
+        case let character as Character: return character.stats
+        default: return nil
+        }
+    }
+
     var body: some View {
         return ScrollView {
             VStack {
@@ -56,6 +64,15 @@ struct CompendiumItemDetailView: View {
                 }) {
                     Image(systemName: "ellipsis.circle").frame(width: 30, height: 30, alignment: .trailing)
                 })
+            }
+        })
+        .overlay(ZStack {
+            if let stats = itemStatBlock {
+                CombatantRollButton(stats: stats) { check in
+                    viewStore.send(.popover(.rollCheck(check)))
+                }
+                .padding(8)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             }
         })
         .stateDrivenNavigationLink(

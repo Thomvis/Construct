@@ -341,72 +341,8 @@ struct CombatantDetailView: View {
             Spacer()
 
             if let stats = viewStore.state.combatant.definition.stats {
-                Menu(content: {
-                    ForEach(Ability.allCases.reversed(), id: \.self) { a in
-                        if let modifier = stats.savingThrowModifier(a) {
-                            Button(action: {
-                                viewStore.send(.popover(.rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))))
-                            }) {
-                                Label(
-                                    "\(a.localizedDisplayName) save: \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))",
-                                    systemImage: stats.savingThrows[a] != nil
-                                        ? "circlebadge.fill"
-                                        : "circlebadge"
-                                )
-                            }
-                        } else {
-                            Text(a.localizedDisplayName)
-                        }
-                    }
-
-                    Divider()
-
-                    Menu(content: {
-                        ForEach(Ability.allCases.reversed(), id: \.rawValue) { a in
-                            if let modifier = stats.abilityScores?.score(for: a).modifier {
-                                Button(action: {
-                                    viewStore.send(.popover(.rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))))
-                                }) {
-                                    Label(title: {
-                                        Text("\(a.localizedDisplayName): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
-                                    }, icon: {
-                                        Image(systemName: "circlebadge")
-                                    })
-                                }
-                            } else {
-                                Text(a.localizedDisplayName)
-                            }
-                        }
-
-                        Divider()
-
-                        ForEach(Skill.allCases.reversed(), id: \.rawValue) { s in
-                            let title = "\(s.localizedDisplayName) (\(s.ability.localizedAbbreviation.uppercased()))"
-                            if let modifier = stats.skillModifier(s) {
-                                Button(action: {
-                                    viewStore.send(.popover(.rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))))
-                                }) {
-                                    Label(title: {
-                                        Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
-                                    }, icon: {
-                                        Image(systemName: stats.skills[s] != nil
-                                                ? "circlebadge.fill"
-                                                : "circlebadge"
-                                        )
-                                    })
-                                }
-                            } else {
-                                Text("\(title)")
-                            }
-                        }
-                    }) {
-                        Text("Ability Check...")
-                    }
-                }) {
-                    RoundedButton(action: { }) {
-                        Label("Roll...", systemImage: "die.face.6")
-                    }
-                    .frame(minWidth: 100, maxWidth: 250)
+                CombatantRollButton(stats: stats) { check in
+                    viewStore.send(.popover(.rollCheck(check)))
                 }
             }
         }

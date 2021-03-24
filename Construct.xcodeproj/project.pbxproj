@@ -202,6 +202,7 @@
 		E9CFB30F2350515700CA0AF4 /* CampaignBrowserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */; };
 		E9D5A6EC2314FB37004D84E2 /* DiceExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6E72314FB36004D84E2 /* DiceExpression.swift */; };
 		E9D5A6ED2314FB37004D84E2 /* Creature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6E82314FB37004D84E2 /* Creature.swift */; };
+		E9DA023B260B99C8003CC6AB /* CombatantRollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9DA023A260B99C8003CC6AB /* CombatantRollButton.swift */; };
 		E9F56AC6235483780085A72D /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC5235483780085A72D /* AppState.swift */; };
 		E9F9EB43231965EF00A70D11 /* RolledDiceExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F9EB42231965EF00A70D11 /* RolledDiceExpression.swift */; };
 		E9F9EB532319696C00A70D11 /* RolledDiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F9EB522319696C00A70D11 /* RolledDiceExpressionTest.swift */; };
@@ -405,6 +406,7 @@
 		E9D5A6EA2314FB37004D84E2 /* Encounter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Encounter.swift; sourceTree = "<group>"; };
 		E9D5A6EB2314FB37004D84E2 /* Monster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Monster.swift; sourceTree = "<group>"; };
 		E9D5A6F323150151004D84E2 /* Combatant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Combatant.swift; sourceTree = "<group>"; };
+		E9DA023A260B99C8003CC6AB /* CombatantRollButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantRollButton.swift; sourceTree = "<group>"; };
 		E9DF660C2313A98E005D4FE5 /* InitiativeDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitiativeDialog.swift; sourceTree = "<group>"; };
 		E9F56AC32350FA5D0085A72D /* CampaignBrowserContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowserContainerView.swift; sourceTree = "<group>"; };
 		E9F56AC5235483780085A72D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
@@ -921,6 +923,7 @@
 				E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */,
 				E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */,
 				E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */,
+				E9DA023A260B99C8003CC6AB /* CombatantRollButton.swift */,
 			);
 			path = Encouter;
 			sourceTree = "<group>";
@@ -1195,6 +1198,7 @@
 				E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */,
 				E972BAA02478574500F313D7 /* DiceCalculatorView.swift in Sources */,
 				E9540FFA23181524008A25EC /* PopoverHost.swift in Sources */,
+				E9DA023B260B99C8003CC6AB /* CombatantRollButton.swift in Sources */,
 				E90B961525B312BB00BD760B /* Memoize.swift in Sources */,
 				E946B026247D9EE3008A407C /* RunningEncounter.swift in Sources */,
 				E9D5A6ED2314FB37004D84E2 /* Creature.swift in Sources */,
