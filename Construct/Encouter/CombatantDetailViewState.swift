@@ -26,7 +26,6 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
     }
 
     var popover: Popover?
-    var actionSheet: ActionSheetState<CombatantDetailViewAction>?
 
     var presentedScreens: [NavigationDestination: NextScreen] = [:]
 
@@ -132,8 +131,6 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             case .combatant: break // should be handled by parent
             case .popover(let p):
                 state.popover = p
-            case .actionSheet(let a):
-                state.actionSheet = a
             case .addLimitedResource(.onDoneTap):
                 guard case .addLimitedResource(let s) = state.popover else { return .none }
                 return Effect.fireAndForget {
@@ -209,7 +206,6 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
     case combatant(CombatantAction)
     case popover(CombatantDetailViewState.Popover?)
-    case actionSheet(ActionSheetState<CombatantDetailViewAction>?)
     case addLimitedResource(CombatantTrackerEditViewAction)
     case healthDialog(HealthDialogAction)
     case rollCheckDialog(NumberEntryViewAction)

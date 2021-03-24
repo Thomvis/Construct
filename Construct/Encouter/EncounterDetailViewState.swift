@@ -44,7 +44,6 @@ struct EncounterDetailViewState: Equatable {
     typealias ResumableRunningEncounters = Async<[KeyValueStore.Record], Error, Environment>
     var resumableRunningEncounters: ResumableRunningEncounters = .initial
 
-    var actionSheet: ActionSheetState<Action>?
     var sheet: Sheet?
     var popover: Popover?
 
@@ -172,11 +171,9 @@ extension EncounterDetailViewState {
         case encounter(Encounter.Action) // forwarded to the effective encounter
         case buildingEncounter(Encounter.Action)
         case runningEncounter(RunningEncounter.Action)
-        case onRunEncounterTap
         case onResumeRunningEncounterTap(String) // key of the running encounter
         case run(RunningEncounter?)
         case stop
-        case actionSheet(ActionSheetState<Action>?)
         case sheet(Sheet?)
         case popover(Popover?)
         case combatantInitiativePopover(NumberEntryViewAction)
@@ -216,13 +213,6 @@ extension EncounterDetailViewState {
                     }
 
                     return actions.publisher.eraseToEffect()
-                case .onRunEncounterTap:
-                    if let resumables = state.resumableRunningEncounters.value, resumables.count > 0 {
-                        return Effect(value: .actionSheet(.runEncounter(resumables)))
-                    } else {
-                        return Effect(value: .run(nil))
-                            .receive(on: env.mainQueue.animation()).eraseToEffect()
-                    }
                 case .onResumeRunningEncounterTap(let resumableKey):
                     return Effect.future { callback in
                         do {
@@ -264,8 +254,6 @@ extension EncounterDetailViewState {
                         _ = try? env.database.keyValueStore.remove(key)
                         callback(.success(.resumableRunningEncounters(.startLoading)))
                     }
-                case .actionSheet(let s):
-                    state.actionSheet = s
                 case .sheet(let s):
                     state.sheet = s
                 case .addCombatant(AddCombatantState.Action.onSelect(let combatants, let dismiss)):

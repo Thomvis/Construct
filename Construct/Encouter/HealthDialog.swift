@@ -15,7 +15,7 @@ struct HealthDialog: View {
 
     var store: Store<HealthDialogState, HealthDialogAction>
     @ObservedObject var viewStore: ViewStore<HealthDialogState, HealthDialogAction>
-    let onOutcomeSelected: (UserAction, Int) -> Void
+    let onOutcomeSelected: (Hp.Action) -> Void
 
     var outcome: Int {
         viewStore.state.numberEntryView.value ?? 0
@@ -28,7 +28,7 @@ struct HealthDialog: View {
             HStack {
                 Spacer()
                 SwiftUI.Button(action: {
-                    self.onOutcomeSelected(.hit, self.outcome)
+                    self.onOutcomeSelected(.current(.add(-self.outcome)))
                 }) {
                     HStack {
                         Image(systemName: "shield.lefthalf.fill")
@@ -37,7 +37,7 @@ struct HealthDialog: View {
                 }.disabled(outcome == 0)
                 Spacer()
                 SwiftUI.Button(action: {
-                    self.onOutcomeSelected(.heal, self.outcome)
+                    self.onOutcomeSelected(.current(.add(self.outcome)))
                 }) {
                     HStack {
                         Image(systemName: "heart.fill")
@@ -45,13 +45,25 @@ struct HealthDialog: View {
                     }
                 }.disabled(outcome == 0)
                 Spacer()
-                SwiftUI.Button(action: {
-                    self.onOutcomeSelected(.other, self.outcome)
+
+                Menu(content: {
+                    Button(action: {
+                        self.onOutcomeSelected(.current(.set(self.outcome)))
+                    }) {
+                        Text("Set current hp to \(self.outcome)")
+                    }
+
+                    Button(action: {
+                        self.onOutcomeSelected(.temporary(.set(self.outcome)))
+                    }) {
+                        Text("Set temporary hp to \(self.outcome)")
+                    }
                 }) {
-                    HStack {
+                    SwiftUI.Button(action: { }) {
                         Text("Other...")
                     }
                 }
+
                 Spacer()
             }
         }
@@ -77,12 +89,6 @@ struct HealthDialog: View {
         }
         return "Heal"
     }
-
-    enum UserAction {
-        case hit
-        case heal
-        case other
-    }
 }
 
 struct HealthDialogState: Equatable {
@@ -100,44 +106,23 @@ extension HealthDialog: Popover {
         eraseToAnyView
     }
 
-    init(environment: Environment, hp: Hp?, onCombatantAction: @escaping (CombatantAction) -> (), onOtherAction: @escaping (Int) -> Void) {
+    init(environment: Environment, hp: Hp?, onCombatantAction: @escaping (CombatantAction) -> ()) {
         self.init(
             store: Store(
                 initialState: HealthDialogState(numberEntryView: .pad(value: 0), hp: hp),
                 reducer: HealthDialogState.reducer,
                 environment: environment
             ),
-            onCombatantAction: onCombatantAction,
-            onOtherAction: onOtherAction
+            onCombatantAction: onCombatantAction
         )
     }
 
-    init(store: Store<HealthDialogState, HealthDialogAction>, onCombatantAction: @escaping (CombatantAction) -> (), onOtherAction: @escaping (Int) -> Void) {
+    init(store: Store<HealthDialogState, HealthDialogAction>, onCombatantAction: @escaping (CombatantAction) -> ()) {
         self.store = store
         self.viewStore = ViewStore(store)
-        self.onOutcomeSelected = { a, p in
-            switch a {
-            case .hit:
-                withAnimation {
-                    onCombatantAction(.dealDamage(p))
-                }
-            case .heal:
-                withAnimation {
-                    onCombatantAction(.heal(p))
-                }
-            case .other:
-                onOtherAction(p)
-            }
+        self.onOutcomeSelected = { a in
+            onCombatantAction(.hp(a))
         }
-    }
-
-    static func otherActionSheet(combatant: Combatant?, value: Int) -> ActionSheetState<CombatantAction> {
-        let title = combatant.map { "Edit \($0.name)'s hit points" } ?? "Edit hit points"
-        return ActionSheetState(title: TextState(title), buttons: [
-            .default(TextState("Add \(value) temporary hp"), send: .hp(.temporary(.add(value)))),
-            .default(TextState("Set current hp to \(value)"), send: .hp(.current(.set(value)))),
-            .cancel()
-        ])
     }
 }
 

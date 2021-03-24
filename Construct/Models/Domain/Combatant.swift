@@ -253,14 +253,6 @@ enum CombatantAction: Equatable {
     case reset(hp: Bool, initiative: Bool, resources: Bool, tags: Bool)
     case setDefinition(Combatant.CodableCombatDefinition)
 
-    static func heal(_ points: Int) -> Self {
-        .hp(.current(.add(points)))
-    }
-
-    static func dealDamage(_ points: Int) -> Self {
-        .hp(.current(.add(-points)))
-    }
-
     var hp: Hp.Action? {
         get {
             guard case .hp(let a) = self else { return nil }

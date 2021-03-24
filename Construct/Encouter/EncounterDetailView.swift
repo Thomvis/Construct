@@ -103,7 +103,6 @@ struct EncounterDetailView: View {
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, onDismiss: {
             self.viewStore.send(.sheet(nil))
         }, content: self.sheetView)
-        .actionSheet(store.scope(state: { $0.actionSheet }), dismiss: .actionSheet(nil))
         .popover(popover)
         .onAppear {
             self.viewStore.send(.onAppear)
@@ -113,13 +112,25 @@ struct EncounterDetailView: View {
     func defaultActionBar() -> some View {
         return HStack {
             if viewStore.state.building.isScratchPad {
-                RoundedButton(action: {
-                    self.viewStore.send(.actionSheet(.reset))
+                Menu(content: {
+                    Button(action: {
+                        viewStore.send(.resetEncounter(false))
+                    }) {
+                        Text("Clear monsters").foregroundColor(Color.red)
+                    }
+
+                    Button(action: {
+                        viewStore.send(.resetEncounter(true))
+                    }) {
+                        Text("Clear all").foregroundColor(Color.red)
+                    }
                 }) {
-                    Label("Reset…", systemImage: "xmark.circle")
-                        .accessibility(label: Text("Reset"))
-                        .accessibilityHint(Text("Activate to clear the encounter."))
-                }.disabled(self.viewStore.state.building.combatants.isEmpty)
+                    RoundedButton(action: { }) {
+                        Label("Reset…", systemImage: "xmark.circle")
+                    }
+                    .accessibilityHint(Text("Activate to clear the encounter."))
+                }
+                .disabled(self.viewStore.state.building.combatants.isEmpty)
             }
 
             RoundedButton(action: {
@@ -142,11 +153,44 @@ struct EncounterDetailView: View {
                 }
             }
 
-            RoundedButton(action: {
-                self.viewStore.send(.onRunEncounterTap)
-            }) {
-                Label("Run encounter", systemImage: "play")
-            }.disabled(self.viewStore.state.building.combatants.isEmpty)
+            if let resumables = viewStore.state.resumableRunningEncounters.value, resumables.count > 0 {
+                Menu(content: {
+                    Button(action: {
+                        viewStore.send(.run(nil), animation: .default)
+                    }) {
+                        Label("Start new run", systemImage: "plus.circle")
+                    }
+
+                    Divider()
+
+                    with(RelativeDateTimeFormatter()) { formatter in
+                        ForEach(resumables, id: \.key) { r in
+                            Button(action: {
+                                viewStore.send(.onResumeRunningEncounterTap(r.key), animation: .default)
+                            }) {
+                                Label(
+                                    "Resume run from \(formatter.localizedString(for: r.modifiedAt, relativeTo: Date()))",
+                                    systemImage: "play"
+                                )
+                            }
+                        }
+                    }
+                }) {
+                    RoundedButton(action: {
+                        viewStore.send(.run(nil), animation: .default)
+                    }) {
+                        Label("Run encounter", systemImage: "play")
+                    }
+                    .disabled(self.viewStore.state.building.combatants.isEmpty)
+                }
+            } else {
+                RoundedButton(action: {
+                    viewStore.send(.run(nil), animation: .default)
+                }) {
+                    Label("Run encounter", systemImage: "play")
+                }
+                .disabled(self.viewStore.state.building.combatants.isEmpty)
+            }
         }
         .equalSizes(horizontal: false, vertical: true)
         .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
@@ -293,9 +337,6 @@ struct EncounterDetailView: View {
                         viewStore.send(.selectionCombatantAction(action))
                     }
                     viewStore.send(.popover(nil))
-                } onOtherAction: { value in
-                    viewStore.send(.actionSheet(.otherHpActions(value, target: target)))
-                    viewStore.send(.popover(nil))
                 }.eraseToAnyView
             }
         }, set: {
@@ -304,46 +345,6 @@ struct EncounterDetailView: View {
             }
         })
     }
-}
-
-extension ActionSheetState where Action == EncounterDetailViewState.Action {
-    static func otherHpActions(_ value: Int, target: EncounterDetailViewState.CombatantActionTarget) -> Self {
-        switch target {
-        case .single(let combatant):
-            return HealthDialog.otherActionSheet(combatant: combatant, value: value).pullback {
-                EncounterDetailViewState.Action.encounter(.combatant(combatant.id, $0))
-            }
-        case .selection:
-            return HealthDialog.otherActionSheet(combatant: nil, value: value)
-                .pullback(toGlobalAction: /EncounterDetailViewState.Action.selectionCombatantAction)
-        }
-    }
-
-    static func runEncounter(_ resumables: [KeyValueStore.Record]) -> Self {
-        let formatter = RelativeDateTimeFormatter()
-
-        let resumeButtons: [Button] = resumables.map { r -> Button in
-            let relativeDate = formatter.localizedString(for: r.modifiedAt, relativeTo: Date())
-            return .default(TextState("Resume run from \(relativeDate)"), send: .onResumeRunningEncounterTap(r.key)) // used to be wrapped in withAnimation
-        }
-
-        return ActionSheetState(
-            title: TextState("Run encounter"),
-            buttons: resumeButtons + [
-                .default(TextState("Start new run"), send: .run(nil)),
-                .cancel(send: .actionSheet(nil))
-            ]
-        )
-    }
-
-    static let reset: Self = ActionSheetState(
-        title: TextState("Reset encounter"),
-        buttons: [
-            .destructive(TextState("Clear monsters"), send: .resetEncounter(false)),
-            .destructive(TextState("Clear all"), send: .resetEncounter(true)),
-            .cancel(send: .actionSheet(nil))
-        ]
-    )
 }
 
 struct CombatantSection: View {

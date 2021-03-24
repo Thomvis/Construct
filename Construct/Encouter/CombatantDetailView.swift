@@ -240,7 +240,6 @@ struct CombatantDetailView: View {
             defaultActionBar.frame(maxHeight: .infinity, alignment: .bottom).padding(8)
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-        .actionSheet(self.store.scope(state: { $0.actionSheet }), dismiss: .actionSheet(nil))
         .popover(self.popover)
     }
 
@@ -293,12 +292,6 @@ struct CombatantDetailView: View {
             case .healthAction:
                 return HealthDialog(environment: self.env, hp: nil) {
                     viewStore.send(.combatant($0))
-                    viewStore.send(.popover(nil))
-                } onOtherAction: {
-                    let sheet = HealthDialog.otherActionSheet(combatant: viewStore.state.combatant, value: $0).pullback {
-                        CombatantDetailViewAction.combatant($0)
-                    }
-                    viewStore.send(.actionSheet(sheet))
                     viewStore.send(.popover(nil))
                 }.eraseToAnyView
             case .initiative:
