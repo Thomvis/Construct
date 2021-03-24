@@ -15,14 +15,18 @@ struct ColumnNavigationView: View {
 
     @State var didApplyPrimaryViewWorkAround = false
 
+    var splitVC = State<UISplitViewController?>(initialValue: nil)
+
     var body: some View {
-        ZStack {
+        let placeholder = Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+
+        return ZStack {
             NavigationView {
                 SidebarView(store: store.scope(state: { $0.sidebar }, action: { .sidebar($0) }))
 
-                Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+                placeholder
 
-                Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+                placeholder
             }
             .introspectViewController { vc in
                 // workaround for an empty supplementary view on launch
@@ -30,6 +34,8 @@ struct ColumnNavigationView: View {
                 // primary view, but the primary view is not loaded so its selection is not read
                 // We work around that by briefly showing the primary view.
                 if !didApplyPrimaryViewWorkAround, let splitVC = vc.children.first as? UISplitViewController {
+                    self.splitVC.wrappedValue = splitVC
+
                     UIView.performWithoutAnimation {
                         splitVC.show(.primary)
                         splitVC.hide(.primary)
@@ -44,6 +50,15 @@ struct ColumnNavigationView: View {
                 state: { $0.diceCalculator },
                 action: { .diceCalculator($0) }
             ))
+
+            // workaround: hide the secondary view (i.e. reference view) when going to the compendium
+            WithViewStore(store) { viewStore in
+                Color.clear.onChange(of: viewStore.state.sidebar.presentedDetailCompendium != nil) { shouldHideReferenceView in
+                    if shouldHideReferenceView, let nav = splitVC.wrappedValue?.viewController(for: .secondary) as? UINavigationController {
+                        nav.setViewControllers([UIHostingController(rootView: placeholder)], animated: false)
+                    }
+                }
+            }
         }
     }
 }
