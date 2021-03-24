@@ -177,6 +177,8 @@ struct TabbedDocumentView<Content>: View where Content: View {
                     } else if idx < dragTargetIdx {
                         onMove(dragTargetIdx, idx)
                         return
+                    } else {
+                        return // idx == dragTargetIdx, so no move needed
                     }
                 }
             }
