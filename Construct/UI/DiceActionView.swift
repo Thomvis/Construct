@@ -160,6 +160,7 @@ struct DiceActionView: View {
                         .background(
                             Color(UIColor.systemGray5).cornerRadius(4)
                         )
+                        .animation(nil, value: val)
                 }
             }
 
