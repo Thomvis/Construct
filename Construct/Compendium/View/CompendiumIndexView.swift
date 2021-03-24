@@ -74,7 +74,13 @@ struct CompendiumIndexView: View {
         .navigationBarItems(trailing: Group {
             if localViewStore.state.showImportButton {
                 Button(action: {
-                    localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
+                    if appNavigation == .column {
+                        // workaround: if we present the import screen as the next screen on iPad,
+                        // the view will dismiss as soon as the document picker has opened.
+                        localViewStore.send(.setDetailScreen(.compendiumImport(CompendiumImportViewState())))
+                    } else {
+                        localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
+                    }
                 }) {
                     Text("Import").bold()
                 }
@@ -94,6 +100,14 @@ struct CompendiumIndexView: View {
             store: store,
             state: /CompendiumIndexState.NextScreen.compendiumImport,
             action: /CompendiumIndexAction.NextScreenAction.import,
+            navDest: .nextInStack,
+            destination: { _ in CompendiumImportView() }
+        )
+        .stateDrivenNavigationLink(
+            store: store,
+            state: /CompendiumIndexState.NextScreen.compendiumImport,
+            action: /CompendiumIndexAction.NextScreenAction.import,
+            navDest: .detail,
             destination: { _ in CompendiumImportView() }
         )
         .alert(store.scope(state: \.alert), dismiss: .alert(nil))
