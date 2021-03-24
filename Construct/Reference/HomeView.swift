@@ -14,7 +14,7 @@ struct HomeView: View {
     let store: Store<ReferenceItemViewState.Content.Home, ReferenceItemViewAction.Home>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store.stateless) { viewStore in
             ScrollView {
                 VStack(alignment: .leading) {
                     SectionContainer {

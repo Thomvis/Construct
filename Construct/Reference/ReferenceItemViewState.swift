@@ -367,3 +367,13 @@ extension ReferenceItemViewState.Content.AddCombatant {
         AddCombatantState.reducer.pullback(state: \.addCombatantState, action: /ReferenceItemViewAction.AddCombatant.addCombatant)
     )
 }
+
+extension ReferenceItemViewState.Content {
+    var typeHash: AnyHashable {
+        switch self {
+        case .home: return "home"
+        case .combatantDetail: return "combatantDetail"
+        case .addCombatant: return "addCombatant"
+        }
+    }
+}

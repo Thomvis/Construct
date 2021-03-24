@@ -20,7 +20,7 @@ struct CreatureEditView: View {
 
     init(store: Store<CreatureEditViewState, CreatureEditViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication })
     }
 
     var model: Binding<CreatureEditFormModel> {

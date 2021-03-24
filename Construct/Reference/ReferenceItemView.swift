@@ -15,7 +15,7 @@ struct ReferenceItemView: View {
     let store: Store<ReferenceItemViewState, ReferenceItemViewAction>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, removeDuplicates: { $0.content.typeHash == $1.content.typeHash }) { viewStore in
             NavigationView {
                 Group {
                     IfLetStore(store.scope(state: { $0.content.homeState }, action: { .contentHome($0) }), then: HomeView.init)
