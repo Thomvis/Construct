@@ -46,9 +46,23 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         }
     }
 
+    var rollCheckPopover: NumberEntryViewState? {
+        get {
+            if case .rollCheck(let s) = popover {
+                return s
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                popover = .rollCheck(newValue)
+            }
+        }
+    }
+
     enum Popover: Hashable {
         case creatureAction(DiceActionViewState)
-        case rollCheck(Int)
+        case rollCheck(NumberEntryViewState)
     }
 
     enum NextScreen: Equatable {
@@ -61,12 +75,14 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
             CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEdit, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.creatureEdit),
             CompendiumItemGroupEditState.reducer.optional().pullback(state: \.presentedNextGroupEdit, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.groupEdit),
             DiceActionViewState.reducer.optional().pullback(state: \.createActionPopover, action: /CompendiumItemDetailViewAction.creatureActionPopover),
+            NumberEntryViewState.reducer.optional().pullback(state: \.rollCheckPopover, action: /CompendiumItemDetailViewAction.rollCheckPopover),
             Reducer { state, action, env in
                 switch action {
                 case .entry(let e): state.entry = e
                 case .onSaveMonsterAsNPCButton: break // handled by the compendium container
                 case .popover(let p): state.popover = p
                 case .creatureActionPopover: break // handled by a reducer above
+                case .rollCheckPopover: break // handles by a reducer above
                 case .setNextScreen(let s): state.presentedScreens[.nextInStack] = s
                 case .setDetailScreen(let s): state.presentedScreens[.detail] = s
                 case .nextScreen(.creatureEdit(CreatureEditViewAction.onDoneTap(let state))):
@@ -117,6 +133,7 @@ enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
     case onSaveMonsterAsNPCButton(Monster)
     case popover(CompendiumEntryDetailViewState.Popover?)
     case creatureActionPopover(DiceActionViewAction)
+    case rollCheckPopover(NumberEntryViewAction)
     case setNextScreen(CompendiumEntryDetailViewState.NextScreen?)
     case nextScreen(NextScreenAction)
     case setDetailScreen(CompendiumEntryDetailViewState.NextScreen?)
@@ -128,18 +145,18 @@ enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
     }
 
     static func presentScreen(_ destination: NavigationDestination, _ screen: CompendiumEntryDetailViewState.NextScreen?) -> Self {
-            switch destination {
-            case .nextInStack: return .setNextScreen(screen)
-            case .detail: return .setDetailScreen(screen)
-            }
+        switch destination {
+        case .nextInStack: return .setNextScreen(screen)
+        case .detail: return .setDetailScreen(screen)
         }
+    }
 
-        static func presentedScreen(_ destination: NavigationDestination, _ action: NextScreenAction) -> Self {
-            switch destination {
-            case .nextInStack: return .nextScreen(action)
-            case .detail: return .detailScreen(action)
-            }
+    static func presentedScreen(_ destination: NavigationDestination, _ action: NextScreenAction) -> Self {
+        switch destination {
+        case .nextInStack: return .nextScreen(action)
+        case .detail: return .detailScreen(action)
         }
+    }
 
 }
 

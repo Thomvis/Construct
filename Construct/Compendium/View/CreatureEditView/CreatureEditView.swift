@@ -226,14 +226,16 @@ struct CreatureEditView: View {
         }
     }
 
-    var popoverBinding: Binding<Popover?> {
+    var popoverBinding: Binding<AnyView?> {
         Binding(get: {
             switch self.viewStore.state.popover {
-            case .numberEntry(let numberEntry):
-                return NumberEntryPopover(environment: self.env, initialState: numberEntry) {
-                    self.model.statBlock.hp.wrappedValue = "\($0)"
-                    self.viewStore.send(.popover(nil))
-                }
+            case .numberEntry:
+                return IfLetStore(store.scope(state: { $0.numberEntryPopover }, action: { .numberEntryPopover($0) })) { store in
+                    return NumberEntryPopover(store: store) {
+                        self.model.statBlock.hp.wrappedValue = "\($0)"
+                        self.viewStore.send(.popover(nil))
+                    }
+                }.eraseToAnyView
             case nil:
                 return nil
             }

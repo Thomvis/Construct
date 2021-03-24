@@ -75,6 +75,30 @@ struct CreatureEditViewState: Equatable {
         Section.allCases.filter { creatureType.compatibleSections.contains($0) && !sections.contains($0) }
     }
 
+    var numberEntryPopover: NumberEntryViewState? {
+        get {
+            if case .numberEntry(let s) = popover {
+                return s
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                popover = .numberEntry(newValue)
+            }
+        }
+    }
+
+    var normalizedForDeduplication: Self {
+        var res = self
+        res.popover = popover.map {
+            switch $0 {
+            case .numberEntry: return .numberEntry(.nullInstance)
+            }
+        }
+        return res
+    }
+
     enum Mode: Equatable {
         case create(CreatureType)
         case editMonster(Monster)
@@ -278,6 +302,7 @@ struct StatBlockFormModel: Equatable {
 enum CreatureEditViewAction: Equatable {
     case model(CreatureEditFormModel)
     case popover(CreatureEditViewState.Popover?)
+    case numberEntryPopover(NumberEntryViewAction?)
     case addSection(CreatureEditViewState.Section)
     case removeSection(CreatureEditViewState.Section)
     case onAddTap(CreatureEditViewState)
@@ -286,18 +311,22 @@ enum CreatureEditViewAction: Equatable {
 }
 
 extension CreatureEditViewState {
-    static let reducer: Reducer<Self, CreatureEditViewAction, Environment> = Reducer { state, action, _ in
-        switch action {
-        case .model(let m): state.model = m
-        case .popover(let p): state.popover = p
-        case .addSection(let s): state.sections.insert(s)
-        case .removeSection(let s): state.sections.remove(s)
-        case .onAddTap: break // should be handled by parent
-        case .onDoneTap: break // should be handled by parent
-        case .onRemoveTap: break // should be handled by parent
+    static let reducer: Reducer<Self, CreatureEditViewAction, Environment> = Reducer.combine(
+        NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CreatureEditViewAction.numberEntryPopover),
+        Reducer { state, action, _ in
+            switch action {
+            case .model(let m): state.model = m
+            case .popover(let p): state.popover = p
+            case .numberEntryPopover: break // handled above
+            case .addSection(let s): state.sections.insert(s)
+            case .removeSection(let s): state.sections.remove(s)
+            case .onAddTap: break // should be handled by parent
+            case .onDoneTap: break // should be handled by parent
+            case .onRemoveTap: break // should be handled by parent
+            }
+            return .none
         }
-        return .none
-    }
+    )
 }
 
 extension CreatureEditViewState: NavigationStackItemState {

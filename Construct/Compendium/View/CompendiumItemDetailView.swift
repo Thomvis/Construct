@@ -132,7 +132,7 @@ struct CompendiumItemDetailView: View {
             switch target {
             case .ability(let a):
                 let modifier: Int = stats.abilityScores?.score(for: a).modifier.modifier ?? 0
-                self.viewStore.send(.popover(.rollCheck(modifier)))
+                self.viewStore.send(.popover(.rollCheck(.abilityCheck(modifier))))
             case .action(let a, let p):
                 if let action = DiceAction(title: a.name, parsedAction: p, env: env) {
                     self.viewStore.send(.popover(.creatureAction(DiceActionViewState(action: action))))
@@ -150,10 +150,12 @@ struct CompendiumItemDetailView: View {
                         store: store
                     )
                 }.eraseToAnyView
-            case .rollCheck(let modifier):
-                return NumberEntryPopover(environment: self.env, rollD20WithModifier: modifier, onOutcomeSelected: { _ in
-                    self.viewStore.send(.popover(nil))
-                }).eraseToAnyView
+            case .rollCheck:
+                return IfLetStore(store.scope(state: { $0.rollCheckPopover }, action: { .rollCheckPopover($0) })) { store in
+                    NumberEntryPopover(store: store) { _ in
+                        self.viewStore.send(.popover(nil))
+                    }
+                }.eraseToAnyView
             case nil: return nil
             }
         }, set: {

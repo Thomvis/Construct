@@ -104,7 +104,7 @@ struct CombatantDetailView: View {
                             .padding(10)
 
                         SimpleButton(action: {
-                            self.viewStore.send(.popover(.initiative(self.combatant)))
+                            self.viewStore.send(.popover(.initiative(NumberEntryViewState.initiative(combatant: combatant))))
                         }) {
                             VStack {
                                 Text("Initiative")
@@ -301,10 +301,12 @@ struct CombatantDetailView: View {
                     viewStore.send(.actionSheet(sheet))
                     viewStore.send(.popover(nil))
                 }.eraseToAnyView
-            case .initiative(let combatant):
-                return NumberEntryPopover.initiative(environment: self.env, combatant: combatant) { p in
-                    self.viewStore.send(.combatant(.initiative(p)))
-                    self.viewStore.send(.popover(nil))
+            case .initiative:
+                return IfLetStore(store.scope(state: { $0.initiativePopoverState }, action: { .initiativePopover($0) })) { store in
+                    NumberEntryPopover(store: store) { p in
+                        self.viewStore.send(.combatant(.initiative(p)))
+                        self.viewStore.send(.popover(nil))
+                    }
                 }.eraseToAnyView
             case .rollCheck:
                 return IfLetStore(store.scope(state: { $0.rollCheckDialogState }, action: { .rollCheckDialog($0) })) { store in

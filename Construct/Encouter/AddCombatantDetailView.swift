@@ -41,7 +41,7 @@ struct AddCombatantDetailView: View {
     }
 
     @State var rollForHp = false
-    @State var popover: Popover?
+    @State var popover: Store<NumberEntryViewState, NumberEntryViewAction>? // fixme: should be part of the view state
 
     var monster: Monster? {
         viewStore.state.item as? Monster
@@ -55,10 +55,11 @@ struct AddCombatantDetailView: View {
                         HStack {
                             Stepper("Quantity: \(effectiveAmount.wrappedValue)", value: effectiveAmount, in: 0...100)
                             Button(action: {
-                                self.popover = NumberEntryPopover.editExpression(environment: self.env) { result in
-                                    self.amount = result
-                                    self.popover = nil
-                                }
+                                self.popover = Store(
+                                    initialState: NumberEntryViewState.dice(.editingExpression()),
+                                    reducer: NumberEntryViewState.reducer,
+                                    environment: env
+                                )
                             }) {
                                 Text("Roll")
                             }
@@ -92,7 +93,18 @@ struct AddCombatantDetailView: View {
             }
             .padding(12)
         }
-        .popover(self.$popover)
+        .popover(Binding(get: {
+            self.popover.map {
+                NumberEntryPopover(store: $0) { result in
+                    self.amount = result
+                    self.popover = nil
+                }.eraseToAnyView
+            }
+        }, set: {
+            if $0 == nil {
+                self.popover = nil
+            }
+        }))
     }
 
     var combatantQuantityDifference: Int {

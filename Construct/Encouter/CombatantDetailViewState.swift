@@ -85,6 +85,18 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         }
     }
 
+    var initiativePopoverState: NumberEntryViewState? {
+        get {
+            guard case .initiative(let s) = popover else { return nil }
+            return s
+        }
+        set {
+            if let newValue = newValue {
+                popover = .initiative(newValue)
+            }
+        }
+    }
+
 
     var normalizedForDeduplication: Self {
         var res = self
@@ -100,7 +112,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         res.popover = popover.map {
             switch $0 {
             case .healthAction: return .healthAction(HealthDialogState.nullInstance)
-            case .initiative: return .initiative(Combatant.nullInstance)
+            case .initiative: return .initiative(NumberEntryViewState.nullInstance)
             case .rollCheck: return .rollCheck(NumberEntryViewState.nullInstance)
             case .diceAction: return .diceAction(DiceActionViewState.nullInstance)
             case .tagDetails: return .tagDetails(CombatantTag.nullInstance)
@@ -114,6 +126,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         CombatantTagEditViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagEditView),
         NumberEntryViewState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog),
         DiceActionViewState.reducer.optional().pullback(state: \.diceActionPopoverState, action: /CombatantDetailViewAction.diceActionPopover),
+        NumberEntryViewState.reducer.optional().pullback(state: \.initiativePopoverState, action: /CombatantDetailViewAction.initiativePopover),
         Reducer { state, action, env in
             switch action {
             case .combatant: break // should be handled by parent
@@ -130,6 +143,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             case .healthDialog: break // handled below
             case .rollCheckDialog: break // handled above
             case .diceActionPopover: break // handled above
+            case .initiativePopover: break // handled above
             case .saveToCompendium:
                 guard let def = state.combatant.definition as? AdHocCombatantDefinition, let stats = def.stats else { return .none }
                 let monster = Monster(realm: .homebrew, stats: stats, challengeRating: Fraction(integer: 0))
@@ -183,7 +197,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 
     enum Popover: Equatable {
         case healthAction(HealthDialogState)
-        case initiative(Combatant)
+        case initiative(NumberEntryViewState)
         case rollCheck(NumberEntryViewState)
         case diceAction(DiceActionViewState)
         case tagDetails(CombatantTag)
@@ -200,6 +214,7 @@ enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
     case healthDialog(HealthDialogAction)
     case rollCheckDialog(NumberEntryViewAction)
     case diceActionPopover(DiceActionViewAction)
+    case initiativePopover(NumberEntryViewAction)
     case saveToCompendium
     case unlinkFromCompendium
 

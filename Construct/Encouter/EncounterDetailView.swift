@@ -268,20 +268,22 @@ struct EncounterDetailView: View {
         }
     }
 
-    var popover: Binding<Popover?> {
+    var popover: Binding<AnyView?> {
         Binding(get: {
             guard let popover = viewStore.popover else { return nil }
             switch popover {
-            case .combatantInitiative(let combatant):
-                return NumberEntryPopover.initiative(environment: environment, combatant: combatant) { value in
-                    viewStore.send(.encounter(.combatant(combatant.id, .initiative(value))))
-                    viewStore.send(.popover(nil))
-                }
+            case .combatantInitiative(let combatant, _):
+                return IfLetStore(store.scope(state: { $0.combatantInitiativePopover }, action: { .combatantInitiativePopover($0) })) { store in
+                    NumberEntryPopover(store: store) { value in
+                        viewStore.send(.encounter(.combatant(combatant.id, .initiative(value))))
+                        viewStore.send(.popover(nil))
+                    }
+                }.eraseToAnyView
             case .encounterInitiative:
                 return InitiativePopover { settings in
                     viewStore.send(.encounter(.initiative(settings)))
                     viewStore.send(.popover(nil))
-                }
+                }.makeBody()
             case .health(let target):
                 return HealthDialog(environment: environment, hp: nil) { action in
                     switch target {
@@ -294,7 +296,7 @@ struct EncounterDetailView: View {
                 } onOtherAction: { value in
                     viewStore.send(.actionSheet(.otherHpActions(value, target: target)))
                     viewStore.send(.popover(nil))
-                }
+                }.eraseToAnyView
             }
         }, set: {
             if $0 == nil {
@@ -386,7 +388,7 @@ struct CombatantSection: View {
                     self.parent.viewStore.send(.popover(.health(.single(combatant))))
                 }, onInitiativeTap: {
                     withAnimation {
-                        self.parent.viewStore.send(.popover(.combatantInitiative(combatant)))
+                        self.parent.viewStore.send(.popover(.combatantInitiative(combatant, NumberEntryViewState.initiative(combatant: combatant))))
                     }
                 })
                 // contentShape is needed or else the tapGesture on the whole cell doesn't work

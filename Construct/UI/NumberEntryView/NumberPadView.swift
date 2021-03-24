@@ -72,7 +72,7 @@ struct NumberPadView: View {
     }
 }
 
-struct NumberPadViewState: Equatable {
+struct NumberPadViewState: Hashable {
     private var ints: [Int] = []
     var value: Int {
         ints.reduce(0) { seq, elem in (seq*10) + elem }

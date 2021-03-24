@@ -141,11 +141,13 @@ struct CombatantTagEditView: View {
                         self.viewStore.send(.popover(nil))
                     }
                 ).environmentObject(env).eraseToAnyView
-            case .numberEntry(let popover):
-                return NumberEntryPopover(environment: env, initialState: popover, onOutcomeSelected: { outcome in
-                    self.viewStore.send(.onNoteTextDidChange("DC \(outcome)"))
-                    self.viewStore.send(.popover(nil))
-                }).eraseToAnyView
+            case .numberEntry:
+                return IfLetStore(store.scope(state: { $0.numberEntryPopover }, action: { .numberEntryPopover($0) })) { store in
+                    NumberEntryPopover(store: store) { outcome in
+                        self.viewStore.send(.onNoteTextDidChange("DC \(outcome)"))
+                        self.viewStore.send(.popover(nil))
+                    }
+                }.eraseToAnyView
             case nil: return nil
             }
         }, set: {

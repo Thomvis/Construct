@@ -36,7 +36,7 @@ struct DiceCalculatorView: View {
     }
 }
 
-struct DiceCalculatorState: Equatable {
+struct DiceCalculatorState: Hashable {
     let displayOutcomeExternally: Bool
     let rollOnAppear: Bool
 
@@ -58,12 +58,12 @@ struct DiceCalculatorState: Equatable {
         return result
     }
 
-    enum Mode: Equatable {
+    enum Mode: Hashable {
         case editingExpression
         case rollingExpression
     }
 
-    struct EntryContext: Equatable {
+    struct EntryContext: Hashable {
         var color: Die.Color?
         var subtract: Bool
     }
@@ -382,6 +382,7 @@ struct ResultDetailView: View {
             .bold().underline(die.value == die.die.sides)
             .frame(width: 44, height: 44)
             .background(((die.die.color?.UIColor).map(Color.init) ?? Color(UIColor.systemGray5)).cornerRadius(4))
+            .animation(nil, value: die.value)
     }
 
 }

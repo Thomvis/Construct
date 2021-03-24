@@ -27,6 +27,18 @@ struct CombatantTagEditViewState: Equatable, NavigationStackItemState {
             : "Add \(tag.definition.name)"
     }
 
+    var numberEntryPopover: NumberEntryViewState? {
+        get {
+            guard case .numberEntry(let s) = popover else { return nil }
+            return s
+        }
+        set {
+            if let newValue = newValue {
+                popover = .numberEntry(newValue)
+            }
+        }
+    }
+
     struct EffectDurationPopover: Equatable {
         let duration: EffectDuration?
         let context: EffectContext
@@ -49,18 +61,22 @@ struct CombatantTagEditViewState: Equatable, NavigationStackItemState {
         }
     }
 
-    static let reducer: Reducer<CombatantTagEditViewState, CombatantTagEditViewAction, Environment> = Reducer { state, action, _ in
-        switch action {
-        case .onNoteTextDidChange(let text):
-            state.tag.note = text.nonEmptyString
-        case .onDurationDidChange(let duration):
-            state.tag.duration = duration
-        case .onDoneTap: break // should be handled by parent
-        case .popover(let p):
-            state.popover = p
+    static let reducer: Reducer<CombatantTagEditViewState, CombatantTagEditViewAction, Environment> = Reducer.combine(
+        NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CombatantTagEditViewAction.numberEntryPopover),
+        Reducer { state, action, _ in
+            switch action {
+            case .onNoteTextDidChange(let text):
+                state.tag.note = text.nonEmptyString
+            case .onDurationDidChange(let duration):
+                state.tag.duration = duration
+            case .onDoneTap: break // should be handled by parent
+            case .popover(let p):
+                state.popover = p
+            case .numberEntryPopover: break // handled above
+            }
+            return .none
         }
-        return .none
-    }
+    )
 }
 
 enum CombatantTagEditViewAction: Equatable {
@@ -69,6 +85,7 @@ enum CombatantTagEditViewAction: Equatable {
     case onDoneTap
 
     case popover(CombatantTagEditViewState.Popover?)
+    case numberEntryPopover(NumberEntryViewAction)
 }
 
 extension CombatantTagEditViewState {

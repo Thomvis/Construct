@@ -36,7 +36,7 @@ struct NumberEntryView: View {
     }
 }
 
-struct NumberEntryViewState: Equatable {
+struct NumberEntryViewState: Hashable {
     var mode: Mode
     var padState: NumberPadViewState
     var diceState: DiceCalculatorState
@@ -48,7 +48,7 @@ struct NumberEntryViewState: Equatable {
         }
     }
 
-    enum Mode: Equatable {
+    enum Mode: Hashable {
         case pad
         case dice
     }
@@ -67,6 +67,25 @@ extension NumberEntryViewState {
 
     static func dice(_ state: DiceCalculatorState) -> NumberEntryViewState {
         return NumberEntryViewState(mode: .dice, padState: NumberPadViewState(value: 0), diceState: state)
+    }
+
+    static func abilityCheck(_ modifier: Int, rollOnAppear: Bool = true, prefilledResult: Int? = nil) -> NumberEntryViewState {
+        return .dice(.rollingExpression((1.d(20)+modifier).normalized ?? 1.d(20), rollOnAppear: rollOnAppear, prefilledResult: prefilledResult))
+    }
+
+    static func initiative(combatant: Combatant) -> NumberEntryViewState {
+        if combatant.definition.player != nil {
+            return NumberEntryViewState.pad(
+                value: combatant.initiative ?? 0,
+                expression: combatant.definition.initiativeModifier.map { 1.d(20) + $0 }
+            )
+        } else if let mod = combatant.definition.initiativeModifier {
+            return NumberEntryViewState.dice(.rollingExpression(1.d(20) + mod, prefilledResult: combatant.initiative))
+        } else if let initiative = combatant.initiative {
+            return NumberEntryViewState.dice(.rollingExpression(1.d(20), prefilledResult: initiative))
+        } else {
+            return NumberEntryViewState.dice(.editingExpression(1.d(20)))
+        }
     }
 
     static var reducer: Reducer<Self, NumberEntryViewAction, Environment> = Reducer.combine(
