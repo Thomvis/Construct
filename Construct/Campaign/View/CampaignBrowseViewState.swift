@@ -69,8 +69,8 @@ struct CampaignBrowseViewState: NavigationStackSourceState, Equatable {
         var node: CampaignNode? // nil if new node
     }
 
-    enum NextScreen: Equatable {
-        indirect case catalogBrowse(CampaignBrowseViewState)
+    indirect enum NextScreen: Equatable {
+        case catalogBrowse(CampaignBrowseViewState)
         case encounter(EncounterDetailViewState)
     }
 }

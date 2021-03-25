@@ -49,9 +49,9 @@ struct CampaignBrowseTwoColumnContainerState: Equatable {
 
     var showReferenceView = false
 
-    enum Content: Equatable {
-        indirect case browse(CampaignBrowseViewState)
-        indirect case encounter(EncounterDetailViewState)
+    indirect enum Content: Equatable {
+        case browse(CampaignBrowseViewState)
+        case encounter(EncounterDetailViewState)
 
         var browseState: CampaignBrowseViewState? {
             get {
