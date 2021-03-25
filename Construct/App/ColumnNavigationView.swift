@@ -18,15 +18,15 @@ struct ColumnNavigationView: View {
     var splitVC = State<UISplitViewController?>(initialValue: nil)
 
     var body: some View {
-        let placeholder = Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 200).opacity(0.66)
+        let placeholder = Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 400).opacity(0.66).blur(radius: 10)
 
         return ZStack {
             NavigationView {
                 SidebarView(store: store.scope(state: { $0.sidebar }, action: { .sidebar($0) }))
 
-                placeholder
+                EmptyView()
 
-                placeholder
+                EmptyView()
             }
             .introspectViewController { vc in
                 // workaround for an empty supplementary view on launch
