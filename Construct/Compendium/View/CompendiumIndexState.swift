@@ -160,6 +160,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     }
 
     enum Sheet: Equatable, Identifiable {
+        // creatureEdit and groupEdit are used when adding a new creature/group
         case creatureEdit(CreatureEditViewState)
         case groupEdit(CompendiumItemGroupEditState)
 
@@ -214,7 +215,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                         return AnyCancellable { }
                     }
-                case .nextScreen(.compendiumEntry(.nextScreen(.groupEdit(.onRemoveTap)))):
+                case .nextScreen(.compendiumEntry(.nextScreen(.groupEdit(.onRemoveTap)))),
+                     .detailScreen(.compendiumEntry(.nextScreen(.groupEdit(.onRemoveTap)))):
                     return Effect.run { subscriber in
                         subscriber.send(.setNextScreen(nil))
 
@@ -227,7 +229,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                         return AnyCancellable { }
                     }
-                case .nextScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onRemoveTap)))):
+                case .nextScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onRemoveTap)))),
+                     .detailScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onRemoveTap)))):
                     return Effect.run { subscriber in
                         subscriber.send(.setNextScreen(nil))
 
@@ -240,7 +243,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                         return AnyCancellable { }
                     }
-                case .nextScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onDoneTap)))):
+                case .nextScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onDoneTap)))),
+                     .detailScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onDoneTap)))):
                     return Effect(value: .results(.reload))
                 case .nextScreen, .detailScreen:
                     break

@@ -111,9 +111,9 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                 case .nextScreen(.groupEdit(CompendiumItemGroupEditAction.onDoneTap(let group))):
                     let entry = CompendiumEntry(group)
                     state.entry = entry
-                    return Effect.fireAndForget {
+                    return Effect.future { callback in
                         try? env.compendium.put(entry)
-                        // dismissing is done by the parent
+                        callback(.success(.setNextScreen(nil)))
                     }
                 case .nextScreen(.groupEdit(CompendiumItemGroupEditAction.onRemoveTap(let group))):
                     return Effect.future { callback in
