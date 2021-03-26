@@ -38,6 +38,8 @@ struct CampaignBrowseTwoColumnContainerView: View {
             }
         )
         .onAppear {
+            // fixme: on iPad portrait this dismisses the supplementary column (with the encounter/campaign browse in it)
+            // because the seconday column is filled
             ViewStore(store).send(.showReferenceView(true))
         }
     }

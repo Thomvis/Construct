@@ -26,8 +26,8 @@ struct TabbedDocumentView<Content>: View where Content: View {
             TabView(selection: $selection) {
                 ForEach(items.sorted(by: { $0.id.uuidString < $1.id.uuidString }), id: \.id) { item in
                     content(item).tag(Optional.some(item.id))
-                        .navigationBarHidden(true)
                 }
+                .navigationBarHidden(true)
             }
             .opacity(items.isEmpty ? 0 : 1)
             .introspectTabBarController { vc in

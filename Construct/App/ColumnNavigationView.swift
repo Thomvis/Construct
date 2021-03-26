@@ -54,7 +54,8 @@ struct ColumnNavigationView: View {
             // workaround: hide the secondary view (i.e. reference view) when going to the compendium
             WithViewStore(store) { viewStore in
                 Color.clear.onChange(of: viewStore.state.sidebar.presentedDetailCompendium != nil) { shouldHideReferenceView in
-                    if shouldHideReferenceView, let nav = splitVC.wrappedValue?.viewController(for: .secondary) as? UINavigationController {
+                    guard let nav = splitVC.wrappedValue?.viewController(for: .secondary) as? UINavigationController else { return }
+                    if shouldHideReferenceView {
                         nav.setViewControllers([UIHostingController(rootView: placeholder)], animated: false)
                     }
                 }

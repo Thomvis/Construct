@@ -59,7 +59,7 @@ struct HomeView: View {
                 action: /ReferenceItemViewAction.Home.NextScreenAction.compendium,
                 destination: { CompendiumIndexView(store: $0) }
             )
-            .navigationBarHidden(true)
+            .navigationBarTitle(ViewStore(store).state.navigationTitle)
         }
     }
 

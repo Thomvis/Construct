@@ -186,6 +186,7 @@
 		E999FBD2235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD1235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift */; };
 		E999FBD6235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD5235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift */; };
 		E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBFE235E2F29000CCC8B /* DocumentPicker.swift */; };
+		E99BD8A8260E1C7C0063AAE9 /* InterposeKit in Frameworks */ = {isa = PBXBuildFile; productRef = E99BD8A7260E1C7C0063AAE9 /* InterposeKit */; };
 		E99F95A42428DCB100183B5B /* RunningEncounterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99F95A32428DCB000183B5B /* RunningEncounterTest.swift */; };
 		E9A71EBC239ADB400098317E /* Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A71EBB239ADB400098317E /* Style.swift */; };
 		E9A95177233B8A3A00141552 /* DDBModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95176233B8A3A00141552 /* DDBModels.swift */; };
@@ -423,6 +424,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E99BD8A8260E1C7C0063AAE9 /* InterposeKit in Frameworks */,
 				E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */,
 				E991F89D2545A791006CE8E8 /* Introspect in Frameworks */,
 				E9869F7D2520A64B0098A166 /* GRDB in Frameworks */,
@@ -982,6 +984,7 @@
 				E9869F752520A17A0098A166 /* AppCenterCrashes */,
 				E9869F7C2520A64B0098A166 /* GRDB */,
 				E991F89C2545A791006CE8E8 /* Introspect */,
+				E99BD8A7260E1C7C0063AAE9 /* InterposeKit */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -1043,6 +1046,7 @@
 				E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
 				E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 				E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
+				E99BD8A6260E1C7B0063AAE9 /* XCRemoteSwiftPackageReference "InterposeKit" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -1609,6 +1613,14 @@
 				minimumVersion = 0.1.1;
 			};
 		};
+		E99BD8A6260E1C7B0063AAE9 /* XCRemoteSwiftPackageReference "InterposeKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/steipete/InterposeKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.0.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1646,6 +1658,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */;
 			productName = Introspect;
+		};
+		E99BD8A7260E1C7C0063AAE9 /* InterposeKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E99BD8A6260E1C7B0063AAE9 /* XCRemoteSwiftPackageReference "InterposeKit" */;
+			productName = InterposeKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

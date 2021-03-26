@@ -121,7 +121,7 @@ struct ReferenceItemViewState: Equatable {
         struct Home: Equatable, NavigationStackSourceState {
 
             var navigationStackItemStateId: String = "home"
-            var navigationTitle: String = "Reference"
+            var navigationTitle: String = "Compendium"
 
             var context: ReferenceContext = .empty
             var presentedScreens: [NavigationDestination: NextScreen] = [:]
