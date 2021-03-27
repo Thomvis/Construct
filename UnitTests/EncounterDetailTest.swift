@@ -40,8 +40,7 @@ class EncounterDetailTest: XCTestCase {
 
         store.assert(
             // start encounter
-            .send(.onRunEncounterTap),
-            .receive(.run(nil)) {
+            .send(.run(nil)) {
                 var encounter = $0.building
                 encounter.ensureStableDiscriminators = true
                 $0.running = RunningEncounter(id: UUID(fakeSeq: 0), base: encounter, current: encounter)
