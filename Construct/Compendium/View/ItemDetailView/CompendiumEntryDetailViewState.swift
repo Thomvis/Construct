@@ -78,6 +78,27 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
             NumberEntryViewState.reducer.optional().pullback(state: \.rollCheckPopover, action: /CompendiumItemDetailViewAction.rollCheckPopover),
             Reducer { state, action, env in
                 switch action {
+                case .onAppear:
+                    if var group = state.entry.item as? CompendiumItemGroup {
+                        var entry = state.entry
+                        // refresh group members
+                        return Effect.future { callback in
+                            do {
+                                let characters = try group.members.compactMap { member -> Character? in
+                                    let item = try env.database.keyValueStore.get(member.itemKey)?.item
+                                    return item as? Character
+                                }
+
+                                if group.updateMemberReferences(with: characters) {
+                                    entry.item = group
+                                    try env.database.keyValueStore.put(entry)
+                                    callback(.success(.entry(entry)))
+                                }
+                            } catch {
+                                // failed
+                            }
+                        }
+                    }
                 case .entry(let e): state.entry = e
                 case .onSaveMonsterAsNPCButton: break // handled by the compendium container
                 case .popover(let p): state.popover = p
@@ -129,6 +150,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
 }
 
 enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
+    case onAppear
     case entry(CompendiumEntry)
     case onSaveMonsterAsNPCButton(Monster)
     case popover(CompendiumEntryDetailViewState.Popover?)

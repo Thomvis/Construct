@@ -246,6 +246,9 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 case .nextScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onDoneTap)))),
                      .detailScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onDoneTap)))):
                     return Effect(value: .results(.reload))
+                case .nextScreen(.compendiumEntry(.entry)),
+                     .detailScreen(.compendiumEntry(.entry)):
+                    return Effect(value: .results(.reload))
                 case .nextScreen, .detailScreen:
                     break
                 case .alert(let s):

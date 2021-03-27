@@ -89,6 +89,9 @@ struct CompendiumItemDetailView: View {
         )
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .popover(popoverBinding)
+        .onAppear {
+            viewStore.send(.onAppear)
+        }
     }
 
     @ViewBuilder

@@ -18,6 +18,25 @@ struct CompendiumItemGroup: CompendiumItem, Equatable {
         members.first(where: { $0.itemKey == character.key }) != nil
     }
 
+    /// Updates the cached titles for group members and removes members that no longer exist
+    /// Returns true if anything changed
+    mutating func updateMemberReferences(with characters: [Character]) -> Bool {
+        var didChange = false
+        for (idx, member) in members.enumerated().reversed() {
+            if let character = characters.first(where: { $0.key == member.itemKey }) {
+                if character.title != member.itemTitle {
+                    members[idx].itemTitle = character.title
+                    didChange = true
+                }
+            } else {
+                // member character no longer exists
+                members.remove(at: idx)
+                didChange = true
+            }
+        }
+        return didChange
+    }
+
     var realm: CompendiumItemKey.Realm { .homebrew }
     var key: CompendiumItemKey {
         CompendiumItemKey(type: .group, realm: realm, identifier: id.uuidString)
