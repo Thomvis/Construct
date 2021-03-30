@@ -34,7 +34,7 @@ struct CompendiumItemDetailView: View {
     }
 
     var body: some View {
-        return ScrollView {
+        ScrollView {
             VStack {
                 contentView()
 
@@ -45,7 +45,7 @@ struct CompendiumItemDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .trailing)
                 }
             }
-            .padding(12)
+            .padding(EdgeInsets(top: 12, leading: 12, bottom: 80, trailing: 12))
         }
         .background(with(menuItems) { items in
             if items.count == 1 {
