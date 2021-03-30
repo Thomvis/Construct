@@ -54,7 +54,7 @@ struct AddCombatantState: Equatable {
         }
     }
 
-    var normalizedForDeduplication: Self {
+    var localStateForDeduplication: Self {
         return AddCombatantState(
             compendiumState: CompendiumIndexState.nullInstance,
             encounter: self.encounter,

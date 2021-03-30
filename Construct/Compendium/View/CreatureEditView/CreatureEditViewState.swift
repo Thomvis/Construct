@@ -89,7 +89,7 @@ struct CreatureEditViewState: Equatable {
         }
     }
 
-    var normalizedForDeduplication: Self {
+    var localStateForDeduplication: Self {
         var res = self
         res.popover = popover.map {
             switch $0 {

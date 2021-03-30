@@ -46,7 +46,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         return type == .group
     }
 
-    var normalizedForDeduplication: Self {
+    var localStateForDeduplication: Self {
         var res = self
         res.results.input = Query.nullInstance
         res.results.lastResult?.input = Query.nullInstance

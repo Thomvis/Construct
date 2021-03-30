@@ -122,7 +122,7 @@ struct EncounterDetailViewState: Equatable {
         }
     }
 
-    var normalizedForDeduplication: Self {
+    var localStateForDeduplication: Self {
         var res = self
         res.sheet = sheet.map {
             switch $0 {

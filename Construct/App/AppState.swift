@@ -169,7 +169,7 @@ extension EnvironmentValues {
 }
 
 extension AppState {
-    var normalizedForDeduplication: AppState {
+    var localStateForDeduplication: AppState {
         var res = self
         switch res.navigation {
         case .column:

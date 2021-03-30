@@ -220,7 +220,7 @@ extension ReferenceViewState {
     private static let defaultItemState = ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home()))
 
     //Is this correct?
-    var normalizedForDeduplication: (UUID?, [Item]) {
+    var localStateForDeduplication: (UUID?, [Item]) {
         (selectedItemId, items.map { item in
             if item.id == selectedItemId {
                 var res = item

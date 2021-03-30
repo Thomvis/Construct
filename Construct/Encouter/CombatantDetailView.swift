@@ -20,7 +20,7 @@ struct CombatantDetailContainerView: View {
 
     init(store: Store<CombatantDetailViewState, CombatantDetailViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication })
+        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
 
     var body: some View {

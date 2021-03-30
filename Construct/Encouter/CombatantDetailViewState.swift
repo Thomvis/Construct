@@ -97,7 +97,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
     }
 
 
-    var normalizedForDeduplication: Self {
+    var localStateForDeduplication: Self {
         var res = self
         res.presentedScreens = presentedScreens.mapValues {
             switch $0 {

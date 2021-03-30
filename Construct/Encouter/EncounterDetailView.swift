@@ -19,7 +19,7 @@ struct EncounterDetailView: View {
 
     init(store: Store<EncounterDetailViewState, EncounterDetailViewState.Action>) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication })
+        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
 
     var encounter: Encounter {

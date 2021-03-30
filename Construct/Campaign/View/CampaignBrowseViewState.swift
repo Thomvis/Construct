@@ -32,7 +32,7 @@ struct CampaignBrowseViewState: NavigationStackSourceState, Equatable {
         self.presentedScreens = presentedScreens
     }
 
-    var normalizedForDeduplication: CampaignBrowseViewState {
+    var localStateForDeduplication: CampaignBrowseViewState {
         var res = self
         res.presentedScreens = presentedScreens.mapValues {
             switch $0 {

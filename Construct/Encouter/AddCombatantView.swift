@@ -28,7 +28,7 @@ struct AddCombatantView: View {
         onSelection: @escaping (Action, _ dismiss: Bool) -> Void
     ) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { $0.normalizedForDeduplication == $1.normalizedForDeduplication })
+        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
         self.externalNavigation = externalNavigation
         self.showEncounterDifficulty = showEncounterDifficulty
         self.onSelection = onSelection
