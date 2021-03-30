@@ -88,6 +88,10 @@ struct DiceCalculatorState: Hashable {
         )
     }
 
+    static func abilityCheck(_ modifier: Int, rollOnAppear: Bool = true, prefilledResult: Int? = nil) -> DiceCalculatorState {
+        return .rollingExpression((1.d(20)+modifier).normalized ?? 1.d(20), rollOnAppear: rollOnAppear, prefilledResult: prefilledResult)
+    }
+
     static var reducer = Reducer<DiceCalculatorState, DiceCalculatorAction, Environment> { state, action, env in
         switch action {
         case .mode(let m):
@@ -545,4 +549,8 @@ struct ButtonStyle: SwiftUI.ButtonStyle {
         let radius = min(size.width, size.height)
         return (configuration.isPressed ? self.color.opacity(0.5) : self.color).cornerRadius(radius/2)
     }
+}
+
+extension DiceCalculatorState {
+    static let nullInstance = DiceCalculatorState(displayOutcomeExternally: false, rollOnAppear: false, expression: .number(0), mode: .editingExpression)
 }

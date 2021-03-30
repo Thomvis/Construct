@@ -60,7 +60,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         }
     }
 
-    var rollCheckDialogState: NumberEntryViewState? {
+    var rollCheckDialogState: DiceCalculatorState? {
         get {
             guard case .rollCheck(let s) = popover else { return nil }
             return s
@@ -112,7 +112,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             switch $0 {
             case .healthAction: return .healthAction(HealthDialogState.nullInstance)
             case .initiative: return .initiative(NumberEntryViewState.nullInstance)
-            case .rollCheck: return .rollCheck(NumberEntryViewState.nullInstance)
+            case .rollCheck: return .rollCheck(DiceCalculatorState.nullInstance)
             case .diceAction: return .diceAction(DiceActionViewState.nullInstance)
             case .tagDetails: return .tagDetails(CombatantTag.nullInstance)
             case .addLimitedResource: return .addLimitedResource(CombatantTrackerEditViewState.nullInstance)
@@ -123,7 +123,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 
     static let reducer: Reducer<Self, CombatantDetailViewAction, Environment> = Reducer.combine(
         CombatantTagEditViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagEditView),
-        NumberEntryViewState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog),
+        DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog),
         DiceActionViewState.reducer.optional().pullback(state: \.diceActionPopoverState, action: /CombatantDetailViewAction.diceActionPopover),
         NumberEntryViewState.reducer.optional().pullback(state: \.initiativePopoverState, action: /CombatantDetailViewAction.initiativePopover),
         Reducer { state, action, env in
@@ -195,7 +195,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
     enum Popover: Equatable {
         case healthAction(HealthDialogState)
         case initiative(NumberEntryViewState)
-        case rollCheck(NumberEntryViewState)
+        case rollCheck(DiceCalculatorState)
         case diceAction(DiceActionViewState)
         case tagDetails(CombatantTag)
         case addLimitedResource(CombatantTrackerEditViewState)
@@ -208,7 +208,7 @@ enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
     case popover(CombatantDetailViewState.Popover?)
     case addLimitedResource(CombatantTrackerEditViewAction)
     case healthDialog(HealthDialogAction)
-    case rollCheckDialog(NumberEntryViewAction)
+    case rollCheckDialog(DiceCalculatorAction)
     case diceActionPopover(DiceActionViewAction)
     case initiativePopover(NumberEntryViewAction)
     case saveToCompendium

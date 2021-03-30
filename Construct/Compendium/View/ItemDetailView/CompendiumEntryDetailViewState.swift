@@ -46,7 +46,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         }
     }
 
-    var rollCheckPopover: NumberEntryViewState? {
+    var rollCheckPopover: DiceCalculatorState? {
         get {
             if case .rollCheck(let s) = popover {
                 return s
@@ -62,7 +62,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
 
     enum Popover: Hashable {
         case creatureAction(DiceActionViewState)
-        case rollCheck(NumberEntryViewState)
+        case rollCheck(DiceCalculatorState)
     }
 
     enum NextScreen: Equatable {
@@ -75,7 +75,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
             CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEdit, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.creatureEdit),
             CompendiumItemGroupEditState.reducer.optional().pullback(state: \.presentedNextGroupEdit, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.groupEdit),
             DiceActionViewState.reducer.optional().pullback(state: \.createActionPopover, action: /CompendiumItemDetailViewAction.creatureActionPopover),
-            NumberEntryViewState.reducer.optional().pullback(state: \.rollCheckPopover, action: /CompendiumItemDetailViewAction.rollCheckPopover),
+            DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckPopover, action: /CompendiumItemDetailViewAction.rollCheckPopover),
             Reducer { state, action, env in
                 switch action {
                 case .onAppear:
@@ -155,7 +155,7 @@ enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
     case onSaveMonsterAsNPCButton(Monster)
     case popover(CompendiumEntryDetailViewState.Popover?)
     case creatureActionPopover(DiceActionViewAction)
-    case rollCheckPopover(NumberEntryViewAction)
+    case rollCheckPopover(DiceCalculatorAction)
     case setNextScreen(CompendiumEntryDetailViewState.NextScreen?)
     case nextScreen(NextScreenAction)
     case setDetailScreen(CompendiumEntryDetailViewState.NextScreen?)

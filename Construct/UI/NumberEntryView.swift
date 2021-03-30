@@ -69,10 +69,6 @@ extension NumberEntryViewState {
         return NumberEntryViewState(mode: .dice, padState: NumberPadViewState(value: 0), diceState: state)
     }
 
-    static func abilityCheck(_ modifier: Int, rollOnAppear: Bool = true, prefilledResult: Int? = nil) -> NumberEntryViewState {
-        return .dice(.rollingExpression((1.d(20)+modifier).normalized ?? 1.d(20), rollOnAppear: rollOnAppear, prefilledResult: prefilledResult))
-    }
-
     static func initiative(combatant: Combatant) -> NumberEntryViewState {
         if combatant.definition.player != nil {
             return NumberEntryViewState.pad(

@@ -13,14 +13,14 @@ struct CombatantRollButton: View {
     @EnvironmentObject var env: Environment
     
     let stats: StatBlock
-    let rollCheck: (NumberEntryViewState) -> Void
+    let rollCheck: (DiceCalculatorState) -> Void
 
     var body: some View {
         Menu(content: {
             ForEach(Ability.allCases.reversed(), id: \.self) { a in
                 if let modifier = stats.savingThrowModifier(a) {
                     Button(action: {
-                        rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))
+                        rollCheck(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true))
                     }) {
                         Label(
                             "\(a.localizedDisplayName) save: \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))",
@@ -40,7 +40,7 @@ struct CombatantRollButton: View {
                 ForEach(Ability.allCases.reversed(), id: \.rawValue) { a in
                     if let modifier = stats.abilityScores?.score(for: a).modifier {
                         Button(action: {
-                            rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))
+                            rollCheck(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true))
                         }) {
                             Label(title: {
                                 Text("\(a.localizedDisplayName): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
@@ -59,7 +59,7 @@ struct CombatantRollButton: View {
                     let title = "\(s.localizedDisplayName) (\(s.ability.localizedAbbreviation.uppercased()))"
                     if let modifier = stats.skillModifier(s) {
                         Button(action: {
-                            rollCheck(NumberEntryViewState.dice(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))
+                            rollCheck(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true))
                         }) {
                             Label(title: {
                                 Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")

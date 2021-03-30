@@ -172,9 +172,7 @@ struct CompendiumItemDetailView: View {
                 }.eraseToAnyView
             case .rollCheck:
                 return IfLetStore(store.scope(state: { $0.rollCheckPopover }, action: { .rollCheckPopover($0) })) { store in
-                    NumberEntryPopover(store: store) { _ in
-                        self.viewStore.send(.popover(nil))
-                    }
+                    DiceCalculatorView(store: store)
                 }.eraseToAnyView
             case nil: return nil
             }
