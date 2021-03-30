@@ -15,8 +15,8 @@ struct ColumnNavigationViewState: Equatable {
     var diceCalculator = FloatingDiceRollerViewState(diceCalculator: DiceCalculatorState(
         displayOutcomeExternally: false,
         rollOnAppear: false,
-        expression: .number(0),
-        mode: .editingExpression
+        expression: .dice(count: 1, die: Die(sides: 20)),
+        mode: .rollingExpression
     ))
 }
 
