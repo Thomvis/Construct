@@ -34,61 +34,77 @@ struct FloatingDiceRollerContainerView: View {
             ZStack(alignment: alignment) {
                 Color.clear // to make the ZStack fill all available space
 
-                VStack {
-                    HStack {
-                        Spacer()
-
-                        Button(action: {
-                            withAnimation {
-                                viewStore.send(.hide)
-                            }
-                        }) {
-                            Image(systemName: "pip.remove")
-                        }
+                if containerProxy.size.width < containerProxy.size.height, viewStore.state.hidden {
+                    Button(action: {
+                        viewStore.send(.show)
+                    }) {
+                        Image("tabbar_d20")
+                            .padding(18)
+                            .background(Circle().foregroundColor(Color(UIColor.systemBackground)).shadow(radius: 5))
+                            .padding(12)
                     }
-                    .background(Color(UIColor.systemGray6).padding(EdgeInsets(
-                                                                    top: -Self.panelToolbarVerticalPadding,
-                                                                    leading: -Self.innerPanelPadding,
-                                                                    bottom: -Self.panelToolbarVerticalPadding,
-                                                                    trailing: -Self.innerPanelPadding))
-                    )
-                    .padding([.top, .bottom], Self.panelToolbarVerticalPadding)
-                    .padding(.bottom, Self.panelToolbarVerticalPadding)
-
-                    DiceCalculatorView(store: store.scope(state: { $0.diceCalculator }, action: { .diceCalculator($0) }))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                 }
-                .frame(width: 280)
-                .fixedSize()
-                .padding([.leading, .trailing, .bottom], Self.innerPanelPadding)
-                .background(Color(UIColor.systemBackground))
-                .cornerRadius(12)
-                .shadow(radius: 5)
-                .offset(dragOffset)
-                .gesture(
-                    DragGesture(coordinateSpace: .named(Self.containerCoordinateSpaceName))
-                        .onChanged { value in
-                            withAnimation(.interactiveSpring()) {
-                                dragOffset = value.translation
-                            }
-                        }
-                        .onEnded { value in
-                            withAnimation(.spring()) {
-                                self.dragOffset = .zero
-                                guard let up = self.alignment.unitPoint else { return }
-                                self.alignment = targetAlignment(
-                                    for: CGPoint(x: containerProxy.size.width * up.x, y: containerProxy.size.height * up.y)
-                                        + CGPoint(x: 140, y: 200) // approximate panel size, removes the need for a GeometryReader/anchorPreference
-                                        + CGPoint(value.predictedEndTranslation),
-                                    in: containerProxy.size
-                                )
-                            }
-                        }
-                )
+
+                panel(containerProxy)
+                    .opacity(viewStore.state.hidden ? 0 : 1)
             }
             .coordinateSpace(name: Self.containerCoordinateSpaceName)
             .padding(12)
-            .opacity(viewStore.state.hidden ? 0 : 1)
         }
+    }
+
+    private func panel(_ containerProxy: GeometryProxy) -> some View {
+        let dragGesture = DragGesture(coordinateSpace: .named(Self.containerCoordinateSpaceName))
+            .onChanged { value in
+                withAnimation(.interactiveSpring()) {
+                    dragOffset = value.translation
+                }
+            }
+            .onEnded { value in
+                withAnimation(.spring()) {
+                    self.dragOffset = .zero
+                    guard let up = self.alignment.unitPoint else { return }
+                    self.alignment = targetAlignment(
+                        for: CGPoint(x: containerProxy.size.width * up.x, y: containerProxy.size.height * up.y)
+                            + CGPoint(x: 140, y: 200) // approximate panel size, removes the need for a GeometryReader/anchorPreference
+                            + CGPoint(value.predictedEndTranslation),
+                        in: containerProxy.size
+                    )
+                }
+            }
+
+        return VStack {
+            HStack {
+                Spacer()
+
+                Button(action: {
+                    withAnimation {
+                        viewStore.send(.hide)
+                    }
+                }) {
+                    Image(systemName: "pip.remove")
+                }
+            }
+            .background(Color(UIColor.systemGray6).padding(EdgeInsets(
+                                                            top: -Self.panelToolbarVerticalPadding,
+                                                            leading: -Self.innerPanelPadding,
+                                                            bottom: -Self.panelToolbarVerticalPadding,
+                                                            trailing: -Self.innerPanelPadding))
+            )
+            .padding([.top, .bottom], Self.panelToolbarVerticalPadding)
+            .padding(.bottom, Self.panelToolbarVerticalPadding)
+
+            DiceCalculatorView(store: store.scope(state: { $0.diceCalculator }, action: { .diceCalculator($0) }))
+        }
+        .frame(width: 280)
+        .fixedSize()
+        .padding([.leading, .trailing, .bottom], Self.innerPanelPadding)
+        .background(Color(UIColor.systemBackground))
+        .cornerRadius(12)
+        .shadow(radius: 5)
+        .offset(dragOffset)
+        .gesture(dragGesture)
     }
 
     func targetAlignment(for location: CGPoint, in containerSize: CGSize) -> SwiftUI.Alignment {

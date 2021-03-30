@@ -10,7 +10,7 @@ import Foundation
 import ComposableArchitecture
 
 struct FloatingDiceRollerViewState: Equatable {
-    var hidden: Bool = true
+    var hidden: Bool = false
     var diceCalculator: DiceCalculatorState
 
     var canCollapse: Bool {
