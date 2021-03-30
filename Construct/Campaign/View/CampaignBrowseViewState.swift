@@ -84,11 +84,14 @@ extension CampaignBrowseViewState {
     }
 
     var sortedItems: [CampaignNode]? {
+        items.value?.sorted { $0.title < $1.title }
+    }
+
+    func isItemDisabled(_ item: CampaignNode) -> Bool {
         if case .move = mode {
-            return items.value?.filter { $0.contents == nil }.sorted { $0.title < $1.title }
-        } else {
-            return items.value?.sorted { $0.title < $1.title }
+            return item.contents != nil
         }
+        return false
     }
 }
 

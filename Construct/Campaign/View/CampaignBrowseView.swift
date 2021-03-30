@@ -25,28 +25,26 @@ struct CampaignBrowseView: View {
 
     var body: some View {
         ZStack {
-            VStack {
-                with(viewStore.state.movingNodesDescription) { descr in
-                    descr.map { d in
-                        Button(action: {
-                            self.viewStore.send(.didTapConfirmMoveButton)
-                        }) {
-                            HStack {
-                                Image(systemName: "tray.and.arrow.down").frame(width: 30)
-                                Text("Move \(d) here")
-                            }
+            VStack(spacing: 0) {
+                if let movingNodesDescription = viewStore.state.movingNodesDescription {
+                    Button(action: {
+                        self.viewStore.send(.didTapConfirmMoveButton)
+                    }) {
+                        HStack {
+                            Image(systemName: "tray.and.arrow.down").frame(width: 30)
+                            Text("Move \(movingNodesDescription) here")
                         }
-                        .disabled(viewStore.state.isMoveOrigin)
-                        .font(.footnote)
-                        .padding(12)
-                        .frame(maxWidth: .infinity).background(Color(UIColor.secondarySystemBackground))
                     }
+                    .disabled(viewStore.state.isMoveOrigin)
+                    .font(.footnote)
+                    .padding(12)
+                    .frame(maxWidth: .infinity).background(Color(UIColor.secondarySystemBackground))
                 }
 
                 List {
                     viewStore.state.sortedItems.map { items in
                         ForEach(items, id: \.id) { item in
-                            self.itemView(item)
+                            self.itemView(item).disabled(viewStore.state.isItemDisabled(item))
                         }.onDelete(perform:self.onDelete)
                     }
                 }.listStyle(InsetGroupedListStyle())
@@ -210,6 +208,7 @@ struct CampaignBrowseView: View {
                 IfLetStore(self.store.scope(state: { $0.moveSheetState }, action: { .moveSheet($0) })) { store in
                     CampaignBrowseView(store: store)
                 }
+                .navigationBarTitleDisplayMode(.inline)
             }.environmentObject(env).eraseToAnyView
         }
     }
