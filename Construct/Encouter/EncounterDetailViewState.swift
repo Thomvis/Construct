@@ -48,7 +48,7 @@ struct EncounterDetailViewState: Equatable {
     var popover: Popover?
 
     var editMode = false
-    var selection = Set<UUID>()
+    var selection = Set<Combatant.Id>()
 
     var encounter: Encounter {
         get { running?.current ?? building }
@@ -184,7 +184,7 @@ extension EncounterDetailViewState {
         case removeResumableRunningEncounter(String) // key of the running encounter
         case resetEncounter(Bool) // false = clear monsters, true = clear all
         case editMode(Bool)
-        case selection(Set<UUID>)
+        case selection(Set<Combatant.Id>)
 
         case selectionEncounterAction(SelectionEncounterAction)
         case selectionCombatantAction(CombatantAction)
@@ -232,7 +232,7 @@ extension EncounterDetailViewState {
                         $0.ensureStableDiscriminators = true
                     }
                     let re = runningEncounter
-                        ?? RunningEncounter(id: env.generateUUID(), base: base, current: base, turn: state.building.initiativeOrder.first.map { RunningEncounter.Turn(round: 1, combatantId: $0.id) })
+                        ?? RunningEncounter(id: env.generateUUID().tagged(), base: base, current: base, turn: state.building.initiativeOrder.first.map { RunningEncounter.Turn(round: 1, combatantId: $0.id) })
                     state.running = re
                     // let's not use this until it's a setting
                     // state.building.runningEncounterKey = re.key
@@ -345,12 +345,12 @@ extension EncounterDetailViewState {
                     )
 
                     state.combatantDetailReferenceItemRequest = ReferenceViewItemRequest(
-                        id: state.combatantDetailReferenceItemRequest?.id ?? UUID(),
+                        id: state.combatantDetailReferenceItemRequest?.id ?? UUID().tagged(),
                         state: ReferenceItemViewState(content: .combatantDetail(detailState))
                     )
                 case .showAddCombatantReferenceItem:
                     state.addCombatantReferenceItemRequest = ReferenceViewItemRequest(
-                        id: state.addCombatantReferenceItemRequest?.id ?? UUID(),
+                        id: state.addCombatantReferenceItemRequest?.id ?? UUID().tagged(),
                         state: ReferenceItemViewState(content: .addCombatant(ReferenceItemViewState.Content.AddCombatant(addCombatantState: AddCombatantState(encounter: state.encounter))))
                     )
                 }

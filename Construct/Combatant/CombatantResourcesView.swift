@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
+import Tagged
 
 struct CombatantResourcesView: View {
     var store: Store<CombatantResourcesViewState, CombatantResourcesViewAction>
@@ -49,7 +50,7 @@ struct CombatantResourcesView: View {
 
             HStack {
                 RoundedButton(action: {
-                    self.viewStore.send(.setEditState(CombatantTrackerEditViewState(resource: CombatantResource(id: UUID(), title: "", slots: [false]))))
+                    self.viewStore.send(.setEditState(CombatantTrackerEditViewState(resource: CombatantResource(id: UUID().tagged(), title: "", slots: [false]))))
                 }) {
                     Label("Add resource", systemImage: "plus.circle")
                 }

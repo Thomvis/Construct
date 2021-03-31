@@ -9,11 +9,12 @@
 import Foundation
 import ComposableArchitecture
 import Combine
+import Tagged
 
 struct Encounter: Equatable, Codable {
-    let id: UUID
+    let id: Id
     var name: String
-    var combatants: IdentifiedArray<UUID, Combatant> {
+    var combatants: IdentifiedArray<Combatant.Id, Combatant> {
         didSet {
             updateCombatantDiscriminators()
         }
@@ -26,7 +27,7 @@ struct Encounter: Equatable, Codable {
     var ensureStableDiscriminators: Bool
 
     init(id: UUID = UUID(), name: String, combatants: [Combatant]) {
-        self.id = id
+        self.id = id.tagged()
         self.name = name
         self.combatants = IdentifiedArray(combatants, id: \.id)
         self.ensureStableDiscriminators = false
@@ -69,7 +70,7 @@ struct Encounter: Equatable, Codable {
                         // tie-breaker 1
                         return idxa < idxb
                     } else {
-                        return a.id.uuidString < b.id.uuidString // tie-breaker 2
+                        return a.id.rawValue.uuidString < b.id.rawValue.uuidString // tie-breaker 2
                     }
                 }
             }
@@ -110,7 +111,7 @@ struct Encounter: Equatable, Codable {
         return Array(repeating: .init(level: 2, name: nil), count: 3)
     }
 
-    func combatant(for id: UUID) -> Combatant? {
+    func combatant(for id: Combatant.Id) -> Combatant? {
         return combatants.first { $0.id == id }
     }
 
@@ -175,9 +176,11 @@ struct Encounter: Equatable, Codable {
         _isUpdatingCombatantDiscriminators = false
     }
 
+    typealias Id = Tagged<Encounter, UUID>
+
     enum Action: Equatable {
         case name(String)
-        case combatant(UUID, CombatantAction)
+        case combatant(Combatant.Id, CombatantAction)
         case initiative(InitiativeSettings)
         case add(Combatant)
         case addByKey(CompendiumItemKey, CompendiumItemGroup?)
@@ -243,27 +246,29 @@ struct Encounter: Equatable, Codable {
         var combatantBased: Bool
 
         struct CombatantParty: Codable, Equatable {
-            var _filter: [UUID]? // if nil, all player controlled combatants are in the party
-            var filter: [UUID]? {
+            var _filter: [Combatant.Id]? // if nil, all player controlled combatants are in the party
+            var filter: [Combatant.Id]? {
                 get { _filter }
                 set { _filter = newValue }
             }
 
-            init(filter: [UUID]?) {
+            init(filter: [Combatant.Id]?) {
                 self.filter = filter
             }
         }
 
         struct SimplePartyEntry: Codable, Identifiable, Equatable {
-            let id: UUID
+            let id: Id
             var level: Int
             var count: Int
 
             init(level: Int, count: Int) {
-                self.id = UUID()
+                self.id = UUID().tagged()
                 self.level = level
                 self.count = count
             }
+
+            typealias Id = Tagged<SimplePartyEntry, UUID>
         }
     }
 }
@@ -283,13 +288,13 @@ extension Encounter: KeyValueStoreEntity {
         Self.key(id)
     }
 
-    static func key(_ id: UUID) -> String {
+    static func key(_ id: Encounter.Id) -> String {
         return "\(Self.keyValueStoreEntityKeyPrefix)_\(id)"
     }
 }
 
 extension Encounter {
-    static let scratchPadEncounterId = UUID(uuidString: "641EA02F-1B8A-4A0B-9AD7-7D7068A4C014")!
+    static let scratchPadEncounterId: Encounter.Id = UUID(uuidString: "641EA02F-1B8A-4A0B-9AD7-7D7068A4C014")!.tagged()
 
     var isScratchPad: Bool {
         id == Self.scratchPadEncounterId

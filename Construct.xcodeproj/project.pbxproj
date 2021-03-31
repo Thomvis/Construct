@@ -17,6 +17,7 @@
 		E91B857F23DA355B009AF6D7 /* software_licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = E91B857E23DA3552009AF6D7 /* software_licenses.md */; };
 		E91C167924029D94004B5C85 /* Apply.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91C167824029D94004B5C85 /* Apply.swift */; };
 		E91C167D2405C5BB004B5C85 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91C167C2405C5BB004B5C85 /* SafariView.swift */; };
+		E91CCC832614C4D200CB0527 /* Tagged in Frameworks */ = {isa = PBXBuildFile; productRef = E91CCC822614C4D200CB0527 /* Tagged */; };
 		E91E4706231D992E005D1E6F /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E4705231D992E005D1E6F /* Database.swift */; };
 		E91E470D231D9BD2005D1E6F /* Migrations.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E470C231D9BD2005D1E6F /* Migrations.swift */; };
 		E91E4711231D9CB6005D1E6F /* monsters.json in Resources */ = {isa = PBXBuildFile; fileRef = E91E4710231D9CB6005D1E6F /* monsters.json */; };
@@ -186,9 +187,9 @@
 		E999FBD2235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD1235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift */; };
 		E999FBD6235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD5235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift */; };
 		E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBFE235E2F29000CCC8B /* DocumentPicker.swift */; };
-		E99BD8A8260E1C7C0063AAE9 /* InterposeKit in Frameworks */ = {isa = PBXBuildFile; productRef = E99BD8A7260E1C7C0063AAE9 /* InterposeKit */; };
 		E99F95A42428DCB100183B5B /* RunningEncounterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99F95A32428DCB000183B5B /* RunningEncounterTest.swift */; };
 		E9A71EBC239ADB400098317E /* Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A71EBB239ADB400098317E /* Style.swift */; };
+		E9A8A65726124FB80079D0CE /* InterposeKit in Frameworks */ = {isa = PBXBuildFile; productRef = E9A8A65626124FB80079D0CE /* InterposeKit */; };
 		E9A95177233B8A3A00141552 /* DDBModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95176233B8A3A00141552 /* DDBModels.swift */; };
 		E9A95179233B8BC300141552 /* DDBCharacterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95178233B8BC300141552 /* DDBCharacterDataSourceReaderTest.swift */; };
 		E9A9517C233B8C4B00141552 /* ddb_sarovin.json in Resources */ = {isa = PBXBuildFile; fileRef = E9A9517B233B8C4B00141552 /* ddb_sarovin.json */; };
@@ -424,8 +425,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E99BD8A8260E1C7C0063AAE9 /* InterposeKit in Frameworks */,
+				E9A8A65726124FB80079D0CE /* InterposeKit in Frameworks */,
 				E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */,
+				E91CCC832614C4D200CB0527 /* Tagged in Frameworks */,
 				E991F89D2545A791006CE8E8 /* Introspect in Frameworks */,
 				E9869F7D2520A64B0098A166 /* GRDB in Frameworks */,
 				E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */,
@@ -984,7 +986,8 @@
 				E9869F752520A17A0098A166 /* AppCenterCrashes */,
 				E9869F7C2520A64B0098A166 /* GRDB */,
 				E991F89C2545A791006CE8E8 /* Introspect */,
-				E99BD8A7260E1C7C0063AAE9 /* InterposeKit */,
+				E9A8A65626124FB80079D0CE /* InterposeKit */,
+				E91CCC822614C4D200CB0527 /* Tagged */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -1046,7 +1049,8 @@
 				E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
 				E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 				E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
-				E99BD8A6260E1C7B0063AAE9 /* XCRemoteSwiftPackageReference "InterposeKit" */,
+				E9A8A65526124FB80079D0CE /* XCRemoteSwiftPackageReference "InterposeKit" */,
+				E91CCC812614C4D200CB0527 /* XCRemoteSwiftPackageReference "swift-tagged" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -1359,7 +1363,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 49;
+				CURRENT_PROJECT_VERSION = 58;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -1423,7 +1427,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 49;
+				CURRENT_PROJECT_VERSION = 58;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1573,6 +1577,14 @@
 				minimumVersion = 0.1.3;
 			};
 		};
+		E91CCC812614C4D200CB0527 /* XCRemoteSwiftPackageReference "swift-tagged" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-tagged.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.0;
+			};
+		};
 		E931CF8624FE5D68006CEE78 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing.git";
@@ -1613,12 +1625,12 @@
 				minimumVersion = 0.1.1;
 			};
 		};
-		E99BD8A6260E1C7B0063AAE9 /* XCRemoteSwiftPackageReference "InterposeKit" */ = {
+		E9A8A65526124FB80079D0CE /* XCRemoteSwiftPackageReference "InterposeKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/steipete/InterposeKit.git";
+			repositoryURL = "https://github.com/Thomvis/InterposeKit.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.2;
+				branch = "IKTAddSuperImplementationToClass-used";
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -1628,6 +1640,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E905E0BA246D83B800698C0A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
+		};
+		E91CCC822614C4D200CB0527 /* Tagged */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E91CCC812614C4D200CB0527 /* XCRemoteSwiftPackageReference "swift-tagged" */;
+			productName = Tagged;
 		};
 		E931CF8724FE5D68006CEE78 /* SnapshotTesting */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1659,9 +1676,9 @@
 			package = E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */;
 			productName = Introspect;
 		};
-		E99BD8A7260E1C7C0063AAE9 /* InterposeKit */ = {
+		E9A8A65626124FB80079D0CE /* InterposeKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E99BD8A6260E1C7B0063AAE9 /* XCRemoteSwiftPackageReference "InterposeKit" */;
+			package = E9A8A65526124FB80079D0CE /* XCRemoteSwiftPackageReference "InterposeKit" */;
 			productName = InterposeKit;
 		};
 /* End XCSwiftPackageProductDependency section */

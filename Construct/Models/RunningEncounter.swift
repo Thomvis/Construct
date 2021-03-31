@@ -8,9 +8,10 @@
 
 import Foundation
 import ComposableArchitecture
+import Tagged
 
 struct RunningEncounter: Codable, Equatable {
-    let id: UUID
+    let id: Id
     var base: Encounter // the encounter that was originally run
     var current: Encounter // the current encounter after changes that happened during the run
 
@@ -143,14 +144,16 @@ struct RunningEncounter: Codable, Equatable {
         }
     }
 
+    typealias Id = Tagged<RunningEncounter, UUID>
+
     struct Turn: Codable, Hashable {
         let round: Int
-        let combatantId: UUID
+        let combatantId: Combatant.Id
     }
 }
 
 struct RunningEncounterEvent: Codable, Equatable {
-    let id: UUID
+    let id: Id
 
     var turn: RunningEncounter.Turn
 
@@ -162,6 +165,8 @@ struct RunningEncounterEvent: Codable, Equatable {
         }
         return false
     }
+
+    typealias Id = Tagged<RunningEncounterEvent, UUID>
 
     struct CombatantEvent: Codable, Equatable {
         let target: CombatantReference
@@ -175,7 +180,7 @@ struct RunningEncounterEvent: Codable, Equatable {
     }
 
     struct CombatantReference: Codable, Equatable {
-        let id: UUID
+        let id: Combatant.Id
         let name: String
         let discriminator: Int?
     }
@@ -239,7 +244,7 @@ extension RunningEncounter {
             switch action {
             case .hp(.current(.add(let hp))):
                 state.log.append(RunningEncounterEvent(
-                    id: UUID(),
+                    id: UUID().tagged(),
                     turn: turn,
                     combatantEvent: RunningEncounterEvent.CombatantEvent(
                         target: RunningEncounterEvent.CombatantReference(id: uuid, name: combatant.name, discriminator: combatant.discriminator),
@@ -275,11 +280,11 @@ extension RunningEncounter: KeyValueStoreEntity {
         "\(encounter.key).running."
     }
 
-    static func keyPrefix(for encounterId: UUID) -> String {
+    static func keyPrefix(for encounterId: Encounter.Id) -> String {
         "\(Encounter.key(encounterId)).running."
     }
 }
 
 extension RunningEncounter {
-    static let nullInstance = RunningEncounter(id: UUID(), base: Encounter.nullInstance, current: Encounter.nullInstance)
+    static let nullInstance = RunningEncounter(id: UUID().tagged(), base: Encounter.nullInstance, current: Encounter.nullInstance)
 }

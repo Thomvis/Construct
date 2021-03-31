@@ -7,9 +7,10 @@
 //
 
 import Foundation
+import Tagged
 
 struct CombatantTag: Codable, Hashable {
-    let id: UUID
+    let id: Id
     let definition: CombatantTagDefinition
 
     var note: String?
@@ -17,7 +18,9 @@ struct CombatantTag: Codable, Hashable {
     var duration: EffectDuration?
     var addedIn: RunningEncounter.Turn?
 
-    var sourceCombatantId: UUID?
+    var sourceCombatantId: Combatant.Id?
+
+    typealias Id = Tagged<CombatantTag, UUID>
 }
 
 struct CombatantTagDefinition: Hashable, Codable, Equatable {
@@ -113,7 +116,7 @@ extension CombatantTag: Identifiable {
 }
 
 extension CombatantTag {
-    static let nullInstance = CombatantTag(id: UUID(), definition: CombatantTagDefinition.nullInstance, note: nil, duration: nil, addedIn: nil, sourceCombatantId: nil)
+    static let nullInstance = CombatantTag(id: UUID().tagged(), definition: CombatantTagDefinition.nullInstance, note: nil, duration: nil, addedIn: nil, sourceCombatantId: nil)
 }
 
 extension CombatantTagDefinition {

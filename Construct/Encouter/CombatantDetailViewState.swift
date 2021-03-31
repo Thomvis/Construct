@@ -30,7 +30,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
     var presentedScreens: [NavigationDestination: NextScreen] = [:]
 
     var navigationStackItemStateId: String {
-        combatant.id.uuidString
+        combatant.id.rawValue.uuidString
     }
 
     var navigationTitle: String { combatant.discriminatedName }
@@ -150,7 +150,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 let currentDefinition = state.combatant.definition
 
                 let original = (currentDefinition as? CompendiumCombatantDefinition).map { CompendiumItemReference(itemTitle: $0.name, itemKey: $0.item.key) }
-                let def = AdHocCombatantDefinition(id: UUID(), stats: currentDefinition.stats, player: currentDefinition.player, level: currentDefinition.level, original: original)
+                let def = AdHocCombatantDefinition(id: UUID().tagged(), stats: currentDefinition.stats, player: currentDefinition.player, level: currentDefinition.level, original: original)
                 return Effect(value: .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def))))
             case .setNextScreen(let s):
                 state.presentedScreens[.nextInStack] = s

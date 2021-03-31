@@ -140,7 +140,7 @@ struct CombatantRow_Preview: PreviewProvider {
                 encounter: Encounter(name: "", combatants: []),
                 running: nil,
                 combatant: Combatant(adHoc: AdHocCombatantDefinition(
-                    id: UUID(),
+                    id: UUID().tagged(),
                     stats: apply(StatBlock.default) {
                         $0.name = "Sarovin"
                     }

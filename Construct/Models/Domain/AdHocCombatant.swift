@@ -7,16 +7,17 @@
 //
 
 import Foundation
+import Tagged
 
 public struct AdHocCombatantDefinition: Hashable, CombatantDefinition, Codable {
-    public let id: UUID
+    public let id: Id
     var name: String { stats?.name ?? "" }
 
     var ac: Int? { stats?.armorClass }
     var hitPoints: Int? { stats?.hitPoints }
 
     var initiativeModifier: Int? { stats?.effectiveInitiativeModifier }
-    var initiativeGroupingHint: String { id.uuidString }
+    var initiativeGroupingHint: String { id.rawValue.uuidString }
 
     var stats: StatBlock? = nil
 
@@ -28,8 +29,10 @@ public struct AdHocCombatantDefinition: Hashable, CombatantDefinition, Codable {
     var isUnique: Bool { player != nil }
 
     var definitionID: String {
-        return id.uuidString
+        return id.rawValue.uuidString
     }
+
+    public typealias Id = Tagged<AdHocCombatantDefinition, UUID>
 }
 
 extension Combatant {

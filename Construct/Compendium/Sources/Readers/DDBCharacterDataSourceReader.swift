@@ -45,7 +45,7 @@ class DDBCharacterDataSourceReader: CompendiumDataSourceReader {
 private extension Character {
     init?(characterSheet s: DDB.CharacterSheet, realm: CompendiumItemKey.Realm) {
         guard let stats = StatBlock(characterSheet: s) else { return nil }
-        self.id = UUID()
+        self.id = UUID().tagged()
         self.level = s.level
         self.stats = stats
         self.player = Player(name: nil) // FIXME

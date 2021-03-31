@@ -200,7 +200,7 @@ struct EffectDurationEditView: View {
         let combatants: [Combatant] // matching combatants
 
         var id: String {
-            let cids = combatants.map { $0.id.uuidString }.joined()
+            let cids = combatants.map { $0.id.rawValue.uuidString }.joined()
 
             switch turn {
             case .source:

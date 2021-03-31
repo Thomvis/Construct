@@ -19,12 +19,12 @@ struct ReferenceViewState: Equatable {
         }
     }
 
-    var items: IdentifiedArray<UUID, Item>
-    var selectedItemId: UUID?
+    var items: IdentifiedArray<TabbedDocumentViewContentItem.Id, Item>
+    var selectedItemId: TabbedDocumentViewContentItem.Id?
 
     private(set) var itemRequests: [ReferenceViewItemRequest] = []
 
-    init(items: IdentifiedArray<UUID, Item>) {
+    init(items: IdentifiedArray<TabbedDocumentViewContentItem.Id, Item>) {
         self.items = items
         self.selectedItemId = items.first?.id
     }
@@ -41,7 +41,7 @@ struct ReferenceViewState: Equatable {
     }
 
     mutating func updateRequests(itemRequests: [ReferenceViewItemRequest]) {
-        var lastNewItem: UUID?
+        var lastNewItem: TabbedDocumentViewContentItem.Id?
 
         var unmatchedItemRequests = self.itemRequests
         for req in itemRequests {
@@ -91,7 +91,7 @@ struct ReferenceViewState: Equatable {
         itemContext(for: item, openCompendiumEntries: openCompendiumEntries())
     }
 
-    fileprivate func itemContext(for item: Item, openCompendiumEntries: [(UUID, CompendiumEntry)]) -> ReferenceContext {
+    fileprivate func itemContext(for item: Item, openCompendiumEntries: [(TabbedDocumentViewContentItem.Id, CompendiumEntry)]) -> ReferenceContext {
         ReferenceContext(
             encounterDetailView: encounterReferenceContext,
             openCompendiumEntries: openCompendiumEntries.compactMap { (itemId, entry) -> CompendiumEntry? in
@@ -101,10 +101,10 @@ struct ReferenceViewState: Equatable {
         )
     }
 
-    fileprivate func openCompendiumEntries() -> [(UUID, CompendiumEntry)] {
+    fileprivate func openCompendiumEntries() -> [(TabbedDocumentViewContentItem.Id, CompendiumEntry)] {
         items
-            .flatMap { item -> [(UUID, Any)] in item.state.content.navigationNode.topNavigationItems().map { (item.id, $0) } }
-            .compactMap { (itemId, anyItem) -> (UUID, CompendiumEntry)? in
+            .flatMap { item -> [(TabbedDocumentViewContentItem.Id, Any)] in item.state.content.navigationNode.topNavigationItems().map { (item.id, $0) } }
+            .compactMap { (itemId, anyItem) -> (TabbedDocumentViewContentItem.Id, CompendiumEntry)? in
                 switch anyItem {
                 case let item as CompendiumEntryDetailViewState:
                     return (itemId, item.entry)
@@ -115,11 +115,11 @@ struct ReferenceViewState: Equatable {
     }
 
     struct Item: Equatable, Identifiable {
-        let id: UUID
+        let id: TabbedDocumentViewContentItem.Id
         var title: String
         var state: ReferenceItemViewState
 
-        init(id: UUID = UUID(), title: String? = nil, state: ReferenceItemViewState) {
+        init(id: TabbedDocumentViewContentItem.Id = UUID().tagged(), title: String? = nil, state: ReferenceItemViewState) {
             self.id = id
             self.title = title ?? state.content.tabItemTitle ?? "Untitled"
             self.state = state
@@ -143,12 +143,12 @@ struct ReferenceViewState: Equatable {
 }
 
 enum ReferenceViewAction: Equatable {
-    case item(UUID, ReferenceItemViewAction)
+    case item(TabbedDocumentViewContentItem.Id, ReferenceItemViewAction)
     case onBackTapped
     case onNewTabTapped
-    case removeTab(UUID)
+    case removeTab(TabbedDocumentViewContentItem.Id)
     case moveTab(Int, Int)
-    case selectItem(UUID?)
+    case selectItem(TabbedDocumentViewContentItem.Id?)
 
     case itemRequests([ReferenceViewItemRequest])
 }
@@ -220,7 +220,7 @@ extension ReferenceViewState {
     private static let defaultItemState = ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home()))
 
     //Is this correct?
-    var localStateForDeduplication: (UUID?, [Item]) {
+    var localStateForDeduplication: (TabbedDocumentViewContentItem.Id?, [Item]) {
         (selectedItemId, items.map { item in
             if item.id == selectedItemId {
                 var res = item

@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 import Combine
+import Tagged
 
 struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
     var combatants: [Combatant]
@@ -33,14 +34,14 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
     }
 
     var activeSections: [ActiveSection] {
-        var tags: [TagId: Set<UUID>] = [:]
+        var tags: [TagId: Set<Combatant.Id>] = [:]
         for c in combatants {
             for t in c.tags {
                 tags[TagId(t), default: Set()].insert(c.id)
             }
         }
 
-        var reverseTags: [Set<UUID>: [TagId]] = [:]
+        var reverseTags: [Set<Combatant.Id>: [TagId]] = [:]
         for (t, cs) in tags {
             reverseTags[cs, default: []].append(t)
         }
@@ -63,7 +64,7 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
     }
 
     var navigationStackItemStateId: String {
-        "\(combatants.map { $0.id.uuidString }.joined()):CombatantTagsViewState"
+        "\(combatants.map { $0.id.rawValue.uuidString }.joined()):CombatantTagsViewState"
     }
 
     private var nextCombatantTagEditViewState: CombatantTagEditViewState? {
@@ -80,7 +81,7 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
             case .addTag(let tag):
                 return state.combatants.map { c in
                     CombatantTagsViewAction.combatant(c, .addTag(CombatantTag(
-                        id: UUID(), // make sure every tag has a unique id
+                        id: UUID().tagged(), // make sure every tag has a unique id
                         definition: tag.definition,
                         note: tag.note,
                         sourceCombatantId: tag.sourceCombatantId
@@ -128,7 +129,7 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
         var tagGroups: [TagGroup]
 
         var id: String {
-            combatants.map { $0.id.uuidString }.sorted().joined()
+            combatants.map { $0.id.rawValue.uuidString }.sorted().joined()
         }
 
         var title: String {

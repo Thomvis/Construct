@@ -185,7 +185,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     if let type = state.editViewCreatureType {
                         state.sheet = .creatureEdit(CreatureEditViewState(create: type))
                     } else if state.results.input.filters?.types?.single == .group {
-                        state.sheet = .groupEdit(CompendiumItemGroupEditState(mode: .create, group: CompendiumItemGroup(id: UUID(), title: "", members: [])))
+                        state.sheet = .groupEdit(CompendiumItemGroupEditState(mode: .create, group: CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])))
                     }
                 case .setNextScreen(let n):
                     state.presentedScreens[.nextInStack] = n

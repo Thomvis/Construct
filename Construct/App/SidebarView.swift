@@ -172,8 +172,8 @@ struct SidebarView: View {
         @EqKey({ $0?.id })
         var sheet: SidebarViewState.Sheet?
 
-        var campaignNodes: [UUID: [CampaignNode]] = [:]
-        var campaignNodeIsExpanded: [UUID: Bool] = [:]
+        var campaignNodes: [CampaignNode.Id: [CampaignNode]] = [:]
+        var campaignNodeIsExpanded: [CampaignNode.Id: Bool] = [:]
 
         init(_ state: SidebarViewState) {
             presentedScreenIds = state.presentedScreens.mapValues {

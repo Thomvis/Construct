@@ -39,11 +39,11 @@
       },
       {
         "package": "InterposeKit",
-        "repositoryURL": "https://github.com/steipete/InterposeKit.git",
+        "repositoryURL": "https://github.com/Thomvis/InterposeKit.git",
         "state": {
-          "branch": null,
-          "revision": "17853ad69961a5114e25c60c3ce7600feac0eabd",
-          "version": "0.0.2"
+          "branch": "IKTAddSuperImplementationToClass-used",
+          "revision": "b60136e3d13d7d4088a2041cf94d72a6e20e1041",
+          "version": null
         }
       },
       {
@@ -89,6 +89,15 @@
           "branch": null,
           "revision": "c466812aa2e22898f27557e2e780d3aad7a27203",
           "version": "1.8.2"
+        }
+      },
+      {
+        "package": "Tagged",
+        "repositoryURL": "https://github.com/pointfreeco/swift-tagged.git",
+        "state": {
+          "branch": null,
+          "revision": "592e1eb4255c571ebffc29955011e352217501b4",
+          "version": "0.5.0"
         }
       },
       {

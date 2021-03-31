@@ -65,7 +65,7 @@ struct CombatantTrackerEditViewState: NavigationStackItemState, Equatable {
     var resource: CombatantResource
 
     var navigationStackItemStateId: String {
-        resource.id.uuidString
+        resource.id.rawValue.uuidString
     }
 
     var navigationTitle: String { "" }

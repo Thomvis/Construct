@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
+import Tagged
 
 struct CombatantTagsView: View {
     @SwiftUI.Environment(\.sheetPresentationMode) var sheetPresentationMode: SheetPresentationMode?
@@ -63,7 +64,7 @@ struct CombatantTagsView: View {
                             Section(header: Text(category.title)) {
                                 ForEach(CombatantTagDefinition.all(in: category), id: \.name) { definition in
                                     NavigationRowButton(action: {
-                                        let tag = CombatantTag(id: UUID(), definition: definition, note: nil, sourceCombatantId: self.viewStore.state.effectContext?.source?.id)
+                                        let tag = CombatantTag(id: UUID().tagged(), definition: definition, note: nil, sourceCombatantId: self.viewStore.state.effectContext?.source?.id)
                                         self.viewStore.send(.setNextScreen(CombatantTagEditViewState(mode: .create, tag: tag, effectContext: self.viewStore.state.effectContext)))
                                     }) {
                                         HStack {
@@ -87,7 +88,7 @@ struct CombatantTagsView: View {
                                                             .disabled(groups.count > 1)
                                                         } else {
                                                             SimpleAccentedButton(action: {
-                                                                let tag = CombatantTag(id: UUID(), definition: definition, note: nil, sourceCombatantId: self.viewStore.state.effectContext?.source?.id)
+                                                                let tag = CombatantTag(id: UUID().tagged(), definition: definition, note: nil, sourceCombatantId: self.viewStore.state.effectContext?.source?.id)
                                                                 self.viewStore.send(.addTag(tag), animation: .default)
                                                             }) {
                                                                 Image(systemName: "plus.circle").font(Font.title.weight(.light))

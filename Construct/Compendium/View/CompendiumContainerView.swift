@@ -29,7 +29,7 @@ let compendiumContainerReducer: Reducer<CompendiumIndexState, CompendiumIndexAct
             return Effect.future { callback in
                 var stats = monster.stats
                 stats.name = "\(stats.name) NPC"
-                let character = Character(id: UUID(), realm: .homebrew, level: nil, stats: stats, player: nil)
+                let character = Character(id: UUID().tagged(), realm: .homebrew, level: nil, stats: stats, player: nil)
 
                 do {
                     // save character

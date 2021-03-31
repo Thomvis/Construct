@@ -97,7 +97,7 @@ extension CampaignBrowseViewState {
 
 extension CampaignBrowseViewState: NavigationStackItemState {
     var navigationStackItemStateId: String {
-        node.id.uuidString
+        node.id.rawValue.uuidString
     }
 
     var navigationTitle: String { navigationBarTitle }
@@ -282,7 +282,7 @@ extension CampaignBrowseViewState {
                         }
 
                         try? env.campaignBrowser.put(CampaignNode(
-                            id: UUID(),
+                            id: UUID().tagged(),
                             title: title,
                             contents: contents,
                             special: nil,

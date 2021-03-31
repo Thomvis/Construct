@@ -18,7 +18,7 @@ struct CombatantTagEditViewState: Equatable, NavigationStackItemState {
     var popover: Popover?
 
     var navigationStackItemStateId: String {
-        tag.id.uuidString
+        tag.id.rawValue.uuidString
     }
 
     var navigationTitle: String {

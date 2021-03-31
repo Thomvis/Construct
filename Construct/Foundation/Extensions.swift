@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import Combine
 import ComposableArchitecture
+import Tagged
 
 extension Optional where Wrapped: View {
     func replaceNilWith<Content: View>(@ViewBuilder content: () -> Content) -> some View {
@@ -317,5 +318,11 @@ extension CGPoint {
 
     init(_ size: CGSize) {
         self = CGPoint(x: size.width, y: size.height)
+    }
+}
+
+extension UUID {
+    func tagged<Tag>() -> Tagged<Tag, UUID> {
+        Tagged(rawValue: self)
     }
 }

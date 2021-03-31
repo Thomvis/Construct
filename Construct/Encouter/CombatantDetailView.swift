@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import CasePaths
 import ComposableArchitecture
+import Tagged
 
 struct CombatantDetailContainerView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
@@ -184,7 +185,7 @@ struct CombatantDetailView: View {
                     SectionContainer(title: "Edit") {
                         VStack(alignment: .leading) {
                             Button(action: {
-                                self.viewStore.send(.popover(.addLimitedResource(CombatantTrackerEditViewState(resource: CombatantResource(id: UUID(), title: "", slots: [false])))))
+                                self.viewStore.send(.popover(.addLimitedResource(CombatantTrackerEditViewState(resource: CombatantResource(id: UUID().tagged(), title: "", slots: [false])))))
                             }) {
                                 Text("Add limited resource")
                             }

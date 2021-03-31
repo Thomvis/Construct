@@ -446,11 +446,11 @@ extension CreatureEditViewState {
 
     var character: Character? {
         let player = sections.contains(.player) ? model.player : nil
-        return Character(id: mode.originalCharacter?.id ?? UUID(), realm: mode.originalItem?.realm ?? .homebrew, level: model.level, stats: statBlock, player: player)
+        return Character(id: mode.originalCharacter?.id ?? UUID().tagged(), realm: mode.originalItem?.realm ?? .homebrew, level: model.level, stats: statBlock, player: player)
     }
 
     var adHocCombatant: AdHocCombatantDefinition? {
-        return AdHocCombatantDefinition(id: UUID(), stats: statBlock, player: model.player, level: model.level, original: model.originalItemForAdHocCombatant)
+        return AdHocCombatantDefinition(id: UUID().tagged(), stats: statBlock, player: model.player, level: model.level, original: model.originalItemForAdHocCombatant)
     }
 
     var statBlock: StatBlock {

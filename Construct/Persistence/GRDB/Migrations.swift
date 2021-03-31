@@ -9,6 +9,7 @@
 import Foundation
 import GRDB
 import Combine
+import Tagged
 
 extension Database {
     private static let v1 = "v1"
@@ -64,7 +65,7 @@ extension Database {
 
         if importDefaultContent {
             migrator.registerMigration("v3-scratchPadEncounter") { db in
-                let encounter = Encounter(id: Encounter.scratchPadEncounterId, name: "Scratch pad", combatants: [])
+                let encounter = Encounter(id: Encounter.scratchPadEncounterId.rawValue, name: "Scratch pad", combatants: [])
 
                 try self.keyValueStore.put(encounter, in: db)
                 try self.keyValueStore.put(CampaignNode.scratchPadEncounter, in: db)
@@ -105,7 +106,7 @@ extension Database {
                     let uuidString = e["id"] as? String,
                     let uuid = UUID(uuidString: uuidString) else { return [] }
 
-                return try KeyValueStore.Record.filter(Column("key").like("\(RunningEncounter.keyPrefix(for: uuid))%")).fetchAll(db)
+                return try KeyValueStore.Record.filter(Column("key").like("\(RunningEncounter.keyPrefix(for: uuid.tagged()))%")).fetchAll(db)
             }
 
             for runRecord in runs {
@@ -116,7 +117,7 @@ extension Database {
                     let combatantIdString = run["turn"] as? String,
                     let combatantId = UUID(uuidString: combatantIdString) {
 
-                    let encodedTurn = try JSONEncoder().encode(RunningEncounter.Turn(round: round, combatantId: combatantId))
+                    let encodedTurn = try JSONEncoder().encode(RunningEncounter.Turn(round: round, combatantId: combatantId.tagged()))
                     let jsonTurn = try JSONSerialization.jsonObject(with: encodedTurn, options: [])
                     run["turn"] = jsonTurn
                     run["round"] = nil
@@ -132,7 +133,7 @@ extension Database {
                             let combatantIdString = entry["turn"] as? String,
                             let combatantId = UUID(uuidString: combatantIdString) {
 
-                            let encodedTurn = try JSONEncoder().encode(RunningEncounter.Turn(round: round, combatantId: combatantId))
+                            let encodedTurn = try JSONEncoder().encode(RunningEncounter.Turn(round: round, combatantId: combatantId.tagged()))
                             let jsonTurn = try JSONSerialization.jsonObject(with: encodedTurn, options: [])
                             return apply(entry) {
                                 $0["turn"] = jsonTurn

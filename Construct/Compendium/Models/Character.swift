@@ -7,18 +7,21 @@
 //
 
 import Foundation
+import Tagged
 
 struct Character: Hashable {
-    var id: UUID
+    var id: Id
     var realm: CompendiumItemKey.Realm
     var level: Int?
     var stats: StatBlock
     var player: Player?
+
+    typealias Id = Tagged<Character, UUID>
 }
 
 extension Character: CompendiumItem {
     var key: CompendiumItemKey {
-        return CompendiumItemKey(type: .character, realm: realm, identifier: id.uuidString)
+        return CompendiumItemKey(type: .character, realm: realm, identifier: id.rawValue.uuidString)
     }
 
     var title: String {

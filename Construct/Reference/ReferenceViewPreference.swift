@@ -11,7 +11,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct ReferenceViewItemRequest: Equatable {
-    let id: UUID
+    let id: TabbedDocumentViewContentItem.Id
 
     private(set) var state: ReferenceItemViewState
     private(set) var stateGeneration = UUID() // when this changes, the item should update to use the current requested state

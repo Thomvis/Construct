@@ -14,7 +14,7 @@ struct CombatantResourcesViewState: NavigationStackItemState, Equatable {
     var editState: CombatantTrackerEditViewState?
 
     var navigationStackItemStateId: String {
-        "\(combatant.id.uuidString):CombatantResourcesViewState"
+        "\(combatant.id.rawValue.uuidString):CombatantResourcesViewState"
     }
 
     var navigationTitle: String { "Limited resources" }

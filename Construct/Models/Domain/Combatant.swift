@@ -9,9 +9,10 @@
 import Foundation
 import ComposableArchitecture
 import Combine
+import Tagged
 
 struct Combatant: Equatable, Codable, Identifiable {
-    let id: UUID
+    let id: Id
     var discriminator: Int? = nil
 
     private var _definition: CodableCombatDefinition
@@ -25,7 +26,7 @@ struct Combatant: Equatable, Codable, Identifiable {
         get { _hp ?? definition.hitPoints.map(Hp.init) }
         set { _hp = newValue }
     }
-    var resources: IdentifiedArray<UUID, CombatantResource>
+    var resources: IdentifiedArray<CombatantResource.Id, CombatantResource>
 
     var initiative: Int?
     var tags: [CombatantTag] = []
@@ -33,7 +34,7 @@ struct Combatant: Equatable, Codable, Identifiable {
     var party: CompendiumItemReference?
 
     init(discriminator: Int? = nil, definition: CombatantDefinition, hp: Hp? = nil, resources: [CombatantResource] = [], initiative: Int? = nil, party: CompendiumItemReference? = nil) {
-        self.id = UUID()
+        self.id = UUID().tagged()
         self.discriminator = discriminator
         self._definition = CodableCombatDefinition(definition: definition)
         self._hp = hp
@@ -41,6 +42,8 @@ struct Combatant: Equatable, Codable, Identifiable {
         self.initiative = initiative
         self.party = party
     }
+
+    typealias Id = Tagged<Combatant, UUID>
 
     struct CodableCombatDefinition: Equatable {
         @EqCompare var definition: CombatantDefinition
@@ -225,7 +228,7 @@ extension Combatant.CodableCombatDefinition: Codable {
 }
 
 struct CombatantResource: Codable, Hashable, Identifiable {
-    let id: UUID
+    let id: Id
     var title: String
     var slots: [Bool] // false if available, true if used
 
@@ -240,12 +243,14 @@ struct CombatantResource: Codable, Hashable, Identifiable {
     var remaining: Int {
         slots.filter { !$0 }.count
     }
+
+    typealias Id = Tagged<CombatantResource, UUID>
 }
 
 enum CombatantAction: Equatable {
     case hp(Hp.Action)
     case initiative(Int)
-    case resource(UUID, CombatantResourceAction)
+    case resource(CombatantResource.Id, CombatantResourceAction)
     case addResource(CombatantResource)
     case removeResource(CombatantResource)
     case addTag(CombatantTag)
@@ -334,9 +339,9 @@ extension StatBlock {
 }
 
 extension Combatant {
-    static let nullInstance = Combatant(adHoc: AdHocCombatantDefinition(id: UUID()))
+    static let nullInstance = Combatant(adHoc: AdHocCombatantDefinition(id: UUID().tagged()))
 }
 
 extension CombatantResource {
-    static let nullInstance = CombatantResource(id: UUID(), title: "", slots: [])
+    static let nullInstance = CombatantResource(id: UUID().tagged(), title: "", slots: [])
 }

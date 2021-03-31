@@ -148,7 +148,7 @@ struct ReferenceItemViewState: Equatable {
                 }
             }
 
-            var selectedCombatantId: UUID {
+            var selectedCombatantId: Combatant.Id {
                 didSet {
                     updateDetailState()
                 }
@@ -171,7 +171,7 @@ struct ReferenceItemViewState: Equatable {
 
             var detailState: CombatantDetailViewState
 
-            init(encounter: Encounter, selectedCombatantId: UUID, runningEncounter: RunningEncounter?) {
+            init(encounter: Encounter, selectedCombatantId: Combatant.Id, runningEncounter: RunningEncounter?) {
                 self.encounter = encounter
                 self.selectedCombatantId = selectedCombatantId
                 self.runningEncounter = runningEncounter

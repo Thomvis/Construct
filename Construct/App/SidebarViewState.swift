@@ -12,8 +12,8 @@ import CasePaths
 
 struct SidebarViewState: Equatable, NavigationStackSourceState {
 
-    var campaignNodes: [UUID: [CampaignNode]] = [:]
-    var campaignNodeIsExpanded: [UUID: Bool] = [:]
+    var campaignNodes: [CampaignNode.Id: [CampaignNode]] = [:]
+    var campaignNodeIsExpanded: [CampaignNode.Id: Bool] = [:]
 
     var presentedScreens: [NavigationDestination: NextScreen] = [
         .detail: .campaignBrowse(CampaignBrowseTwoColumnContainerState())

@@ -32,7 +32,7 @@ struct EncounterReferenceContext: Equatable {
 
 enum EncounterReferenceContextAction: Equatable {
     case addCombatant(AddCombatantView.Action)
-    case combatantAction(UUID, CombatantAction)
+    case combatantAction(Combatant.Id, CombatantAction)
 }
 
 extension CampaignBrowseViewState {

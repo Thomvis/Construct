@@ -7,9 +7,10 @@
 //
 
 import Foundation
+import Tagged
 
 struct CompendiumItemGroup: CompendiumItem, Equatable {
-    let id: UUID
+    let id: Id
     var title: String
 
     var members: [CompendiumItemReference]
@@ -39,8 +40,10 @@ struct CompendiumItemGroup: CompendiumItem, Equatable {
 
     var realm: CompendiumItemKey.Realm { .homebrew }
     var key: CompendiumItemKey {
-        CompendiumItemKey(type: .group, realm: realm, identifier: id.uuidString)
+        CompendiumItemKey(type: .group, realm: realm, identifier: id.rawValue.uuidString)
     }
+
+    typealias Id = Tagged<CompendiumItemGroup, UUID>
 }
 
 struct CompendiumItemReference: Codable, Hashable {
@@ -49,5 +52,5 @@ struct CompendiumItemReference: Codable, Hashable {
 }
 
 extension CompendiumItemGroup {
-    static let nullInstance = CompendiumItemGroup(id: UUID(), title: "", members: [])
+    static let nullInstance = CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])
 }

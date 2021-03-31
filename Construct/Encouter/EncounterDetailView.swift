@@ -453,8 +453,8 @@ extension EncounterDetailViewState.Sheet: Identifiable {
     var id: UUID {
         switch self {
         case .add(let s): return s.id
-        case .combatant(let s): return s.combatant.id
-        case .runningEncounterLog(let s): return s.encounter.id
+        case .combatant(let s): return s.combatant.id.rawValue
+        case .runningEncounterLog(let s): return s.encounter.id.rawValue
         case .selectedCombatantTags: return UUID(uuidString: "FA34879F-C2AB-4B0C-A281-50404D56118C")!
         case .settings: return Self.settingsUUID
         }

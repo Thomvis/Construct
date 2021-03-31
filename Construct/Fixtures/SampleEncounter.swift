@@ -34,28 +34,28 @@ enum SampleEncounter {
         }
 
         combatants.append(contentsOf: [
-            Combatant(adHoc: AdHocCombatantDefinition(id: UUID(), stats: apply(StatBlock.default) {
+            Combatant(adHoc: AdHocCombatantDefinition(id: UUID().tagged(), stats: apply(StatBlock.default) {
                 $0.name = "Ennan Yarfall" // fighter
                 $0.hitPoints = 27
                 $0.armorClass = 18
                 $0.initiative = Initiative(modifier: Modifier(modifier: 1), advantage: false)
             }, player: Player(name: "Robin"), level: 3, original: nil)),
 
-            Combatant(adHoc: AdHocCombatantDefinition(id: UUID(), stats: apply(StatBlock.default) {
+            Combatant(adHoc: AdHocCombatantDefinition(id: UUID().tagged(), stats: apply(StatBlock.default) {
                 $0.name = "Willow" // rogue
                 $0.hitPoints = 20
                 $0.armorClass = 13
                 $0.initiative = Initiative(modifier: Modifier(modifier: 3), advantage: false)
             }, player: Player(name: "Max"), level: 3, original: nil)),
 
-            Combatant(adHoc: AdHocCombatantDefinition(id: UUID(), stats: apply(StatBlock.default) {
+            Combatant(adHoc: AdHocCombatantDefinition(id: UUID().tagged(), stats: apply(StatBlock.default) {
                 $0.name = "Umún Dundelver" // cleric
                 $0.hitPoints = 22
                 $0.armorClass = 16
                 $0.initiative = Initiative(modifier: Modifier(modifier: 1), advantage: false)
             }, player: Player(name: "Jamie"), level: 3, original: nil)),
 
-            Combatant(adHoc: AdHocCombatantDefinition(id: UUID(), stats: apply(StatBlock.default) {
+            Combatant(adHoc: AdHocCombatantDefinition(id: UUID().tagged(), stats: apply(StatBlock.default) {
                 $0.name = "Sarovin a'Ryr" // warlock
                 $0.hitPoints = 20
                 $0.armorClass = 14
@@ -63,6 +63,6 @@ enum SampleEncounter {
             }, player: Player(name: "Chris"), level: 3, original: nil)),
         ])
 
-        return Encounter(id: Encounter.scratchPadEncounterId, name: spe?.name.nonEmptyString ?? "Scratch pad", combatants: combatants)
+        return Encounter(id: Encounter.scratchPadEncounterId.rawValue, name: spe?.name.nonEmptyString ?? "Scratch pad", combatants: combatants)
     }
 }

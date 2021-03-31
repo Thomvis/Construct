@@ -22,7 +22,7 @@ enum EncounterMoment: Hashable {
         case source
         case target
 
-        case combatant(UUID) // UUID of Combatant
+        case combatant(Combatant.Id)
     }
 }
 
@@ -120,8 +120,8 @@ extension EncounterMoment.Turn: Codable {
             self = .source
         } else if (try? container.decode(String.self, forKey: .target)) == CodingKeys.target.description {
             self = .target
-        } else if let uuid = try? container.decode(UUID.self, forKey: .combatant) {
-            self = .combatant(uuid)
+        } else if let id = try? container.decode(Combatant.Id.self, forKey: .combatant) {
+            self = .combatant(id)
         } else {
             throw CodableError.unrecognizedTurn
         }

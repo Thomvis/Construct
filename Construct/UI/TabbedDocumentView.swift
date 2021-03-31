@@ -9,22 +9,23 @@
 import Foundation
 import SwiftUI
 import Introspect
+import Tagged
 
 struct TabbedDocumentView<Content>: View where Content: View {
 
     var items: [TabbedDocumentViewContentItem]
     var content: (TabbedDocumentViewContentItem) -> Content
-    @Binding var selection: UUID?
+    @Binding var selection: TabbedDocumentViewContentItem.Id?
 
     var onAdd: (() -> Void)?
-    var onDelete: ((UUID) -> Void)?
+    var onDelete: ((TabbedDocumentViewContentItem.Id) -> Void)?
     var onMove: ((Int, Int) -> Void)?
 
     var body: some View {
         VStack(spacing: 0) {
 
             TabView(selection: $selection) {
-                ForEach(items.sorted(by: { $0.id.uuidString < $1.id.uuidString }), id: \.id) { item in
+                ForEach(items.sorted(by: { $0.id.rawValue.uuidString < $1.id.rawValue.uuidString }), id: \.id) { item in
                     content(item).tag(Optional.some(item.id))
                 }
                 .navigationBarHidden(true)
@@ -55,20 +56,20 @@ struct TabbedDocumentView<Content>: View where Content: View {
     struct TabBar: View {
 
         var items: [TabbedDocumentViewContentItem]
-        @Binding var selection: UUID?
+        @Binding var selection: TabbedDocumentViewContentItem.Id?
 
         let onAdd: () -> Void
-        let onDelete: (UUID) -> Void
+        let onDelete: (TabbedDocumentViewContentItem.Id) -> Void
         let onMove: (Int, Int) -> Void
 
-        @State private var frames: [UUID: CGRect] = [:]
+        @State private var frames: [TabbedDocumentViewContentItem.Id: CGRect] = [:]
 
         // Tab dragging
-        @State private var dragTarget: UUID? = nil
+        @State private var dragTarget: TabbedDocumentViewContentItem.Id? = nil
         @State private var dragLocation: CGPoint = .zero
         @State private var dragOffset: CGFloat = 0 // horizontal offset
 
-        @State private var lastDragTarget: UUID? = nil
+        @State private var lastDragTarget: TabbedDocumentViewContentItem.Id? = nil
 
         var body: some View {
             HStack(spacing: 0) {
@@ -124,7 +125,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
                 }
             }
             .coordinateSpace(name: "TabbedDocumentView.TabBar")
-            .onPreferenceChange(PropagatedFramesKey<UUID>.self) {
+            .onPreferenceChange(PropagatedFramesKey<TabbedDocumentViewContentItem.Id>.self) {
                 self.frames = $0
             }
             .background(Color(UIColor.systemGray5).ignoresSafeArea(.all, edges: .bottom))
@@ -184,7 +185,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
             }
         }
 
-        private func addDivider(after id: UUID) -> Bool {
+        private func addDivider(after id: TabbedDocumentViewContentItem.Id) -> Bool {
             guard selection != id,
                   let idx = items.firstIndex(where: { $0.id == id }),
                   idx == items.count-1 || items[idx+1].id != selection else { return false }
@@ -240,8 +241,10 @@ struct TabbedDocumentView<Content>: View where Content: View {
 }
 
 struct TabbedDocumentViewContentItem {
-    let id: UUID
+    let id: Id
     let label: Label<Text, Image>
+
+    typealias Id = Tagged<TabbedDocumentViewContentItem, UUID>
 }
 
 struct PropagatedFramesKey<ID: Hashable>: PreferenceKey {

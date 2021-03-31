@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Tagged
 
 extension StatBlock {
     func extractResources() -> [CombatantResource] {
@@ -35,7 +36,7 @@ extension StatBlock {
                         continue
                 }
                 result.append(CombatantResource(
-                    id: UUID(),
+                    id: UUID().tagged(),
                     title: "\(levelOrdinal) level spell slots",
                     slots: Array(repeating: false, count: slots)
                 ))
@@ -45,7 +46,7 @@ extension StatBlock {
         let nPerDay = try? NSRegularExpression(pattern: "(\\d+)\\/Day", options: [])
         for action in actions {
             if action.name.localizedCaseInsensitiveContains("recharg") {
-                result.append(CombatantResource(id: UUID(), title: action.name, slots: [false]))
+                result.append(CombatantResource(id: UUID().tagged(), title: action.name, slots: [false]))
             }
         }
 
@@ -54,7 +55,7 @@ extension StatBlock {
             if let match = nPerDay?.firstMatch(in: f.name, options: [], range: range) {
                 let countRange = match.range(at: 1)
                 if countRange.location != NSNotFound, let r = Range(countRange, in: f.name), let c = Int(f.name[r]) {
-                    result.append(CombatantResource(id: UUID(), title: f.name, slots: Array(repeating: false, count: c)))
+                    result.append(CombatantResource(id: UUID().tagged(), title: f.name, slots: Array(repeating: false, count: c)))
                 }
             }
         }
