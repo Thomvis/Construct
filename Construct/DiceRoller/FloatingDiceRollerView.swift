@@ -40,7 +40,10 @@ struct FloatingDiceRollerContainerView: View {
                     }) {
                         Image("tabbar_d20")
                             .padding(18)
-                            .background(Circle().foregroundColor(Color(UIColor.systemBackground)).shadow(radius: 5))
+                            .background(
+                                Circle().foregroundColor(Color(UIColor.systemBackground))
+                                    .shadow(color: Color(UIColor.label), radius: 5)
+                            )
                             .padding(12)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
@@ -50,7 +53,7 @@ struct FloatingDiceRollerContainerView: View {
                     .opacity(viewStore.state.hidden ? 0 : 1)
             }
             .coordinateSpace(name: Self.containerCoordinateSpaceName)
-            .padding(12)
+            .padding(EdgeInsets(top: 8, leading: 12, bottom: 50, trailing: 12))
         }
     }
 
@@ -102,7 +105,7 @@ struct FloatingDiceRollerContainerView: View {
         .padding([.leading, .trailing, .bottom], Self.innerPanelPadding)
         .background(Color(UIColor.systemBackground))
         .cornerRadius(12)
-        .shadow(radius: 5)
+        .shadow(color: Color(UIColor.label).opacity(0.33), radius: 5)
         .offset(dragOffset)
         .gesture(dragGesture)
     }
