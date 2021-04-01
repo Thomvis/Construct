@@ -12,7 +12,6 @@ import Introspect
 import Tagged
 
 struct TabbedDocumentView<Content>: View where Content: View {
-
     var items: [TabbedDocumentViewContentItem]
     var content: (TabbedDocumentViewContentItem) -> Content
     @Binding var selection: TabbedDocumentViewContentItem.Id?
@@ -24,16 +23,17 @@ struct TabbedDocumentView<Content>: View where Content: View {
     var body: some View {
         VStack(spacing: 0) {
 
-            TabView(selection: $selection) {
-                ForEach(items.sorted(by: { $0.id.rawValue.uuidString < $1.id.rawValue.uuidString }), id: \.id) { item in
-                    content(item).tag(Optional.some(item.id))
+            TabBarHidingTabViewParent {
+                TabView(selection: $selection) {
+                    ForEach(items.sorted(by: { $0.id.rawValue.uuidString < $1.id.rawValue.uuidString }), id: \.id) { item in
+                        content(item)
+                            .tag(Optional.some(item.id))
+                    }
+                    .navigationBarHidden(true)
                 }
-                .navigationBarHidden(true)
             }
+            .ignoresSafeArea(.all, edges: .top)
             .opacity(items.isEmpty ? 0 : 1)
-            .introspectTabBarController { vc in
-                vc.tabBar.isHidden = true
-            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if items.count > 0 {
@@ -270,5 +270,31 @@ struct PropagateFrame<V: View, ID: Hashable>: View {
 extension View {
     func propagateFrame<ID: Hashable>(id: ID, coordinateSpace: CoordinateSpace) -> some View {
         PropagateFrame(content: self, id: id, coordinateSpace: coordinateSpace)
+    }
+}
+
+final class TabBarHidingTabViewParent<Content>: UIViewControllerRepresentable where Content: View {
+    let content: Content
+
+    init(content: () -> Content) {
+        self.content = content()
+    }
+
+    func makeUIViewController(context: Context) -> VC {
+        VC(rootView: content)
+    }
+
+    func updateUIViewController(_ uiViewController: VC, context: Context) {
+        uiViewController.rootView = content
+    }
+
+    final class VC: UIHostingController<Content> {
+        override func addChild(_ childController: UIViewController) {
+            super.addChild(childController)
+
+            if let controller = childController as? UITabBarController {
+                controller.tabBar.isHidden = true
+            }
+        }
     }
 }
