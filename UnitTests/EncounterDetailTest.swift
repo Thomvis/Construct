@@ -16,12 +16,12 @@ class EncounterDetailTest: XCTestCase {
     func testFlow_RemoveActiveCombatant() {
         let initialState = EncounterDetailViewState(building: Encounter(name: "", combatants: [
             Combatant(adHoc: AdHocCombatantDefinition(
-                        id: UUID(),
+                        id: UUID().tagged(),
                         stats: apply(StatBlock.default) {
                             $0.initiative = Initiative(modifier: .init(modifier: 1), advantage: false)
                         })),
             Combatant(adHoc: AdHocCombatantDefinition(
-                        id: UUID(),
+                        id: UUID().tagged(),
                         stats: apply(StatBlock.default) {
                             $0.initiative = Initiative(modifier: .init(modifier: 1), advantage: false)
                         })),
@@ -43,7 +43,7 @@ class EncounterDetailTest: XCTestCase {
             .send(.run(nil)) {
                 var encounter = $0.building
                 encounter.ensureStableDiscriminators = true
-                $0.running = RunningEncounter(id: UUID(fakeSeq: 0), base: encounter, current: encounter)
+                $0.running = RunningEncounter(id: UUID(fakeSeq: 0).tagged(), base: encounter, current: encounter)
             },
             // roll initiative
             .send(.runningEncounter(.current(.initiative(InitiativeSettings.default)))) {

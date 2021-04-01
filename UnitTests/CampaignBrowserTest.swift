@@ -23,7 +23,7 @@ class CampaignBrowserTest: XCTestCase {
 
     func testRootNodes() {
         let sut = CampaignBrowser(store: store)
-        let node = CampaignNode(id: UUID(), title: "Test", contents: nil, special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
+        let node = CampaignNode(id: UUID().tagged(), title: "Test", contents: nil, special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
         try! sut.put(node)
 
         let nodes = try! sut.nodes(in: CampaignNode.root)
@@ -33,11 +33,11 @@ class CampaignBrowserTest: XCTestCase {
 
     func testNestedNodes() {
         let sut = CampaignBrowser(store: store)
-        let groupInRoot = CampaignNode(id: UUID(), title: "Root Group", contents: nil, special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
-        let itemInRoot = CampaignNode(id: UUID(), title: "Root Item", contents: CampaignNode.Contents(key: "test", type: .encounter), special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
-        let rootGroupChildGroup = CampaignNode(id: UUID(), title: "Root Group Child Group", contents: nil, special: nil,  parentKeyPrefix: groupInRoot.keyPrefixForChildren)
-        let rootGroupChildItem = CampaignNode(id: UUID(), title: "Root Group Child Item", contents: CampaignNode.Contents(key: "test2", type: .encounter), special: nil, parentKeyPrefix: groupInRoot.keyPrefixForChildren)
-        let rootGroupChildItem2 = CampaignNode(id: UUID(), title: "Root Group Child Item 2", contents: CampaignNode.Contents(key: "test3", type: .encounter), special: nil, parentKeyPrefix: groupInRoot.keyPrefixForChildren)
+        let groupInRoot = CampaignNode(id: UUID().tagged(), title: "Root Group", contents: nil, special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
+        let itemInRoot = CampaignNode(id: UUID().tagged(), title: "Root Item", contents: CampaignNode.Contents(key: "test", type: .encounter), special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
+        let rootGroupChildGroup = CampaignNode(id: UUID().tagged(), title: "Root Group Child Group", contents: nil, special: nil,  parentKeyPrefix: groupInRoot.keyPrefixForChildren)
+        let rootGroupChildItem = CampaignNode(id: UUID().tagged(), title: "Root Group Child Item", contents: CampaignNode.Contents(key: "test2", type: .encounter), special: nil, parentKeyPrefix: groupInRoot.keyPrefixForChildren)
+        let rootGroupChildItem2 = CampaignNode(id: UUID().tagged(), title: "Root Group Child Item 2", contents: CampaignNode.Contents(key: "test3", type: .encounter), special: nil, parentKeyPrefix: groupInRoot.keyPrefixForChildren)
 
         try! sut.put(rootGroupChildItem2)
         try! sut.put(rootGroupChildItem)
@@ -45,17 +45,17 @@ class CampaignBrowserTest: XCTestCase {
         try! sut.put(itemInRoot)
         try! sut.put(groupInRoot)
 
-        XCTAssertEqual(try! sut.nodes(in: CampaignNode.root).map { $0.id.uuidString}.sorted(), [groupInRoot.id.uuidString, itemInRoot.id.uuidString].sorted())
-        XCTAssertEqual(try! sut.nodes(in: groupInRoot).map { $0.id.uuidString}.sorted(), [rootGroupChildGroup.id.uuidString, rootGroupChildItem.id.uuidString, rootGroupChildItem2.id.uuidString].sorted())
+        XCTAssertEqual(try! sut.nodes(in: CampaignNode.root).map { $0.id.rawValue.uuidString }.sorted(), [groupInRoot.id.rawValue.uuidString, itemInRoot.id.rawValue.uuidString].sorted())
+        XCTAssertEqual(try! sut.nodes(in: groupInRoot).map { $0.id.rawValue.uuidString}.sorted(), [rootGroupChildGroup.id.rawValue.uuidString, rootGroupChildItem.id.rawValue.uuidString, rootGroupChildItem2.id.rawValue.uuidString].sorted())
     }
 
     func testRemove() {
         let sut = CampaignBrowser(store: store)
-        let groupInRoot = CampaignNode(id: UUID(), title: "Root Group", contents: nil, special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
-        let itemInRoot = CampaignNode(id: UUID(), title: "Root Item", contents: CampaignNode.Contents(key: "test", type: .encounter), special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
-        let rootGroupChildGroup = CampaignNode(id: UUID(), title: "Root Group Child Group", contents: nil, special: nil,  parentKeyPrefix: groupInRoot.keyPrefixForChildren)
-        let rootGroupChildItem = CampaignNode(id: UUID(), title: "Root Group Child Item", contents: CampaignNode.Contents(key: "test2", type: .encounter), special: nil, parentKeyPrefix: groupInRoot.keyPrefixForChildren)
-        let rootGroupChildItem2 = CampaignNode(id: UUID(), title: "Root Group Child Item 2", contents: CampaignNode.Contents(key: "test3", type: .encounter), special: nil, parentKeyPrefix: groupInRoot.keyPrefixForChildren)
+        let groupInRoot = CampaignNode(id: UUID().tagged(), title: "Root Group", contents: nil, special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
+        let itemInRoot = CampaignNode(id: UUID().tagged(), title: "Root Item", contents: CampaignNode.Contents(key: "test", type: .encounter), special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
+        let rootGroupChildGroup = CampaignNode(id: UUID().tagged(), title: "Root Group Child Group", contents: nil, special: nil,  parentKeyPrefix: groupInRoot.keyPrefixForChildren)
+        let rootGroupChildItem = CampaignNode(id: UUID().tagged(), title: "Root Group Child Item", contents: CampaignNode.Contents(key: "test2", type: .encounter), special: nil, parentKeyPrefix: groupInRoot.keyPrefixForChildren)
+        let rootGroupChildItem2 = CampaignNode(id: UUID().tagged(), title: "Root Group Child Item 2", contents: CampaignNode.Contents(key: "test3", type: .encounter), special: nil, parentKeyPrefix: groupInRoot.keyPrefixForChildren)
 
         [groupInRoot, itemInRoot, rootGroupChildGroup, rootGroupChildItem, rootGroupChildItem2].forEach {
             try! sut.put($0)

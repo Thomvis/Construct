@@ -47,7 +47,7 @@ class RunningEncounterTest: XCTestCase {
     func testTagExpiryDurationUntilEndOfTargetTurn() {
         var sut = encounter1
         let tag = CombatantTag(
-            id: UUID(),
+            id: UUID().tagged(),
             definition: CombatantTagDefinition.all[0],
             note: nil,
             duration: EffectDuration.until(EncounterMoment.turnEnd(EncounterMoment.Turn.target), skipping: 0),
@@ -62,7 +62,7 @@ class RunningEncounterTest: XCTestCase {
     func testTagExpiryDurationUntilStartOfTargetNextTurn() {
         var sut = encounter1
         let tag = CombatantTag(
-            id: UUID(),
+            id: UUID().tagged(),
             definition: CombatantTagDefinition.all[0],
             note: nil,
             duration: EffectDuration.until(EncounterMoment.turnStart(EncounterMoment.Turn.target), skipping: 0),
@@ -77,7 +77,7 @@ class RunningEncounterTest: XCTestCase {
     func testTagExpiryDurationUntilStartOfTarget2ndTurn() {
         var sut = encounter1
         let tag = CombatantTag(
-            id: UUID(),
+            id: UUID().tagged(),
             definition: CombatantTagDefinition.all[0],
             note: nil,
             duration: EffectDuration.until(EncounterMoment.turnStart(EncounterMoment.Turn.target), skipping: 1),
@@ -92,7 +92,7 @@ class RunningEncounterTest: XCTestCase {
     func testTagExpiryMinute() {
         var sut = encounter1
         let tag = CombatantTag(
-            id: UUID(),
+            id: UUID().tagged(),
             definition: CombatantTagDefinition.all[0],
             note: nil,
             duration: EffectDuration.timeInterval(DateComponents(minute: 1)),
@@ -132,21 +132,21 @@ class RunningEncounterTest: XCTestCase {
     var encounter1: RunningEncounter {
         let encounter = Encounter(name: "", combatants: [
             Combatant(
-                definition: AdHocCombatantDefinition(id: UUID()),
+                definition: AdHocCombatantDefinition(id: UUID().tagged()),
                 initiative: 20
             ),
             Combatant(
-                definition: AdHocCombatantDefinition(id: UUID()),
+                definition: AdHocCombatantDefinition(id: UUID().tagged()),
                 initiative: 15
             ),
             Combatant(
-                definition: AdHocCombatantDefinition(id: UUID()),
+                definition: AdHocCombatantDefinition(id: UUID().tagged()),
                 initiative: 10
             )
         ])
 
         return RunningEncounter(
-            id: UUID(),
+            id: UUID().tagged(),
             base: encounter,
             current: encounter,
             turn: RunningEncounter.Turn(
