@@ -152,7 +152,7 @@ struct CampaignBrowseView: View {
         guard let contents = item.contents else { // group
             return StateDrivenNavigationLink(
                 store: store,
-                state: /CampaignBrowseViewState.NextScreen.catalogBrowse,
+                state: /CampaignBrowseViewState.NextScreen.campaignBrowse,
                 action: /CampaignBrowseViewAction.NextScreenAction.campaignBrowse,
                 isActive: { $0.node == item },
                 initialState: CampaignBrowseViewState(node: item, mode: self.viewStore.state.mode, items: .initial, showSettingsButton: false),

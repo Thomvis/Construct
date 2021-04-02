@@ -36,7 +36,7 @@ struct CampaignBrowseViewState: NavigationStackSourceState, Equatable {
         var res = self
         res.presentedScreens = presentedScreens.mapValues {
             switch $0 {
-            case .catalogBrowse: return .catalogBrowse(CampaignBrowseViewState.nullInstance)
+            case .campaignBrowse: return .campaignBrowse(CampaignBrowseViewState.nullInstance)
             case .encounter: return .encounter(EncounterDetailViewState.nullInstance)
             }
         }
@@ -70,7 +70,7 @@ struct CampaignBrowseViewState: NavigationStackSourceState, Equatable {
     }
 
     indirect enum NextScreen: Equatable {
-        case catalogBrowse(CampaignBrowseViewState)
+        case campaignBrowse(CampaignBrowseViewState)
         case encounter(EncounterDetailViewState)
     }
 }
@@ -308,7 +308,7 @@ extension CampaignBrowseViewState {
                     }
                 }.pullback(state: \.items, action: /CampaignBrowseViewAction.items)
             },
-            Reducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.presentedNextCatalogBrowse, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.campaignBrowse($0)) }, extract: { $0.nextCampaignBrowse })),
+            Reducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.presentedNextCampaignBrowse, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.campaignBrowse($0)) }, extract: { $0.nextCampaignBrowse })),
             EncounterDetailViewState.reducer.optional().pullback(state: \.presentedNextEncounter, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.encounterDetail($0)) }, extract: { $0.nextEncounterDetail })),
             EncounterDetailViewState.reducer.optional().pullback(state: \.presentedDetailEncounter, action: CasePath(embed: { CampaignBrowseViewAction.detailScreen(.encounterDetail($0)) }, extract: { $0.detailEncounterDetail })),
             Reducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.moveSheetState, action: CasePath(embed: { CampaignBrowseViewAction.moveSheet($0) }, extract: { $0.moveSheet }))

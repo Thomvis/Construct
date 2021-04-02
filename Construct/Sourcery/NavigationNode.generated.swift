@@ -171,14 +171,14 @@ extension CampaignBrowseViewState.NextScreen: NavigationNode {
     private var navigationNode: NavigationNode {
         get {
             switch self {
-            case .catalogBrowse(let s): return s
+            case .campaignBrowse(let s): return s
             case .encounter(let s): return s
             }
         }
 
         set {
             switch newValue {
-            case let v as CampaignBrowseViewState: self = .catalogBrowse(v)
+            case let v as CampaignBrowseViewState: self = .campaignBrowse(v)
             case let v as EncounterDetailViewState: self = .encounter(v)
             default: break
             }
@@ -416,30 +416,30 @@ extension CampaignBrowseViewState: NavigationNode {
         }
     }
 
-    var presentedNextCatalogBrowse: CampaignBrowseViewState? {
+    var presentedNextCampaignBrowse: CampaignBrowseViewState? {
         get { 
-            if case .catalogBrowse(let s) = presentedScreens[.nextInStack] {
+            if case .campaignBrowse(let s) = presentedScreens[.nextInStack] {
                 return s
             }
             return nil
         }
         set { 
             if let value = newValue {
-                presentedScreens[.nextInStack] = .catalogBrowse(value) 
+                presentedScreens[.nextInStack] = .campaignBrowse(value) 
             }
         }
     }
 
-    var presentedDetailCatalogBrowse: CampaignBrowseViewState? {
+    var presentedDetailCampaignBrowse: CampaignBrowseViewState? {
         get { 
-            if case .catalogBrowse(let s) = presentedScreens[.detail] {
+            if case .campaignBrowse(let s) = presentedScreens[.detail] {
                 return s
             }
             return nil
         }
         set { 
             if let value = newValue {
-                presentedScreens[.detail] = .catalogBrowse(value) 
+                presentedScreens[.detail] = .campaignBrowse(value) 
             }
         }
     }

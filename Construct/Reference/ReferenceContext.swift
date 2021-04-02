@@ -37,7 +37,7 @@ enum EncounterReferenceContextAction: Equatable {
 
 extension CampaignBrowseViewState {
     var referenceContext: EncounterReferenceContext? {
-        if let state = presentedNextCatalogBrowse {
+        if let state = presentedNextCampaignBrowse {
             return state.referenceContext
         } else if let state = presentedNextEncounter {
             return state.referenceContext
@@ -48,7 +48,7 @@ extension CampaignBrowseViewState {
     }
 
     var referenceItemRequests: [ReferenceViewItemRequest] {
-        if let state = presentedNextCatalogBrowse {
+        if let state = presentedNextCampaignBrowse {
             return state.referenceItemRequests
         } else if let state = presentedNextEncounter {
             return state.referenceItemRequests
@@ -59,7 +59,7 @@ extension CampaignBrowseViewState {
     }
 
     var toReferenceContextAction: ((EncounterReferenceContextAction) -> CampaignBrowseViewAction)? {
-        if let state = presentedNextCatalogBrowse {
+        if let state = presentedNextCampaignBrowse {
             return { action in
                 if let action = state.toReferenceContextAction?(action) {
                     return .nextScreen(.campaignBrowse(action))

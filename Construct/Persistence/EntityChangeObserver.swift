@@ -58,7 +58,7 @@ extension CampaignBrowseTwoColumnContainerState: HavingEntities {
 extension CampaignBrowseViewState.NextScreen: HavingEntities {
     var entities: [AnyKeyValueStoreEntity] {
         switch self {
-        case .catalogBrowse(let state): return state.entities
+        case .campaignBrowse(let state): return state.entities
         case .encounter(let state): return state.entities
         }
     }

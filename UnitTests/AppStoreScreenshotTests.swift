@@ -171,7 +171,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         ])),
                         showSettingsButton: false,
                         presentedScreens: [
-                            .nextInStack: .catalogBrowse(campaignBrowseViewState)
+                            .nextInStack: .campaignBrowse(campaignBrowseViewState)
                         ]
                     ),
                     compendium: .nullInstance,
