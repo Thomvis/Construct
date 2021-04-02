@@ -13,10 +13,11 @@ import SnapshotTesting
 import SwiftUI
 import XCTest
 
+/// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests
 class AppStoreScreenshotTests: XCTestCase {
     override class func setUp() {
         super.setUp()
-        SnapshotTesting.isRecording = true
+//        SnapshotTesting.isRecording = true
         SnapshotTesting.diffTool = "ksdiff"
     }
 
