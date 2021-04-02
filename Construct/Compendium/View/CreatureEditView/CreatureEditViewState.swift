@@ -332,12 +332,19 @@ extension CreatureEditViewState {
 extension CreatureEditViewState: NavigationStackItemState {
     var navigationStackItemStateId: String { "CreatureEditView" }
     var navigationTitle: String {
-        guard !mode.isEdit else { return "" }
-        
-        switch creatureType {
-        case .monster: return "Add monster"
-        case .character: return "Add character"
-        case .adHocCombatant: return "Quick add"
+        switch mode {
+        case .create(let type):
+            switch type {
+            case .monster: return "Add monster"
+            case .character: return "Add character"
+            case .adHocCombatant: return "Quick add"
+            }
+        case .editMonster(let m):
+            return "Edit \(m.title)"
+        case .editCharacter(let c):
+            return "Edit \(c.title)"
+        case .editAdHocCombatant(let c):
+            return "Edit \(c.name)"
         }
     }
 }

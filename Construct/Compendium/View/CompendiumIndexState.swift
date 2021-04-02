@@ -26,11 +26,12 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     var alert: AlertState<CompendiumIndexAction>?
     var sheet: Sheet?
 
-    init(title: String, properties: CompendiumIndexState.Properties, results: CompendiumIndexState.RS, presentedScreens: [NavigationDestination: NextScreen] = [:]) {
+    init(title: String, properties: CompendiumIndexState.Properties, results: CompendiumIndexState.RS, presentedScreens: [NavigationDestination: NextScreen] = [:], sheet: Sheet? = nil) {
         self.title = title
         self.properties = properties
         self.results = results
         self.presentedScreens = presentedScreens
+        self.sheet = sheet
     }
 
     var canAddItem: Bool {

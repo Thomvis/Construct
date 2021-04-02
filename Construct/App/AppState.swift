@@ -128,9 +128,9 @@ extension AppState.Navigation {
     static let reducer: Reducer<Self, AppStateNavigationAction, Environment> = Reducer.combine(
         Reducer { state, action, env in
             switch (state, action) {
-            case (_, .onHorizontalSizeClassChange(.compact)):
+            case (.column, .onHorizontalSizeClassChange(.compact)):
                 state = .tab(TabNavigationViewState())
-            case (_, .onHorizontalSizeClassChange(.regular)):
+            case (.tab, .onHorizontalSizeClassChange(.regular)):
                 state = .column(ColumnNavigationViewState())
             case (.tab, .openEncounter(let e)):
                 return Effect(value: .tab(.campaignBrowser(.setNextScreen(.encounter(EncounterDetailViewState(building: e))))))

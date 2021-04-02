@@ -14,6 +14,7 @@ func apply<T>(_ thing: T, _ f: (inout T) -> Void) -> T {
     return res
 }
 
+@discardableResult
 func apply<T>(_ thing: inout T, _ f: (inout T) -> Void) -> T {
     f(&thing)
     return thing

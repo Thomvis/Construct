@@ -11,6 +11,8 @@ import ComposableArchitecture
 import Introspect
 
 struct ColumnNavigationView: View {
+    @SwiftUI.Environment(\.applyTestWorkaroundSidebarPresentation) var applyTestWorkaroundSidebarPresentation
+
     let store: Store<ColumnNavigationViewState, ColumnNavigationViewAction>
 
     @State var didApplyPrimaryViewWorkAround = false
@@ -24,7 +26,15 @@ struct ColumnNavigationView: View {
             NavigationView {
                 SidebarView(store: store.scope(state: { $0.sidebar }, action: { .sidebar($0) }))
 
-                EmptyView()
+                if applyTestWorkaroundSidebarPresentation {
+                    IfLetStore(store.scope(state: { $0.sidebar.presentedDetailCampaignBrowse }, action: { .sidebar(.detailScreen(.campaignBrowse($0))) }), then: { store in
+                        CampaignBrowseTwoColumnContainerView(store: store)
+                    }, else: IfLetStore(store.scope(state: { $0.sidebar.presentedDetailCompendium }, action: { .sidebar(.detailScreen(.compendium($0))) }), then: { store in
+                        CompendiumIndexView(store: store)
+                    }))
+                } else {
+                    EmptyView()
+                }
 
                 EmptyView()
             }

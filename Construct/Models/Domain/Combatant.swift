@@ -237,7 +237,18 @@ struct CombatantResource: Codable, Hashable, Identifiable {
     }
 
     var used: Int {
-        slots.filter { $0 }.count
+        get {
+            slots.filter { $0 }.count
+        }
+        set {
+            for i in slots.indices {
+                if i < newValue {
+                    slots[i] = true
+                } else {
+                    slots[i] = false
+                }
+            }
+        }
     }
 
     var remaining: Int {

@@ -180,9 +180,9 @@ struct CreatureEditView: View {
                         }
                         .disabled(!self.viewStore.state.isValid)
                     )
-                    .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
             }
         })
+        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
     }
 
     var characterFields: some View {
