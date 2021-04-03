@@ -216,8 +216,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                         return AnyCancellable { }
                     }
-                case .nextScreen(.compendiumEntry(.nextScreen(.groupEdit(.onRemoveTap)))),
-                     .detailScreen(.compendiumEntry(.nextScreen(.groupEdit(.onRemoveTap)))):
+                case .nextScreen(.compendiumEntry(.sheet(.groupEdit(.onRemoveTap)))),
+                     .detailScreen(.compendiumEntry(.sheet(.groupEdit(.onRemoveTap)))):
                     return Effect.run { subscriber in
                         subscriber.send(.setNextScreen(nil))
 
@@ -230,8 +230,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                         return AnyCancellable { }
                     }
-                case .nextScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onRemoveTap)))),
-                     .detailScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onRemoveTap)))):
+                case .nextScreen(.compendiumEntry(.sheet(.creatureEdit(.onRemoveTap)))),
+                     .detailScreen(.compendiumEntry(.sheet(.creatureEdit(.onRemoveTap)))):
                     return Effect.run { subscriber in
                         subscriber.send(.setNextScreen(nil))
 
@@ -244,8 +244,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                         return AnyCancellable { }
                     }
-                case .nextScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onDoneTap)))),
-                     .detailScreen(.compendiumEntry(.nextScreen(.creatureEdit(.onDoneTap)))):
+                case .nextScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))),
+                     .detailScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))):
                     return Effect(value: .results(.reload))
                 case .nextScreen(.compendiumEntry(.entry)),
                      .detailScreen(.compendiumEntry(.entry)):

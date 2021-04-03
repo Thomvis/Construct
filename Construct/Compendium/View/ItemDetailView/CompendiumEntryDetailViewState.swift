@@ -12,15 +12,16 @@ import ComposableArchitecture
 import Combine
 import CasePaths
 
-struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
+struct CompendiumEntryDetailViewState: NavigationStackItemState, Equatable {
 
     var entry: CompendiumEntry
+    @EqKey({ $0?.id })
     var popover: Popover?
-    var presentedScreens: [NavigationDestination: NextScreen]
+    @EqKey({ $0?.id })
+    var sheet: Sheet?
 
-    init(entry: CompendiumEntry, presentedScreens: [NavigationDestination: NextScreen] = [:]) {
+    init(entry: CompendiumEntry) {
         self.entry = entry
-        self.presentedScreens = presentedScreens
     }
 
     var item: CompendiumItem {
@@ -60,20 +61,62 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         }
     }
 
-    enum Popover: Hashable {
-        case creatureAction(DiceActionViewState)
-        case rollCheck(DiceCalculatorState)
+    var creatureEditSheet: CreatureEditViewState? {
+        get {
+            if case .creatureEdit(let s) = sheet {
+                return s
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                sheet = .creatureEdit(newValue)
+            }
+        }
     }
 
-    enum NextScreen: Equatable {
+    var groupEditSheet: CompendiumItemGroupEditState? {
+        get {
+            if case .groupEdit(let s) = sheet {
+                return s
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                sheet = .groupEdit(newValue)
+            }
+        }
+    }
+
+    enum Popover: Hashable, Identifiable {
+        case creatureAction(DiceActionViewState)
+        case rollCheck(DiceCalculatorState)
+
+        var id: String {
+            switch self {
+            case .creatureAction: return "creatureAction"
+            case .rollCheck: return "rollCheck"
+            }
+        }
+    }
+
+    enum Sheet: Equatable, Identifiable {
         case creatureEdit(CreatureEditViewState)
         case groupEdit(CompendiumItemGroupEditState)
+
+        var id: String {
+            switch self {
+            case .creatureEdit(let s): return s.navigationStackItemStateId
+            case .groupEdit(let s): return s.navigationStackItemStateId
+            }
+        }
     }
 
     static var reducer: Reducer<Self, CompendiumItemDetailViewAction, Environment> {
         return Reducer.combine(
-            CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEdit, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.creatureEdit),
-            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.presentedNextGroupEdit, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.groupEdit),
+            CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.creatureEdit),
+            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.groupEdit),
             DiceActionViewState.reducer.optional().pullback(state: \.createActionPopover, action: /CompendiumItemDetailViewAction.creatureActionPopover),
             DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckPopover, action: /CompendiumItemDetailViewAction.rollCheckPopover),
             Reducer { state, action, env in
@@ -103,10 +146,9 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                 case .onSaveMonsterAsNPCButton: break // handled by the compendium container
                 case .popover(let p): state.popover = p
                 case .creatureActionPopover: break // handled by a reducer above
-                case .rollCheckPopover: break // handles by a reducer above
-                case .setNextScreen(let s): state.presentedScreens[.nextInStack] = s
-                case .setDetailScreen(let s): state.presentedScreens[.detail] = s
-                case .nextScreen(.creatureEdit(CreatureEditViewAction.onDoneTap(let state))):
+                case .rollCheckPopover: break // handled by a reducer above
+                case .setSheet(let s): state.sheet = s
+                case .sheet(.creatureEdit(CreatureEditViewAction.onDoneTap(let state))):
                     return Effect.run { subscriber in
                         let item = state.compendiumItem
                         if let orig = state.originalItem, orig.key != item?.key {
@@ -117,31 +159,31 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                             try? env.compendium.put(entry)
                             subscriber.send(.entry(entry))
                         }
-                        subscriber.send(.setNextScreen(nil))
+                        subscriber.send(.setSheet(nil))
                         subscriber.send(completion: .finished)
 
                         return AnyCancellable { }
                     }
-                case .nextScreen(.creatureEdit(CreatureEditViewAction.onRemoveTap(let state))):
+                case .sheet(.creatureEdit(CreatureEditViewAction.onRemoveTap(let state))):
                     return Effect.future { callback in
                         if let item = state.originalItem {
                             _ = try? env.database.keyValueStore.remove(item.key)
                         }
-                        callback(.success(.setNextScreen(nil)))
+                        callback(.success(.setSheet(nil)))
                     }
-                case .nextScreen(.groupEdit(CompendiumItemGroupEditAction.onDoneTap(let group))):
+                case .sheet(.groupEdit(CompendiumItemGroupEditAction.onDoneTap(let group))):
                     let entry = CompendiumEntry(group)
                     state.entry = entry
                     return Effect.future { callback in
                         try? env.compendium.put(entry)
-                        callback(.success(.setNextScreen(nil)))
+                        callback(.success(.setSheet(nil)))
                     }
-                case .nextScreen(.groupEdit(CompendiumItemGroupEditAction.onRemoveTap(let group))):
+                case .sheet(.groupEdit(CompendiumItemGroupEditAction.onRemoveTap(let group))):
                     return Effect.future { callback in
                         _ = try? env.database.keyValueStore.remove(group.key)
-                        callback(.success(.setNextScreen(nil)))
+                        callback(.success(.setSheet(nil)))
                     }
-                case .nextScreen, .detailScreen: break // handled by the reducers above
+                case .sheet: break // handled by the reducers above
                 }
                 return .none
             }
@@ -149,37 +191,20 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
     }
 }
 
-enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
+enum CompendiumItemDetailViewAction: Equatable {
     case onAppear
     case entry(CompendiumEntry)
     case onSaveMonsterAsNPCButton(Monster)
     case popover(CompendiumEntryDetailViewState.Popover?)
     case creatureActionPopover(DiceActionViewAction)
     case rollCheckPopover(DiceCalculatorAction)
-    case setNextScreen(CompendiumEntryDetailViewState.NextScreen?)
-    case nextScreen(NextScreenAction)
-    case setDetailScreen(CompendiumEntryDetailViewState.NextScreen?)
-    case detailScreen(NextScreenAction)
+    case setSheet(CompendiumEntryDetailViewState.Sheet?)
+    case sheet(SheetAction)
 
-    enum NextScreenAction: Equatable {
+    enum SheetAction: Equatable {
         case creatureEdit(CreatureEditViewAction)
         case groupEdit(CompendiumItemGroupEditAction)
     }
-
-    static func presentScreen(_ destination: NavigationDestination, _ screen: CompendiumEntryDetailViewState.NextScreen?) -> Self {
-        switch destination {
-        case .nextInStack: return .setNextScreen(screen)
-        case .detail: return .setDetailScreen(screen)
-        }
-    }
-
-    static func presentedScreen(_ destination: NavigationDestination, _ action: NextScreenAction) -> Self {
-        switch destination {
-        case .nextInStack: return .nextScreen(action)
-        case .detail: return .detailScreen(action)
-        }
-    }
-
 }
 
 extension CompendiumItem {

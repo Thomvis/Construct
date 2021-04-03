@@ -60,6 +60,23 @@ extension CombatantTrackerEditViewState: NavigationNode {
         // no-op
     }
 }
+extension CompendiumEntryDetailViewState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
+    func topNavigationItems() -> [Any] {
+        return [self]
+    }
+
+    func navigationStackSize() -> Int {
+        return 1
+    }
+
+    mutating func popLastNavigationStackItem() {
+        // no-op
+    }
+}
 extension CompendiumImportViewState: NavigationNode {
     var nodeId: String { 
         navigationStackItemStateId
@@ -239,41 +256,6 @@ extension CombatantDetailViewState.NextScreen: NavigationNode {
     }
 }
 
-
-extension CompendiumEntryDetailViewState.NextScreen: NavigationNode {
-    var nodeId: String {
-        navigationNode.nodeId
-    }
-
-    private var navigationNode: NavigationNode {
-        get {
-            switch self {
-            case .creatureEdit(let s): return s
-            case .groupEdit(let s): return s
-            }
-        }
-
-        set {
-            switch newValue {
-            case let v as CreatureEditViewState: self = .creatureEdit(v)
-            case let v as CompendiumItemGroupEditState: self = .groupEdit(v)
-            default: break
-            }
-        }
-    }
-
-    func topNavigationItems() -> [Any] {
-        return navigationNode.topNavigationItems()
-    }
-
-    func navigationStackSize() -> Int {
-        return navigationNode.navigationStackSize()
-    }
-
-    mutating func popLastNavigationStackItem() {
-        navigationNode.popLastNavigationStackItem()
-    }
-}
 
 extension CompendiumIndexState.NextScreen: NavigationNode {
     var nodeId: String {
@@ -677,96 +659,6 @@ extension CombatantTagsViewState: NavigationNode {
         }
     }
 
-}
-extension CompendiumEntryDetailViewState: NavigationNode {
-
-    var nodeId: String { 
-        navigationStackItemStateId
-    }
-
-    func topNavigationItems() -> [Any] {
-        var result: [Any] = []
-        if let next = presentedScreens[.nextInStack] {
-            result.append(contentsOf: next.topNavigationItems())
-        } else {
-            result.append(self)
-        }
-
-        if let detail = presentedScreens[.detail] {
-            result.append(contentsOf: detail.topNavigationItems())
-        }
-        return result
-    }
-
-    func navigationStackSize() -> Int {
-        if let next = presentedScreens[.nextInStack] {
-            return 1 + next.navigationStackSize()
-        }
-        return 1
-    }
-
-    mutating func popLastNavigationStackItem() {
-        if navigationStackSize() <= 2 {
-            presentedScreens[.nextInStack] = nil
-        } else {
-            presentedScreens[.nextInStack]?.popLastNavigationStackItem()
-        }
-    }
-
-    var presentedNextCreatureEdit: CreatureEditViewState? {
-        get { 
-            if case .creatureEdit(let s) = presentedScreens[.nextInStack] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.nextInStack] = .creatureEdit(value) 
-            }
-        }
-    }
-
-    var presentedDetailCreatureEdit: CreatureEditViewState? {
-        get { 
-            if case .creatureEdit(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.detail] = .creatureEdit(value) 
-            }
-        }
-    }
-    var presentedNextGroupEdit: CompendiumItemGroupEditState? {
-        get { 
-            if case .groupEdit(let s) = presentedScreens[.nextInStack] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.nextInStack] = .groupEdit(value) 
-            }
-        }
-    }
-
-    var presentedDetailGroupEdit: CompendiumItemGroupEditState? {
-        get { 
-            if case .groupEdit(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.detail] = .groupEdit(value) 
-            }
-        }
-    }
 }
 extension CompendiumIndexState: NavigationNode {
 

@@ -94,7 +94,7 @@ extension SidebarViewState: NavigationStackItemState {
 
 extension SidebarViewState {
     static let reducer: Reducer<Self, SidebarViewAction, Environment> = Reducer.combine(
-        CompendiumIndexState.reducer.optional().pullback(state: \.presentedDetailCompendium, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.compendium),
+        compendiumContainerReducer.optional().pullback(state: \.presentedDetailCompendium, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.compendium),
         CampaignBrowseTwoColumnContainerState.reducer.optional().pullback(state: \.presentedDetailCampaignBrowse, action: /SidebarViewAction.detailScreen..SidebarViewAction.NextScreenAction.campaignBrowse),
         Reducer { state, action, env in
             switch action {

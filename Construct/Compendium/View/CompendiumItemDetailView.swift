@@ -47,25 +47,27 @@ struct CompendiumItemDetailView: View {
             }
             .padding(EdgeInsets(top: 12, leading: 12, bottom: 80, trailing: 12))
         }
-        .background(with(menuItems) { items in
-            if items.count == 1 {
-                EmptyView().navigationBarItems(trailing: Button(action: {
-                    items[0].action()
-                }) {
-                    Text(items[0].text)
-                })
-            } else if items.count > 1 {
-                EmptyView().navigationBarItems(trailing: Menu(content: {
-                    ForEach(menuItems, id: \.text) { item in
-                        Button(action: item.action) {
-                            Label(item.text, systemImage: item.systemImage)
+        .toolbar {
+            ToolbarItemGroup(placement: .primaryAction) {
+                with(menuItems) { items in
+                    if let only = items.single {
+                        Button(action: only.action) {
+                            Text(only.text)
+                        }
+                    } else {
+                        Menu(content: {
+                            ForEach(menuItems, id: \.text) { item in
+                                Button(action: item.action) {
+                                    Label(item.text, systemImage: item.systemImage)
+                                }
+                            }
+                        }) {
+                            Image(systemName: "ellipsis.circle").frame(width: 30, height: 30, alignment: .trailing)
                         }
                     }
-                }) {
-                    Image(systemName: "ellipsis.circle").frame(width: 30, height: 30, alignment: .trailing)
-                })
+                }
             }
-        })
+        }
         .overlay(ZStack {
             if let stats = itemStatBlock {
                 CombatantRollButton(stats: stats) { check in
@@ -75,20 +77,9 @@ struct CompendiumItemDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             }
         })
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CompendiumEntryDetailViewState.NextScreenState.creatureEdit,
-            action: /CompendiumItemDetailViewAction.NextScreenAction.creatureEdit,
-            destination: CreatureEditView.init
-        )
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CompendiumEntryDetailViewState.NextScreenState.groupEdit,
-            action: /CompendiumItemDetailViewAction.NextScreenAction.groupEdit,
-            destination: CompendiumItemGroupEditView.init
-        )
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .popover(popoverBinding)
+        .sheet(item: viewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
         .onAppear {
             viewStore.send(.onAppear)
         }
@@ -111,6 +102,25 @@ struct CompendiumItemDetailView: View {
         }
     }
 
+    @ViewBuilder
+    func sheetView(_ sheet: CompendiumEntryDetailViewState.Sheet) -> some View {
+        switch viewStore.state.sheet {
+        case .creatureEdit:
+            IfLetStore(store.scope(state: replayNonNil({ $0.creatureEditSheet }), action: { .sheet(.creatureEdit($0)) })) { store in
+                SheetNavigationContainer {
+                    CreatureEditView(store: store)
+                }
+            }
+        case .groupEdit:
+            IfLetStore(store.scope(state: replayNonNil({ $0.groupEditSheet }), action: { .sheet(.groupEdit($0)) })) { store in
+                SheetNavigationContainer {
+                    CompendiumItemGroupEditView(store: store)
+                }
+            }
+        default: EmptyView()
+        }
+    }
+
     var editViewState: CreatureEditViewState? {
         switch item {
         case let monster as Monster: return CreatureEditViewState(edit: monster)
@@ -127,20 +137,20 @@ struct CompendiumItemDetailView: View {
             },
             MenuItem(text: "Edit", systemImage: "pencil") {
                 if let evs = self.editViewState {
-                    self.viewStore.send(.setNextScreen(.creatureEdit(evs)))
+                    self.viewStore.send(.setSheet(.creatureEdit(evs)))
                 }
             }
         ]
         case is Character: return [
             MenuItem(text: "Edit", systemImage: "pencil") {
                 if let evs = self.editViewState {
-                    self.viewStore.send(.setNextScreen(.creatureEdit(evs)))
+                    self.viewStore.send(.setSheet(.creatureEdit(evs)))
                 }
             }
         ]
         case let group as CompendiumItemGroup: return [
             MenuItem(text: "Edit", systemImage: "pencil") {
-                self.viewStore.send(.setNextScreen(.groupEdit(CompendiumItemGroupEditState(mode: .edit, group: group))))
+                self.viewStore.send(.setSheet(.groupEdit(CompendiumItemGroupEditState(mode: .edit, group: group))))
             }
         ]
         default: return []

@@ -47,7 +47,7 @@ struct CompendiumIndexView: View {
                 CompendiumItemList(store: store, viewProvider: viewProvider)
             } else if localViewStore.state.resultsErrorNonNil {
                 Text("Loading failed").frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if localViewStore.state.resultsIsLoading {
+            } else if localViewStore.state.resultsIsFirstTimeLoading {
                 Text("Loading...").frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 IfLetStore(store.scope(state: { CompendiumTocView.LocalState($0) })) { store in
@@ -87,11 +87,6 @@ struct CompendiumIndexView: View {
             }
         })
         .onAppear {
-            loadResultsIfNeeded()
-        }
-        // workaround for onAppear not getting called when a compendium index view is replaced by another
-        // through the sidebar
-        .onChange(of: localViewStore.state.title) { _ in
             loadResultsIfNeeded()
         }
         // workaround: an inline NavigationLink inside navigationBarItems would be set to inactive
@@ -155,7 +150,7 @@ struct CompendiumIndexView: View {
 
         let resultsValueNonNil: Bool
         let resultsErrorNonNil: Bool
-        let resultsIsLoading: Bool
+        let resultsIsFirstTimeLoading: Bool
 
         let addButtonItemType: CompendiumItemType?
 
@@ -172,7 +167,7 @@ struct CompendiumIndexView: View {
 
             resultsValueNonNil = state.results.value != nil
             resultsErrorNonNil = state.results.error != nil
-            resultsIsLoading = state.results.result.isLoading
+            resultsIsFirstTimeLoading = state.results.value == nil && state.results.result.isLoading
 
             if state.properties.showAdd && state.canAddItem {
                 addButtonItemType = state.results.input.filters?.types?.single
