@@ -300,7 +300,7 @@ extension ReferenceItemViewState {
 
 extension ReferenceItemViewState.Content.Home {
     static let reducer: Reducer<Self, ReferenceItemViewAction.Home, Environment> = Reducer.combine(
-        compendiumContainerReducer.optional().pullback(state: \.presentedNextCompendium, action: /ReferenceItemViewAction.Home.nextScreen..ReferenceItemViewAction.Home.NextScreenAction.compendium),
+        compendiumRootReducer.optional().pullback(state: \.presentedNextCompendium, action: /ReferenceItemViewAction.Home.nextScreen..ReferenceItemViewAction.Home.NextScreenAction.compendium),
         Reducer { state, action, env in
             switch action {
             case .compendiumSearchTapped:

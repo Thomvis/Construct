@@ -23,7 +23,7 @@ struct CompendiumContainerView: View {
     }
 }
 
-let compendiumContainerReducer: Reducer<CompendiumIndexState, CompendiumIndexAction, Environment> = Reducer.combine(
+let compendiumRootReducer: Reducer<CompendiumIndexState, CompendiumIndexAction, Environment> = Reducer.combine(
     Reducer { state, action, env in
         if let monster = action.onSaveMonsterAsNPCButtonMonster {
             return Effect.future { callback in
