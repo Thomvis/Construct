@@ -19,3 +19,14 @@ extension EnvironmentValues {
         set { self[TestWorkaroundSidebarPresentation.self] = newValue }
     }
 }
+
+struct TestWorkaroundReferenceViewTabBarVisibility: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+
+extension EnvironmentValues {
+    var applyTestWorkaroundReferenceViewTabBarVisibility: Bool {
+        get { self[TestWorkaroundReferenceViewTabBarVisibility.self] }
+        set { self[TestWorkaroundReferenceViewTabBarVisibility.self] = newValue }
+    }
+}

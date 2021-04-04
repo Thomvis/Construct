@@ -76,6 +76,7 @@ class AppStoreScreenshotTests: XCTestCase {
             withTransaction(transaction) {
                 assertSnapshot(
                     matching: view
+                        .environment(\.applyTestWorkaroundReferenceViewTabBarVisibility, true)
                         .environment(\.applyTestWorkaroundSidebarPresentation, true)
                         .environment(\.colorScheme, colorScheme)
                         .environmentObject(Environment(window: UIWindow())),
@@ -146,7 +147,7 @@ class AppStoreScreenshotTests: XCTestCase {
     }
 
     var tabNavigationCombatantDetail: some View {
-        var encounterDetailViewState = encounterDetailRunningEncounterDetailState
+        let encounterDetailViewState = encounterDetailRunningEncounterDetailState
         let state = CombatantDetailViewState(
             combatant: encounterDetailViewState.encounter.combatants[1]
         )

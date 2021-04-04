@@ -12,6 +12,8 @@ import Introspect
 import Tagged
 
 struct TabbedDocumentView<Content>: View where Content: View {
+    @SwiftUI.Environment(\.applyTestWorkaroundReferenceViewTabBarVisibility) var applyTestWorkaroundReferenceViewTabBarVisibility
+
     var items: [TabbedDocumentViewContentItem]
     var content: (TabbedDocumentViewContentItem) -> Content
     @Binding var selection: TabbedDocumentViewContentItem.Id?
@@ -21,18 +23,27 @@ struct TabbedDocumentView<Content>: View where Content: View {
     var onMove: ((Int, Int) -> Void)?
 
     var body: some View {
-        VStack(spacing: 0) {
+        let tabView = TabView(selection: $selection) {
+            ForEach(items.sorted(by: { $0.id.rawValue.uuidString < $1.id.rawValue.uuidString }), id: \.id) { item in
+                content(item)
+                    .tag(Optional.some(item.id))
+            }
+            .navigationBarHidden(true)
+        }
 
-            TabBarHidingTabViewParent {
-                TabView(selection: $selection) {
-                    ForEach(items.sorted(by: { $0.id.rawValue.uuidString < $1.id.rawValue.uuidString }), id: \.id) { item in
-                        content(item)
-                            .tag(Optional.some(item.id))
+        return VStack(spacing: 0) {
+            Group {
+                if applyTestWorkaroundReferenceViewTabBarVisibility {
+                    TabBarHidingTabViewParent {
+                        tabView
                     }
-                    .navigationBarHidden(true)
+                    .ignoresSafeArea(.all, edges: .top)
+                } else {
+                    tabView.introspectTabBarController { controller in
+                        controller.tabBar.isHidden = true
+                    }
                 }
             }
-            .ignoresSafeArea(.all, edges: .top)
             .opacity(items.isEmpty ? 0 : 1)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
