@@ -193,6 +193,7 @@ extension EncounterDetailViewState {
 
         case showCombatantDetailReferenceItem(Combatant)
         case showAddCombatantReferenceItem
+        case didDismissReferenceItem(TabbedDocumentViewContentItem.Id)
 
         enum SelectionEncounterAction: Hashable {
             case duplicate
@@ -353,6 +354,12 @@ extension EncounterDetailViewState {
                         id: state.addCombatantReferenceItemRequest?.id ?? UUID().tagged(),
                         state: ReferenceItemViewState(content: .addCombatant(ReferenceItemViewState.Content.AddCombatant(addCombatantState: AddCombatantState(encounter: state.encounter))))
                     )
+                case .didDismissReferenceItem(let id):
+                    if state.addCombatantReferenceItemRequest?.id == id {
+                        state.addCombatantReferenceItemRequest = nil
+                    } else if state.combatantDetailReferenceItemRequest?.id == id {
+                        state.combatantDetailReferenceItemRequest = nil
+                    }
                 }
                 return .none
             },

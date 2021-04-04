@@ -164,6 +164,14 @@ extension CampaignBrowseTwoColumnContainerState {
                 }
             }
 
+            if case .referenceView(.removeTab(let id)) = action,
+               state.referenceView.itemRequests.contains(where: { $0.id == id }) {
+                // inform context of removal
+                if let toContext = state.content.toReferenceContextAction {
+                    actions.append(toContext(.didDismiss(id)))
+                }
+            }
+
             return actions.publisher.eraseToEffect()
         }
     )

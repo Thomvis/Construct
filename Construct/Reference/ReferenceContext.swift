@@ -33,6 +33,8 @@ struct EncounterReferenceContext: Equatable {
 enum EncounterReferenceContextAction: Equatable {
     case addCombatant(AddCombatantView.Action)
     case combatantAction(Combatant.Id, CombatantAction)
+
+    case didDismiss(TabbedDocumentViewContentItem.Id)
 }
 
 extension CampaignBrowseViewState {
@@ -96,6 +98,8 @@ extension EncounterDetailViewState {
                 return .addCombatantAction(a, false)
             case .combatantAction(let id, let a):
                 return .encounter(.combatant(id, a))
+            case .didDismiss(let id):
+                return .didDismissReferenceItem(id)
             }
         }
     }
