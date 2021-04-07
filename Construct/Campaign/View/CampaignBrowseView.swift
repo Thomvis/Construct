@@ -222,6 +222,7 @@ struct NodeEditView: View {
     let onDoneTap: (CampaignBrowseViewState.NodeEditState, CampaignNode?, String) -> Void
 
     @Binding var state: CampaignBrowseViewState.NodeEditState
+    @State var didFocusOnField = false
 
     var body: some View {
         NavigationView {
@@ -236,6 +237,12 @@ struct NodeEditView: View {
                         ClearableTextField("Name", text: $state.name, onCommit: self.saveAndDismissIfValid)
                             .disableAutocorrection(true)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .introspectTextField { textField in
+                                if !textField.isFirstResponder, !didFocusOnField {
+                                    textField.becomeFirstResponder()
+                                    didFocusOnField = true
+                                }
+                            }
                     }
                     .padding(8)
                     .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
