@@ -12,7 +12,7 @@ import ComposableArchitecture
 
 struct AppState: Equatable {
 
-    var navigation: Navigation
+    var navigation: Navigation?
 
     var preferences: Preferences
 
@@ -24,7 +24,7 @@ struct AppState: Equatable {
         guard !showWelcomeSheet else { return nil }
         switch navigation {
         case .tab(let s): return s.topNavigationItemState
-        case .column: return nil
+        case .column, nil: return nil
         }
     }
 
@@ -102,7 +102,7 @@ struct AppState: Equatable {
                 }
                 return .none
             },
-            Navigation.reducer.pullback(state: \.navigation, action: /AppState.Action.navigation),
+            Navigation.reducer.optional().pullback(state: \.navigation, action: /AppState.Action.navigation),
             Reducer { state, action, env in
                 if state.sceneIsActive, let edv = state.topNavigationItemState as? EncounterDetailViewState, edv.running != nil {
                     env.isIdleTimerDisabled = true
@@ -128,9 +128,9 @@ extension AppState.Navigation {
     static let reducer: Reducer<Self, AppStateNavigationAction, Environment> = Reducer.combine(
         Reducer { state, action, env in
             switch (state, action) {
-            case (.column, .onHorizontalSizeClassChange(.compact)):
+            case (nil, .onHorizontalSizeClassChange(.compact)), (.column, .onHorizontalSizeClassChange(.compact)):
                 state = .tab(TabNavigationViewState())
-            case (.tab, .onHorizontalSizeClassChange(.regular)):
+            case (nil, .onHorizontalSizeClassChange(.regular)), (.tab, .onHorizontalSizeClassChange(.regular)):
                 state = .column(ColumnNavigationViewState())
             case (.tab, .openEncounter(let e)):
                 return Effect(value: .tab(.campaignBrowser(.setNextScreen(.encounter(EncounterDetailViewState(building: e))))))
@@ -176,6 +176,8 @@ extension AppState {
             res.navigation = .column(ColumnNavigationViewState.nullInstance)
         case .tab:
             res.navigation = .tab(TabNavigationViewState.nullInstance)
+        case nil:
+            res.navigation = nil
         }
         return res
     }
