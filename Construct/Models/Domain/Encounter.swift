@@ -88,27 +88,45 @@ struct Encounter: Equatable, Codable {
         combatants.filter { $0.definition.player != nil }
     }
 
-    var partyEntriesForDifficulty: [EncounterDifficulty.PartyEntry] {
-        if let party = partyForDifficulty {
-            if party.combatantBased {
-                let partyCombatants: [Combatant] = (party.combatantParty?.filter?.compactMap { id in
-                    combatants.first { $0.id == id }
-                } ?? playerControlledCombatants)
-                let entries: [EncounterDifficulty.PartyEntry] = partyCombatants.compactMap { c in c.definition.level.map { .init(level: $0, name: c.name) } }
-                if !entries.isEmpty {
-                    return entries
-                }
-            } else if let simple = party.simplePartyEntries, !simple.isEmpty {
-                return simple.flatMap { Array(repeating: .init(level: $0.level, name: nil), count: $0.count) }
-            }
-        } else if !playerControlledCombatants.isEmpty {
-            let entries: [EncounterDifficulty.PartyEntry] = playerControlledCombatants.compactMap { c in c.definition.level.map { .init(level: $0, name: c.name) } }
+    /// Returns nil if the party doesn't yield any entries
+    private func encounterDifficultyPartyEntries(for party: Party) -> [EncounterDifficulty.PartyEntry]? {
+        if party.combatantBased {
+            let partyCombatants: [Combatant] = (party.combatantParty?.filter?.compactMap { id in
+                combatants.first { $0.id == id }
+            } ?? playerControlledCombatants)
+            let entries: [EncounterDifficulty.PartyEntry] = partyCombatants.compactMap { c in c.definition.level.map { .init(level: $0, name: c.name) } }
             if !entries.isEmpty {
                 return entries
+            } else {
+                return nil
             }
+        } else if let simple = party.simplePartyEntries, !simple.isEmpty {
+            return simple.flatMap { Array(repeating: .init(level: $0.level, name: nil), count: $0.count) }
         }
 
-        return Array(repeating: .init(level: 2, name: nil), count: 3)
+        return nil
+    }
+
+    var partyWithEntriesForDifficulty: (Party, [EncounterDifficulty.PartyEntry]) {
+        // return entries for configured party, if available
+        if let party = partyForDifficulty, let entries = encounterDifficultyPartyEntries(for: party) {
+            return (party, entries)
+        }
+
+        // falling back to entries for combatants in the encounter
+        let defaultCombatantParty = Party.combatant(Party.CombatantParty(filter: nil))
+        if let entries = encounterDifficultyPartyEntries(for: defaultCombatantParty) {
+            return (defaultCombatantParty, entries)
+        }
+
+        // falling back to the default party composition
+        let defaultSimpleParty = Party.defaultSimple()
+        if let entries = encounterDifficultyPartyEntries(for: defaultSimpleParty) {
+            return (defaultSimpleParty, entries)
+        }
+
+        assertionFailure("Party.defaultSimple() should always have entries")
+        return (defaultSimpleParty, [])
     }
 
     func combatant(for id: Combatant.Id) -> Combatant? {
@@ -244,6 +262,18 @@ struct Encounter: Equatable, Codable {
         var simplePartyEntries: [SimplePartyEntry]?
         var combatantParty: CombatantParty?
         var combatantBased: Bool
+
+        static func simple(_ entries: [SimplePartyEntry]?) -> Self {
+            Party(simplePartyEntries: entries, combatantParty: nil, combatantBased: false)
+        }
+
+        static func combatant(_ party: CombatantParty) -> Self {
+            Party(simplePartyEntries: nil, combatantParty: party, combatantBased: true)
+        }
+
+        static func defaultSimple() -> Self {
+            simple([Encounter.Party.SimplePartyEntry(level: 2, count: 3)])
+        }
 
         struct CombatantParty: Codable, Equatable {
             var _filter: [Combatant.Id]? // if nil, all player controlled combatants are in the party

@@ -33,7 +33,7 @@ struct EncounterSettingsView: View {
 
     var party: Binding<Encounter.Party> {
         Binding(get: {
-            self.viewStore.state.building.partyForDifficulty ?? Encounter.Party(simplePartyEntries: [Encounter.Party.SimplePartyEntry(level: 2, count: 3)], combatantParty: nil, combatantBased: true)
+            self.viewStore.state.building.partyWithEntriesForDifficulty.0
         }) {
             self.viewStore.send(.buildingEncounter(.partyForDifficulty($0)))
         }

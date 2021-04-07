@@ -39,7 +39,7 @@ struct EncounterDetailView: View {
                             self.viewStore.send(.sheet(.settings))
                         }) {
                             EncounterDifficultyView(difficulty: EncounterDifficulty(
-                                party: encounter.partyEntriesForDifficulty,
+                                party: encounter.partyWithEntriesForDifficulty.1,
                                 monsters: encounter.combatants.compactMap { $0.definition.stats?.challengeRating }
                             ))
                         }
