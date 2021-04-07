@@ -37,7 +37,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 environment: env
             )
 
-            window.rootViewController = UIHostingController(
+            window.rootViewController = RootHostingController(
                 rootView: ContentView(store: store).environmentObject(env)
             )
             self.store = store
@@ -80,3 +80,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 }
 
+class RootHostingController<Content>: UIHostingController<Content> where Content: View {
+    override func addChild(_ childController: UIViewController) {
+        super.addChild(childController)
+
+        // workaround for an empty supplementary view on launch
+        // the supplementary view is determined by the default selection inside the
+        // primary view, but the primary view is not loaded so its selection is not read
+        // We work around that by briefly showing the primary view.
+        if let splitVC = childController as? UISplitViewController {
+            splitVC.preferredDisplayMode = .twoBesideSecondary
+        }
+    }
+}

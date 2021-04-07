@@ -39,18 +39,8 @@ struct ColumnNavigationView: View {
                 EmptyView()
             }
             .introspectViewController { vc in
-                // workaround for an empty supplementary view on launch
-                // the supplementary view is determined by the default selection inside the
-                // primary view, but the primary view is not loaded so its selection is not read
-                // We work around that by briefly showing the primary view.
-                if !didApplyPrimaryViewWorkAround, let splitVC = vc.children.first as? UISplitViewController {
+                if let splitVC = vc.children.first as? UISplitViewController {
                     self.splitVC.wrappedValue = splitVC
-
-                    UIView.performWithoutAnimation {
-                        splitVC.show(.primary)
-                        splitVC.hide(.primary)
-                    }
-                    didApplyPrimaryViewWorkAround = true
                 }
             }
             .navigationViewStyle(DoubleColumnNavigationViewStyle())
