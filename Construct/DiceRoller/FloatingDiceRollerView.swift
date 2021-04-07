@@ -26,7 +26,7 @@ struct FloatingDiceRollerContainerView: View {
 
     init(store: Store<FloatingDiceRollerViewState, FloatingDiceRollerViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { $0.hidden == $1.hidden })
+        self.viewStore = ViewStore(store, removeDuplicates: { ($0.hidden, $0.canCollapse) == ($1.hidden, $1.canCollapse) })
     }
 
     var body: some View {
@@ -36,13 +36,13 @@ struct FloatingDiceRollerContainerView: View {
 
                 if containerProxy.size.width < containerProxy.size.height, viewStore.state.hidden {
                     Button(action: {
-                        viewStore.send(.show)
+                        viewStore.send(.show, animation: .default)
                     }) {
                         Image("tabbar_d20")
                             .padding(18)
                             .background(
                                 Circle().foregroundColor(Color(UIColor.systemBackground))
-                                    .shadow(color: Color(UIColor.label), radius: 5)
+                                    .shadow(color: Color(UIColor.label).opacity(0.33), radius: 5)
                             )
                             .padding(12)
                     }
@@ -55,6 +55,7 @@ struct FloatingDiceRollerContainerView: View {
             .coordinateSpace(name: Self.containerCoordinateSpaceName)
             .padding(EdgeInsets(top: 8, leading: 12, bottom: 50, trailing: 12))
         }
+        .ignoresSafeArea(.keyboard, edges: .all)
     }
 
     private func panel(_ containerProxy: GeometryProxy) -> some View {
@@ -82,9 +83,14 @@ struct FloatingDiceRollerContainerView: View {
                 Spacer()
 
                 Button(action: {
-                    withAnimation {
-                        viewStore.send(.hide)
-                    }
+                    viewStore.send(.collapse, animation: .default)
+                }) {
+                    Image(systemName: "rectangle.arrowtriangle.2.inward")
+                }
+                .disabled(!viewStore.canCollapse)
+
+                Button(action: {
+                    viewStore.send(.hide, animation: .default)
                 }) {
                     Image(systemName: "pip.remove")
                 }
