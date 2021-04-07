@@ -194,7 +194,11 @@ extension CampaignBrowseTwoColumnContainerState {
 
 extension CampaignBrowseTwoColumnContainerState: NavigationNode {
     var nodeId: String {
-        "CampaignBrowseTwoColumnContainerState"
+        switch content {
+        case .browse(let b): return "CampaignBrowseTwoColumnContainerState::\(b.nodeId)"
+        case .encounter(let e): return "CampaignBrowseTwoColumnContainerState::\(e.nodeId)"
+        }
+
     }
 
     func topNavigationItems() -> [Any] {
