@@ -238,7 +238,9 @@ struct CombatantDetailView: View {
                 .padding(.bottom, 50)
             }
 
-            defaultActionBar.frame(maxHeight: .infinity, alignment: .bottom).padding(8)
+            defaultActionBar
+                .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
+                .ignoresSafeArea(.keyboard, edges: .all)
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .popover(self.popover)

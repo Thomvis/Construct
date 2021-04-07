@@ -64,6 +64,7 @@ struct CompendiumIndexView: View {
                     }
                 }
                 .padding([.leading, .trailing, .bottom], 8)
+                .ignoresSafeArea(.keyboard, edges: .all)
             }
         }
         .simultaneousGesture(DragGesture().onChanged { _ in

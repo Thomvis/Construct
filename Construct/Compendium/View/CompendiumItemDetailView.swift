@@ -68,15 +68,18 @@ struct CompendiumItemDetailView: View {
                 }
             }
         }
-        .overlay(ZStack {
-            if let stats = itemStatBlock {
-                CombatantRollButton(stats: stats) { check in
-                    viewStore.send(.popover(.rollCheck(check)))
+        .overlay(
+            ZStack {
+                if let stats = itemStatBlock {
+                    CombatantRollButton(stats: stats) { check in
+                        viewStore.send(.popover(.rollCheck(check)))
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                 }
-                .padding(8)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             }
-        })
+            .ignoresSafeArea(.keyboard, edges: .all)
+        )
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .popover(popoverBinding)
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)

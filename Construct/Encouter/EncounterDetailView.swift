@@ -91,6 +91,7 @@ struct EncounterDetailView: View {
                 }
             }
             .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
+            .ignoresSafeArea(.keyboard, edges: .all)
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .navigationBarItems(trailing: Button(action: {
