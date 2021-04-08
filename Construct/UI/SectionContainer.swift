@@ -30,7 +30,7 @@ func SectionContainer<Content>(backgroundColor: Color = Color(UIColor.secondaryS
 
 fileprivate func SectionContainerContent<Content>(_ backgroundColor: Color = Color(UIColor.secondarySystemBackground), @ViewBuilder _ content: () -> Content) -> some View where Content: View {
     content()
-        .padding(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
+        .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(backgroundColor.cornerRadius(8))
 }

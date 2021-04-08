@@ -77,7 +77,6 @@ class AppStoreScreenshotTests: XCTestCase {
                 assertSnapshot(
                     matching: view
                         .environment(\.applyTestWorkaroundReferenceViewTabBarVisibility, true)
-                        .environment(\.applyTestWorkaroundSidebarPresentation, true)
                         .environment(\.colorScheme, colorScheme)
                         .environmentObject(Environment(window: UIWindow())),
                     as: .image(precision: 0.99, layout: .device(config: device)),
@@ -224,34 +223,41 @@ class AppStoreScreenshotTests: XCTestCase {
         let state = AppState(
             navigation: .column(
                 ColumnNavigationViewState(
-                    sidebar: SidebarViewState(
-                        campaignNodes: [:],
-                        campaignNodeIsExpanded: [:],
+                    campaignBrowse: CampaignBrowseViewState(
+                        node: CampaignNode.root,
+                        mode: .browse,
+                        items: Async(result: .success([
+                            CampaignNode(
+                                id: UUID().tagged(),
+                                title: "",
+                                contents: CampaignNode.Contents(
+                                    key: encounterDetailViewState.encounter.key,
+                                    type: .encounter
+                                ),
+                                special: nil,
+                                parentKeyPrefix: nil
+                            )
+                        ])),
+                        showSettingsButton: true,
                         presentedScreens: [
-                            .detail: .campaignBrowse(
-                                CampaignBrowseTwoColumnContainerState(
-                                    content: .encounter(encounterDetailViewState),
-                                    referenceView: ReferenceViewState(
-                                        items: IdentifiedArray(arrayLiteral:
-                                            ReferenceViewState.Item(
-                                                id: UUID().tagged(),
-                                                title: nil,
-                                                state: ReferenceItemViewState(
-                                                    content: .combatantDetail(
-                                                        ReferenceItemViewState.Content.CombatantDetail(
-                                                            encounter: encounterDetailViewState.running!.current,
-                                                            selectedCombatantId: encounterDetailViewState.encounter.combatants.elements[1].id,
-                                                            runningEncounter: encounterDetailViewState.running
-                                                        ))
-                                                )
-                                            )
-                                        )
-                                    ),
-                                    showReferenceView: true
+                            .nextInStack: .encounter(encounterDetailViewState)
+                        ]
+                    ),
+                    referenceView: ReferenceViewState(
+                        items: IdentifiedArray(arrayLiteral:
+                            ReferenceViewState.Item(
+                                id: UUID().tagged(),
+                                title: nil,
+                                state: ReferenceItemViewState(
+                                    content: .combatantDetail(
+                                        ReferenceItemViewState.Content.CombatantDetail(
+                                            encounter: encounterDetailViewState.running!.current,
+                                            selectedCombatantId: encounterDetailViewState.encounter.combatants.elements[1].id,
+                                            runningEncounter: encounterDetailViewState.running
+                                        ))
                                 )
                             )
-                        ],
-                        sheet: nil
+                        )
                     ),
                     diceCalculator: FloatingDiceRollerViewState(
                         hidden: true,
@@ -395,61 +401,66 @@ class AppStoreScreenshotTests: XCTestCase {
         let state = AppState(
             navigation: .column(
                 ColumnNavigationViewState(
-                    sidebar: SidebarViewState(
-                        campaignNodes: [:],
-                        campaignNodeIsExpanded: [:],
+                    campaignBrowse: CampaignBrowseViewState(
+                        node: CampaignNode.root,
+                        mode: .browse,
+                        items: Async(result: .success([
+                            CampaignNode(
+                                id: UUID().tagged(),
+                                title: "",
+                                contents: CampaignNode.Contents(
+                                    key: encounter.key,
+                                    type: .encounter
+                                ),
+                                special: nil,
+                                parentKeyPrefix: nil
+                            )
+                        ])),
+                        showSettingsButton: true,
                         presentedScreens: [
-                            .detail: .campaignBrowse(
-                                CampaignBrowseTwoColumnContainerState(
-                                    content: .encounter(
-                                        EncounterDetailViewState(
-                                            building: encounter,
-                                            running: nil,
-                                            resumableRunningEncounters: .initial,
-                                            sheet: nil,
-                                            popover: nil,
-                                            editMode: false,
-                                            selection: Set(),
-                                            combatantDetailReferenceItemRequest: nil,
-                                            addCombatantReferenceItemRequest: nil
+                            .nextInStack: .encounter(EncounterDetailViewState(
+                                building: encounter,
+                                running: nil,
+                                resumableRunningEncounters: .initial,
+                                sheet: nil,
+                                popover: nil,
+                                editMode: false,
+                                selection: Set(),
+                                combatantDetailReferenceItemRequest: nil,
+                                addCombatantReferenceItemRequest: nil
+                            ))
+                        ]
+                    ),
+                    referenceView: ReferenceViewState(
+                        items: IdentifiedArray(arrayLiteral:
+                            ReferenceViewState.Item(
+                                id: UUID().tagged(),
+                                title: nil,
+                                state: ReferenceItemViewState(
+                                    content: .addCombatant(
+                                        ReferenceItemViewState.Content.AddCombatant(
+                                            addCombatantState: AddCombatantState(
+                                                compendiumState: apply(CompendiumIndexState(
+                                                    title: "Monsters",
+                                                    properties: .secondary,
+                                                    results: .initial
+                                            )) { state in
+                                                state.results.input.order = .monsterChallengeRating
+                                                let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
+                                                let filters = CompendiumIndexState.Query.Filters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4), maxMonsterChallengeRating: nil)
+                                                ViewStore(store).send(.query(.onFiltersDidChange(filters), debounce: false))
+                                                let entry = ViewStore(store).state.results.value!.first!
+                                                ViewStore(store).send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                                                state = ViewStore(store).state
+                                            },
+                                                encounter: encounter
+                                            ),
+                                            context: ReferenceContext(encounterDetailView: nil, openCompendiumEntries: [])
                                         )
-                                    ),
-                                    referenceView: ReferenceViewState(
-                                        items: IdentifiedArray(arrayLiteral:
-                                            ReferenceViewState.Item(
-                                                id: UUID().tagged(),
-                                                title: nil,
-                                                state: ReferenceItemViewState(
-                                                    content: .addCombatant(
-                                                        ReferenceItemViewState.Content.AddCombatant(
-                                                            addCombatantState: AddCombatantState(
-                                                                compendiumState: apply(CompendiumIndexState(
-                                                                    title: "Monsters",
-                                                                    properties: .secondary,
-                                                                    results: .initial
-                                                            )) { state in
-                                                                state.results.input.order = .monsterChallengeRating
-                                                                let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
-                                                                let filters = CompendiumIndexState.Query.Filters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4), maxMonsterChallengeRating: nil)
-                                                                ViewStore(store).send(.query(.onFiltersDidChange(filters), debounce: false))
-                                                                let entry = ViewStore(store).state.results.value!.first!
-                                                                ViewStore(store).send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
-                                                                state = ViewStore(store).state
-                                                            },
-                                                                encounter: encounter
-                                                            ),
-                                                            context: ReferenceContext(encounterDetailView: nil, openCompendiumEntries: [])
-                                                        )
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    ),
-                                    showReferenceView: true
+                                    )
                                 )
                             )
-                        ],
-                        sheet: nil
+                        )
                     ),
                     diceCalculator: FloatingDiceRollerViewState(
                         hidden: true,
@@ -469,61 +480,47 @@ class AppStoreScreenshotTests: XCTestCase {
         let state = AppState(
             navigation: .column(
                 ColumnNavigationViewState(
-                    sidebar: SidebarViewState(
-                        campaignNodes: [:],
-                        campaignNodeIsExpanded: [:],
-                        presentedScreens: [
-                            .detail: .campaignBrowse(
-                                CampaignBrowseTwoColumnContainerState(
-                                    content: .browse(
-                                        campaignBrowseViewState
-                                    ),
-                                    referenceView: ReferenceViewState(
-                                        items: IdentifiedArray(arrayLiteral:
-                                            ReferenceViewState.Item(
-                                                id: UUID().tagged(),
-                                                title: nil,
-                                                state: ReferenceItemViewState(
-                                                    content: .home(
-                                                        ReferenceItemViewState.Content.Home(
-                                                            presentedScreens: [
-                                                                .nextInStack: .compendium(
-                                                                    apply(CompendiumIndexState(
-                                                                            title: "Monsters",
-                                                                            properties: .secondary,
-                                                                            results: .initial
-                                                                    )) { state in
-                                                                        let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
-                                                                        ViewStore(store).send(.query(.onTextDidChange("Dragon"), debounce: false))
-                                                                        state = ViewStore(store).state
-                                                                    }
-                                                                )
-                                                            ]
-                                                        )
-                                                    )
+                    campaignBrowse: campaignBrowseViewState,
+                    referenceView: ReferenceViewState(
+                        items: IdentifiedArray(arrayLiteral:
+                            ReferenceViewState.Item(
+                                id: UUID().tagged(),
+                                title: nil,
+                                state: ReferenceItemViewState(
+                                    content: .home(
+                                        ReferenceItemViewState.Content.Home(
+                                            presentedScreens: [
+                                                .nextInStack: .compendium(
+                                                    apply(CompendiumIndexState(
+                                                            title: CompendiumItemType.monster.localizedScreenDisplayName,
+                                                            properties: .secondary,
+                                                            results: .initial
+                                                    )) { state in
+                                                        let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
+                                                        ViewStore(store).send(.query(.onTextDidChange("Dragon"), debounce: false))
+                                                        state = ViewStore(store).state
+                                                    }
                                                 )
-                                            ),
-                                            ReferenceViewState.Item(
-                                                id: UUID().tagged(),
-                                                title: "Kobold - Compendium",
-                                                state: ReferenceItemViewState(
-                                                    content: .home(ReferenceItemViewState.Content.Home())
-                                                )
-                                            ),
-                                            ReferenceViewState.Item(
-                                                id: UUID().tagged(),
-                                                title: "Light - Compendium",
-                                                state: ReferenceItemViewState(
-                                                    content: .home(ReferenceItemViewState.Content.Home())
-                                                )
-                                           )
+                                            ]
                                         )
-                                    ),
-                                    showReferenceView: true
+                                    )
                                 )
-                            )
-                        ],
-                        sheet: nil
+                            ),
+                            ReferenceViewState.Item(
+                                id: UUID().tagged(),
+                                title: "Kobold - Compendium",
+                                state: ReferenceItemViewState(
+                                    content: .home(ReferenceItemViewState.Content.Home())
+                                )
+                            ),
+                            ReferenceViewState.Item(
+                                id: UUID().tagged(),
+                                title: "Light - Compendium",
+                                state: ReferenceItemViewState(
+                                    content: .home(ReferenceItemViewState.Content.Home())
+                                )
+                           )
+                        )
                     ),
                     diceCalculator: FloatingDiceRollerViewState(hidden: true, diceCalculator: DiceCalculatorState.nullInstance)
                 )
@@ -586,27 +583,40 @@ class AppStoreScreenshotTests: XCTestCase {
         let state = AppState(
             navigation: .column(
                 ColumnNavigationViewState(
-                    sidebar: SidebarViewState(
-                        campaignNodes: [:],
-                        campaignNodeIsExpanded: [:],
-                        presentedScreens: [
-                            .detail: .compendium(apply(CompendiumIndexState(
-                                title: "Spells",
-                                properties: .secondary,
-                                results: .initial(type: .spell)
-                        )) { state in
-                            let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
+                    campaignBrowse: campaignBrowseViewState,
+                    referenceView: ReferenceViewState(
+                        items: IdentifiedArray(arrayLiteral:
+                            ReferenceViewState.Item(
+                                id: UUID().tagged(),
+                                title: nil,
+                                state: ReferenceItemViewState(
+                                    content: .home(
+                                        ReferenceItemViewState.Content.Home(
+                                            presentedScreens: [
+                                                .nextInStack: .compendium(
+                                                    apply(CompendiumIndexState(
+                                                            title: CompendiumItemType.spell.localizedScreenDisplayName,
+                                                            properties: .secondary,
+                                                            results: .initial(type: .spell)
+                                                    )) { state in
+                                                        let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
 
-                            ViewStore(store).send(.query(.onTextDidChange(""), debounce: false))
-                            state = ViewStore(store).state
+                                                        ViewStore(store).send(.query(.onTextDidChange(""), debounce: false))
+                                                        state = ViewStore(store).state
 
-                            let fireballSpell = state.results.value!.first(where: { $0.item.title == "Fireball" })!
-                            state.scrollTo = fireballSpell.key
-                            state.detailScreen = .itemDetail(CompendiumEntryDetailViewState(entry: fireballSpell))
-                        })],
-                        sheet: nil
+                                                        let fireballSpell = state.results.value!.first(where: { $0.item.title == "Fireball" })!
+                                                        state.scrollTo = fireballSpell.key
+                                                        state.nextScreen = .itemDetail(CompendiumEntryDetailViewState(entry: fireballSpell))
+                                                    }
+                                                )
+                                            ]
+                                        )
+                                    )
+                                )
+                            )
+                        )
                     ),
-                    diceCalculator: FloatingDiceRollerViewState(
+                    diceCalculator:  FloatingDiceRollerViewState(
                         hidden: false,
                         diceCalculator: DiceCalculatorState(
                             displayOutcomeExternally: false,
@@ -630,6 +640,7 @@ class AppStoreScreenshotTests: XCTestCase {
             ),
             preferences: Preferences()
         )
+
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
         return ContentView(store: store)
     }
@@ -642,21 +653,33 @@ class AppStoreScreenshotTests: XCTestCase {
         let backgroundState = AppState(
             navigation: .column(
                 ColumnNavigationViewState(
-                    sidebar: SidebarViewState(
-                        campaignNodes: [:],
-                        campaignNodeIsExpanded: [:],
-                        presentedScreens: [
-                            .detail: .compendium(apply(CompendiumIndexState(
-                                title: "Monsters",
-                                properties: .secondary,
-                                results: .initial(type: .monster)
-                        )) { state in
-                            let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
-
-                            ViewStore(store).send(.query(.onTextDidChange(""), debounce: false))
-                            state = ViewStore(store).state
-                        })],
-                        sheet: nil
+                    campaignBrowse: campaignBrowseViewState,
+                    referenceView: ReferenceViewState(
+                        items: IdentifiedArray(arrayLiteral:
+                            ReferenceViewState.Item(
+                                id: UUID().tagged(),
+                                title: nil,
+                                state: ReferenceItemViewState(
+                                    content: .home(
+                                        ReferenceItemViewState.Content.Home(
+                                            presentedScreens: [
+                                                .nextInStack: .compendium(
+                                                    apply(CompendiumIndexState(
+                                                            title: CompendiumItemType.monster.localizedScreenDisplayName,
+                                                            properties: .secondary,
+                                                            results: .initial
+                                                    )) { state in
+                                                        let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
+                                                        ViewStore(store).send(.query(.onTextDidChange("Dragon"), debounce: false))
+                                                        state = ViewStore(store).state
+                                                    }
+                                                )
+                                            ]
+                                        )
+                                    )
+                                )
+                            )
+                        )
                     ),
                     diceCalculator: FloatingDiceRollerViewState(
                         hidden: true,

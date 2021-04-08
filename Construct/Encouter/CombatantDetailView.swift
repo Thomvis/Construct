@@ -237,10 +237,6 @@ struct CombatantDetailView: View {
                 .padding(12)
                 .padding(.bottom, 50)
             }
-
-            defaultActionBar
-                .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
-                .ignoresSafeArea(.keyboard, edges: .all)
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .popover(self.popover)
@@ -257,6 +253,8 @@ struct CombatantDetailView: View {
                     if let action = DiceAction(title: a.name, parsedAction: p, env: env) {
                         self.viewStore.send(.popover(.diceAction(DiceActionViewState(action: action))))
                     }
+                case .rollCheck(let s):
+                    self.viewStore.send(.popover(.rollCheck(s)))
                 }
             })
         }
@@ -328,17 +326,5 @@ struct CombatantDetailView: View {
         }, set: { _ in
             self.viewStore.send(.popover(nil))
         })
-    }
-
-    var defaultActionBar: some View {
-        HStack {
-            Spacer()
-
-            if let stats = viewStore.state.combatant.definition.stats {
-                CombatantRollButton(stats: stats) { check in
-                    viewStore.send(.popover(.rollCheck(check)))
-                }
-            }
-        }
     }
 }

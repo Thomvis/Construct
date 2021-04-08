@@ -34,40 +34,37 @@ struct SettingsView: View {
                     Text("Help center")
                 }
 
-                Button(action: {
-                    if self.env.canSendMail {
+                if self.env.canSendMail {
+                    NavigationRowButton(action: {
                         self.env.sendMail()
-                    }
-                }) {
-                    VStack(alignment: .leading) {
-                        Text("Send feedback")
-                        if !self.env.canSendMail {
-                            Text("Your device is not configured to send mail").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+                    }) {
+                        VStack(alignment: .leading) {
+                            Text("Send feedback").foregroundColor(Color.primary)
                         }
                     }
-                }.disabled(!self.env.canSendMail)
+                }
 
-                Button(action: {
+                NavigationRowButton(action: {
                     env.rateInAppStore()
                 }) {
-                    Text("Please rate Construct")
+                    Text("Please rate Construct").foregroundColor(Color.primary)
                 }
             }
 
             #if DEBUG
             Section(header: Text("Debug options")) {
-                Button(action: {
+                NavigationRowButton(action: {
                     try? self.env.database.keyValueStore.put(Preferences())
                 }) {
-                    Text("Reset all preferences")
+                    Text("Reset all preferences").foregroundColor(Color.primary)
                 }
 
-                Button(action: {
+                NavigationRowButton(action: {
                     try? self.env.database.queue.write { db in
                         try Compendium(self.env.database).importDefaultContent(db)
                     }
                 }) {
-                    Text("Import default content")
+                    Text("Import default content").foregroundColor(Color.primary)
                 }
             }
             #endif
@@ -92,7 +89,7 @@ struct SettingsView: View {
                 Text("Version \(version)")
             }
         }
-        .listStyle(GroupedListStyle())
+        .listStyle(InsetGroupedListStyle())
         .sheet(item: sheetDest, content: sheetView)
         .navigationBarTitle("About", displayMode: .inline)
         .navigationBarItems(trailing: Button(action: {

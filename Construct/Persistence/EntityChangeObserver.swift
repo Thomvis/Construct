@@ -30,28 +30,13 @@ extension TabNavigationViewState: HavingEntities {
 
 extension ColumnNavigationViewState: HavingEntities {
     var entities: [AnyKeyValueStoreEntity] {
-        return (sidebar.nextScreen?.entities ?? []) + (sidebar.detailScreen?.entities ?? [])
-    }
-}
-
-extension SidebarViewState.NextScreen: HavingEntities {
-    var entities: [AnyKeyValueStoreEntity] {
-        switch self {
-        case .compendium: return []
-        case .campaignBrowse(let s): return s.entities
-        }
+        return (campaignBrowse.nextScreen?.entities ?? [])
     }
 }
 
 extension CampaignBrowseViewState: HavingEntities {
     var entities: [AnyKeyValueStoreEntity] {
         return (nextScreen?.entities ?? []) + (detailScreen?.entities ?? [])
-    }
-}
-
-extension CampaignBrowseTwoColumnContainerState: HavingEntities {
-    var entities: [AnyKeyValueStoreEntity] {
-        return (content.browseState?.entities ?? []) + (content.encounterState?.entities ?? [])
     }
 }
 

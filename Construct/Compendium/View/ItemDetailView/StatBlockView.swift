@@ -11,6 +11,8 @@ import SwiftUI
 
 struct StatBlockView: View {
     @EnvironmentObject var env: Environment
+    @ScaledMetric(relativeTo: .body)
+    private var rollIconSize: CGFloat = 20
 
     let stats: StatBlock
     var onTap: ((TapTarget) -> Void)? = nil
@@ -19,9 +21,28 @@ struct StatBlockView: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            Group {
-                Text(stats.name).font(.title).lineLimit(nil)
-                Text(stats.subheading).italic().lineLimit(nil)
+            HStack(alignment: .top) {
+                VStack(alignment: .leading) {
+                    Text(stats.name).font(.title).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
+                    Text(stats.subheading).italic().lineLimit(nil).fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                if onTap != nil {
+                    Menu(content: {
+                        rollButtonMenu()
+                    }) {
+                        Label(title: {
+                            Text("Roll...")
+                        }, icon: {
+                            Image("tabbar_d20")
+                                .resizable().aspectRatio(contentMode: .fit)
+                                .frame(height: rollIconSize)
+                        })
+                        .padding(8)
+                    }
+                }
             }
 
             Group {
@@ -102,21 +123,66 @@ struct StatBlockView: View {
         }
     }
 
+    @ViewBuilder
+    func rollButtonMenu() -> some View {
+        Menu(content: {
+            ForEach(Ability.allCases, id: \.self) { a in
+                if let modifier = stats.savingThrowModifier(a) {
+                    Button(action: {
+                        onTap?(.rollCheck(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))
+                    }) {
+                        Label(
+                            "\(a.localizedDisplayName) save: \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))",
+                            systemImage: stats.savingThrows[a] != nil
+                                ? "circlebadge.fill"
+                                : "circlebadge"
+                        )
+                    }
+                } else {
+                    Text(a.localizedDisplayName)
+                }
+            }
+        }) {
+            Text("Saving throw...")
+        }
+
+        Divider()
+
+        ForEach(Skill.allCases, id: \.rawValue) { s in
+            let title = "\(s.localizedDisplayName) (\(s.ability.localizedAbbreviation.uppercased()))"
+            if let modifier = stats.skillModifier(s) {
+                Button(action: {
+                    onTap?(.rollCheck(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))
+                }) {
+                    Label(title: {
+                        Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
+                    }, icon: {
+                        Image(systemName: stats.skills[s] != nil
+                                ? "circlebadge.fill"
+                                : "circlebadge"
+                        )
+                    })
+                }
+            } else {
+                Text("\(title)")
+            }
+        }
+    }
+
     func view(for feature: CreatureFeature) -> some View {
         return (Text("\(feature.name). ").bold().italic() + Text(feature.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
     }
 
+    @ViewBuilder
     func view(for action: CreatureAction) -> some View {
-        return Group {
-            if let parsedAction = self.parsedActions[action] {
-                SimpleButton(action: {
-                    self.onTap?(.action(action, parsedAction))
-                }, label: {
-                    (Text(Image(systemName: "bolt.fill")).foregroundColor(Color.accentColor) + Text(" \(action.name). ").bold().italic().foregroundColor(Color.accentColor) + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
-                })
-            } else {
-                (Text("\(action.name). ").bold().italic() + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
-            }
+        if let parsedAction = self.parsedActions[action], onTap != nil {
+            SimpleButton(action: {
+                self.onTap?(.action(action, parsedAction))
+            }, label: {
+                (Text(Image(systemName: "bolt.fill")).foregroundColor(Color.accentColor) + Text(" \(action.name). ").bold().italic().foregroundColor(Color.accentColor) + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
+            })
+        } else {
+            (Text("\(action.name). ").bold().italic() + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -131,6 +197,7 @@ struct StatBlockView: View {
     enum TapTarget {
         case ability(Ability)
         case action(CreatureAction, CreatureActionParser.Action)
+        case rollCheck(DiceCalculatorState)
     }
 }
 
@@ -158,6 +225,7 @@ private struct AbilityScoresView: View {
             }
         }
         .frame(maxWidth: .infinity)
+        .foregroundColor(onTap != nil ? Color.accentColor : Color.primary)
     }
 
     var abilityRows: [[Ability]] {

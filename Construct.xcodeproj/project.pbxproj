@@ -136,7 +136,6 @@
 		E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861423BDF398003B2DA2 /* NumberEntryView.swift */; };
 		E978861A23BE3779003B2DA2 /* With.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861923BE3779003B2DA2 /* With.swift */; };
 		E978862023C0B04D003B2DA2 /* CompendiumItemGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */; };
-		E979CBE22594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E979CBE12594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift */; };
 		E97A43AA2332C31A00A8B032 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43A92332C31A00A8B032 /* Entity.swift */; };
 		E97A43AC2334004B00A8B032 /* CompendiumImporterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */; };
 		E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AD233407D000A8B032 /* Fixtures.swift */; };
@@ -157,8 +156,6 @@
 		E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F90252203F40098A166 /* TabNavigationViewState.swift */; };
 		E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9425223E870098A166 /* ColumnNavigationView.swift */; };
 		E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */; };
-		E9869FDA2523BFCB0098A166 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869FD92523BFCB0098A166 /* SidebarView.swift */; };
-		E9869FDE2523BFF60098A166 /* SidebarViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869FDD2523BFF60098A166 /* SidebarViewState.swift */; };
 		E98BF12B257E6D4900CBC174 /* ReferenceViewPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */; };
 		E99095B3249797F400731EB9 /* AddCombatantDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */; };
 		E991F88725449C7D006CE8E8 /* TabbedDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F88625449C7D006CE8E8 /* TabbedDocumentView.swift */; };
@@ -206,7 +203,6 @@
 		E9CFB30F2350515700CA0AF4 /* CampaignBrowserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */; };
 		E9D5A6EC2314FB37004D84E2 /* DiceExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6E72314FB36004D84E2 /* DiceExpression.swift */; };
 		E9D5A6ED2314FB37004D84E2 /* Creature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6E82314FB37004D84E2 /* Creature.swift */; };
-		E9DA023B260B99C8003CC6AB /* CombatantRollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9DA023A260B99C8003CC6AB /* CombatantRollButton.swift */; };
 		E9F56AC6235483780085A72D /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC5235483780085A72D /* AppState.swift */; };
 		E9F9EB43231965EF00A70D11 /* RolledDiceExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F9EB42231965EF00A70D11 /* RolledDiceExpression.swift */; };
 		E9F9EB532319696C00A70D11 /* RolledDiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F9EB522319696C00A70D11 /* RolledDiceExpressionTest.swift */; };
@@ -327,7 +323,6 @@
 		E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroup.swift; sourceTree = "<group>"; };
 		E978862123C20B90003B2DA2 /* CompendiumItemGroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupDetailView.swift; sourceTree = "<group>"; };
 		E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupEditView.swift; sourceTree = "<group>"; };
-		E979CBE12594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseTwoColumnContainer.swift; sourceTree = "<group>"; };
 		E97A43A72332C07200A8B032 /* CompendiumImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporter.swift; sourceTree = "<group>"; };
 		E97A43A92332C31A00A8B032 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
 		E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporterTest.swift; sourceTree = "<group>"; };
@@ -348,8 +343,6 @@
 		E9869F90252203F40098A166 /* TabNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationViewState.swift; sourceTree = "<group>"; };
 		E9869F9425223E870098A166 /* ColumnNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationView.swift; sourceTree = "<group>"; };
 		E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationViewState.swift; sourceTree = "<group>"; };
-		E9869FD92523BFCB0098A166 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
-		E9869FDD2523BFF60098A166 /* SidebarViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarViewState.swift; sourceTree = "<group>"; };
 		E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceViewPreference.swift; sourceTree = "<group>"; };
 		E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantDetailView.swift; sourceTree = "<group>"; };
 		E990F4F023706AAC00276EB6 /* StateDrivenNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateDrivenNavigationView.swift; sourceTree = "<group>"; };
@@ -412,7 +405,6 @@
 		E9D5A6EA2314FB37004D84E2 /* Encounter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Encounter.swift; sourceTree = "<group>"; };
 		E9D5A6EB2314FB37004D84E2 /* Monster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Monster.swift; sourceTree = "<group>"; };
 		E9D5A6F323150151004D84E2 /* Combatant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Combatant.swift; sourceTree = "<group>"; };
-		E9DA023A260B99C8003CC6AB /* CombatantRollButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantRollButton.swift; sourceTree = "<group>"; };
 		E9DF660C2313A98E005D4FE5 /* InitiativeDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitiativeDialog.swift; sourceTree = "<group>"; };
 		E9F56AC32350FA5D0085A72D /* CampaignBrowserContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowserContainerView.swift; sourceTree = "<group>"; };
 		E9F56AC5235483780085A72D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
@@ -576,9 +568,6 @@
 				E9869F90252203F40098A166 /* TabNavigationViewState.swift */,
 				E9869F9425223E870098A166 /* ColumnNavigationView.swift */,
 				E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */,
-				E9869FD92523BFCB0098A166 /* SidebarView.swift */,
-				E9869FDD2523BFF60098A166 /* SidebarViewState.swift */,
-				E979CBE12594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift */,
 				E91CCC8A2615F29C00CB0527 /* TestWorkaroundEnvironmentKeys.swift */,
 			);
 			path = App;
@@ -932,7 +921,6 @@
 				E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */,
 				E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */,
 				E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */,
-				E9DA023A260B99C8003CC6AB /* CombatantRollButton.swift */,
 			);
 			path = Encouter;
 			sourceTree = "<group>";
@@ -1167,7 +1155,6 @@
 				E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */,
 				E963CCA72479423E009863D7 /* DiceRollerView.swift in Sources */,
 				E98BF12B257E6D4900CBC174 /* ReferenceViewPreference.swift in Sources */,
-				E9869FDA2523BFCB0098A166 /* SidebarView.swift in Sources */,
 				E9819BE02482E478005B898E /* HealthDialog.swift in Sources */,
 				E97651D6248AE3C600C76865 /* CombatantResourceTrackerView.swift in Sources */,
 				E946B027247D9F53008A407C /* Encounter.swift in Sources */,
@@ -1212,7 +1199,6 @@
 				E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */,
 				E972BAA02478574500F313D7 /* DiceCalculatorView.swift in Sources */,
 				E9540FFA23181524008A25EC /* PopoverHost.swift in Sources */,
-				E9DA023B260B99C8003CC6AB /* CombatantRollButton.swift in Sources */,
 				E90B961525B312BB00BD760B /* Memoize.swift in Sources */,
 				E946B026247D9EE3008A407C /* RunningEncounter.swift in Sources */,
 				E9D5A6ED2314FB37004D84E2 /* Creature.swift in Sources */,
@@ -1232,7 +1218,6 @@
 				E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */,
 				E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */,
 				E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */,
-				E979CBE22594BF7000A268B5 /* CampaignBrowseTwoColumnContainer.swift in Sources */,
 				E931CF8324FD0E54006CEE78 /* CreatureActionParser.swift in Sources */,
 				E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */,
 				E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */,
@@ -1250,7 +1235,6 @@
 				E931E54223394BCF00C3FE9A /* DiceExpressionParser.swift in Sources */,
 				E97651CA248AD9AA00C76865 /* SettingsView.swift in Sources */,
 				E942E011247EA78200170FAC /* CompendiumIndexView.swift in Sources */,
-				E9869FDE2523BFF60098A166 /* SidebarViewState.swift in Sources */,
 				E946B02F247E62CD008A407C /* NumberEntryPopover.swift in Sources */,
 				E9323A3B23205C4700F0D0C6 /* FileDataSource.swift in Sources */,
 				E963CCFC247BDEBF009863D7 /* CompendiumDataSourceReader.swift in Sources */,

@@ -68,18 +68,6 @@ struct CompendiumItemDetailView: View {
                 }
             }
         }
-        .overlay(
-            ZStack {
-                if let stats = itemStatBlock {
-                    CombatantRollButton(stats: stats) { check in
-                        viewStore.send(.popover(.rollCheck(check)))
-                    }
-                    .padding(8)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                }
-            }
-            .ignoresSafeArea(.keyboard, edges: .all)
-        )
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .popover(popoverBinding)
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
@@ -170,6 +158,8 @@ struct CompendiumItemDetailView: View {
                 if let action = DiceAction(title: a.name, parsedAction: p, env: env) {
                     self.viewStore.send(.popover(.creatureAction(DiceActionViewState(action: action))))
                 }
+            case .rollCheck(let s):
+                self.viewStore.send(.popover(.rollCheck(s)))
             }
         }
     }

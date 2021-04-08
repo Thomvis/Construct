@@ -9,17 +9,6 @@
 import Foundation
 import SwiftUI
 
-struct TestWorkaroundSidebarPresentation: EnvironmentKey {
-    static let defaultValue: Bool = false
-}
-
-extension EnvironmentValues {
-    var applyTestWorkaroundSidebarPresentation: Bool {
-        get { self[TestWorkaroundSidebarPresentation.self] }
-        set { self[TestWorkaroundSidebarPresentation.self] = newValue }
-    }
-}
-
 struct TestWorkaroundReferenceViewTabBarVisibility: EnvironmentKey {
     static let defaultValue: Bool = false
 }

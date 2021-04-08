@@ -34,8 +34,9 @@ struct FloatingDiceRollerContainerView: View {
             ZStack(alignment: alignment) {
                 Color.clear // to make the ZStack fill all available space
 
-                if containerProxy.size.width < containerProxy.size.height, viewStore.state.hidden {
+                if viewStore.state.hidden {
                     Button(action: {
+                        alignment = .bottomTrailing
                         viewStore.send(.show, animation: .default)
                     }) {
                         Image("tabbar_d20")
@@ -47,6 +48,7 @@ struct FloatingDiceRollerContainerView: View {
                             .padding(12)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .transition(.identity) // its (dis)appearance is overshadowed by the dice popover
                 }
 
                 panel(containerProxy)

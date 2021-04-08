@@ -307,7 +307,7 @@ extension ReferenceItemViewState.Content.Home {
                 let state = CompendiumIndexState(
                     title: "Compendium",
                     properties: CompendiumIndexState.Properties(
-                        showImport: false,
+                        showImport: true,
                         showAdd: false,
                         initiallyFocusOnSearch: true,
                         initialContent: .searchResults
@@ -318,7 +318,7 @@ extension ReferenceItemViewState.Content.Home {
             case .compendiumSectionTapped(let t):
                 let compendiumIndexState = CompendiumIndexState.init(
                     title: t.localizedScreenDisplayName,
-                    properties: .init(showImport: false, showAdd: false, initiallyFocusOnSearch: false, initialContent: .searchResults),
+                    properties: .init(showImport: [.monster, .character].contains(t), showAdd: true, initiallyFocusOnSearch: false, initialContent: .searchResults),
                     results: .initial(type: t)
                 )
                 return Effect(value: .setNextScreen(.compendium(compendiumIndexState)))
