@@ -85,12 +85,29 @@ extension MovementMode {
 
 enum DataSourceReaderParsers {
     static let movementTupleParser = any(
-        zip(
-            word().optional(),
-            int().skippingAnyBefore(),
-            string("ft.").skippingAnyBefore(),
-            string(", ").optional()
-        ).flatMap { modeString, speed, _, _ -> (MovementMode, Int)? in
+        either(
+            // walk 30 ft.
+            zip(
+                word().optional(),
+                int().log("int"),
+                string("ft.").skippingAnyBefore(),
+                either(string(", ").map { _ in () }, end())
+            ).map {
+                ($0.1, $0.0)
+            },
+            // 30 ft. walk
+            zip(
+                int(),
+                string("ft.").skippingAnyBefore(),
+                zip(
+                    char(" "),
+                    word()
+                ).optional(),
+                either(string(", ").map { _ in () }, end())
+            ).map {
+                ($0.0, $0.2?.1)
+            }
+        ).flatMap { speed, modeString -> (MovementMode, Int)? in
             if let modeString = modeString {
                 guard let mode = MovementMode(englishName: modeString) else { return nil }
                 return (mode, speed)
@@ -100,7 +117,7 @@ enum DataSourceReaderParsers {
     )
 
     static let movementDictParser = movementTupleParser.flatMap { modes in
-        Dictionary(uniqueKeysWithValues: modes)
+        Dictionary(modes) { lhs, rhs in lhs }
     }
 
     // Parses "12" and "12 (natural armor)"

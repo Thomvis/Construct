@@ -19,9 +19,12 @@ class DataSourceReaderParsersTest: XCTestCase {
         XCTAssertEqual(parser.run("30 ft."), [.walk: 30])
         XCTAssertEqual(parser.run("30  ft."), [.walk: 30])
         XCTAssertEqual(parser.run("40 ft., burrow 40 ft., fly 80 ft."), [.walk: 40, .burrow: 40, .fly: 80])
-        XCTAssertEqual(parser.run("30 ft.,burrow 40"), [.walk: 30])
+        XCTAssertEqual(parser.run("30 ft. swim"), [.swim: 30])
+        XCTAssertEqual(parser.run("30 ft. swim, 20 ft. fly"), [.swim: 30, .fly: 20])
 
         XCTAssertEqual(parser.run("30 ft"), [:])
+        XCTAssertEqual(parser.run("30 ft "), [:])
+        XCTAssertEqual(parser.run("30 ft.,burrow 40"), [:])
         XCTAssertEqual(parser.run("30,burrow 40"), [:])
     }
 
