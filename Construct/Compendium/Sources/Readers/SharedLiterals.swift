@@ -69,3 +69,131 @@ extension Alignment {
         return nil
     }
 }
+
+extension MovementMode {
+    init?(englishName s: String) {
+        switch s.lowercased() {
+        case "walk": self = .walk
+        case "fly": self = .fly
+        case "swim": self = .swim
+        case "climb": self = .climb
+        case "burrow": self = .burrow
+        default: return nil
+        }
+    }
+}
+
+enum DataSourceReaderParsers {
+    static let movementTupleParser = any(
+        zip(
+            word().optional(),
+            int().skippingAnyBefore(),
+            string("ft.").skippingAnyBefore(),
+            string(", ").optional()
+        ).flatMap { modeString, speed, _, _ -> (MovementMode, Int)? in
+            if let modeString = modeString {
+                guard let mode = MovementMode(englishName: modeString) else { return nil }
+                return (mode, speed)
+            }
+            return (.walk, speed)
+        }
+    )
+
+    static let movementDictParser = movementTupleParser.flatMap { modes in
+        Dictionary(uniqueKeysWithValues: modes)
+    }
+
+    // Parses "12" and "12 (natural armor)"
+    static let acParser = zip(
+        int(),
+        zip(
+            string("(").skippingAnyBefore(),
+            any(word()).joined(separator: " "),
+            string(")")
+        ).optional()
+    ).map {
+        ($0.0, $0.1?.1)
+    }
+
+    // Parses "225 (18d12+108)"
+    static let hpParser = zip(
+        int(),
+        zip(
+           char("(").skippingAnyBefore(),
+           DiceExpressionParser.diceExpression(),
+           char(")")
+        ).optional()
+    ).map { ($0.0, $0.1?.1) }
+
+    // Parses "Dex +1, Cha +5" and "Perception +1, Stealth +5"
+    static let modifierListParser = any(
+        zip(
+            word(),
+            either(char("-").map { _ in -1 }, char("+").map { _ in 1 }),
+            int(),
+            string(", ").optional()
+        ).map { label, sign, num, _ in
+            (label, sign * num)
+        }
+    )
+
+    // Parses "(something)"
+    static let parenthesizedStringParser: Parser<String> = char("(")
+        .followed(by: any(character { $0 != ")" }).joined())
+        .followed(by: char(")"))
+        .map { $0.0.1 }
+}
+
+extension DataSourceReaderParsers {
+    // Parses strings like:
+    // - Medium dragon, unaligned
+    // - M humanoid (gnoll), chaotic neutral
+    // - Large beast, monster manual, neutral
+    // Returns (size, creature type, subtype, alignment)
+    static let typeParser: Parser<(CreatureSize?, String, String?, Alignment?)> = any(
+        either(
+            zip(
+                either(
+                    Self.alignmentParser.log("al"),
+                    Self.sizeTypeParser.log("size")
+                ),
+                Self.endOfComponentParser.log("eoc")
+            ).map { $0.0 },
+            Self.skipComponentParser.log("skip")
+        )
+    ).map { $0.flatMap { $0} }.flatMap {
+        guard let type = $0.type else { return nil }
+        return ($0.size, type, $0.subtype, $0.alignment)
+    }
+
+    private static let sizeTypeParser: Parser<[TypeComponent]> =
+        word().flatMap { w in // type
+            CreatureSize(englishName: w).map { TypeComponent.size($0) }
+        }.optional()
+        .followed(by: word().map { // type
+            TypeComponent.type($0)
+        })
+        .followed(by: parenthesizedStringParser.map { // sub-type (optional)
+            TypeComponent.subtype($0)
+        }.optional()).map {
+            [$0.0.0, $0.0.1, $0.1].compactMap { $0 }
+        }
+
+    private static let alignmentParser = skip(until: Self.endOfComponentParser).flatMap { component in
+        Alignment(englishName: component.0).map { [TypeComponent.alignment($0)] }
+    }
+
+    private static let endOfComponentParser = char(",").followed(by: any(char(" "))).map { _ in () }.or(end())
+
+    private static let skipComponentParser: Parser<[TypeComponent]> = skip(until: Self.endOfComponentParser).flatMap {
+        guard !$0.0.isEmpty else { return nil } // we must have skipped something
+        return Array<TypeComponent>()
+    }
+}
+
+enum TypeComponent {
+    case size(CreatureSize)
+    case type(String)
+    case subtype(String)
+    case alignment(Alignment)
+}

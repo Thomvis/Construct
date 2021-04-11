@@ -62,8 +62,8 @@ extension StatBlock {
             return nil
         }
 
-        let parsedType = TypeComponent.parser.run(c.Type)
-        if parsedType == nil {
+        let parsedType = DataSourceReaderParsers.typeParser.run(c.Type)
+        if parsedType == nil || parsedType?.0 == nil || parsedType?.3 == nil {
             print("Could not parse type: \(c.Type)")
         }
 
@@ -75,10 +75,14 @@ extension StatBlock {
             alignment: parsedType?.3,
 
             armorClass: c.AC.Value,
-            armor: (parenthesizedStringParser.run(c.AC.Notes)).map { [Armor(name: $0, armorClass: c.AC.Value)] } ?? [],
-            hitPointDice: (parenthesizedStringParser.run(c.HP.Notes)).flatMap { DiceExpressionParser.parse($0) } ?? .number(0),
+            armor: (DataSourceReaderParsers.parenthesizedStringParser.run(c.AC.Notes)).map { [Armor(name: $0, armorClass: c.AC.Value)] } ?? [],
+            hitPointDice: (DataSourceReaderParsers.parenthesizedStringParser.run(c.HP.Notes)).flatMap { DiceExpressionParser.parse($0) } ?? .number(0),
             hitPoints: c.HP.Value,
-            movement: [:], // fixme
+            movement: c.Speed
+                .compactMap { s in DataSourceReaderParsers.movementTupleParser.run(s) }
+                .flatMap { $0 }
+                .nonEmptyArray
+                .map { Dictionary(uniqueKeysWithValues: $0) },
 
             abilityScores: abilities,
 
@@ -122,63 +126,6 @@ extension AbilityScores {
         self.wisdom = AbilityScore(c.Wis)
         self.charisma = AbilityScore(c.Cha)
     }
-}
-
-private let parenthesizedStringParser: Parser<String> = char("(")
-    .followed(by: any(character { $0 != ")" }).joined())
-    .followed(by: char(")"))
-    .map { $0.0.1 }
-
-enum TypeComponent {
-    case size(CreatureSize)
-    case type(String)
-    case subtype(String)
-    case alignment(Alignment)
-
-    // Parses strings like:
-    // - Medium dragon, unaligned
-    // - M humanoid (gnoll), chaotic neutral
-    // - Large beast, monster manual, neutral
-    static let parser: Parser<(CreatureSize, String, String?, Alignment)> = any(
-        either(
-            zip(
-                either(
-                    Self.sizeTypeParser.log("size"),
-                    Self.alignmentParser.log("al")
-                ),
-                Self.endOfComponentParser.log("eoc")
-            ).map { $0.0 },
-            Self.skipComponentParser.log("skip")
-        )
-    ).map { $0.flatMap { $0} }.flatMap {
-        guard let size = $0.size, let type = $0.type, let alignment = $0.alignment else { return nil }
-        return (size, type, $0.subtype, alignment)
-    }
-
-    static let sizeTypeParser: Parser<[TypeComponent]> =
-        word().flatMap { w in // type
-            CreatureSize(englishName: w).map { TypeComponent.size($0) }
-        }
-        .followed(by: word().map { // type
-            TypeComponent.type($0)
-        })
-        .followed(by: parenthesizedStringParser.map { // sub-type (optional)
-            TypeComponent.subtype($0)
-        }.optional()).map {
-            [$0.0.0, $0.0.1, $0.1].compactMap { $0 }
-        }
-
-    static let alignmentParser = skip(until: Self.endOfComponentParser).flatMap { component in
-        Alignment(englishName: component.0).map { [TypeComponent.alignment($0)] }
-    }
-
-    static let endOfComponentParser = char(",").followed(by: any(char(" "))).map { _ in () }.or(end())
-
-    static let skipComponentParser: Parser<[TypeComponent]> = skip(until: Self.endOfComponentParser).flatMap {
-        guard !$0.0.isEmpty else { return nil } // we must have skipped something
-        return Array<TypeComponent>()
-    }
-
 }
 
 extension Array where Element == TypeComponent {

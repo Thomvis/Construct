@@ -264,9 +264,9 @@ extension Parser {
 }
 
 extension Parser where A: Sequence, A.Element: CustomStringConvertible {
-    func joined() -> Parser<String> {
+    func joined(separator: String = "") -> Parser<String> {
         return map { res in
-            return res.map { e in String(describing: e) }.joined()
+            return res.map { e in String(describing: e) }.joined(separator: separator)
         }
     }
 }

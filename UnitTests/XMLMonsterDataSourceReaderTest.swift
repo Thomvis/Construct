@@ -1,25 +1,26 @@
 //
-//  ImprovedInitiativeDataSourceReaderTest.swift
+//  XMLMonsterDataSourceReaderTest.swift
 //  UnitTests
 //
-//  Created by Thomas Visser on 20/10/2019.
-//  Copyright © 2019 Thomas Visser. All rights reserved.
+//  Created by Thomas Visser on 09/04/2021.
+//  Copyright © 2021 Thomas Visser. All rights reserved.
 //
+
 import Foundation
 import XCTest
 @testable import Construct
 import Combine
 
-class ImprovedInitiativeDataSourceReaderTest: XCTestCase {
+class XMLMonsterDataSourceReaderTest: XCTestCase {
 
     var dataSource: CompendiumDataSource!
 
     override func setUp() {
-        dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ii_mm", ofType: "json")!)
+        dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "compendium", ofType: "xml")!)
     }
 
     func test() {
-        let sut = ImprovedInitiativeDataSourceReader(dataSource: dataSource)
+        let sut = XMLMonsterDataSourceReader(dataSource: dataSource)
         let job = sut.read()
 
         let e = expectation(description: "Receive items")

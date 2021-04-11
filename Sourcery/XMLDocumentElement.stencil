@@ -1,0 +1,77 @@
+{% for type in types.implementing.XMLDocumentElement %}
+{{ type.accessLevel }} extension {{ type.name }} {
+    init?(startElement: String) {
+        switch startElement {
+        {% for c in type.cases %}
+        {% if c.hasAssociatedValue %}
+        case "{{ c.name }}": self = .{{ c.name }}(nil)
+        {% else %}
+        case "{{ c.name }}": self = .{{ c.name }}
+        {% endif %}
+        {% endfor %}
+        default: return nil
+        }
+    }
+
+    func didStartElement(_ element: String) -> Self? {
+        switch self {
+        {% for c in type.cases %}
+        {% if c.hasAssociatedValue %}
+        case .{{ c.name }}(let child?):
+            return child.didStartElement(element).map { .{{ c.name }}($0) }
+        case .{{ c.name }}(nil):
+            if let child = {{ c.associatedValues[0].type.name }}(startElement: element) {
+                return .{{ c.name }}(child)
+            }
+            return nil
+        {% endif %}
+        {% endfor %}
+        {% for c in type.cases where not c.hasAssociatedValue %}
+        {% if forloop.first %}
+        default: return nil
+        {% endif %}
+        {% endfor %}
+        }
+    }
+
+    func didEndElement(_ element: String) -> (Bool, Self?) {
+        switch self {
+        {% for c in type.cases %}
+        {% if c.hasAssociatedValue %}
+        case .{{ c.name }}(let child?):
+            let (success, child) = child.didEndElement(element)
+            if success {
+                return (true, .{{ c.name }}(child))
+            }
+        {% endif %}
+        {% endfor %}
+        default:
+            if self == Self(startElement: element) {
+                return (true, nil)
+            }
+        }
+        return (false, nil)
+    }
+
+    var elementName: String {
+        switch self {
+        {% for c in type.cases %}
+        case .{{ c.name }}: return "{{ c.name }}"
+        {% endfor %}
+        }
+    }
+
+    var inner: XMLDocumentElement? {
+        switch self {
+        {% for c in type.cases %}
+        {% if c.hasAssociatedValue %}
+        case .{{ c.name }}(let child): return child
+        {% else %}
+        case .{{ c.name }}: return nil
+        {% endif %}
+        {% endfor %}
+        }
+    }
+
+}
+{% endfor %}

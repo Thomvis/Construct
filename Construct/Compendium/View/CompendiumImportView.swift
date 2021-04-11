@@ -15,7 +15,7 @@ struct CompendiumImportView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @EnvironmentObject var env: Environment
 
-    @State var selectedReader: Reader? = Self.readers.single
+    @State var selectedReader: Reader? = Self.readers.first
     @State var source: Source = .file
 
     @State var urlSource: String = ""
@@ -150,6 +150,12 @@ struct CompendiumImportView: View {
     }
 
     static var readers: [Reader] = [
+        Reader(
+            name: "Compendium XML",
+            description: "Only creature entries are supported",
+            create: XMLMonsterDataSourceReader.init,
+            prepareUrl: nil
+        ),
         Reader(
             name: "Improved Initiative JSON",
             description: "Only creature entries are supported",

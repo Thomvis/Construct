@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compendium version="5">
+    <monster>
+        <name>Adult White Dragon</name>
+        <size>H</size>
+        <type>dragon, monster manual</type>
+        <alignment>chaotic evil</alignment>
+        <ac>18 (natural armor)</ac>
+        <hp>200 (16d12+96)</hp>
+        <speed>40 ft., burrow 30 ft., fly 80 ft., swim 40 ft.</speed>
+        <str>22</str>
+        <dex>10</dex>
+        <con>22</con>
+        <int>8</int>
+        <wis>12</wis>
+        <cha>12</cha>
+        <save>Dex +5, Con +11, Wis +6, Cha +6</save>
+        <skill>Perception +11, Stealth +5</skill>
+        <immune>cold</immune>
+        <senses>blindsight 60 ft., darkvision 120 ft.</senses>
+        <passive>21</passive>
+        <languages>Common, Draconic</languages>
+        <cr>13</cr>
+        <trait>
+            <name>Ice Walk</name>
+            <text>The dragon can move across and climb icy surfaces without needing to make an ability check. Additionally, difficult terrain composed of ice or snow doesn't cost it extra moment.</text>
+        </trait>
+        <trait>
+            <name>Legendary Resistance (3/Day)</name>
+            <text>If the dragon fails a saving throw, it can choose to succeed instead.</text>
+        </trait>
+        <action>
+            <name>Multiattack</name>
+            <text>The dragon can use its Frightful Presence. It then makes three attacks: one with its bite and two with its claws.</text>
+        </action>
+        <action>
+            <name>Bite</name>
+            <text>Melee Weapon Attack: +11 to hit, reach 10 ft., one target. Hit: 17 (2d10 + 6) piercing damage plus 4 (1d8) cold damage.</text>
+            <attack>Bite|11|2d10+6+1d8</attack>
+        </action>
+        <action>
+            <name>Claw</name>
+            <text>Melee Weapon Attack: +11 to hit, reach 5 ft., one target. Hit: 13 (2d6 + 6) slashing damage.</text>
+            <attack>Claw|11|2d6+6</attack>
+        </action>
+        <action>
+            <name>Tail</name>
+            <text>Melee Weapon Attack: +11 to hit, reach 15 ft., one target. Hit: 15 (2d8 + 6) bludgeoning damage.</text>
+            <attack>Tail|11|2d8+6</attack>
+        </action>
+        <action>
+            <name>Frightful Presence</name>
+            <text>Each creature of the dragon's choice that is within 120 ft. of the dragon and aware of it must succeed on a DC 14 Wisdom saving throw or become frightened for 1 minute. A creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. If a creature's saving throw is successful or the effect ends for it, the creature is immune to the dragon's Frightful Presence for the next 24 hours.</text>
+        </action>
+        <action>
+            <name>Cold Breath (Recharge 5-6)</name>
+            <text>The dragon exhales an icy blast in a 60-foot cone. Each creature in that area must make a DC 19 Constitution saving throw, taking 54 (12d8) cold damage on a failed save, or half as much damage on a successful one.</text>
+            <attack>Cold Breath||12d8</attack>
+        </action>
+        <legendary>
+            <name>Detect</name>
+            <text>The dragon makes a Wisdom (Perception) check.</text>
+        </legendary>
+        <legendary>
+            <name>Tail Attack</name>
+            <text>The dragon makes a tail attack.</text>
+        </legendary>
+        <legendary>
+            <name>Wing Attack (Costs 2 Actions)</name>
+            <text>The dragon beats its wings. Each creature within 10 ft. of the dragon must succeed on a DC 19 Dexterity saving throw or take 13 (2d6 + 6) bludgeoning damage and be knocked prone. The dragon can then fly up to half its flying speed.</text>
+        </legendary>
+    </monster>
+    <!-- Item should be ignored-->
+    <item>
+        <name>Arrow</name>
+        <detail>Ammunition</detail>
+        <type>A</type>
+        <weight>0.05</weight>
+        <value>0.05</value>
+        <property></property>
+        <text>Source: Player's Handbook p. 150</text>
+        </item>
+      <item>
+</compendium>
