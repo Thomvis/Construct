@@ -82,7 +82,7 @@ extension StatBlock {
                 .compactMap { s in DataSourceReaderParsers.movementTupleParser.run(s) }
                 .flatMap { $0 }
                 .nonEmptyArray
-                .map { Dictionary(uniqueKeysWithValues: $0) },
+                .map { Dictionary($0) { lhs, rhs in lhs } },
 
             abilityScores: abilities,
 
