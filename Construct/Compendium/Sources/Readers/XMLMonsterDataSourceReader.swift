@@ -164,8 +164,14 @@ final class XMLCompendiumParser: NSObject {
             }
 
             mutating func append(_ content: ElementContent) {
-                if case .compound(let elements) = self {
-                    self = .compound(elements + [content])
+                if case .string(let lhs) = self, case .string(let rhs) = content {
+                    self = .string(lhs + rhs)
+                } else if case .compound(let elements) = self {
+                    if case .string(let lhs) = elements.last, case .string(let rhs) = content {
+                        self = .compound(elements.dropLast() + [.string(lhs + rhs)])
+                    } else {
+                        self = .compound(elements + [content])
+                    }
                 } else {
                     self = .compound([self, content])
                 }
