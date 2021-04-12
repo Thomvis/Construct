@@ -193,7 +193,6 @@
 		E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBFE235E2F29000CCC8B /* DocumentPicker.swift */; };
 		E99F95A42428DCB100183B5B /* RunningEncounterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99F95A32428DCB000183B5B /* RunningEncounterTest.swift */; };
 		E9A71EBC239ADB400098317E /* Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A71EBB239ADB400098317E /* Style.swift */; };
-		E9A8A65726124FB80079D0CE /* InterposeKit in Frameworks */ = {isa = PBXBuildFile; productRef = E9A8A65626124FB80079D0CE /* InterposeKit */; };
 		E9A95177233B8A3A00141552 /* DDBModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95176233B8A3A00141552 /* DDBModels.swift */; };
 		E9A95179233B8BC300141552 /* DDBCharacterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95178233B8BC300141552 /* DDBCharacterDataSourceReaderTest.swift */; };
 		E9A9517C233B8C4B00141552 /* ddb_sarovin.json in Resources */ = {isa = PBXBuildFile; fileRef = E9A9517B233B8C4B00141552 /* ddb_sarovin.json */; };
@@ -431,7 +430,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E9A8A65726124FB80079D0CE /* InterposeKit in Frameworks */,
 				E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */,
 				E91CCC832614C4D200CB0527 /* Tagged in Frameworks */,
 				E991F89D2545A791006CE8E8 /* Introspect in Frameworks */,
@@ -995,7 +993,6 @@
 				E9869F752520A17A0098A166 /* AppCenterCrashes */,
 				E9869F7C2520A64B0098A166 /* GRDB */,
 				E991F89C2545A791006CE8E8 /* Introspect */,
-				E9A8A65626124FB80079D0CE /* InterposeKit */,
 				E91CCC822614C4D200CB0527 /* Tagged */,
 			);
 			productName = SwiftUITest;
@@ -1058,7 +1055,6 @@
 				E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
 				E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 				E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
-				E9A8A65526124FB80079D0CE /* XCRemoteSwiftPackageReference "InterposeKit" */,
 				E91CCC812614C4D200CB0527 /* XCRemoteSwiftPackageReference "swift-tagged" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
@@ -1637,14 +1633,6 @@
 				minimumVersion = 0.1.1;
 			};
 		};
-		E9A8A65526124FB80079D0CE /* XCRemoteSwiftPackageReference "InterposeKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Thomvis/InterposeKit.git";
-			requirement = {
-				branch = "IKTAddSuperImplementationToClass-used";
-				kind = branch;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1687,11 +1675,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */;
 			productName = Introspect;
-		};
-		E9A8A65626124FB80079D0CE /* InterposeKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E9A8A65526124FB80079D0CE /* XCRemoteSwiftPackageReference "InterposeKit" */;
-			productName = InterposeKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

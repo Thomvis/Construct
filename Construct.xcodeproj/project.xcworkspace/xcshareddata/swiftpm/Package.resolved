@@ -38,15 +38,6 @@
         }
       },
       {
-        "package": "InterposeKit",
-        "repositoryURL": "https://github.com/Thomvis/InterposeKit.git",
-        "state": {
-          "branch": "IKTAddSuperImplementationToClass-used",
-          "revision": "b60136e3d13d7d4088a2041cf94d72a6e20e1041",
-          "version": null
-        }
-      },
-      {
         "package": "Parma",
         "repositoryURL": "https://github.com/dasautoooo/Parma",
         "state": {
