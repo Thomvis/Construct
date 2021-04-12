@@ -13,7 +13,9 @@ import XCTest
 class DatabaseTest: XCTestCase {
 
     func testInitialization() {
-        let _ = try! Database(path: nil)
+        measure {
+            let _ = try! Database(path: nil)
+        }
     }
 
 }

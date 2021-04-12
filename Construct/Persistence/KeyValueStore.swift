@@ -34,12 +34,32 @@ final class KeyValueStore {
             }
         }
 
+        let previousLastInsertedRowId = db.lastInsertedRowID
+
         let encodedValue = try encoder.encode(value)
         let record = Record(key: key, modifiedAt: Date(), value: encodedValue)
         try record.save(db)
 
         if let fts = fts {
-            let ftsRecord = FTSRecord(id: db.lastInsertedRowID, title: fts.title, subtitle: fts.subtitle, body: fts.body)
+            var rowId: Int64?
+            let lastInsertedRowID = db.lastInsertedRowID
+
+            // determine rowId of inserted/updated Record
+            if previousLastInsertedRowId != lastInsertedRowID {
+                rowId = lastInsertedRowID
+            } else if let row = try Row.fetchOne(
+                db,
+                sql: "SELECT \(Column.rowID.name) FROM \(Record.databaseTableName) WHERE \(Record.Columns.key) = ?",
+                arguments: [record.key]
+            ) {
+                rowId = row[Column.rowID]
+            }
+
+            guard let id = rowId else {
+                throw KeyValueStoreError.ftsUpdateFailedWithUnavailableRowId
+            }
+
+            let ftsRecord = FTSRecord(id: id, title: fts.title, subtitle: fts.subtitle, body: fts.body)
             try ftsRecord.save(db)
         }
     }
@@ -139,6 +159,7 @@ final class KeyValueStore {
 
     struct Record: FetchableRecord, PersistableRecord, Codable, Hashable {
         static var databaseTableName = "key_value"
+        enum Columns: String, ColumnExpression { case key, modified_at, value }
 
         let key: String
         let modifiedAt: Date
@@ -159,6 +180,10 @@ final class KeyValueStore {
     }
 }
 
+enum KeyValueStoreError: Swift.Error {
+    case ftsUpdateFailedWithUnavailableRowId
+}
+
 struct FTSDocument {
     var title: String
     var subtitle: String?
@@ -167,20 +192,20 @@ struct FTSDocument {
 
 extension KeyValueStore.Record {
     init(row: Row) {
-        key = row["key"]
-        if row.hasColumn("modified_at") {
-            modifiedAt = Date(timeIntervalSince1970: row["modified_at"])
+        key = row[Columns.key]
+        if row.hasColumn(Columns.modified_at.name) {
+            modifiedAt = Date(timeIntervalSince1970: row[Columns.modified_at])
         } else {
             modifiedAt = Date(timeIntervalSince1970: 0)
         }
 
-        value = row["value"]
+        value = row[Columns.value]
     }
 
     func encode(to container: inout PersistenceContainer) {
-        container["key"] = key
-        container["modified_at"] = modifiedAt.timeIntervalSince1970
-        container["value"] = value
+        container[Columns.key] = key
+        container[Columns.modified_at] = modifiedAt.timeIntervalSince1970
+        container[Columns.value] = value
     }
 }
 

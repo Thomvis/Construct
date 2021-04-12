@@ -46,4 +46,12 @@ class KeyValueStoreTest: XCTestCase {
         XCTAssertEqual(try! sut.match("Omega"), [11])
     }
 
+    func testUpdateOfNonLastRowFTS() {
+        try! sut.put(1, at: "1", fts: FTSDocument(title: "Alpha", subtitle: nil, body: nil))
+        try! sut.put(2, at: "2", fts: FTSDocument(title: "Beta", subtitle: nil, body: nil))
+        try! sut.put(10, at: "1", fts: FTSDocument(title: "Gamma", subtitle: nil, body: nil))
+
+        XCTAssertEqual(try! sut.match("Gamma"), [10])
+    }
+
 }

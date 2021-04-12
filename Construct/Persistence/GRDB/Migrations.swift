@@ -21,18 +21,18 @@ extension Database {
 
         migrator.registerMigration(Self.v1) { db in
             try db.create(table: "key_value") { t in
-                t.column("key", .text).primaryKey()
-                t.column("modified_at", .integer)
-                t.column("value", .blob)
+                t.column(KeyValueStore.Record.Columns.key.name, .text).primaryKey()
+                t.column(KeyValueStore.Record.Columns.modified_at.name, .integer)
+                t.column(KeyValueStore.Record.Columns.value.name, .blob)
             }
 
             try db.create(virtualTable: "key_value_fts", using: FTS5()) { t in
                 t.content = nil
                 t.tokenizer = .unicode61()
 
-                t.column("title")
-                t.column("subtitle")
-                t.column("body")
+                t.column(KeyValueStore.FTSRecord.Columns.title.name)
+                t.column(KeyValueStore.FTSRecord.Columns.subtitle.name)
+                t.column(KeyValueStore.FTSRecord.Columns.body.name)
                 t.column(KeyValueStore.FTSRecord.Columns.title_suffixes.name)
             }
 
