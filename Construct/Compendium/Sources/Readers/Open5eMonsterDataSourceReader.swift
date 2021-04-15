@@ -120,7 +120,18 @@ private extension StatBlock {
             } ?? [],
             actions: m.actions?.map { a in
                 CreatureAction(name: a.name, description: a.desc)
-            } ?? []
+            } ?? [],
+            reactions: m.reactions?.map { r in
+                CreatureAction(name: r.name, description: r.desc)
+            } ?? [],
+            legendary: m.legendaryActions.map { actions in
+                Legendary(
+                    description: m.legendaryDesc,
+                    actions: actions.map { a in
+                        CreatureAction(name: a.name, description: a.desc)
+                    }
+                )
+            }
         )
     }
 }

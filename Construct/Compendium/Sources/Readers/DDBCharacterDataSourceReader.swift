@@ -92,7 +92,9 @@ private extension StatBlock {
 
             // FIXME
             features: [],
-            actions: []
+            actions: [],
+            reactions: [],
+            legendary: nil
         )
     }
 }

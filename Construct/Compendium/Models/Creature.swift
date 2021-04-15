@@ -58,8 +58,10 @@ struct StatBlock: Codable, Hashable {
 
     var features: [CreatureFeature] // features & traits
     var actions: [CreatureAction]
+    @DecodableDefault.EmptyList var reactions: [CreatureAction]
+    var legendary: Legendary?
 
-    internal init(name: String, size: CreatureSize? = nil, type: String? = nil, subtype: String? = nil, alignment: Alignment? = nil, armorClass: Int? = nil, armor: [Armor], hitPointDice: DiceExpression? = nil, hitPoints: Int? = nil, movement: [MovementMode : Int]? = nil, abilityScores: AbilityScores? = nil, savingThrows: [Ability : Modifier], skills: [Skill : Modifier], initiative: Initiative? = nil, damageVulnerabilities: String? = nil, damageResistances: String? = nil, damageImmunities: String? = nil, conditionImmunities: String? = nil, senses: String? = nil, languages: String? = nil, challengeRating: Fraction? = nil, features: [CreatureFeature], actions: [CreatureAction]) {
+    internal init(name: String, size: CreatureSize? = nil, type: String? = nil, subtype: String? = nil, alignment: Alignment? = nil, armorClass: Int? = nil, armor: [Armor], hitPointDice: DiceExpression? = nil, hitPoints: Int? = nil, movement: [MovementMode : Int]? = nil, abilityScores: AbilityScores? = nil, savingThrows: [Ability : Modifier], skills: [Skill : Modifier], initiative: Initiative? = nil, damageVulnerabilities: String? = nil, damageResistances: String? = nil, damageImmunities: String? = nil, conditionImmunities: String? = nil, senses: String? = nil, languages: String? = nil, challengeRating: Fraction? = nil, features: [CreatureFeature], actions: [CreatureAction], reactions: [CreatureAction], legendary: Legendary? = nil) {
         self.name = name
         self.size = size
         self.type = type
@@ -83,6 +85,8 @@ struct StatBlock: Codable, Hashable {
         self.challengeRating = challengeRating
         self.features = features
         self.actions = actions
+        self.reactions = reactions
+        self.legendary = legendary
     }
 
     func savingThrowModifier(_ ability: Ability) -> Modifier? {
@@ -91,6 +95,11 @@ struct StatBlock: Codable, Hashable {
 
     func skillModifier(_ skill: Skill) -> Modifier? {
         skills[skill] ?? abilityScores?.score(for: skill.ability).modifier
+    }
+
+    struct Legendary: Codable, Hashable {
+        var description: String?
+        var actions: [CreatureAction]
     }
 }
 

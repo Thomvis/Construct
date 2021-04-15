@@ -254,7 +254,7 @@ final class XMLCompendiumParser: NSObject {
                 case cr
                 case trait(TraitElement?)
                 case action(TraitElement?)
-                case lengendary(TraitElement?)
+                case legendary(TraitElement?)
                 case reaction(TraitElement?)
                 case spells
                 case slots
@@ -357,6 +357,27 @@ extension StatBlock {
         let parsedHP = DataSourceReaderParsers.hpParser.run(hp)
         let parsedMovement = DataSourceReaderParsers.movementDictParser.run(speed)
 
+        func parseModifierList<S>(_ element: M, key: (String) -> S?) -> [S: Modifier] {
+            (c[first: element]?.stringValue)
+                .flatMap {
+                    DataSourceReaderParsers.modifierListParser.run($0)
+                }.flatMap {
+                    Dictionary(
+                        uniqueKeysWithValues: $0.compactMap { t in
+                            key(t.0).map { ($0, Modifier(modifier: t.1)) }
+                        }
+                    )
+                } ?? [:]
+        }
+
+        func parseTraits<T>(content: XMLCompendiumParser.State.ElementContent = c, _ element: M, _ toModel: (String, String) -> T) -> [T] {
+            content[any: element].compactMap { content in
+                guard let name = content[first: M.TraitElement.name]?.stringValue,
+                      let description = content[any: M.TraitElement.text].compactMap({ $0.stringValue }).nonEmptyArray?.joined(separator: "\n") else { return nil }
+                return toModel(name, description)
+            }
+        }
+
         self.init(
             name: name,
             size: (c[first: M.size]?.stringValue).flatMap { CreatureSize(englishName: $0) },
@@ -372,26 +393,8 @@ extension StatBlock {
 
             abilityScores: abilities,
 
-            savingThrows: (c[first: M.save]?.stringValue)
-                .flatMap {
-                    DataSourceReaderParsers.modifierListParser.run($0)
-                }.flatMap {
-                    Dictionary(
-                        uniqueKeysWithValues: $0.compactMap { t in
-                            Ability(abbreviation: t.0).map { ($0, Modifier(modifier: t.1)) }
-                        }
-                    )
-                } ?? [:],
-            skills: (c[first: M.skill]?.stringValue)
-                .flatMap {
-                    DataSourceReaderParsers.modifierListParser.run($0)
-                }.flatMap {
-                    Dictionary(
-                        uniqueKeysWithValues: $0.compactMap { t in
-                            Skill(rawValue: t.0.lowercased()).map { ($0, Modifier(modifier: t.1)) }
-                        }
-                    )
-                } ?? [:],
+            savingThrows: parseModifierList(M.save, key: Ability.init(abbreviation:)),
+            skills: parseModifierList(M.skill, key: { Skill(rawValue: $0.lowercased()) }),
             initiative: nil,
 
             damageVulnerabilities: c[first: M.vulnerable]?.stringValue,
@@ -404,20 +407,23 @@ extension StatBlock {
 
             challengeRating: cr,
 
-            features: c[any: M.trait(nil)].compactMap { content in
-                guard let name = content[first: M.TraitElement.name]?.stringValue,
-                      let description = content[any: M.TraitElement.text].compactMap({ $0.stringValue }).nonEmptyArray?.joined(separator: "\n") else { return nil }
-                return CreatureFeature(
-                    name: name,
-                    description: description
-                )
-            },
-            actions: c[any: M.action(nil)].compactMap { content in
-                guard let name = content[first: M.TraitElement.name]?.stringValue,
-                      let description = content[any: M.TraitElement.text].compactMap({ $0.stringValue }).nonEmptyArray?.joined(separator: "\n") else { return nil }
-                return CreatureAction(
-                    name: name,
-                    description: description
+            features: parseTraits(M.trait(nil), CreatureFeature.init),
+            actions: parseTraits(M.action(nil), CreatureAction.init),
+            reactions: parseTraits(M.reaction(nil), CreatureAction.init),
+            legendary: with(c[any: M.legendary(nil)]) { legendaryElements in
+                let description: String?
+                if let first = legendaryElements.first,
+                   first[first: M.TraitElement.name] == nil,
+                   let text = first[any: M.TraitElement.text].compactMap({ $0.stringValue }).nonEmptyArray?.joined(separator: "\n")
+                {
+                    description = text
+                } else {
+                    description = nil
+                }
+
+                return Legendary(
+                    description: description,
+                    actions: parseTraits(M.legendary(nil), CreatureAction.init) // this will skip the description element because it doesn't have a name
                 )
             }
         )

@@ -126,7 +126,7 @@ internal extension XMLCompendiumParser.DocumentElement.CompendiumElement.Monster
         case "cr": self = .cr
         case "trait": self = .trait(nil)
         case "action": self = .action(nil)
-        case "lengendary": self = .lengendary(nil)
+        case "legendary": self = .legendary(nil)
         case "reaction": self = .reaction(nil)
         case "spells": self = .spells
         case "slots": self = .slots
@@ -152,11 +152,11 @@ internal extension XMLCompendiumParser.DocumentElement.CompendiumElement.Monster
                 return .action(child)
             }
             return nil
-        case .lengendary(let child?):
-            return child.didStartElement(element).map { .lengendary($0) }
-        case .lengendary(nil):
+        case .legendary(let child?):
+            return child.didStartElement(element).map { .legendary($0) }
+        case .legendary(nil):
             if let child = XMLCompendiumParser.DocumentElement.CompendiumElement.MonsterElement.TraitElement(startElement: element) {
-                return .lengendary(child)
+                return .legendary(child)
             }
             return nil
         case .reaction(let child?):
@@ -182,10 +182,10 @@ internal extension XMLCompendiumParser.DocumentElement.CompendiumElement.Monster
             if success {
                 return (true, .action(child))
             }
-        case .lengendary(let child?):
+        case .legendary(let child?):
             let (success, child) = child.didEndElement(element)
             if success {
-                return (true, .lengendary(child))
+                return (true, .legendary(child))
             }
         case .reaction(let child?):
             let (success, child) = child.didEndElement(element)
@@ -227,7 +227,7 @@ internal extension XMLCompendiumParser.DocumentElement.CompendiumElement.Monster
         case .cr: return "cr"
         case .trait: return "trait"
         case .action: return "action"
-        case .lengendary: return "lengendary"
+        case .legendary: return "legendary"
         case .reaction: return "reaction"
         case .spells: return "spells"
         case .slots: return "slots"
@@ -263,7 +263,7 @@ internal extension XMLCompendiumParser.DocumentElement.CompendiumElement.Monster
         case .cr: return nil
         case .trait(let child): return child
         case .action(let child): return child
-        case .lengendary(let child): return child
+        case .legendary(let child): return child
         case .reaction(let child): return child
         case .spells: return nil
         case .slots: return nil

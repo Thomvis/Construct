@@ -50,6 +50,9 @@ class ImprovedInitiativeDataSourceReaderTest: XCTestCase {
             XCTAssertEqual(last.stats.features.count, 2)
             XCTAssertEqual(last.stats.actions.count, 6)
 
+            XCTAssertEqual(last.stats.legendary?.description, nil)
+            XCTAssertEqual(last.stats.legendary?.actions.count, 3)
+
             e.fulfill()
         }
 

@@ -112,6 +112,21 @@ extension StatBlock {
             },
             actions: c.Actions.map { a in
                 CreatureAction(name: a.Name, description: a.Content)
+            },
+            reactions: c.Reactions.map { r in
+                CreatureAction(name: r.Name, description: r.Content)
+            },
+            legendary: with(c.LegendaryActions) { actions in
+                let isDescriptionAction: (ImprovedInitiative.Creature.TraitOrAction) -> Bool = { $0.Name == "" || $0.Name == "Legendary Actions" }
+
+                let description = actions.filter(isDescriptionAction).first?.Content
+
+                return Legendary(
+                    description: description,
+                    actions: actions.filter { !isDescriptionAction($0) }.map { a in
+                        CreatureAction(name: a.Name, description: a.Content)
+                    }
+                )
             }
         )
     }

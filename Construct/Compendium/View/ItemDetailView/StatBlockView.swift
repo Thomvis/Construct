@@ -113,6 +113,36 @@ struct StatBlockView: View {
                     }
                 }
             }
+
+            if !stats.reactions.isEmpty {
+                Divider()
+
+                Text("Reactions").font(.title)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(stats.reactions, id: \.name) { reaction in
+                        self.view(for: reaction)
+                    }
+                }
+            }
+
+            if let legendary = stats.legendary {
+                Divider()
+
+                Text("Legendary Actions").font(.title)
+
+                VStack(alignment: .leading, spacing: 12) {
+
+                    if let description = legendary.description {
+                        Text(description).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    ForEach(legendary.actions, id: \.name) { action in
+                        self.view(for: action)
+                    }
+                }
+            }
+
         }.onAppear {
             // parse actions
             stats.actions.compactMap { action in

@@ -73,12 +73,12 @@ class CreatureActionParserTest: XCTestCase {
                 }
                 return false
             }
-            let unparsed = attacks.filter {
-                if case .weaponAttack(let a)? = $0.1 {
-                    return a.effects.count == 0
-                }
-                return true
-            }
+//            let unparsed = attacks.filter {
+//                if case .weaponAttack(let a)? = $0.1 {
+//                    return a.effects.count == 0
+//                }
+//                return true
+//            }
             print("total: \(attacks.count), parsed: \(parsed.count)")
 
             assertSnapshot(matching: actions, as: .dump)

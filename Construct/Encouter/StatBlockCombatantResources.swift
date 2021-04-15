@@ -43,13 +43,15 @@ extension StatBlock {
             }
         }
 
-        let nPerDay = try? NSRegularExpression(pattern: "(\\d+)\\/Day", options: [])
+        // Rechargable actions
         for action in actions {
             if action.name.localizedCaseInsensitiveContains("recharg") {
                 result.append(CombatantResource(id: UUID().tagged(), title: action.name, slots: [false]))
             }
         }
 
+        // X per day use features
+        let nPerDay = try? NSRegularExpression(pattern: "(\\d+)\\/Day", options: [])
         for f in features {
             let range = NSRange(f.name.startIndex..<f.name.endIndex, in: f.name)
             if let match = nPerDay?.firstMatch(in: f.name, options: [], range: range) {

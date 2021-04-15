@@ -20,3 +20,7 @@ func with<A, B, View>(_ a: A, _ b: B, @ViewBuilder view: (A, B) -> View) -> View
 func with<A, B, C, View>(_ a: A, _ b: B, _ c: C, @ViewBuilder view: (A, B, C) -> View) -> View {
     return view(a, b, c)
 }
+
+func with<A, B>(_ a: A, _ f: (A) throws -> B) rethrows -> B {
+    try f(a)
+}
