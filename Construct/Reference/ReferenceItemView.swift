@@ -30,7 +30,6 @@ struct ReferenceItemView: View {
             }
             .navigationViewStyle(StackNavigationViewStyle())
             .environment(\.appNavigation, .tab)
-            .padding(.bottom, -51) // Workaround for the whitespace caused by hiding the tabbar. Note: -50 does nothing, -51 works
         }
     }
 

@@ -76,7 +76,6 @@ class AppStoreScreenshotTests: XCTestCase {
             withTransaction(transaction) {
                 assertSnapshot(
                     matching: view
-                        .environment(\.applyTestWorkaroundReferenceViewTabBarVisibility, true)
                         .environment(\.colorScheme, colorScheme)
                         .environmentObject(Environment(window: UIWindow())),
                     as: .image(precision: 0.99, layout: .device(config: device)),

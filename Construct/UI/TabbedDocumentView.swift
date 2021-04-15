@@ -12,7 +12,6 @@ import Introspect
 import Tagged
 
 struct TabbedDocumentView<Content>: View where Content: View {
-    @SwiftUI.Environment(\.applyTestWorkaroundReferenceViewTabBarVisibility) var applyTestWorkaroundReferenceViewTabBarVisibility
 
     var items: [TabbedDocumentViewContentItem]
     var content: (TabbedDocumentViewContentItem) -> Content
@@ -23,29 +22,41 @@ struct TabbedDocumentView<Content>: View where Content: View {
     var onMove: ((Int, Int) -> Void)?
 
     var body: some View {
-        let tabView = TabView(selection: $selection) {
-            ForEach(items.sorted(by: { $0.id.rawValue.uuidString < $1.id.rawValue.uuidString }), id: \.id) { item in
-                content(item)
-                    .tag(Optional.some(item.id))
-            }
-            .navigationBarHidden(true)
+        TabBarHidingTabViewParent {
+            _TabbedDocumentView(
+                items: items,
+                content: content,
+                selection: $selection,
+                onAdd: onAdd,
+                onDelete: onDelete,
+                onMove: onMove
+            )
         }
+        .ignoresSafeArea()
+    }
+
+}
+
+private struct _TabbedDocumentView<Content>: View where Content: View {
+
+    var items: [TabbedDocumentViewContentItem]
+    var content: (TabbedDocumentViewContentItem) -> Content
+    @Binding var selection: TabbedDocumentViewContentItem.Id?
+
+    var onAdd: (() -> Void)?
+    var onDelete: ((TabbedDocumentViewContentItem.Id) -> Void)?
+    var onMove: ((Int, Int) -> Void)?
+
+    var body: some View {
 
         return VStack(spacing: 0) {
-            Group {
-                if applyTestWorkaroundReferenceViewTabBarVisibility {
-                    TabBarHidingTabViewParent {
-                        tabView
-                    }
-                    .ignoresSafeArea(.all, edges: .top)
-                } else {
-                    tabView.introspectTabBarController { controller in
-                        controller.tabBar.isHidden = true
-                    }
+            TabView(selection: $selection) {
+                ForEach(items.sorted(by: { $0.id.rawValue.uuidString < $1.id.rawValue.uuidString }), id: \.id) { item in
+                    content(item)
+                        .tag(Optional.some(item.id))
                 }
             }
             .opacity(items.isEmpty ? 0 : 1)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if items.count > 0 {
                 Divider()
@@ -62,6 +73,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
         }.onAppear {
             selection = items.first?.id
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 
     struct TabBar: View {
@@ -309,3 +321,7 @@ final class TabBarHidingTabViewParent<Content>: UIViewControllerRepresentable wh
         }
     }
 }
+
+//final class TabViewWithoutBar<Content>: UIViewControllerRepresentable where Content: View {
+//    
+//}
