@@ -12,6 +12,7 @@ import ComposableArchitecture
 
 struct ContentView: View {
     @SwiftUI.Environment(\.horizontalSizeClass) var horizontalSizeClass
+//    @State var toggleNavigation = false
 
     @EnvironmentObject var env: Environment
     var store: Store<AppState, AppState.Action>
@@ -35,15 +36,24 @@ struct ContentView: View {
             }
             .onAppear {
                 if let sizeClass = horizontalSizeClass {
-                    viewStore.send(.navigation(.onHorizontalSizeClassChange(sizeClass)))
+                    viewStore.send(.onHorizontalSizeClassChange(sizeClass))
                 }
                 viewStore.send(.onAppear)
             }
             .onChange(of: horizontalSizeClass) { sizeClass in
                 if let sizeClass = sizeClass {
-                    viewStore.send(.navigation(.onHorizontalSizeClassChange(sizeClass)))
+                    viewStore.send(.onHorizontalSizeClassChange(sizeClass))
                 }
             }
+//            .overlay(ZStack {
+//                Button(action: {
+//                    self.toggleNavigation.toggle()
+//                    let oppositeSizeClass: UserInterfaceSizeClass = horizontalSizeClass == .regular ? .compact : .regular
+//                    viewStore.send(.onHorizontalSizeClassChange(toggleNavigation ? oppositeSizeClass : horizontalSizeClass!))
+//                }) {
+//                    Text("Toggle navigation")
+//                }
+//            })
         }
     }
 }

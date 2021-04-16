@@ -60,6 +60,8 @@ struct AppState: Equatable {
     enum Action: Equatable {
         case navigation(AppStateNavigationAction)
 
+        case onHorizontalSizeClassChange(UserInterfaceSizeClass)
+
         case welcomeSheet(Bool)
         case welcomeSheetSampleEncounterTapped
         case welcomeSheetDismissTapped
@@ -74,6 +76,19 @@ struct AppState: Equatable {
             Reducer { state, action, env in
                 switch action {
                 case .navigation: break // handled below
+                case .onHorizontalSizeClassChange(let sizeClass):
+                    switch (state.navigation, sizeClass) {
+                    case (nil, .compact):
+                        state.navigation = .tab(TabNavigationViewState())
+                    case (.column(let prev), .compact):
+                        state.navigation = .tab(prev.tabNavigationViewState)
+                    case (nil, .regular):
+                        state.navigation = .column(ColumnNavigationViewState())
+                    case (.tab(let prev), .regular):
+                        state.navigation = .column(prev.columnNavigationViewState)
+                    default:
+                        break
+                    }
                 case .welcomeSheet(let show):
                     state.showWelcomeSheet = show
                     if !show {
@@ -118,8 +133,6 @@ struct AppState: Equatable {
 enum AppStateNavigationAction: Equatable {
     case openEncounter(Encounter)
 
-    case onHorizontalSizeClassChange(UserInterfaceSizeClass)
-
     case tab(TabNavigationViewAction)
     case column(ColumnNavigationViewAction)
 }
@@ -128,10 +141,6 @@ extension AppState.Navigation {
     static let reducer: Reducer<Self, AppStateNavigationAction, Environment> = Reducer.combine(
         Reducer { state, action, env in
             switch (state, action) {
-            case (nil, .onHorizontalSizeClassChange(.compact)), (.column, .onHorizontalSizeClassChange(.compact)):
-                state = .tab(TabNavigationViewState())
-            case (nil, .onHorizontalSizeClassChange(.regular)), (.tab, .onHorizontalSizeClassChange(.regular)):
-                state = .column(ColumnNavigationViewState())
             case (.tab, .openEncounter(let e)):
                 return Effect(value: .tab(.campaignBrowser(.setNextScreen(.encounter(EncounterDetailViewState(building: e))))))
             case (.column, .openEncounter(let e)):
@@ -180,5 +189,80 @@ extension AppState {
             res.navigation = nil
         }
         return res
+    }
+}
+
+extension TabNavigationViewState {
+    var columnNavigationViewState: ColumnNavigationViewState {
+        let def = ColumnNavigationViewState()
+        return ColumnNavigationViewState(
+            campaignBrowse: campaignBrowser,
+            referenceView: ReferenceViewState(
+                items: [
+                    ReferenceViewState.Item(
+                        state: ReferenceItemViewState(
+                            content: .home(
+                                ReferenceItemViewState.Content.Home(
+                                    presentedScreens: compendium.presentedNextCompendiumIndex.map { [.nextInStack: .compendium($0)] } ?? [:]
+                                )
+                            )
+                        )
+                    )
+                ]
+            ),
+            diceCalculator: FloatingDiceRollerViewState(
+                hidden: false,
+                diceCalculator: apply(def.diceCalculator.diceCalculator) {
+                    $0.expression = diceRoller.calculatorState.expression
+                    $0.result = diceRoller.calculatorState.result
+                    $0.previousExpressions = diceRoller.calculatorState.previousExpressions
+                    $0.entryContext = diceRoller.calculatorState.entryContext
+                }
+            )
+        )
+    }
+}
+
+extension ColumnNavigationViewState {
+    var tabNavigationViewState: TabNavigationViewState {
+        let def = TabNavigationViewState()
+
+        let activeCompendiumReferenceItemTab = referenceView.items
+            .first(where: { $0.id == referenceView.selectedItemId })
+            .flatMap {
+                $0.state.content.homeState?.presentedNextCompendium
+            }
+
+        let selectedTab: TabNavigationViewState.Tabs = {
+            if diceCalculator.diceCalculator.mode == .editingExpression {
+                return .diceRoller
+            }
+
+            if campaignBrowse.topNavigationItems().contains(where: { $0 is EncounterDetailViewState }) {
+                return .campaign
+            }
+
+            if activeCompendiumReferenceItemTab != nil {
+                return .compendium
+            }
+
+            return def.selectedTab
+        }()
+
+        return TabNavigationViewState(
+            selectedTab: selectedTab,
+            campaignBrowser: campaignBrowse,
+            compendium: apply(def.compendium) {
+                if activeCompendiumReferenceItemTab != nil {
+                    $0.presentedNextCompendiumIndex = activeCompendiumReferenceItemTab
+                }
+            },
+            diceRoller: apply(def.diceRoller) {
+                $0.calculatorState.expression = diceCalculator.diceCalculator.expression
+                $0.calculatorState.result = diceCalculator.diceCalculator.result
+                $0.calculatorState.previousExpressions = diceCalculator.diceCalculator.previousExpressions
+                $0.calculatorState.entryContext = diceCalculator.diceCalculator.entryContext
+            }
+        )
     }
 }
