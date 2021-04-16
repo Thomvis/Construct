@@ -120,8 +120,8 @@ struct ReferenceItemViewState: Equatable {
         /// or to build an encounter
         struct Home: Equatable, NavigationStackSourceState {
 
-            var navigationStackItemStateId: String = "home"
-            var navigationTitle: String = "Compendium"
+            let navigationStackItemStateId: String = "home"
+            let navigationTitle: String = "Compendium"
 
             var context: ReferenceContext = .empty
             var presentedScreens: [NavigationDestination: NextScreen] = [:]

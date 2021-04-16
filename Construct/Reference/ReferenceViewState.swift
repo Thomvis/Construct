@@ -173,6 +173,10 @@ extension ReferenceViewState {
                     state.updateSelectionForRemovalOfCurrentItem()
                 }
                 state.items.removeAll(where: { $0.id == id })
+
+                if state.items.isEmpty {
+                    return Effect(value: .onNewTabTapped)
+                }
             case .moveTab(let from, let to):
                 state.items.move(fromOffsets: IndexSet(integer: from), toOffset: to)
             case .selectItem(let id):

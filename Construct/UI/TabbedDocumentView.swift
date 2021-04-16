@@ -22,41 +22,14 @@ struct TabbedDocumentView<Content>: View where Content: View {
     var onMove: ((Int, Int) -> Void)?
 
     var body: some View {
-        TabBarHidingTabViewParent {
-            _TabbedDocumentView(
-                items: items,
-                content: content,
-                selection: $selection,
-                onAdd: onAdd,
-                onDelete: onDelete,
-                onMove: onMove
-            )
-        }
-        .ignoresSafeArea()
-    }
-
-}
-
-private struct _TabbedDocumentView<Content>: View where Content: View {
-
-    var items: [TabbedDocumentViewContentItem]
-    var content: (TabbedDocumentViewContentItem) -> Content
-    @Binding var selection: TabbedDocumentViewContentItem.Id?
-
-    var onAdd: (() -> Void)?
-    var onDelete: ((TabbedDocumentViewContentItem.Id) -> Void)?
-    var onMove: ((Int, Int) -> Void)?
-
-    var body: some View {
 
         return VStack(spacing: 0) {
-            TabView(selection: $selection) {
-                ForEach(items.sorted(by: { $0.id.rawValue.uuidString < $1.id.rawValue.uuidString }), id: \.id) { item in
+            PageView(itemIds: items.map(\.id), selectedId: $selection.wrappedValue) { id in
+                if let item = items.first(where: { $0.id == id }) {
                     content(item)
-                        .tag(Optional.some(item.id))
                 }
             }
-            .opacity(items.isEmpty ? 0 : 1)
+            .ignoresSafeArea()
 
             if items.count > 0 {
                 Divider()
@@ -103,7 +76,7 @@ private struct _TabbedDocumentView<Content>: View where Content: View {
                         if $0 {
                             selection = item.id
                         }
-                    }), showDeleteButton: items.count > 1, onDelete: {
+                    }), onDelete: {
                         onDelete(item.id)
                     })
                     .offset(self.offset(for: item))
@@ -220,7 +193,6 @@ private struct _TabbedDocumentView<Content>: View where Content: View {
         let label: Label<Text, Image>
         @Binding var selected: Bool
 
-        let showDeleteButton: Bool
         let onDelete: () -> Void
 
         var body: some View {
@@ -231,7 +203,7 @@ private struct _TabbedDocumentView<Content>: View where Content: View {
             }
 
             HStack(spacing: 2) {
-                deleteButton.opacity(selected && showDeleteButton ? 1 : 0)
+                deleteButton
 
                 label.labelStyle(LabelStyle(selected: selected))
                     .font(.footnote)
@@ -296,32 +268,78 @@ extension View {
     }
 }
 
-final class TabBarHidingTabViewParent<Content>: UIViewControllerRepresentable where Content: View {
-    let content: Content
+private final class PageView<ID, Content>: UIViewControllerRepresentable where ID: Hashable, Content: View {
+    let itemIds: [ID]
+    let selectedId: ID?
+    let content: (ID) -> Content
 
-    init(content: () -> Content) {
-        self.content = content()
+    init(itemIds: [ID], selectedId id: ID, @ViewBuilder content: @escaping (ID) -> Content) {
+        self.itemIds = itemIds
+        self.selectedId = id
+        self.content = content
     }
 
     func makeUIViewController(context: Context) -> VC {
-        VC(rootView: content)
+        let vc = VC()
+        vc.update(itemIds: itemIds, selection: selectedId.map { ($0, content($0)) })
+        return vc
     }
 
     func updateUIViewController(_ uiViewController: VC, context: Context) {
-        uiViewController.rootView = content
+        uiViewController.update(itemIds: itemIds, selection: selectedId.map { ($0, content($0)) })
     }
 
-    final class VC: UIHostingController<Content> {
-        override func addChild(_ childController: UIViewController) {
-            super.addChild(childController)
+    final class VC: UIViewController {
+        var cache: [ID: UIHostingController<Content>] = [:] // we cache the vc's to ensure their state is maintained
+        var selectedId: ID? // the id of the content view controller currently visible
 
-            if let controller = childController as? UITabBarController {
-                controller.tabBar.isHidden = true
+        func update(itemIds: [ID], selection: (ID, Content)?) {
+            // remove cached items that are no longer in the itemIds array
+            let cacheKeys = Array(cache.keys)
+            for key in cacheKeys where !itemIds.contains(key) {
+                cache.removeValue(forKey: key)
+            }
+
+            if let (id, contentView) = selection {
+                let vc: UIHostingController<Content>
+                if let cachedVc = cache[id] {
+                    vc = cachedVc
+                    vc.rootView = contentView
+                } else {
+                    vc = UIHostingController(rootView: contentView)
+                    cache[id] = vc
+                }
+
+                if selectedId != id {
+                    removeSelectedViewController()
+
+                    // add view controller
+                    addChild(vc)
+
+                    view.addSubview(vc.view)
+                    vc.view.translatesAutoresizingMaskIntoConstraints = false
+                    vc.view.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+                    vc.view.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+                    vc.view.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+                    vc.view.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+
+                    vc.didMove(toParent: self)
+
+                    selectedId = id
+                }
+            } else {
+                // no selection, remove child if present
+                removeSelectedViewController()
+                selectedId = nil
+            }
+        }
+
+        private func removeSelectedViewController() {
+            if let child = children.first {
+                child.willMove(toParent: nil)
+                child.view.removeFromSuperview()
+                child.removeFromParent()
             }
         }
     }
 }
-
-//final class TabViewWithoutBar<Content>: UIViewControllerRepresentable where Content: View {
-//    
-//}
