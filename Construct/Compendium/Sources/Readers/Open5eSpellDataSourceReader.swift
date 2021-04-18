@@ -25,20 +25,23 @@ class Open5eSpellDataSourceReader: CompendiumDataSourceReader {
     }
 
     class Job: CompendiumDataSourceReaderJob {
-        let progress = Progress(totalUnitCount: 0)
-        let items: AnyPublisher<CompendiumItem, Error>
+        let output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
 
-        init(data: AnyPublisher<Data, Error>) {
-            items = data.flatMap { data -> AnyPublisher<CompendiumItem, Error> in
-                do {
-                    let spells = try JSONDecoder().decode([O5e.Spell].self, from: data)
-                    return Publishers.Sequence(sequence: spells.compactMap { m in
-                        Spell(open5eSpell: m, realm: .core)
-                    }).eraseToAnyPublisher()
-                } catch {
-                    return Fail(error: error).eraseToAnyPublisher()
+        init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
+            output = data
+                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
+                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
+                    do {
+                        let spells = try JSONDecoder().decode([O5e.Spell].self, from: data)
+                        return Publishers.Sequence(sequence: spells.map { m in
+                            guard let spell = Spell(open5eSpell: m, realm: .core) else { return CompendiumDataSourceReaderOutput.invalidItem(String(describing: m)) }
+                            return .item(spell)
+                        }).eraseToAnyPublisher()
+                    } catch {
+                        return Fail(error: CompendiumDataSourceReaderError.incompatibleDataSource).eraseToAnyPublisher()
+                    }
                 }
-            }.eraseToAnyPublisher()
+                .eraseToAnyPublisher()
         }
     }
 

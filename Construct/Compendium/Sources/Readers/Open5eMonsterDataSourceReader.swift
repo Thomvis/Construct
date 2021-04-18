@@ -23,20 +23,22 @@ class Open5eMonsterDataSourceReader: CompendiumDataSourceReader {
     }
 
     class Job: CompendiumDataSourceReaderJob {
-        let progress = Progress(totalUnitCount: 0)
-        let items: AnyPublisher<CompendiumItem, Error>
+        let output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
 
-        init(data: AnyPublisher<Data, Error>) {
-            items = data.flatMap { data -> AnyPublisher<CompendiumItem, Error> in
-                do {
-                    let monsters = try JSONDecoder().decode([O5e.Monster].self, from: data)
-                    return Publishers.Sequence(sequence: monsters.compactMap { m in
-                        Monster(open5eMonster: m, realm: .core)
-                    }).eraseToAnyPublisher()
-                } catch {
-                    return Fail(error: error).eraseToAnyPublisher()
-                }
-            }.eraseToAnyPublisher()
+        init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
+            output = data
+                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
+                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
+                    do {
+                        let monsters = try JSONDecoder().decode([O5e.Monster].self, from: data)
+                        return Publishers.Sequence(sequence: monsters.map { m in
+                            guard let monster = Monster(open5eMonster: m, realm: .core) else { return .invalidItem(String(describing: m)) }
+                            return .item(monster)
+                        }).eraseToAnyPublisher()
+                    } catch {
+                        return Fail(error: CompendiumDataSourceReaderError.incompatibleDataSource).eraseToAnyPublisher()
+                    }
+                }.eraseToAnyPublisher()
         }
     }
     

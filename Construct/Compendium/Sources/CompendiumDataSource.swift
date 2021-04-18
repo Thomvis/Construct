@@ -14,5 +14,10 @@ protocol CompendiumDataSource {
     static var name: String { get }
     var bookmark: Data? { get }
 
-    func read() -> AnyPublisher<Data, Error>
+    func read() -> AnyPublisher<Data, CompendiumDataSourceError>
+}
+
+enum CompendiumDataSourceError: Swift.Error {
+    case notFound
+    case other(Error)
 }

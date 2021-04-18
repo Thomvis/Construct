@@ -23,28 +23,34 @@ class ImprovedInitiativeDataSourceReader: CompendiumDataSourceReader {
     }
 
     class Job: CompendiumDataSourceReaderJob {
-        let progress = Progress(totalUnitCount: 0)
-        let items: AnyPublisher<CompendiumItem, Error>
+        let output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
 
-        init(data: AnyPublisher<Data, Error>) {
-            items = data.flatMap { data -> AnyPublisher<CompendiumItem, Error> in
-                do {
-                    let file = try JSONDecoder().decode([String: String].self, from: data)
-                    guard let creatureListJson = file["ImprovedInitiative.Creatures"] else {
-                        return Empty().eraseToAnyPublisher()
+        init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
+            output = data
+                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
+                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
+                    do {
+                        let file = try JSONDecoder().decode([String: String].self, from: data)
+                        guard let creatureListJson = file["ImprovedInitiative.Creatures"] else {
+                            return Fail(error: .incompatibleDataSource).eraseToAnyPublisher()
+                        }
+
+                        let creatureList = try JSONDecoder().decode([String].self, from: creatureListJson.data(using: .utf8)!)
+                        let monsters = try creatureList
+                            .compactMap { file["ImprovedInitiative.Creatures.\($0)"]?.data(using:. utf8) }
+                            .map { try JSONDecoder().decode(ImprovedInitiative.Creature.self, from: $0) }
+                            .map { creature -> CompendiumDataSourceReaderOutput in
+                                guard let monster = Monster(improvedInitiativeCreature: creature, realm: .core) else {
+                                    return .invalidItem(String(describing: creature))
+                                }
+                                return .item(monster)
+                            }
+
+                        return Publishers.Sequence(sequence: monsters).eraseToAnyPublisher()
+                    } catch {
+                        return Fail(error: .incompatibleDataSource).eraseToAnyPublisher()
                     }
-
-                    let creatureList = try JSONDecoder().decode([String].self, from: creatureListJson.data(using: .utf8)!)
-                    let monsters = try creatureList
-                        .compactMap { file["ImprovedInitiative.Creatures.\($0)"]?.data(using:. utf8) }
-                        .map { try JSONDecoder().decode(ImprovedInitiative.Creature.self, from: $0) }
-                        .compactMap { Monster(improvedInitiativeCreature: $0, realm: .core) }
-
-                    return Publishers.Sequence(sequence: monsters).eraseToAnyPublisher()
-                } catch {
-                    return Fail(error: error).eraseToAnyPublisher()
-                }
-            }.eraseToAnyPublisher()
+                }.eraseToAnyPublisher()
         }
     }
 }

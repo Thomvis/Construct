@@ -23,21 +23,22 @@ class DDBCharacterDataSourceReader: CompendiumDataSourceReader {
     }
 
     class Job: CompendiumDataSourceReaderJob {
-        let progress = Progress(totalUnitCount: 0)
-        let items: AnyPublisher<CompendiumItem, Error>
+        let output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
 
-        init(data: AnyPublisher<Data, Error>) {
-            items = data.flatMap { data -> AnyPublisher<CompendiumItem, Error> in
-                do {
-                    let characterSheet = try JSONDecoder().decode(DDB.CharacterSheet.self, from: data)
-                    guard let character = Character(characterSheet: characterSheet, realm: .homebrew) else {
-                        return Empty().eraseToAnyPublisher()
+        init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
+            output = data
+                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
+                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
+                    do {
+                        let characterSheet = try JSONDecoder().decode(DDB.CharacterSheet.self, from: data)
+                        guard let character = Character(characterSheet: characterSheet, realm: .homebrew) else {
+                            return Empty().eraseToAnyPublisher()
+                        }
+                        return Just(.item(character as CompendiumItem)).promoteError().eraseToAnyPublisher()
+                    } catch {
+                        return Fail(error: CompendiumDataSourceReaderError.incompatibleDataSource).eraseToAnyPublisher()
                     }
-                    return Just(character as CompendiumItem).promoteError().eraseToAnyPublisher()
-                } catch {
-                    return Fail(error: error).eraseToAnyPublisher()
-                }
-            }.eraseToAnyPublisher()
+                }.eraseToAnyPublisher()
         }
     }
 }

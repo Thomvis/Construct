@@ -17,20 +17,56 @@ class CompendiumImporter {
         self.compendium = compendium
     }
 
-    func run(_ task: CompendiumImportTask) -> some Publisher {
-        let job = task.reader.read()
+    func run(_ task: CompendiumImportTask) -> AnyPublisher<Result, CompendiumImporterError> {
+        task.reader.read().output
+            .mapError { CompendiumImporterError.reader($0) }
+            .tryScan(Result()) { res, read in
+                var result = res
+                switch read {
+                case .item(let item):
+                    let entry = CompendiumEntry(item, source: task.source)
+                    do {
+                        let willOverwriteExisting = try self.compendium.database.keyValueStore.contains(entry.key, in: task.db)
 
-        return job.items.handleEvents(receiveOutput: { item in
-            let entry = CompendiumEntry(item, source: task.source)
-            do {
-                if try task.overwriteExisting || !self.compendium.database.keyValueStore.contains(entry.key, in: task.db) {
-                    try self.compendium.put(entry, in: task.db)
+                        if task.overwriteExisting || !willOverwriteExisting {
+                            try self.compendium.put(entry, in: task.db)
+
+                            if willOverwriteExisting {
+                                result.overwrittenItemCount += 1
+                            } else {
+                                result.newItemCount += 1
+                            }
+                        }
+                    } catch {
+                        throw CompendiumImporterError.database(error)
+                    }
+                case .invalidItem:
+                    result.invalidItemCount += 1
                 }
-            } catch {
-                print(error)
+                return result
             }
-        }).ignoreOutput()
+            .mapError {
+                guard let error = $0 as? CompendiumImporterError else { return CompendiumImporterError.other($0) }
+                return error
+            }
+            .last()
+            .eraseToAnyPublisher()
     }
+
+    struct Result: Equatable {
+        // valid
+        var newItemCount = 0
+        var overwrittenItemCount = 0
+
+        // invalid
+        var invalidItemCount = 0
+    }
+}
+
+enum CompendiumImporterError: Swift.Error {
+    case reader(CompendiumDataSourceReaderError)
+    case database(Error)
+    case other(Error)
 }
 
 struct CompendiumImportTask {

@@ -23,7 +23,7 @@ class ImprovedInitiativeDataSourceReaderTest: XCTestCase {
         let job = sut.read()
 
         let e = expectation(description: "Receive items")
-        _ = job.items.collect().sink(receiveCompletion: { c in
+        _ = job.output.compactMap { $0.item }.collect().sink(receiveCompletion: { c in
             if case .failure(let e) = c {
                 XCTFail(e.localizedDescription)
             }
@@ -55,6 +55,20 @@ class ImprovedInitiativeDataSourceReaderTest: XCTestCase {
 
             e.fulfill()
         }
+
+        waitForExpectations(timeout: 2.0, handler: nil)
+    }
+
+    func testIncorrectFormat() {
+        let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "compendium", ofType: "xml")!)
+        let sut = ImprovedInitiativeDataSourceReader(dataSource: dataSource)
+        let job = sut.read()
+
+        let e = expectation(description: "Receive items")
+        _ = job.output.compactMap { $0.item }.collect().sink(receiveCompletion: { c in
+            guard case .failure(.incompatibleDataSource) = c else { XCTFail(); return }
+            e.fulfill()
+        }, receiveValue: { _ in })
 
         waitForExpectations(timeout: 2.0, handler: nil)
     }

@@ -23,15 +23,22 @@ class XMLMonsterDataSourceReader: CompendiumDataSourceReader {
     }
 
     class Job: CompendiumDataSourceReaderJob {
-        let progress = Progress(totalUnitCount: 0)
-        let items: AnyPublisher<CompendiumItem, Error>
+        let output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
 
-        init(data: AnyPublisher<Data, Error>) {
-            items = data.flatMap { data -> AnyPublisher<CompendiumItem, Error> in
-                XMLCompendiumParser.parse(data: data, element: .compendium(.monster(nil))).compactMap { content in
-                    Monster(elementContent: content, realm: .core)
-                }.eraseToAnyPublisher()
-            }.eraseToAnyPublisher()
+        init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
+            output = data
+                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
+                .flatMap { data in
+                    XMLCompendiumParser.parse(data: data, element: .compendium(.monster(nil)))
+                        .mapError { _ in CompendiumDataSourceReaderError.incompatibleDataSource }
+                }
+                .map { element -> CompendiumDataSourceReaderOutput in
+                    guard let monster = Monster(elementContent: element, realm: .core) else {
+                        return .invalidItem(String(describing: element))
+                    }
+                    return .item(monster)
+                }
+                .eraseToAnyPublisher()
         }
     }
 }
@@ -54,12 +61,21 @@ final class XMLCompendiumParser: NSObject {
         parser.delegate = self
     }
 
-    static func parse(data: Data, element: DocumentElement) -> AnyPublisher<State.ElementContent, Error> {
-        return Deferred { () -> AnyPublisher<State.ElementContent, Error> in
-            let parser = XMLCompendiumParser(data: data, element: element)
-            parser.parser.parse()
+    func parse() -> Result<[State.ElementContent], Error> {
+        parser.parse()
 
-            return Publishers.Sequence(sequence: parser.outputContent).eraseToAnyPublisher()
+        if let error = parser.parserError {
+            return .failure(error)
+        }
+
+        return .success(outputContent)
+    }
+
+    static func parse(data: Data, element: DocumentElement) -> AnyPublisher<State.ElementContent, Error> {
+        return Deferred {
+            XMLCompendiumParser(data: data, element: element).parse().publisher.flatMap { elements in
+                Publishers.Sequence<[State.ElementContent], Error>(sequence: elements)
+            }
         }.eraseToAnyPublisher()
     }
 

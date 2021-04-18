@@ -52,7 +52,7 @@ class CreatureActionParserTest: XCTestCase {
         let job = sut.read()
 
         let e = expectation(description: "Receive at least one item")
-        _ = job.items.collect().sink(receiveCompletion: { _ in
+        _ = job.output.compactMap { $0.item }.collect().sink(receiveCompletion: { _ in
             e.fulfill()
         }, receiveValue: { items in
             var actions: [(CreatureAction, CreatureActionParser.Action?)] = []

@@ -27,11 +27,6 @@ struct CompendiumImportView: View {
 
     var body: some View {
         Form {
-            // Show error
-            importProgress.error.map {
-                Text("Import failed: \($0)").foregroundColor(Color(UIColor.systemRed))
-            }
-
             // Select importer
             Section(header: Text("Type")) {
                 ForEach(Self.readers) { reader in
@@ -92,10 +87,23 @@ struct CompendiumImportView: View {
                 self.pickedFileUrl = urls.first
             }
         }
-        .alert(isPresented: Binding(get: { importProgress.isSuccess }, set: { _ in })) {
-            Alert(title: Text("Import completed"), dismissButton: Alert.Button.default(Text("OK"), action: {
-                self.presentationMode.wrappedValue.dismiss()
-            }));
+        .alert(item: Binding(get: { importProgress.forAlert }, set: { _ in })) { progress in
+            guard let title = progress.localizedTitle else {
+                return Alert(title: Text("Unknown error"))
+            }
+
+            return Alert(
+                title: Text(title),
+                message: progress.localizedDescription.map(Text.init),
+                dismissButton: Alert.Button.default(
+                    Text("OK"),
+                    action: {
+                        if progress.result != nil {
+                            self.presentationMode.wrappedValue.dismiss()
+                        }
+                    }
+                )
+            );
         }
     }
 
@@ -130,13 +138,12 @@ struct CompendiumImportView: View {
         let task = CompendiumImportTask(reader: reader.create(dataSource), overwriteExisting: true)
 
         let cancellable = importer.run(task).delay(for: .seconds(0), scheduler: DispatchQueue.main).sink(receiveCompletion: { completion in
-            switch completion {
-            case .finished:
-                self.importProgress = .succeeded
-            case .failure(let e as Error):
+            if case .failure(let e as Error) = completion {
                 self.importProgress = .failed(e)
             }
-        }, receiveValue: { _ in })
+        }, receiveValue: { result in
+            self.importProgress = .succeeded(result)
+        })
         importProgress = .started(cancellable)
     }
 
@@ -179,16 +186,16 @@ struct CompendiumImportView: View {
     }
 
     enum ImportProgress {
-        case none, started(AnyCancellable), failed(Error), succeeded
+        case none, started(AnyCancellable), failed(Error), succeeded(CompendiumImporter.Result)
 
         var isImporting: Bool {
             if case .started = self { return true }
             return false
         }
 
-        var isSuccess: Bool {
-            if case .succeeded = self { return true }
-            return false
+        var result: CompendiumImporter.Result? {
+            if case .succeeded(let result) = self { return result }
+            return nil
         }
 
         var error: String? {
@@ -213,4 +220,42 @@ struct CompendiumImportViewState: NavigationStackItemState, Equatable {
 
 enum CompendiumImportViewAction {
 
+}
+
+extension CompendiumImportView.ImportProgress: Identifiable {
+    var id: Int {
+        switch self {
+        case .none: return 0
+        case .started: return 1
+        case .succeeded: return 2
+        case .failed: return 3
+        }
+    }
+}
+
+extension CompendiumImportView.ImportProgress {
+    var forAlert: Self? {
+        switch self {
+        case .none, .started: return nil
+        case .succeeded, .failed: return self
+        }
+    }
+
+    var localizedTitle: String? {
+        switch self {
+        case .none, .started: return nil
+        case .succeeded: return "Import completed"
+        case .failed: return "Import failed"
+        }
+    }
+
+    var localizedDescription: String? {
+        switch self {
+        case .none, .started: return nil
+        case .succeeded(let result):
+            return "\(result.newItemCount + result.overwrittenItemCount) item(s) imported (\(result.newItemCount ) new). \(result.invalidItemCount) item(s) skipped."
+        case .failed(let error):
+            return error.localizedDescription
+        }
+    }
 }

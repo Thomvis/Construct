@@ -21,11 +21,11 @@ class URLDataSource: CompendiumDataSource {
         self.urlSession = urlSession
     }
 
-    func read() -> AnyPublisher<Data, Error> {
+    func read() -> AnyPublisher<Data, CompendiumDataSourceError> {
         return urlSession.dataTaskPublisher(for: URL(string: url)!).map { data, response in
             return data
         }
-        .mapError { $0 as Error }
+        .mapError { CompendiumDataSourceError.other($0) }
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
     }

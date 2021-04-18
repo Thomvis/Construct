@@ -13,23 +13,22 @@ class FileDataSource: CompendiumDataSource {
     static let name = "FileDataSource"
     var bookmark: Data?
 
-    private let result: AnyPublisher<Data, Error>
+    private let result: AnyPublisher<Data, CompendiumDataSourceError>
 
     init(path: String, using fileManager: FileManager = FileManager.default) {
         self.bookmark = try? URL(fileURLWithPath: path).bookmarkData()
-        self.result = Deferred { () -> AnyPublisher<Data, Error> in
+        self.result = Deferred { () -> AnyPublisher<Data, CompendiumDataSourceError> in
             do {
                 let data = try NSData(contentsOfFile: path, options: [])
                 return Just(data as Data).promoteError().eraseToAnyPublisher()
             } catch {
-                return Fail(error: error).eraseToAnyPublisher()
+                return Fail(error: CompendiumDataSourceError.notFound).eraseToAnyPublisher()
             }
         }
-        .mapError { $0 as Error }
         .eraseToAnyPublisher()
     }
 
-    func read() -> AnyPublisher<Data, Error> {
+    func read() -> AnyPublisher<Data, CompendiumDataSourceError> {
         return result
     }
 

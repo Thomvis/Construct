@@ -19,7 +19,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
         let job = sut.read()
 
         let e = expectation(description: "Receive at least one item")
-        _ = job.items.prefix(1).sink(receiveCompletion: { completion in
+        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
             switch completion {
             case .failure(let e): XCTFail(e.localizedDescription)
             case .finished: break
@@ -54,7 +54,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
         let job = sut.read()
 
         let e = expectation(description: "Receive at least one item")
-        _ = job.items.prefix(1).sink(receiveCompletion: { completion in
+        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
             switch completion {
             case .failure(let e): XCTFail(e.localizedDescription)
             case .finished: break
@@ -89,7 +89,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
         let job = sut.read()
 
         let e = expectation(description: "Receive at least one item")
-        _ = job.items.prefix(1).sink(receiveCompletion: { completion in
+        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
             switch completion {
             case .failure(let e): XCTFail(e.localizedDescription)
             case .finished: break
@@ -124,7 +124,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
         let job = sut.read()
 
         let e = expectation(description: "Receive at least one item")
-        _ = job.items.prefix(1).sink(receiveCompletion: { completion in
+        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
             switch completion {
             case .failure(let e): XCTFail(e.localizedDescription)
             case .finished: break
@@ -159,7 +159,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
         let job = sut.read()
 
         let e = expectation(description: "Receive at least one item")
-        _ = job.items.prefix(1).sink(receiveCompletion: { completion in
+        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
             switch completion {
             case .failure(let e): XCTFail(e.localizedDescription)
             case .finished: break
@@ -194,7 +194,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
         let job = sut.read()
 
         let e = expectation(description: "Receive at least one item")
-        _ = job.items.prefix(1).sink(receiveCompletion: { completion in
+        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
             switch completion {
             case .failure(let e): XCTFail(e.localizedDescription)
             case .finished: break

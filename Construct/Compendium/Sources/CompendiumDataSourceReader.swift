@@ -18,6 +18,20 @@ protocol CompendiumDataSourceReader {
 }
 
 protocol CompendiumDataSourceReaderJob {
-    var progress: Progress { get } // FIXME not used
-    var items: AnyPublisher<CompendiumItem, Error> { get }
+    var output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> { get }
+}
+
+enum CompendiumDataSourceReaderOutput {
+    case item(CompendiumItem)
+    case invalidItem(String?)
+
+    var item: CompendiumItem? {
+        guard case .item(let item) = self else { return nil }
+        return item
+    }
+}
+
+enum CompendiumDataSourceReaderError: Swift.Error {
+    case dataSource(CompendiumDataSourceError)
+    case incompatibleDataSource
 }
