@@ -203,7 +203,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
             }
 
             HStack(spacing: 2) {
-                deleteButton
+                deleteButton.opacity(selected ? 1 : 0)
 
                 label.labelStyle(LabelStyle(selected: selected))
                     .font(.footnote)
