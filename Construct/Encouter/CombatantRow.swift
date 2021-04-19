@@ -132,27 +132,3 @@ func ShieldIcon(ac: Int) -> some View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text("AC: \(ac)"))
 }
-
-struct CombatantRow_Preview: PreviewProvider {
-    static var previews: some View {
-        Group {
-            CombatantRow(
-                encounter: Encounter(name: "", combatants: []),
-                running: nil,
-                combatant: Combatant(adHoc: AdHocCombatantDefinition(
-                    id: UUID().tagged(),
-                    stats: apply(StatBlock.default) {
-                        $0.name = "Sarovin"
-                    }
-                )),
-                onHealthTap: { },
-                onInitiativeTap: { }
-            )
-            .environmentObject(Environment(window: UIWindow()))
-            .frame(height: 60)
-            .previewLayout(.sizeThatFits)
-
-            ShieldIcon(ac: 12).previewLayout(.sizeThatFits)
-        }
-    }
-}

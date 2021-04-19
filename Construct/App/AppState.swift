@@ -120,9 +120,9 @@ struct AppState: Equatable {
             Navigation.reducer.optional().pullback(state: \.navigation, action: /AppState.Action.navigation),
             Reducer { state, action, env in
                 if state.sceneIsActive, let edv = state.topNavigationItemState as? EncounterDetailViewState, edv.running != nil {
-                    env.isIdleTimerDisabled = true
+                    env.isIdleTimerDisabled.wrappedValue = true
                 } else {
-                    env.isIdleTimerDisabled = false
+                    env.isIdleTimerDisabled.wrappedValue = false
                 }
                 return .none
             }

@@ -15,10 +15,20 @@ import XCTest
 
 /// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests
 class AppStoreScreenshotTests: XCTestCase {
+    var environment: Construct.Environment!
+
     override class func setUp() {
         super.setUp()
 //        SnapshotTesting.isRecording = true
         SnapshotTesting.diffTool = "ksdiff"
+    }
+
+    override func setUp() {
+        super.setUp()
+
+        environment = try! apply(Environment.live(window: UIWindow())) {
+            $0.database = try .init(path: nil)
+        }
     }
 
     func test_iPhone_screenshot1() {
@@ -77,7 +87,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 assertSnapshot(
                     matching: view
                         .environment(\.colorScheme, colorScheme)
-                        .environmentObject(Environment(window: UIWindow())),
+                        .environmentObject(environment),
                     as: .image(precision: 0.99, layout: .device(config: device)),
                    file: file,
                    testName: testName,
@@ -186,8 +196,6 @@ class AppStoreScreenshotTests: XCTestCase {
     }
 
     var tabNavigationCombatantDetailMage: some View {
-        let environment = Environment(window: UIWindow())
-
         let entry = try! environment.database.keyValueStore.get(
             CompendiumItemKey(type: .monster, realm: .core, identifier: "Mage")
         )
@@ -271,7 +279,7 @@ class AppStoreScreenshotTests: XCTestCase {
     }
 
     var encounterDetailRunningEncounterDetailState: EncounterDetailViewState {
-        var encounter = SampleEncounter.createEncounter(with: Environment(window: UIWindow()))
+        var encounter = SampleEncounter.createEncounter(with: environment)
         encounter.name = "The King's Crypt"
         // Mummy
         apply(&encounter.combatants[0]) { mummy in
@@ -393,8 +401,7 @@ class AppStoreScreenshotTests: XCTestCase {
     }
 
     var columnNavigationEncounterDetailBuilding: ContentView {
-        let environment = Environment(window: UIWindow())
-        var encounter = SampleEncounter.createEncounter(with: Environment(window: UIWindow()))
+        var encounter = SampleEncounter.createEncounter(with: environment)
         encounter.combatants.remove(at: 0)
 
         let state = AppState(
@@ -474,8 +481,6 @@ class AppStoreScreenshotTests: XCTestCase {
     }
 
     var columnNavigationCampaignBrowseView: ContentView {
-        let environment = Environment(window: UIWindow())
-
         let state = AppState(
             navigation: .column(
                 ColumnNavigationViewState(
@@ -577,8 +582,6 @@ class AppStoreScreenshotTests: XCTestCase {
     }
 
     var columnNavigationDiceCalculatorSpell: ContentView {
-        let environment = Environment(window: UIWindow())
-
         let state = AppState(
             navigation: .column(
                 ColumnNavigationViewState(
@@ -645,9 +648,7 @@ class AppStoreScreenshotTests: XCTestCase {
     }
 
     var columnNavigationCreatureEdit: some View {
-        let environment = Environment(window: UIWindow())
-
-        let encounter = SampleEncounter.createEncounter(with: Environment(window: UIWindow()))
+        let encounter = SampleEncounter.createEncounter(with: environment)
 
         let backgroundState = AppState(
             navigation: .column(

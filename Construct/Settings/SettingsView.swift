@@ -34,7 +34,7 @@ struct SettingsView: View {
                     Text("Help center")
                 }
 
-                if self.env.canSendMail {
+                if self.env.canSendMail() {
                     NavigationRowButton(action: {
                         self.env.sendMail()
                     }) {

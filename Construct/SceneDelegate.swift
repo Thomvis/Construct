@@ -26,7 +26,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
 
-            let env = Environment(window: window)
+            let env = try! Environment.live(window: window)
             let state = AppState(
                 navigation: nil,
                 preferences: (try? env.database.keyValueStore.get(Preferences.key)) ?? Preferences()

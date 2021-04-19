@@ -13,7 +13,7 @@ import XCTest
 
 class EncounterDetailTest: XCTestCase {
 
-    func testFlow_RemoveActiveCombatant() {
+    func testFlow_RemoveActiveCombatant() throws {
         let initialState = EncounterDetailViewState(building: Encounter(name: "", combatants: [
             Combatant(adHoc: AdHocCombatantDefinition(
                         id: UUID().tagged(),
@@ -30,12 +30,11 @@ class EncounterDetailTest: XCTestCase {
         let store = TestStore(
             initialState: initialState,
             reducer: EncounterDetailViewState.reducer,
-            environment: Environment(
-                window: UIWindow(),
-                generateUUID: UUID.fakeGenerator(),
-                rng: EverIncreasingRandomNumberGenerator(),
-                mainQueue: DispatchQueue.immediateScheduler.eraseToAnyScheduler()
-            )
+            environment: try apply(Environment.live(window: UIWindow())) {
+                $0.generateUUID = UUID.fakeGenerator()
+                $0.rng = AnyRandomNumberGenerator(wrapped: EverIncreasingRandomNumberGenerator())
+                $0.mainQueue = DispatchQueue.immediateScheduler.eraseToAnyScheduler()
+            }
         )
 
         store.assert(

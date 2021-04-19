@@ -8,14 +8,14 @@
 
 import Foundation
 
-func apply<T>(_ thing: T, _ f: (inout T) -> Void) -> T {
+func apply<T>(_ thing: T, _ f: (inout T) throws -> Void) rethrows -> T {
     var res = thing
-    f(&res)
+    try f(&res)
     return res
 }
 
 @discardableResult
-func apply<T>(_ thing: inout T, _ f: (inout T) -> Void) -> T {
-    f(&thing)
+func apply<T>(_ thing: inout T, _ f: (inout T) throws -> Void) rethrows -> T {
+    try f(&thing)
     return thing
 }
