@@ -1,6 +1,6 @@
 //
 //  Creatures.swift
-//  SwiftUITest
+//  Construct
 //
 //  Created by Thomas Visser on 26/08/2019.
 //  Copyright © 2019 Thomas Visser. All rights reserved.

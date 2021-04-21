@@ -1,6 +1,6 @@
 //
 //  CombatantTagEditView.swift
-//  SwiftUITest
+//  Construct
 //
 //  Created by Thomas Visser on 13/11/2019.
 //  Copyright © 2019 Thomas Visser. All rights reserved.

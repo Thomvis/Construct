@@ -1,6 +1,6 @@
 //
 //  RunningEncounter.swift
-//  SwiftUITest
+//  Construct
 //
 //  Created by Thomas Visser on 11/01/2020.
 //  Copyright © 2020 Thomas Visser. All rights reserved.

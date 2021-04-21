@@ -1,6 +1,6 @@
 //
-//  ContentView.swift
-//  SwiftUITest
+//  Construct.swift
+//  Construct
 //
 //  Created by Thomas Visser on 04/06/2019.
 //  Copyright © 2019 Thomas Visser. All rights reserved.
@@ -10,7 +10,7 @@ import SwiftUI
 import Combine
 import ComposableArchitecture
 
-struct ContentView: View {
+struct ConstructApp: App {
     @SwiftUI.Environment(\.horizontalSizeClass) var horizontalSizeClass
 //    @State var toggleNavigation = false
 
