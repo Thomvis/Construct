@@ -30,7 +30,7 @@ class EncounterDetailTest: XCTestCase {
         let store = TestStore(
             initialState: initialState,
             reducer: EncounterDetailViewState.reducer,
-            environment: try apply(Environment.live(window: UIWindow())) {
+            environment: try apply(Environment.live()) {
                 $0.generateUUID = UUID.fakeGenerator()
                 $0.rng = AnyRandomNumberGenerator(wrapped: EverIncreasingRandomNumberGenerator())
                 $0.mainQueue = DispatchQueue.immediateScheduler.eraseToAnyScheduler()

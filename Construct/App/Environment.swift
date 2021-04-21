@@ -68,9 +68,13 @@ class Environment: ObservableObject {
 }
 
 extension Environment {
-    static func live(window: UIWindow) throws -> Environment {
+    static func live() throws -> Environment {
         let database: Database = try .live()
         let mailComposeDelegate = MailComposeDelegate()
+
+        let keyWindow = {
+            UIApplication.shared.windows.filter { $0.isKeyWindow }.first
+        }
 
         return Environment(
             modifierFormatter: apply(NumberFormatter()) { f in
@@ -90,7 +94,7 @@ extension Environment {
                 composeVC.setSubject("Construct feedback")
 
                 // Present the view controller modally.
-                window.rootViewController?.deepestPresentedViewController.present(composeVC, animated: true, completion:nil)
+                keyWindow()?.rootViewController?.deepestPresentedViewController.present(composeVC, animated: true, completion:nil)
             },
             rateInAppStore: {
                 let appID = 1490015210
@@ -106,7 +110,7 @@ extension Environment {
             rng: AnyRandomNumberGenerator(wrapped: SystemRandomNumberGenerator()),
             mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
             dismissKeyboard: {
-                window.endEditing(true)
+                keyWindow()?.endEditing(true)
             }
         )
     }

@@ -178,9 +178,7 @@
 		E996919C247C4C9200A8B1A0 /* CompendiumItemGroupEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */; };
 		E996919D247C4F1400A8B1A0 /* Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6E92314FB37004D84E2 /* Character.swift */; };
 		E996919E247C664200A8B1A0 /* StateDrivenNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990F4F023706AAC00276EB6 /* StateDrivenNavigationView.swift */; };
-		E999896422A6B4F20067BA25 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999896322A6B4F20067BA25 /* AppDelegate.swift */; };
-		E999896622A6B4F20067BA25 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999896522A6B4F20067BA25 /* SceneDelegate.swift */; };
-		E999896822A6B4F20067BA25 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999896722A6B4F20067BA25 /* ContentView.swift */; };
+		E999896822A6B4F20067BA25 /* ConstructApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999896722A6B4F20067BA25 /* ConstructApp.swift */; };
 		E999896A22A6B4F30067BA25 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E999896922A6B4F30067BA25 /* Assets.xcassets */; };
 		E999896D22A6B4F30067BA25 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E999896C22A6B4F30067BA25 /* Preview Assets.xcassets */; };
 		E999897022A6B4F30067BA25 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E999896E22A6B4F30067BA25 /* LaunchScreen.storyboard */; };
@@ -364,9 +362,7 @@
 		E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemViewState.swift; sourceTree = "<group>"; };
 		E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigationNode.generated.swift; sourceTree = "<group>"; };
 		E999896022A6B4F20067BA25 /* Construct.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Construct.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E999896322A6B4F20067BA25 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		E999896522A6B4F20067BA25 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		E999896722A6B4F20067BA25 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		E999896722A6B4F20067BA25 /* ConstructApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructApp.swift; sourceTree = "<group>"; };
 		E999896922A6B4F30067BA25 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E999896C22A6B4F30067BA25 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		E999896F22A6B4F30067BA25 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -571,7 +567,7 @@
 			children = (
 				E9B432BA22AAF7540054324E /* Environment.swift */,
 				E9F56AC5235483780085A72D /* AppState.swift */,
-				E999896722A6B4F20067BA25 /* ContentView.swift */,
+				E999896722A6B4F20067BA25 /* ConstructApp.swift */,
 				E92A41E3240D2F0C009AF440 /* WelcomeView.swift */,
 				E92A41E7240D3A66009AF440 /* Preferences.swift */,
 				E9869F8C252203BA0098A166 /* TabNavigationView.swift */,
@@ -814,8 +810,6 @@
 				E98F96FF230B32250080372A /* Models */,
 				E98F96FA230B24200080372A /* Foundation */,
 				E991F8D9254B250B006CE8E8 /* Sourcery */,
-				E999896322A6B4F20067BA25 /* AppDelegate.swift */,
-				E999896522A6B4F20067BA25 /* SceneDelegate.swift */,
 				E999896922A6B4F30067BA25 /* Assets.xcassets */,
 				E999896E22A6B4F30067BA25 /* LaunchScreen.storyboard */,
 				E999897122A6B4F30067BA25 /* Info.plist */,
@@ -1146,7 +1140,6 @@
 				E963CCF7247AE5CD009863D7 /* CompendiumContainerView.swift in Sources */,
 				E996919C247C4C9200A8B1A0 /* CompendiumItemGroupEditView.swift in Sources */,
 				E972BAA524793EFC00F313D7 /* NumberPadView.swift in Sources */,
-				E999896422A6B4F20067BA25 /* AppDelegate.swift in Sources */,
 				E9A95185233BF67D00141552 /* DDBCharacterSheetURLParser.swift in Sources */,
 				E97651CD248ADC1E00C76865 /* RunningEncounterActionBar.swift in Sources */,
 				E92A41E8240D3A66009AF440 /* Preferences.swift in Sources */,
@@ -1230,7 +1223,6 @@
 				E97651D4248AE1CF00C76865 /* CombatantDetailView.swift in Sources */,
 				E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */,
 				E946B023247D9E91008A407C /* AdHocCombatant.swift in Sources */,
-				E999896622A6B4F20067BA25 /* SceneDelegate.swift in Sources */,
 				E9AB031823EC52C90091C908 /* SimpleButton.swift in Sources */,
 				E97A43AA2332C31A00A8B032 /* Entity.swift in Sources */,
 				E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */,
@@ -1257,7 +1249,7 @@
 				E9323A3B23205C4700F0D0C6 /* FileDataSource.swift in Sources */,
 				E963CCFC247BDEBF009863D7 /* CompendiumDataSourceReader.swift in Sources */,
 				E963CCA824794360009863D7 /* CampaignNode.swift in Sources */,
-				E999896822A6B4F20067BA25 /* ContentView.swift in Sources */,
+				E999896822A6B4F20067BA25 /* ConstructApp.swift in Sources */,
 				E978861A23BE3779003B2DA2 /* With.swift in Sources */,
 				E931CF912500C8BF006CEE78 /* DiceActionView.swift in Sources */,
 				E963CCFA247BDEA6009863D7 /* CompendiumImportView.swift in Sources */,
