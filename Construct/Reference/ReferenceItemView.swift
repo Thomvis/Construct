@@ -51,9 +51,9 @@ struct ReferenceItemView: View {
                             Button(action: {
                                 viewStore.send(.togglePinToTurnTapped)
                             }) {
-                                Image(systemName: viewStore.state.pinToTurn ? "pin.fill" : "pin.slash")
+                                Image(systemName: viewStore.state.pinToTurn ? "pin.fill" : "pin")
                             }
-                            .disabled(viewStore.state.selectedCombatantId != viewStore.state.runningEncounter?.turn?.combatantId)
+                            .disabled(viewStore.state.runningEncounter == nil)
 
                             Button(action: {
                                 viewStore.send(.nextCombatantTapped)
