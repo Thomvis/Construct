@@ -26,7 +26,7 @@ class AppStoreScreenshotTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        environment = try! apply(Environment.live(window: UIWindow())) {
+        environment = try! apply(Environment.live()) {
             $0.database = try .init(path: nil)
         }
     }
@@ -85,7 +85,7 @@ class AppStoreScreenshotTests: XCTestCase {
 
             withTransaction(transaction) {
                 assertSnapshot(
-                    matching: view
+                    matching: FakeDeviceScreenView(imageConfig: device, content: view)
                         .environment(\.colorScheme, colorScheme)
                         .environmentObject(environment),
                     as: .image(precision: 0.99, layout: .device(config: device)),
@@ -97,7 +97,7 @@ class AppStoreScreenshotTests: XCTestCase {
         }
     }
 
-    var tabNavigationEncounterDetailRunning: ContentView {
+    var tabNavigationEncounterDetailRunning: ConstructView {
         let encounterDetailViewState = encounterDetailRunningEncounterDetailState
 
         let state = AppState(
@@ -131,10 +131,10 @@ class AppStoreScreenshotTests: XCTestCase {
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ContentView(store: store)
+        return ConstructView(store: store)
     }
 
-    var tabNavigationDiceRoller: ContentView {
+    var tabNavigationDiceRoller: ConstructView {
         let state = AppState(
             navigation: .tab(
                 TabNavigationViewState(
@@ -151,7 +151,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ContentView(store: store)
+        return ConstructView(store: store)
     }
 
     var tabNavigationCombatantDetail: some View {
@@ -167,7 +167,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
     }
 
-    var tabNavigationCampaignBrowseView: ContentView {
+    var tabNavigationCampaignBrowseView: ConstructView {
         let campaignBrowseViewState = self.campaignBrowseViewState
         let state = AppState(
             navigation: .tab(
@@ -192,7 +192,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ContentView(store: store)
+        return ConstructView(store: store)
     }
 
     var tabNavigationCombatantDetailMage: some View {
@@ -224,7 +224,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
     }
 
-    var columnNavigationEncounterDetailRunning: ContentView {
+    var columnNavigationEncounterDetailRunning: ConstructView {
         let encounterDetailViewState = encounterDetailRunningEncounterDetailState
 
         let state = AppState(
@@ -275,7 +275,7 @@ class AppStoreScreenshotTests: XCTestCase {
             preferences: Preferences()
         )
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ContentView(store: store)
+        return ConstructView(store: store)
     }
 
     var encounterDetailRunningEncounterDetailState: EncounterDetailViewState {
@@ -400,7 +400,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
     }
 
-    var columnNavigationEncounterDetailBuilding: ContentView {
+    var columnNavigationEncounterDetailBuilding: ConstructView {
         var encounter = SampleEncounter.createEncounter(with: environment)
         encounter.combatants.remove(at: 0)
 
@@ -477,10 +477,10 @@ class AppStoreScreenshotTests: XCTestCase {
             preferences: Preferences()
         )
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ContentView(store: store)
+        return ConstructView(store: store)
     }
 
-    var columnNavigationCampaignBrowseView: ContentView {
+    var columnNavigationCampaignBrowseView: ConstructView {
         let state = AppState(
             navigation: .column(
                 ColumnNavigationViewState(
@@ -532,7 +532,7 @@ class AppStoreScreenshotTests: XCTestCase {
             preferences: Preferences()
         )
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ContentView(store: store)
+        return ConstructView(store: store)
     }
 
     var campaignBrowseViewState: CampaignBrowseViewState {
@@ -581,7 +581,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
     }
 
-    var columnNavigationDiceCalculatorSpell: ContentView {
+    var columnNavigationDiceCalculatorSpell: ConstructView {
         let state = AppState(
             navigation: .column(
                 ColumnNavigationViewState(
@@ -644,7 +644,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ContentView(store: store)
+        return ConstructView(store: store)
     }
 
     var columnNavigationCreatureEdit: some View {
@@ -690,7 +690,7 @@ class AppStoreScreenshotTests: XCTestCase {
             preferences: Preferences()
         )
         let backgroundStore = Store<AppState, AppState.Action>(initialState: backgroundState, reducer: Reducer.empty, environment: ())
-        let backgroundView = ContentView(store: backgroundStore)
+        let backgroundView = ConstructView(store: backgroundStore)
 
         let sheetView = SheetNavigationContainer {
             CreatureEditView(
@@ -725,14 +725,15 @@ struct FakeSheetView<Background, Modal>: View where Background: View, Modal: Vie
                 background.accentColor(Color(UIColor.systemGray))
 
                 Color.black.opacity(0.2)
+                    .ignoresSafeArea()
 
                 Elevated(content: sheet)
                     .navigationViewStyle(StackNavigationViewStyle())
                     .frame(width: 700, height: 750)
                     .cornerRadius(8)
                     .shadow(color: Color.black.opacity(0.15), radius: 50)
+                    .ignoresSafeArea()
             }
-            .ignoresSafeArea()
         } else {
             ZStack {
                 Color.black.ignoresSafeArea(.all, edges: .all)
@@ -768,6 +769,79 @@ struct FakeSheetView<Background, Modal>: View where Background: View, Modal: Vie
                 traitCollection,
                 UITraitCollection(userInterfaceLevel: .elevated)
             ])
+        }
+    }
+}
+
+struct FakeDeviceScreenView<Content>: View where Content: View {
+    @SwiftUI.Environment(\.colorScheme) var colorScheme
+
+    let imageConfig: ViewImageConfig
+    let content: Content
+    var statusBarColorScheme: ColorScheme? = nil
+
+    init(imageConfig: ViewImageConfig, content: Content) {
+        self.imageConfig = imageConfig
+        self.content = content
+
+        if String(describing: content.self).hasPrefix("FakeSheetView") && !isPad {
+            self.statusBarColorScheme = .dark
+        }
+    }
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            content
+
+            StatusBar(colorScheme: statusBarColorScheme ?? colorScheme, imageConfig: imageConfig)
+                .ignoresSafeArea()
+
+            if imageConfig.safeArea.bottom > 0 {
+                // home indicator
+                Rectangle()
+                    .foregroundColor(Color(UIColor.label))
+                    .opacity(0.80)
+                    .frame(width: isPad ? 350 : 140, height: 6)
+                    .cornerRadius(3)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, isPad ? 6 : 4)
+                    .ignoresSafeArea()
+            }
+        }
+    }
+
+    var isPad: Bool {
+        imageConfig.traits.userInterfaceIdiom == .pad
+    }
+
+    struct StatusBar: View {
+        let colorScheme: ColorScheme
+
+        let imageConfig: ViewImageConfig
+
+        var body: some View {
+            HStack {
+                Text("9:41")
+                Spacer()
+
+                if isPad {
+                    Text("\(Image(systemName: "wifi")) 100% \(Image(systemName: "battery.100"))")
+                } else {
+                    Text("\(Image(systemName: "chart.bar.fill")) \(Image(systemName: "wifi")) \(Image(systemName: "battery.100"))")
+                }
+            }
+            .font(Font.system(size: isPad ? 12 : 14).monospacedDigit().bold())
+            .foregroundColor(self.colorScheme == .dark ? .white : .black)
+            .padding(
+                isPad
+                    ? EdgeInsets(top: 4, leading: 12, bottom: 0, trailing: 12)
+                    : EdgeInsets(top: 8, leading: 8, bottom: 0, trailing: 8)
+            )
+            .ignoresSafeArea()
+        }
+
+        var isPad: Bool {
+            imageConfig.traits.userInterfaceIdiom == .pad
         }
     }
 }
