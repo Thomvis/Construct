@@ -12,10 +12,14 @@ import ComposableArchitecture
 
 struct RunningEncounterActionBar: View {
     @EnvironmentObject var environment: Environment
+
+    @ScaledMetric(relativeTo: .body)
+    private var verticalDividerHeight: CGFloat = 30
+
     @ObservedObject var viewStore: ViewStore<EncounterDetailViewState, EncounterDetailViewState.Action>
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             Menu(content: {
                 Button(action: {
                     withAnimation {
@@ -23,14 +27,6 @@ struct RunningEncounterActionBar: View {
                     }
                 }) {
                     Label("Previous turn", systemImage: "backward.frame")
-                }
-
-                Button(action: {
-                    withAnimation {
-                        viewStore.send(.stop)
-                    }
-                }) {
-                    Label("Stop run", systemImage: "stop.circle")
                 }
 
                 if !(viewStore.state.running?.log ?? []).isEmpty {
@@ -52,7 +48,17 @@ struct RunningEncounterActionBar: View {
                 Button(action: {
                     viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter: viewStore.state.encounter)))))
                 }) {
-                    Label("Add combatants", systemImage: "plus.circle")
+                    Label("Add combatants", systemImage: "plus")
+                }
+
+                Divider()
+
+                Button(action: {
+                    withAnimation {
+                        viewStore.send(.stop)
+                    }
+                }) {
+                    Label("Stop run", systemImage: "stop.fill")
                 }
             }) {
                 HStack {
@@ -62,7 +68,6 @@ struct RunningEncounterActionBar: View {
                         VStack(alignment: .leading) {
                             running.currentTurnCombatant.map { combatant in
                                 Text("\(combatant.discriminatedName)'s turn")
-                                    .fixedSize(horizontal: true, vertical: false)
                             }
                             running.turn.map { turn in
                                 Text("Round \(turn.round)").font(.footnote)
@@ -74,6 +79,8 @@ struct RunningEncounterActionBar: View {
             }
 
             Spacer()
+
+            Color.white.frame(width: 1, height: verticalDividerHeight)
 
             if viewStore.state.encounter.initiativeOrder.isEmpty {
                 Button(action: {
@@ -96,7 +103,8 @@ struct RunningEncounterActionBar: View {
         .foregroundColor(Color.white)
         .padding(12)
         .frame(maxWidth: .infinity, minHeight: 70)
-        .background(Color(UIColor.systemBlue).cornerRadius(8))
+        .background(Color(UIColor.systemBlue))
+        .cornerRadius(8)
         .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
     }
 }
