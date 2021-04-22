@@ -63,10 +63,18 @@ class CompendiumImporter {
     }
 }
 
-enum CompendiumImporterError: Swift.Error {
+enum CompendiumImporterError: LocalizedError {
     case reader(CompendiumDataSourceReaderError)
     case database(Error)
     case other(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .reader(let error): return error.localizedDescription
+        case .database(let error): return error.localizedDescription
+        case .other(let error): return error.localizedDescription
+        }
+    }
 }
 
 struct CompendiumImportTask {

@@ -31,7 +31,14 @@ enum CompendiumDataSourceReaderOutput {
     }
 }
 
-enum CompendiumDataSourceReaderError: Swift.Error {
+enum CompendiumDataSourceReaderError: LocalizedError {
     case dataSource(CompendiumDataSourceError)
     case incompatibleDataSource
+
+    var errorDescription: String? {
+        switch self {
+        case .dataSource(let error): return error.localizedDescription
+        case .incompatibleDataSource: return NSLocalizedString("Incompatible data source format", comment: "CompendiumDataSourceReaderError.incompatibleDataSource")
+        }
+    }
 }

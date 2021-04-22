@@ -17,7 +17,14 @@ protocol CompendiumDataSource {
     func read() -> AnyPublisher<Data, CompendiumDataSourceError>
 }
 
-enum CompendiumDataSourceError: Swift.Error {
+enum CompendiumDataSourceError: LocalizedError {
     case notFound
     case other(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .notFound: return NSLocalizedString("Data source does not exist or could not be opened.", comment: "CompendiumDataSourceError.notFound")
+        case .other(let error): return error.localizedDescription
+        }
+    }
 }
