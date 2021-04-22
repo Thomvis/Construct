@@ -36,4 +36,14 @@ class StatBlockCombatantResourcesTest: XCTestCase {
         XCTAssertEqual(resources[0].title, "Cold Breath (Recharge 5-6)")
         XCTAssertEqual(resources[0].slots, [false])
     }
+
+    func testLegendaryActions() {
+        var monster = Fixtures.monster
+        monster.stats.legendary = .init(description: "Acererak can take 5 legendary actions, choosing", actions: [])
+
+        let resources = monster.stats.extractResources()
+        XCTAssertEqual(resources.count, 1)
+        XCTAssertEqual(resources[0].title, "Legendary Actions")
+        XCTAssertEqual(resources[0].slots, [false, false, false, false, false])
+    }
 }

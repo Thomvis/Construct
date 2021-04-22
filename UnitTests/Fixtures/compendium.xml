@@ -70,6 +70,46 @@
             <text>The dragon beats its wings. Each creature within 10 ft. of the dragon must succeed on a DC 19 Dexterity saving throw or take 13 (2d6 + 6) bludgeoning damage and be knocked prone. The dragon can then fly up to half its flying speed.</text>
         </legendary>
     </monster>
+    <monster>
+        <name>Bugbear</name>
+        <size>M</size>
+        <type>humanoid (goblinoid), monster manual</type>
+        <alignment>chaotic evil</alignment>
+        <ac>16 (hide armor, shield)</ac>
+        <hp>27 (5d8+5)</hp>
+        <speed>30 ft.</speed>
+        <str>15</str>
+        <dex>14</dex>
+        <con>13</con>
+        <int>8</int>
+        <wis>11</wis>
+        <cha>9</cha>
+        <skill>Stealth +6, Survival +2</skill>
+        <senses>darkvision 60 ft.</senses>
+        <passive>10</passive>
+        <languages>Common, Goblin</languages>
+        <cr>1</cr>
+        <trait>
+            <name>Brute</name>
+            <text>A melee weapon deals one extra die of its damage when the bugbear hits with it (included in the attack).</text>
+        </trait>
+        <trait>
+            <name>Surprise Attack</name>
+            <text>If the bugbear surprises a creature and hits it with an attack during the first round of combat, the target takes an extra 7 (2d6) damage from the attack.</text>
+            <attack>Surprise Attack||2d6</attack>
+        </trait>
+        <action>
+            <name>Morningstar</name>
+            <text>Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 11 (2d8 + 2) piercing damage.</text>
+            <attack>Morningstar|4|2d8+2</attack>
+        </action>
+        <action>
+            <name>Javelin</name>
+            <text>Melee or Ranged Weapon Attack: +4 to hit, reach 5 ft. or range 30/120 ft., one target. Hit: 9 (2d6 + 2) piercing damage in melee or 5 (1d6 + 2) piercing damage at range.</text>
+            <attack>Melee|4|2d6+2</attack>
+            <attack>Ranged|4|1d6+2</attack>
+        </action>
+    </monster>
     <!-- Item should be ignored-->
     <item>
         <name>Arrow</name>

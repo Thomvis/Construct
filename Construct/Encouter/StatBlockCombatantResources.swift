@@ -9,6 +9,8 @@
 import Foundation
 import Tagged
 
+private let legendaryActionCountParser = zip(string("take "), int(), string(" legendary actions")).skippingAnyBefore()
+
 extension StatBlock {
     func extractResources() -> [CombatantResource] {
         var result: [CombatantResource] = []
@@ -60,6 +62,12 @@ extension StatBlock {
                     result.append(CombatantResource(id: UUID().tagged(), title: f.name, slots: Array(repeating: false, count: c)))
                 }
             }
+        }
+
+        // Legendary actions
+        if let legendaryDescription = legendary?.description,
+           let count = legendaryActionCountParser.run(legendaryDescription)?.1 {
+            result.append(CombatantResource(id: UUID().tagged(), title: "Legendary Actions", slots: Array(repeating: false, count: count)))
         }
 
         return result

@@ -437,9 +437,13 @@ extension StatBlock {
                     description = nil
                 }
 
+                let actions = parseTraits(M.legendary(nil), CreatureAction.init) // this will skip the description element because it doesn't have a name
+
+                guard description != nil || !actions.isEmpty else { return nil }
+
                 return Legendary(
                     description: description,
-                    actions: parseTraits(M.legendary(nil), CreatureAction.init) // this will skip the description element because it doesn't have a name
+                    actions: actions
                 )
             }
         )

@@ -24,7 +24,7 @@ final class DocumentPicker: NSObject, UIViewControllerRepresentable, UIDocumentP
     }
 
     func makeUIViewController(context: UIViewControllerRepresentableContext<DocumentPicker>) -> UIDocumentPickerViewController {
-        let vc = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.content])
+        let vc = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.content], asCopy: true)
         vc.delegate = self
         return vc
     }
