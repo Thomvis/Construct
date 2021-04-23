@@ -83,7 +83,7 @@ struct NumberPadViewState: Hashable {
 
         var remainder = value
         while remainder > 0 {
-            let v = value % 10
+            let v = remainder % 10
             ints.insert(v, at: 0)
             remainder = (remainder - v) / 10
         }

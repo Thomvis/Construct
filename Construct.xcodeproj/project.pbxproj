@@ -203,6 +203,7 @@
 		E9AB031823EC52C90091C908 /* SimpleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AB031723EC52C80091C908 /* SimpleButton.swift */; };
 		E9AEA49B24C62A9600ACB44C /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AEA49A24C62A9600ACB44C /* Helpers.swift */; };
 		E9B432BB22AAF7540054324E /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B432BA22AAF7540054324E /* Environment.swift */; };
+		E9C7F7862632C193000351AB /* NumberPadTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C7F7852632C193000351AB /* NumberPadTest.swift */; };
 		E9CFB30F2350515700CA0AF4 /* CampaignBrowserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */; };
 		E9D5A6EC2314FB37004D84E2 /* DiceExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6E72314FB36004D84E2 /* DiceExpression.swift */; };
 		E9D5A6ED2314FB37004D84E2 /* Creature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6E82314FB37004D84E2 /* Creature.swift */; };
@@ -401,6 +402,7 @@
 		E9AB031923ECA9310091C908 /* HealthDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDialog.swift; sourceTree = "<group>"; };
 		E9AEA49A24C62A9600ACB44C /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		E9B432BA22AAF7540054324E /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
+		E9C7F7852632C193000351AB /* NumberPadTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberPadTest.swift; sourceTree = "<group>"; };
 		E9CFB30A234F9D8F00CA0AF4 /* CampaignNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignNode.swift; sourceTree = "<group>"; };
 		E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowser.swift; sourceTree = "<group>"; };
 		E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowserTest.swift; sourceTree = "<group>"; };
@@ -962,6 +964,7 @@
 				E91CCC862615D21B00CB0527 /* AppStoreScreenshotTests.swift */,
 				E90EFF312620597700F5443E /* XMLMonsterDataSourceReaderTest.swift */,
 				E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */,
+				E9C7F7852632C193000351AB /* NumberPadTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1285,6 +1288,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E95FD42F249BFA280023F363 /* EncounterDetailTest.swift in Sources */,
+				E9C7F7862632C193000351AB /* NumberPadTest.swift in Sources */,
 				E91CCC872615D21B00CB0527 /* AppStoreScreenshotTests.swift in Sources */,
 				E931CF8A25003077006CEE78 /* ParserCombinatorTest.swift in Sources */,
 				E9AEA49B24C62A9600ACB44C /* Helpers.swift in Sources */,
