@@ -80,7 +80,7 @@ struct AddCombatantView: View {
             }
         })) {
             IfLetStore(self.store.scope(state: replayNonNil({ $0.creatureEditViewState }), action: { .creatureEditView($0) })) { store in
-                NavigationView {
+                SheetNavigationContainer(isModalInPresentation: true) {
                     CreatureEditView(store: store)
                         .navigationBarTitle(Text("Quick create"), displayMode: .inline)
                 }

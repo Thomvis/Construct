@@ -8,10 +8,12 @@
 
 import Foundation
 import SwiftUI
+import Introspect
 
 struct SheetNavigationContainer<Content>: View where Content: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
+    var isModalInPresentation = false
     let content: () -> Content
 
     var body: some View {
@@ -21,6 +23,12 @@ struct SheetNavigationContainer<Content>: View where Content: View {
         .environment(\.sheetPresentationMode, SheetPresentationMode {
             self.presentationMode.wrappedValue.dismiss()
         })
+        .introspectViewController { vc in
+            assert(vc.parent == nil && vc.presentingViewController != nil)
+            if isModalInPresentation {
+                vc.isModalInPresentation = true
+            }
+        }
     }
 
 }

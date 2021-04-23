@@ -98,7 +98,7 @@ struct CompendiumItemDetailView: View {
         switch viewStore.state.sheet {
         case .creatureEdit:
             IfLetStore(store.scope(state: replayNonNil({ $0.creatureEditSheet }), action: { .sheet(.creatureEdit($0)) })) { store in
-                SheetNavigationContainer {
+                SheetNavigationContainer(isModalInPresentation: true) {
                     CreatureEditView(store: store)
                 }
             }

@@ -130,7 +130,7 @@ struct CompendiumIndexView: View {
         IfLetStore(
             store.scope(state: replayNonNil({ $0.creatureEditSheet }), action: { .creatureEditSheet($0) }),
             then: { store in
-                SheetNavigationContainer {
+                SheetNavigationContainer(isModalInPresentation: true) {
                     CreatureEditView(store: store)
                 }
             },

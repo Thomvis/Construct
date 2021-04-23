@@ -197,13 +197,15 @@ struct CampaignBrowseView: View {
         case .settings:
             return SettingsContainerView().environmentObject(env).eraseToAnyView
         case .nodeEdit(let s):
-            return NodeEditView(onDoneTap: { (state, node, title) in
-                viewStore.send(.didTapNodeEditDone(state, node, title))
-            }, state: Binding(get: {
-                self.viewStore.state.nodeEditState ?? s
-            }, set: {
-                self.viewStore.send(.sheet(.nodeEdit($0)))
-            })).eraseToAnyView
+            return SheetNavigationContainer {
+                NodeEditView(onDoneTap: { (state, node, title) in
+                    viewStore.send(.didTapNodeEditDone(state, node, title))
+                }, state: Binding(get: {
+                    self.viewStore.state.nodeEditState ?? s
+                }, set: {
+                    self.viewStore.send(.sheet(.nodeEdit($0)))
+                }))
+            }.eraseToAnyView
         case .move:
             return SheetNavigationContainer {
                 IfLetStore(self.store.scope(state: { $0.moveSheetState }, action: { .moveSheet($0) })) { store in
@@ -225,44 +227,42 @@ struct NodeEditView: View {
     @State var didFocusOnField = false
 
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 22) {
-                    Image(systemName: state.contentType.iconName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 200.0, height: 200.0)
+        ScrollView {
+            VStack(spacing: 22) {
+                Image(systemName: state.contentType.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 200.0, height: 200.0)
 
-                    HStack {
-                        ClearableTextField("Name", text: $state.name, onCommit: self.saveAndDismissIfValid)
-                            .disableAutocorrection(true)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .introspectTextField { textField in
-                                if !textField.isFirstResponder, !didFocusOnField {
-                                    textField.becomeFirstResponder()
-                                    didFocusOnField = true
-                                }
+                HStack {
+                    ClearableTextField("Name", text: $state.name, onCommit: self.saveAndDismissIfValid)
+                        .disableAutocorrection(true)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .introspectTextField { textField in
+                            if !textField.isFirstResponder, !didFocusOnField {
+                                textField.becomeFirstResponder()
+                                didFocusOnField = true
                             }
-                    }
-                    .padding(8)
-                    .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
+                        }
                 }
-                .padding(22)
+                .padding(8)
+                .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(UIColor.systemBackground).opacity(0.90).edgesIgnoringSafeArea(.all))
-            .navigationBarTitle("\(state.node != nil ? "Rename" : "Add") \(state.contentType.displayName)", displayMode: .inline)
-            .navigationBarItems(
-                leading: Button(action: {
-                    self.presentationMode.wrappedValue.dismiss()
-                }) {
-                    Text("Cancel")
-                },
-                trailing: Button(action: self.saveAndDismissIfValid) {
-                    Text("Done").bold()
-                }.disabled(state.name.isEmpty)
-            )
+            .padding(22)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(UIColor.systemBackground).opacity(0.90).edgesIgnoringSafeArea(.all))
+        .navigationBarTitle("\(state.node != nil ? "Rename" : "Add") \(state.contentType.displayName)", displayMode: .inline)
+        .navigationBarItems(
+            leading: Button(action: {
+                self.presentationMode.wrappedValue.dismiss()
+            }) {
+                Text("Cancel")
+            },
+            trailing: Button(action: self.saveAndDismissIfValid) {
+                Text("Done").bold()
+            }.disabled(state.name.isEmpty)
+        )
     }
 
     func saveAndDismissIfValid() {
