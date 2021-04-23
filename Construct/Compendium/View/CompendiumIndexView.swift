@@ -71,7 +71,7 @@ struct CompendiumIndexView: View {
             // Dismiss the keyboard when the user starts scrolling in the list
             env.dismissKeyboard()
         })
-        .navigationBarTitle(localViewStore.state.title)
+        .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
         .navigationBarItems(trailing: Group {
             if localViewStore.state.showImportButton {
                 Button(action: {
@@ -246,7 +246,7 @@ fileprivate struct CompendiumTocView: View {
                 }
             }
         }
-        .listStyle(GroupedListStyle())
+        .listStyle(InsetGroupedListStyle())
         // Workaround: we use a single NavigationLink instead of one per row because that breaks
         // programmatic navigation inside the reference view.
         // Apparently NavigationLinks inside a List work slightly differently

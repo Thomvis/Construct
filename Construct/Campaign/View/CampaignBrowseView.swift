@@ -70,7 +70,7 @@ struct CampaignBrowseView: View {
             .ignoresSafeArea(.keyboard, edges: .all)
         }
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, content: self.sheetView)
-        .navigationBarTitle(viewStore.state.navigationBarTitle)
+        .navigationBarTitle(viewStore.state.navigationBarTitle, displayMode: .inline)
         .background(Group {
             if viewStore.state.showSettingsButton {
                 EmptyView()
