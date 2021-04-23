@@ -190,10 +190,7 @@ extension DiceCalculatorState {
     }
 
     var canRerollResult: Bool {
-        if let result = result {
-            return result.dice.count > 0
-        }
-        return false
+        return result != nil && expression.diceCount > 0
     }
 
     var showDicePad: Bool {
