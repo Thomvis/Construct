@@ -19,14 +19,23 @@ struct CombatantRow: View {
 
     var body: some View {
         HStack {
-            combatant.hp.map { hp in
+            if let hp = combatant.hp {
                 SimpleButton(action: {
                     self.onHealthTap()
                 }) {
                     HealthFractionView(hp: hp)
                 }
+            } else {
+                VStack(spacing: 0) {
+                    Divider()
+                }
+                .padding([.leading, .trailing], 4)
+                .frame(width: 25)
+                .opacity(0.66)
             }
-            combatant.definition.ac.map { ShieldIcon(ac: $0) }
+
+            ShieldIcon(ac: combatant.definition.ac)
+
             VStack(alignment: .leading) {
                 combatant.discriminatedNameText()
                     .fontWeight(combatant.definition.player != nil ? .bold : .regular)
@@ -122,13 +131,18 @@ struct CombatantRow: View {
     }
 }
 
-func ShieldIcon(ac: Int) -> some View {
+func ShieldIcon(ac: Int?) -> some View {
     ZStack {
         Image(systemName: "shield")
             .font(Font.title.weight(.light))
-        Text("\(ac)")
-            .font(.caption)
+
+        if let ac = ac {
+            Text("\(ac)")
+                .font(.caption)
+        }
     }
+    .opacity(ac != nil ? 1.0 : 0.1)
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel(Text("AC: \(ac)"))
+    .accessibilityLabel(Text("AC: \(ac ?? 0)"))
+    .accessibilityHidden(ac == nil)
 }
