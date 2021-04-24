@@ -24,7 +24,9 @@ struct SheetNavigationContainer<Content>: View where Content: View {
             self.presentationMode.wrappedValue.dismiss()
         })
         .introspectViewController { vc in
-            assert(vc.parent == nil && vc.presentingViewController != nil)
+            guard presentationMode.wrappedValue.isPresented else { return }
+
+            assert(!presentationMode.wrappedValue.isPresented || (vc.parent == nil && vc.presentingViewController != nil))
             if isModalInPresentation {
                 vc.isModalInPresentation = true
             }
