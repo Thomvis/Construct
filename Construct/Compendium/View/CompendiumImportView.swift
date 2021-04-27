@@ -100,6 +100,7 @@ struct CompendiumImportView: View {
                     action: {
                         if progress.result != nil {
                             self.presentationMode.wrappedValue.dismiss()
+                            env.requestAppStoreReview()
                         }
                     }
                 )

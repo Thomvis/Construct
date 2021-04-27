@@ -12,6 +12,7 @@ import Combine
 import CoreHaptics
 import MessageUI
 import CombineSchedulers
+import StoreKit
 
 class Environment: ObservableObject {
 
@@ -22,6 +23,7 @@ class Environment: ObservableObject {
     var canSendMail: () -> Bool
     var sendMail: () -> Void
     var rateInAppStore: () -> Void
+    var requestAppStoreReview: () -> Void
 
     var isIdleTimerDisabled: Binding<Bool>
 
@@ -38,6 +40,7 @@ class Environment: ObservableObject {
         canSendMail: @escaping () -> Bool,
         sendMail: @escaping () -> Void,
         rateInAppStore: @escaping () -> Void,
+        requestAppStoreReview: @escaping () -> Void,
         isIdleTimerDisabled: Binding<Bool>,
         generateUUID: @escaping () -> UUID,
         rng: AnyRandomNumberGenerator,
@@ -50,6 +53,7 @@ class Environment: ObservableObject {
         self.canSendMail = canSendMail
         self.sendMail = sendMail
         self.rateInAppStore = rateInAppStore
+        self.requestAppStoreReview = requestAppStoreReview
         self.isIdleTimerDisabled = isIdleTimerDisabled
         self.generateUUID = generateUUID
         self.rng = rng
@@ -100,6 +104,11 @@ extension Environment {
                 let appID = 1490015210
                 let url = "https://itunes.apple.com/app/id\(appID)?action=write-review"
                 UIApplication.shared.open(URL(string: url)!, options: [:], completionHandler: nil)
+            },
+            requestAppStoreReview: {
+                if let windowScene = keyWindow()?.windowScene {
+                    SKStoreReviewController.requestReview(in: windowScene)
+                }
             },
             isIdleTimerDisabled: Binding<Bool>(get: {
                 UIApplication.shared.isIdleTimerDisabled

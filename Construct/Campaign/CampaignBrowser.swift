@@ -9,6 +9,9 @@
 import Foundation
 
 class CampaignBrowser {
+    /// The number of existing nodes (excluding root node) when the app is first opened
+    static let initialSpecialNodeCount = 1
+
     let store: KeyValueStore
 
     init(store: KeyValueStore) {
@@ -45,6 +48,11 @@ class CampaignBrowser {
 
         try store.put(newNode)
         try store.remove(node.key)
+    }
+
+    /// Returns the total number of nodes
+    func nodeCount() throws -> Int {
+        return try store.count(CampaignNode.keyPrefix)
     }
 }
 

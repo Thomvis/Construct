@@ -136,6 +136,12 @@ final class KeyValueStore {
         return try Record.filter(key: key).fetchCount(db) > 0
     }
 
+    func count(_ keyPrefix: String) throws -> Int {
+        return try queue.read { db in
+            return try Record.filter(Column("key").like("\(keyPrefix)%")).fetchCount(db)
+        }
+    }
+
     func getRaw(_ key: String) throws -> Record? {
         return try queue.read { db in
             return try Record.fetchOne(db, key: key)

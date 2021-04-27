@@ -109,6 +109,13 @@ struct AppState: Equatable {
                 case .onAppear:
                     if !state.preferences.didShowWelcomeSheet {
                         state.showWelcomeSheet = true
+                    } else {
+                        // check if user created some campaign nodes
+                        if let nodeCount = try? env.campaignBrowser.nodeCount(),
+                           nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
+                        {
+                            env.requestAppStoreReview()
+                        }
                     }
                 case .sceneDidBecomeActive:
                     state.sceneIsActive = true

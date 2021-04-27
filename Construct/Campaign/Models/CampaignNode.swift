@@ -40,11 +40,13 @@ extension CampaignNode {
     static let root = CampaignNode(id: UUID(uuidString: "990EDB4B-90C7-452A-94AB-3857350B2FA6")!.tagged(), title: "ROOT", contents: nil, special: .root, parentKeyPrefix: nil)
     static let scratchPadEncounter = CampaignNode(id: UUID(uuidString: "14A7E9D3-14B8-46DF-A7F2-3B5DCE16EEA5")!.tagged(), title: "Scratch pad", contents: CampaignNode.Contents(key: Encounter.key(Encounter.scratchPadEncounterId), type: .encounter), special: .scratchPadEncounter, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren)
 
+    static let keyPrefix = "cn_"
+
     var key: String {
         if let parent = parentKeyPrefix {
             return "\(parent)/.\(id)"
         }
-        return "cn_.\(id)"
+        return "\(Self.keyPrefix).\(id)"
     }
 
     var keyPrefixForChildren: String {
