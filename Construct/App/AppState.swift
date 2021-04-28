@@ -20,11 +20,12 @@ struct AppState: Equatable {
 
     var sceneIsActive = false
 
-    var topNavigationItemState: NavigationStackItemState? {
-        guard !showWelcomeSheet else { return nil }
+    var topNavigationItems: [Any] {
+        guard !showWelcomeSheet else { return [] }
         switch navigation {
-        case .tab(let s): return s.topNavigationItemState
-        case .column, nil: return nil
+        case .tab(let s): return s.topNavigationItems
+        case .column(let s): return s.topNavigationItems
+        case nil: return []
         }
     }
 
@@ -126,7 +127,7 @@ struct AppState: Equatable {
             },
             Navigation.reducer.optional().pullback(state: \.navigation, action: /AppState.Action.navigation),
             Reducer { state, action, env in
-                if state.sceneIsActive, let edv = state.topNavigationItemState as? EncounterDetailViewState, edv.running != nil {
+                if state.sceneIsActive, let edv = state.topNavigationItems.compactMap({ $0 as? EncounterDetailViewState }).first, edv.running != nil {
                     env.isIdleTimerDisabled.wrappedValue = true
                 } else {
                     env.isIdleTimerDisabled.wrappedValue = false

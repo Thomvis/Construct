@@ -19,6 +19,16 @@ struct ColumnNavigationViewState: Equatable {
         expression: .dice(count: 1, die: Die(sides: 20)),
         mode: .rollingExpression
     ))
+
+    var topNavigationItems: [Any] {
+        var res = campaignBrowse.topNavigationItems()
+
+        if let ref = referenceView.selectedItemNavigationNode?.topNavigationItems() {
+            res.append(ref)
+        }
+        
+        return res
+    }
 }
 
 enum ColumnNavigationViewAction: Equatable {

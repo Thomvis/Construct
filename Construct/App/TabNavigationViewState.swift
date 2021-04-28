@@ -17,11 +17,11 @@ struct TabNavigationViewState: Equatable {
     var compendium: CompendiumIndexState = CompendiumIndexState(title: "Compendium", properties: .index, results: .initial)
     var diceRoller: DiceRollerViewState = DiceRollerViewState()
 
-    var topNavigationItemState: NavigationStackItemState? {
+    var topNavigationItems: [Any] {
         switch selectedTab {
-        case .campaign: return campaignBrowser.topNavigationItems().compactMap({ $0 as? NavigationStackItemState }).first
-        case .compendium: return compendium.topNavigationItems().compactMap({ $0 as? NavigationStackItemState }).first
-        case .diceRoller: return nil
+        case .campaign: return campaignBrowser.topNavigationItems()
+        case .compendium: return compendium.topNavigationItems()
+        case .diceRoller: return []
         }
     }
 
