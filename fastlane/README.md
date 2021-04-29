@@ -31,6 +31,11 @@ fastlane ios appstore
 fastlane ios update_appcenter_dsyms
 ```
 
+### ios prepare_app_store_screenshots
+```
+fastlane ios prepare_app_store_screenshots
+```
+
 
 ----
 

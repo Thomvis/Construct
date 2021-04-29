@@ -15,12 +15,25 @@ import XCTest
 
 /// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests
 class AppStoreScreenshotTests: XCTestCase {
+    static let phones: [(String, ViewImageConfig)] = [
+        ("iPhone65", .iPhoneXsMax),
+        ("iPhone55", .iPhone8Plus)
+    ]
+
+    static let pads: [(String, ViewImageConfig)] = [
+        ("iPadPro129_4th_gen", .iPadPro12_9_4th_gen),
+        ("iPadPro129_3rd_gen", .iPadPro12_9)
+    ]
+
     var environment: Construct.Environment!
 
     override class func setUp() {
         super.setUp()
 //        SnapshotTesting.isRecording = true
         SnapshotTesting.diffTool = "ksdiff"
+
+        // Workaround for white unselected item icons in the tab bar
+        UITabBar.appearance().unselectedItemTintColor = UIColor.systemGray2
     }
 
     override func setUp() {
@@ -32,54 +45,54 @@ class AppStoreScreenshotTests: XCTestCase {
     }
 
     func test_iPhone_screenshot1() {
-        snapshot(view: tabNavigationEncounterDetailRunning, devices: [.iPhoneXsMax, .iPhoneX])
+        snapshot(view: tabNavigationEncounterDetailRunning, devices: Self.phones)
     }
 
     func test_iPhone_screenshot2() {
-        snapshot(view: tabNavigationCombatantDetail, devices: [.iPhoneXsMax, .iPhoneX])
+        snapshot(view: tabNavigationCombatantDetail, devices: Self.phones)
     }
 
     func test_iPhone_screenshot4() {
-        snapshot(view: tabNavigationCampaignBrowseView, devices: [.iPhoneXsMax, .iPhoneX])
+        snapshot(view: tabNavigationCampaignBrowseView, devices: Self.phones)
     }
 
     func test_iPhone_screenshot5() {
-        snapshot(view: tabNavigationCombatantDetailMage, devices: [.iPhoneXsMax, .iPhoneX], colorScheme: .dark)
+        snapshot(view: tabNavigationCombatantDetailMage, devices: Self.phones, colorScheme: .dark)
     }
 
     func test_iPhone_screenshot6() {
-        snapshot(view: tabNavigationDiceRoller, devices: [.iPhoneXsMax, .iPhoneX], colorScheme: .dark)
+        snapshot(view: tabNavigationDiceRoller, devices: Self.phones, colorScheme: .dark)
     }
 
     func test_iPad_screenshot1() {
-        snapshot(view: columnNavigationEncounterDetailRunning, devices: [.iPadPro11, .iPadPro10_5])
+        snapshot(view: columnNavigationEncounterDetailRunning, devices: Self.pads)
     }
 
     func test_iPad_screenshot2() {
-        snapshot(view: columnNavigationCampaignBrowseView, devices: [.iPadPro11, .iPadPro10_5])
+        snapshot(view: columnNavigationCampaignBrowseView, devices: Self.pads)
     }
 
     func test_iPad_screenshot3() {
-        snapshot(view: columnNavigationEncounterDetailBuilding, devices: [.iPadPro11, .iPadPro10_5])
+        snapshot(view: columnNavigationEncounterDetailBuilding, devices: Self.pads)
     }
 
     func test_iPad_screenshot4() {
-        snapshot(view: columnNavigationDiceCalculatorSpell, devices: [.iPadPro11, .iPadPro10_5])
+        snapshot(view: columnNavigationDiceCalculatorSpell, devices: Self.pads)
     }
 
     func test_iPad_screenshot5() {
-        snapshot(view: columnNavigationCreatureEdit, devices: [.iPadPro11, .iPadPro10_5])
+        snapshot(view: columnNavigationCreatureEdit, devices: Self.pads)
     }
 
     private func snapshot<View>(
         view: View,
-        devices: [ViewImageConfig],
+        devices: [(String, ViewImageConfig)],
         colorScheme: ColorScheme = .light,
         file: StaticString = #file,
         testName: String = #function,
         line: UInt = #line
     ) where View: SwiftUI.View {
-        for device in devices {
+        for (name, device) in devices {
             var transaction = Transaction(animation: nil)
             transaction.disablesAnimations = true
 
@@ -89,9 +102,10 @@ class AppStoreScreenshotTests: XCTestCase {
                         .environment(\.colorScheme, colorScheme)
                         .environmentObject(environment),
                     as: .image(precision: 0.99, layout: .device(config: device)),
-                   file: file,
-                   testName: testName,
-                   line: line
+                    named: name,
+                    file: file,
+                    testName: testName,
+                    line: line
                 )
             }
         }
@@ -820,28 +834,69 @@ struct FakeDeviceScreenView<Content>: View where Content: View {
         let imageConfig: ViewImageConfig
 
         var body: some View {
-            HStack {
-                Text("9:41")
-                Spacer()
+            Group {
+                if hasNotch {
+                    HStack {
+                        Text("9:41")
 
-                if isPad {
-                    Text("\(Image(systemName: "wifi")) 100% \(Image(systemName: "battery.100"))")
+                        Spacer()
+
+                        Text("\(Image(systemName: "chart.bar.fill")) \(Image(systemName: "wifi")) \(Image(systemName: "battery.100"))")
+                    }
+                } else if isPad {
+                    HStack {
+                        Text("9:41")
+
+                        Spacer()
+
+                        Text("\(Image(systemName: "wifi")) 100% \(Image(systemName: "battery.100"))")
+                    }
                 } else {
-                    Text("\(Image(systemName: "chart.bar.fill")) \(Image(systemName: "wifi")) \(Image(systemName: "battery.100"))")
+                    HStack {
+                        Text("\(Image(systemName: "chart.bar.fill")) \(Image(systemName: "wifi"))")
+
+                        Spacer()
+
+                        Text("\(Image(systemName: "battery.100"))")
+                    }.overlay(Text("9:41"))
                 }
+
             }
             .font(Font.system(size: isPad ? 12 : 14).monospacedDigit().bold())
             .foregroundColor(self.colorScheme == .dark ? .white : .black)
             .padding(
                 isPad
                     ? EdgeInsets(top: 4, leading: 12, bottom: 0, trailing: 12)
-                    : EdgeInsets(top: 8, leading: 8, bottom: 0, trailing: 8)
+                    : EdgeInsets(top: 8, leading: 16, bottom: 0, trailing: 16)
             )
             .ignoresSafeArea()
+        }
+
+        var hasNotch: Bool {
+            imageConfig.safeArea.top > 20
         }
 
         var isPad: Bool {
             imageConfig.traits.userInterfaceIdiom == .pad
         }
     }
+}
+
+extension ViewImageConfig {
+    public static let iPadPro12_9_4th_gen = ViewImageConfig.iPadPro12_9_4th_gen(.landscape)
+
+      public static func iPadPro12_9_4th_gen(_ orientation: Orientation) -> ViewImageConfig {
+        switch orientation {
+        case .landscape:
+          return ViewImageConfig.iPadPro12_9_4th_gen(.landscape(splitView: .full))
+        case .portrait:
+          return ViewImageConfig.iPadPro12_9_4th_gen(.portrait(splitView: .full))
+        }
+      }
+
+      public static func iPadPro12_9_4th_gen(_ orientation: TabletOrientation) -> ViewImageConfig {
+        var base = Self.iPadPro12_9(orientation)
+        base.safeArea = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
+        return base
+      }
 }

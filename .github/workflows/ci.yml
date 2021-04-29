@@ -10,7 +10,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
     strategy:
       matrix:
-        destination: ["OS=14.4,name=iPad Air (4th generation)"]
+        destination: ["OS=14.4,name=iPhone 12 mini"] # needs to be a @3x device for the snapshots
     steps:
       - uses: actions/checkout@v2
       - name: LFS pull
