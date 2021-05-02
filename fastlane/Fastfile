@@ -60,4 +60,14 @@ platform :ios do
     `for s in ../UnitTests/__Snapshots__/AppStoreScreenshotTests/*iPadPro129_4th_gen.png; do sips -s format png "${s}" -Z 2732 --out "screenshots/en-US/${s##*/}"; done`
     `for s in ../UnitTests/__Snapshots__/AppStoreScreenshotTests/*iPhone*.png; do cp "${s}" screenshots/en-US/; done`
   end
+
+  lane :upload_app_store_screenshots do
+    prepare_app_store_screenshots
+
+    upload_to_app_store(
+      skip_screenshots: false,
+      skip_metadata: true,
+      skip_binary_upload: true
+    )
+  end
 end

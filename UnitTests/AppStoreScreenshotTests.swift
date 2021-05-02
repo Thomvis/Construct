@@ -34,6 +34,8 @@ class AppStoreScreenshotTests: XCTestCase {
 
         // Workaround for white unselected item icons in the tab bar
         UITabBar.appearance().unselectedItemTintColor = UIColor.systemGray2
+        // Workaround for transparent tab bar
+        UITabBar.appearance().backgroundColor = UIColor.systemBackground
     }
 
     override func setUp() {
@@ -50,6 +52,10 @@ class AppStoreScreenshotTests: XCTestCase {
 
     func test_iPhone_screenshot2() {
         snapshot(view: tabNavigationCombatantDetail, devices: Self.phones)
+    }
+
+    func test_iPhone_screenshot3() {
+        snapshot(view: tabNavigationCompendiumIndex, devices: Self.phones)
     }
 
     func test_iPhone_screenshot4() {
@@ -179,6 +185,31 @@ class AppStoreScreenshotTests: XCTestCase {
             background: Color(UIColor.secondarySystemBackground),
             sheet: CombatantDetailContainerView(store: store)
         )
+    }
+
+    var tabNavigationCompendiumIndex: ConstructView {
+        let state = AppState(
+            navigation: .tab(
+                TabNavigationViewState(
+                    selectedTab: .compendium,
+                    campaignBrowser: CampaignBrowseViewState.nullInstance,
+                    compendium: apply(CompendiumIndexState(
+                        title: CompendiumItemType.monster.localizedScreenDisplayName,
+                        properties: .secondary,
+                        results: .initial
+                    )) { state in
+                        let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
+                        ViewStore(store).send(.query(.onTextDidChange("Dragon"), debounce: false))
+                        state = ViewStore(store).state
+                    },
+                    diceRoller: DiceRollerViewState.nullInstance
+                )
+            ),
+            preferences: Preferences()
+        )
+
+        let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
+        return ConstructView(store: store)
     }
 
     var tabNavigationCampaignBrowseView: ConstructView {
