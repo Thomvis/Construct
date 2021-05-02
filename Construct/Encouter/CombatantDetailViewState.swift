@@ -143,9 +143,16 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             case .initiativePopover: break // handled above
             case .saveToCompendium:
                 guard let def = state.combatant.definition as? AdHocCombatantDefinition, let stats = def.stats else { return .none }
-                let monster = Monster(realm: .homebrew, stats: stats, challengeRating: Fraction(integer: 0))
-                try? env.compendium.put(CompendiumEntry(monster))
-                return Effect(value: .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: CompendiumCombatantDefinition(item: monster, persistent: false)))))
+
+                let item: CompendiumCombatant
+                if def.isUnique {
+                    item = Character(id: UUID().tagged(), realm: .homebrew, level: def.level, stats: def.stats ?? .default, player: def.player)
+                } else {
+                    item = Monster(realm: .homebrew, stats: stats, challengeRating: Fraction(integer: 0))
+                }
+
+                try? env.compendium.put(CompendiumEntry(item))
+                return Effect(value: .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: CompendiumCombatantDefinition(item: item, persistent: false)))))
             case .unlinkFromCompendium:
                 let currentDefinition = state.combatant.definition
 
