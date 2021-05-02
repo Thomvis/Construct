@@ -518,6 +518,10 @@ extension CreatureEditFormModel {
             result.insert(.abilities)
         }
 
+        if statBlock.statBlock.initiative != nil {
+            result.insert(.initiative)
+        }
+
         return result
     }
 }
