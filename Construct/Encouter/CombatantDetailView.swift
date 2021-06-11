@@ -16,13 +16,7 @@ struct CombatantDetailContainerView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @EnvironmentObject var env: Environment
 
-    var store: Store<CombatantDetailViewState, CombatantDetailViewAction>
-    @ObservedObject var viewStore: ViewStore<CombatantDetailViewState, CombatantDetailViewAction>
-
-    init(store: Store<CombatantDetailViewState, CombatantDetailViewAction>) {
-        self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
-    }
+    let store: Store<CombatantDetailViewState, CombatantDetailViewAction>
 
     var body: some View {
         NavigationView {
