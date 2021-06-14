@@ -65,12 +65,6 @@ extension String {
     }
 }
 
-extension Publisher where Failure == Never {
-    func promoteError<F>() -> Publishers.MapError<Self, F> where F: Error {
-        return mapError { $0 as! F }
-    }
-}
-
 extension Optional where Wrapped == String {
     var nonNilString: String {
         self ?? ""
@@ -107,7 +101,7 @@ extension Array {
 
 extension Publisher {
     public func delaySubscription<S>(for interval: S.SchedulerTimeType.Stride, tolerance: S.SchedulerTimeType.Stride? = nil, scheduler: S, options: S.SchedulerOptions? = nil) -> AnyPublisher<Output, Failure> where S : Scheduler {
-        Just(1).promoteError().delay(for: interval, tolerance: tolerance, scheduler: scheduler, options: options).flatMap { _ in
+        Just(1).setFailureType(to: Failure.self).delay(for: interval, tolerance: tolerance, scheduler: scheduler, options: options).flatMap { _ in
             self
         }.eraseToAnyPublisher()
     }

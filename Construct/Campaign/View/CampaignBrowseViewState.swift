@@ -302,7 +302,7 @@ extension CampaignBrowseViewState {
                 Async<[CampaignNode], Error, Environment>.reducer { env in
                     do {
                         let nodes = try env.campaignBrowser.nodes(in: state.node)
-                        return Just(nodes).promoteError().eraseToAnyPublisher()
+                        return Just(nodes).setFailureType(to: Error.self).eraseToAnyPublisher()
                     } catch {
                         return Fail(error: error).eraseToAnyPublisher()
                     }

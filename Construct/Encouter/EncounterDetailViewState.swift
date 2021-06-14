@@ -369,7 +369,7 @@ extension EncounterDetailViewState {
                 ResumableRunningEncounters.reducer { env in
                     do {
                         let nodes = try env.database.keyValueStore.fetchAllRaw(RunningEncounter.keyPrefix(for: state.building))
-                        return Just(nodes).promoteError().eraseToAnyPublisher()
+                        return Just(nodes).setFailureType(to: Error.self).eraseToAnyPublisher()
                     } catch {
                         return Fail(error: error).eraseToAnyPublisher()
                     }

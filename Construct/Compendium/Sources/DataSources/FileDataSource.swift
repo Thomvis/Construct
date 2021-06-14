@@ -20,7 +20,7 @@ class FileDataSource: CompendiumDataSource {
         self.result = Deferred { () -> AnyPublisher<Data, CompendiumDataSourceError> in
             do {
                 let data = try NSData(contentsOfFile: path, options: [])
-                return Just(data as Data).promoteError().eraseToAnyPublisher()
+                return Just(data as Data).setFailureType(to: CompendiumDataSourceError.self).eraseToAnyPublisher()
             } catch {
                 return Fail(error: CompendiumDataSourceError.notFound).eraseToAnyPublisher()
             }

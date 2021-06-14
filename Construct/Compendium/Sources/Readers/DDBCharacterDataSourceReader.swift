@@ -34,7 +34,7 @@ class DDBCharacterDataSourceReader: CompendiumDataSourceReader {
                         guard let character = Character(characterSheet: characterSheet, realm: .homebrew) else {
                             return Empty().eraseToAnyPublisher()
                         }
-                        return Just(.item(character as CompendiumItem)).promoteError().eraseToAnyPublisher()
+                        return Just(.item(character as CompendiumItem)).setFailureType(to: CompendiumDataSourceReaderError.self).eraseToAnyPublisher()
                     } catch {
                         return Fail(error: CompendiumDataSourceReaderError.incompatibleDataSource).eraseToAnyPublisher()
                     }

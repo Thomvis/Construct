@@ -35,7 +35,7 @@ class Compendium {
                 } else {
                     entries = try self.database.keyValueStore.fetchAll(typeKeyPrefixes)
                 }
-                return Just(entries).mapError { $0 as Error }.eraseToAnyPublisher()
+                return Just(entries).setFailureType(to: Error.self).eraseToAnyPublisher()
             } catch {
                 return Fail(error: error).eraseToAnyPublisher()
             }
