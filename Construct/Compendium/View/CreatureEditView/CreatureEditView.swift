@@ -247,39 +247,28 @@ struct CreatureEditView: View {
 
 extension CreatureEditView {
     fileprivate func FormSection<Content>(_ section: CreatureEditViewState.Section, @ViewBuilder content: @escaping () -> Content) -> some View where Content: View {
-        FormSection(section, header: EmptyView(), footer: EmptyView(), content: content)
+        FormSection(section, footer: EmptyView(), content: content)
     }
 
-    fileprivate func FormSection<Header, Content>(_ section: CreatureEditViewState.Section, header: Header, @ViewBuilder content: @escaping () -> Content) -> some View where Header: View, Content: View {
-        FormSection(section, header: header, footer: EmptyView(), content: content)
-    }
-
+    @ViewBuilder
     fileprivate func FormSection<Footer, Content>(_ section: CreatureEditViewState.Section, footer: Footer, @ViewBuilder content: @escaping () -> Content) -> some View where Footer: View, Content: View {
-        FormSection(section, header: EmptyView(), footer: footer, content: content)
-    }
-
-    fileprivate func FormSection<Header, Footer, Content>(_ section: CreatureEditViewState.Section, header: Header, footer: Footer, @ViewBuilder content: @escaping () -> Content) -> some View where Header: View, Footer: View, Content: View {
-        Group {
-            if viewStore.state.addableSections.contains(section) || viewStore.state.sections.contains(section) {
-                Section {
-                    if !viewStore.state.creatureType.requiredSections.contains(section) {
-                        Toggle(isOn: Binding(get: {
-                            viewStore.state.sections.contains(section)
-                        }, set: { b in
-                            withAnimation {
-                                self.viewStore.send(b ? .addSection(section) : .removeSection(section))
-                            }
-                        })) {
-                            Text(section.localizedHeader ?? "").bold()
+        if viewStore.state.addableSections.contains(section) || viewStore.state.sections.contains(section) {
+            Section(footer: footer) {
+                if !viewStore.state.creatureType.requiredSections.contains(section) {
+                    Toggle(isOn: Binding(get: {
+                        viewStore.state.sections.contains(section)
+                    }, set: { b in
+                        withAnimation {
+                            self.viewStore.send(b ? .addSection(section) : .removeSection(section))
                         }
-                    }
-
-                    if viewStore.state.sections.contains(section) {
-                        content()
+                    })) {
+                        Text(section.localizedHeader ?? "").bold()
                     }
                 }
-            } else {
-                EmptyView()
+
+                if viewStore.state.sections.contains(section) {
+                    content()
+                }
             }
         }
     }
