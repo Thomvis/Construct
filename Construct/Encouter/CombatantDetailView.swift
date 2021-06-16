@@ -42,7 +42,7 @@ struct CombatantDetailView: View {
 
     init(store: Store<CombatantDetailViewState, CombatantDetailViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
 
     var combatant: Combatant {
@@ -234,6 +234,16 @@ struct CombatantDetailView: View {
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .popover(self.popover)
+        // work-around for https://forums.swift.org/t/14-5-beta3-navigationlink-unexpected-pop/45279/27
+        .background(VStack {
+            NavigationLink(destination: EmptyView()) {
+                EmptyView()
+            }
+
+            NavigationLink(destination: EmptyView()) {
+                EmptyView()
+            }
+        })
     }
 
     func contentView(for combatant: Combatant) -> some View {
