@@ -34,7 +34,7 @@ struct EncounterDetailView: View {
                 self.viewStore.send(.selection($0))
             })) {
                 if viewStore.state.shouldShowEncounterDifficulty {
-                    Section(header: EmptyView().accessibilityHidden(true)) {
+                    Section(header: Text("").accessibilityHidden(true)) {
                         SimpleButton(action: {
                             self.viewStore.send(.sheet(.settings))
                         }) {
