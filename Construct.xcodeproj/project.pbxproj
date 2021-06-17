@@ -162,6 +162,7 @@
 		E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F90252203F40098A166 /* TabNavigationViewState.swift */; };
 		E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9425223E870098A166 /* ColumnNavigationView.swift */; };
 		E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */; };
+		E98A0EF7267BCDD600316EE4 /* CreatureEditViewStateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98A0EF6267BCDD600316EE4 /* CreatureEditViewStateTest.swift */; };
 		E98BF12B257E6D4900CBC174 /* ReferenceViewPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */; };
 		E99095B3249797F400731EB9 /* AddCombatantDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */; };
 		E991F88725449C7D006CE8E8 /* TabbedDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F88625449C7D006CE8E8 /* TabbedDocumentView.swift */; };
@@ -353,6 +354,7 @@
 		E9869F90252203F40098A166 /* TabNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationViewState.swift; sourceTree = "<group>"; };
 		E9869F9425223E870098A166 /* ColumnNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationView.swift; sourceTree = "<group>"; };
 		E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationViewState.swift; sourceTree = "<group>"; };
+		E98A0EF6267BCDD600316EE4 /* CreatureEditViewStateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureEditViewStateTest.swift; sourceTree = "<group>"; };
 		E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceViewPreference.swift; sourceTree = "<group>"; };
 		E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantDetailView.swift; sourceTree = "<group>"; };
 		E990F4F023706AAC00276EB6 /* StateDrivenNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateDrivenNavigationView.swift; sourceTree = "<group>"; };
@@ -965,6 +967,7 @@
 				E90EFF312620597700F5443E /* XMLMonsterDataSourceReaderTest.swift */,
 				E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */,
 				E9C7F7852632C193000351AB /* NumberPadTest.swift */,
+				E98A0EF6267BCDD600316EE4 /* CreatureEditViewStateTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1302,6 +1305,7 @@
 				E97A4FAD23621FDA0044E424 /* EncounterDifficultyTest.swift in Sources */,
 				E9323A352320171000F0D0C6 /* KeyValueStoreTest.swift in Sources */,
 				E91E596F24477D3E00975453 /* AlignmentTest.swift in Sources */,
+				E98A0EF7267BCDD600316EE4 /* CreatureEditViewStateTest.swift in Sources */,
 				E90EFF412623220300F5443E /* DataSourceReaderParsersTest.swift in Sources */,
 				E9323A332320169F00F0D0C6 /* DatabaseTest.swift in Sources */,
 				E999FBD6235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift in Sources */,
