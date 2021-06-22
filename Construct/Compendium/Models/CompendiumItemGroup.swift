@@ -46,9 +46,14 @@ struct CompendiumItemGroup: CompendiumItem, Equatable {
     typealias Id = Tagged<CompendiumItemGroup, UUID>
 }
 
-struct CompendiumItemReference: Codable, Hashable {
+public struct CompendiumItemReference: Codable, Hashable {
     var itemTitle: String
     let itemKey: CompendiumItemKey
+
+    init(itemTitle: String, itemKey: CompendiumItemKey) {
+        self.itemTitle = itemTitle
+        self.itemKey = itemKey
+    }
 }
 
 extension CompendiumItemGroup {

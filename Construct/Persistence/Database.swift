@@ -20,6 +20,8 @@ class Database {
         self.queue = try path.map { try DatabaseQueue(path: $0) } ?? DatabaseQueue(configuration: Configuration())
         self.keyValueStore = KeyValueStore(queue)
 
+        print("Created/opened database at path: \(path ?? "in-memory")")
+
         try migrator(self.queue, importDefaultContent: importDefaultContent).migrate(self.queue)
     }
 

@@ -9,6 +9,7 @@
 import Foundation
 import GRDB
 import Combine
+import ComposableArchitecture
 import Tagged
 
 extension Database {
@@ -170,6 +171,123 @@ extension Database {
                 // v1, v7 or v8 was applied before, let's re-import defaults
                 try Compendium(self).importDefaultContent(db)
                 didImportDefaultContent = true
+            }
+        }
+
+        migrator.registerMigration("v10-consistentCharacterKeys") { db in
+            // Most characters have a UUID in their key (current behavior), others have their title (old behavior)
+            // Characters with a title key don't work well
+
+            let characterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumItemKey.prefix(for: .character))%")).fetchAll(db)
+
+            var updates: [String:String] = [:] // fromKey -> toKey
+            for r in characterRecords {
+                guard let lastKeyComponent = r.key.components(separatedBy: CompendiumItemKey.separator).last else { continue }
+                guard UUID(uuidString: lastKeyComponent) == nil else { continue }
+
+                let entry = try self.keyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+                let newRecord = KeyValueStore.Record(key: entry.key, modifiedAt: r.modifiedAt, value: r.value)
+
+                try r.delete(db)
+                if try !newRecord.exists(db) {
+                    try newRecord.insert(db)
+                }
+
+                updates[r.key] = entry.key
+            }
+
+            // Update references
+            // Adventuring Parties
+            let groupRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumItemKey.prefix(for: .group))%")).fetchAll(db)
+
+            for r in groupRecords {
+                var entry = try self.keyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+                guard let group = entry.item as? CompendiumItemGroup else { continue }
+
+                let newGroup = CompendiumItemGroup(
+                    id: group.id,
+                    title: group.title,
+                    members: group.members.map {
+                        CompendiumItemReference(
+                            itemTitle: $0.itemTitle,
+                            itemKey: updates[$0.itemKey.rawValue].flatMap(CompendiumItemKey.init) ?? $0.itemKey
+                        )
+                    }
+                )
+
+                if newGroup != group {
+                    entry.item = newGroup
+                    let encodedEntry = try self.keyValueStore.encoder.encode(entry)
+                    let newRecord = KeyValueStore.Record(key: entry.key, modifiedAt: r.modifiedAt, value: encodedEntry)
+                    try newRecord.save(db)
+                }
+            }
+
+            // Encounters
+            func updateEncounter(_ encounter: Encounter) -> Encounter {
+                var newEncounter = encounter
+
+                // AdHocCombatant.original
+                newEncounter.combatants = IdentifiedArray(newEncounter.combatants.map { c in
+                    if let adHoc = c.definition as? AdHocCombatantDefinition {
+                        if let original = adHoc.original, let newKey = updates[original.itemKey.rawValue] {
+                            var newDefinition = adHoc
+                            newDefinition.original = CompendiumItemReference(itemTitle: original.itemTitle, itemKey: CompendiumItemKey(rawValue: newKey) ?? original.itemKey)
+                        }
+                    }
+                    return c
+                })
+
+                return newEncounter
+            }
+
+            let encounterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyValueStoreEntityKeyPrefix)%")).fetchAll(db)
+
+            var encounterIds: [Encounter.Id] = []
+            for r in encounterRecords {
+                if r.key.contains(".running.") { continue }
+
+                let encounter: Encounter
+                do {
+                    encounter = try self.keyValueStore.decoder.decode(Encounter.self, from: r.value)
+                } catch {
+                    print("Warning: Migration \"v10-consistentCharacterKeys\" failed for Encounter with key \(r.key), last modified: \(r.modifiedAt). Underlying decoding error: \(error)")
+                    continue
+                }
+
+                encounterIds.append(encounter.id)
+
+                let newEncounter = updateEncounter(encounter)
+
+                if newEncounter != encounter {
+                    let encodedEncounter = try self.keyValueStore.encoder.encode(newEncounter)
+                    let newRecord = KeyValueStore.Record(key: newEncounter.key, modifiedAt: r.modifiedAt, value: encodedEncounter)
+                    try newRecord.save(db)
+                }
+            }
+
+            // Running Encounters
+            for id in encounterIds {
+                let reRecords = try! KeyValueStore.Record.filter(Column("key").like("\(RunningEncounter.keyPrefix(for: id))%")).fetchAll(db)
+                for r in reRecords {
+                    let re: RunningEncounter
+                    do {
+                        re = try self.keyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
+                    } catch {
+                        print("Warning: Migration \"v10-consistentCharacterKeys\" failed for RunningEncounter with key \(r.key), last modified: \(r.modifiedAt). Underlying decoding error: \(error)")
+                        continue
+                    }
+
+                    var newRe = re
+                    newRe.base = updateEncounter(newRe.base)
+                    newRe.current = updateEncounter(newRe.current)
+
+                    if newRe != re {
+                        let encodedRe = try self.keyValueStore.encoder.encode(newRe)
+                        let newRecord = KeyValueStore.Record(key: newRe.key, modifiedAt: r.modifiedAt, value: encodedRe)
+                        try newRecord.save(db)
+                    }
+                }
             }
         }
 
