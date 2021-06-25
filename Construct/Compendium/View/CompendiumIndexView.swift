@@ -486,7 +486,7 @@ extension CompendiumItemType {
     var defaultOrder: CompendiumIndexState.Query.Order? {
         switch self {
         case .monster: return .monsterChallengeRating
-        case .character: return nil
+        case .character: return .title
         case .spell: return .spellLevel
         case .group: return nil
         }
