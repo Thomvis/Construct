@@ -253,7 +253,11 @@ extension CreatureEditView {
     @ViewBuilder
     fileprivate func FormSection<Footer, Content>(_ section: CreatureEditViewState.Section, footer: Footer, @ViewBuilder content: @escaping () -> Content) -> some View where Footer: View, Content: View {
         if viewStore.state.addableSections.contains(section) || viewStore.state.sections.contains(section) {
-            Section(footer: footer) {
+            Section(footer: Group {
+                if viewStore.state.sections.contains(section) {
+                    footer
+                }
+            }) {
                 if !viewStore.state.creatureType.requiredSections.contains(section) {
                     Toggle(isOn: Binding(get: {
                         viewStore.state.sections.contains(section)
