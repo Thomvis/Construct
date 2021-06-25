@@ -287,7 +287,7 @@ private extension StatBlock {
     }
 
     var speed: String? {
-        guard let movement = movement else { return nil }
+        guard let movement = movement, movement.count > 0 else { return nil }
         if movement.count == 1, let walkingSpeed = movement[.walk] {
             return "\(walkingSpeed) ft."
         }

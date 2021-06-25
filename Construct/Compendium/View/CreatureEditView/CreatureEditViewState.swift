@@ -261,11 +261,17 @@ struct StatBlockFormModel: Equatable {
     }
 
     mutating func setSpeed(_ speed: String, for mode: MovementMode) {
-        guard let val = numberFormatter.number(from: speed)?.intValue else { return }
-        if statBlock.movement == nil {
-            statBlock.movement = [mode: val]
+        if let val = numberFormatter.number(from: speed)?.intValue {
+            if statBlock.movement == nil {
+                statBlock.movement = [mode: val]
+            } else {
+                statBlock.movement?[mode] = val
+            }
         } else {
-            statBlock.movement?[mode] = val
+            statBlock.movement?[mode] = nil
+            if statBlock.movement?.isEmpty == true {
+                statBlock.movement = nil
+            }
         }
     }
 
