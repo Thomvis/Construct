@@ -188,10 +188,10 @@ extension Database {
                 let entry = try self.keyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
                 let newRecord = KeyValueStore.Record(key: entry.key, modifiedAt: r.modifiedAt, value: r.value)
 
-                try r.delete(db)
                 if try !newRecord.exists(db) {
-                    try newRecord.insert(db)
+                    try Compendium(self).put(entry, in: db)
                 }
+                try r.delete(db)
 
                 updates[r.key] = entry.key
             }
