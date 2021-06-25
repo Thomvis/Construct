@@ -193,7 +193,7 @@ struct CombatantDetailView: View {
                                     }) {
                                         Text("Unlink from compendium")
                                     }
-                                    Text("This combatant was added from the compendium. Unlink it to further tailor it for this encounter.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+                                    Text("This combatant was added from the compendium. Unlink it to further tailor it for this encounter.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel)).fixedSize(horizontal: false, vertical: true)
                                 }
                             }
 
@@ -206,7 +206,7 @@ struct CombatantDetailView: View {
                                     }) {
                                         Text("Save to compendium")
                                     }
-                                    Text("This combatant was created for this encounter. Save it to the compendium to make it available for other encounters.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+                                    Text("This combatant was created for this encounter. Save it to the compendium to make it available for other encounters.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel)).fixedSize(horizontal: false, vertical: true)
                                 }
 
                                 Divider()
