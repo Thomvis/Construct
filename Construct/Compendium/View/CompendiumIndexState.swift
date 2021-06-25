@@ -216,22 +216,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                         return AnyCancellable { }
                     }
-                case .nextScreen(.compendiumEntry(.sheet(.groupEdit(.onRemoveTap)))),
-                     .detailScreen(.compendiumEntry(.sheet(.groupEdit(.onRemoveTap)))):
-                    return Effect.run { subscriber in
-                        subscriber.send(.setNextScreen(nil))
-
-                        // Work-around: without the delay, `.setNextScreen(nil)` is not picked up
-                        // (probably because .reload makes the NavigationLink disappear)
-                        DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
-                            subscriber.send(.results(.reload))
-                            subscriber.send(completion: .finished)
-                        }
-
-                        return AnyCancellable { }
-                    }
-                case .nextScreen(.compendiumEntry(.sheet(.creatureEdit(.onRemoveTap)))),
-                     .detailScreen(.compendiumEntry(.sheet(.creatureEdit(.onRemoveTap)))):
+                case .nextScreen(.compendiumEntry(.didRemoveItem)),
+                     .detailScreen(.compendiumEntry(.didRemoveItem)):
                     return Effect.run { subscriber in
                         subscriber.send(.setNextScreen(nil))
 

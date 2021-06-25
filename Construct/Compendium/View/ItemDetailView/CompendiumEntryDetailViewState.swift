@@ -164,12 +164,18 @@ struct CompendiumEntryDetailViewState: NavigationStackItemState, Equatable {
 
                         return AnyCancellable { }
                     }
-                case .sheet(.creatureEdit(CreatureEditViewAction.onRemoveTap(let state))):
-                    return Effect.future { callback in
-                        if let item = state.originalItem {
-                            _ = try? env.database.keyValueStore.remove(item.key)
-                        }
-                        callback(.success(.setSheet(nil)))
+                case .sheet(.creatureEdit(CreatureEditViewAction.onRemoveTap)):
+                    let entryKey = state.entry.key
+                    return Effect.run { subscriber in
+                        do {
+                            if try env.database.keyValueStore.remove(entryKey) {
+                                subscriber.send(.setSheet(nil))
+                                subscriber.send(.didRemoveItem)
+                            }
+                        } catch { }
+                        subscriber.send(completion: .finished)
+
+                        return AnyCancellable { }
                     }
                 case .sheet(.groupEdit(CompendiumItemGroupEditAction.onDoneTap(let group))):
                     let entry = CompendiumEntry(group)
@@ -179,11 +185,16 @@ struct CompendiumEntryDetailViewState: NavigationStackItemState, Equatable {
                         callback(.success(.setSheet(nil)))
                     }
                 case .sheet(.groupEdit(CompendiumItemGroupEditAction.onRemoveTap(let group))):
-                    return Effect.future { callback in
+                    return Effect.run { subscriber in
                         _ = try? env.database.keyValueStore.remove(group.key)
-                        callback(.success(.setSheet(nil)))
+                        subscriber.send(.setSheet(nil))
+                        subscriber.send(.didRemoveItem)
+                        subscriber.send(completion: .finished)
+
+                        return AnyCancellable { }
                     }
                 case .sheet: break // handled by the reducers above
+                case .didRemoveItem: break // handled by the compendium index reducer
                 }
                 return .none
             }
@@ -200,6 +211,7 @@ enum CompendiumItemDetailViewAction: Equatable {
     case rollCheckPopover(DiceCalculatorAction)
     case setSheet(CompendiumEntryDetailViewState.Sheet?)
     case sheet(SheetAction)
+    case didRemoveItem
 
     enum SheetAction: Equatable {
         case creatureEdit(CreatureEditViewAction)
