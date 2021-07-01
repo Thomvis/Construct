@@ -308,7 +308,7 @@ struct StatBlockFormModel: Equatable {
 enum CreatureEditViewAction: Equatable {
     case model(CreatureEditFormModel)
     case popover(CreatureEditViewState.Popover?)
-    case numberEntryPopover(NumberEntryViewAction?)
+    case numberEntryPopover(NumberEntryViewAction)
     case addSection(CreatureEditViewState.Section)
     case removeSection(CreatureEditViewState.Section)
     case onAddTap(CreatureEditViewState)

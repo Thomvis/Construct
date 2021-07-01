@@ -134,14 +134,16 @@ struct CompendiumIndexView: View {
                     CreatureEditView(store: store)
                 }
             },
-            else: IfLetStore(
-                store.scope(state: replayNonNil({ $0.groupEditSheet }), action: { .groupEditSheet($0) }),
-                then: { store in
-                    SheetNavigationContainer {
-                        CompendiumItemGroupEditView(store: store)
+            else: {
+                IfLetStore(
+                    store.scope(state: replayNonNil({ $0.groupEditSheet }), action: { .groupEditSheet($0) }),
+                    then: { store in
+                        SheetNavigationContainer {
+                            CompendiumItemGroupEditView(store: store)
+                        }
                     }
-                }
-            )
+                )
+            }
         )
     }
 

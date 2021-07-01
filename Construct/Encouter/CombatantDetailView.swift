@@ -320,8 +320,8 @@ struct CombatantDetailView: View {
                     self.viewStore.send(.setNextScreen(.combatantTagEditView(CombatantTagEditViewState(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.combatant], running: $0) }))))
                 }).eraseToAnyView
             case .addLimitedResource:
-                return IfLetStore(self.store.scope(state: {
-                    guard case .addLimitedResource(let s)? = $0.popover else { return nil }
+                return IfLetStore(self.store.scope(state: { state -> CombatantTrackerEditViewState? in
+                    guard case .addLimitedResource(let s)? = state.popover else { return nil }
                     return s
                 }, action: { .addLimitedResource($0) })) { store in
                     CombatantTrackerEditView(store: store)

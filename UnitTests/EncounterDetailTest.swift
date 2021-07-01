@@ -33,7 +33,7 @@ class EncounterDetailTest: XCTestCase {
             environment: try apply(Environment.live()) {
                 $0.generateUUID = UUID.fakeGenerator()
                 $0.rng = AnyRandomNumberGenerator(wrapped: EverIncreasingRandomNumberGenerator())
-                $0.mainQueue = DispatchQueue.immediateScheduler.eraseToAnyScheduler()
+                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
             }
         )
 

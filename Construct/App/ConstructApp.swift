@@ -73,8 +73,10 @@ struct ConstructView: View {
         WithViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication }) { viewStore in
             IfLetStore(store.scope(state: { $0.navigation?.tabState }, action: { .navigation(.tab($0)) }), then: { store in
                 TabNavigationView(store: store)
-            }, else: IfLetStore(store.scope(state: { $0.navigation?.columnState }, action: {.navigation(.column($0)) })) { store in
-                ColumnNavigationView(store: store)
+            }, else: {
+                IfLetStore(store.scope(state: { $0.navigation?.columnState }, action: {.navigation(.column($0)) })) { store in
+                    ColumnNavigationView(store: store)
+                }
             })
             .sheet(isPresented: viewStore.binding(get: { $0.showWelcomeSheet }, send: { _ in .welcomeSheet(false) })) {
                 WelcomeView { tap in
