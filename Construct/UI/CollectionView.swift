@@ -6,16 +6,17 @@
 //  Copyright © 2019 Chris Eidhof. All rights reserved.
 //
 // Copied from https://github.com/objcio/collection-view-swiftui/blob/master/FlowLayoutST/ContentView.swift
+// Updated based on https://talk.objc.io/episodes/S01E253-flow-layout-revisited
 
 import SwiftUI
 
 struct FlowLayout {
     let spacing: UIOffset
-    let containerSize: CGSize
+    let containerWidth: CGFloat
 
-    init(containerSize: CGSize, spacing: UIOffset = UIOffset(horizontal: 10, vertical: 10)) {
+    init(containerWidth: CGFloat, spacing: UIOffset = UIOffset(horizontal: 10, vertical: 10)) {
         self.spacing = spacing
-        self.containerSize = containerSize
+        self.containerWidth = containerWidth
     }
 
     var currentX = 0 as CGFloat
@@ -23,7 +24,7 @@ struct FlowLayout {
     var lineHeight = 0 as CGFloat
 
     mutating func add(element size: CGSize) -> CGRect {
-        if currentX + size.width > containerSize.width {
+        if currentX + size.width > containerWidth {
             currentX = 0
             currentY += lineHeight + spacing.vertical
             lineHeight = 0
@@ -36,79 +37,62 @@ struct FlowLayout {
     }
 
     var size: CGSize {
-        return CGSize(width: containerSize.width, height: currentY + lineHeight)
+        return CGSize(width: containerWidth, height: currentY + lineHeight)
     }
 }
 
-func flowLayout<Elements, ID>(for elements: Elements, id: KeyPath<Elements.Element, ID>, containerSize: CGSize, sizes: [ID: CGSize]) -> [ID: CGSize] where Elements: RandomAccessCollection, ID: Hashable {
-    var state = FlowLayout(containerSize: containerSize)
-    var result: [ID: CGSize] = [:]
+func flowLayout<Elements, ID>(for elements: Elements, id: KeyPath<Elements.Element, ID>, containerWidth: CGFloat, sizes: [ID: CGSize]) -> [ID: CGPoint] where Elements: RandomAccessCollection, ID: Hashable {
+    var state = FlowLayout(containerWidth: containerWidth)
+    var result: [ID: CGPoint] = [:]
     for element in elements {
         let rect = state.add(element: sizes[element[keyPath: id]] ?? .zero)
-        result[element[keyPath: id]] = CGSize(width: rect.origin.x, height: rect.origin.y)
+        result[element[keyPath: id]] = rect.origin
     }
     return result
 }
 
+private let containerWidthKey = UUID()
+struct CollectionView<Element, ID, Cell>: View where ID: Hashable, Cell: View {
 
-func singleLineLayout<Elements>(for elements: Elements, containerSize: CGSize, sizes: [Elements.Element.ID: CGSize]) -> [Elements.Element.ID: CGSize] where Elements: RandomAccessCollection, Elements.Element: Identifiable {
-    var result: [Elements.Element.ID: CGSize] = [:]
-    var offset = CGSize.zero
-    for element in elements {
-        result[element.id] = offset
-        let size = sizes[element.id] ?? CGSize.zero
-        offset.width += size.width + 10
-    }
-    return result
-}
+    let data: [Element]
+    let id: KeyPath<Element, ID>
+    let cell: (Element) -> Cell
 
+    let layout: ([Element], KeyPath<Element, ID>, CGFloat, [ID: CGSize]) -> [ID: CGPoint] = flowLayout
 
-struct CollectionView<Elements, ID, Content>: View where Elements: RandomAccessCollection, ID: Hashable, Content: View {
-    let uuid = UUID()
-    var data: Elements
-    var id: KeyPath<Elements.Element, ID>
-    var layout: (Elements, KeyPath<Elements.Element, ID>, CGSize, [ID: CGSize]) -> [ID: CGSize]
-    var content: (Elements.Element) -> Content
     @State private var sizes: [ID: CGSize] = [:]
-    @State private var contentSize: CGSize? = nil
-
-    private func bodyHelper(containerSize: CGSize, offsets: [ID: CGSize]) -> some View {
-        ZStack(alignment: .topLeading) {
-            ForEach(data, id: id) {
-                PropagateSize(content: self.content($0), id: $0[keyPath: self.id])
-                    .offset(offsets[$0[keyPath: self.id]] ?? CGSize.zero)
-            }
-            Color.clear
-                .frame(width: containerSize.width, height: contentSize(offsets: offsets, sizes: sizes).height)
-                .fixedSize()
-                .preference(key: CollectionViewSizeKey<UUID>.self, value: [uuid: contentSize(offsets: offsets, sizes: sizes)])
-        }.onPreferenceChange(CollectionViewSizeKey<ID>.self) {
-            self.sizes = $0
-        }
-    }
-
-    func contentSize(offsets: [ID: CGSize], sizes: [ID: CGSize]) -> CGSize {
-        var contentSize: CGSize = .zero
-        for id in offsets.keys {
-            guard let offset = offsets[id], let size = sizes[id] else { continue }
-            let maxX = offset.width + size.width
-            let maxY = offset.height + size.height
-            if maxX > contentSize.width {
-                contentSize.width = maxX
-            }
-            if maxY > contentSize.height {
-                contentSize.height = maxY
-            }
-        }
-        return contentSize
-    }
+    @State private var proposedContainerWidth: CGFloat = 0
 
     var body: some View {
-        GeometryReader { proxy in
-            self.bodyHelper(containerSize: proxy.size, offsets: self.layout(self.data, self.id, proxy.size, self.sizes))
-        }.onPreferenceChange(CollectionViewSizeKey<UUID>.self) {
-            self.contentSize = $0[self.uuid]
-        }.frame(height: self.contentSize?.height)
+        let itemPositions = layout(data, id, proposedContainerWidth, sizes)
+
+        return VStack(alignment: .leading, spacing: 0) {
+            GeometryReader { proxy in
+                Color.clear.preference(key: CollectionViewSizeKey<UUID>.self, value: [containerWidthKey: proxy.size])
+            }
+            .onPreferenceChange(CollectionViewSizeKey<UUID>.self) {
+                self.proposedContainerWidth = $0[containerWidthKey]?.width ?? 0
+            }
+            .frame(height: 0)
+
+            ZStack(alignment: .topLeading) {
+                ForEach(data, id: id) { item in
+                    PropagateSize(content: cell(item), id: item[keyPath: id])
+                        .alignmentGuide(.leading, computeValue: { dimension in
+                            guard let position = itemPositions[item[keyPath: id]] else { return 0 }
+                            return -position.x
+                        })
+                        .alignmentGuide(.top, computeValue: { dimension in
+                            guard let position = itemPositions[item[keyPath: id]] else { return 0 }
+                            return -position.y
+                        })
+                }
+            }
+            .onPreferenceChange(CollectionViewSizeKey<ID>.self) {
+                self.sizes = $0
+            }
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
 

@@ -12,43 +12,24 @@ import ComposableArchitecture
 
 struct InlineCombatantTagsView: View {
     var store: Store<CombatantDetailViewState, CombatantDetailViewAction>
-    @ObservedObject var viewStore: ViewStore<CombatantDetailViewState, CombatantDetailViewAction>
-    var appeared: State<Bool> = State(initialValue: false)
+    var viewStore: ViewStore<CombatantDetailViewState, CombatantDetailViewAction>
 
     var body: some View {
-        Group {
-            if viewStore.state.combatant.tags.isEmpty {
-                Text("No tags").italic()
-            } else {
-                CollectionView(data: viewStore.state.combatant.tags, id: \.id, layout: flowLayout) { tag in
-                    TagView(tag: tag, combatant: self.viewStore.state.combatant, runningEncounter: self.viewStore.state.runningEncounter, onDetailTap: {
-                        if tag.hasLongNote || tag.duration != nil {
-                            self.viewStore.send(.popover(.tagDetails(tag)))
-                        } else {
-                            self.viewStore.send(.setNextScreen(.combatantTagEditView(CombatantTagEditViewState(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.viewStore.state.combatant], running: $0) }))))
-                        }
-                    }, onRemoveTap: {
-                        withAnimation(.default) {
-                            self.viewStore.send(.combatant(.removeTag(tag)))
-                        }
-                    })
-                }
-                .onAppear {
-                    guard !self.appeared.wrappedValue else { return }
-                    self.appeared.wrappedValue = true
-                    // BUG: workaround for collection view layout issue
-                    // relevant console log: "Bound preference CollectionViewSizeKey<UUID> tried to update multiple times per frame."
-                    self.viewStore.send(.combatant(.addTag(CombatantTag.nullInstance)))
-                    DispatchQueue.main.async {
-                        self.viewStore.send(.combatant(.removeTag(CombatantTag.nullInstance)))
+        if viewStore.state.combatant.tags.isEmpty {
+            Text("No tags").italic()
+        } else {
+            CollectionView(data: viewStore.state.combatant.tags, id: \.definition.name) { tag in
+                TagView(tag: tag, combatant: self.viewStore.state.combatant, runningEncounter: self.viewStore.state.runningEncounter, onDetailTap: {
+                    if tag.hasLongNote || tag.duration != nil {
+                        self.viewStore.send(.popover(.tagDetails(tag)))
+                    } else {
+                        self.viewStore.send(.setNextScreen(.combatantTagEditView(CombatantTagEditViewState(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.viewStore.state.combatant], running: $0) }))))
                     }
-                }
-                .stateDrivenNavigationLink(
-                    store: store,
-                    state: /CombatantDetailViewState.NextScreen.combatantTagEditView,
-                    action: /CombatantDetailViewAction.NextScreenAction.combatantTagEditView,
-                    destination: CombatantTagEditView.init
-                )
+                }, onRemoveTap: {
+                    withAnimation(.default) {
+                        self.viewStore.send(.combatant(.removeTag(tag)))
+                    }
+                })
             }
         }
     }
@@ -78,6 +59,7 @@ fileprivate struct TagView: View {
                     }
                 }
                 .padding(.leading, 6)
+                .padding([.top, .bottom], 4)
 
                 Button(action: {
                     self.onRemoveTap()
@@ -85,8 +67,7 @@ fileprivate struct TagView: View {
                     Image(systemName: "xmark").font(.footnote)
                 }
                 .padding([.leading, .trailing], 6)
-                .frame(maxHeight: 28) // fixme: assumption that text is not this high
-                .background(Color.black.opacity(0.2))
+                .background(Color.black.opacity(0.2).padding([.top, .trailing, .bottom], -100))
             }
             .foregroundColor(Color.white)
             .background(isTagActive ? Color(UIColor.purple) : Color.black.opacity(0.2))

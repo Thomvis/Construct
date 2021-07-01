@@ -234,7 +234,7 @@ struct CombatantDetailView: View {
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .popover(self.popover)
-        // work-around for https://forums.swift.org/t/14-5-beta3-navigationlink-unexpected-pop/45279/27
+        // START: work-around for https://forums.swift.org/t/14-5-beta3-navigationlink-unexpected-pop/45279/27
         .background(VStack {
             NavigationLink(destination: EmptyView()) {
                 EmptyView()
@@ -244,6 +244,13 @@ struct CombatantDetailView: View {
                 EmptyView()
             }
         })
+        // END
+        .stateDrivenNavigationLink(
+            store: store,
+            state: /CombatantDetailViewState.NextScreen.combatantTagEditView,
+            action: /CombatantDetailViewAction.NextScreenAction.combatantTagEditView,
+            destination: CombatantTagEditView.init
+        )
     }
 
     func contentView(for combatant: Combatant) -> some View {
