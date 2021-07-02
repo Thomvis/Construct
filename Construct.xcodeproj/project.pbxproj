@@ -106,6 +106,7 @@
 		E963CCFC247BDEBF009863D7 /* CompendiumDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E471C231E8E3C005D1E6F /* CompendiumDataSourceReader.swift */; };
 		E963CCFD247BDED8009863D7 /* ImprovedInitiativeDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBCC235C52E0000CCC8B /* ImprovedInitiativeDataSourceReader.swift */; };
 		E963CCFE247BDEE8009863D7 /* Monster.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6EB2314FB37004D84E2 /* Monster.swift */; };
+		E96D3AFA268FC07500927C67 /* FlipTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96D3AF9268FC07500927C67 /* FlipTransition.swift */; };
 		E96FC16923D3A5BE00A12F1E /* ogl.md in Resources */ = {isa = PBXBuildFile; fileRef = E96FC16823D3A5BE00A12F1E /* ogl.md */; };
 		E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96FC16A23D3A64800A12F1E /* WebView.swift */; };
 		E971E5262374C3130005725F /* RoundedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E971E5252374C3130005725F /* RoundedButton.swift */; };
@@ -314,6 +315,7 @@
 		E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExpressionTest.swift; sourceTree = "<group>"; };
 		E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailTest.swift; sourceTree = "<group>"; };
 		E962FF352504FC2E00919B34 /* AnimatedRollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedRollView.swift; sourceTree = "<group>"; };
+		E96D3AF9268FC07500927C67 /* FlipTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlipTransition.swift; sourceTree = "<group>"; };
 		E96FC16523D3976800A12F1E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E96FC16823D3A5BE00A12F1E /* ogl.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ogl.md; sourceTree = "<group>"; };
 		E96FC16A23D3A64800A12F1E /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
@@ -618,6 +620,7 @@
 				E931CF902500C8BF006CEE78 /* DiceActionView.swift */,
 				E962FF352504FC2E00919B34 /* AnimatedRollView.swift */,
 				E991F88625449C7D006CE8E8 /* TabbedDocumentView.swift */,
+				E96D3AF9268FC07500927C67 /* FlipTransition.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -1278,6 +1281,7 @@
 				E97651CE248ADC9700C76865 /* InitiativeDialog.swift in Sources */,
 				E91E4706231D992E005D1E6F /* Database.swift in Sources */,
 				E95FD429249BF26C0023F363 /* DDBCharacterDataSourceReader.swift in Sources */,
+				E96D3AFA268FC07500927C67 /* FlipTransition.swift in Sources */,
 				E92A41E4240D2F0C009AF440 /* WelcomeView.swift in Sources */,
 				E91E596D2447225500975453 /* Migrated.swift in Sources */,
 				E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */,

@@ -8,17 +8,18 @@
 
 import Foundation
 import SwiftUI
+import Tagged
 import UIKit
 
 enum RolledDiceExpression: Hashable {
-    case dice(die: Die, values: [Int])
+    case dice(Die, [RolledDie])
     indirect case compound(RolledDiceExpression, DiceExpression.Operator, RolledDiceExpression)
     case number(Int)
 
     var total: Int {
         switch self {
-        case .dice(_, let values):
-            return values.reduce(0, +)
+        case .dice(_, let dice):
+            return dice.map { $0.value }.reduce(0, +)
         case .compound(let lhs, let op, let rhs):
             return op.f(lhs.total, rhs.total)
         case .number(let n):
@@ -28,8 +29,8 @@ enum RolledDiceExpression: Hashable {
 
     var dice: [RolledDie] {
         switch self {
-        case .dice(let die, let values):
-            return values.map { RolledDie(die: die, value: $0) }
+        case .dice(_, let dice):
+            return dice
         case .compound(let lhs, _, let rhs):
             return lhs.dice + rhs.dice
         case .number(_):
@@ -73,18 +74,22 @@ enum RolledDiceExpression: Hashable {
     private func rerolling<G>(_ offset: inout Int, rng: inout G) -> RolledDiceExpression where G: RandomNumberGenerator {
         guard offset >= 0 else { return self }
         switch self {
-        case .dice(let die, let values):
-            var newValues = values
-            if offset < values.count {
-                newValues[offset] = rng.randomInt(in: 1...die.sides)
+        case .dice(let die, let dice):
+            var newDice = dice
+            if offset < dice.count {
+                newDice[offset] = RolledDie(die: die, value: rng.randomInt(in: 1...die.sides))
             }
-            offset -= values.count
-            return .dice(die: die, values: newValues)
+            offset -= dice.count
+            return .dice(die, newDice)
         case .compound(let lhs, let op, let rhs):
             return .compound(lhs.rerolling(&offset, rng: &rng), op, rhs.rerolling(&offset, rng: &rng))
         case .number:
             return self
         }
+    }
+
+    static func dice(die: Die, values: [Int]) -> Self {
+        .dice(die, values.map { RolledDie(die: die, value: $0) })
     }
 }
 
@@ -120,9 +125,12 @@ struct Die: Hashable, Codable {
     }
 }
 
-struct RolledDie {
+struct RolledDie: Hashable {
+    let id: Id = UUID().tagged()
     let die: Die
-    let value: Int
+    var value: Int
+
+    typealias Id = Tagged<RolledDie, UUID>
 }
 
 extension DiceExpression {
@@ -141,7 +149,7 @@ extension DiceExpression {
             if count < 0 {
                 return .compound(.number(0), .subtract, DiceExpression.dice(count: abs(count), die: die).roll(rng: &rng))
             }
-            return .dice(die: die, values: (0..<abs(count)).map { _ in rng.randomInt(in: 1...die.sides) })
+            return .dice(die, (0..<abs(count)).map { _ in RolledDie(die: die, value: rng.randomInt(in: 1...die.sides)) })
         case .compound(let lhs, let op, let rhs):
             return .compound(lhs.roll(rng: &rng), op, rhs.roll(rng: &rng))
         case .number(let n):

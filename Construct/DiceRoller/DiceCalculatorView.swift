@@ -143,7 +143,7 @@ struct DiceCalculatorState: Hashable {
 
             state.result = nil
         case .startGeneratingIntermediaryResults(let expression):
-            return Effect(value: .intermediaryResultsStep(expression, 6))
+            return Effect(value: .intermediaryResultsStep(expression, state.intermediaryResultStepCount))
         case .intermediaryResultsStep(let expression, let remaining):
             guard expression == state.expression && remaining > 0 else {
                 state.intermediaryResult = nil
@@ -152,7 +152,7 @@ struct DiceCalculatorState: Hashable {
             state.intermediaryResult = expression.roll
 
             return Effect(value: .intermediaryResultsStep(expression, remaining-1))
-                .delay(for: 0.08, scheduler: env.mainQueue)
+                .delay(for: state.intermediaryResultStepDelay, scheduler: env.mainQueue)
                 .eraseToEffect()
         }
         return .none
@@ -202,6 +202,14 @@ extension DiceCalculatorState {
 
     var modifierEntrySign: String {
         entryContext.subtract ? "-" : "+"
+    }
+
+    var intermediaryResultStepCount: Int {
+        showDice && showDiceSummary ? 2 : 6
+    }
+
+    var intermediaryResultStepDelay: DispatchQueue.SchedulerTimeType.Stride {
+        showDice && showDiceSummary ? 0.2 : 0.08
     }
 }
 
@@ -267,7 +275,6 @@ struct OutcomeView: View {
                 if viewStore.state.showDice && viewStore.state.showDiceSummary {
                     IfLetStore(store.scope(state: { $0.result(includingIntermediary: true) })) { store in
                         ResultDetailView(store: store)
-                            .opacity(viewStore.state.resultIsIntermediary ? 0.66 : 1.0)
                     }
                 } else {
                     if let result = viewStore.state.result(includingIntermediary: true) {
@@ -291,7 +298,7 @@ struct OutcomeView: View {
                                 diceSummary(result).opacity(0.0) // just to reserve space for symmetry
                             }
                         }
-                        .opacity(viewStore.state.resultIsIntermediary ? 0.66 : 1.0)
+                        .opacity(viewStore.state.resultIsIntermediary ? 0.50 : 1.0)
                     } else {
                         Button(action: {
                             viewStore.send(.onRerollButtonTap)
@@ -355,7 +362,9 @@ struct ResultDetailView: View {
                 ) {
                     ForEach(Array(viewStore.state.dice.enumerated()), id: \.0) { (idx, die) in
                         SimpleButton(action: {
-                            viewStore.send(.onResultDieTap(idx))
+                            withAnimation(.spring()) {
+                                viewStore.send(.onResultDieTap(idx))
+                            }
                         }) {
                             self.view(die, index: idx)
                         }
@@ -384,6 +393,9 @@ struct ResultDetailView: View {
             .frame(width: 44, height: 44)
             .background(((die.die.color?.UIColor).map(Color.init) ?? Color(UIColor.systemGray5)).cornerRadius(4))
             .animation(nil, value: die.value)
+            .transition(.flip)
+            .id(die.id)
+
     }
 
 }
@@ -516,7 +528,7 @@ extension RolledDiceExpression {
     var text: Text {
         switch self {
         case .dice(let die, let values):
-            return Text("(" + values.map({ "\($0)" }).joined(separator: ", ") + ")").foregroundColor((die.color?.UIColor).map(Color.init) ?? Color(UIColor.tertiaryLabel))
+            return Text("(" + values.map({ "\($0.value)" }).joined(separator: ", ") + ")").foregroundColor((die.color?.UIColor).map(Color.init) ?? Color(UIColor.tertiaryLabel))
                 + Text("/\(die.sides)").foregroundColor(Color(UIColor.quaternaryLabel))
         case .compound(let lhs, let op, let rhs):
             return lhs.text + Text(" \(op.string) ") + rhs.text
