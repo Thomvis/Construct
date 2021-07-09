@@ -73,9 +73,12 @@ extension Database {
             }
         }
 
+        // Note after the fact: there's two issues with this migration:
+        // - it also added ensureStableDiscriminators to RunningEncounters (now resolved with the where clause of for)
+        // - it did not update encounters inside RunningEncounters (not fixed, damage has been done)
         migrator.registerMigration("v4-encounter.ensureStableDiscriminators") { db in
             let encounters = try KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyValueStoreEntityKeyPrefix)%")).fetchAll(db)
-            for e in encounters {
+            for e in encounters where !e.key.contains(".running.") {
                 guard var encounter = try JSONSerialization.jsonObject(with: e.value, options: []) as? [String: Any] else { continue }
 
                 if encounter["ensureStableDiscriminators"] == nil {
