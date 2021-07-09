@@ -294,6 +294,29 @@ extension Database {
             }
         }
 
+        // Before this, the prefix of Encounters and RunningEncounters would be identical
+        // That was a mistake
+        migrator.registerMigration("v11-runningEncounterKeyFix") { db in
+
+            // Encounters and RunningEncounters
+            let records = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyValueStoreEntityKeyPrefix)%")).fetchAll(db)
+            for r in records where r.key.contains(".running.") {
+                // records with old-style RunningEncounter keys
+
+                do {
+                    let re = try self.keyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
+
+                    let newRecord = KeyValueStore.Record(key: re.key, modifiedAt: r.modifiedAt, value: r.value)
+                    try newRecord.save(db)
+                } catch let error as DecodingError {
+                    print("Warning: Migration \"v11-runningEncounterKeyFix\" failed for RunningEncounter with key \(r.key), last modified: \(r.modifiedAt). Underlying decoding error: \(error)")
+                }
+
+                // Remove since
+                _ = try? r.delete(db)
+            }
+        }
+
         return migrator
     }
 }

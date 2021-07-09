@@ -277,11 +277,11 @@ extension RunningEncounter: KeyValueStoreEntity {
     }
 
     static func keyPrefix(for encounter: Encounter) -> String {
-        "\(encounter.key).running."
+        keyPrefix(for: encounter.id)
     }
 
     static func keyPrefix(for encounterId: Encounter.Id) -> String {
-        "\(Encounter.key(encounterId)).running."
+        "running.\(Encounter.key(encounterId))."
     }
 }
 
