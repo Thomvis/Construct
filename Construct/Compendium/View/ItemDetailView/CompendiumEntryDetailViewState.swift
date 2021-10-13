@@ -167,13 +167,12 @@ struct CompendiumEntryDetailViewState: NavigationStackItemState, Equatable {
                 case .sheet(.creatureEdit(CreatureEditViewAction.onRemoveTap)):
                     let entryKey = state.entry.key
                     return Effect.run { subscriber in
-                        do {
-                            if try env.database.keyValueStore.remove(entryKey) {
-                                subscriber.send(.setSheet(nil))
-                                subscriber.send(.didRemoveItem)
-                            }
-                        } catch { }
-                        subscriber.send(completion: .finished)
+                        _ = try? env.database.keyValueStore.remove(entryKey)
+                        subscriber.send(.setSheet(nil))
+                        DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
+                            subscriber.send(.didRemoveItem)
+                            subscriber.send(completion: .finished)
+                        }
 
                         return AnyCancellable { }
                     }
@@ -188,8 +187,10 @@ struct CompendiumEntryDetailViewState: NavigationStackItemState, Equatable {
                     return Effect.run { subscriber in
                         _ = try? env.database.keyValueStore.remove(group.key)
                         subscriber.send(.setSheet(nil))
-                        subscriber.send(.didRemoveItem)
-                        subscriber.send(completion: .finished)
+                        DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
+                            subscriber.send(.didRemoveItem)
+                            subscriber.send(completion: .finished)
+                        }
 
                         return AnyCancellable { }
                     }
