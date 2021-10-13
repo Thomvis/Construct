@@ -19,7 +19,7 @@ extension View {
     }
 
     func popover<Content>(_ content: Binding<Content?>) -> some View where Content: View {
-        self.background(PopoverPresenter(content: content).opacity(0))
+        self.overlay(PopoverPresenter(content: content).opacity(0))
     }
 }
 
