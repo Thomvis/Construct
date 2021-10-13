@@ -320,6 +320,7 @@ fileprivate struct CompendiumItemList: View {
                     }
                 }
             }
+            .listStyle(.plain)
             // Workaround: without the id, the ForEach above would sometimes not be re-evaluated
             // (e.g. when switching between compendium types)
             // At the moment of writing, the sidebar navigation link to the compendium is made in a way
