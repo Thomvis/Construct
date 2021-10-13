@@ -48,7 +48,7 @@ struct AnimatedRollState: Hashable {
             state.intermediaryResult = expr.roll
 
             return Effect(value: .rollIntermediary(expr, remaining-1))
-                .delay(for: 0.08, scheduler: env.mainQueue)
+                .delay(for: 0.08, scheduler: env.mainQueue.animation())
                 .eraseToEffect()
         }
     }

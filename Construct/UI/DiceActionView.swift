@@ -41,7 +41,7 @@ struct DiceActionView: View {
 
                     Spacer()
                     Button(action: {
-                        viewStore.send(.rollAll)
+                        viewStore.send(.rollAll, animation: .default)
                     }) {
                         Text("Re-roll all")
                     }
