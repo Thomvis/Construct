@@ -67,11 +67,12 @@ struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: V
 
         var body: some View {
             ZStack {
-                Color(UIColor.systemGray3).opacity(0.45).edgesIgnoringSafeArea(.all)
+                Color(UIColor.systemGray3).opacity(0.66).edgesIgnoringSafeArea(.all)
                     .onTapGesture {
                         $popover.wrappedValue = nil
                     }
                     .transition(.opacity)
+                    .blendMode(.multiply)
 
                 popover
                     .padding(15)
