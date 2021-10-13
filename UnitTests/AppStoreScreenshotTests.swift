@@ -438,7 +438,7 @@ class AppStoreScreenshotTests: XCTestCase {
             resumableRunningEncounters: .initial,
             sheet: nil,
             popover: nil,
-            editMode: false,
+            editMode: .inactive,
             selection: Set(),
             combatantDetailReferenceItemRequest: nil,
             addCombatantReferenceItemRequest: nil
@@ -475,7 +475,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 resumableRunningEncounters: .initial,
                                 sheet: nil,
                                 popover: nil,
-                                editMode: false,
+                                editMode: .inactive,
                                 selection: Set(),
                                 combatantDetailReferenceItemRequest: nil,
                                 addCombatantReferenceItemRequest: nil

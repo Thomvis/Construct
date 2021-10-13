@@ -47,7 +47,7 @@ struct EncounterDetailViewState: Equatable {
     var sheet: Sheet?
     var popover: Popover?
 
-    var editMode = false
+    var editMode: EditMode = .inactive
     var selection = Set<Combatant.Id>()
 
     var encounter: Encounter {
@@ -183,7 +183,7 @@ extension EncounterDetailViewState {
         case resumableRunningEncounters(ResumableRunningEncounters.Action)
         case removeResumableRunningEncounter(String) // key of the running encounter
         case resetEncounter(Bool) // false = clear monsters, true = clear all
-        case editMode(Bool)
+        case editMode(EditMode)
         case selection(Set<Combatant.Id>)
 
         case selectionEncounterAction(SelectionEncounterAction)
@@ -313,9 +313,9 @@ extension EncounterDetailViewState {
                         _ = try? env.database.keyValueStore.removeAll(runningEncounterPrefix)
                         callback(.success(.resumableRunningEncounters(.startLoading)))
                     }
-                case .editMode(let b):
-                    state.editMode = b
-                    if !b {
+                case .editMode(let mode):
+                    state.editMode = mode
+                    if mode == .inactive {
                         state.selection.removeAll()
                     }
                 case .selection(let s):
