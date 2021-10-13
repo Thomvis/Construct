@@ -73,7 +73,7 @@ struct AddCombatantDetailView: View {
                         Divider().padding(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
 
                         ActivityButton(
-                            normal: Text(confirmText).frame(width: 200).animation(nil),
+                            normal: Text(confirmText).frame(width: 200).animation(nil, value: self.combatantQuantityDifference),
                             confirmation: HStack {
                                 Image(systemName: "checkmark")
                                 Text("Done")

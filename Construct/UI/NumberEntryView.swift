@@ -22,7 +22,7 @@ struct NumberEntryView: View {
 
     var body: some View {
         VStack {
-            Picker("Type", selection: viewStore.binding(get: { $0.mode }, send: { .mode($0) })) {
+            Picker("Type", selection: viewStore.binding(get: { $0.mode }, send: { .mode($0) }).animation(.spring())) {
                 Text("Roll").tag(NumberEntryViewState.Mode.dice)
                 Text("Manual").tag(NumberEntryViewState.Mode.pad)
             }.pickerStyle(SegmentedPickerStyle())

@@ -86,7 +86,6 @@ struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: V
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .animation(.spring())
         }
     }
 

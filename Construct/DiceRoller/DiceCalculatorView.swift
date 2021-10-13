@@ -152,7 +152,7 @@ struct DiceCalculatorState: Hashable {
             state.intermediaryResult = expression.roll
 
             return Effect(value: .intermediaryResultsStep(expression, remaining-1))
-                .delay(for: state.intermediaryResultStepDelay, scheduler: env.mainQueue)
+                .delay(for: state.intermediaryResultStepDelay, scheduler: env.mainQueue.animation())
                 .eraseToEffect()
         }
         return .none
@@ -301,7 +301,7 @@ struct OutcomeView: View {
                         .opacity(viewStore.state.resultIsIntermediary ? 0.50 : 1.0)
                     } else {
                         Button(action: {
-                            viewStore.send(.onRerollButtonTap)
+                            viewStore.send(.onRerollButtonTap, animation: .spring())
                         }) {
                             Text("Roll").font(.largeTitle)
                         }
@@ -342,7 +342,11 @@ struct OutcomeView: View {
 
         var body: some View {
             VStack {
-                Button(action: { self.store.send(.onRerollButtonTap) }) {
+                Button(action: {
+                    withAnimation {
+                        self.store.send(.onRerollButtonTap)
+                    }
+                }) {
                     Text("Re-roll").font(.footnote)
                 }.disabled(!self.store.canRerollResult)
             }
@@ -434,9 +438,7 @@ fileprivate struct DicePadView: View {
                 makeButton("1d2", .dice(count: 1, die: .d2))
                 makeButton("1d4", .dice(count: 1, die: .d4))
                 Button(action: {
-                    withAnimation(.spring()) {
-                        self.store.send(.onExpressionEditRollButtonTap)
-                    }
+                    self.store.send(.onExpressionEditRollButtonTap, animation: .spring())
                 }) {
                     Text("Roll")
                 }

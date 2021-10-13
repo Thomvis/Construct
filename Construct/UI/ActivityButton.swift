@@ -43,13 +43,13 @@ struct ActivityButton<Normal, Confirmation>: View where Normal: View, Confirmati
                     .padding(4)
                     .offset(x: 0, y: direction == .confirmation && state == .confirmation ? height : 0)
                     .opacity(direction == .normal && state == .confirmation ? 0 : 1)
-                    .animation(Animation.spring().delay(direction == .normal && state == .normal ? 0.33 : 0.0))
+                    .animation(Animation.spring().delay(direction == .normal && state == .normal ? 0.33 : 0.0), value: [direction, state])
 
                 confirmation
                     .padding(4)
                     .offset(x: 0, y: direction == .confirmation && state == .normal ? -height : 0)
                     .opacity(direction == .normal && state == .normal ? 0 : 1)
-                    .animation(.spring())
+                    .animation(.spring(), value: [direction, state])
             }
         }, id: "")
             .clipped()
