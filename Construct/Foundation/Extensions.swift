@@ -201,46 +201,6 @@ func optionalCompare<O>(_ lhs: O, _ rhs: O, compare: (O.Wrapped, O.Wrapped) -> B
     }
 }
 
-extension ConfirmationDialogState {
-    func pullback<A>(toGlobalAction: CasePath<A, Action>) -> ConfirmationDialogState<A> {
-        ConfirmationDialogState<A>(
-            title: title,
-            message: message,
-            buttons: buttons.map {
-                pullback($0, toGlobalAction: toGlobalAction.embed)
-            }
-        )
-    }
-
-    func pullback<A>(toGlobalAction: (Action) -> A) -> ConfirmationDialogState<A> {
-        ConfirmationDialogState<A>(
-            title: title,
-            message: message,
-            buttons: buttons.map {
-                pullback($0, toGlobalAction: toGlobalAction)
-            }
-        )
-    }
-
-    private func pullback<A>(_ button: Button, toGlobalAction: (Action) -> A) -> ConfirmationDialogState<A>.Button {
-        switch button.role {
-        case .cancel: return .cancel(button.label, action: button.action?.pullback(toGlobalAction: toGlobalAction))
-        case .destructive: return .destructive(button.label, action: button.action?.pullback(toGlobalAction: toGlobalAction))
-        case nil: return .default(button.label, action: button.action?.pullback(toGlobalAction: toGlobalAction))
-        }
-    }
-
-}
-
-extension AlertState.ButtonAction {
-    fileprivate func pullback<A>(toGlobalAction: (Action) -> A) -> AlertState<A>.ButtonAction {
-        switch self.type {
-        case .send(let action): return .send(toGlobalAction(action))
-        case .animatedSend(let action, animation: let animation): return .send(toGlobalAction(action), animation: animation)
-        }
-    }
-}
-
 extension Bool {
     func toggled() -> Bool {
         !self
