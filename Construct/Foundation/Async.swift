@@ -158,7 +158,10 @@ struct ResultSet<Input, Success, Failure> where Failure: Error {
                     }
                 case .reset:
                     state.lastResult = nil
-                    return Effect(value: .result(.reset))
+                    if asyncReducer != nil {
+                        return Effect(value: .result(.reset))
+                    }
+                    return Effect.none
                 case .reload:
                     if let fetch = fetch(state.input) {
                         asyncReducer = Async<Success, Failure, Environment>.reducer(fetch)
