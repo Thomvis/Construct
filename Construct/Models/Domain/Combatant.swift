@@ -323,7 +323,6 @@ CombatantResource.reducer.forEach(state: \.resources, action: /CombatantAction.r
 enum CombatantResourceAction: Equatable {
     case title(String)
     case reset
-    case setSlotsCount(Int)
     case slot(Int, Bool)
 }
 
@@ -334,8 +333,6 @@ extension CombatantResource {
             state.title = t
         case .reset:
             state.reset()
-        case .setSlotsCount(let c):
-            break // fixme
         case .slot(let idx, let v):
             state.slots[idx] = v
         }
