@@ -19,7 +19,7 @@ extension View {
     }
 
     func popover<Content>(_ content: Binding<Content?>) -> some View where Content: View {
-        self.background(PopoverPresenter(content: content).opacity(0))
+        self.overlay(PopoverPresenter(content: content).opacity(0))
     }
 }
 
@@ -67,11 +67,12 @@ struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: V
 
         var body: some View {
             ZStack {
-                Color(UIColor.systemGray3).opacity(0.45).edgesIgnoringSafeArea(.all)
+                Color(UIColor.systemGray3).opacity(0.66).edgesIgnoringSafeArea(.all)
                     .onTapGesture {
                         $popover.wrappedValue = nil
                     }
                     .transition(.opacity)
+                    .blendMode(.multiply)
 
                 popover
                     .padding(15)
@@ -85,7 +86,6 @@ struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: V
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .animation(.spring())
         }
     }
 

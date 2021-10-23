@@ -15,11 +15,11 @@ struct HealthFractionView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("-").modifier(EffectiveModifier(anim: $anim, number: Double(hp.effective))).animation(.easeOut(duration: 0.66))
+            Text("-").modifier(EffectiveModifier(anim: $anim, number: Double(hp.effective))).animation(.easeOut(duration: 0.66), value: hp.effective)
             Divider()
             Text("\(hp.maximum)").foregroundColor(Color(UIColor.secondaryLabel))
         }
-        .background(Rectangle().cornerRadius(4).foregroundColor(colorForDirection.opacity(0.33)).animation(.easeInOut(duration: 0.33)))
+        .background(Rectangle().cornerRadius(4).foregroundColor(colorForDirection.opacity(0.33)).animation(.easeInOut(duration: 0.33), value: hp.effective))
         .font(.footnote)
         .frame(width: 25)
         .accessibilityElement(children: .ignore)

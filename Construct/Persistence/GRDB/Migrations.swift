@@ -308,7 +308,7 @@ extension Database {
 
                     let newRecord = KeyValueStore.Record(key: re.key, modifiedAt: r.modifiedAt, value: r.value)
                     try newRecord.save(db)
-                } catch let error as DecodingError {
+                } catch {
                     print("Warning: Migration \"v11-runningEncounterKeyFix\" failed for RunningEncounter with key \(r.key), last modified: \(r.modifiedAt). Underlying decoding error: \(error)")
                 }
 

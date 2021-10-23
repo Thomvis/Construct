@@ -22,7 +22,7 @@ struct EncounterDifficultyView: View {
                 ZStack {
                     Bar(color: Color(UIColor.systemGray5), percentage: 1)
                     if difficulty.category != nil {
-                        Bar(color: barColor, percentage: max(0, min(1, difficulty.percentageOfDeadly))).animation(.spring())
+                        Bar(color: barColor, percentage: max(0, min(1, difficulty.percentageOfDeadly))).animation(.spring(), value: difficulty.percentageOfDeadly)
                     }
 
                     GeometryReader { proxy in

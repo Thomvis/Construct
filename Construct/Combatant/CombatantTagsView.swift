@@ -105,6 +105,7 @@ struct CombatantTagsView: View {
                     }
                 }
             }
+            .listStyle(.plain)
         }
         .stateDrivenNavigationLink(store: store, state: CasePath.`self`, action: CasePath.`self`, destination: CombatantTagEditView.init)
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)

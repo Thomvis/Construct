@@ -34,7 +34,7 @@ struct EncounterDetailView: View {
                 self.viewStore.send(.selection($0))
             })) {
                 if viewStore.state.shouldShowEncounterDifficulty {
-                    Section(header: Text("").accessibilityHidden(true)) {
+                    Section {
                         SimpleButton(action: {
                             self.viewStore.send(.sheet(.settings))
                         }) {
@@ -70,20 +70,20 @@ struct EncounterDetailView: View {
             }
             .listStyle(GroupedListStyle())
             .environment(\.editMode, Binding(get: {
-                self.viewStore.state.editMode ? .active : .inactive
+                self.viewStore.state.editMode
             }, set: {
-                self.viewStore.send(.editMode($0.isEditing))
+                self.viewStore.send(.editMode($0))
             }))
 
             VStack {
                 if viewStore.state.running == nil {
-                    if viewStore.state.editMode {
+                    if viewStore.state.editMode == .active {
                         buildingEditModeActionBar()
                     } else {
                         defaultActionBar()
                     }
                 } else {
-                    if viewStore.state.editMode {
+                    if viewStore.state.editMode == .active {
                         runningEditModeActionBar()
                     } else {
                         RunningEncounterActionBar(viewStore: viewStore)
@@ -96,10 +96,10 @@ struct EncounterDetailView: View {
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .navigationBarItems(trailing: Button(action: {
             withAnimation {
-                self.viewStore.send(.editMode(!self.viewStore.state.editMode))
+                self.viewStore.send(.editMode(self.viewStore.state.editMode.isEditing ? .inactive : .active))
             }
         }) {
-            Text(self.viewStore.state.editMode ? "Done" : "Edit")
+            Text(self.viewStore.state.editMode.isEditing ? "Done" : "Edit")
         })
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, onDismiss: {
             self.viewStore.send(.sheet(nil))
@@ -358,7 +358,7 @@ struct CombatantSection: View {
     var body: some View {
         Section(header: Group {
             HStack {
-                if parent.viewStore.state.editMode {
+                if parent.viewStore.state.editMode == .active {
                     with(Set(self.parent.viewStore.state.encounter.combatants.map { $0.id })) { allIds in
                         with(parent.viewStore.state.selection == allIds) { selectedAll in
                             Button(action: {
@@ -395,7 +395,7 @@ struct CombatantSection: View {
                 })
                 // contentShape is needed or else the tapGesture on the whole cell doesn't work
                 // scale is used to make the row easier selectable in edit mode
-                .contentShape(Rectangle().scale(self.parent.viewStore.state.editMode ? 0 : 1))
+                .contentShape(Rectangle().scale(self.parent.viewStore.state.editMode.isEditing ? 0 : 1))
                 .onTapGesture {
                     if parent.appNavigation == .tab {
                         self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))

@@ -244,6 +244,7 @@ struct NodeEditView: View {
                                 didFocusOnField = true
                             }
                         }
+                        .submitLabel(.done)
                 }
                 .padding(8)
                 .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
