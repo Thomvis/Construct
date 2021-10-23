@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import IdentifiedCollections
 
 extension UUID {
     init(fakeSeq: Int) {
@@ -18,6 +19,15 @@ extension UUID {
         return {
             defer { i += 1 }
             return UUID(fakeSeq: i)
+        }
+    }
+}
+
+extension IdentifiedArray {
+    public subscript(position position: Int) -> Element {
+        _read { yield self[id: self.ids[position]]! }
+        _modify {
+            yield &self[id: self.ids[position]]!
         }
     }
 }

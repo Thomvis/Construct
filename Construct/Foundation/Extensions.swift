@@ -201,9 +201,9 @@ func optionalCompare<O>(_ lhs: O, _ rhs: O, compare: (O.Wrapped, O.Wrapped) -> B
     }
 }
 
-extension ActionSheetState {
-    func pullback<A>(toGlobalAction: CasePath<A, Action>) -> ActionSheetState<A> {
-        ActionSheetState<A>(
+extension ConfirmationDialogState {
+    func pullback<A>(toGlobalAction: CasePath<A, Action>) -> ConfirmationDialogState<A> {
+        ConfirmationDialogState<A>(
             title: title,
             message: message,
             buttons: buttons.map {
@@ -212,8 +212,8 @@ extension ActionSheetState {
         )
     }
 
-    func pullback<A>(toGlobalAction: (Action) -> A) -> ActionSheetState<A> {
-        ActionSheetState<A>(
+    func pullback<A>(toGlobalAction: (Action) -> A) -> ConfirmationDialogState<A> {
+        ConfirmationDialogState<A>(
             title: title,
             message: message,
             buttons: buttons.map {
@@ -222,16 +222,21 @@ extension ActionSheetState {
         )
     }
 
-    private func pullback<A>(_ button: Button, toGlobalAction: (Action) -> A) -> ActionSheetState<A>.Button {
-        switch button.type {
-        case .cancel(label: let label?):
-            return .cancel(label, send: button.action.map(toGlobalAction))
-        case .cancel(label: nil):
-            return .cancel(send: button.action.map(toGlobalAction))
-        case .default(label: let label):
-            return .default(label, send: button.action.map(toGlobalAction))
-        case .destructive(label: let label):
-            return .destructive(label, send: button.action.map(toGlobalAction))
+    private func pullback<A>(_ button: Button, toGlobalAction: (Action) -> A) -> ConfirmationDialogState<A>.Button {
+        switch button.role {
+        case .cancel: return .cancel(button.label, action: button.action?.pullback(toGlobalAction: toGlobalAction))
+        case .destructive: return .destructive(button.label, action: button.action?.pullback(toGlobalAction: toGlobalAction))
+        case nil: return .default(button.label, action: button.action?.pullback(toGlobalAction: toGlobalAction))
+        }
+    }
+
+}
+
+extension AlertState.ButtonAction {
+    fileprivate func pullback<A>(toGlobalAction: (Action) -> A) -> AlertState<A>.ButtonAction {
+        switch self.type {
+        case .send(let action): return .send(toGlobalAction(action))
+        case .animatedSend(let action, animation: let animation): return .send(toGlobalAction(action), animation: animation)
         }
     }
 }

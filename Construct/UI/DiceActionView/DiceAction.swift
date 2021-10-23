@@ -142,7 +142,7 @@ extension DiceAction {
         self.init(
             title: title,
             subtitle: "\(attack.type == .melee ? "Melee" : "Ranged") weapon attack",
-            steps: [
+            steps: IdentifiedArray(uniqueElements: [
                 Step(
                     title: "\(env.modifierFormatter.stringWithFallback(for: attack.hitModifier.modifier)) to hit",
                     value: .roll(Step.Value.RollValue(roll: .abilityCheck(attack.hitModifier.modifier)))
@@ -160,7 +160,7 @@ extension DiceAction {
                         Step(damage: save.damage)
                     ]
                 }
-            }
+            })
         )
     }
 }

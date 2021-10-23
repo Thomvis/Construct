@@ -54,7 +54,7 @@ class RunningEncounterTest: XCTestCase {
             addedIn: sut.turn,
             sourceCombatantId: nil
         )
-        sut.current.combatants[0].tags.append(tag)
+        sut.current.combatants[position: 0].tags.append(tag)
 
         XCTAssertEqual(sut.tagExpiresAt(tag, sut.current.combatants[0]), RunningEncounter.Turn(round: 1, combatantId: sut.current.combatants[1].id))
     }
@@ -69,7 +69,7 @@ class RunningEncounterTest: XCTestCase {
             addedIn: sut.turn,
             sourceCombatantId: nil
         )
-        sut.current.combatants[0].tags.append(tag)
+        sut.current.combatants[position: 0].tags.append(tag)
 
         XCTAssertEqual(sut.tagExpiresAt(tag, sut.current.combatants[0]), RunningEncounter.Turn(round: 2, combatantId: sut.current.combatants[0].id))
     }
@@ -84,7 +84,7 @@ class RunningEncounterTest: XCTestCase {
             addedIn: sut.turn,
             sourceCombatantId: nil
         )
-        sut.current.combatants[0].tags.append(tag)
+        sut.current.combatants[position: 0].tags.append(tag)
 
         XCTAssertEqual(sut.tagExpiresAt(tag, sut.current.combatants[0]), RunningEncounter.Turn(round: 3, combatantId: sut.current.combatants[0].id))
     }
@@ -99,7 +99,7 @@ class RunningEncounterTest: XCTestCase {
             addedIn: sut.turn,
             sourceCombatantId: nil
         )
-        sut.current.combatants[0].tags.append(tag)
+        sut.current.combatants[position: 0].tags.append(tag)
 
         XCTAssertEqual(sut.tagExpiresAt(tag, sut.current.combatants[0]), RunningEncounter.Turn(round: 11, combatantId: sut.current.combatants[0].id))
     }

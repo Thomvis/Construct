@@ -231,7 +231,7 @@ extension Database {
                 var newEncounter = encounter
 
                 // AdHocCombatant.original
-                newEncounter.combatants = IdentifiedArray(newEncounter.combatants.map { c in
+                newEncounter.combatants = IdentifiedArray(uniqueElements: newEncounter.combatants.map { c in
                     if let adHoc = c.definition as? AdHocCombatantDefinition {
                         if let original = adHoc.original, let newKey = updates[original.itemKey.rawValue] {
                             var newDefinition = adHoc

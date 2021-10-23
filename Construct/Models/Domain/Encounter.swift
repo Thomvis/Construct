@@ -29,7 +29,7 @@ struct Encounter: Equatable, Codable {
     init(id: UUID = UUID(), name: String, combatants: [Combatant]) {
         self.id = id.tagged()
         self.name = name
-        self.combatants = IdentifiedArray(combatants, id: \.id)
+        self.combatants = IdentifiedArray(uniqueElements: combatants, id: \.id)
         self.ensureStableDiscriminators = false
         updateCombatantDiscriminators()
     }
@@ -150,16 +150,16 @@ struct Encounter: Equatable, Codable {
             }
         }
 
-        for (idx, combatant) in combatants.enumerated() {
+        for combatant in combatants {
             if combatant.definition.player != nil && !settings.rollForPlayerCharacters { continue }
             if combatant.initiative != nil && !settings.overwrite { continue }
 
             if let initiative = groupCache?[combatant.definition.initiativeGroupingHint] {
-                combatants[idx].initiative = initiative
+                combatants[id: combatant.id]?.initiative = initiative
             } else if let modifier = combatant.definition.initiativeModifier {
                 // TODO: extract expression to "Rules"
                 let initiative = (1.d(20) + modifier).roll(rng: &rng).total
-                combatants[idx].initiative = initiative
+                combatants[id: combatant.id]?.initiative = initiative
                 groupCache?[combatant.definition.initiativeGroupingHint] = initiative
             }
         }
@@ -171,22 +171,22 @@ struct Encounter: Equatable, Codable {
         _isUpdatingCombatantDiscriminators = true
 
         if ensureStableDiscriminators {
-            for i in combatants.indices {
-                guard combatants[i].discriminator == nil else { continue }
+            for combatant in combatants {
+                guard combatant.discriminator == nil else { continue }
 
-                let set = combatants.filter { $0.definition.definitionID == combatants[i].definition.definitionID }
+                let set = combatants.filter { $0.definition.definitionID == combatant.definition.definitionID }
                 guard set.count > 1 else { continue }
 
                 let max = set.compactMap { $0.discriminator }.max() ?? 0
-                combatants[i].discriminator = max + 1
+                combatants[id: combatant.id]?.discriminator = max + 1
             }
         } else {
-            for i in combatants.indices {
-                let set = combatants.filter { $0.definition.definitionID == combatants[i].definition.definitionID }
+            for combatant in combatants {
+                let set = combatants.filter { $0.definition.definitionID == combatant.definition.definitionID }
                 if set.count > 1 {
-                    combatants[i].discriminator = set.firstIndex { $0.id == combatants[i].id }.map { $0 + 1 }
+                    combatants[id: combatant.id]?.discriminator = set.firstIndex { $0.id == combatant.id }.map { $0 + 1 }
                 } else {
-                    combatants[i].discriminator = nil
+                    combatants[id: combatant.id]?.discriminator = nil
                 }
             }
         }

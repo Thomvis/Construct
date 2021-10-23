@@ -38,7 +38,7 @@ struct Combatant: Equatable, Codable, Identifiable {
         self.discriminator = discriminator
         self._definition = CodableCombatDefinition(definition: definition)
         self._hp = hp
-        self.resources = IdentifiedArray(resources)
+        self.resources = IdentifiedArray(uniqueElements: resources)
         self.initiative = initiative
         self.party = party
     }

@@ -257,9 +257,9 @@ class AppStoreScreenshotTests: XCTestCase {
                     )
                 )
 
-                mage.resources[0].used = 1
-                mage.resources[1].used = 3
-                mage.resources[3].used = 1
+                mage.resources[position: 0].used = 1
+                mage.resources[position: 1].used = 3
+                mage.resources[position: 3].used = 1
             }
         )
         let store = Store<CombatantDetailViewState, CombatantDetailViewAction>(initialState: state, reducer: Reducer.empty, environment: ())
@@ -327,21 +327,21 @@ class AppStoreScreenshotTests: XCTestCase {
         var encounter = SampleEncounter.createEncounter(with: environment)
         encounter.name = "The King's Crypt"
         // Mummy
-        apply(&encounter.combatants[0]) { mummy in
+        apply(&encounter.combatants[position: 0]) { mummy in
             mummy.initiative = 12
         }
         // Giant-Spider 1
-        apply(&encounter.combatants[1]) { spider in
+        apply(&encounter.combatants[position: 1]) { spider in
             spider.initiative = 8
             spider.hp?.current = 16
 
         }
         // Giant-Spider 2
-        apply(&encounter.combatants[2]) { spider in
+        apply(&encounter.combatants[position: 2]) { spider in
             spider.initiative = 8
         }
         // Ennan
-        apply(&encounter.combatants[3]) { ennan in
+        apply(&encounter.combatants[position: 3]) { ennan in
             ennan.initiative = 20
             ennan.hp?.current = 16
             ennan.tags.append(
@@ -355,7 +355,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
         }
-        apply(&encounter.combatants[4]) { willow in
+        apply(&encounter.combatants[position: 4]) { willow in
             willow.initiative = 23
             willow.tags.append(
                 CombatantTag(
@@ -378,7 +378,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
         }
-        apply(&encounter.combatants[5]) { umun in
+        apply(&encounter.combatants[position: 5]) { umun in
             umun.initiative = 7
             umun.tags.append(
                 CombatantTag(
@@ -391,7 +391,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
         }
-        apply(&encounter.combatants[6]) { sarovin in
+        apply(&encounter.combatants[position: 6]) { sarovin in
             sarovin.initiative = 11
             sarovin.tags.append(
                 CombatantTag(
@@ -409,20 +409,20 @@ class AppStoreScreenshotTests: XCTestCase {
             id: UUID().tagged(),
             base: encounter,
             current: encounter,
-            turn: RunningEncounter.Turn(round: 1, combatantId: encounter.combatants.elements[1].id),
+            turn: RunningEncounter.Turn(round: 1, combatantId: encounter.combatants[position: 1].id),
             log: [
                 RunningEncounterEvent(
                     id: UUID().tagged(),
-                    turn: RunningEncounter.Turn(round: 1, combatantId: encounter.combatants.elements[3].id),
+                    turn: RunningEncounter.Turn(round: 1, combatantId: encounter.combatants[position: 3].id),
                     combatantEvent: RunningEncounterEvent.CombatantEvent(
-                        target: RunningEncounterEvent.CombatantReference(id: encounter.combatants.elements[1].id, name: "Giant Spider", discriminator: 1),
+                        target: RunningEncounterEvent.CombatantReference(id: encounter.combatants[position: 1].id, name: "Giant Spider", discriminator: 1),
                         source: RunningEncounterEvent.CombatantReference(id: encounter.combatants.elements[3].id, name: "Ennan Yarfall", discriminator: nil),
                         effect: RunningEncounterEvent.CombatantEvent.Effect(currentHp: -4)
                     )
                 ),
                 RunningEncounterEvent(
                     id: UUID().tagged(),
-                    turn: RunningEncounter.Turn(round: 1, combatantId: encounter.combatants.elements[0].id),
+                    turn: RunningEncounter.Turn(round: 1, combatantId: encounter.combatants[position: 0].id),
                     combatantEvent: RunningEncounterEvent.CombatantEvent(
                         target: RunningEncounterEvent.CombatantReference(id: encounter.combatants.elements[3].id, name: "Ennan Yarfall", discriminator: 1),
                         source: RunningEncounterEvent.CombatantReference(id: encounter.combatants.elements[0].id, name: "Mummy", discriminator: nil),

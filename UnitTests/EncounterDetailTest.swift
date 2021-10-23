@@ -46,8 +46,8 @@ class EncounterDetailTest: XCTestCase {
             },
             // roll initiative
             .send(.runningEncounter(.current(.initiative(InitiativeSettings.default)))) {
-                $0.running!.current.combatants[0].initiative = 2
-                $0.running!.current.combatants[1].initiative = 3
+                $0.running!.current.combatants[position: 0].initiative = 2
+                $0.running!.current.combatants[position: 1].initiative = 3
                 $0.running!.turn = .init(round: 1, combatantId: $0.running!.current.combatants[1].id)
             },
             // remove second combatant (who has the current turn)

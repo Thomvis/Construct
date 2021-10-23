@@ -13,8 +13,8 @@ struct ReferenceViewState: Equatable {
 
     var encounterReferenceContext: EncounterReferenceContext? {
         didSet {
-            for i in items.indices {
-                items[i].state.content.context.encounterDetailView = encounterReferenceContext
+            for item in items {
+                items[id: item.id]?.state.content.context.encounterDetailView = encounterReferenceContext
             }
         }
     }
@@ -195,9 +195,9 @@ extension ReferenceViewState {
             // actions that can affect the open compendium entries
             case .item, .onBackTapped, .removeTab, .itemRequests:
                 let entries = state.openCompendiumEntries()
-                for idx in state.items.indices {
-                    state.items[idx].state.content.context.openCompendiumEntries = entries.compactMap { (itemId, entry) -> CompendiumEntry? in
-                        guard itemId != state.items[idx].id else { return nil }
+                for item in state.items {
+                    state.items[id: item.id]?.state.content.context.openCompendiumEntries = entries.compactMap { (itemId, entry) -> CompendiumEntry? in
+                        guard itemId != item.id else { return nil }
                         return entry
                     }
                 }
