@@ -13,7 +13,6 @@ import ComposableArchitecture
 struct CompendiumIndexView: View {
     @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
-    @SwiftUI.Environment(\.dismissSearch) var dismissSearch
 
     let store: Store<CompendiumIndexState, CompendiumIndexAction>
     @ObservedObject var localViewStore: ViewStore<LocalState, CompendiumIndexAction>
@@ -30,18 +29,19 @@ struct CompendiumIndexView: View {
 
     var body: some View {
         return VStack {
-            // We use a WithViewStore specific to the search field to prevent
-            // any other part of the view from updating on every key press
             WithViewStore(store.scope(state: { $0.results.input })) { viewStore in
-                EmptyView()
-                    .searchable(
-                        text: viewStore.binding(
-                            get: { $0.text.nonNilString },
-                            send: { .query(.onTextDidChange($0), debounce: true) }
-                        ),
-                        placement: .navigationBarDrawer(displayMode: localViewStore.state.searchFieldDisplayMode)
-                    )
+                BorderedSearchField(
+                    text: viewStore.binding(get: { $0.text.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
+                    accessory: Self.filterButton(viewStore)
+                )
             }
+            .introspectTextField { textField in
+                if !textField.isFirstResponder, localViewStore.state.initiallyFocusOnSearch, !didFocusOnSearch {
+                    textField.becomeFirstResponder()
+                    didFocusOnSearch = true
+                }
+            }
+            .padding([.leading, .top, .trailing], 8)
 
             if localViewStore.state.resultsValueNonNil {
                 CompendiumItemList(store: store, viewProvider: viewProvider)
@@ -55,24 +55,21 @@ struct CompendiumIndexView: View {
                 }
             }
 
-            HStack {
-                if let type = localViewStore.state.addButtonItemType {
+            if let type = localViewStore.state.addButtonItemType {
+                HStack {
                     RoundedButton(action: {
                         self.localViewStore.send(.onAddButtonTap)
                     }) {
                         Label("Add \(type.localizedDisplayName)", systemImage: "plus.circle")
                     }
                 }
-
-                Self.filterButton(ViewStore(store.scope(state: { $0.results.input })))
+                .padding([.leading, .trailing, .bottom], 8)
+                .ignoresSafeArea(.keyboard, edges: .all)
             }
-            .equalSizes(horizontal: false, vertical: true)
-            .padding([.leading, .trailing, .bottom], 8)
-            .ignoresSafeArea(.keyboard, edges: .all)
         }
         .simultaneousGesture(DragGesture().onChanged { _ in
-            // fixme: this gesture does not appear to work in iOS 15
-            dismissSearch()
+            // Dismiss the keyboard when the user starts scrolling in the list
+            env.dismissKeyboard()
         })
         .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
         .navigationBarItems(trailing: Group {
@@ -186,10 +183,6 @@ struct CompendiumIndexView: View {
 
             isShowingImport = state.presentedNextCompendiumImport != nil || state.presentedDetailCompendiumImport != nil
             sheet = state.sheet
-        }
-
-        var searchFieldDisplayMode: SearchFieldPlacement.NavigationBarDrawerDisplayMode {
-            initialContentIsSearchResults ? .automatic : .always
         }
     }
 }
@@ -399,7 +392,7 @@ struct FilterButton: View {
     @State var popover: Popover?
 
     var body: some View {
-        RoundedButton(action: {
+        SimpleButton(action: {
             let state = CompendiumFilterPopoverState(self.viewStore.state.filters, self.viewStore.state.compatibleFilterProperties)
 
             self.popover = CompendiumFilterPopover(store: Store(initialState: state, reducer: CompendiumFilterPopoverState.reducer, environment: self.env)) { filterValues in
@@ -410,26 +403,15 @@ struct FilterButton: View {
                 self.popover = nil
             }
         }) {
-            Label(
-                buttonLabelText,
-                systemImage: filtersAreActive ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle"
-            )
-            .labelStyle(VerticalStackLabelStyle())
+            Image(systemName: "slider.horizontal.3")
+                .font(Font.body.weight(filtersAreActive ? .bold : .regular))
+                .foregroundColor(filtersAreActive ? Color(UIColor.systemBlue) : Color(UIColor.label))
         }
         .popover($popover)
     }
 
     var filtersAreActive: Bool {
         viewStore.state.filters?.test != nil
-    }
-
-    var buttonLabelText: String {
-        guard filtersAreActive else { return "Filters" }
-        var properties: [String] = []
-        if viewStore.state.filters?.maxMonsterChallengeRating != nil || viewStore.state.filters?.minMonsterChallengeRating != nil {
-            properties.append("CR")
-        }
-        return "Filtered by: \(ListFormatter().string(from: properties) ?? "")"
     }
 }
 
