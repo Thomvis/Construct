@@ -10,6 +10,7 @@ import Foundation
 import XCTest
 @testable import Construct
 import SnapshotTesting
+import CustomDump
 
 class CreatureActionParserTest: XCTestCase {
 
@@ -43,6 +44,32 @@ class CreatureActionParserTest: XCTestCase {
             "Melee Weapon Attack: +5 to hit, reach 5 ft., one creature. Hit: 7 (1d8 + 3) piercing damage, and the target must make a DC 11 Constitution saving throw, taking 9 (2d8) poison damage on a failed save, or half as much damage on a successful one. If the poison damage reduces the target to 0 hit points, the target is stable but poisoned for 1 hour, even after regaining hit points, and is paralyzed while poisoned in this way."
         )
         XCTAssertEqual(action, .weaponAttack(.init(type: .melee, range: .reach(5), hitModifier: Modifier(modifier: 5), effects: [.damage(.init(staticDamage: 7, damageExpression: 1.d(8)+3, type: .piercing)), .saveableDamage(.init(ability: .constitution, dc: 11, damage: .init(staticDamage: 9, damageExpression: 2.d(8), type: .poison), saveEffect: .half))])))
+    }
+
+    func testTwoAttackTypes() {
+        let action = CreatureActionParser.parse(
+            "Melee or Ranged Weapon Attack: +6 to hit, reach 5 ft. or range 20/60 ft., one target. Hit: 4 (1d4 + 2) piercing damage."
+        )
+        XCTExpectFailure("This action cannot be parsed yet.")
+        XCTAssertNoDifference(action, .weaponAttack(.init(type: .melee, range: .reach(5), hitModifier: Modifier(modifier: 6), effects: [])))
+    }
+
+    func testOneOrTwoHands() {
+        let action = CreatureActionParser.parse(
+            "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 7 (1d8 + 3) bludgeoning damage, or 8 (1d10 + 3) bludgeoning damage if used with two hands to make a melee attack, plus 3 (1d6) fire damage."
+        )
+
+        XCTExpectFailure("This action cannot be parsed yet.")
+        XCTAssertNoDifference(action, .weaponAttack(.init(type: .melee, range: .reach(5), hitModifier: Modifier(modifier: 5), effects: [])))
+    }
+
+    func testOneOrTwoHands2() {
+        let action = CreatureActionParser.parse(
+            "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 7 (1d8 + 3) slashing damage, or 8 (1d10 + 3) slashing damage if used with two hands."
+        )
+
+        XCTExpectFailure("This action cannot be parsed yet.")
+        XCTAssertNoDifference(action, .weaponAttack(.init(type: .melee, range: .reach(5), hitModifier: Modifier(modifier: 5), effects: [])))
     }
 
     func testAllMonsterActions() {
