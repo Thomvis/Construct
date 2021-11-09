@@ -95,7 +95,7 @@ struct StatBlockView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(stats.features, id: \.name) { feature in
-                        self.view(for: feature).onTapGesture {
+                        self.view(for: feature.input).onTapGesture {
                             // no-op
                         }
                     }

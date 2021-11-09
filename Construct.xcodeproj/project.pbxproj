@@ -74,6 +74,9 @@
 		E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */; };
 		E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA9924784E3500F313D7 /* CombatantTagsViewState.swift */; };
 		E942E02024800C5200170FAC /* CombatantTagEditViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA9B24784F1500F313D7 /* CombatantTagEditViewState.swift */; };
+		E94329602739B74C006F1B6F /* Parseable.swift in Sources */ = {isa = PBXBuildFile; fileRef = E943295F2739B74B006F1B6F /* Parseable.swift */; };
+		E944156F273B13DE00F02C2D /* CreatureFeatureDomainParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E944156E273B13DE00F02C2D /* CreatureFeatureDomainParser.swift */; };
+		E9441571273B211300F02C2D /* Located.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9441570273B211300F02C2D /* Located.swift */; };
 		E946B022247D9E7F008A407C /* Combatant.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6F323150151004D84E2 /* Combatant.swift */; };
 		E946B023247D9E91008A407C /* AdHocCombatant.swift in Sources */ = {isa = PBXBuildFile; fileRef = E926176B2398563E004B1958 /* AdHocCombatant.swift */; };
 		E946B024247D9EBE008A407C /* CombatantTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBDA235DC6E1000CCC8B /* CombatantTag.swift */; };
@@ -298,6 +301,9 @@
 		E940B5DC237BE7F800A8DAF4 /* CombatantTagEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagEditView.swift; sourceTree = "<group>"; };
 		E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Combatant+SwiftUI.swift"; sourceTree = "<group>"; };
 		E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningEncounterLogViewState.swift; sourceTree = "<group>"; };
+		E943295F2739B74B006F1B6F /* Parseable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parseable.swift; sourceTree = "<group>"; };
+		E944156E273B13DE00F02C2D /* CreatureFeatureDomainParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureFeatureDomainParser.swift; sourceTree = "<group>"; };
+		E9441570273B211300F02C2D /* Located.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Located.swift; sourceTree = "<group>"; };
 		E946B02E247E62CD008A407C /* NumberEntryPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberEntryPopover.swift; sourceTree = "<group>"; };
 		E94902FE23660A4F0094CD1A /* ddb_ishmadon.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ddb_ishmadon.json; sourceTree = "<group>"; };
 		E94902FF23660A4F0094CD1A /* ddb_misty.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ddb_misty.json; sourceTree = "<group>"; };
@@ -547,6 +553,7 @@
 				E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */,
 				E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */,
 				E99F959D241C260600183B5B /* Duration.swift */,
+				E944156E273B13DE00F02C2D /* CreatureFeatureDomainParser.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -713,6 +720,7 @@
 		E98F96FA230B24200080372A /* Foundation */ = {
 			isa = PBXGroup;
 			children = (
+				E943295F2739B74B006F1B6F /* Parseable.swift */,
 				E921E32A230DD7A900D02CD6 /* Extensions.swift */,
 				E931E53F233948AF00C3FE9A /* ParserCombinator.swift */,
 				E931E54C233A0B9100C3FE9A /* Async.swift */,
@@ -727,6 +735,7 @@
 				E90B961425B312BB00BD760B /* Memoize.swift */,
 				E972FEC32626ADE700C21B58 /* DecodableDefault.swift */,
 				E972FEC72626DB4000C21B58 /* Zip.swift */,
+				E9441570273B211300F02C2D /* Located.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -1168,6 +1177,7 @@
 				E957C08125BB30580042ECF6 /* ReferenceContext.swift in Sources */,
 				E942E00D247E8F6600170FAC /* StatBlockCombatantResources.swift in Sources */,
 				E91E470D231D9BD2005D1E6F /* Migrations.swift in Sources */,
+				E9441571273B211300F02C2D /* Located.swift in Sources */,
 				E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */,
 				E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */,
 				E963CCA72479423E009863D7 /* DiceRollerView.swift in Sources */,
@@ -1252,6 +1262,7 @@
 				E9819BE22482E772005B898E /* CombatantTrackerEditView.swift in Sources */,
 				E97651D9248AEA8000C76865 /* CombatantTagEditView.swift in Sources */,
 				E931E54223394BCF00C3FE9A /* DiceExpressionParser.swift in Sources */,
+				E944156F273B13DE00F02C2D /* CreatureFeatureDomainParser.swift in Sources */,
 				E97651CA248AD9AA00C76865 /* SettingsView.swift in Sources */,
 				E942E011247EA78200170FAC /* CompendiumIndexView.swift in Sources */,
 				E946B02F247E62CD008A407C /* NumberEntryPopover.swift in Sources */,
@@ -1271,6 +1282,7 @@
 				E921E32B230DD7A900D02CD6 /* Extensions.swift in Sources */,
 				E991F88725449C7D006CE8E8 /* TabbedDocumentView.swift in Sources */,
 				E972BA9724784A6400F313D7 /* EncounterDifficulty.swift in Sources */,
+				E94329602739B74C006F1B6F /* Parseable.swift in Sources */,
 				E972BAA424793DE500F313D7 /* Navigation.swift in Sources */,
 				E97651D0248ADF5A00C76865 /* AddCombatantView.swift in Sources */,
 				E9819BE4248524AA005B898E /* CampaignBrowseView.swift in Sources */,

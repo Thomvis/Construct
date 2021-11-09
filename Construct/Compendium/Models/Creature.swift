@@ -56,7 +56,7 @@ struct StatBlock: Codable, Hashable {
 
     var challengeRating: Fraction?
 
-    var features: [CreatureFeature] // features & traits
+    var features: [ParseableCreatureFeature] // features & traits
     var actions: [CreatureAction]
     @DecodableDefault.EmptyList var reactions: [CreatureAction]
     var legendary: Legendary?
@@ -83,7 +83,7 @@ struct StatBlock: Codable, Hashable {
         self.senses = senses
         self.languages = languages
         self.challengeRating = challengeRating
-        self.features = features
+        self.features = features.map(ParseableCreatureFeature.init)
         self.actions = actions
         self.reactions = reactions
         self.legendary = legendary
