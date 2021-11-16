@@ -55,5 +55,17 @@ extension StatBlock {
         for i in statBlock.features.indices {
             statBlock.features[i].parseIfNeeded()
         }
+
+        for i in statBlock.actions.indices {
+            statBlock.actions[i].parseIfNeeded()
+        }
+
+        for i in statBlock.reactions.indices {
+            statBlock.reactions[i].parseIfNeeded()
+        }
+
+        for i in (statBlock.legendary?.actions.indices ?? [].indices) {
+            statBlock.legendary?.actions[i].parseIfNeeded()
+        }
     }
 }

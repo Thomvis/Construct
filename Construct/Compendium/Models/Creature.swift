@@ -57,8 +57,8 @@ struct StatBlock: Codable, Hashable {
     var challengeRating: Fraction?
 
     var features: [ParseableCreatureFeature] // features & traits
-    var actions: [CreatureAction]
-    @DecodableDefault.EmptyList var reactions: [CreatureAction]
+    var actions: [ParseableCreatureAction]
+    @DecodableDefault.EmptyList var reactions: [ParseableCreatureAction]
     var legendary: Legendary?
 
     internal init(name: String, size: CreatureSize? = nil, type: String? = nil, subtype: String? = nil, alignment: Alignment? = nil, armorClass: Int? = nil, armor: [Armor], hitPointDice: DiceExpression? = nil, hitPoints: Int? = nil, movement: [MovementMode : Int]? = nil, abilityScores: AbilityScores? = nil, savingThrows: [Ability : Modifier], skills: [Skill : Modifier], initiative: Initiative? = nil, damageVulnerabilities: String? = nil, damageResistances: String? = nil, damageImmunities: String? = nil, conditionImmunities: String? = nil, senses: String? = nil, languages: String? = nil, challengeRating: Fraction? = nil, features: [CreatureFeature], actions: [CreatureAction], reactions: [CreatureAction], legendary: Legendary? = nil) {
@@ -84,8 +84,8 @@ struct StatBlock: Codable, Hashable {
         self.languages = languages
         self.challengeRating = challengeRating
         self.features = features.map(ParseableCreatureFeature.init)
-        self.actions = actions
-        self.reactions = reactions
+        self.actions = actions.map(ParseableCreatureAction.init)
+        self.reactions = reactions.map(ParseableCreatureAction.init)
         self.legendary = legendary
     }
 
@@ -99,7 +99,7 @@ struct StatBlock: Codable, Hashable {
 
     struct Legendary: Codable, Hashable {
         var description: String?
-        var actions: [CreatureAction]
+        var actions: [ParseableCreatureAction]
     }
 }
 

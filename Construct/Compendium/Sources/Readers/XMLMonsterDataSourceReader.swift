@@ -443,7 +443,7 @@ extension StatBlock {
 
                 return Legendary(
                     description: description,
-                    actions: actions
+                    actions: actions.map(ParseableCreatureAction.init)
                 )
             }
         )

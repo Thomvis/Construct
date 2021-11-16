@@ -32,7 +32,7 @@ struct Parseable<Input, Result, Parser> where Parser: DomainParser, Parser.Input
     }
 
     mutating func parseIfNeeded() {
-//        guard result?.version != Parser.version else { return }
+        guard result?.version != Parser.version else { return }
         let result = ParserResult(value: Parser.parse(input: input), version: Parser.version)
         self.result = result
     }

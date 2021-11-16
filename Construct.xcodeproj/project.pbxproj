@@ -150,6 +150,7 @@
 		E97983DA2742E69E00800D38 /* CompendiumParseableVisitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */; };
 		E97983DC2742EB9500800D38 /* ModelsParseableVisitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983DB2742EB9500800D38 /* ModelsParseableVisitor.swift */; };
 		E97983DE2742F23300800D38 /* KeyValueStoreEntityTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */; };
+		E97983E02744472000800D38 /* CreatureActionDomainParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983DF2744472000800D38 /* CreatureActionDomainParser.swift */; };
 		E97A43AA2332C31A00A8B032 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43A92332C31A00A8B032 /* Entity.swift */; };
 		E97A43AC2334004B00A8B032 /* CompendiumImporterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */; };
 		E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AD233407D000A8B032 /* Fixtures.swift */; };
@@ -350,6 +351,7 @@
 		E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumParseableVisitor.swift; sourceTree = "<group>"; };
 		E97983DB2742EB9500800D38 /* ModelsParseableVisitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsParseableVisitor.swift; sourceTree = "<group>"; };
 		E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueStoreEntityTest.swift; sourceTree = "<group>"; };
+		E97983DF2744472000800D38 /* CreatureActionDomainParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureActionDomainParser.swift; sourceTree = "<group>"; };
 		E97A43A72332C07200A8B032 /* CompendiumImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporter.swift; sourceTree = "<group>"; };
 		E97A43A92332C31A00A8B032 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
 		E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporterTest.swift; sourceTree = "<group>"; };
@@ -564,6 +566,7 @@
 				E99F959D241C260600183B5B /* Duration.swift */,
 				E944156E273B13DE00F02C2D /* CreatureFeatureDomainParser.swift */,
 				E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */,
+				E97983DF2744472000800D38 /* CreatureActionDomainParser.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1269,6 +1272,7 @@
 				E999FBC5235B4AC1000CCC8B /* CollectionView.swift in Sources */,
 				E996919B247C411300A8B1A0 /* CompendiumEntryDetailViewState.swift in Sources */,
 				E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */,
+				E97983E02744472000800D38 /* CreatureActionDomainParser.swift in Sources */,
 				E946B024247D9EBE008A407C /* CombatantTag.swift in Sources */,
 				E97A4FB1236240EA0044E424 /* Checkbox.swift in Sources */,
 				E97651CC248ADA0100C76865 /* EncounterDetailView.swift in Sources */,

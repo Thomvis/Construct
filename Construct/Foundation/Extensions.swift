@@ -285,3 +285,28 @@ extension UUID {
         Tagged(rawValue: self)
     }
 }
+
+extension AttributedString {
+    mutating func apply<V>(_ located: Located<V>, _ f: (inout AttributedSubstring, V) -> Void) {
+        let start = index(startIndex, offsetByCharacters: located.range.startIndex)
+        let end = index(startIndex, offsetByCharacters: located.range.endIndex)
+        f(&self[start..<end], located.value)
+    }
+}
+
+extension AttributedStringProtocol {
+    var underlinedLink: URL? {
+        get {
+            self.link
+        }
+        set {
+            if let newValue = newValue {
+                self.link = newValue
+                self.underlineStyle = .single
+            } else {
+                self.link = nil
+                self.underlineStyle = nil
+            }
+        }
+    }
+}

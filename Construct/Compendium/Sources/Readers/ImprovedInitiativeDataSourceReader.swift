@@ -130,7 +130,7 @@ extension StatBlock {
                 return Legendary(
                     description: description,
                     actions: actions.filter { !isDescriptionAction($0) }.map { a in
-                        CreatureAction(name: a.Name, description: a.Content)
+                        ParseableCreatureAction(input: CreatureAction(name: a.Name, description: a.Content))
                     }
                 )
             }

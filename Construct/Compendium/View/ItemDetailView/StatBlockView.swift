@@ -18,8 +18,6 @@ struct StatBlockView: View {
 
     let stats: StatBlock
     var onTap: ((TapTarget) -> Void)? = nil
-
-    @State var parsedActions: [CreatureAction: CreatureActionParser.Action] = [:]
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -109,7 +107,7 @@ struct StatBlockView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(stats.actions, id: \.name) { action in
-                        self.view(for: action)
+                        CreatureActionView(action: action)
                     }
                 }
             }
@@ -121,7 +119,7 @@ struct StatBlockView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(stats.reactions, id: \.name) { reaction in
-                        self.view(for: reaction)
+                        CreatureActionView(action: reaction)
                     }
                 }
             }
@@ -138,7 +136,7 @@ struct StatBlockView: View {
                     }
 
                     ForEach(legendary.actions, id: \.name) { action in
-                        self.view(for: action)
+                        CreatureActionView(action: action)
                     }
                 }
             }
@@ -153,14 +151,7 @@ struct StatBlockView: View {
 
             onTap?(target)
             return .handled
-        }).onAppear {
-            // parse actions
-            stats.actions.compactMap { action in
-                CreatureActionParser.parse(action.description).map { (action, $0) }
-            }.forEach { parsedAction in
-                self.parsedActions[parsedAction.0] = parsedAction.1
-            }
-        }
+        })
     }
 
     @ViewBuilder
@@ -209,25 +200,40 @@ struct StatBlockView: View {
         }
     }
 
-    @ViewBuilder
-    func view(for action: CreatureAction) -> some View {
-        if let parsedAction = self.parsedActions[action], onTap != nil {
-            SimpleButton(action: {
-                self.onTap?(.action(action, parsedAction))
-            }, label: {
-                (Text(Image(systemName: "bolt.fill")).foregroundColor(Color.accentColor) + Text(" \(action.name). ").bold().italic().foregroundColor(Color.accentColor) + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
-            })
-        } else {
-            (Text("\(action.name). ").bold().italic() + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
     static func line(title: String, content: Text) -> some View {
         return Text("\(title) ").bold() + content
     }
 
     static func line(title: String, text: String) -> some View {
         return line(title: title, content: Text(text))
+    }
+
+    static func process(attributedString result: inout AttributedString) {
+        for run in result.runs {
+            let target: StatBlockView.TapTarget?
+            if let diceExpression = run.construct.diceExpression {
+                target = .rollCheck(diceExpression)
+            } else {
+                target = nil
+            }
+
+            if let target = target, let url = Self.link(for: target) {
+                result[run.range].underlinedLink = url
+
+                // clear original attribute
+                result[run.range].construct.diceExpression = nil
+            }
+        }
+    }
+
+    static func link(for target: TapTarget) -> URL? {
+        guard let urlEncoded = target.urlEncoded else { return nil }
+
+        var urlComponents = URLComponents()
+        urlComponents.scheme = StatBlockView.urlSchema
+        urlComponents.host = urlEncoded
+
+        return urlComponents.url
     }
 
     enum TapTarget: Codable {
@@ -336,30 +342,33 @@ struct CreatureFeatureView: View {
 
     var description: AttributedString {
         var result = feature.attributedDescription
-        for run in result.runs {
-            let target: StatBlockView.TapTarget?
-            if let diceExpression = run.construct.diceExpression {
-                target = .rollCheck(diceExpression)
-            } else {
-                target = nil
-            }
-
-            if let target = target, let urlEncoded = target.urlEncoded {
-                var urlComponents = URLComponents()
-                urlComponents.scheme = StatBlockView.urlSchema
-                urlComponents.host = urlEncoded
-
-                if let url = urlComponents.url {
-                    result[run.range].link = url
-                    result[run.range].underlineStyle = .single
-
-                    // clear original attribute
-                    result[run.range].construct.diceExpression = nil
-                }
-            }
-        }
+        StatBlockView.process(attributedString: &result)
         return result
     }
+}
+
+struct CreatureActionView: View {
+    let action: ParseableCreatureAction
+
+    var body: some View {
+        text.lineLimit(nil).fixedSize(horizontal: false, vertical: true)
+    }
+
+    var text: Text {
+        var description = action.attributedDescription
+        StatBlockView.process(attributedString: &description)
+
+        if let parsedAction = action.projectedValue?.action {
+            var title = AttributedString("\(action.name)")
+            title.underlinedLink = StatBlockView.link(for: .action(action.input, parsedAction))
+            title.attachment = NSTextAttachment(image: UIImage(systemName: "bolt.fill")!)
+
+            return Text("\(Image(systemName: "bolt.fill")) \(title). ").bold().italic().foregroundColor(Color.accentColor) + Text(description)
+        } else {
+            return Text("\(action.name). ").bold().italic() + Text(description)
+        }
+    }
+
 }
 
 extension StatBlockView.TapTarget {

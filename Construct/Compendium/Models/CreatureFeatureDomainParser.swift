@@ -18,7 +18,7 @@ struct CreatureFeatureDomainParser: DomainParser {
                 $0.diceCount > 0 ? $0 : nil
             }
             .matches(in: input.description)
-        
+
         guard !matches.isEmpty else { return nil }
         return .freeform(ParsedCreatureFeature.Freeform(expressions: matches))
     }
@@ -66,9 +66,9 @@ extension ParseableCreatureFeature {
 
         var result = AttributedString(description)
         for match in parsed.diceExpressions {
-            let start = result.index(result.startIndex, offsetByCharacters: match.range.startIndex)
-            let end = result.index(result.startIndex, offsetByCharacters: match.range.endIndex)
-            result[start..<end].construct.diceExpression = match.value
+            result.apply(match) { str, expr in
+                str.construct.diceExpression = expr
+            }
         }
         return result
     }
