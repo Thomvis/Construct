@@ -9,10 +9,11 @@
 import Foundation
 import CasePaths
 
-extension CompendiumEntry: HasParseableVisitor2 {
+extension CompendiumEntry: HasParseableVisitor {
     static let parseableVisitor: ParseableVisitor<CompendiumEntry> = .combine(
         Monster.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.monster, action: CasePath.`self`),
-        Character.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.character, action: CasePath.`self`)
+        Character.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.character, action: CasePath.`self`),
+        Spell.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.spell, action: CasePath.`self`)
     )
 
     var monster: Monster? {
@@ -36,6 +37,17 @@ extension CompendiumEntry: HasParseableVisitor2 {
             }
         }
     }
+
+    var spell: Spell? {
+        get {
+            item as? Spell
+        }
+        set {
+            if let newValue = newValue {
+                item = newValue
+            }
+        }
+    }
 }
 
 extension Monster {
@@ -48,6 +60,12 @@ extension Character {
     static let parseableVisitor: ParseableVisitor<Character> = .combine(
         StatBlock.parseableVisitor.pullback(state: \.stats, action: CasePath.`self`)
     )
+}
+
+extension Spell {
+    static let parseableVisitor: ParseableVisitor<Spell> = ParseableVisitor { spell in
+        spell.description.parseIfNeeded()
+    }
 }
 
 extension StatBlock {

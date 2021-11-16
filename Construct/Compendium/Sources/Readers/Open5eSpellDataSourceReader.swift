@@ -68,10 +68,11 @@ private extension Spell {
         self.school = s.school
         self.concentration = s.concentration == "yes"
 
-        self.description = s.desc
+        self.description = ParseableSpellDescription(input: s.desc)
         self.higherLevelDescription = s.higherLevel
 
         self.classes = s.spellClass.components(separatedBy: ",").map { $0.trimmingCharacters(in: CharacterSet.whitespaces) }
         self.material = s.material
+
     }
 }

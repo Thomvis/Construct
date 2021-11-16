@@ -1,5 +1,5 @@
 //
-//  CreatureActionDomainParser.swift
+//  ParseableCreatureAction.swift
 //  Construct
 //
 //  Created by Thomas Visser on 16/11/2021.
@@ -7,6 +7,25 @@
 //
 
 import Foundation
+
+typealias ParseableCreatureAction = Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+
+extension ParseableCreatureAction {
+    var name: String { input.name }
+    var description: String { input.description }
+    var attributedDescription: AttributedString {
+        guard let parsed = result?.value else { return AttributedString(description) }
+
+        var result = AttributedString(description)
+        for match in parsed.diceExpressions {
+            result.apply(match) { str, expr in
+                str.construct.diceExpression = expr
+            }
+        }
+        return result
+    }
+}
+
 
 struct CreatureActionDomainParser: DomainParser {
     static let version: String = "1"
@@ -32,22 +51,4 @@ struct CreatureActionDomainParser: DomainParser {
 struct ParsedCreatureAction: Codable, Hashable {
     let action: CreatureActionParser.Action?
     let diceExpressions: [Located<DiceExpression>]
-}
-
-typealias ParseableCreatureAction = Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
-
-extension ParseableCreatureAction {
-    var name: String { input.name }
-    var description: String { input.description }
-    var attributedDescription: AttributedString {
-        guard let parsed = result?.value else { return AttributedString(description) }
-
-        var result = AttributedString(description)
-        for match in parsed.diceExpressions {
-            result.apply(match) { str, expr in
-                str.construct.diceExpression = expr
-            }
-        }
-        return result
-    }
 }

@@ -1,5 +1,5 @@
 //
-//  CreatureFeatureDomainParser.swift
+//  ParseableCreatureFeature.swift
 //  Construct
 //
 //  Created by Thomas Visser on 09/11/2021.
@@ -7,6 +7,24 @@
 //
 
 import Foundation
+
+typealias ParseableCreatureFeature = Parseable<CreatureFeature, ParsedCreatureFeature, CreatureFeatureDomainParser>
+
+extension ParseableCreatureFeature {
+    var name: String { input.name }
+    var description: String { input.description }
+    var attributedDescription: AttributedString {
+        guard let parsed = result?.value else { return AttributedString(description) }
+
+        var result = AttributedString(description)
+        for match in parsed.diceExpressions {
+            result.apply(match) { str, expr in
+                str.construct.diceExpression = expr
+            }
+        }
+        return result
+    }
+}
 
 struct CreatureFeatureDomainParser: DomainParser {
     static let version: String = "1"
@@ -54,24 +72,6 @@ extension ParsedCreatureFeature {
 struct SpellReference {
     let name: String
     let ref: CompendiumItemReference
-}
-
-typealias ParseableCreatureFeature = Parseable<CreatureFeature, ParsedCreatureFeature, CreatureFeatureDomainParser>
-
-extension ParseableCreatureFeature {
-    var name: String { input.name }
-    var description: String { input.description }
-    var attributedDescription: AttributedString {
-        guard let parsed = result?.value else { return AttributedString(description) }
-
-        var result = AttributedString(description)
-        for match in parsed.diceExpressions {
-            result.apply(match) { str, expr in
-                str.construct.diceExpression = expr
-            }
-        }
-        return result
-    }
 }
 
 struct DiceExpressionAttribute: CodableAttributedStringKey {

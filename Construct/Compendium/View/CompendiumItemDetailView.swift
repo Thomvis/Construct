@@ -83,7 +83,7 @@ struct CompendiumItemDetailView: View {
                 StatBlockView(stats: m.stats, onTap: onTap(m.stats))
             }
         } else if let spell = item as? Spell {
-            CompendiumSpellDetailView(spell: spell)
+            CompendiumSpellDetailView(spell: spell, onTap: onTap(StatBlock.default))
         } else if let character = item as? Character {
             CompendiumCharacterDetailView(character: character) { c in
                 StatBlockView(stats: c.stats, onTap: onTap(c.stats))
@@ -217,6 +217,7 @@ struct CompendiumMonsterDetailView: View {
 struct CompendiumSpellDetailView: View {
     @EnvironmentObject var env: Environment
     let spell: Spell
+    let onTap: ((StatBlockView.TapTarget) -> Void)?
 
     var body: some View {
         SectionContainer {
@@ -247,7 +248,7 @@ struct CompendiumSpellDetailView: View {
 
                 Divider()
 
-                Text(spell.description)
+                Text(descriptionString)
                 spell.higherLevelDescription.map { StatBlockView.line(title: "At Higher Levels.", text: $0) }
                 spell.material.map { Text("* \($0)").font(.footnote).italic() }
 
@@ -259,6 +260,24 @@ struct CompendiumSpellDetailView: View {
                 }
             }
         }
+        .environment(\.openURL, OpenURLAction { url in
+            guard url.scheme == StatBlockView.urlSchema,
+                  let host = url.host,
+                  let target = try? StatBlockView.TapTarget(urlEncoded: host)
+            else {
+                return .systemAction
+            }
+
+            onTap?(target)
+            return .handled
+        })
+    }
+
+    var descriptionString: AttributedString {
+        var result = spell.description.attributedDescription
+        StatBlockView.process(attributedString: &result)
+
+        return result
     }
 }
 

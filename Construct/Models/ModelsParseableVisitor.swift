@@ -9,7 +9,7 @@
 import Foundation
 import CasePaths
 
-extension Encounter: HasParseableVisitor2 {
+extension Encounter: HasParseableVisitor {
     static let parseableVisitor: ParseableVisitor<Encounter> = .combine(
         Combatant.parseableVisitor.forEach(state: \.combatants, action: /ParseableVisitorAction.indexedVisit, environment: { })
     )
@@ -78,7 +78,7 @@ extension CompendiumCombatantDefinition {
     }
 }
 
-extension RunningEncounter: HasParseableVisitor2 {
+extension RunningEncounter: HasParseableVisitor {
     static let parseableVisitor: ParseableVisitor<RunningEncounter> = .combine(
         Encounter.parseableVisitor.pullback(state: \.base, action: CasePath.`self`),
         Encounter.parseableVisitor.pullback(state: \.current, action: CasePath.`self`)

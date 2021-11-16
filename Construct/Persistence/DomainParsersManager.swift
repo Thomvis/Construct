@@ -25,8 +25,8 @@ class DomainParsersManager {
             let cursor = try KeyValueStore.Record.fetchCursor(db)
             while var record = try cursor.next() {
                 do {
-                    if var entity = try record.decodeEntity(decoder) as? (HasParseableVisitor & KeyValueStoreEntity) {
-                        entity.visit()
+                    if var entity = try record.decodeEntity(decoder) as? (ParseableVisitable & KeyValueStoreEntity) {
+                        entity.visitParseable()
                         if let value = try entity.encodeEntity(encoder) {
                             record.value = value
                             try record.save(db)

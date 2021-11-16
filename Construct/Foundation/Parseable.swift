@@ -27,8 +27,8 @@ struct Parseable<Input, Result, Parser> where Parser: DomainParser, Parser.Input
         self.input = input
     }
 
-    var projectedValue: Result? {
-        result?.value
+    var projectedValue: Self? {
+        self
     }
 
     mutating func parseIfNeeded() {
@@ -108,18 +108,16 @@ extension ParseableVisitor {
     }
 }
 
-protocol HasParseableVisitor {
-    //static var parseableVisitor: ParseableVisitor<Self> { get }
-
-    mutating func visit()
+protocol ParseableVisitable {
+    mutating func visitParseable()
 }
 
-protocol HasParseableVisitor2: HasParseableVisitor {
+protocol HasParseableVisitor: ParseableVisitable {
     static var parseableVisitor: ParseableVisitor<Self> { get }
 }
 
-extension HasParseableVisitor where Self: HasParseableVisitor2 {
-    mutating func visit() {
+extension ParseableVisitable where Self: HasParseableVisitor {
+    mutating func visitParseable() {
         _ = Self.parseableVisitor.run(&self, .visit, ())
     }
 }

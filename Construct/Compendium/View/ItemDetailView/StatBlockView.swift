@@ -358,7 +358,7 @@ struct CreatureActionView: View {
         var description = action.attributedDescription
         StatBlockView.process(attributedString: &description)
 
-        if let parsedAction = action.projectedValue?.action {
+        if let parsedAction = action.result?.value?.action {
             var title = AttributedString("\(action.name)")
             title.underlinedLink = StatBlockView.link(for: .action(action.input, parsedAction))
             title.attachment = NSTextAttachment(image: UIImage(systemName: "bolt.fill")!)
