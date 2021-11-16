@@ -312,14 +312,14 @@ struct InitiativeSettings: Equatable {
 }
 
 extension Encounter: KeyValueStoreEntity {
-    static let keyValueStoreEntityKeyPrefix = "encounter"
+    static let keyPrefix: KeyPrefix = .encounter
 
     var key: String {
         Self.key(id)
     }
 
     static func key(_ id: Encounter.Id) -> String {
-        return "\(Self.keyValueStoreEntityKeyPrefix)_\(id)"
+        return "\(Self.keyPrefix)_\(id)"
     }
 }
 

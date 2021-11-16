@@ -146,6 +146,10 @@
 		E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861423BDF398003B2DA2 /* NumberEntryView.swift */; };
 		E978861A23BE3779003B2DA2 /* With.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861923BE3779003B2DA2 /* With.swift */; };
 		E978862023C0B04D003B2DA2 /* CompendiumItemGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */; };
+		E97983D82741B9A700800D38 /* DomainParsersManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983D72741B9A700800D38 /* DomainParsersManager.swift */; };
+		E97983DA2742E69E00800D38 /* CompendiumParseableVisitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */; };
+		E97983DC2742EB9500800D38 /* ModelsParseableVisitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983DB2742EB9500800D38 /* ModelsParseableVisitor.swift */; };
+		E97983DE2742F23300800D38 /* KeyValueStoreEntityTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */; };
 		E97A43AA2332C31A00A8B032 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43A92332C31A00A8B032 /* Entity.swift */; };
 		E97A43AC2334004B00A8B032 /* CompendiumImporterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */; };
 		E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AD233407D000A8B032 /* Fixtures.swift */; };
@@ -342,6 +346,10 @@
 		E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroup.swift; sourceTree = "<group>"; };
 		E978862123C20B90003B2DA2 /* CompendiumItemGroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupDetailView.swift; sourceTree = "<group>"; };
 		E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupEditView.swift; sourceTree = "<group>"; };
+		E97983D72741B9A700800D38 /* DomainParsersManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainParsersManager.swift; sourceTree = "<group>"; };
+		E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumParseableVisitor.swift; sourceTree = "<group>"; };
+		E97983DB2742EB9500800D38 /* ModelsParseableVisitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsParseableVisitor.swift; sourceTree = "<group>"; };
+		E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueStoreEntityTest.swift; sourceTree = "<group>"; };
 		E97A43A72332C07200A8B032 /* CompendiumImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporter.swift; sourceTree = "<group>"; };
 		E97A43A92332C31A00A8B032 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
 		E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporterTest.swift; sourceTree = "<group>"; };
@@ -507,6 +515,7 @@
 				E9323A30231FF14900F0D0C6 /* KeyValueStore.swift */,
 				E97A43A92332C31A00A8B032 /* Entity.swift */,
 				E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */,
+				E97983D72741B9A700800D38 /* DomainParsersManager.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -554,6 +563,7 @@
 				E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */,
 				E99F959D241C260600183B5B /* Duration.swift */,
 				E944156E273B13DE00F02C2D /* CreatureFeatureDomainParser.swift */,
+				E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -747,6 +757,7 @@
 				E931E54123394BCF00C3FE9A /* DiceExpressionParser.swift */,
 				E92B8FD923CA482C0040E6C5 /* RunningEncounter.swift */,
 				E931CF8224FD0E53006CEE78 /* CreatureActionParser.swift */,
+				E97983DB2742EB9500800D38 /* ModelsParseableVisitor.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -980,6 +991,7 @@
 				E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */,
 				E9C7F7852632C193000351AB /* NumberPadTest.swift */,
 				E98A0EF6267BCDD600316EE4 /* CreatureEditViewStateTest.swift */,
+				E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1163,6 +1175,7 @@
 				E92A41E8240D3A66009AF440 /* Preferences.swift in Sources */,
 				E97651DD248BC1EF00C76865 /* CombatantTagPopover.swift in Sources */,
 				E931E54F233A230800C3FE9A /* Fraction.swift in Sources */,
+				E97983DA2742E69E00800D38 /* CompendiumParseableVisitor.swift in Sources */,
 				E999FBC9235BA536000CCC8B /* SimpleList.swift in Sources */,
 				E97651D7248AE50600C76865 /* CombatantResourcesView.swift in Sources */,
 				E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */,
@@ -1210,6 +1223,7 @@
 				E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */,
 				E97AEE642396F6A100569E79 /* ClearableTextField.swift in Sources */,
 				E972BA942477F8B200F313D7 /* EquatablePropertyWrappers.swift in Sources */,
+				E97983D82741B9A700800D38 /* DomainParsersManager.swift in Sources */,
 				E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */,
 				E91E4718231E8CD0005D1E6F /* CompendiumDataSource.swift in Sources */,
 				E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */,
@@ -1219,6 +1233,7 @@
 				E946B02C247E6225008A407C /* CompendiumItemGroupDetailView.swift in Sources */,
 				E97651DB248BBF1B00C76865 /* RunningEncounterLogView.swift in Sources */,
 				E942E016247EB3D300170FAC /* Open5eSpellDataSourceReader.swift in Sources */,
+				E97983DC2742EB9500800D38 /* ModelsParseableVisitor.swift in Sources */,
 				E97A43B02334159800A8B032 /* Compendium.swift in Sources */,
 				E9A95183233BF3CF00141552 /* URLDataSource.swift in Sources */,
 				E942E012247EAA2600170FAC /* CompendiumItemDetailView.swift in Sources */,
@@ -1327,6 +1342,7 @@
 				E999FBD6235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift in Sources */,
 				E99F95A42428DCB100183B5B /* RunningEncounterTest.swift in Sources */,
 				E9323A3D23205E7700F0D0C6 /* FileDataSourceTest.swift in Sources */,
+				E97983DE2742F23300800D38 /* KeyValueStoreEntityTest.swift in Sources */,
 				E999FBD2235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift in Sources */,
 				E9CFB30F2350515700CA0AF4 /* CampaignBrowserTest.swift in Sources */,
 				E9F9EB532319696C00A70D11 /* RolledDiceExpressionTest.swift in Sources */,

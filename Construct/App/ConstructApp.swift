@@ -39,6 +39,8 @@ struct ConstructApp: App {
             environment: env
         )
         self.viewStore = ViewStore(store)
+
+        try! DomainParsersManager(db: env.database).run()
     }
 
     @SceneBuilder

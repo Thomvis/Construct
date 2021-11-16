@@ -136,8 +136,12 @@ func end() -> Parser<Void> {
     }
 }
 
-// Consumes the input _until_ the parser
-// If parser never succeeds, the skipping also fails
+/**
+ Skips all input until the given parser succeeds. If parser never succeeds, the skipping also fails.
+ Upon success, all input up to and including the input by the given parser is consumed.
+
+ The returned parser succeeds with the skipped string and the resulting value of the given parser.
+ */
 func skip<A>(until parser: Parser<A>) -> Parser<(String, A)> {
     return Parser { input in
         let position = input.position
@@ -160,6 +164,12 @@ extension Parser {
     func run(_ string: String) -> A? {
         var remainder = Remainder(string)
         return parse(&remainder)
+    }
+
+    func matches(`in` string: String) -> [Located<A>] {
+        any(withRange().skippingAnyBefore().map { (value, range) in
+            Located(value: value, range: Range(range))
+        }).run(string) ?? []
     }
 
     func map<B>(_ transform: @escaping (A) -> B) -> Parser<B> {
@@ -282,21 +292,6 @@ extension Parser where A == String {
 
 func int() -> Parser<Int> {
     return any(character(in: digits)).joined().toInt()
-}
-
-func dice() -> Parser<DiceExpression> {
-    return int()
-        .followed(by: char("d"))
-        .followed(by: int())
-        .map { i in
-            DiceExpression.dice(count: i.0.0, die: Die(sides: i.1))
-    }
-}
-
-func number() -> Parser<DiceExpression> {
-    return int().map {
-        DiceExpression.number($0)
-    }
 }
 
 // Parses at least one letter followed by any number of whitespace

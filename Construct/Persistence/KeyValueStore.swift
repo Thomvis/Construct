@@ -170,7 +170,7 @@ final class KeyValueStore {
         let key: String
         let modifiedAt: Date
 
-        let value: Data
+        var value: Data
     }
 
     struct FTSRecord: FetchableRecord, PersistableRecord, Codable {
@@ -230,5 +230,17 @@ extension KeyValueStore.FTSRecord {
         container[Columns.body] = body
 
         container[Columns.title_suffixes] = title.suffixes.dropFirst().joined(separator: " ")
+    }
+}
+
+extension KeyValueStoreEntity {
+    static func get(_ db: GRDB.Database, _ decoder: JSONDecoder, key: String) throws -> Self? {
+        return try getRaw(db, key: key).map {
+            return try decoder.decode(Self.self, from: $0.value)
+        }
+    }
+
+    static func getRaw(_ db: GRDB.Database, key: String) throws -> KeyValueStore.Record? {
+        try KeyValueStore.Record.fetchOne(db, key: key)
     }
 }

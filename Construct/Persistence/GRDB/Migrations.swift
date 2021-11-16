@@ -77,7 +77,7 @@ extension Database {
         // - it also added ensureStableDiscriminators to RunningEncounters (now resolved with the where clause of for)
         // - it did not update encounters inside RunningEncounters (not fixed, damage has been done)
         migrator.registerMigration("v4-encounter.ensureStableDiscriminators") { db in
-            let encounters = try KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyValueStoreEntityKeyPrefix)%")).fetchAll(db)
+            let encounters = try KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
             for e in encounters where !e.key.contains(".running.") {
                 guard var encounter = try JSONSerialization.jsonObject(with: e.value, options: []) as? [String: Any] else { continue }
 
@@ -103,7 +103,7 @@ extension Database {
         }
 
         migrator.registerMigration("v6-runningEncounterTurn") { db in
-            let encounters = try KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyValueStoreEntityKeyPrefix)%")).fetchAll(db)
+            let encounters = try KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
 
             let runs: [KeyValueStore.Record] = try encounters.flatMap { encounter -> [KeyValueStore.Record] in
                 guard let e = try JSONSerialization.jsonObject(with: encounter.value, options: []) as? [String: Any],
@@ -244,7 +244,7 @@ extension Database {
                 return newEncounter
             }
 
-            let encounterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyValueStoreEntityKeyPrefix)%")).fetchAll(db)
+            let encounterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
 
             var encounterIds: [Encounter.Id] = []
             for r in encounterRecords {
@@ -299,7 +299,7 @@ extension Database {
         migrator.registerMigration("v11-runningEncounterKeyFix") { db in
 
             // Encounters and RunningEncounters
-            let records = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyValueStoreEntityKeyPrefix)%")).fetchAll(db)
+            let records = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
             for r in records where r.key.contains(".running.") {
                 // records with old-style RunningEncounter keys
 

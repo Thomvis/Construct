@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import ComposableArchitecture
 
 @propertyWrapper
 struct Parseable<Input, Result, Parser> where Parser: DomainParser, Parser.Input == Input, Parser.Result == Result {
@@ -30,8 +31,10 @@ struct Parseable<Input, Result, Parser> where Parser: DomainParser, Parser.Input
         result?.value
     }
 
-    mutating func parse() {
-        self.result = ParserResult(value: Parser.parse(input: input), version: Parser.version)
+    mutating func parseIfNeeded() {
+//        guard result?.version != Parser.version else { return }
+        let result = ParserResult(value: Parser.parse(input: input), version: Parser.version)
+        self.result = result
     }
 
     struct ParserResult {
@@ -59,7 +62,12 @@ extension Parseable: Codable where Input: Codable, Result: Codable {
         do {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             self.input = try container.decode(Input.self, forKey: .input)
-            self.result = try container.decode(ParserResult.self, forKey: .result)
+            do {
+                self.result = try container.decodeIfPresent(ParserResult.self, forKey: .result)
+            } catch {
+                assertionFailure("Parseable result could not be decoded. Did \(Result.self) change in a breaking way?")
+                self.result = nil
+            }
         } catch {
             // Fallback for backward compatibility
             let container = try decoder.singleValueContainer()
@@ -83,3 +91,35 @@ extension Parseable.ParserResult: Equatable where Result: Equatable { }
 extension Parseable: Hashable where Input: Hashable, Result: Hashable { }
 
 extension Parseable.ParserResult: Hashable where Result: Hashable { }
+
+enum ParseableVisitorAction {
+    case visit
+    indirect case indexedVisit(AnyHashable, ParseableVisitorAction)
+}
+
+typealias ParseableVisitor<T> = Reducer<T, ParseableVisitorAction, Void>
+
+extension ParseableVisitor {
+    init(visit: @escaping (inout State) -> Void) {
+        self.init { state, action, env in
+            visit(&state)
+            return .none
+        }
+    }
+}
+
+protocol HasParseableVisitor {
+    //static var parseableVisitor: ParseableVisitor<Self> { get }
+
+    mutating func visit()
+}
+
+protocol HasParseableVisitor2: HasParseableVisitor {
+    static var parseableVisitor: ParseableVisitor<Self> { get }
+}
+
+extension HasParseableVisitor where Self: HasParseableVisitor2 {
+    mutating func visit() {
+        _ = Self.parseableVisitor.run(&self, .visit, ())
+    }
+}

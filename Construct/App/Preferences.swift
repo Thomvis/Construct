@@ -13,7 +13,8 @@ struct Preferences: Codable, Equatable {
 }
 
 extension Preferences: KeyValueStoreEntity {
-    static let key = "Construct::Preferences"
+    static let keyPrefix: KeyPrefix = .preferences
+    static let key = keyPrefix.rawValue
 
     var key: String {
         Self.key

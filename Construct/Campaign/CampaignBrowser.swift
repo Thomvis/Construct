@@ -52,10 +52,6 @@ class CampaignBrowser {
 
     /// Returns the total number of nodes
     func nodeCount() throws -> Int {
-        return try store.count(CampaignNode.keyPrefix)
+        return try store.count(CampaignNode.keyPrefix.rawValue)
     }
-}
-
-extension CampaignNode: KeyValueStoreEntity {
-
 }

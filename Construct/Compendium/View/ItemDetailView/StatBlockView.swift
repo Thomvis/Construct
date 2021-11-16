@@ -10,6 +10,8 @@ import Foundation
 import SwiftUI
 
 struct StatBlockView: View {
+    static let urlSchema = "construct-stat-block"
+
     @EnvironmentObject var env: Environment
     @ScaledMetric(relativeTo: .body)
     private var rollIconSize: CGFloat = 20
@@ -95,9 +97,7 @@ struct StatBlockView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(stats.features, id: \.name) { feature in
-                        self.view(for: feature.input).onTapGesture {
-                            // no-op
-                        }
+                        CreatureFeatureView(feature: feature)
                     }
                 }
             }
@@ -143,7 +143,17 @@ struct StatBlockView: View {
                 }
             }
 
-        }.onAppear {
+        }.environment(\.openURL, OpenURLAction { url in
+            guard url.scheme == Self.urlSchema,
+                  let host = url.host,
+                  let target = try? TapTarget(urlEncoded: host)
+            else {
+                return .systemAction
+            }
+
+            onTap?(target)
+            return .handled
+        }).onAppear {
             // parse actions
             stats.actions.compactMap { action in
                 CreatureActionParser.parse(action.description).map { (action, $0) }
@@ -159,7 +169,7 @@ struct StatBlockView: View {
             ForEach(Ability.allCases, id: \.self) { a in
                 if let modifier = stats.savingThrowModifier(a) {
                     Button(action: {
-                        onTap?(.rollCheck(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))
+                        onTap?(.rollCheck(1.d(20)+modifier.modifier))
                     }) {
                         Label(
                             "\(a.localizedDisplayName) save: \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))",
@@ -182,7 +192,7 @@ struct StatBlockView: View {
             let title = "\(s.localizedDisplayName) (\(s.ability.localizedAbbreviation.uppercased()))"
             if let modifier = stats.skillModifier(s) {
                 Button(action: {
-                    onTap?(.rollCheck(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))
+                    onTap?(.rollCheck(1.d(20)+modifier.modifier))
                 }) {
                     Label(title: {
                         Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
@@ -197,10 +207,6 @@ struct StatBlockView: View {
                 Text("\(title)")
             }
         }
-    }
-
-    func view(for feature: CreatureFeature) -> some View {
-        return (Text("\(feature.name). ").bold().italic() + Text(feature.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
     }
 
     @ViewBuilder
@@ -224,10 +230,10 @@ struct StatBlockView: View {
         return line(title: title, content: Text(text))
     }
 
-    enum TapTarget {
+    enum TapTarget: Codable {
         case ability(Ability)
         case action(CreatureAction, CreatureActionParser.Action)
-        case rollCheck(DiceCalculatorState)
+        case rollCheck(DiceExpression)
     }
 }
 
@@ -316,5 +322,55 @@ private extension AbilityScores {
             return "\(score.score)"
         }
         return "\(score.score) (\(modifierString))"
+    }
+}
+
+struct CreatureFeatureView: View {
+    let feature: ParseableCreatureFeature
+
+    var body: some View {
+        (Text("\(feature.name). ").bold().italic() + Text(description))
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    var description: AttributedString {
+        var result = feature.attributedDescription
+        for run in result.runs {
+            let target: StatBlockView.TapTarget?
+            if let diceExpression = run.construct.diceExpression {
+                target = .rollCheck(diceExpression)
+            } else {
+                target = nil
+            }
+
+            if let target = target, let urlEncoded = target.urlEncoded {
+                var urlComponents = URLComponents()
+                urlComponents.scheme = StatBlockView.urlSchema
+                urlComponents.host = urlEncoded
+
+                if let url = urlComponents.url {
+                    result[run.range].link = url
+                    result[run.range].underlineStyle = .single
+
+                    // clear original attribute
+                    result[run.range].construct.diceExpression = nil
+                }
+            }
+        }
+        return result
+    }
+}
+
+extension StatBlockView.TapTarget {
+    init?(urlEncoded string: String) throws {
+        guard let data = Data(base64Encoded: string) else {
+            return nil
+        }
+        self = try JSONDecoder().decode(Self.self, from: data)
+    }
+
+    var urlEncoded: String? {
+        return try? JSONEncoder().encode(self).base64EncodedString()
     }
 }

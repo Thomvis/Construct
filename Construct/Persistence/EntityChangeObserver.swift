@@ -100,6 +100,8 @@ extension KeyValueStore {
 }
 
 struct AnyKeyValueStoreEntity: KeyValueStoreEntity {
+    static let keyPrefix: KeyPrefix = .any
+
     let e: KeyValueStoreEntity
     let _encode: (Encoder) throws -> Void
 

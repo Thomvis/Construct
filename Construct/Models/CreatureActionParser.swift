@@ -112,44 +112,44 @@ struct CreatureActionParser {
         }.log("Sdmg")
     }
 
-    enum Action: Hashable {
+    enum Action: Hashable, Codable {
         case weaponAttack(WeaponAttack)
 
-        struct WeaponAttack: Hashable {
+        struct WeaponAttack: Hashable, Codable {
             let type: AttackType
             let range: Range
             let hitModifier: Modifier
             let effects: [ActionEffect]
 
-            enum AttackType: Hashable {
+            enum AttackType: Hashable, Codable {
                 case melee
                 case ranged
             }
 
-            enum Range: Hashable {
+            enum Range: Hashable, Codable {
                 case reach(Int)
                 case range(Int, Int?)
             }
         }
 
-        enum ActionEffect: Hashable {
+        enum ActionEffect: Hashable, Codable {
             case damage(Damage)
             case saveableDamage(SaveableDamage)
 
-            struct Damage: Hashable {
+            struct Damage: Hashable, Codable {
                 let staticDamage: Int
                 let damageExpression: DiceExpression?
                 let type: DamageType
             }
 
-            struct SaveableDamage: Hashable {
+            struct SaveableDamage: Hashable, Codable {
                 let ability: Ability
                 let dc: Int
                 let damage: Damage
                 let saveEffect: SaveEffect
             }
 
-            enum SaveEffect: Hashable {
+            enum SaveEffect: Hashable, Codable {
                 case none
                 case half
             }
