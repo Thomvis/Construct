@@ -21,17 +21,19 @@ class DataSourceReaderParsersTest: XCTestCase {
         XCTAssertEqual(parser.run("40 ft., burrow 40 ft., fly 80 ft."), [.walk: 40, .burrow: 40, .fly: 80])
         XCTAssertEqual(parser.run("30 ft. swim"), [.swim: 30])
         XCTAssertEqual(parser.run("30 ft. swim, 20 ft. fly"), [.swim: 30, .fly: 20])
+        XCTAssertEqual(parser.run("30 ft.,burrow 40"), [.walk: 30])
 
         XCTAssertEqual(parser.run("30 ft"), [:])
         XCTAssertEqual(parser.run("30 ft "), [:])
-        XCTAssertEqual(parser.run("30 ft.,burrow 40"), [:])
         XCTAssertEqual(parser.run("30,burrow 40"), [:])
     }
 
     func testAcParser() {
         let parser = DataSourceReaderParsers.acParser
 
-        XCTAssert(parser.run("12 (natural armor)")! == (12, "natural armor"))
+        let res1 = parser.run("12 (natural armor)")
+        XCTAssertEqual(res1?.0, 12)
+        XCTAssertEqual(res1?.1, "natural armor")
         XCTAssert(parser.run("12  (natural armor)")! == (12, "natural armor"))
         XCTAssert(parser.run("12")! == (12, nil))
 

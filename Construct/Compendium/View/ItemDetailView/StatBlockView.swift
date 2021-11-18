@@ -213,6 +213,8 @@ struct StatBlockView: View {
             let target: StatBlockView.TapTarget?
             if let diceExpression = run.construct.diceExpression {
                 target = .rollCheck(diceExpression)
+            } else if let ref = run.construct.compendiumItemReference {
+                target = .rollCheck(1.d(100)) // FIXME
             } else {
                 target = nil
             }

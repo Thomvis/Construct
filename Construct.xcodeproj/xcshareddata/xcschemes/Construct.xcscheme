@@ -51,6 +51,11 @@
                BlueprintName = "UnitTests"
                ReferencedContainer = "container:Construct.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "AppStoreScreenshotTests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>

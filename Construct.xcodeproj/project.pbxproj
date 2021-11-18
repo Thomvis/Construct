@@ -32,6 +32,7 @@
 		E91E596F24477D3E00975453 /* AlignmentTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E596E24477D3E00975453 /* AlignmentTest.swift */; };
 		E91EB0B423EE08CB00F40E46 /* roll.ahap in Resources */ = {isa = PBXBuildFile; fileRef = E91EB0B323EE08CA00F40E46 /* roll.ahap */; };
 		E921E32B230DD7A900D02CD6 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E921E32A230DD7A900D02CD6 /* Extensions.swift */; };
+		E929AD202745A2E400A39CAD /* ParseableCreatureFeatureTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */; };
 		E92A41E4240D2F0C009AF440 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E3240D2F0C009AF440 /* WelcomeView.swift */; };
 		E92A41E8240D3A66009AF440 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E7240D3A66009AF440 /* Preferences.swift */; };
 		E92B8FD823C904D70040E6C5 /* ActivityButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92B8FD723C904D70040E6C5 /* ActivityButton.swift */; };
@@ -269,6 +270,7 @@
 		E9238C3023871C8A0023DFC3 /* CreatureEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureEditView.swift; sourceTree = "<group>"; };
 		E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureEditViewState.swift; sourceTree = "<group>"; };
 		E926176B2398563E004B1958 /* AdHocCombatant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdHocCombatant.swift; sourceTree = "<group>"; };
+		E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseableCreatureFeatureTest.swift; sourceTree = "<group>"; };
 		E92A41E3240D2F0C009AF440 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		E92A41E7240D3A66009AF440 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleEncounter.swift; sourceTree = "<group>"; };
@@ -998,6 +1000,7 @@
 				E9C7F7852632C193000351AB /* NumberPadTest.swift */,
 				E98A0EF6267BCDD600316EE4 /* CreatureEditViewStateTest.swift */,
 				E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */,
+				E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1336,6 +1339,7 @@
 				E9AEA49B24C62A9600ACB44C /* Helpers.swift in Sources */,
 				E9323A3F23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift in Sources */,
 				E97A43AC2334004B00A8B032 /* CompendiumImporterTest.swift in Sources */,
+				E929AD202745A2E400A39CAD /* ParseableCreatureFeatureTest.swift in Sources */,
 				E95FA115231C58A30098BD83 /* DiceExpressionTest.swift in Sources */,
 				E931E5442339525800C3FE9A /* DiceExpressionParserTest.swift in Sources */,
 				E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */,

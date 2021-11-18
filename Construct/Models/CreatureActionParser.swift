@@ -96,7 +96,7 @@ struct CreatureActionParser {
             string("dc ").log("dc"),
             int().log("dc int"),
             word().flatMap { Ability(rawValue: $0) }.skippingAnyBefore().log("ab"),
-            string("saving throw").log("st"),
+            zip(horizontalWhitespace(), string("saving throw").log("st")).map { $0.1 },
             damageParser().skippingAnyBefore().log("dmg"),
             string("on a failed save").skippingAnyBefore().log("fail"),
             skip(until: char(".")).flatMap {
