@@ -12,7 +12,7 @@ import Foundation
 // - "1d6"
 // - "1d6 + 1d4"
 // - "+5"
-class DiceExpressionParser {
+enum DiceExpressionParser {
 
     static func parse(_ string: String) -> DiceExpression? {
         return diceExpression().run(string)
@@ -61,5 +61,20 @@ class DiceExpressionParser {
             op,
             any(char(" "))
         ).map { $0.1 }
+    }
+}
+
+extension DiceExpressionParser {
+    /**
+     Returns a match for each dice expression with at least one dice
+     in the input string.
+     */
+    static func matches(in input: String) -> [Located<DiceExpression>] {
+        DiceExpressionParser.diceExpression()
+            .flatMap {
+                // filter out expressions that are just a number
+                $0.diceCount > 0 ? $0 : nil
+            }
+            .matches(in: input.description)
     }
 }

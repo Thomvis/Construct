@@ -337,9 +337,15 @@ struct CreatureFeatureView: View {
     let feature: ParseableCreatureFeature
 
     var body: some View {
-        (Text("\(feature.name). ").bold().italic() + Text(description))
+        (Text("\(title). ").bold().italic() + Text(description))
             .lineLimit(nil)
             .fixedSize(horizontal: false, vertical: true)
+    }
+
+    var title: AttributedString {
+        var result = feature.attributedName
+        StatBlockView.process(attributedString: &result)
+        return result
     }
 
     var description: AttributedString {
@@ -360,14 +366,17 @@ struct CreatureActionView: View {
         var description = action.attributedDescription
         StatBlockView.process(attributedString: &description)
 
+        var title = action.attributedName
+        StatBlockView.process(attributedString: &title)
+
         if let parsedAction = action.result?.value?.action {
-            var title = AttributedString("\(action.name)")
-            title.underlinedLink = StatBlockView.link(for: .action(action.input, parsedAction))
-            title.attachment = NSTextAttachment(image: UIImage(systemName: "bolt.fill")!)
+            if let r = title.runs.first?.range {
+                title[r].underlinedLink = StatBlockView.link(for: .action(action.input, parsedAction))
+            }
 
             return Text("\(Image(systemName: "bolt.fill")) \(title). ").bold().italic().foregroundColor(Color.accentColor) + Text(description)
         } else {
-            return Text("\(action.name). ").bold().italic() + Text(description)
+            return (Text(title) + Text(". ")).bold().italic() + Text(description)
         }
     }
 

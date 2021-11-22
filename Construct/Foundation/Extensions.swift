@@ -205,6 +205,14 @@ extension Bool {
     func toggled() -> Bool {
         !self
     }
+
+    func mapTrue<T>(_ f: () -> T) -> T? {
+        self ? f() : nil
+    }
+
+    func compactMapTrue<T>(_ f: () -> T?) -> T? {
+        self ? f() : nil
+    }
 }
 
 extension Optional where Wrapped: Equatable {

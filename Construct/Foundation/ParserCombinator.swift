@@ -341,6 +341,10 @@ func either<A>(_ a: Parser<A>, _ b: Parser<A>, _ c: Parser<A>, _ d: Parser<A>, _
     a.or(b).or(c).or(d).or(e)
 }
 
+func either<A>(_ a: Parser<A>, _ b: Parser<A>, _ c: Parser<A>, _ d: Parser<A>, _ e: Parser<A>, _ f: Parser<A>) -> Parser<A> {
+    a.or(b).or(c).or(d).or(e).or(f)
+}
+
 func zip<A, B>(_ a: Parser<A>, _ b: Parser<B>) -> Parser<(A, B)> {
     a.followed(by: b)
 }

@@ -13,14 +13,23 @@ typealias ParseableCreatureAction = Parseable<CreatureAction, ParsedCreatureActi
 extension ParseableCreatureAction {
     var name: String { input.name }
     var description: String { input.description }
+
+    var attributedName: AttributedString {
+        guard let parsed = result?.value else { return AttributedString(name) }
+
+        var result = AttributedString(name)
+        for annotation in parsed.nameAnnotations {
+            result.apply(annotation)
+        }
+        return result
+    }
+
     var attributedDescription: AttributedString {
         guard let parsed = result?.value else { return AttributedString(description) }
 
         var result = AttributedString(description)
-        for match in parsed.diceExpressions {
-            result.apply(match) { str, expr in
-                str.construct.diceExpression = expr
-            }
+        for annotation in parsed.descriptionAnnotations {
+            result.apply(annotation)
         }
         return result
     }
@@ -31,24 +40,47 @@ struct CreatureActionDomainParser: DomainParser {
     static let version: String = "1"
 
     static func parse(input: CreatureAction) -> ParsedCreatureAction? {
-        let action = CreatureActionParser.parse(input.description)
-        let matches = DiceExpressionParser.diceExpression()
-            .flatMap {
-                // filter out expressions that are just a number
-                $0.diceCount > 0 ? $0 : nil
-            }
-            .matches(in: input.description)
-
-        guard action != nil || !matches.isEmpty else { return nil }
-
         return ParsedCreatureAction(
-            action: action,
-            diceExpressions: matches
+            limitedUse: CreatureFeatureDomainParser.limitedUseInNameParser().run(input.name.lowercased()),
+            action: CreatureActionParser.parse(input.description),
+            otherDescriptionAnnotations: DiceExpressionParser.matches(in: input.description).map {
+                $0.map { TextAnnotation.diceExpression($0) }
+            }
         )
     }
 }
 
 struct ParsedCreatureAction: Codable, Hashable {
+
+    /**
+     Parsed from `name`. Range is scoped to `name`.
+     */
+    let limitedUse: Located<LimitedUse>?
+
+    // TODO: action could contain some annotations
     let action: CreatureActionParser.Action?
-    let diceExpressions: [Located<DiceExpression>]
+    let otherDescriptionAnnotations: [Located<TextAnnotation>]?
+
+    var nameAnnotations: [Located<TextAnnotation>] {
+        limitedUse.flatMap { llu in
+            guard case .turnStart = llu.value.recharge else { return nil }
+            return [llu.map { _ in TextAnnotation.diceExpression(1.d(6)) }]
+        } ?? []
+    }
+
+    var descriptionAnnotations: [Located<TextAnnotation>] {
+        otherDescriptionAnnotations ?? []
+    }
+
+    /**
+     Returns nil if all parameters are nil
+     */
+    init?(limitedUse: Located<LimitedUse>?, action: CreatureActionParser.Action?, otherDescriptionAnnotations: [Located<TextAnnotation>]?) {
+        guard limitedUse != nil || action != nil || otherDescriptionAnnotations?.nonEmptyArray != nil else { return nil }
+
+        self.limitedUse = limitedUse
+        self.action = action
+        self.otherDescriptionAnnotations = otherDescriptionAnnotations
+    }
+
 }

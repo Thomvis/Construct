@@ -92,6 +92,9 @@
 		E949030123660A4F0094CD1A /* ddb_misty.json in Resources */ = {isa = PBXBuildFile; fileRef = E94902FF23660A4F0094CD1A /* ddb_misty.json */; };
 		E9517FD9235F9547005A51FC /* SectionContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9517FD8235F9547005A51FC /* SectionContainer.swift */; };
 		E9517FDD2360C09D005A51FC /* CancellableBag.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9517FDC2360C09D005A51FC /* CancellableBag.swift */; };
+		E95246FA274C2DAA00262C15 /* TextAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95246F9274C2DAA00262C15 /* TextAnnotation.swift */; };
+		E95246FC274C357000262C15 /* LimitedUse.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95246FB274C357000262C15 /* LimitedUse.swift */; };
+		E95246FE274C390B00262C15 /* ParseableCreatureActionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95246FD274C390B00262C15 /* ParseableCreatureActionTest.swift */; };
 		E9540FFA23181524008A25EC /* PopoverHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9540FF923181524008A25EC /* PopoverHost.swift */; };
 		E957C08125BB30580042ECF6 /* ReferenceContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08025BB30580042ECF6 /* ReferenceContext.swift */; };
 		E957C08725BEFC110042ECF6 /* AddCombatantCompendiumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */; };
@@ -319,6 +322,9 @@
 		E9517FDC2360C09D005A51FC /* CancellableBag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancellableBag.swift; sourceTree = "<group>"; };
 		E9517FDE23617C5A005A51FC /* EncounterDifficulty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDifficulty.swift; sourceTree = "<group>"; };
 		E951BD9723FFD39400F890D5 /* CombatantRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantRow.swift; sourceTree = "<group>"; };
+		E95246F9274C2DAA00262C15 /* TextAnnotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextAnnotation.swift; sourceTree = "<group>"; };
+		E95246FB274C357000262C15 /* LimitedUse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitedUse.swift; sourceTree = "<group>"; };
+		E95246FD274C390B00262C15 /* ParseableCreatureActionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseableCreatureActionTest.swift; sourceTree = "<group>"; };
 		E9540FF923181524008A25EC /* PopoverHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverHost.swift; sourceTree = "<group>"; };
 		E9562F28230D1F62008B010F /* DiceCalculatorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiceCalculatorView.swift; sourceTree = "<group>"; };
 		E957C08025BB30580042ECF6 /* ReferenceContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceContext.swift; sourceTree = "<group>"; };
@@ -572,6 +578,8 @@
 				E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */,
 				E97983DF2744472000800D38 /* ParseableCreatureAction.swift */,
 				E97983E12744591600800D38 /* ParseableSpellDescription.swift */,
+				E95246F9274C2DAA00262C15 /* TextAnnotation.swift */,
+				E95246FB274C357000262C15 /* LimitedUse.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1001,6 +1009,7 @@
 				E98A0EF6267BCDD600316EE4 /* CreatureEditViewStateTest.swift */,
 				E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */,
 				E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */,
+				E95246FD274C390B00262C15 /* ParseableCreatureActionTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1177,6 +1186,7 @@
 				E91C167924029D94004B5C85 /* Apply.swift in Sources */,
 				E9323A31231FF14900F0D0C6 /* KeyValueStore.swift in Sources */,
 				E963CCF7247AE5CD009863D7 /* CompendiumContainerView.swift in Sources */,
+				E95246FA274C2DAA00262C15 /* TextAnnotation.swift in Sources */,
 				E996919C247C4C9200A8B1A0 /* CompendiumItemGroupEditView.swift in Sources */,
 				E972BAA524793EFC00F313D7 /* NumberPadView.swift in Sources */,
 				E9A95185233BF67D00141552 /* DDBCharacterSheetURLParser.swift in Sources */,
@@ -1185,6 +1195,7 @@
 				E97651DD248BC1EF00C76865 /* CombatantTagPopover.swift in Sources */,
 				E931E54F233A230800C3FE9A /* Fraction.swift in Sources */,
 				E97983DA2742E69E00800D38 /* CompendiumParseableVisitor.swift in Sources */,
+				E95246FC274C357000262C15 /* LimitedUse.swift in Sources */,
 				E999FBC9235BA536000CCC8B /* SimpleList.swift in Sources */,
 				E97651D7248AE50600C76865 /* CombatantResourcesView.swift in Sources */,
 				E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */,
@@ -1337,6 +1348,7 @@
 				E91CCC872615D21B00CB0527 /* AppStoreScreenshotTests.swift in Sources */,
 				E931CF8A25003077006CEE78 /* ParserCombinatorTest.swift in Sources */,
 				E9AEA49B24C62A9600ACB44C /* Helpers.swift in Sources */,
+				E95246FE274C390B00262C15 /* ParseableCreatureActionTest.swift in Sources */,
 				E9323A3F23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift in Sources */,
 				E97A43AC2334004B00A8B032 /* CompendiumImporterTest.swift in Sources */,
 				E929AD202745A2E400A39CAD /* ParseableCreatureFeatureTest.swift in Sources */,
