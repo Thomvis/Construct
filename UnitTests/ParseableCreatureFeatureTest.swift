@@ -29,15 +29,14 @@ class ParseableCreatureFeatureTest: XCTestCase {
                 spellAttackHit: Modifier(modifier: 4),
                 slotsByLevel: [1: 3],
                 spellsByLevel: [
-                    0: [
-                        Located(value: .init(name: "light", type: .spell, resolvedTo: nil), range: 198..<203),
-                        Located(value: .init(name: "sacred flame", type: .spell, resolvedTo: nil), range: 205..<217),
-                        Located(value: .init(name: "thaumaturgy", type: .spell, resolvedTo: nil), range: 219..<230),
+                    0: [Located(value: .init(text: "light", type: .spell, resolvedTo: nil), range: 198..<203),
+                        Located(value: .init(text: "sacred flame", type: .spell, resolvedTo: nil), range: 205..<217),
+                        Located(value: .init(text: "thaumaturgy", type: .spell, resolvedTo: nil), range: 219..<230),
                     ],
                     1: [
-                        Located(value: .init(name: "bless", type: .spell, resolvedTo: nil), range: 254..<259),
-                        Located(value: .init(name: "cure wounds", type: .spell, resolvedTo: nil), range: 261..<272),
-                        Located(value: .init(name: "sanctuary", type: .spell, resolvedTo: nil), range: 274..<283),
+                        Located(value: .init(text: "bless", type: .spell, resolvedTo: nil), range: 254..<259),
+                        Located(value: .init(text: "cure wounds", type: .spell, resolvedTo: nil), range: 261..<272),
+                        Located(value: .init(text: "sanctuary", type: .spell, resolvedTo: nil), range: 274..<283),
                     ]
                 ],
                 spellsByUse: nil
@@ -68,19 +67,19 @@ class ParseableCreatureFeatureTest: XCTestCase {
                 spellsByLevel: nil,
                 spellsByUse: [
                     nil: [
-                        Located(value: .init(name: "detect magic", type: .spell, resolvedTo: nil), range: 140..<152),
-                        Located(value: .init(name: "fog cloud", type: .spell, resolvedTo: nil), range: 154..<163),
-                        Located(value: .init(name: "light", type: .spell, resolvedTo: nil), range: 165..<170),
+                        Located(value: .init(text: "detect magic", type: .spell, resolvedTo: nil), range: 140..<152),
+                        Located(value: .init(text: "fog cloud", type: .spell, resolvedTo: nil), range: 154..<163),
+                        Located(value: .init(text: "light", type: .spell, resolvedTo: nil), range: 165..<170),
                     ],
                     .init(amount: 3, recharge: .day): [
-                        Located(value: .init(name: "feather fall", type: .spell, resolvedTo: nil), range: 183..<195),
-                        Located(value: .init(name: "fly", type: .spell, resolvedTo: nil), range: 197..<200),
-                        Located(value: .init(name: "misty step", type: .spell, resolvedTo: nil), range: 202..<212),
-                        Located(value: .init(name: "telekinesis", type: .spell, resolvedTo: nil), range: 214..<225),
+                        Located(value: .init(text: "feather fall", type: .spell, resolvedTo: nil), range: 183..<195),
+                        Located(value: .init(text: "fly", type: .spell, resolvedTo: nil), range: 197..<200),
+                        Located(value: .init(text: "misty step", type: .spell, resolvedTo: nil), range: 202..<212),
+                        Located(value: .init(text: "telekinesis", type: .spell, resolvedTo: nil), range: 214..<225),
                     ],
                     .init(amount: 1, recharge: .day): [
-                        Located(value: .init(name: "control weather", type: .spell, resolvedTo: nil), range: 238..<253),
-                        Located(value: .init(name: "gaseous form", type: .spell, resolvedTo: nil), range: 255..<267)
+                        Located(value: .init(text: "control weather", type: .spell, resolvedTo: nil), range: 238..<253),
+                        Located(value: .init(text: "gaseous form", type: .spell, resolvedTo: nil), range: 255..<267)
                     ]
                 ]
             ),

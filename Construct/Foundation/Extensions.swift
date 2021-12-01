@@ -318,3 +318,21 @@ extension AttributedStringProtocol {
         }
     }
 }
+
+extension Deferred {
+
+    /// Creates a new result by evaluating a throwing closure, capturing the
+    /// returned value as a success, or any thrown error as a failure.
+    ///
+    /// - Parameter body: A throwing closure to evaluate.
+    public init<O>(catching body: @escaping () throws -> O) where DeferredPublisher == AnyPublisher<O, Error> {
+        self.init(createPublisher: {
+            do {
+                let result = try body()
+                return Just(result).setFailureType(to: Error.self).eraseToAnyPublisher()
+            } catch {
+                return Fail(error: error).eraseToAnyPublisher()
+            }
+        })
+    }
+}

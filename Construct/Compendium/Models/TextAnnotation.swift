@@ -13,14 +13,24 @@ enum TextAnnotation: Codable, Hashable {
     case reference(Reference)
 
     enum Reference: Codable, Hashable {
-        case compendiumItem(CompendiumItemTextAnnotationReference)
+        case compendiumItem(CompendiumItemReferenceTextAnnotation)
     }
 }
 
-struct CompendiumItemTextAnnotationReference: Codable, Hashable {
-    let name: String
+/**
+ Represents a piece of text that is believed to refer to a compendium item
+ */
+struct CompendiumItemReferenceTextAnnotation: Codable, Hashable {
+    let text: String
     let type: CompendiumItemType?
-    let resolvedTo: CompendiumItemKey?
+
+    let resolvedTo: CompendiumItemReference?
+
+    internal init(text: String, type: CompendiumItemType?, resolvedTo: CompendiumItemReference? = nil) {
+        self.text = text
+        self.type = type
+        self.resolvedTo = resolvedTo
+    }
 }
 
 extension AttributedString {

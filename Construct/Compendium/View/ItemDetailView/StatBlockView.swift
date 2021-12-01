@@ -213,8 +213,8 @@ struct StatBlockView: View {
             let target: StatBlockView.TapTarget?
             if let diceExpression = run.construct.diceExpression {
                 target = .rollCheck(diceExpression)
-            } else if let ref = run.construct.compendiumItemReference {
-                target = .rollCheck(1.d(100)) // FIXME
+            } else if let annotation = run.construct.compendiumItemReference {
+                target = .compendiumItemReferenceTextAnnotation(annotation)
             } else {
                 target = nil
             }
@@ -242,6 +242,7 @@ struct StatBlockView: View {
         case ability(Ability)
         case action(CreatureAction, CreatureActionParser.Action)
         case rollCheck(DiceExpression)
+        case compendiumItemReferenceTextAnnotation(CompendiumItemReferenceTextAnnotation)
     }
 }
 

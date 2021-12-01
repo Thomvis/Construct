@@ -308,7 +308,7 @@ func int() -> Parser<Int> {
 
 // Parses at least one letter followed by any number of whitespace
 func word() -> Parser<String> {
-    return any(character { $0.isLetter || $0.isNumber || ["'＇"].contains(String($0)) })
+    return any(character { $0.isLetter || $0.isNumber || "'＇’".contains(String($0)) })
         .flatMap { $0.count > 0 ? $0 : nil }
         .joined()
 }

@@ -11,6 +11,7 @@ import SwiftUI
 import CasePaths
 import ComposableArchitecture
 import Tagged
+import BetterSafariView
 
 struct CombatantDetailContainerView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
@@ -230,6 +231,16 @@ struct CombatantDetailView: View {
                 }
                 .padding(12)
                 .padding(.bottom, 50)
+                // Placing this inside the scrollview to work around https://github.com/stleamist/BetterSafariView/issues/23
+                .safariView(
+                    item: viewStore.binding(get: { $0.presentedNextSafariView }, send: { _ in .setNextScreen(nil) }),
+                    onDismiss: { viewStore.send(.setNextScreen(nil)) },
+                    content: { state in
+                        BetterSafariView.SafariView(
+                            url: state.url
+                        )
+                    }
+                )
             }
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
@@ -251,6 +262,12 @@ struct CombatantDetailView: View {
             action: /CombatantDetailViewAction.NextScreenAction.combatantTagEditView,
             destination: CombatantTagEditView.init
         )
+        .stateDrivenNavigationLink(
+            store: store,
+            state: /CombatantDetailViewState.NextScreen.compendiumItemDetailView,
+            action: /CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView,
+            destination: CompendiumItemDetailView.init
+        )
     }
 
     func contentView(for combatant: Combatant) -> some View {
@@ -266,6 +283,8 @@ struct CombatantDetailView: View {
                     }
                 case .rollCheck(let e):
                     self.viewStore.send(.popover(.rollCheck(DiceCalculatorState.rollingExpression(e, rollOnAppear: true))))
+                case .compendiumItemReferenceTextAnnotation(let annotation):
+                    self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(annotation))
                 }
             })
         }

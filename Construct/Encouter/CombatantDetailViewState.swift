@@ -106,6 +106,8 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             case .creatureEditView: return .creatureEditView(CreatureEditViewState.nullInstance)
             case .combatantResourcesView: return .combatantResourcesView(CombatantResourcesViewState.nullInstance)
             case .runningEncounterLogView: return .runningEncounterLogView(RunningEncounterLogViewState.nullInstance)
+            case .compendiumItemDetailView: return .compendiumItemDetailView(.nullInstance)
+            case .safariView: return .safariView(.nullInstance)
             }
         }
         res.popover = popover.map {
@@ -126,6 +128,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog),
         DiceActionViewState.reducer.optional().pullback(state: \.diceActionPopoverState, action: /CombatantDetailViewAction.diceActionPopover),
         NumberEntryViewState.reducer.optional().pullback(state: \.initiativePopoverState, action: /CombatantDetailViewAction.initiativePopover),
+        CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView),
         Reducer { state, action, env in
             switch action {
             case .combatant: break // should be handled by parent
@@ -159,6 +162,16 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 let original = (currentDefinition as? CompendiumCombatantDefinition).map { CompendiumItemReference(itemTitle: $0.name, itemKey: $0.item.key) }
                 let def = AdHocCombatantDefinition(id: UUID().tagged(), stats: currentDefinition.stats, player: currentDefinition.player, level: currentDefinition.level, original: original)
                 return Effect(value: .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def))))
+            case .didTapCompendiumItemReferenceTextAnnotation(let annotation):
+                switch env.compendium.resolve(annotation: annotation) {
+                case .internal(let ref):
+                    if let entry = try? env.compendium.get(ref.itemKey) {
+                        return Effect(value: .setNextScreen(.compendiumItemDetailView(CompendiumEntryDetailViewState(entry: entry))))
+                    }
+                case .external(let url):
+                    return Effect(value: .setNextScreen(.safariView(SafariViewState(url: url))))
+                case .notFound: break
+                }
             case .setNextScreen(let s):
                 state.presentedScreens[.nextInStack] = s
             case .setDetailScreen(let s):
@@ -197,6 +210,8 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         case creatureEditView(CreatureEditViewState)
         case combatantResourcesView(CombatantResourcesViewState)
         case runningEncounterLogView(RunningEncounterLogViewState)
+        case compendiumItemDetailView(CompendiumEntryDetailViewState)
+        case safariView(SafariViewState)
     }
 
     enum Popover: Equatable {
@@ -220,6 +235,8 @@ enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
     case initiativePopover(NumberEntryViewAction)
     case saveToCompendium
     case unlinkFromCompendium
+
+    case didTapCompendiumItemReferenceTextAnnotation(CompendiumItemReferenceTextAnnotation)
 
     case setNextScreen(CombatantDetailViewState.NextScreen?)
     case nextScreen(NextScreenAction)
@@ -246,6 +263,8 @@ enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
         case creatureEditView(CreatureEditViewAction)
         case combatantResourcesView(CombatantResourcesViewAction)
         case runningEncounterLogView
+        case compendiumItemDetailView(CompendiumItemDetailViewAction)
+        case safariView
     }
 
 }

@@ -96,6 +96,7 @@
 		E95246FC274C357000262C15 /* LimitedUse.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95246FB274C357000262C15 /* LimitedUse.swift */; };
 		E95246FE274C390B00262C15 /* ParseableCreatureActionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95246FD274C390B00262C15 /* ParseableCreatureActionTest.swift */; };
 		E9540FFA23181524008A25EC /* PopoverHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9540FF923181524008A25EC /* PopoverHost.swift */; };
+		E9558B702757FBBC000837AB /* BetterSafariView in Frameworks */ = {isa = PBXBuildFile; productRef = E9558B6F2757FBBC000837AB /* BetterSafariView */; };
 		E957C08125BB30580042ECF6 /* ReferenceContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08025BB30580042ECF6 /* ReferenceContext.swift */; };
 		E957C08725BEFC110042ECF6 /* AddCombatantCompendiumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */; };
 		E957C08B25BF57A30042ECF6 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08A25BF57A30042ECF6 /* HomeView.swift */; };
@@ -220,6 +221,9 @@
 		E9B432BB22AAF7540054324E /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B432BA22AAF7540054324E /* Environment.swift */; };
 		E9C7F7862632C193000351AB /* NumberPadTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C7F7852632C193000351AB /* NumberPadTest.swift */; };
 		E9CFB30F2350515700CA0AF4 /* CampaignBrowserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */; };
+		E9D266B22756B39400E83595 /* ExternalCompendium.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D266B12756B39400E83595 /* ExternalCompendium.swift */; };
+		E9D266B42756B3A600E83595 /* DndBeyondExternalCompendium.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D266B32756B3A600E83595 /* DndBeyondExternalCompendium.swift */; };
+		E9D266B62756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */; };
 		E9D5A6EC2314FB37004D84E2 /* DiceExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6E72314FB36004D84E2 /* DiceExpression.swift */; };
 		E9D5A6ED2314FB37004D84E2 /* Creature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6E82314FB37004D84E2 /* Creature.swift */; };
 		E9F56AC6235483780085A72D /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC5235483780085A72D /* AppState.swift */; };
@@ -438,6 +442,9 @@
 		E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowserTest.swift; sourceTree = "<group>"; };
 		E9CFB31123505AF400CA0AF4 /* CampaignBrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseView.swift; sourceTree = "<group>"; };
 		E9CFB31323505B0F00CA0AF4 /* CampaignBrowseViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseViewState.swift; sourceTree = "<group>"; };
+		E9D266B12756B39400E83595 /* ExternalCompendium.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalCompendium.swift; sourceTree = "<group>"; };
+		E9D266B32756B3A600E83595 /* DndBeyondExternalCompendium.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DndBeyondExternalCompendium.swift; sourceTree = "<group>"; };
+		E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DndBeyondExternalCompendiumTest.swift; sourceTree = "<group>"; };
 		E9D5A6E72314FB36004D84E2 /* DiceExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiceExpression.swift; sourceTree = "<group>"; };
 		E9D5A6E82314FB37004D84E2 /* Creature.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Creature.swift; sourceTree = "<group>"; };
 		E9D5A6E92314FB37004D84E2 /* Character.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
@@ -467,6 +474,7 @@
 				E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */,
 				E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */,
 				E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */,
+				E9558B702757FBBC000837AB /* BetterSafariView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -496,6 +504,7 @@
 		E91E46FA231D9378005D1E6F /* Compendium */ = {
 			isa = PBXGroup;
 			children = (
+				E9D266B02756B38900E83595 /* External */,
 				E91E471B231E8D9F005D1E6F /* Models */,
 				E91E4716231E8CB8005D1E6F /* Sources */,
 				E91E46FB231D937F005D1E6F /* View */,
@@ -947,6 +956,15 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		E9D266B02756B38900E83595 /* External */ = {
+			isa = PBXGroup;
+			children = (
+				E9D266B12756B39400E83595 /* ExternalCompendium.swift */,
+				E9D266B32756B3A600E83595 /* DndBeyondExternalCompendium.swift */,
+			);
+			path = External;
+			sourceTree = "<group>";
+		};
 		E9DF660B2313A978005D4FE5 /* Encouter */ = {
 			isa = PBXGroup;
 			children = (
@@ -1010,6 +1028,7 @@
 				E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */,
 				E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */,
 				E95246FD274C390B00262C15 /* ParseableCreatureActionTest.swift */,
+				E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1039,6 +1058,7 @@
 				E9869F7C2520A64B0098A166 /* GRDB */,
 				E991F89C2545A791006CE8E8 /* Introspect */,
 				E91CCC822614C4D200CB0527 /* Tagged */,
+				E9558B6F2757FBBC000837AB /* BetterSafariView */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -1101,6 +1121,7 @@
 				E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 				E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
 				E91CCC812614C4D200CB0527 /* XCRemoteSwiftPackageReference "swift-tagged" */,
+				E9558B6E2757FBBC000837AB /* XCRemoteSwiftPackageReference "BetterSafariView" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -1294,6 +1315,7 @@
 				E97A4FB1236240EA0044E424 /* Checkbox.swift in Sources */,
 				E97651CC248ADA0100C76865 /* EncounterDetailView.swift in Sources */,
 				E931E54B233971B300C3FE9A /* SearchField.swift in Sources */,
+				E9D266B22756B39400E83595 /* ExternalCompendium.swift in Sources */,
 				E97651D2248AE0D600C76865 /* RunningEncounterEventRow.swift in Sources */,
 				E9819BE22482E772005B898E /* CombatantTrackerEditView.swift in Sources */,
 				E97651D9248AEA8000C76865 /* CombatantTagEditView.swift in Sources */,
@@ -1315,6 +1337,7 @@
 				E931CF932500CA3F006CEE78 /* DiceActionViewState.swift in Sources */,
 				E991F88C25449D86006CE8E8 /* ReferenceView.swift in Sources */,
 				E972BAA22478588800F313D7 /* CompendiumEntry.swift in Sources */,
+				E9D266B42756B3A600E83595 /* DndBeyondExternalCompendium.swift in Sources */,
 				E921E32B230DD7A900D02CD6 /* Extensions.swift in Sources */,
 				E991F88725449C7D006CE8E8 /* TabbedDocumentView.swift in Sources */,
 				E972BA9724784A6400F313D7 /* EncounterDifficulty.swift in Sources */,
@@ -1354,6 +1377,7 @@
 				E929AD202745A2E400A39CAD /* ParseableCreatureFeatureTest.swift in Sources */,
 				E95FA115231C58A30098BD83 /* DiceExpressionTest.swift in Sources */,
 				E931E5442339525800C3FE9A /* DiceExpressionParserTest.swift in Sources */,
+				E9D266B62756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift in Sources */,
 				E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */,
 				E90EFF322620597700F5443E /* XMLMonsterDataSourceReaderTest.swift in Sources */,
 				E931CF8524FD17B8006CEE78 /* CreatureActionParserTest.swift in Sources */,
@@ -1669,6 +1693,14 @@
 				minimumVersion = 0.1.0;
 			};
 		};
+		E9558B6E2757FBBC000837AB /* XCRemoteSwiftPackageReference "BetterSafariView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stleamist/BetterSafariView.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 		E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple.git";
@@ -1715,6 +1747,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E93FA1C824EC5B7F007441BF /* XCRemoteSwiftPackageReference "Parma" */;
 			productName = Parma;
+		};
+		E9558B6F2757FBBC000837AB /* BetterSafariView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9558B6E2757FBBC000837AB /* XCRemoteSwiftPackageReference "BetterSafariView" */;
+			productName = BetterSafariView;
 		};
 		E9869F732520A17A0098A166 /* AppCenterAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;

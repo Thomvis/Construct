@@ -130,12 +130,12 @@ extension ParsedCreatureFeature {
         var spellAttackHit: Modifier?
 
         var slotsByLevel: [Int:Int]?
-        var spellsByLevel: [Int: [Located<CompendiumItemTextAnnotationReference>]]?
+        var spellsByLevel: [Int: [Located<CompendiumItemReferenceTextAnnotation>]]?
 
         /**
          A key of `nil` means "at will"
          */
-        var spellsByUse: [LimitedUse?: [Located<CompendiumItemTextAnnotationReference>]]?
+        var spellsByUse: [LimitedUse?: [Located<CompendiumItemReferenceTextAnnotation>]]?
     }
 
     struct Freeform: Hashable, Codable {
@@ -149,7 +149,7 @@ struct DiceExpressionAttribute: CodableAttributedStringKey {
 }
 
 struct CompendiumItemReferenceAttribute: CodableAttributedStringKey {
-    typealias Value = CompendiumItemTextAnnotationReference
+    typealias Value = CompendiumItemReferenceTextAnnotation
     static let name = "CompendiumItemReference"
 }
 
@@ -279,11 +279,11 @@ extension CreatureFeatureDomainParser {
                         result.slotsByLevel = slotsByLevel
                     }
                     var spellsByLevel = result.spellsByLevel ?? [:]
-                    spellsByLevel[level] = spells.map { $0.map { .init(name: $0, type: .spell, resolvedTo: nil) } }
+                    spellsByLevel[level] = spells.map { $0.map { .init(text: $0, type: .spell) } }
                     result.spellsByLevel = spellsByLevel
                 case let .spellsByUse(limitedUse, spells):
                     var spellsByUse = result.spellsByUse ?? [:]
-                    spellsByUse[limitedUse] = spells.map { $0.map { .init(name: $0, type: .spell, resolvedTo: nil) } }
+                    spellsByUse[limitedUse] = spells.map { $0.map { .init(text: $0, type: .spell) } }
                     result.spellsByUse = spellsByUse
                 }
             }

@@ -188,7 +188,9 @@ extension CompendiumItemGroupEditState {
             return .none
         },
         Async<[Character], Error, Environment>.reducer { env in
-            env.compendium.fetchAll(query: nil, types: [.character]).map { entries in
+            Deferred(catching: {
+                try env.compendium.fetchAll(query: nil, types: [.character])
+            }).map { entries in
                 entries.compactMap { $0.item as? Character }
             }.eraseToAnyPublisher()
         }.pullback(state: \.allCharacters, action: /CompendiumItemGroupEditAction.allCharacters)

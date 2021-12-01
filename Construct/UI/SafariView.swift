@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import SafariServices
+import ComposableArchitecture
 
 final class SafariView: UIViewControllerRepresentable {
     let url: URL
@@ -23,5 +24,29 @@ final class SafariView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: UIViewControllerRepresentableContext<SafariView>) {
 
+    }
+}
+
+struct SafariViewState: Hashable, Codable, Identifiable {
+    let url: URL
+
+    var id: URL { url }
+
+    static let nullInstance = SafariViewState(url: URL(fileURLWithPath: "/"))
+}
+
+extension SafariViewState: NavigationStackItemState {
+    var navigationStackItemStateId: String {
+        "safariView:\(url.absoluteString)"
+    }
+
+    var navigationTitle: String {
+        "Safari"
+    }
+}
+
+extension SafariView {
+    convenience init(store: Store<SafariViewState, Void>) {
+        self.init(url: ViewStore(store).url)
     }
 }

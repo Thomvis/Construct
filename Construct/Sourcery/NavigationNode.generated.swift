@@ -179,6 +179,23 @@ extension RunningEncounterLogViewState: NavigationNode {
         // no-op
     }
 }
+extension SafariViewState: NavigationNode {
+    var nodeId: String { 
+        navigationStackItemStateId
+    }
+
+    func topNavigationItems() -> [Any] {
+        return [self]
+    }
+
+    func navigationStackSize() -> Int {
+        return 1
+    }
+
+    mutating func popLastNavigationStackItem() {
+        // no-op
+    }
+}
 
 extension CampaignBrowseViewState.NextScreen: NavigationNode {
     var nodeId: String {
@@ -228,6 +245,8 @@ extension CombatantDetailViewState.NextScreen: NavigationNode {
             case .creatureEditView(let s): return s
             case .combatantResourcesView(let s): return s
             case .runningEncounterLogView(let s): return s
+            case .compendiumItemDetailView(let s): return s
+            case .safariView(let s): return s
             }
         }
 
@@ -238,6 +257,8 @@ extension CombatantDetailViewState.NextScreen: NavigationNode {
             case let v as CreatureEditViewState: self = .creatureEditView(v)
             case let v as CombatantResourcesViewState: self = .combatantResourcesView(v)
             case let v as RunningEncounterLogViewState: self = .runningEncounterLogView(v)
+            case let v as CompendiumEntryDetailViewState: self = .compendiumItemDetailView(v)
+            case let v as SafariViewState: self = .safariView(v)
             default: break
             }
         }
@@ -585,6 +606,60 @@ extension CombatantDetailViewState: NavigationNode {
         set { 
             if let value = newValue {
                 presentedScreens[.detail] = .runningEncounterLogView(value) 
+            }
+        }
+    }
+    var presentedNextCompendiumItemDetailView: CompendiumEntryDetailViewState? {
+        get { 
+            if case .compendiumItemDetailView(let s) = presentedScreens[.nextInStack] {
+                return s
+            }
+            return nil
+        }
+        set { 
+            if let value = newValue {
+                presentedScreens[.nextInStack] = .compendiumItemDetailView(value) 
+            }
+        }
+    }
+
+    var presentedDetailCompendiumItemDetailView: CompendiumEntryDetailViewState? {
+        get { 
+            if case .compendiumItemDetailView(let s) = presentedScreens[.detail] {
+                return s
+            }
+            return nil
+        }
+        set { 
+            if let value = newValue {
+                presentedScreens[.detail] = .compendiumItemDetailView(value) 
+            }
+        }
+    }
+    var presentedNextSafariView: SafariViewState? {
+        get { 
+            if case .safariView(let s) = presentedScreens[.nextInStack] {
+                return s
+            }
+            return nil
+        }
+        set { 
+            if let value = newValue {
+                presentedScreens[.nextInStack] = .safariView(value) 
+            }
+        }
+    }
+
+    var presentedDetailSafariView: SafariViewState? {
+        get { 
+            if case .safariView(let s) = presentedScreens[.detail] {
+                return s
+            }
+            return nil
+        }
+        set { 
+            if let value = newValue {
+                presentedScreens[.detail] = .safariView(value) 
             }
         }
     }

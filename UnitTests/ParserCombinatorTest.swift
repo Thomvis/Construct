@@ -46,10 +46,10 @@ class ParserCombinatorTest: XCTestCase {
     }
 
     func testWord() {
-        var text = Remainder("hello world")
+        var text = Remainder("hello's world")
 
         let res1 = word().parse(&text)
-        XCTAssertEqual(res1, "hello")
+        XCTAssertEqual(res1, "hello's")
         XCTAssertEqual(text.string(), " world")
     }
 
