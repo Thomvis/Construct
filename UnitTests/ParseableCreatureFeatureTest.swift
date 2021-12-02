@@ -39,7 +39,7 @@ class ParseableCreatureFeatureTest: XCTestCase {
                         Located(value: .init(text: "sanctuary", type: .spell, resolvedTo: nil), range: 274..<283),
                     ]
                 ],
-                spellsByUse: nil
+                limitedUseSpells: nil
             ),
             otherDescriptionAnnotations: [
                 Located(value: .diceExpression(1.d(20)+4), range: 94..<96)
@@ -65,22 +65,16 @@ class ParseableCreatureFeatureTest: XCTestCase {
                 spellAttackHit: nil,
                 slotsByLevel: nil,
                 spellsByLevel: nil,
-                spellsByUse: [
-                    nil: [
-                        Located(value: .init(text: "detect magic", type: .spell, resolvedTo: nil), range: 140..<152),
-                        Located(value: .init(text: "fog cloud", type: .spell, resolvedTo: nil), range: 154..<163),
-                        Located(value: .init(text: "light", type: .spell, resolvedTo: nil), range: 165..<170),
-                    ],
-                    .init(amount: 3, recharge: .day): [
-                        Located(value: .init(text: "feather fall", type: .spell, resolvedTo: nil), range: 183..<195),
-                        Located(value: .init(text: "fly", type: .spell, resolvedTo: nil), range: 197..<200),
-                        Located(value: .init(text: "misty step", type: .spell, resolvedTo: nil), range: 202..<212),
-                        Located(value: .init(text: "telekinesis", type: .spell, resolvedTo: nil), range: 214..<225),
-                    ],
-                    .init(amount: 1, recharge: .day): [
-                        Located(value: .init(text: "control weather", type: .spell, resolvedTo: nil), range: 238..<253),
-                        Located(value: .init(text: "gaseous form", type: .spell, resolvedTo: nil), range: 255..<267)
-                    ]
+                limitedUseSpells: [
+                    .init(spells: [Located(value: .init(text: "detect magic", type: .spell, resolvedTo: nil), range: 140..<152)], limitedUse: nil),
+                    .init(spells: [Located(value: .init(text: "fog cloud", type: .spell, resolvedTo: nil), range: 154..<163)], limitedUse: nil),
+                    .init(spells: [Located(value: .init(text: "light", type: .spell, resolvedTo: nil), range: 165..<170)], limitedUse: nil),
+                    .init(spells: [Located(value: .init(text: "feather fall", type: .spell, resolvedTo: nil), range: 183..<195)], limitedUse: .init(amount: 3, recharge: .day)),
+                    .init(spells: [Located(value: .init(text: "fly", type: .spell, resolvedTo: nil), range: 197..<200)], limitedUse: .init(amount: 3, recharge: .day)),
+                    .init(spells: [Located(value: .init(text: "misty step", type: .spell, resolvedTo: nil), range: 202..<212)], limitedUse: .init(amount: 3, recharge: .day)),
+                    .init(spells: [Located(value: .init(text: "telekinesis", type: .spell, resolvedTo: nil), range: 214..<225)], limitedUse: .init(amount: 3, recharge: .day)),
+                    .init(spells: [Located(value: .init(text: "control weather", type: .spell, resolvedTo: nil), range: 238..<253)], limitedUse: .init(amount: 1, recharge: .day)),
+                    .init(spells: [Located(value: .init(text: "gaseous form", type: .spell, resolvedTo: nil), range: 255..<267)], limitedUse: .init(amount: 1, recharge: .day))
                 ]
             ),
             otherDescriptionAnnotations: []

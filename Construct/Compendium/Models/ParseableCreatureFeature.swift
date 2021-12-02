@@ -74,10 +74,10 @@ struct CreatureFeatureDomainParser: DomainParser {
                 let lower = optLower?.0 ?? upper
                 return Located(value: LimitedUse(amount: 1, recharge: .turnStart([lower, upper])), range: Range(range))
             },
-            string("recharge after a short or long rest").withRange().map { _, range in
+            string("recharges after a short or long rest").withRange().map { _, range in
                 Located(value: LimitedUse(amount: 1, recharge: .rest(short: true, long: true)), range: Range(range))
             },
-            string("recharge after a long rest").withRange().map { _, range in
+            string("recharges after a long rest").withRange().map { _, range in
                 Located(value: LimitedUse(amount: 1, recharge: .rest(short: false, long: true)), range: Range(range))
             }
         ).skippingAnyBefore()
@@ -110,9 +110,9 @@ struct ParsedCreatureFeature: Codable, Hashable {
                     result.append(contentsOf: spells.map { $0.map { .reference(.compendiumItem($0)) } })
                 }
             }
-            if let spellsPerDay = s.spellsByUse {
-                for (_, spells) in spellsPerDay {
-                    result.append(contentsOf: spells.map { $0.map { .reference(.compendiumItem($0)) } })
+            if let limitedUseSpells = s.limitedUseSpells {
+                for group in limitedUseSpells {
+                    result.append(contentsOf: group.spells.map { $0.map { .reference(.compendiumItem($0)) } })
                 }
             }
         }
@@ -132,10 +132,15 @@ extension ParsedCreatureFeature {
         var slotsByLevel: [Int:Int]?
         var spellsByLevel: [Int: [Located<CompendiumItemReferenceTextAnnotation>]]?
 
-        /**
-         A key of `nil` means "at will"
-         */
-        var spellsByUse: [LimitedUse?: [Located<CompendiumItemReferenceTextAnnotation>]]?
+        var limitedUseSpells: [LimitedUseSpellGroup]?
+
+        struct LimitedUseSpellGroup: Hashable, Codable {
+            let spells: [Located<CompendiumItemReferenceTextAnnotation>]
+            /**
+             A value of `nil` means "at will"
+             */
+            let limitedUse: LimitedUse?
+        }
     }
 
     struct Freeform: Hashable, Codable {
@@ -282,9 +287,12 @@ extension CreatureFeatureDomainParser {
                     spellsByLevel[level] = spells.map { $0.map { .init(text: $0, type: .spell) } }
                     result.spellsByLevel = spellsByLevel
                 case let .spellsByUse(limitedUse, spells):
-                    var spellsByUse = result.spellsByUse ?? [:]
-                    spellsByUse[limitedUse] = spells.map { $0.map { .init(text: $0, type: .spell) } }
-                    result.spellsByUse = spellsByUse
+                    var limitedUseSpells = result.limitedUseSpells ?? []
+                    for spell in spells {
+                        let locatedAnnotation = spell.map { CompendiumItemReferenceTextAnnotation(text: $0, type: .spell) }
+                        limitedUseSpells.append(.init(spells: [locatedAnnotation], limitedUse: limitedUse))
+                    }
+                    result.limitedUseSpells = limitedUseSpells
                 }
             }
             return result

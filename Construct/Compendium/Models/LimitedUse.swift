@@ -18,3 +18,38 @@ struct LimitedUse: Codable, Hashable {
         case turnStart(Set<Int>) // with a d6 roll
     }
 }
+
+extension LimitedUse {
+    var displayString: String {
+        let amountString = String(AttributedString("^[\(amount) time](inflect: true)").characters)
+
+        switch recharge {
+        case nil: return amountString
+        case .rest(short: false, long: false): return amountString
+        case .rest(short: false, long: true):
+            if amount == 1 {
+                return "Recharges after a Long Rest"
+            }
+            return "\(amountString) per Long Rest"
+        case .rest(short: true, long: false):
+            if amount == 1 {
+                return "Recharges after a Short Rest"
+            }
+            return "\(amountString) per Short Rest"
+        case .rest(short: true, long: true):
+            if amount == 1 {
+                return "Recharges after a Short or Long Rest"
+            }
+            return "\(amountString) per Short or Long Rest"
+        case .day:
+            return "\(amount)/Day"
+        case .turnStart(let s):
+            let numbers = s.sorted().map { "\($0)" }.joined(separator: "-")
+            if amount == 1 {
+                return "Recharge \(numbers)"
+            } else {
+                return "\(amountString), Recharge \(numbers)"
+            }
+        }
+    }
+}
