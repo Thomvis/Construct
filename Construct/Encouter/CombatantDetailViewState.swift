@@ -163,34 +163,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 let original = (currentDefinition as? CompendiumCombatantDefinition).map { CompendiumItemReference(itemTitle: $0.name, itemKey: $0.item.key) }
                 let def = AdHocCombatantDefinition(id: UUID().tagged(), stats: currentDefinition.stats, player: currentDefinition.player, level: currentDefinition.level, original: original)
                 return Effect(value: .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def))))
-            case .didTapCompendiumItemReferenceTextAnnotation(let annotation, let appNavigation):
-                switch env.compendium.resolve(annotation: annotation) {
-                case .internal(let ref):
-                    if let entry = try? env.compendium.get(ref.itemKey) {
-                        let detailState = CompendiumEntryDetailViewState(entry: entry)
-                        switch appNavigation {
-                        case .column:
-                            state.itemRequest = ReferenceViewItemRequest(
-                                id: UUID().tagged(),
-                                state: ReferenceItemViewState(content: .compendiumItem(detailState)),
-                                oneOff: true
-                            )
-                        case .tab: return Effect(value: .setNextScreen(.compendiumItemDetailView(detailState)))
-                        }
-                    }
-                case .external(let url):
-                    let externalState = SafariViewState(url: url)
-                    switch appNavigation {
-                    case .column:
-                        state.itemRequest = ReferenceViewItemRequest(
-                            id: UUID().tagged(),
-                            state: ReferenceItemViewState(content: .safari(externalState)),
-                            oneOff: true
-                        )
-                    case .tab: return Effect(value: .setNextScreen(.safariView(externalState)))
-                    }
-                case .notFound: break
-                }
+            case .didTapCompendiumItemReferenceTextAnnotation: break // handled by CompendiumItemReferenceTextAnnotation.handleTapReducer
             case .setNextScreen(let s):
                 state.presentedScreens[.nextInStack] = s
             case .setDetailScreen(let s):
@@ -216,6 +189,12 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             }
             return .none
         },
+        CompendiumItemReferenceTextAnnotation.handleTapReducer(
+            didTapAction: /CombatantDetailViewAction.didTapCompendiumItemReferenceTextAnnotation,
+            requestItem: \.itemRequest,
+            internalAction: /CombatantDetailViewAction.setNextScreen..Self.NextScreen.compendiumItemDetailView,
+            externalAction: /CombatantDetailViewAction.setNextScreen..Self.NextScreen.safariView
+        ),
         CombatantTagsViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagsView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagsView),
         CombatantResourcesViewState.reducer.optional().pullback(state: \.presentedNextCombatantResourcesView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantResourcesView),
         CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.creatureEditView),
@@ -290,4 +269,46 @@ enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
 
 extension CombatantDetailViewState {
     static let nullInstance = CombatantDetailViewState(combatant: Combatant.nullInstance)
+}
+
+extension CompendiumItemReferenceTextAnnotation {
+    static func handleTapReducer<State, Action>(
+        didTapAction: CasePath<Action, (CompendiumItemReferenceTextAnnotation, AppNavigation)>,
+        requestItem: WritableKeyPath<State, ReferenceViewItemRequest?>,
+        internalAction: CasePath<Action, CompendiumEntryDetailViewState>,
+        externalAction: CasePath<Action, SafariViewState>
+    ) -> Reducer<State, Action, Environment> {
+        Reducer { state, action, env in
+            if let (annotation, appNavigation) = didTapAction.extract(from: action) {
+                switch env.compendium.resolve(annotation: annotation) {
+                case .internal(let ref):
+                    if let entry = try? env.compendium.get(ref.itemKey) {
+                        let detailState = CompendiumEntryDetailViewState(entry: entry)
+                        switch appNavigation {
+                        case .column:
+                            state[keyPath: requestItem] = ReferenceViewItemRequest(
+                                id: UUID().tagged(),
+                                state: ReferenceItemViewState(content: .compendiumItem(detailState)),
+                                oneOff: true
+                            )
+                        case .tab: return Effect(value: internalAction.embed(detailState))
+                        }
+                    }
+                case .external(let url):
+                    let externalState = SafariViewState(url: url)
+                    switch appNavigation {
+                    case .column:
+                        state[keyPath: requestItem] = ReferenceViewItemRequest(
+                            id: UUID().tagged(),
+                            state: ReferenceItemViewState(content: .safari(externalState)),
+                            oneOff: true
+                        )
+                    case .tab: return Effect(value: externalAction.embed(externalState))
+                    }
+                case .notFound: break
+                }
+            }
+            return .none
+        }
+    }
 }

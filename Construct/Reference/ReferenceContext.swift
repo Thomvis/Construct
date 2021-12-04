@@ -115,12 +115,21 @@ extension ReferenceItemViewState {
     // TODO: ensure all content types have their requests properly handled
     var referenceItemRequests: [ReferenceViewItemRequest] {
         switch content {
-        case .home: return []
+        case .home(let s):
+            return s.presentedNextCompendium?.referenceItemRequests ?? []
         case .combatantDetail(let s):
-            return s.detailState.itemRequest.map { [$0] } ?? []
+            return s.detailState.itemRequest.nonNilArray
         case .addCombatant: return []
-        case .compendiumItem: return []
+        case .compendiumItem(let s):
+            return s.itemRequest.nonNilArray
         case .safari: return []
         }
+    }
+}
+
+extension CompendiumIndexState {
+    var referenceItemRequests: [ReferenceViewItemRequest] {
+        return presentedNextItemDetail?.itemRequest.nonNilArray ??
+            presentedNextCompendiumIndex?.referenceItemRequests ?? []
     }
 }

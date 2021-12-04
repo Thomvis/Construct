@@ -71,6 +71,12 @@ extension Optional where Wrapped == String {
     }
 }
 
+extension Optional {
+    var nonNilArray: [Wrapped] {
+        map { [$0] } ?? []
+    }
+}
+
 extension Array where Element: Identifiable {
     public subscript(id id: Element.ID) -> Element? {
         get {

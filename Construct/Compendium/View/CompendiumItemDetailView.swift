@@ -12,13 +12,14 @@ import ComposableArchitecture
 
 struct CompendiumItemDetailView: View {
     @EnvironmentObject var env: Environment
+    @SwiftUI.Environment(\.appNavigation) var appNavigation
 
     var store: Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>
     @ObservedObject var viewStore: ViewStore<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>
 
     init(store: Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
 
     var item: CompendiumItem {
@@ -160,6 +161,8 @@ struct CompendiumItemDetailView: View {
                 }
             case .rollCheck(let e):
                 self.viewStore.send(.popover(.rollCheck(DiceCalculatorState.rollingExpression(e, rollOnAppear: true))))
+            case .compendiumItemReferenceTextAnnotation(let a):
+                self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(a, appNavigation))
             }
         }
     }

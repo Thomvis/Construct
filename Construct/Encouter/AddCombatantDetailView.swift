@@ -86,7 +86,7 @@ struct AddCombatantDetailView: View {
 
                 monster.map { monster in
                     SectionContainer(title: "Stats") {
-                        StatBlockView(stats: monster.stats)
+                        StatBlockView(stats: monster.stats).disabled(true)
                     }
                     .padding(.bottom, 80)
                 }
