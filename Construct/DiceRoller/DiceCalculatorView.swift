@@ -531,7 +531,7 @@ extension RolledDiceExpression {
         switch self {
         case .dice(let die, let values):
             return Text("(" + values.map({ "\($0.value)" }).joined(separator: ", ") + ")").foregroundColor((die.color?.UIColor).map(Color.init) ?? Color(UIColor.tertiaryLabel))
-                + Text("/\(die.sides)").foregroundColor(Color(UIColor.quaternaryLabel))
+                + Text("/d\(die.sides)").foregroundColor(Color(UIColor.quaternaryLabel))
         case .compound(let lhs, let op, let rhs):
             return lhs.text + Text(" \(op.string) ") + rhs.text
         case .number(let n):
