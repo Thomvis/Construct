@@ -47,6 +47,8 @@ struct CompendiumItemDetailView: View {
                 }
             }
             .padding(EdgeInsets(top: 12, leading: 12, bottom: 80, trailing: 12))
+            // Placing .popover inside ScrollView to work around https://github.com/stleamist/BetterSafariView/issues/23
+            .popover(popoverBinding)
         }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
@@ -70,7 +72,6 @@ struct CompendiumItemDetailView: View {
             }
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-        .popover(popoverBinding)
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
         .onAppear {
             viewStore.send(.onAppear)
