@@ -43,7 +43,7 @@ struct FloatingDiceRollerContainerView: View {
                             .padding(18)
                             .background(
                                 Circle().foregroundColor(Color(UIColor.systemBackground))
-                                    .shadow(color: Color(UIColor.label).opacity(0.33), radius: 5)
+                                    .shadow(color: Color.black.opacity(0.33), radius: 5)
                             )
                             .padding(12)
                     }
@@ -113,7 +113,7 @@ struct FloatingDiceRollerContainerView: View {
         .padding([.leading, .trailing, .bottom], Self.innerPanelPadding)
         .background(Color(UIColor.systemBackground))
         .cornerRadius(12)
-        .shadow(color: Color(UIColor.label).opacity(0.33), radius: 5)
+        .shadow(color: Color.black.opacity(0.33), radius: 5)
         .offset(dragOffset)
         .gesture(dragGesture)
     }
