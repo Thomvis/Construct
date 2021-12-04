@@ -347,12 +347,14 @@ extension EncounterDetailViewState {
 
                     state.combatantDetailReferenceItemRequest = ReferenceViewItemRequest(
                         id: state.combatantDetailReferenceItemRequest?.id ?? UUID().tagged(),
-                        state: ReferenceItemViewState(content: .combatantDetail(detailState))
+                        state: ReferenceItemViewState(content: .combatantDetail(detailState)),
+                        oneOff: false
                     )
                 case .showAddCombatantReferenceItem:
                     state.addCombatantReferenceItemRequest = ReferenceViewItemRequest(
                         id: state.addCombatantReferenceItemRequest?.id ?? UUID().tagged(),
-                        state: ReferenceItemViewState(content: .addCombatant(ReferenceItemViewState.Content.AddCombatant(addCombatantState: AddCombatantState(encounter: state.encounter))))
+                        state: ReferenceItemViewState(content: .addCombatant(ReferenceItemViewState.Content.AddCombatant(addCombatantState: AddCombatantState(encounter: state.encounter)))),
+                        oneOff: false
                     )
                 case .didDismissReferenceItem(let id):
                     if state.addCombatantReferenceItemRequest?.id == id {

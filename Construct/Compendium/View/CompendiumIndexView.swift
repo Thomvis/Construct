@@ -12,7 +12,6 @@ import ComposableArchitecture
 
 struct CompendiumIndexView: View {
     @EnvironmentObject var env: Environment
-    @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
     let store: Store<CompendiumIndexState, CompendiumIndexAction>
     @ObservedObject var localViewStore: ViewStore<LocalState, CompendiumIndexAction>
@@ -75,13 +74,7 @@ struct CompendiumIndexView: View {
         .navigationBarItems(trailing: Group {
             if localViewStore.state.showImportButton {
                 Button(action: {
-                    if appNavigation == .column {
-                        // workaround: if we present the import screen as the next screen on iPad,
-                        // the view will dismiss as soon as the document picker has opened.
-                        localViewStore.send(.setDetailScreen(.compendiumImport(CompendiumImportViewState())))
-                    } else {
-                        localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
-                    }
+                    localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
                 }) {
                     Text("Import").bold()
                 }
@@ -205,7 +198,6 @@ extension CompendiumIndexView {
 
 fileprivate struct CompendiumTocView: View {
     @EnvironmentObject var env: Environment
-    @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
     let parentStore: Store<CompendiumIndexState, CompendiumIndexAction>
 
@@ -236,11 +228,7 @@ fileprivate struct CompendiumTocView: View {
                 Section(header: Text("Suggested")) {
                     ForEach(viewStore.state.toc.suggested, id: \.key) { entry in
                         NavigationRowButton(action: {
-                            if appNavigation == .tab {
-                                viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
-                            } else {
-                                viewStore.send(.setDetailScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
-                            }
+                            viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
                         }) {
                             viewProvider.row(parentStore, entry)
                         }
@@ -262,7 +250,7 @@ fileprivate struct CompendiumTocView: View {
             store: parentStore,
             state: /CompendiumIndexState.NextScreen.itemDetail,
             action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
-            navDest: appNavigation == .tab ? .nextInStack : .detail,
+            navDest: .nextInStack,
             destination: { viewProvider.detail($0) }
         )
     }
@@ -287,7 +275,6 @@ fileprivate struct CompendiumTocView: View {
 }
 
 fileprivate struct CompendiumItemList: View {
-    @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
     var store: Store<CompendiumIndexState, CompendiumIndexAction>
     @ObservedObject var viewStore: ViewStore<LocalState, CompendiumIndexAction>
@@ -310,11 +297,7 @@ fileprivate struct CompendiumItemList: View {
 
                 ForEach(viewStore.state.entries, id: \.key) { entry in
                     NavigationRowButton(action: {
-                        if appNavigation == .tab {
-                            self.viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
-                        } else {
-                            self.viewStore.send(.setDetailScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
-                        }
+                        self.viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
                     }) {
                         self.viewProvider.row(self.store, entry)
                     }
@@ -333,7 +316,7 @@ fileprivate struct CompendiumItemList: View {
                 store: store,
                 state: /CompendiumIndexState.NextScreen.itemDetail,
                 action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
-                navDest: appNavigation == .tab ? .nextInStack : .detail,
+                navDest: .nextInStack,
                 destination: { viewProvider.detail($0) }
             )
             .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _ in

@@ -17,6 +17,7 @@ struct ReferenceItemView: View {
     let store: Store<ReferenceItemViewState, ReferenceItemViewAction>
 
     var body: some View {
+        // TODO: not all content should be presented in a NavigationView
         WithViewStore(store, removeDuplicates: { $0.content.typeHash == $1.content.typeHash }) { viewStore in
             NavigationView {
                 ZStack {
@@ -25,11 +26,16 @@ struct ReferenceItemView: View {
                     IfLetStore(store.scope(state: { $0.content.combatantDetailState }, action: { .contentCombatantDetail($0) }), then: CombatantDetailView.init)
 
                     IfLetStore(store.scope(state: { $0.content.addCombatantState }, action: { .contentAddCombatant($0) }), then: AddCombatantReferenceItemView.init)
+
+                    IfLetStore(store.scope(state: { $0.content.compendiumItemState }, action: { .contentCompendiumItem($0) }), then: CompendiumItemDetailView.init)
+
+                    IfLetStore(store.scope(state: { $0.content.safariState}, action: { _ in .contentSafari })) { (store: Store<SafariViewState, Void>) in
+                        SafariView(store: store).navigationBarHidden(true)
+                    }
                 }
                 .navigationBarTitleDisplayMode(.inline)
             }
             .navigationViewStyle(StackNavigationViewStyle())
-            .environment(\.appNavigation, .tab)
         }
     }
 

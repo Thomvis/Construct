@@ -14,7 +14,8 @@ import Tagged
 import BetterSafariView
 
 struct CombatantDetailContainerView: View {
-    @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+    @SwiftUI.Environment(\.presentationMode) var presentationMode
+
     @EnvironmentObject var env: Environment
 
     let store: Store<CombatantDetailViewState, CombatantDetailViewAction>
@@ -37,6 +38,7 @@ struct CombatantDetailContainerView: View {
 
 struct CombatantDetailView: View {
     @EnvironmentObject var env: Environment
+    @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
     var store: Store<CombatantDetailViewState, CombatantDetailViewAction>
     @ObservedObject var viewStore: ViewStore<CombatantDetailViewState, CombatantDetailViewAction>
@@ -231,7 +233,7 @@ struct CombatantDetailView: View {
                 }
                 .padding(12)
                 .padding(.bottom, 50)
-                // Placing this inside the scrollview to work around https://github.com/stleamist/BetterSafariView/issues/23
+                // Placing this (and .popover) inside the scrollview to work around https://github.com/stleamist/BetterSafariView/issues/23
                 .safariView(
                     item: viewStore.binding(get: { $0.presentedNextSafariView }, send: { _ in .setNextScreen(nil) }),
                     onDismiss: { viewStore.send(.setNextScreen(nil)) },
@@ -241,10 +243,10 @@ struct CombatantDetailView: View {
                         )
                     }
                 )
+                .popover(self.popover)
             }
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-        .popover(self.popover)
         // START: work-around for https://forums.swift.org/t/14-5-beta3-navigationlink-unexpected-pop/45279/27
         .background(VStack {
             NavigationLink(destination: EmptyView()) {
@@ -284,7 +286,7 @@ struct CombatantDetailView: View {
                 case .rollCheck(let e):
                     self.viewStore.send(.popover(.rollCheck(DiceCalculatorState.rollingExpression(e, rollOnAppear: true))))
                 case .compendiumItemReferenceTextAnnotation(let annotation):
-                    self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(annotation))
+                    self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(annotation, appNavigation))
                 }
             })
         }

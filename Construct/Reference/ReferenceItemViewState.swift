@@ -14,10 +14,12 @@ struct ReferenceItemViewState: Equatable {
 
     var content: Content
 
-    enum Content: Equatable {
+    indirect enum Content: Equatable {
         case home(Home)
         case combatantDetail(CombatantDetail)
         case addCombatant(AddCombatant)
+        case compendiumItem(CompendiumEntryDetailViewState)
+        case safari(SafariViewState)
 
         var homeState: Content.Home? {
             get {
@@ -57,12 +59,39 @@ struct ReferenceItemViewState: Equatable {
             }
         }
 
+        var compendiumItemState: CompendiumEntryDetailViewState? {
+            get {
+                if case .compendiumItem(let s) = self {
+                    return s
+                }
+                return nil
+            }
+            set {
+                guard case .compendiumItem = self, let newValue = newValue else { return }
+                self = .compendiumItem(newValue)
+            }
+        }
+
+        var safariState: SafariViewState? {
+            get {
+                if case .safari(let s) = self {
+                    return s
+                }
+                return nil
+            }
+            set {
+                guard case .safari = self, let newValue = newValue else { return }
+                self = .safari(newValue)
+            }
+        }
+
         var context: ReferenceContext {
             get {
                 switch self {
                 case .home(let state): return state.context
                 case .combatantDetail(let state): return state.context
                 case .addCombatant(let state): return state.context
+                case .compendiumItem, .safari: return .empty
                 }
             }
             set {
@@ -76,6 +105,7 @@ struct ReferenceItemViewState: Equatable {
                 case .addCombatant(var state):
                     state.context = newValue
                     self = .addCombatant(state)
+                case .compendiumItem, .safari: break
                 }
             }
         }
@@ -86,6 +116,8 @@ struct ReferenceItemViewState: Equatable {
                 case .home(let h): return h
                 case .combatantDetail(let cd): return cd.detailState
                 case .addCombatant(let ad): return ad.addCombatantState
+                case .compendiumItem(let d): return d
+                case .safari(let s): return s
                 }
             }
             set {
@@ -113,6 +145,14 @@ struct ReferenceItemViewState: Equatable {
                 return "\(addCombatant.addCombatantState.compendiumState.title) - \(addCombatant.addCombatantState.encounter.name)"
             case .combatantDetail(let combatantDetail):
                 return "Combatant details - \(combatantDetail.encounter.name)"
+            case .compendiumItem(let d):
+                return "\(d.navigationTitle) - Compendium"
+            case .safari(let s):
+                let components = [s.url.path.nonEmptyString, s.url.host]
+                if let cs = components.compactMap({ $0 }).nonEmptyArray {
+                    return cs.joined(separator: " - ")
+                }
+                return s.url.absoluteString
             }
         }
 
@@ -219,6 +259,8 @@ enum ReferenceItemViewAction: Equatable {
     case contentHome(Home)
     case contentCombatantDetail(CombatantDetail)
     case contentAddCombatant(AddCombatant)
+    case contentCompendiumItem(CompendiumItemDetailViewAction)
+    case contentSafari
 
     /// Wraps actions that need to be executed inside the EncounterReferenceContext
     /// (aka the EncounterDetailView)
@@ -275,6 +317,7 @@ extension ReferenceItemViewState {
         ReferenceItemViewState.Content.Home.reducer.optional().pullback(state: \.content.homeState, action: /ReferenceItemViewAction.contentHome),
         ReferenceItemViewState.Content.CombatantDetail.reducer.optional().pullback(state: \.content.combatantDetailState, action: /ReferenceItemViewAction.contentCombatantDetail),
         ReferenceItemViewState.Content.AddCombatant.reducer.optional().pullback(state: \.content.addCombatantState, action: /ReferenceItemViewAction.contentAddCombatant),
+        CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.content.compendiumItemState, action: /ReferenceItemViewAction.contentCompendiumItem),
         Reducer { state, action, env in
             switch action {
             case .onBackTapped:
@@ -290,7 +333,8 @@ extension ReferenceItemViewState {
                     return .none
                 }
                 return Effect(value: .inEncounterDetailContext(.combatantAction(combatant.id, a)))
-            case .contentCombatantDetail, .contentHome, .contentAddCombatant: break // handled above
+            case .contentCombatantDetail, .contentHome, .contentAddCombatant, .contentCompendiumItem: break // handled above
+            case .contentSafari: break // does not occur
             case .inEncounterDetailContext: break // handled by parent
             }
             return .none
@@ -374,6 +418,8 @@ extension ReferenceItemViewState.Content {
         case .home: return "home"
         case .combatantDetail: return "combatantDetail"
         case .addCombatant: return "addCombatant"
+        case .compendiumItem: return "compendiumItem"
+        case .safari: return "safari"
         }
     }
 }

@@ -104,3 +104,23 @@ extension EncounterDetailViewState {
         }
     }
 }
+
+extension ReferenceViewState {
+    var referenceItemRequests: [ReferenceViewItemRequest] {
+        items.flatMap { $0.state.referenceItemRequests }
+    }
+}
+
+extension ReferenceItemViewState {
+    // TODO: ensure all content types have their requests properly handled
+    var referenceItemRequests: [ReferenceViewItemRequest] {
+        switch content {
+        case .home: return []
+        case .combatantDetail(let s):
+            return s.detailState.itemRequest.map { [$0] } ?? []
+        case .addCombatant: return []
+        case .compendiumItem: return []
+        case .safari: return []
+        }
+    }
+}
