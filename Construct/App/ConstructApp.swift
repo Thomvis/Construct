@@ -39,8 +39,6 @@ struct ConstructApp: App {
             environment: env
         )
         self.viewStore = ViewStore(store)
-
-        try! DomainParsersManager(db: env.database).run()
     }
 
     @SceneBuilder
@@ -66,7 +64,6 @@ struct ConstructApp: App {
 
 struct ConstructView: View {
     @SwiftUI.Environment(\.horizontalSizeClass) var horizontalSizeClass
-//    @State var toggleNavigation = false
 
     @EnvironmentObject var env: Environment
     let store: Store<AppState, AppState.Action>
@@ -101,15 +98,22 @@ struct ConstructView: View {
                     viewStore.send(.onHorizontalSizeClassChange(sizeClass))
                 }
             }
-//            .overlay(ZStack {
-//                Button(action: {
-//                    self.toggleNavigation.toggle()
-//                    let oppositeSizeClass: UserInterfaceSizeClass = horizontalSizeClass == .regular ? .compact : .regular
-//                    viewStore.send(.onHorizontalSizeClassChange(toggleNavigation ? oppositeSizeClass : horizontalSizeClass!))
-//                }) {
-//                    Text("Toggle navigation")
-//                }
-//            })
+            .overlay {
+                if viewStore.state.showBlockingLaunchTask {
+                    ZStack {
+                        Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 400).opacity(0.66).blur(radius: 10)
+
+                        VStack(spacing: 12) {
+                            ProgressView()
+
+                            Text("Optimizing content...")
+                                .font(.title)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(UIColor.systemBackground))
+                }
+            }
         }
     }
 }

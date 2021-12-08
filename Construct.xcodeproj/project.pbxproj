@@ -55,6 +55,7 @@
 		E9323A3B23205C4700F0D0C6 /* FileDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3A23205C4700F0D0C6 /* FileDataSource.swift */; };
 		E9323A3D23205E7700F0D0C6 /* FileDataSourceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3C23205E7700F0D0C6 /* FileDataSourceTest.swift */; };
 		E9323A3F23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */; };
+		E935641627614695008E6698 /* LoadingTaskTiming.swift in Sources */ = {isa = PBXBuildFile; fileRef = E935641527614695008E6698 /* LoadingTaskTiming.swift */; };
 		E93777EA233C05D500C9F41A /* ddb_riverine.json in Resources */ = {isa = PBXBuildFile; fileRef = E93777E9233C05D500C9F41A /* ddb_riverine.json */; };
 		E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93777EC233CF81F00C9F41A /* O5eModels.swift */; };
 		E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */ = {isa = PBXBuildFile; productRef = E93FA1C924EC5B7F007441BF /* Parma */; };
@@ -151,7 +152,7 @@
 		E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861423BDF398003B2DA2 /* NumberEntryView.swift */; };
 		E978861A23BE3779003B2DA2 /* With.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861923BE3779003B2DA2 /* With.swift */; };
 		E978862023C0B04D003B2DA2 /* CompendiumItemGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */; };
-		E97983D82741B9A700800D38 /* DomainParsersManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983D72741B9A700800D38 /* DomainParsersManager.swift */; };
+		E97983D82741B9A700800D38 /* ParseableKeyValueRecordManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983D72741B9A700800D38 /* ParseableKeyValueRecordManager.swift */; };
 		E97983DA2742E69E00800D38 /* CompendiumParseableVisitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */; };
 		E97983DC2742EB9500800D38 /* ModelsParseableVisitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983DB2742EB9500800D38 /* ModelsParseableVisitor.swift */; };
 		E97983DE2742F23300800D38 /* KeyValueStoreEntityTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */; };
@@ -306,6 +307,7 @@
 		E9323A3C23205E7700F0D0C6 /* FileDataSourceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDataSourceTest.swift; sourceTree = "<group>"; };
 		E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Open5eMonsterDataSourceReaderTest.swift; sourceTree = "<group>"; };
 		E9323A402320DE1400F0D0C6 /* CompendiumItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItem.swift; sourceTree = "<group>"; };
+		E935641527614695008E6698 /* LoadingTaskTiming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTaskTiming.swift; sourceTree = "<group>"; };
 		E93777E9233C05D500C9F41A /* ddb_riverine.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ddb_riverine.json; sourceTree = "<group>"; };
 		E93777EC233CF81F00C9F41A /* O5eModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = O5eModels.swift; sourceTree = "<group>"; };
 		E93777EE233E41FB00C9F41A /* CompendiumCombatant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumCombatant.swift; sourceTree = "<group>"; };
@@ -360,7 +362,7 @@
 		E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroup.swift; sourceTree = "<group>"; };
 		E978862123C20B90003B2DA2 /* CompendiumItemGroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupDetailView.swift; sourceTree = "<group>"; };
 		E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupEditView.swift; sourceTree = "<group>"; };
-		E97983D72741B9A700800D38 /* DomainParsersManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainParsersManager.swift; sourceTree = "<group>"; };
+		E97983D72741B9A700800D38 /* ParseableKeyValueRecordManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseableKeyValueRecordManager.swift; sourceTree = "<group>"; };
 		E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumParseableVisitor.swift; sourceTree = "<group>"; };
 		E97983DB2742EB9500800D38 /* ModelsParseableVisitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsParseableVisitor.swift; sourceTree = "<group>"; };
 		E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueStoreEntityTest.swift; sourceTree = "<group>"; };
@@ -536,7 +538,7 @@
 				E9323A30231FF14900F0D0C6 /* KeyValueStore.swift */,
 				E97A43A92332C31A00A8B032 /* Entity.swift */,
 				E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */,
-				E97983D72741B9A700800D38 /* DomainParsersManager.swift */,
+				E97983D72741B9A700800D38 /* ParseableKeyValueRecordManager.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -771,6 +773,7 @@
 				E972FEC32626ADE700C21B58 /* DecodableDefault.swift */,
 				E972FEC72626DB4000C21B58 /* Zip.swift */,
 				E9441570273B211300F02C2D /* Located.swift */,
+				E935641527614695008E6698 /* LoadingTaskTiming.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -1264,7 +1267,7 @@
 				E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */,
 				E97AEE642396F6A100569E79 /* ClearableTextField.swift in Sources */,
 				E972BA942477F8B200F313D7 /* EquatablePropertyWrappers.swift in Sources */,
-				E97983D82741B9A700800D38 /* DomainParsersManager.swift in Sources */,
+				E97983D82741B9A700800D38 /* ParseableKeyValueRecordManager.swift in Sources */,
 				E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */,
 				E91E4718231E8CD0005D1E6F /* CompendiumDataSource.swift in Sources */,
 				E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */,
@@ -1284,6 +1287,7 @@
 				E942E02024800C5200170FAC /* CombatantTagEditViewState.swift in Sources */,
 				E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */,
 				E972BAA02478574500F313D7 /* DiceCalculatorView.swift in Sources */,
+				E935641627614695008E6698 /* LoadingTaskTiming.swift in Sources */,
 				E9540FFA23181524008A25EC /* PopoverHost.swift in Sources */,
 				E90B961525B312BB00BD760B /* Memoize.swift in Sources */,
 				E946B026247D9EE3008A407C /* RunningEncounter.swift in Sources */,

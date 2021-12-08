@@ -14,8 +14,8 @@ final class KeyValueStore {
 
     private let queue: DatabaseQueue
 
-    let encoder = JSONEncoder()
-    let decoder = JSONDecoder()
+    static let encoder = JSONEncoder()
+    static let decoder = JSONDecoder()
 
     init(_ queue: DatabaseQueue) {
         self.queue = queue
@@ -23,7 +23,7 @@ final class KeyValueStore {
 
     func get<V>(_ key: String) throws -> V? where V: Codable {
         return try getRaw(key).map {
-            return try decoder.decode(V.self, from: $0.value)
+            return try Self.decoder.decode(V.self, from: $0.value)
         }
     }
 
@@ -36,7 +36,7 @@ final class KeyValueStore {
 
         let previousLastInsertedRowId = db.lastInsertedRowID
 
-        let encodedValue = try encoder.encode(value)
+        let encodedValue = try Self.encoder.encode(value)
         let record = Record(key: key, modifiedAt: Date(), value: encodedValue)
         try record.save(db)
 
@@ -70,7 +70,7 @@ final class KeyValueStore {
 
     func fetchAll<V>(_ keyPrefixes: [String]? = []) throws -> [V] where V: Codable {
         return try fetchAllRaw(keyPrefixes).map {
-            return try decoder.decode(V.self, from: $0.value)
+            return try Self.decoder.decode(V.self, from: $0.value)
         }
     }
 
@@ -110,7 +110,7 @@ final class KeyValueStore {
 
             return try Record.fetchAll(db, sql: sql, arguments: StatementArguments(arguments) ?? StatementArguments())
         }
-        return try records.map { try decoder.decode(V.self, from: $0.value) }
+        return try records.map { try Self.decoder.decode(V.self, from: $0.value) }
     }
 
     @discardableResult

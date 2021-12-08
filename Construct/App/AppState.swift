@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 import ComposableArchitecture
 
 struct AppState: Equatable {
@@ -17,7 +18,9 @@ struct AppState: Equatable {
     var preferences: Preferences
 
     var showWelcomeSheet = false
+    var showBlockingLaunchTask = false
 
+    var appDidLaunch = false // becomes true once the scene has become active for the first time
     var sceneIsActive = false
 
     var topNavigationItems: [Any] {
@@ -67,6 +70,8 @@ struct AppState: Equatable {
         case welcomeSheetSampleEncounterTapped
         case welcomeSheetDismissTapped
         case onAppear
+
+        case showBlockingLaunchTask(Bool)
 
         case sceneDidBecomeActive
         case sceneWillResignActive
@@ -118,8 +123,31 @@ struct AppState: Equatable {
                             env.requestAppStoreReview()
                         }
                     }
+                case .showBlockingLaunchTask(let b):
+                    state.showBlockingLaunchTask = b
                 case .sceneDidBecomeActive:
                     state.sceneIsActive = true
+
+                    if (!state.appDidLaunch) {
+                        defer {
+                            state.appDidLaunch = true
+                        }
+
+                        if env.database.parseableManager.shouldRun {
+                            return Effect<Void, Never>.future { callback in
+                                DispatchQueue.global().async {
+                                    try? env.database.parseableManager.run()
+                                    callback(.success(()))
+                                }
+                            }.loadingTaskStates(graceInterval: .milliseconds(0), minLoadInterval: .seconds(2)).compactMap {
+                                switch $0 {
+                                case .finishedImmediately: return nil
+                                case .showProgressView: return .showBlockingLaunchTask(true)
+                                case .finishedAfterMinimumLoadDuration: return .showBlockingLaunchTask(false)
+                                }
+                            }.eraseToEffect()
+                        }
+                    }
                 case .sceneWillResignActive:
                     state.sceneIsActive = false
                 }

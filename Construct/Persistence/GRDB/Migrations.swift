@@ -188,7 +188,7 @@ extension Database {
                 guard let lastKeyComponent = r.key.components(separatedBy: CompendiumItemKey.separator).last else { continue }
                 guard UUID(uuidString: lastKeyComponent) == nil else { continue }
 
-                let entry = try self.keyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+                let entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
                 let newRecord = KeyValueStore.Record(key: entry.key, modifiedAt: r.modifiedAt, value: r.value)
 
                 if try !newRecord.exists(db) {
@@ -204,7 +204,7 @@ extension Database {
             let groupRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumItemKey.prefix(for: .group))%")).fetchAll(db)
 
             for r in groupRecords {
-                var entry = try self.keyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+                var entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
                 guard let group = entry.item as? CompendiumItemGroup else { continue }
 
                 let newGroup = CompendiumItemGroup(
@@ -220,7 +220,7 @@ extension Database {
 
                 if newGroup != group {
                     entry.item = newGroup
-                    let encodedEntry = try self.keyValueStore.encoder.encode(entry)
+                    let encodedEntry = try KeyValueStore.encoder.encode(entry)
                     let newRecord = KeyValueStore.Record(key: entry.key, modifiedAt: r.modifiedAt, value: encodedEntry)
                     try newRecord.save(db)
                 }
@@ -252,7 +252,7 @@ extension Database {
 
                 let encounter: Encounter
                 do {
-                    encounter = try self.keyValueStore.decoder.decode(Encounter.self, from: r.value)
+                    encounter = try KeyValueStore.decoder.decode(Encounter.self, from: r.value)
                 } catch {
                     print("Warning: Migration \"v10-consistentCharacterKeys\" failed for Encounter with key \(r.key), last modified: \(r.modifiedAt). Underlying decoding error: \(error)")
                     continue
@@ -263,7 +263,7 @@ extension Database {
                 let newEncounter = updateEncounter(encounter)
 
                 if newEncounter != encounter {
-                    let encodedEncounter = try self.keyValueStore.encoder.encode(newEncounter)
+                    let encodedEncounter = try KeyValueStore.encoder.encode(newEncounter)
                     let newRecord = KeyValueStore.Record(key: newEncounter.key, modifiedAt: r.modifiedAt, value: encodedEncounter)
                     try newRecord.save(db)
                 }
@@ -275,7 +275,7 @@ extension Database {
                 for r in reRecords {
                     let re: RunningEncounter
                     do {
-                        re = try self.keyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
+                        re = try KeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
                     } catch {
                         print("Warning: Migration \"v10-consistentCharacterKeys\" failed for RunningEncounter with key \(r.key), last modified: \(r.modifiedAt). Underlying decoding error: \(error)")
                         continue
@@ -286,7 +286,7 @@ extension Database {
                     newRe.current = updateEncounter(newRe.current)
 
                     if newRe != re {
-                        let encodedRe = try self.keyValueStore.encoder.encode(newRe)
+                        let encodedRe = try KeyValueStore.encoder.encode(newRe)
                         let newRecord = KeyValueStore.Record(key: newRe.key, modifiedAt: r.modifiedAt, value: encodedRe)
                         try newRecord.save(db)
                     }
@@ -304,7 +304,7 @@ extension Database {
                 // records with old-style RunningEncounter keys
 
                 do {
-                    let re = try self.keyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
+                    let re = try KeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
 
                     let newRecord = KeyValueStore.Record(key: re.key, modifiedAt: r.modifiedAt, value: r.value)
                     try newRecord.save(db)

@@ -1,5 +1,5 @@
 //
-//  DomainParsersManager.swift
+//  ParseableKeyValueRecordManager.swift
 //  Construct
 //
 //  Created by Thomas Visser on 14/11/2021.
@@ -7,21 +7,24 @@
 //
 
 import Foundation
+import GRDB
 
-class DomainParsersManager {
-    let db: Database
+class ParseableKeyValueRecordManager {
+    let queue: DatabaseQueue
 
-    init(db: Database) {
-        self.db = db
+    init(_ queue: DatabaseQueue) {
+        self.queue = queue
+    }
+
+    var shouldRun: Bool {
+        false // todo
     }
 
     func run() throws {
-        let decoder = db.keyValueStore.decoder
-        let encoder = db.keyValueStore.encoder
+        let decoder = KeyValueStore.decoder
+        let encoder = KeyValueStore.encoder
 
-        try db.queue.write { db in
-            let metadata = try DomainParsersMetadata.get(db, decoder, key: DomainParsersMetadata.key)
-
+        try queue.write { db in
             let cursor = try KeyValueStore.Record.fetchCursor(db)
             while var record = try cursor.next() {
                 do {
@@ -37,17 +40,5 @@ class DomainParsersManager {
                 }
             }
         }
-    }
-
-}
-
-struct DomainParsersMetadata: KeyValueStoreEntity {
-    static let keyPrefix: KeyPrefix = .domainParsersMetadata
-    static let key = keyPrefix.rawValue
-
-    let lastRunVersions: [String:String]
-
-    var key: String {
-        Self.key
     }
 }

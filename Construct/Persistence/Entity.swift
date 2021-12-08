@@ -28,7 +28,6 @@ enum KeyValueStoreEntityKeyPrefix: String, CaseIterable {
     case compendiumEntry = "compendium"
     case campaignNode = "cn_"
     case preferences = "Construct::Preferences"
-    case domainParsersMetadata = "Construct::DomainParsersMetadata"
 
     case any
 
@@ -39,7 +38,6 @@ enum KeyValueStoreEntityKeyPrefix: String, CaseIterable {
         case .compendiumEntry: return CompendiumEntry.self
         case .campaignNode: return CampaignNode.self
         case .preferences: return Preferences.self
-        case .domainParsersMetadata: return DomainParsersMetadata.self
         case .any: return AnyKeyValueStoreEntity.self
         }
     }
@@ -62,7 +60,6 @@ extension KeyValueStore.Record {
         case .compendiumEntry: return try decoder.decode(CompendiumEntry.self, from: value)
         case .campaignNode: return try decoder.decode(CampaignNode.self, from: value)
         case .preferences: return try decoder.decode(Preferences.self, from: value)
-        case .domainParsersMetadata: return try decoder.decode(DomainParsersMetadata.self, from: value)
         case .any: return try decoder.decode(AnyKeyValueStoreEntity.self, from: value)
         }
     }
