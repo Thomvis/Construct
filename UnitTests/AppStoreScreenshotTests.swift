@@ -12,6 +12,7 @@ import Foundation
 import SnapshotTesting
 import SwiftUI
 import XCTest
+import WebKit
 
 /// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests
 class AppStoreScreenshotTests: XCTestCase {
@@ -25,7 +26,10 @@ class AppStoreScreenshotTests: XCTestCase {
         ("iPadPro129_3rd_gen", .iPadPro12_9)
     ]
 
-    var environment: Construct.Environment!
+    static var environment: Construct.Environment!
+    var environment: Construct.Environment {
+        Self.environment
+    }
 
     override class func setUp() {
         super.setUp()
@@ -36,11 +40,8 @@ class AppStoreScreenshotTests: XCTestCase {
         UITabBar.appearance().unselectedItemTintColor = UIColor.systemGray2
         // Workaround for transparent tab bar
         UITabBar.appearance().backgroundColor = UIColor.systemBackground
-    }
 
-    override func setUp() {
-        super.setUp()
-
+        // Initializing the environment once saves a lot of time (importing & parsing default content is slow)
         environment = try! apply(Environment.live()) {
             $0.database = try .init(path: nil)
         }
@@ -107,7 +108,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     matching: FakeDeviceScreenView(imageConfig: device, content: view)
                         .environment(\.colorScheme, colorScheme)
                         .environmentObject(environment),
-                    as: .image(precision: 0.99, layout: .device(config: device)),
+                    as: .imageAfterDelay(precision: 0.99, layout: .device(config: device)),
                     named: name,
                     file: file,
                     testName: testName,
@@ -930,4 +931,344 @@ extension ViewImageConfig {
         base.safeArea = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
         return base
       }
+}
+
+// Everything below this point is copied and adapted from https://github.com/pointfreeco/swift-snapshot-testing
+// to introduce a small delay before snapshotting. This fixes blank NavigationViews.
+
+extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
+    static func imageAfterDelay(
+        drawHierarchyInKeyWindow: Bool = false,
+        precision: Float = 1,
+        layout: SwiftUISnapshotLayout = .sizeThatFits,
+        traits: UITraitCollection = .init()
+    )
+    -> Snapshotting {
+        let config: ViewImageConfig
+
+        switch layout {
+#if os(iOS) || os(tvOS)
+        case let .device(config: deviceConfig):
+            config = deviceConfig
+#endif
+        case .sizeThatFits:
+            config = .init(safeArea: .zero, size: nil, traits: traits)
+        case let .fixed(width: width, height: height):
+            let size = CGSize(width: width, height: height)
+            config = .init(safeArea: .zero, size: size, traits: traits)
+        }
+
+        return SimplySnapshotting.image(precision: precision).asyncPullback { view in
+            var config = config
+
+            let controller: UIViewController
+
+            if config.size != nil {
+                controller = UIHostingController.init(
+                    rootView: view
+                )
+            } else {
+                let hostingController = UIHostingController.init(rootView: view)
+
+                let maxSize = CGSize(width: 0.0, height: 0.0)
+                config.size = hostingController.sizeThatFits(in: maxSize)
+
+                controller = hostingController
+            }
+
+            return snapshotView(
+                config: config,
+                drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+                traits: traits,
+                view: controller.view,
+                viewController: controller
+            )
+        }
+    }
+}
+
+private let offscreen: CGFloat = 10_000
+
+func snapshotView(
+    config: ViewImageConfig,
+    drawHierarchyInKeyWindow: Bool,
+    traits: UITraitCollection,
+    view: UIView,
+    viewController: UIViewController
+) -> SnapshotTesting.Async<UIImage> {
+    let initialFrame = view.frame
+    let dispose = prepareView(
+        config: config,
+        drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+        traits: traits,
+        view: view,
+        viewController: viewController
+    )
+    // NB: Avoid safe area influence.
+    if config.safeArea == .zero { view.frame.origin = .init(x: offscreen, y: offscreen) }
+
+    return (view.snapshot ?? Async { callback in
+        DispatchQueue.main.async {
+            addImagesForRenderedViews(view).sequence().run { views in
+                callback(
+                    renderer(bounds: view.bounds, for: traits).image { ctx in
+                        if drawHierarchyInKeyWindow {
+                            view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
+                        } else {
+                            view.layer.render(in: ctx.cgContext)
+                        }
+                    }
+                )
+
+                views.forEach { $0.removeFromSuperview() }
+                view.frame = initialFrame
+            }
+        }
+    }).map { dispose(); return $0 }
+}
+
+func prepareView(
+    config: ViewImageConfig,
+    drawHierarchyInKeyWindow: Bool,
+    traits: UITraitCollection,
+    view: UIView,
+    viewController: UIViewController
+) -> () -> Void {
+    let size = config.size ?? viewController.view.frame.size
+    view.frame.size = size
+    if view != viewController.view {
+        viewController.view.bounds = view.bounds
+        viewController.view.addSubview(view)
+    }
+    let traits = UITraitCollection(traitsFrom: [config.traits, traits])
+    let window: UIWindow
+    if drawHierarchyInKeyWindow {
+        fatalError("'drawHierarchyInKeyWindow' not supported")
+    } else {
+        window = Window(
+            config: .init(safeArea: config.safeArea, size: config.size ?? size, traits: traits),
+            viewController: viewController
+        )
+    }
+    let dispose = add(traits: traits, viewController: viewController, to: window)
+
+    if size.width == 0 || size.height == 0 {
+        // Try to call sizeToFit() if the view still has invalid size
+        view.sizeToFit()
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+    }
+
+    return dispose
+}
+
+func addImagesForRenderedViews(_ view: UIView) -> [SnapshotTesting.Async<UIView>] {
+    return view.snapshot
+        .map { async in
+            [
+                Async { callback in
+                    async.run { image in
+                        let imageView = UIImageView()
+                        imageView.image = image
+                        imageView.frame = view.frame
+#if os(macOS)
+                        view.superview?.addSubview(imageView, positioned: .above, relativeTo: view)
+#elseif os(iOS) || os(tvOS)
+                        view.superview?.insertSubview(imageView, aboveSubview: view)
+#endif
+                        callback(imageView)
+                    }
+                }
+            ]
+        }
+    ?? view.subviews.flatMap(addImagesForRenderedViews)
+}
+
+extension UIView {
+    var snapshot: SnapshotTesting.Async<UIImage>? {
+        func inWindow<T>(_ perform: () -> T) -> T {
+#if os(macOS)
+            let superview = self.superview
+            defer { superview?.addSubview(self) }
+            let window = ScaledWindow()
+            window.contentView = NSView()
+            window.contentView?.addSubview(self)
+            window.makeKey()
+#endif
+            return perform()
+        }
+
+#if os(iOS) || os(macOS)
+        if let wkWebView = self as? WKWebView {
+            return SnapshotTesting.Async<UIImage> { callback in
+                let delegate = NavigationDelegate()
+                let work = {
+                    if #available(iOS 11.0, macOS 10.13, *) {
+                        inWindow {
+                            guard wkWebView.frame.width != 0, wkWebView.frame.height != 0 else {
+                                callback(UIImage())
+                                return
+                            }
+                            wkWebView.takeSnapshot(with: nil) { image, _ in
+                                _ = delegate
+                                callback(image!)
+                            }
+                        }
+                    } else {
+#if os(iOS)
+                        fatalError("Taking WKWebView snapshots requires iOS 11.0 or greater")
+#elseif os(macOS)
+                        fatalError("Taking WKWebView snapshots requires macOS 10.13 or greater")
+#endif
+                    }
+                }
+
+                if wkWebView.isLoading {
+                    delegate.didFinish = work
+                    wkWebView.navigationDelegate = delegate
+                } else {
+                    work()
+                }
+            }
+        }
+#endif
+        return nil
+    }
+#if os(iOS) || os(tvOS)
+    func asImage() -> UIImage {
+        let renderer = UIGraphicsImageRenderer(bounds: bounds)
+        return renderer.image { rendererContext in
+            layer.render(in: rendererContext.cgContext)
+        }
+    }
+#endif
+}
+
+private final class NavigationDelegate: NSObject, WKNavigationDelegate {
+    var didFinish: () -> Void
+
+    init(didFinish: @escaping () -> Void = {}) {
+        self.didFinish = didFinish
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        webView.evaluateJavaScript("document.readyState") { _, _ in
+            self.didFinish()
+        }
+    }
+}
+
+private final class Window: UIWindow {
+    var config: ViewImageConfig
+
+    init(config: ViewImageConfig, viewController: UIViewController) {
+        let size = config.size ?? viewController.view.bounds.size
+        self.config = config
+        super.init(frame: .init(origin: .zero, size: size))
+
+        // NB: Safe area renders inaccurately for UI{Navigation,TabBar}Controller.
+        // Fixes welcome!
+        if viewController is UINavigationController {
+            self.frame.size.height -= self.config.safeArea.top
+            self.config.safeArea.top = 0
+        } else if let viewController = viewController as? UITabBarController {
+            self.frame.size.height -= self.config.safeArea.bottom
+            self.config.safeArea.bottom = 0
+            if viewController.selectedViewController is UINavigationController {
+                self.frame.size.height -= self.config.safeArea.top
+                self.config.safeArea.top = 0
+            }
+        }
+        self.isHidden = false
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    @available(iOS 11.0, *)
+    override var safeAreaInsets: UIEdgeInsets {
+#if os(iOS)
+        let removeTopInset = self.config.safeArea == .init(top: 20, left: 0, bottom: 0, right: 0)
+        && self.rootViewController?.prefersStatusBarHidden ?? false
+        if removeTopInset { return .zero }
+#endif
+        return self.config.safeArea
+    }
+}
+
+func renderer(bounds: CGRect, for traits: UITraitCollection) -> UIGraphicsImageRenderer {
+    let renderer: UIGraphicsImageRenderer
+    if #available(iOS 11.0, tvOS 11.0, *) {
+        renderer = UIGraphicsImageRenderer(bounds: bounds, format: .init(for: traits))
+    } else {
+        renderer = UIGraphicsImageRenderer(bounds: bounds)
+    }
+    return renderer
+}
+
+private func add(traits: UITraitCollection, viewController: UIViewController, to window: UIWindow) -> () -> Void {
+    let rootViewController: UIViewController
+    if viewController != window.rootViewController {
+        rootViewController = UIViewController()
+        rootViewController.view.backgroundColor = .clear
+        rootViewController.view.frame = window.frame
+        rootViewController.view.translatesAutoresizingMaskIntoConstraints =
+        viewController.view.translatesAutoresizingMaskIntoConstraints
+        rootViewController.preferredContentSize = rootViewController.view.frame.size
+        viewController.view.frame = rootViewController.view.frame
+        rootViewController.view.addSubview(viewController.view)
+        if viewController.view.translatesAutoresizingMaskIntoConstraints {
+            viewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        } else {
+            NSLayoutConstraint.activate([
+                viewController.view.topAnchor.constraint(equalTo: rootViewController.view.topAnchor),
+                viewController.view.bottomAnchor.constraint(equalTo: rootViewController.view.bottomAnchor),
+                viewController.view.leadingAnchor.constraint(equalTo: rootViewController.view.leadingAnchor),
+                viewController.view.trailingAnchor.constraint(equalTo: rootViewController.view.trailingAnchor),
+            ])
+        }
+        rootViewController.addChild(viewController)
+    } else {
+        rootViewController = viewController
+    }
+    rootViewController.setOverrideTraitCollection(traits, forChild: viewController)
+    viewController.didMove(toParent: rootViewController)
+
+    window.rootViewController = rootViewController
+
+    rootViewController.beginAppearanceTransition(true, animated: false)
+    rootViewController.endAppearanceTransition()
+
+    rootViewController.view.setNeedsLayout()
+    rootViewController.view.layoutIfNeeded()
+
+    viewController.view.setNeedsLayout()
+    viewController.view.layoutIfNeeded()
+
+    return {
+        rootViewController.beginAppearanceTransition(false, animated: false)
+        rootViewController.endAppearanceTransition()
+        window.rootViewController = nil
+    }
+}
+
+extension Array {
+    func sequence<A>() -> SnapshotTesting.Async<[A]> where Element == SnapshotTesting.Async<A> {
+        guard !self.isEmpty else { return SnapshotTesting.Async(value: []) }
+        return SnapshotTesting.Async<[A]> { callback in
+            var result = [A?](repeating: nil, count: self.count)
+            result.reserveCapacity(self.count)
+            var count = 0
+            zip(self.indices, self).forEach { idx, async in
+                async.run {
+                    result[idx] = $0
+                    count += 1
+                    if count == self.count {
+                        callback(result as! [A])
+                    }
+                }
+            }
+        }
+    }
 }

@@ -8,7 +8,7 @@ jobs:
     runs-on: macOS-latest
     strategy:
       matrix:
-        destination: ["OS=14.4,name=iPhone 12 mini"] # needs to be a @3x device for the snapshots
+        destination: ["OS=15.0,name=iPhone 13 mini"] # needs to be a @3x device for the snapshots
     steps:
       - uses: actions/checkout@v2
       - name: LFS pull
