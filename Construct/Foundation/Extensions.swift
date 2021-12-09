@@ -111,6 +111,17 @@ extension Publisher {
             self
         }.eraseToAnyPublisher()
     }
+
+    public func ensureMinimumIntervalUntilFirstOutput<S>(_ interval: S.SchedulerTimeType.Stride, tolerance: S.SchedulerTimeType.Stride? = nil, scheduler: S, options: S.SchedulerOptions? = nil) -> AnyPublisher<Output, Failure> where S : Scheduler {
+
+        let delay = Just(0)
+            .delay(for: interval, tolerance: tolerance, scheduler: scheduler, options: options)
+            .setFailureType(to: Failure.self)
+
+        return combineLatest(delay)
+            .map { o, _ in o }
+            .eraseToAnyPublisher()
+    }
 }
 
 extension Int {

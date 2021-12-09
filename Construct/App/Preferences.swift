@@ -10,6 +10,8 @@ import Foundation
 
 struct Preferences: Codable, Equatable {
     var didShowWelcomeSheet = false
+    /// The DomainParsers.combinedVersion when ParseableKeyValueRecordManager last ran
+    var parseableManagerLastRunVersion: String?
 }
 
 extension Preferences: KeyValueStoreEntity {

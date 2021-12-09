@@ -16,10 +16,6 @@ class ParseableKeyValueRecordManager {
         self.queue = queue
     }
 
-    var shouldRun: Bool {
-        false // todo
-    }
-
     func run() throws {
         let decoder = KeyValueStore.decoder
         let encoder = KeyValueStore.encoder

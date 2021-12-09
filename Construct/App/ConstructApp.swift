@@ -99,7 +99,7 @@ struct ConstructView: View {
                 }
             }
             .overlay {
-                if viewStore.state.showBlockingLaunchTask {
+                if viewStore.state.showPostLaunchLoadingScreen {
                     ZStack {
                         Image("icon").resizable().aspectRatio(contentMode: .fit).frame(width: 400).opacity(0.66).blur(radius: 10)
 
@@ -112,6 +112,7 @@ struct ConstructView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(UIColor.systemBackground))
+                    .transition(.opacity)
                 }
             }
         }

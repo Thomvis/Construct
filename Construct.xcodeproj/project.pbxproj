@@ -55,7 +55,7 @@
 		E9323A3B23205C4700F0D0C6 /* FileDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3A23205C4700F0D0C6 /* FileDataSource.swift */; };
 		E9323A3D23205E7700F0D0C6 /* FileDataSourceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3C23205E7700F0D0C6 /* FileDataSourceTest.swift */; };
 		E9323A3F23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */; };
-		E935641627614695008E6698 /* LoadingTaskTiming.swift in Sources */ = {isa = PBXBuildFile; fileRef = E935641527614695008E6698 /* LoadingTaskTiming.swift */; };
+		E935641827621750008E6698 /* DomainParsers.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93564172762174F008E6698 /* DomainParsers.generated.swift */; };
 		E93777EA233C05D500C9F41A /* ddb_riverine.json in Resources */ = {isa = PBXBuildFile; fileRef = E93777E9233C05D500C9F41A /* ddb_riverine.json */; };
 		E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93777EC233CF81F00C9F41A /* O5eModels.swift */; };
 		E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */ = {isa = PBXBuildFile; productRef = E93FA1C924EC5B7F007441BF /* Parma */; };
@@ -307,7 +307,7 @@
 		E9323A3C23205E7700F0D0C6 /* FileDataSourceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDataSourceTest.swift; sourceTree = "<group>"; };
 		E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Open5eMonsterDataSourceReaderTest.swift; sourceTree = "<group>"; };
 		E9323A402320DE1400F0D0C6 /* CompendiumItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItem.swift; sourceTree = "<group>"; };
-		E935641527614695008E6698 /* LoadingTaskTiming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTaskTiming.swift; sourceTree = "<group>"; };
+		E93564172762174F008E6698 /* DomainParsers.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DomainParsers.generated.swift; sourceTree = "<group>"; };
 		E93777E9233C05D500C9F41A /* ddb_riverine.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ddb_riverine.json; sourceTree = "<group>"; };
 		E93777EC233CF81F00C9F41A /* O5eModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = O5eModels.swift; sourceTree = "<group>"; };
 		E93777EE233E41FB00C9F41A /* CompendiumCombatant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumCombatant.swift; sourceTree = "<group>"; };
@@ -773,7 +773,6 @@
 				E972FEC32626ADE700C21B58 /* DecodableDefault.swift */,
 				E972FEC72626DB4000C21B58 /* Zip.swift */,
 				E9441570273B211300F02C2D /* Located.swift */,
-				E935641527614695008E6698 /* LoadingTaskTiming.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -821,6 +820,7 @@
 		E991F8D9254B250B006CE8E8 /* Sourcery */ = {
 			isa = PBXGroup;
 			children = (
+				E93564172762174F008E6698 /* DomainParsers.generated.swift */,
 				E90EFF38262082E200F5443E /* XMLDocumentElement.generated.swift */,
 				E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */,
 			);
@@ -1200,6 +1200,7 @@
 				E942E013247EABA900170FAC /* StatBlockView.swift in Sources */,
 				E91885CB23943BBF0094EC87 /* Sort.swift in Sources */,
 				E996919D247C4F1400A8B1A0 /* Character.swift in Sources */,
+				E935641827621750008E6698 /* DomainParsers.generated.swift in Sources */,
 				E91C167D2405C5BB004B5C85 /* SafariView.swift in Sources */,
 				E963CCFE247BDEE8009863D7 /* Monster.swift in Sources */,
 				E972BA9F247856F200F313D7 /* DiceRollerViewState.swift in Sources */,
@@ -1287,7 +1288,6 @@
 				E942E02024800C5200170FAC /* CombatantTagEditViewState.swift in Sources */,
 				E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */,
 				E972BAA02478574500F313D7 /* DiceCalculatorView.swift in Sources */,
-				E935641627614695008E6698 /* LoadingTaskTiming.swift in Sources */,
 				E9540FFA23181524008A25EC /* PopoverHost.swift in Sources */,
 				E90B961525B312BB00BD760B /* Memoize.swift in Sources */,
 				E946B026247D9EE3008A407C /* RunningEncounter.swift in Sources */,
