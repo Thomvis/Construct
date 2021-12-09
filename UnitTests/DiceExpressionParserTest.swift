@@ -19,6 +19,8 @@ class DiceExpressionParserTest: XCTestCase {
         XCTAssertEqual(sut("1d6 + 1"), 1.d(6) + 1)
         XCTAssertEqual(sut("1d6 + 1d4"), 1.d(6) + 1.d(4))
         XCTAssertEqual(sut("1d6 + 1d4 + 3"), 1.d(6) + 1.d(4) + 3)
+        XCTAssertEqual(sut("+5"), 1.d(20)+5)
+        XCTAssertEqual(sut("5"), .number(5))
     }
 
 }

@@ -65,7 +65,7 @@ extension KeyValueStore {
         var cache: [String: Data] = [:]
 
         for e in initialState.entities {
-            if let encoded = try? encoder.encode(e) {
+            if let encoded = try? Self.encoder.encode(e) {
                 cache[e.key] = encoded
             }
         }
@@ -76,12 +76,12 @@ extension KeyValueStore {
 
             // fixme: use effects for saving?
             state.entities.compactMap { e -> (AnyKeyValueStoreEntity, Data)? in
-                guard let encoded = try? self.encoder.encode(e) else { return nil }
+                guard let encoded = try? Self.encoder.encode(e) else { return nil }
 
                 if cache[e.key] == nil {
                     // new entity
                     return (e, encoded)
-                } else if let encoded = try? self.encoder.encode(e), encoded != cache[e.key] {
+                } else if let encoded = try? Self.encoder.encode(e), encoded != cache[e.key] {
                     // entity changed
                     return (e, encoded)
                 }
@@ -100,6 +100,8 @@ extension KeyValueStore {
 }
 
 struct AnyKeyValueStoreEntity: KeyValueStoreEntity {
+    static let keyPrefix: KeyPrefix = .any
+
     let e: KeyValueStoreEntity
     let _encode: (Encoder) throws -> Void
 

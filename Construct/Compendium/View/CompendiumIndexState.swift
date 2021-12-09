@@ -253,22 +253,22 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     }
 
                     return { env in
-                        return env.compendium.fetchAll(query: query.text?.nonEmptyString, types: query.filters?.types)
-                            .map { entries in
-                                var result = entries
-                                // filter
-                                if let filterTest = query.filters?.test {
-                                    result = result.filter { filterTest($0.item) }
-                                }
-
-                                // sort
-                                if let order = query.order {
-                                    result = result.sorted(by: SortDescriptor { order.descriptor.compare($0.item, $1.item) })
-                                }
-
-                                return result
+                        return Deferred(catching: {
+                            try env.compendium.fetchAll(query: query.text?.nonEmptyString, types: query.filters?.types)
+                        }).map { entries in
+                            var result = entries
+                            // filter
+                            if let filterTest = query.filters?.test {
+                                result = result.filter { filterTest($0.item) }
                             }
-                            .eraseToAnyPublisher()
+
+                            // sort
+                            if let order = query.order {
+                                result = result.sorted(by: SortDescriptor { order.descriptor.compare($0.item, $1.item) })
+                            }
+
+                            return result
+                        }.eraseToAnyPublisher()
                     }
                 }.pullback(state: \.results, action: /CompendiumIndexAction.results, environment: { $0 })
             },

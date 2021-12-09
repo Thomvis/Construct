@@ -12,13 +12,14 @@ import ComposableArchitecture
 
 struct CompendiumItemDetailView: View {
     @EnvironmentObject var env: Environment
+    @SwiftUI.Environment(\.appNavigation) var appNavigation
 
     var store: Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>
     @ObservedObject var viewStore: ViewStore<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>
 
     init(store: Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
 
     var item: CompendiumItem {
@@ -46,6 +47,8 @@ struct CompendiumItemDetailView: View {
                 }
             }
             .padding(EdgeInsets(top: 12, leading: 12, bottom: 80, trailing: 12))
+            // Placing .popover inside ScrollView to work around https://github.com/stleamist/BetterSafariView/issues/23
+            .popover(popoverBinding)
         }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
@@ -69,7 +72,6 @@ struct CompendiumItemDetailView: View {
             }
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-        .popover(popoverBinding)
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
         .onAppear {
             viewStore.send(.onAppear)
@@ -83,7 +85,7 @@ struct CompendiumItemDetailView: View {
                 StatBlockView(stats: m.stats, onTap: onTap(m.stats))
             }
         } else if let spell = item as? Spell {
-            CompendiumSpellDetailView(spell: spell)
+            CompendiumSpellDetailView(spell: spell, onTap: onTap(StatBlock.default))
         } else if let character = item as? Character {
             CompendiumCharacterDetailView(character: character) { c in
                 StatBlockView(stats: c.stats, onTap: onTap(c.stats))
@@ -158,8 +160,10 @@ struct CompendiumItemDetailView: View {
                 if let action = DiceAction(title: a.name, parsedAction: p, env: env) {
                     self.viewStore.send(.popover(.creatureAction(DiceActionViewState(action: action))))
                 }
-            case .rollCheck(let s):
-                self.viewStore.send(.popover(.rollCheck(s)))
+            case .rollCheck(let e):
+                self.viewStore.send(.popover(.rollCheck(DiceCalculatorState.rollingExpression(e, rollOnAppear: true))))
+            case .compendiumItemReferenceTextAnnotation(let a):
+                self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(a, appNavigation))
             }
         }
     }
@@ -217,6 +221,7 @@ struct CompendiumMonsterDetailView: View {
 struct CompendiumSpellDetailView: View {
     @EnvironmentObject var env: Environment
     let spell: Spell
+    let onTap: ((StatBlockView.TapTarget) -> Void)?
 
     var body: some View {
         SectionContainer {
@@ -247,7 +252,7 @@ struct CompendiumSpellDetailView: View {
 
                 Divider()
 
-                Text(spell.description)
+                Text(descriptionString)
                 spell.higherLevelDescription.map { StatBlockView.line(title: "At Higher Levels.", text: $0) }
                 spell.material.map { Text("* \($0)").font(.footnote).italic() }
 
@@ -259,6 +264,24 @@ struct CompendiumSpellDetailView: View {
                 }
             }
         }
+        .environment(\.openURL, OpenURLAction { url in
+            guard url.scheme == StatBlockView.urlSchema,
+                  let host = url.host,
+                  let target = try? StatBlockView.TapTarget(urlEncoded: host)
+            else {
+                return .systemAction
+            }
+
+            onTap?(target)
+            return .handled
+        })
+    }
+
+    var descriptionString: AttributedString {
+        var result = spell.description.attributedDescription
+        StatBlockView.process(attributedString: &result)
+
+        return result
     }
 }
 

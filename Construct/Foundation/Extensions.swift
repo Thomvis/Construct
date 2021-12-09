@@ -71,6 +71,12 @@ extension Optional where Wrapped == String {
     }
 }
 
+extension Optional {
+    var nonNilArray: [Wrapped] {
+        map { [$0] } ?? []
+    }
+}
+
 extension Array where Element: Identifiable {
     public subscript(id id: Element.ID) -> Element? {
         get {
@@ -104,6 +110,17 @@ extension Publisher {
         Just(1).setFailureType(to: Failure.self).delay(for: interval, tolerance: tolerance, scheduler: scheduler, options: options).flatMap { _ in
             self
         }.eraseToAnyPublisher()
+    }
+
+    public func ensureMinimumIntervalUntilFirstOutput<S>(_ interval: S.SchedulerTimeType.Stride, tolerance: S.SchedulerTimeType.Stride? = nil, scheduler: S, options: S.SchedulerOptions? = nil) -> AnyPublisher<Output, Failure> where S : Scheduler {
+
+        let delay = Just(0)
+            .delay(for: interval, tolerance: tolerance, scheduler: scheduler, options: options)
+            .setFailureType(to: Failure.self)
+
+        return combineLatest(delay)
+            .map { o, _ in o }
+            .eraseToAnyPublisher()
     }
 }
 
@@ -205,6 +222,14 @@ extension Bool {
     func toggled() -> Bool {
         !self
     }
+
+    func mapTrue<T>(_ f: () -> T) -> T? {
+        self ? f() : nil
+    }
+
+    func compactMapTrue<T>(_ f: () -> T?) -> T? {
+        self ? f() : nil
+    }
 }
 
 extension Optional where Wrapped: Equatable {
@@ -283,5 +308,48 @@ extension CGPoint {
 extension UUID {
     func tagged<Tag>() -> Tagged<Tag, UUID> {
         Tagged(rawValue: self)
+    }
+}
+
+extension AttributedString {
+    mutating func apply<V>(_ located: Located<V>, _ f: (inout AttributedSubstring, V) -> Void) {
+        let start = index(startIndex, offsetByCharacters: located.range.startIndex)
+        let end = index(startIndex, offsetByCharacters: located.range.endIndex)
+        f(&self[start..<end], located.value)
+    }
+}
+
+extension AttributedStringProtocol {
+    var underlinedLink: URL? {
+        get {
+            self.link
+        }
+        set {
+            if let newValue = newValue {
+                self.link = newValue
+                self.underlineStyle = .single
+            } else {
+                self.link = nil
+                self.underlineStyle = nil
+            }
+        }
+    }
+}
+
+extension Deferred {
+
+    /// Creates a new result by evaluating a throwing closure, capturing the
+    /// returned value as a success, or any thrown error as a failure.
+    ///
+    /// - Parameter body: A throwing closure to evaluate.
+    public init<O>(catching body: @escaping () throws -> O) where DeferredPublisher == AnyPublisher<O, Error> {
+        self.init(createPublisher: {
+            do {
+                let result = try body()
+                return Just(result).setFailureType(to: Error.self).eraseToAnyPublisher()
+            } catch {
+                return Fail(error: error).eraseToAnyPublisher()
+            }
+        })
     }
 }

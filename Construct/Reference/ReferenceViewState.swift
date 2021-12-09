@@ -47,7 +47,7 @@ struct ReferenceViewState: Equatable {
         for req in itemRequests {
             let existing = items[id: req.id]
             unmatchedItemRequests.removeAll(where: { $0.id == req.id })
-            if let _ = existing {
+            if !req.oneOff, let _ = existing {
                 let previousRequest = self.itemRequests.first(where: { $0.id == req.id })
 
                 if previousRequest?.stateGeneration != req.stateGeneration {
@@ -64,7 +64,7 @@ struct ReferenceViewState: Equatable {
         }
 
         // remove items that are no longer requested
-        for req in unmatchedItemRequests {
+        for req in unmatchedItemRequests where !req.oneOff {
             items.removeAll(where: { $0.id == req.id })
         }
 
@@ -129,7 +129,7 @@ struct ReferenceViewState: Equatable {
             ReferenceItemViewState.reducer.pullback(state: \.state, action: /ReferenceItemViewAction.self),
             Reducer { state, action, env in
                 switch action {
-                case .contentCombatantDetail, .contentHome, .contentAddCombatant, .onBackTapped, .set:
+                case .contentCombatantDetail, .contentHome, .contentAddCombatant, .contentCompendiumItem, .contentSafari, .onBackTapped, .set:
                     if let title = state.state.content.tabItemTitle {
                         state.title = title;
                     }

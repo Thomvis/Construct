@@ -53,6 +53,8 @@ extension CompendiumEntry: Codable {
 }
 
 extension CompendiumEntry: KeyValueStoreEntity {
+    static let keyPrefix: KeyPrefix = .compendiumEntry
+
     var key: String {
         return item.key.rawValue
     }

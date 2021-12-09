@@ -122,6 +122,10 @@ func any<A>(_ p: Parser<A>) -> Parser<[A]> {
     }
 }
 
+func oneOrMore<A>(_ p: Parser<A>) -> Parser<[A]> {
+    any(p).flatMap { $0.nonEmptyArray }
+}
+
 func remainder() -> Parser<String> {
     return Parser { input in
         defer { input.position = input.endIndex }
@@ -136,8 +140,13 @@ func end() -> Parser<Void> {
     }
 }
 
-// Consumes the input _until_ the parser
-// If parser never succeeds, the skipping also fails
+/**
+ Skips all input until the given parser succeeds. If parser never succeeds, the skipping also fails.
+ Upon success, all input up to and including the input by the given parser is consumed.
+
+ The returned parser succeeds with the skipped string (including what the given parser parsed)
+ and the resulting value of the given parser.
+ */
 func skip<A>(until parser: Parser<A>) -> Parser<(String, A)> {
     return Parser { input in
         let position = input.position
@@ -160,6 +169,12 @@ extension Parser {
     func run(_ string: String) -> A? {
         var remainder = Remainder(string)
         return parse(&remainder)
+    }
+
+    func matches(`in` string: String) -> [Located<A>] {
+        any(withRange().skippingAnyBefore().map { (value, range) in
+            Located(value: value, range: Range(range))
+        }).run(string) ?? []
     }
 
     func map<B>(_ transform: @escaping (A) -> B) -> Parser<B> {
@@ -208,6 +223,13 @@ extension Parser {
 
     func skippingAnyBefore() -> Parser<A> {
         skip(until: self).map { $0.1 }
+    }
+
+    /**
+     Parses a sequence of p?, self, p? (throwing away the results of p)
+     */
+    func trimming<B>(_ p: Parser<B>) -> Parser<A> {
+        zip(p.optional(), self, p.optional()).map { _, s, _ in s }
     }
 
     func log(_ id: String) -> Parser<A> {
@@ -284,28 +306,23 @@ func int() -> Parser<Int> {
     return any(character(in: digits)).joined().toInt()
 }
 
-func dice() -> Parser<DiceExpression> {
-    return int()
-        .followed(by: char("d"))
-        .followed(by: int())
-        .map { i in
-            DiceExpression.dice(count: i.0.0, die: Die(sides: i.1))
-    }
-}
-
-func number() -> Parser<DiceExpression> {
-    return int().map {
-        DiceExpression.number($0)
-    }
-}
-
 // Parses at least one letter followed by any number of whitespace
 func word() -> Parser<String> {
-    any(character { $0.isLetter })
+    return any(character { $0.isLetter || $0.isNumber || "'＇’".contains(String($0)) })
         .flatMap { $0.count > 0 ? $0 : nil }
         .joined()
-        .followed(by: any(character { $0.isWhitespace }))
-        .map { $0.0 }
+}
+
+func whitespace() -> Parser<String> {
+    oneOrMore(either(horizontalWhitespace(), verticalWhitespace())).joined()
+}
+
+func horizontalWhitespace() -> Parser<String> {
+    oneOrMore(character(in: [" ", "\t"])).joined()
+}
+
+func verticalWhitespace() -> Parser<String> {
+    oneOrMore(character(in: ["\r", "\n"])).joined()
 }
 
 func either<A>(_ a: Parser<A>, _ b: Parser<A>) -> Parser<A> {
@@ -314,6 +331,18 @@ func either<A>(_ a: Parser<A>, _ b: Parser<A>) -> Parser<A> {
 
 func either<A>(_ a: Parser<A>, _ b: Parser<A>, _ c: Parser<A>) -> Parser<A> {
     a.or(b).or(c)
+}
+
+func either<A>(_ a: Parser<A>, _ b: Parser<A>, _ c: Parser<A>, _ d: Parser<A>) -> Parser<A> {
+    a.or(b).or(c).or(d)
+}
+
+func either<A>(_ a: Parser<A>, _ b: Parser<A>, _ c: Parser<A>, _ d: Parser<A>, _ e: Parser<A>) -> Parser<A> {
+    a.or(b).or(c).or(d).or(e)
+}
+
+func either<A>(_ a: Parser<A>, _ b: Parser<A>, _ c: Parser<A>, _ d: Parser<A>, _ e: Parser<A>, _ f: Parser<A>) -> Parser<A> {
+    a.or(b).or(c).or(d).or(e).or(f)
 }
 
 func zip<A, B>(_ a: Parser<A>, _ b: Parser<B>) -> Parser<(A, B)> {

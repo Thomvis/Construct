@@ -89,11 +89,12 @@ enum DataSourceReaderParsers {
             // walk 30 ft.
             zip(
                 word().optional(),
+                char(" "),
                 int().log("int"),
                 string("ft.").skippingAnyBefore(),
-                either(string(", ").map { _ in () }, end())
+                either(string(",").trimming(horizontalWhitespace()).map { _ in () }, end())
             ).map {
-                ($0.1, $0.0)
+                ($0.2, $0.0)
             },
             // 30 ft. walk
             zip(
@@ -103,7 +104,7 @@ enum DataSourceReaderParsers {
                     char(" "),
                     word()
                 ).optional(),
-                either(string(", ").map { _ in () }, end())
+                either(string(",").trimming(horizontalWhitespace()).map { _ in () }, end())
             ).map {
                 ($0.0, $0.2?.1)
             }
@@ -125,7 +126,7 @@ enum DataSourceReaderParsers {
         int(),
         zip(
             string("(").skippingAnyBefore(),
-            any(word()).joined(separator: " "),
+            any(zip(word(), horizontalWhitespace().optional()).map { $0.0 }).joined(separator: " "),
             string(")")
         ).optional()
     ).map {
@@ -146,10 +147,11 @@ enum DataSourceReaderParsers {
     static let modifierListParser = any(
         zip(
             word(),
+            horizontalWhitespace(),
             either(char("-").map { _ in -1 }, char("+").map { _ in 1 }),
             int(),
             string(", ").optional()
-        ).map { label, sign, num, _ in
+        ).map { label, _, sign, num, _ in
             (label, sign * num)
         }
     )
@@ -183,18 +185,23 @@ extension DataSourceReaderParsers {
         return ($0.size, type, $0.subtype, $0.alignment)
     }
 
-    private static let sizeTypeParser: Parser<[TypeComponent]> =
-        word().flatMap { w in // type
+    private static let sizeTypeParser: Parser<[TypeComponent]> = zip(
+        // size (optional)
+        zip(
+            word(),
+            horizontalWhitespace()
+        ).flatMap { w, _ in
             CreatureSize(englishName: w).map { TypeComponent.size($0) }
-        }.optional()
-        .followed(by: word().map { // type
-            TypeComponent.type($0)
-        })
-        .followed(by: parenthesizedStringParser.map { // sub-type (optional)
+        }.optional(),
+        // type
+        word().flatMap { w in
+            TypeComponent.type(w)
+        },
+        // sub-type (optional)
+        parenthesizedStringParser.map {
             TypeComponent.subtype($0)
-        }.optional()).map {
-            [$0.0.0, $0.0.1, $0.1].compactMap { $0 }
-        }
+        }.trimming(horizontalWhitespace()).optional()
+    ).map { s, t, st in [s, t, st].compactMap { $0 } }
 
     private static let alignmentParser = skip(until: Self.endOfComponentParser).flatMap { component in
         Alignment(englishName: component.0).map { [TypeComponent.alignment($0)] }

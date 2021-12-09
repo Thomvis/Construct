@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 import ComposableArchitecture
 
 struct AppState: Equatable {
@@ -17,7 +18,9 @@ struct AppState: Equatable {
     var preferences: Preferences
 
     var showWelcomeSheet = false
+    var showPostLaunchLoadingScreen = false
 
+    var appDidLaunch = false // becomes true once the scene has become active for the first time
     var sceneIsActive = false
 
     var topNavigationItems: [Any] {
@@ -67,6 +70,9 @@ struct AppState: Equatable {
         case welcomeSheetSampleEncounterTapped
         case welcomeSheetDismissTapped
         case onAppear
+
+        case showPostLaunchLoadingScreen(Bool)
+        case parseableManagerDidFinish
 
         case sceneDidBecomeActive
         case sceneWillResignActive
@@ -118,8 +124,33 @@ struct AppState: Equatable {
                             env.requestAppStoreReview()
                         }
                     }
+                case .showPostLaunchLoadingScreen(let b):
+                    state.showPostLaunchLoadingScreen = b
+                case .parseableManagerDidFinish:
+                    state.preferences.parseableManagerLastRunVersion = DomainParsers.combinedVersion
                 case .sceneDidBecomeActive:
                     state.sceneIsActive = true
+
+                    if (!state.appDidLaunch) {
+                        defer {
+                            state.appDidLaunch = true
+                        }
+
+                        if state.preferences.parseableManagerLastRunVersion != DomainParsers.combinedVersion {
+                            return Effect<Void, Never>.future { callback in
+                                DispatchQueue.global().async {
+                                    try? env.database.parseableManager.run()
+                                    callback(.success(()))
+                                }
+                            }
+                            .receive(on: DispatchQueue.main)
+                            .ensureMinimumIntervalUntilFirstOutput(2.0, scheduler: DispatchQueue.main)
+                            .flatMap { _ in [.parseableManagerDidFinish, .showPostLaunchLoadingScreen(false)].publisher }
+                            .receive(on: DispatchQueue.main.animation(.default)) // animate the disappearance, not the appearance
+                            .prepend(.showPostLaunchLoadingScreen(true))
+                            .eraseToEffect()
+                        }
+                    }
                 case .sceneWillResignActive:
                     state.sceneIsActive = false
                 }

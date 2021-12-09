@@ -104,3 +104,32 @@ extension EncounterDetailViewState {
         }
     }
 }
+
+extension ReferenceViewState {
+    var referenceItemRequests: [ReferenceViewItemRequest] {
+        items.flatMap { $0.state.referenceItemRequests }
+    }
+}
+
+extension ReferenceItemViewState {
+    // TODO: ensure all content types have their requests properly handled
+    var referenceItemRequests: [ReferenceViewItemRequest] {
+        switch content {
+        case .home(let s):
+            return s.presentedNextCompendium?.referenceItemRequests ?? []
+        case .combatantDetail(let s):
+            return s.detailState.itemRequest.nonNilArray
+        case .addCombatant: return []
+        case .compendiumItem(let s):
+            return s.itemRequest.nonNilArray
+        case .safari: return []
+        }
+    }
+}
+
+extension CompendiumIndexState {
+    var referenceItemRequests: [ReferenceViewItemRequest] {
+        return presentedNextItemDetail?.itemRequest.nonNilArray ??
+            presentedNextCompendiumIndex?.referenceItemRequests ?? []
+    }
+}

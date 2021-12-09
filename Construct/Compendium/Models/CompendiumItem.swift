@@ -90,7 +90,7 @@ extension CompendiumItem {
 
 // Convert CompendiumItemKey from and to a string that can be used in KeyValueStore
 extension CompendiumItemKey: RawRepresentable {
-    private static let prefix = "compendium"
+    private static let prefix = KeyValueStoreEntityKeyPrefix.compendiumEntry.rawValue
     static let separator = "::"
 
     // compendium::monster::core::Aboleth

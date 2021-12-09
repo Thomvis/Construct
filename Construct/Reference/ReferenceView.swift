@@ -38,7 +38,6 @@ struct ReferenceView: View {
                     viewStore.send(.moveTab(from, to))
                 }
             )
-            .environment(\.appNavigation, .tab)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }

@@ -130,7 +130,7 @@ private extension StatBlock {
                 Legendary(
                     description: m.legendaryDesc,
                     actions: actions.map { a in
-                        CreatureAction(name: a.name, description: a.desc)
+                        ParseableCreatureAction(input: CreatureAction(name: a.name, description: a.desc))
                     }
                 )
             }

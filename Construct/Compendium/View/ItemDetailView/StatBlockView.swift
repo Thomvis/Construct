@@ -10,14 +10,14 @@ import Foundation
 import SwiftUI
 
 struct StatBlockView: View {
+    static let urlSchema = "construct-stat-block"
+
     @EnvironmentObject var env: Environment
     @ScaledMetric(relativeTo: .body)
     private var rollIconSize: CGFloat = 20
 
     let stats: StatBlock
     var onTap: ((TapTarget) -> Void)? = nil
-
-    @State var parsedActions: [CreatureAction: CreatureActionParser.Action] = [:]
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -95,9 +95,7 @@ struct StatBlockView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(stats.features, id: \.name) { feature in
-                        self.view(for: feature).onTapGesture {
-                            // no-op
-                        }
+                        CreatureFeatureView(feature: feature)
                     }
                 }
             }
@@ -109,7 +107,7 @@ struct StatBlockView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(stats.actions, id: \.name) { action in
-                        self.view(for: action)
+                        CreatureActionView(action: action)
                     }
                 }
             }
@@ -121,7 +119,7 @@ struct StatBlockView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(stats.reactions, id: \.name) { reaction in
-                        self.view(for: reaction)
+                        CreatureActionView(action: reaction)
                     }
                 }
             }
@@ -138,19 +136,22 @@ struct StatBlockView: View {
                     }
 
                     ForEach(legendary.actions, id: \.name) { action in
-                        self.view(for: action)
+                        CreatureActionView(action: action)
                     }
                 }
             }
 
-        }.onAppear {
-            // parse actions
-            stats.actions.compactMap { action in
-                CreatureActionParser.parse(action.description).map { (action, $0) }
-            }.forEach { parsedAction in
-                self.parsedActions[parsedAction.0] = parsedAction.1
+        }.environment(\.openURL, OpenURLAction { url in
+            guard url.scheme == Self.urlSchema,
+                  let host = url.host,
+                  let target = try? TapTarget(urlEncoded: host)
+            else {
+                return .systemAction
             }
-        }
+
+            onTap?(target)
+            return .handled
+        })
     }
 
     @ViewBuilder
@@ -159,7 +160,7 @@ struct StatBlockView: View {
             ForEach(Ability.allCases, id: \.self) { a in
                 if let modifier = stats.savingThrowModifier(a) {
                     Button(action: {
-                        onTap?(.rollCheck(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))
+                        onTap?(.rollCheck(1.d(20)+modifier.modifier))
                     }) {
                         Label(
                             "\(a.localizedDisplayName) save: \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))",
@@ -182,7 +183,7 @@ struct StatBlockView: View {
             let title = "\(s.localizedDisplayName) (\(s.ability.localizedAbbreviation.uppercased()))"
             if let modifier = stats.skillModifier(s) {
                 Button(action: {
-                    onTap?(.rollCheck(DiceCalculatorState.rollingExpression(1.d(20)+modifier.modifier, rollOnAppear: true)))
+                    onTap?(.rollCheck(1.d(20)+modifier.modifier))
                 }) {
                     Label(title: {
                         Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
@@ -199,23 +200,6 @@ struct StatBlockView: View {
         }
     }
 
-    func view(for feature: CreatureFeature) -> some View {
-        return (Text("\(feature.name). ").bold().italic() + Text(feature.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
-    }
-
-    @ViewBuilder
-    func view(for action: CreatureAction) -> some View {
-        if let parsedAction = self.parsedActions[action], onTap != nil {
-            SimpleButton(action: {
-                self.onTap?(.action(action, parsedAction))
-            }, label: {
-                (Text(Image(systemName: "bolt.fill")).foregroundColor(Color.accentColor) + Text(" \(action.name). ").bold().italic().foregroundColor(Color.accentColor) + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
-            })
-        } else {
-            (Text("\(action.name). ").bold().italic() + Text(action.description)).lineLimit(nil).fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
     static func line(title: String, content: Text) -> some View {
         return Text("\(title) ").bold() + content
     }
@@ -224,10 +208,41 @@ struct StatBlockView: View {
         return line(title: title, content: Text(text))
     }
 
-    enum TapTarget {
+    static func process(attributedString result: inout AttributedString) {
+        for run in result.runs {
+            let target: StatBlockView.TapTarget?
+            if let diceExpression = run.construct.diceExpression {
+                target = .rollCheck(diceExpression)
+            } else if let annotation = run.construct.compendiumItemReference {
+                target = .compendiumItemReferenceTextAnnotation(annotation)
+            } else {
+                target = nil
+            }
+
+            if let target = target, let url = Self.link(for: target) {
+                result[run.range].underlinedLink = url
+
+                // clear original attribute
+                result[run.range].construct.diceExpression = nil
+            }
+        }
+    }
+
+    static func link(for target: TapTarget) -> URL? {
+        guard let urlEncoded = target.urlEncoded else { return nil }
+
+        var urlComponents = URLComponents()
+        urlComponents.scheme = StatBlockView.urlSchema
+        urlComponents.host = urlEncoded
+
+        return urlComponents.url
+    }
+
+    enum TapTarget: Codable {
         case ability(Ability)
         case action(CreatureAction, CreatureActionParser.Action)
-        case rollCheck(DiceCalculatorState)
+        case rollCheck(DiceExpression)
+        case compendiumItemReferenceTextAnnotation(CompendiumItemReferenceTextAnnotation)
     }
 }
 
@@ -316,5 +331,67 @@ private extension AbilityScores {
             return "\(score.score)"
         }
         return "\(score.score) (\(modifierString))"
+    }
+}
+
+struct CreatureFeatureView: View {
+    let feature: ParseableCreatureFeature
+
+    var body: some View {
+        (Text("\(title). ").bold().italic() + Text(description))
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    var title: AttributedString {
+        var result = feature.attributedName
+        StatBlockView.process(attributedString: &result)
+        return result
+    }
+
+    var description: AttributedString {
+        var result = feature.attributedDescription
+        StatBlockView.process(attributedString: &result)
+        return result
+    }
+}
+
+struct CreatureActionView: View {
+    let action: ParseableCreatureAction
+
+    var body: some View {
+        text.lineLimit(nil).fixedSize(horizontal: false, vertical: true)
+    }
+
+    var text: Text {
+        var description = action.attributedDescription
+        StatBlockView.process(attributedString: &description)
+
+        var title = action.attributedName
+        StatBlockView.process(attributedString: &title)
+
+        if let parsedAction = action.result?.value?.action {
+            if let r = title.runs.first?.range {
+                title[r].underlinedLink = StatBlockView.link(for: .action(action.input, parsedAction))
+            }
+
+            return Text("\(Image(systemName: "bolt.fill")) \(title). ").bold().italic().foregroundColor(Color.accentColor) + Text(description)
+        } else {
+            return (Text(title) + Text(". ")).bold().italic() + Text(description)
+        }
+    }
+
+}
+
+extension StatBlockView.TapTarget {
+    init?(urlEncoded string: String) throws {
+        guard let data = Data(base64Encoded: string) else {
+            return nil
+        }
+        self = try JSONDecoder().decode(Self.self, from: data)
+    }
+
+    var urlEncoded: String? {
+        return try? JSONEncoder().encode(self).base64EncodedString()
     }
 }

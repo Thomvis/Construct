@@ -21,7 +21,7 @@ struct Spell: Codable {
     let school: String
     let concentration: Bool
 
-    let description: String
+    var description: ParseableSpellDescription
     let higherLevelDescription: String?
 
     let classes: [String]

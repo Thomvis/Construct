@@ -272,6 +272,8 @@ extension RunningEncounter {
 }
 
 extension RunningEncounter: KeyValueStoreEntity {
+    static var keyPrefix: KeyPrefix = .runningEncounter
+
     var key: String {
         return "\(Self.keyPrefix(for: base))\(id)"
     }
@@ -281,7 +283,7 @@ extension RunningEncounter: KeyValueStoreEntity {
     }
 
     static func keyPrefix(for encounterId: Encounter.Id) -> String {
-        "running.\(Encounter.key(encounterId))."
+        "\(Self.keyPrefix).\(Encounter.key(encounterId))."
     }
 }
 

@@ -327,6 +327,16 @@ enum CombatantResourceAction: Equatable {
 }
 
 extension CombatantResource {
+
+    /**
+     Initializes a resource with available slots
+     */
+    init(id: Id = UUID().tagged(), title: String, slotCount: Int) {
+        self.id = id
+        self.title = title
+        self.slots = Array(repeating: false, count: slotCount)
+    }
+
     static let reducer: Reducer<CombatantResource, CombatantResourceAction, Environment> = Reducer { state, action, _ in
         switch action {
         case .title(let t):

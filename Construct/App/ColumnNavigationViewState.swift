@@ -63,7 +63,7 @@ extension ColumnNavigationViewState {
                 state.referenceView.encounterReferenceContext = encounterContext
             }
 
-            let itemRequests = state.campaignBrowse.referenceItemRequests
+            let itemRequests = state.campaignBrowse.referenceItemRequests + state.referenceView.referenceItemRequests
             if itemRequests != state.referenceView.itemRequests {
                 actions.append(.referenceView(.itemRequests(itemRequests)))
             }

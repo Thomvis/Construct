@@ -88,7 +88,7 @@ class CreatureActionParserTest: XCTestCase {
                     .compactMap { $0 as? Monster }
                     .flatMap { $0.stats.actions }
                     .map {
-                        ($0, CreatureActionParser.parse($0.description))
+                        ($0.input, CreatureActionParser.parse($0.description))
                     }
 //            }
 

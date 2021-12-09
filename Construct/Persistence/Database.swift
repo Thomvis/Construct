@@ -14,11 +14,13 @@ class Database {
     let queue: DatabaseQueue
 
     public let keyValueStore: KeyValueStore
+    public let parseableManager: ParseableKeyValueRecordManager
 
     // If path is nil, an in-memory database is created
     init(path: String?, importDefaultContent: Bool = true) throws {
         self.queue = try path.map { try DatabaseQueue(path: $0) } ?? DatabaseQueue(configuration: Configuration())
         self.keyValueStore = KeyValueStore(queue)
+        self.parseableManager = ParseableKeyValueRecordManager(queue)
 
         print("Created/opened database at path: \(path ?? "in-memory")")
 
