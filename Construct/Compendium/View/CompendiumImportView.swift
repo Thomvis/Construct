@@ -74,10 +74,12 @@ struct CompendiumImportView: View {
                 self.env.dismissKeyboard()
                 self.performImport()
             }) {
-                if importProgress.isImporting {
-                    Text("Importing...")
-                } else {
-                    Text("Import now")
+                HStack(spacing: 12) {
+                    if importProgress.isImporting {
+                        ProgressView()
+                    }
+
+                    Text(importProgress.isImporting ? "Importing..." : "Import into compendium")
                 }
             }.disabled(!canImport || importProgress.isImporting)
         }
@@ -138,13 +140,17 @@ struct CompendiumImportView: View {
         let importer = CompendiumImporter(compendium: env.compendium)
         let task = CompendiumImportTask(reader: reader.create(dataSource), overwriteExisting: true)
 
-        let cancellable = importer.run(task).delay(for: .seconds(0), scheduler: DispatchQueue.main).sink(receiveCompletion: { completion in
-            if case .failure(let e as Error) = completion {
-                self.importProgress = .failed(e)
-            }
-        }, receiveValue: { result in
-            self.importProgress = .succeeded(result)
-        })
+        let cancellable = importer.run(task)
+            .subscribe(on: DispatchQueue.global())
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { completion in
+                if case .failure(let e as Error) = completion {
+                    self.importProgress = .failed(e)
+                }
+            }, receiveValue: { result in
+                self.importProgress = .succeeded(result)
+            })
+
         importProgress = .started(cancellable)
     }
 
