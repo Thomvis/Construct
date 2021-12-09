@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   test:
     name: Test
-    runs-on: macOS-latest
+    runs-on: macOS-11
     strategy:
       matrix:
         destination: ["platform=iOS Simulator,OS=15.0,name=iPhone 13 mini"] # needs to be a @3x device for the snapshots
