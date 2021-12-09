@@ -8,16 +8,18 @@
 
 import Foundation
 import CasePaths
+import ComposableArchitecture
 
 extension Encounter: HasParseableVisitor {
     static let parseableVisitor: ParseableVisitor<Encounter> = .combine(
-        Combatant.parseableVisitor.forEach(state: \.combatants, action: /ParseableVisitorAction.indexedVisit, environment: { })
+        Combatant.parseableVisitor.visitEach(in: \.combatants)
     )
 }
 
 extension Combatant {
     static let parseableVisitor: ParseableVisitor<Combatant> = .combine(
-        AdHocCombatantDefinition.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.adHocDefinition, action: CasePath.`self`)
+        AdHocCombatantDefinition.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.adHocDefinition, action: CasePath.`self`),
+        CompendiumCombatantDefinition.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.compendiumDefinition, action: CasePath.`self`)
     )
 
     var adHocDefinition: AdHocCombatantDefinition? {

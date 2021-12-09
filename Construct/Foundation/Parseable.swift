@@ -94,16 +94,30 @@ extension Parseable.ParserResult: Hashable where Result: Hashable { }
 
 enum ParseableVisitorAction {
     case visit
-    indirect case indexedVisit(AnyHashable, ParseableVisitorAction)
 }
 
 typealias ParseableVisitor<T> = Reducer<T, ParseableVisitorAction, Void>
 
-extension ParseableVisitor {
+extension ParseableVisitor where Action == ParseableVisitorAction, Environment == Void {
     init(visit: @escaping (inout State) -> Void) {
         self.init { state, action, env in
             visit(&state)
             return .none
+        }
+    }
+
+    func visitEach<ID, Global>(in toCollection: WritableKeyPath<Global, IdentifiedArray<ID, State>>) -> ParseableVisitor<Global> {
+        return ParseableVisitor<Global> { state, action, env in
+            return .merge(
+                state[keyPath: toCollection].ids
+                    .map {
+                        self.optional(breakpointOnNil: false).run(
+                            &state[keyPath: toCollection][id: $0],
+                            ParseableVisitorAction.visit,
+                            env
+                        )
+                    }
+            )
         }
     }
 }
