@@ -11,5 +11,5 @@ import Foundation
 protocol ExternalCompendium {
     func url(for referenceAnnotation: CompendiumItemReferenceTextAnnotation) -> URL?
 
-    func searchPageUrl(for query: String) -> URL
+    func searchPageUrl(for query: String, types: [CompendiumItemType]?) -> URL
 }

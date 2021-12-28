@@ -27,10 +27,29 @@ class DndBeyondExternalCompendium: ExternalCompendium {
         return components.url
     }
 
-    func searchPageUrl(for query: String) -> URL {
+    func searchPageUrl(for query: String, types: [CompendiumItemType]? = nil) -> URL {
         var components = Self.baseComponents
         components.path = "/search"
         components.queryItems = [URLQueryItem(name: "q", value: query)]
+
+        if let types = types {
+            let matchedTypes: [String]? = types.compactMap {
+                switch $0 {
+                case .monster: return "monsters"
+                case .character: return nil
+                case .spell: return "spells"
+                case .group: return nil
+                }
+            }.nonEmptyArray
+
+            if let matchedTypes = matchedTypes {
+                let joinedTypes = matchedTypes.joined(separator: ",")
+
+                components.queryItems?.append(URLQueryItem(name: "c", value: joinedTypes))
+                components.queryItems?.append(URLQueryItem(name: "f", value: joinedTypes))
+            }
+        }
+
         return components.url!
     }
 

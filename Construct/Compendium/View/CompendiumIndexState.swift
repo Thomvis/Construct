@@ -57,6 +57,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             case .compendiumIndex: return .compendiumIndex(CompendiumIndexState.nullInstance)
             case .itemDetail: return .itemDetail(CompendiumEntryDetailViewState.nullInstance)
             case .compendiumImport: return .compendiumImport(CompendiumImportViewState())
+            case .safariView: return .safariView(.nullInstance)
             }
         }
         res.sheet = sheet.map {
@@ -158,6 +159,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         indirect case compendiumIndex(CompendiumIndexState)
         case itemDetail(CompendiumEntryDetailViewState)
         case compendiumImport(CompendiumImportViewState)
+        case safariView(SafariViewState)
     }
 
     enum Sheet: Equatable, Identifiable {
@@ -188,6 +190,14 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     } else if state.results.input.filters?.types?.single == .group {
                         state.sheet = .groupEdit(CompendiumItemGroupEditState(mode: .create, group: CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])))
                     }
+                case .onSearchOnWebButtonTap:
+                    let externalCompendium = DndBeyondExternalCompendium()
+                    state.presentedNextSafariView = SafariViewState(
+                        url: externalCompendium.searchPageUrl(
+                            for: state.results.input.text ?? "",
+                            types: state.results.input.filters?.types
+                        )
+                    )
                 case .setNextScreen(let n):
                     state.presentedScreens[.nextInStack] = n
                 case .setDetailScreen(let s):
@@ -304,6 +314,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     case results(CompendiumIndexState.RS.Action<CompendiumIndexQueryAction>)
     case scrollTo(String?)
     case onAddButtonTap
+    case onSearchOnWebButtonTap
 
     case setNextScreen(CompendiumIndexState.NextScreen?)
     indirect case nextScreen(NextScreenAction)

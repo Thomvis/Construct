@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
+import BetterSafariView
 
 struct CompendiumIndexView: View {
     @EnvironmentObject var env: Environment
@@ -42,16 +43,39 @@ struct CompendiumIndexView: View {
             }
             .padding([.leading, .top, .trailing], 8)
 
-            if localViewStore.state.resultsValueNonNil {
-                CompendiumItemList(store: store, viewProvider: viewProvider)
-            } else if localViewStore.state.resultsErrorNonNil {
-                Text("Loading failed").frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if localViewStore.state.resultsIsFirstTimeLoading {
-                Text("Loading...").frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                IfLetStore(store.scope(state: { CompendiumTocView.LocalState($0) })) { store in
-                    CompendiumTocView(parentStore: self.store, viewStore: ViewStore(store), viewProvider: viewProvider)
+            switch localViewStore.state.results {
+            case .loading:
+                if localViewStore.state.resultsIsFirstTimeLoading {
+                    Text("Loading...").frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    IfLetStore(store.scope(state: { CompendiumTocView.LocalState($0) })) { store in
+                        CompendiumTocView(parentStore: self.store, viewStore: ViewStore(store), viewProvider: viewProvider)
+                    }
                 }
+            case .succeededWithoutResults:
+                WithViewStore(store.scope(state: { $0.presentedNextSafariView })) { safariViewStore in
+                    VStack(spacing: 18) {
+                        Text("No results").font(.title)
+
+                        Button("Search the web") {
+                            localViewStore.send(.onSearchOnWebButtonTap)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .safariView(
+                        item: safariViewStore.binding(get: { $0 }, send: { _ in .setNextScreen(nil) }),
+                        onDismiss: { localViewStore.send(.setNextScreen(nil)) },
+                        content: { state in
+                            BetterSafariView.SafariView(
+                                url: state.url
+                            )
+                        }
+                    )
+                }
+            case .succeededWithResults:
+                CompendiumItemList(store: store, viewProvider: viewProvider)
+            case .failedWithError:
+                Text("Loading failed").frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
             if let type = localViewStore.state.addButtonItemType {
@@ -113,7 +137,7 @@ struct CompendiumIndexView: View {
     }
 
     private func loadResultsIfNeeded() {
-        if localViewStore.state.initialContentIsSearchResults, !localViewStore.state.resultsValueNonNil {
+        if localViewStore.state.initialContentIsSearchResults, !localViewStore.state.results.isSuccess {
             localViewStore.send(.query(.onTextDidChange(ViewStore(store).state.results.input.text), debounce: false)) // kick-start search, fixme?
         }
     }
@@ -144,8 +168,7 @@ struct CompendiumIndexView: View {
         let initiallyFocusOnSearch: Bool
         let initialContentIsSearchResults: Bool
 
-        let resultsValueNonNil: Bool
-        let resultsErrorNonNil: Bool
+        let results: ResultsStatus
         let resultsIsFirstTimeLoading: Bool
 
         let addButtonItemType: CompendiumItemType?
@@ -161,8 +184,14 @@ struct CompendiumIndexView: View {
             initiallyFocusOnSearch = state.properties.initiallyFocusOnSearch
             initialContentIsSearchResults = state.properties.initialContent.isSearchResults
 
-            resultsValueNonNil = state.results.value != nil
-            resultsErrorNonNil = state.results.error != nil
+            if let resValues = state.results.value {
+                self.results = resValues.isEmpty ? .succeededWithoutResults : .succeededWithResults
+            } else if state.results.error != nil {
+                self.results = .failedWithError
+            } else {
+                self.results = .loading
+            }
+
             resultsIsFirstTimeLoading = state.results.value == nil && state.results.result.isLoading
 
             if state.properties.showAdd && state.canAddItem {
@@ -176,6 +205,17 @@ struct CompendiumIndexView: View {
 
             isShowingImport = state.presentedNextCompendiumImport != nil || state.presentedDetailCompendiumImport != nil
             sheet = state.sheet
+        }
+
+        enum ResultsStatus: Hashable {
+            case loading
+            case succeededWithResults
+            case succeededWithoutResults
+            case failedWithError
+
+            var isSuccess: Bool {
+                self == .succeededWithResults || self == .succeededWithoutResults
+            }
         }
     }
 }
@@ -291,10 +331,6 @@ fileprivate struct CompendiumItemList: View {
         let listHash = AnyHashable(viewStore.state.entries.map { $0.key })
         return ScrollViewReader { scrollView in
             List {
-                if viewStore.state.entries.isEmpty {
-                    Text("No results")
-                }
-
                 ForEach(viewStore.state.entries, id: \.key) { entry in
                     NavigationRowButton(action: {
                         self.viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
