@@ -251,7 +251,9 @@ fileprivate struct DiceExpressionView: View {
                 if viewStore.state.showExpressionEditUndoButton {
                     SwiftUI.Button(action: { viewStore.send(.onExpressionEditUndoButtonTap) }) {
                         Image(systemName: "arrow.uturn.left").font(.title)
-                    }.accentColor(Color(UIColor.systemRed))
+                    }
+                    .accentColor(Color(UIColor.systemRed))
+                    .keyboardShortcut(.delete, modifiers: [])
                 } else if viewStore.state.showExpressionEditButton {
                     Button(action: {
                         withAnimation(.spring()) {

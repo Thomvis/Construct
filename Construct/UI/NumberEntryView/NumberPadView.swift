@@ -32,7 +32,9 @@ struct NumberPadView: View {
                 Spacer()
                 SwiftUI.Button(action: { self.viewStore.send(.deleteButtonTap) }) {
                     Image(systemName: "delete.left").font(.title)
-                }.accentColor(Color(UIColor.systemRed))
+                }
+                .accentColor(Color(UIColor.systemRed))
+                .keyboardShortcut(.delete, modifiers: [])
             }
 
             Divider()
@@ -40,25 +42,25 @@ struct NumberPadView: View {
             VStack(spacing: DiceCalculatorView.buttonSpacing) {
 
                 HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                    makeButton("7", 7)
-                    makeButton("8", 8)
-                    makeButton("9", 9)
+                    makeButton("7", 7).keyboardShortcut("7", modifiers: [])
+                    makeButton("8", 8).keyboardShortcut("8", modifiers: [])
+                    makeButton("9", 9).keyboardShortcut("9", modifiers: [])
                 }
 
                 HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                    makeButton("4", 4)
-                    makeButton("5", 5)
-                    makeButton("6", 6)
+                    makeButton("4", 4).keyboardShortcut("4", modifiers: [])
+                    makeButton("5", 5).keyboardShortcut("5", modifiers: [])
+                    makeButton("6", 6).keyboardShortcut("6", modifiers: [])
                 }
 
                 HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                    makeButton("1", 1)
-                    makeButton("2", 2)
-                    makeButton("3", 3)
+                    makeButton("1", 1).keyboardShortcut("1", modifiers: [])
+                    makeButton("2", 2).keyboardShortcut("2", modifiers: [])
+                    makeButton("3", 3).keyboardShortcut("3", modifiers: [])
                 }
                 HStack(spacing: DiceCalculatorView.buttonSpacing) {
                     makeButton("--", 0).opacity(0.0)
-                    makeButton("0", 0)
+                    makeButton("0", 0).keyboardShortcut("0", modifiers: [])
                     makeButton("--", 0).opacity(0.0)
                 }
             }
