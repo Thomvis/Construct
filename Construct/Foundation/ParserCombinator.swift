@@ -144,22 +144,24 @@ func end() -> Parser<Void> {
  Skips all input until the given parser succeeds. If parser never succeeds, the skipping also fails.
  Upon success, all input up to and including the input by the given parser is consumed.
 
- The returned parser succeeds with the skipped string (including what the given parser parsed)
+ The returned parser succeeds with the skipped string (excluding what the given parser parsed)
  and the resulting value of the given parser.
  */
 func skip<A>(until parser: Parser<A>) -> Parser<(String, A)> {
     return Parser { input in
-        let position = input.position
+        let initialPosition = input.position
         var res = parser.parse(&input)
+        var preParsePosition = input.position
         while res == nil && !input.isEmpty {
             input.position += 1
+            preParsePosition = input.position
             res = parser.parse(&input)
         }
 
         if let res = res {
-            return (String(input.original[position..<input.position]), res)
+            return (String(input.original[initialPosition..<preParsePosition]), res)
         } else {
-            input.position = position
+            input.position = initialPosition
             return nil
         }
     }

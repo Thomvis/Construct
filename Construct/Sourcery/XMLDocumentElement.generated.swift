@@ -1,5 +1,6 @@
-// Generated using Sourcery 1.6.0 — https://github.com/krzysztofzablocki/Sourcery
+// Generated using Sourcery 1.0.0 — https://github.com/krzysztofzablocki/Sourcery
 // DO NOT EDIT
+
 
 internal extension XMLCompendiumParser.DocumentElement {
     init?(startElement: String) {
@@ -53,6 +54,7 @@ internal extension XMLCompendiumParser.DocumentElement.CompendiumElement {
     init?(startElement: String) {
         switch startElement {
         case "monster": self = .monster(nil)
+        case "spell": self = .spell(nil)
         default: return nil
         }
     }
@@ -66,6 +68,13 @@ internal extension XMLCompendiumParser.DocumentElement.CompendiumElement {
                 return .monster(child)
             }
             return nil
+        case .spell(let child?):
+            return child.didStartElement(element).map { .spell($0) }
+        case .spell(nil):
+            if let child = XMLCompendiumParser.DocumentElement.CompendiumElement.SpellElement(startElement: element) {
+                return .spell(child)
+            }
+            return nil
         }
     }
 
@@ -75,6 +84,11 @@ internal extension XMLCompendiumParser.DocumentElement.CompendiumElement {
             let (success, child) = child.didEndElement(element)
             if success {
                 return (true, .monster(child))
+            }
+        case .spell(let child?):
+            let (success, child) = child.didEndElement(element)
+            if success {
+                return (true, .spell(child))
             }
         default:
             if self == Self(startElement: element) {
@@ -87,12 +101,14 @@ internal extension XMLCompendiumParser.DocumentElement.CompendiumElement {
     var elementName: String {
         switch self {
         case .monster: return "monster"
+        case .spell: return "spell"
         }
     }
 
     var inner: XMLDocumentElement? {
         switch self {
         case .monster(let child): return child
+        case .spell(let child): return child
         }
     }
 
@@ -314,6 +330,70 @@ internal extension XMLCompendiumParser.DocumentElement.CompendiumElement.Monster
         case .text: return nil
         case .attack: return nil
         case .special: return nil
+        }
+    }
+
+}
+internal extension XMLCompendiumParser.DocumentElement.CompendiumElement.SpellElement {
+    init?(startElement: String) {
+        switch startElement {
+        case "name": self = .name
+        case "classes": self = .classes
+        case "level": self = .level
+        case "school": self = .school
+        case "ritual": self = .ritual
+        case "time": self = .time
+        case "range": self = .range
+        case "components": self = .components
+        case "duration": self = .duration
+        case "text": self = .text
+        default: return nil
+        }
+    }
+
+    func didStartElement(_ element: String) -> Self? {
+        switch self {
+        default: return nil
+        }
+    }
+
+    func didEndElement(_ element: String) -> (Bool, Self?) {
+        switch self {
+        default:
+            if self == Self(startElement: element) {
+                return (true, nil)
+            }
+        }
+        return (false, nil)
+    }
+
+    var elementName: String {
+        switch self {
+        case .name: return "name"
+        case .classes: return "classes"
+        case .level: return "level"
+        case .school: return "school"
+        case .ritual: return "ritual"
+        case .time: return "time"
+        case .range: return "range"
+        case .components: return "components"
+        case .duration: return "duration"
+        case .text: return "text"
+        }
+    }
+
+    var inner: XMLDocumentElement? {
+        switch self {
+        case .name: return nil
+        case .classes: return nil
+        case .level: return nil
+        case .school: return nil
+        case .ritual: return nil
+        case .time: return nil
+        case .range: return nil
+        case .components: return nil
+        case .duration: return nil
+        case .text: return nil
         }
     }
 

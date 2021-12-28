@@ -11,8 +11,8 @@
 		E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E905E0BB246D83B800698C0A /* ComposableArchitecture */; };
 		E90B961525B312BB00BD760B /* Memoize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90B961425B312BB00BD760B /* Memoize.swift */; };
 		E90EFF2A262056FE00F5443E /* compendium.xml in Resources */ = {isa = PBXBuildFile; fileRef = E90EFF29262056FE00F5443E /* compendium.xml */; };
-		E90EFF2E262057F000F5443E /* XMLMonsterDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF2D262057F000F5443E /* XMLMonsterDataSourceReader.swift */; };
-		E90EFF322620597700F5443E /* XMLMonsterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF312620597700F5443E /* XMLMonsterDataSourceReaderTest.swift */; };
+		E90EFF2E262057F000F5443E /* XMLCompendiumDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF2D262057F000F5443E /* XMLCompendiumDataSourceReader.swift */; };
+		E90EFF322620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF312620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift */; };
 		E90EFF39262082E200F5443E /* XMLDocumentElement.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF38262082E200F5443E /* XMLDocumentElement.generated.swift */; };
 		E90EFF412623220300F5443E /* DataSourceReaderParsersTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */; };
 		E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */; };
@@ -248,8 +248,8 @@
 		E90B961425B312BB00BD760B /* Memoize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memoize.swift; sourceTree = "<group>"; };
 		E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryDetailViewState.swift; sourceTree = "<group>"; };
 		E90EFF29262056FE00F5443E /* compendium.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = compendium.xml; sourceTree = "<group>"; };
-		E90EFF2D262057F000F5443E /* XMLMonsterDataSourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMLMonsterDataSourceReader.swift; sourceTree = "<group>"; };
-		E90EFF312620597700F5443E /* XMLMonsterDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMLMonsterDataSourceReaderTest.swift; sourceTree = "<group>"; };
+		E90EFF2D262057F000F5443E /* XMLCompendiumDataSourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMLCompendiumDataSourceReader.swift; sourceTree = "<group>"; };
+		E90EFF312620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMLCompendiumDataSourceReaderTest.swift; sourceTree = "<group>"; };
 		E90EFF38262082E200F5443E /* XMLDocumentElement.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLDocumentElement.generated.swift; sourceTree = "<group>"; };
 		E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSourceReaderParsersTest.swift; sourceTree = "<group>"; };
 		E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantReferenceItemView.swift; sourceTree = "<group>"; };
@@ -680,7 +680,7 @@
 				E9A9517D233B940000141552 /* SharedLiterals.swift */,
 				E999FBCC235C52E0000CCC8B /* ImprovedInitiativeDataSourceReader.swift */,
 				E940B5DA237B4AD900A8DAF4 /* Open5eSpellDataSourceReader.swift */,
-				E90EFF2D262057F000F5443E /* XMLMonsterDataSourceReader.swift */,
+				E90EFF2D262057F000F5443E /* XMLCompendiumDataSourceReader.swift */,
 			);
 			path = Readers;
 			sourceTree = "<group>";
@@ -1024,7 +1024,7 @@
 				E931CF8424FD17B8006CEE78 /* CreatureActionParserTest.swift */,
 				E931CF8925003076006CEE78 /* ParserCombinatorTest.swift */,
 				E91CCC862615D21B00CB0527 /* AppStoreScreenshotTests.swift */,
-				E90EFF312620597700F5443E /* XMLMonsterDataSourceReaderTest.swift */,
+				E90EFF312620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift */,
 				E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */,
 				E9C7F7852632C193000351AB /* NumberPadTest.swift */,
 				E98A0EF6267BCDD600316EE4 /* CreatureEditViewStateTest.swift */,
@@ -1274,7 +1274,7 @@
 				E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */,
 				E946B025247D9ED9008A407C /* Duration.swift in Sources */,
 				E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */,
-				E90EFF2E262057F000F5443E /* XMLMonsterDataSourceReader.swift in Sources */,
+				E90EFF2E262057F000F5443E /* XMLCompendiumDataSourceReader.swift in Sources */,
 				E946B02C247E6225008A407C /* CompendiumItemGroupDetailView.swift in Sources */,
 				E97651DB248BBF1B00C76865 /* RunningEncounterLogView.swift in Sources */,
 				E942E016247EB3D300170FAC /* Open5eSpellDataSourceReader.swift in Sources */,
@@ -1383,7 +1383,7 @@
 				E931E5442339525800C3FE9A /* DiceExpressionParserTest.swift in Sources */,
 				E9D266B62756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift in Sources */,
 				E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */,
-				E90EFF322620597700F5443E /* XMLMonsterDataSourceReaderTest.swift in Sources */,
+				E90EFF322620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift in Sources */,
 				E931CF8524FD17B8006CEE78 /* CreatureActionParserTest.swift in Sources */,
 				E97A4FAD23621FDA0044E424 /* EncounterDifficultyTest.swift in Sources */,
 				E9323A352320171000F0D0C6 /* KeyValueStoreTest.swift in Sources */,

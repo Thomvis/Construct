@@ -166,8 +166,8 @@ struct CompendiumImportView: View {
     static var readers: [Reader] = [
         Reader(
             name: "Compendium XML",
-            description: "Only creature entries are supported",
-            create: XMLMonsterDataSourceReader.init,
+            description: "Only creature and spell entries are supported",
+            create: XMLCompendiumDataSourceReader.init,
             prepareUrl: nil
         ),
         Reader(

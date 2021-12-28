@@ -43,3 +43,14 @@ extension Spell: CompendiumItem, Equatable {
         return name
     }
 }
+
+extension Spell.Component {
+    init?(abbreviation: String) {
+        switch abbreviation {
+        case "V": self = .verbal
+        case "S": self = .somatic
+        case "M": self = .material
+        default: return nil
+        }
+    }
+}

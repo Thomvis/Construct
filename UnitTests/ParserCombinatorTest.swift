@@ -40,7 +40,7 @@ class ParserCombinatorTest: XCTestCase {
         XCTAssertEqual(text.string(), "bcdefg")
 
         let res2 = skip(until: char("f")).parse(&text)
-        XCTAssertEqual(res2?.0, "bcdef")
+        XCTAssertEqual(res2?.0, "bcde")
         XCTAssertEqual(res2?.1, "f")
         XCTAssertEqual(text.string(), "g")
     }

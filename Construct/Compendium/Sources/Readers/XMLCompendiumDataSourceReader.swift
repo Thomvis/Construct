@@ -1,5 +1,5 @@
 //
-//  XMLMonsterDataSourceReader.swift
+//  XMLCompendiumDataSourceReader.swift
 //  Construct
 //
 //  Created by Thomas Visser on 09/04/2021.
@@ -9,7 +9,7 @@
 import Foundation
 import Combine
 
-class XMLMonsterDataSourceReader: CompendiumDataSourceReader {
+class XMLCompendiumDataSourceReader: CompendiumDataSourceReader {
     static let name = "XMLMonsterDataSourceReader"
 
     var dataSource: CompendiumDataSource
@@ -29,14 +29,22 @@ class XMLMonsterDataSourceReader: CompendiumDataSourceReader {
             output = data
                 .mapError { CompendiumDataSourceReaderError.dataSource($0) }
                 .flatMap { data in
-                    XMLCompendiumParser.parse(data: data, element: .compendium(.monster(nil)))
+                    XMLCompendiumParser.parse(data: data, elements: [.compendium(.monster(nil)), .compendium(.spell(nil))])
                         .mapError { _ in CompendiumDataSourceReaderError.incompatibleDataSource }
                 }
-                .map { element -> CompendiumDataSourceReaderOutput in
-                    guard let monster = Monster(elementContent: element, realm: .core) else {
-                        return .invalidItem(String(describing: element))
+                .map { (element, content) -> CompendiumDataSourceReaderOutput in
+                    switch (element) {
+                    case .compendium(.monster(nil)):
+                        if let monster = Monster(elementContent: content, realm: .core) {
+                            return .item(monster)
+                        }
+                    case .compendium(.spell(nil)):
+                        if let spell = Spell(elementContent: content, realm: .core) {
+                            return .item(spell)
+                        }
+                    default: break
                     }
-                    return .item(monster)
+                    return .invalidItem(String(describing: element))
                 }
                 .eraseToAnyPublisher()
         }
@@ -49,19 +57,19 @@ final class XMLCompendiumParser: NSObject {
     private let parser: XMLParser
     private var state: State = State(current: nil, unrecognized: [])
 
-    private let outputElement: DocumentElement
-    private var outputContent: [State.ElementContent] = []
+    private let outputElements: [DocumentElement]
+    private var outputContent: [(DocumentElement, State.ElementContent)] = []
 
-    private init(data: Data, element: DocumentElement) {
+    private init(data: Data, elements: [DocumentElement]) {
         parser = XMLParser(data: data)
-        outputElement = element
+        outputElements = elements
 
         super.init()
 
         parser.delegate = self
     }
 
-    func parse() -> Result<[State.ElementContent], Error> {
+    func parse() -> Result<[(DocumentElement, State.ElementContent)], Error> {
         parser.parse()
 
         if let error = parser.parserError {
@@ -71,10 +79,10 @@ final class XMLCompendiumParser: NSObject {
         return .success(outputContent)
     }
 
-    static func parse(data: Data, element: DocumentElement) -> AnyPublisher<State.ElementContent, Error> {
+    static func parse(data: Data, elements: [DocumentElement]) -> AnyPublisher<(DocumentElement, State.ElementContent), Error> {
         return Deferred {
-            XMLCompendiumParser(data: data, element: element).parse().publisher.flatMap { elements in
-                Publishers.Sequence<[State.ElementContent], Error>(sequence: elements)
+            XMLCompendiumParser(data: data, elements: elements).parse().publisher.flatMap { elements in
+                Publishers.Sequence<[(DocumentElement, State.ElementContent)], Error>(sequence: elements)
             }
         }.eraseToAnyPublisher()
     }
@@ -145,9 +153,9 @@ final class XMLCompendiumParser: NSObject {
 
                 self.state.current = new
 
-                if outputElement == current {
+                if outputElements.contains(current) {
                     if let content = endedElementContent {
-                        outputContent.append(content)
+                        outputContent.append((current, content))
                     }
                     appendContent(.element(element, nil))
                 } else {
@@ -177,6 +185,10 @@ final class XMLCompendiumParser: NSObject {
                     return string
                 }
                 return nil
+            }
+
+            var intValue: Int? {
+                stringValue.flatMap { Int($0) }
             }
 
             mutating func append(_ content: ElementContent) {
@@ -243,6 +255,7 @@ final class XMLCompendiumParser: NSObject {
 
         enum CompendiumElement: XMLDocumentElement, Hashable {
             case monster(MonsterElement?)
+            case spell(SpellElement?)
 
             enum MonsterElement: XMLDocumentElement, Hashable {
                 case name
@@ -283,6 +296,19 @@ final class XMLCompendiumParser: NSObject {
                     case attack
                     case special
                 }
+            }
+
+            enum SpellElement: XMLDocumentElement, Hashable {
+                case name
+                case classes
+                case level
+                case school
+                case ritual
+                case time
+                case range
+                case components
+                case duration
+                case text
             }
         }
     }
@@ -332,6 +358,50 @@ extension Monster {
             return nil
         }
         self.init(realm: realm, stats: stats, challengeRating: cr)
+    }
+}
+
+fileprivate typealias S = XMLCompendiumParser.DocumentElement.CompendiumElement.SpellElement
+
+extension Spell {
+    init?(elementContent c: XMLCompendiumParser.State.ElementContent, realm: CompendiumItemKey.Realm) {
+
+        guard let name = c[first: S.name]?.stringValue?.nonEmptyString,
+              let level = c[first: S.level]?.intValue,
+              let castingTime = c[first: S.time]?.stringValue,
+              let range = c[first: S.range]?.stringValue,
+              let componentsString = c[first: S.components]?.stringValue,
+              let (components, material) = componentParser.run(componentsString),
+              let ritualString = c[first: S.ritual]?.stringValue,
+              let durationString = c[first: S.duration]?.stringValue,
+              let schoolAbbreviation = c[first: S.school]?.stringValue,
+              let school = schoolsOfMagic[schoolAbbreviation],
+              let text = c[first: S.text]?.stringValue,
+              let classesString = c[first: S.classes]?.stringValue else {
+                  return nil
+              }
+
+        // duration contains concentration
+        let (concentration, duration) = durationParser.run(durationString) ?? (false, durationString)
+        let (description, higherLevels, _) = textParser.run(text) ?? (text, nil, nil)
+        let classes = classesString.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+
+        self.init(
+            realm: realm,
+            name: name,
+            level: level == 0 ? nil : level,
+            castingTime: castingTime,
+            range: range,
+            components: components,
+            ritual: ritualString == "YES",
+            duration: duration,
+            school: school,
+            concentration: concentration,
+            description: ParseableSpellDescription(input: description),
+            higherLevelDescription: higherLevels,
+            classes: classes,
+            material: material
+        )
     }
 }
 
@@ -449,3 +519,78 @@ extension StatBlock {
         )
     }
 }
+
+/// Separates concentration and duration from the duration input
+/// Parses "Concentration, up to 1 minute" as well as "Up to 1 minute"
+fileprivate let durationParser: Parser<(Bool, String)> = either(
+    zip(
+        string("Concentration,").trimming(horizontalWhitespace()),
+        remainder()
+    ).map { (true, $0.1) },
+    remainder().map { (false, $0) }
+)
+
+/// Separates the spell description and the higher level description
+/// from the text input
+fileprivate let textParser: Parser<(description: String, higherLevels: String?, source: String?)> = {
+    let source = zip(
+        string("Source: "),
+        skip(until: either(verticalWhitespace(), end().map { "" })).map { $0.0 }
+    ).map {
+        $0.1
+    }
+
+    let highLevel = zip(
+        string("At Higher Levels:"),
+        skip(until: verticalWhitespace()).map { $0.0 },
+        skip(until: either(source.map { Optional.some($0) }, end().map { Optional.none }))
+    ).map {
+        $0.2
+    }
+
+    return skip(until: either(
+        highLevel.map { (Optional.some($0.0), $0.1) },
+        source.map { (Optional.none, $0) },
+        end().map { (Optional.none, Optional.none) })
+    ).map {
+        (
+            description: $0.0.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+            higherLevels: $0.1.0?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+            source: $0.1.1?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        )
+    }
+}()
+
+fileprivate let componentParser: Parser<([Spell.Component], String?)> = oneOrMore(
+    zip(
+        either(
+            string("V").map { _ in (Spell.Component.verbal, Optional<String>.none) },
+            string("S").map { _ in (Spell.Component.somatic, Optional<String>.none) },
+            zip(
+                string("M").map { _ in Spell.Component.material },
+                zip(
+                    string("(").trimming(horizontalWhitespace()),
+                    skip(until: string(")")).map { String($0.0[..<$0.0.index($0.0.endIndex, offsetBy: -1)]) }
+                )
+                .optional()
+            )
+            .map { ($0.0, $0.1?.1) }
+        ),
+        string(",").trimming(horizontalWhitespace()).optional()
+    )
+    .map { ($0.0) }
+).map { (list: [(Spell.Component, Optional<String>)]) in
+    list.reduce((Array<Spell.Component>(), Optional<String>.none)) { acc, elem in
+        (acc.0 + [elem.0], acc.1 ?? elem.1)
+    }
+}
+
+fileprivate let schoolsOfMagic: [String:String] = [
+    "A": "Abjuration",
+    "C": "Conjuration",
+    "D": "Divination",
+    "EN": "Enchantment",
+    "EV": "Evocation",
+    "N": "Necromancy",
+    "T": "Transmutation"
+]
