@@ -13,6 +13,7 @@ import ComposableArchitecture
 private var AssociatedObjectHandle: UInt8 = 0
 
 struct ReferenceItemView: View {
+    @SwiftUI.Environment(\.openURL) private var openURL
 
     let store: Store<ReferenceItemViewState, ReferenceItemViewAction>
 
@@ -30,12 +31,23 @@ struct ReferenceItemView: View {
                     IfLetStore(store.scope(state: { $0.content.compendiumItemState }, action: { .contentCompendiumItem($0) }), then: CompendiumItemDetailView.init)
 
                     IfLetStore(store.scope(state: { $0.content.safariState}, action: { _ in .contentSafari })) { (store: Store<SafariViewState, Void>) in
-                        SafariView(store: store).navigationBarHidden(true)
+                        SafariView(store: store)
+                            .navigationBarHidden(true)
                     }
                 }
                 .navigationBarTitleDisplayMode(.inline)
             }
             .navigationViewStyle(StackNavigationViewStyle())
+            // Work-around for a blank tab when the iPad app is running on a mac
+            // Usually, macOS would convert the attempt to show a SFSafariViewController
+            // to a link open in Safari. This works on the Settings/About screen, but not here
+            // for some reason. So we do it manually.
+            .onAppear {
+                if let url = viewStore.state.content.safariState?.url, ProcessInfo.processInfo.isiOSAppOnMac {
+                    self.openURL(url)
+                    viewStore.send(.close)
+                }
+            }
         }
     }
 

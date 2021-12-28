@@ -268,6 +268,7 @@ enum ReferenceItemViewAction: Equatable {
 
     case onBackTapped
     case set(ReferenceItemViewState)
+    case close // handled by ReferenceView
 
     enum Home: Equatable, NavigationStackSourceAction {
         case compendiumSearchTapped
@@ -336,6 +337,7 @@ extension ReferenceItemViewState {
             case .contentCombatantDetail, .contentHome, .contentAddCombatant, .contentCompendiumItem: break // handled above
             case .contentSafari: break // does not occur
             case .inEncounterDetailContext: break // handled by parent
+            case .close: break // handled by parent
             }
             return .none
         }

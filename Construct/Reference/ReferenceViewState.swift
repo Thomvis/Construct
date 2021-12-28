@@ -45,9 +45,10 @@ struct ReferenceViewState: Equatable {
 
         var unmatchedItemRequests = self.itemRequests
         for req in itemRequests {
-            let existing = items[id: req.id]
+            let existingItem = items[id: req.id]
+            let existingRequest = unmatchedItemRequests.first { $0.id == req.id }
             unmatchedItemRequests.removeAll(where: { $0.id == req.id })
-            if !req.oneOff, let _ = existing {
+            if !req.oneOff, existingItem != nil {
                 let previousRequest = self.itemRequests.first(where: { $0.id == req.id })
 
                 if previousRequest?.stateGeneration != req.stateGeneration {
@@ -57,7 +58,7 @@ struct ReferenceViewState: Equatable {
                 if previousRequest?.focusRequest != req.focusRequest {
                     selectedItemId = req.id
                 }
-            } else {
+            } else if existingItem == nil && (!req.oneOff || existingRequest == nil) {
                 items.append(Item(id: req.id, state: req.state))
                 lastNewItem = req.id
             }
@@ -133,7 +134,7 @@ struct ReferenceViewState: Equatable {
                     if let title = state.state.content.tabItemTitle {
                         state.title = title;
                     }
-                case .inEncounterDetailContext: break
+                case .inEncounterDetailContext, .close: break
                 }
                 return .none
             }
@@ -158,7 +159,6 @@ extension ReferenceViewState {
         ReferenceViewState.Item.reducer.forEach(state: \.items, action: /ReferenceViewAction.item, environment: { $0 }),
         Reducer { state, action, env in
             switch action {
-            case .item: break // handled above
             case .onBackTapped:
                 if let id = state.selectedItemId {
                     return .init(value: .item(id, .onBackTapped))
@@ -187,6 +187,9 @@ extension ReferenceViewState {
                 if !state.items.contains(where: { $0.id == state.selectedItemId }) {
                     state.selectedItemId = state.items.first?.id
                 }
+            case .item(let id, .close):
+                return Effect(value: .removeTab(id))
+            case .item: break // handled above
             }
             return .none
         },
