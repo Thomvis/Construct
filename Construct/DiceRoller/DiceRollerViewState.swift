@@ -11,6 +11,7 @@ import ComposableArchitecture
 
 struct DiceRollerViewState: Equatable {
     var calculatorState: DiceCalculatorState
+    var diceLog: [DiceLogEntry]
     var showOutcome: Bool
 
     init() {
@@ -20,6 +21,7 @@ struct DiceRollerViewState: Equatable {
             expression: .number(0),
             mode: .editingExpression
         )
+        self.diceLog = []
         self.showOutcome = false
     }
 }
@@ -47,6 +49,32 @@ extension DiceRollerViewState {
             return .none
         },
         DiceCalculatorState.reducer.pullback(state: \.calculatorState, action: /DiceRollerViewAction.calculatorState, environment: { $0 })
+            .onChange(of: { $0.calculatorState.result }) { _, state, action, env in
+                if let result = state.calculatorState.result {
+                    let roll: DiceLogEntry.Roll = .custom(state.calculatorState.expression)
+                    let result: DiceLogEntry.Result = .init(
+                        id: UUID().tagged(),
+                        type: .normal,
+                        first: result,
+                        second: nil
+                    )
+
+                    if state.diceLog.last?.roll == roll {
+                        state.diceLog[state.diceLog.endIndex-1].results.append(result)
+                    } else {
+                        state.diceLog.append(DiceLogEntry(
+                            id: UUID().tagged(),
+                            roll: roll,
+                            rolledBy: .DM,
+                            results: [
+                                result
+                            ]
+                        ))
+                    }
+                }
+
+                return .none
+            }
     )
 
     static let nullInstance = DiceRollerViewState()

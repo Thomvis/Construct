@@ -68,6 +68,37 @@ struct DiceRollerView: View {
                         Color(UIColor.systemBackground).opacity(0.1),
                         Color(UIColor.systemBackground).opacity(0.9)
                     ]), startPoint: .top, endPoint: .bottom)
+
+                    DiceLogFeedView(entries: viewStore.state.diceLog)
+                        .padding(.trailing, 12)
+                        .mask(alignment: .top) {
+                            VStack(spacing: 0) {
+                                Color.clear
+                                    .frame(height: 22)
+
+                                LinearGradient(
+                                    stops: [
+                                        Gradient.Stop(color: .clear, location: .zero),
+                                        Gradient.Stop(color: .black, location: 1.0)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                                .frame(height: 100)
+
+                                Color.black
+
+                                LinearGradient(
+                                    stops: [
+                                        Gradient.Stop(color: .black, location: .zero),
+                                        Gradient.Stop(color: .clear, location: 1.0)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                                .frame(height: 20)
+                            }
+                        }
                 }
             }
 
@@ -116,3 +147,118 @@ struct OutcomePopover: View, Popover {
         return eraseToAnyView
     }
 }
+
+#if DEBUG
+struct DiceRollerView_Preview: PreviewProvider {
+    static var previews: some View {
+        DiceRollerView(
+            store: Store(
+                initialState: DiceRollerViewState(),
+                reducer: DiceRollerViewState.reducer,
+                environment: try! Environment.live()
+            ),
+            isVisible: true
+        )
+    }
+}
+
+let sampleEntries = [
+   DiceLogEntry(
+       id: UUID().tagged(),
+       roll: .custom(1.d(20) + 3),
+       rolledBy: .DM,
+       results: [
+           .init(
+               id: UUID().tagged(),
+               type: .normal,
+               first: (1.d(20)+3).roll,
+               second: nil
+           )
+       ]
+   ),
+   DiceLogEntry(
+       id: UUID().tagged(),
+       roll: .custom(1.d(20) + 4),
+       rolledBy: .DM,
+       results: [
+           .init(
+               id: UUID().tagged(),
+               type: .advantage,
+               first: (1.d(20)+4).roll,
+               second: (1.d(20)+4).roll
+           ),
+           .init(
+               id: UUID().tagged(),
+               type: .advantage,
+               first: (1.d(20)+4).roll,
+               second: (1.d(20)+4).roll
+           ),
+           .init(
+               id: UUID().tagged(),
+               type: .advantage,
+               first: (1.d(20)+4).roll,
+               second: (1.d(20)+4).roll
+           )
+       ]
+   ),
+   DiceLogEntry(
+       id: UUID().tagged(),
+       roll: .custom(1.d(20) + 5),
+       rolledBy: .DM,
+       results: [
+           .init(
+               id: UUID().tagged(),
+               type: .disadvantage,
+               first: (1.d(20)+5).roll,
+               second: (1.d(20)+5).roll
+           ),
+           .init(
+               id: UUID().tagged(),
+               type: .disadvantage,
+               first: (1.d(20)+5).roll,
+               second: (1.d(20)+5).roll
+           )
+       ]
+   ),
+   DiceLogEntry(
+       id: UUID().tagged(),
+       roll: .custom(1.d(20) + 3),
+       rolledBy: .DM,
+       results: [
+           .init(
+               id: UUID().tagged(),
+               type: .normal,
+               first: (1.d(20)+3).roll,
+               second: nil
+           )
+       ]
+   ),
+   DiceLogEntry(
+       id: UUID().tagged(),
+       roll: .custom(1.d(20) + 4),
+       rolledBy: .DM,
+       results: [
+           .init(
+               id: UUID().tagged(),
+               type: .advantage,
+               first: (1.d(20)+4).roll,
+               second: (1.d(20)+4).roll
+           )
+       ]
+   ),
+   DiceLogEntry(
+       id: UUID().tagged(),
+       roll: .custom(1.d(20) + 5),
+       rolledBy: .DM,
+       results: [
+           .init(
+               id: UUID().tagged(),
+               type: .disadvantage,
+               first: (1.d(20)+5).roll,
+               second: (1.d(20)+5).roll
+           )
+       ]
+   )
+]
+#endif
+

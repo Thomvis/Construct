@@ -186,6 +186,24 @@ extension Reducer {
     ) -> Reducer<GlobalState, GlobalAction, Environment> {
         pullback(state: toLocalState, action: toLocalAction, environment: { $0 })
     }
+
+    // From https://github.com/pointfreeco/isowords/blob/244925184babddd477d637bdc216fb34d1d8f88d/Sources/TcaHelpers/OnChange.swift#L4
+    public func onChange<LocalState>(
+        of toLocalState: @escaping (State) -> LocalState,
+        perform additionalEffects: @escaping (LocalState, inout State, Action, Environment) -> Effect<
+        Action, Never
+        >
+    ) -> Self where LocalState: Equatable {
+        .init { state, action, environment in
+            let previousLocalState = toLocalState(state)
+            let effects = self.run(&state, action, environment)
+            let localState = toLocalState(state)
+
+            return previousLocalState != localState
+            ? .merge(effects, additionalEffects(localState, &state, action, environment))
+            : effects
+        }
+    }
 }
 
 extension CasePath {

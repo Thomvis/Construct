@@ -207,6 +207,8 @@
 		E999FBD2235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD1235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift */; };
 		E999FBD6235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD5235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift */; };
 		E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBFE235E2F29000CCC8B /* DocumentPicker.swift */; };
+		E99B89B9277C69FF009DAEDD /* DiceLogFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99B89B8277C69FE009DAEDD /* DiceLogFeedView.swift */; };
+		E99B89BA277C6A42009DAEDD /* DiceLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99B89B6277C5D87009DAEDD /* DiceLog.swift */; };
 		E99F95A42428DCB100183B5B /* RunningEncounterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99F95A32428DCB000183B5B /* RunningEncounterTest.swift */; };
 		E9A71EBC239ADB400098317E /* Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A71EBB239ADB400098317E /* Style.swift */; };
 		E9A95177233B8A3A00141552 /* DDBModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95176233B8A3A00141552 /* DDBModels.swift */; };
@@ -419,6 +421,8 @@
 		E999FBDA235DC6E1000CCC8B /* CombatantTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTag.swift; sourceTree = "<group>"; };
 		E999FBFC235E28AD000CCC8B /* CompendiumImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImportView.swift; sourceTree = "<group>"; };
 		E999FBFE235E2F29000CCC8B /* DocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPicker.swift; sourceTree = "<group>"; };
+		E99B89B6277C5D87009DAEDD /* DiceLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceLog.swift; sourceTree = "<group>"; };
+		E99B89B8277C69FE009DAEDD /* DiceLogFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceLogFeedView.swift; sourceTree = "<group>"; };
 		E99BAB1623CE57300086D42E /* RunningEncounterLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningEncounterLogView.swift; sourceTree = "<group>"; };
 		E99F959D241C260600183B5B /* Duration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duration.swift; sourceTree = "<group>"; };
 		E99F95A1241CFA9300183B5B /* EffectDurationEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectDurationEditView.swift; sourceTree = "<group>"; };
@@ -499,6 +503,8 @@
 				E985FDC923E4A6AC00F1A62C /* DiceRollerViewState.swift */,
 				E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */,
 				E9121E2825FA75D50048BE32 /* FloatingDiceRollerViewState.swift */,
+				E99B89B6277C5D87009DAEDD /* DiceLog.swift */,
+				E99B89B8277C69FE009DAEDD /* DiceLogFeedView.swift */,
 			);
 			path = DiceRoller;
 			sourceTree = "<group>";
@@ -1256,6 +1262,7 @@
 				E97651DA248AEB9200C76865 /* EffectDurationEditView.swift in Sources */,
 				E9A71EBC239ADB400098317E /* Style.swift in Sources */,
 				E971E5262374C3130005725F /* RoundedButton.swift in Sources */,
+				E99B89B9277C69FF009DAEDD /* DiceLogFeedView.swift in Sources */,
 				E972FEC42626ADE700C21B58 /* DecodableDefault.swift in Sources */,
 				E9B432BB22AAF7540054324E /* Environment.swift in Sources */,
 				E9AB031323EBF09B0091C908 /* EqualSize.swift in Sources */,
@@ -1323,6 +1330,7 @@
 				E97651D2248AE0D600C76865 /* RunningEncounterEventRow.swift in Sources */,
 				E9819BE22482E772005B898E /* CombatantTrackerEditView.swift in Sources */,
 				E97651D9248AEA8000C76865 /* CombatantTagEditView.swift in Sources */,
+				E99B89BA277C6A42009DAEDD /* DiceLog.swift in Sources */,
 				E931E54223394BCF00C3FE9A /* DiceExpressionParser.swift in Sources */,
 				E944156F273B13DE00F02C2D /* ParseableCreatureFeature.swift in Sources */,
 				E97651CA248AD9AA00C76865 /* SettingsView.swift in Sources */,
