@@ -74,7 +74,8 @@ struct EncounterDetailView: View {
             }, set: {
                 self.viewStore.send(.editMode($0))
             }))
-
+        }
+        .safeAreaInset(edge: .bottom) {
             VStack {
                 if viewStore.state.running == nil {
                     if viewStore.state.editMode == .active {
@@ -90,8 +91,8 @@ struct EncounterDetailView: View {
                     }
                 }
             }
-            .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
             .ignoresSafeArea(.keyboard, edges: .all)
+            .padding(8)
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .navigationBarItems(trailing: Button(action: {
