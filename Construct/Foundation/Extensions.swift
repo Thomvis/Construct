@@ -318,6 +318,10 @@ extension CGPoint {
         return CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
     }
 
+    func offset(dx: CGFloat = 0, dy: CGFloat = 0) -> CGPoint {
+        return CGPoint(x: x + dx, y: y + dy)
+    }
+
     init(_ size: CGSize) {
         self = CGPoint(x: size.width, y: size.height)
     }

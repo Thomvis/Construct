@@ -21,7 +21,58 @@ struct DiceRollerViewState: Equatable {
             expression: .number(0),
             mode: .editingExpression
         )
-        self.diceLog = []
+        self.diceLog = [
+            DiceLogEntry(
+                id: UUID().tagged(),
+                roll: .custom(1.d(20) + 5),
+                rolledBy: .DM,
+                results: [
+                    .init(
+                        id: UUID().tagged(),
+                        type: .normal,
+                        first: (1.d(20)+5).roll,
+                        second: nil
+                    ),
+                    .init(
+                        id: UUID().tagged(),
+                        type: .normal,
+                        first: (1.d(20)+5).roll,
+                        second: nil
+                    ),
+                    .init(
+                        id: UUID().tagged(),
+                        type: .normal,
+                        first: (1.d(20)+5).roll,
+                        second: nil
+                    )
+                ]
+            ),
+            DiceLogEntry(
+                id: UUID().tagged(),
+                roll: .custom(1.d(20) + 5),
+                rolledBy: .DM,
+                results: [
+                    .init(
+                        id: UUID().tagged(),
+                        type: .normal,
+                        first: (1.d(20)+5).roll,
+                        second: nil
+                    ),
+                    .init(
+                        id: UUID().tagged(),
+                        type: .disadvantage,
+                        first: (1.d(20)+5).roll,
+                        second: (1.d(20)+5).roll
+                    ),
+                    .init(
+                        id: UUID().tagged(),
+                        type: .normal,
+                        first: (1.d(20)+5).roll,
+                        second: nil
+                    )
+                ]
+            )
+        ]
         self.showOutcome = false
     }
 }
