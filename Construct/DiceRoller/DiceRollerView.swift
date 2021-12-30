@@ -166,7 +166,6 @@ let sampleEntries = [
    DiceLogEntry(
        id: UUID().tagged(),
        roll: .custom(1.d(20) + 3),
-       rolledBy: .DM,
        results: [
            .init(
                id: UUID().tagged(),
@@ -179,7 +178,6 @@ let sampleEntries = [
    DiceLogEntry(
        id: UUID().tagged(),
        roll: .custom(1.d(20) + 4),
-       rolledBy: .DM,
        results: [
            .init(
                id: UUID().tagged(),
@@ -204,7 +202,6 @@ let sampleEntries = [
    DiceLogEntry(
        id: UUID().tagged(),
        roll: .custom(1.d(20) + 5),
-       rolledBy: .DM,
        results: [
            .init(
                id: UUID().tagged(),
@@ -223,7 +220,6 @@ let sampleEntries = [
    DiceLogEntry(
        id: UUID().tagged(),
        roll: .custom(1.d(20) + 3),
-       rolledBy: .DM,
        results: [
            .init(
                id: UUID().tagged(),
@@ -236,7 +232,6 @@ let sampleEntries = [
    DiceLogEntry(
        id: UUID().tagged(),
        roll: .custom(1.d(20) + 4),
-       rolledBy: .DM,
        results: [
            .init(
                id: UUID().tagged(),
@@ -249,7 +244,6 @@ let sampleEntries = [
    DiceLogEntry(
        id: UUID().tagged(),
        roll: .custom(1.d(20) + 5),
-       rolledBy: .DM,
        results: [
            .init(
                id: UUID().tagged(),

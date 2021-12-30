@@ -41,6 +41,8 @@ struct DiceCalculatorState: Hashable {
     let rollOnAppear: Bool
 
     var expression: DiceExpression
+    var roll: RollDescription? = nil
+
     var result: RolledDiceExpression? = nil
     var intermediaryResult: RolledDiceExpression? = nil // contains values in rapid succession just after a new result it set
 
@@ -66,6 +68,18 @@ struct DiceCalculatorState: Hashable {
     struct EntryContext: Hashable {
         var color: Die.Color?
         var subtract: Bool
+    }
+
+    static func rolling(_ roll: RollDescription, rollOnAppear: Bool = false, prefilledResult: Int? = nil) -> DiceCalculatorState {
+        DiceCalculatorState(
+            displayOutcomeExternally: false,
+            rollOnAppear: rollOnAppear,
+            expression: roll.expression,
+            roll: roll,
+            result: prefilledResult.map { .number($0) },
+            mode: .rollingExpression,
+            previousExpressions: [.number(0)]
+        )
     }
 
     static func rollingExpression(_ expression: DiceExpression, rollOnAppear: Bool = false, prefilledResult: Int? = nil) -> DiceCalculatorState {
@@ -145,10 +159,24 @@ struct DiceCalculatorState: Hashable {
         case .startGeneratingIntermediaryResults(let expression):
             return Effect(value: .intermediaryResultsStep(expression, state.intermediaryResultStepCount))
         case .intermediaryResultsStep(let expression, let remaining):
-            guard expression == state.expression && remaining > 0 else {
+            guard expression == state.expression else {
                 state.intermediaryResult = nil
                 return .none
             }
+
+            guard remaining > 0 else {
+                state.intermediaryResult = nil
+
+                if let result = state.result {
+                    if let roll = state.roll, roll.expression == expression {
+                        env.diceLog.didRoll(result, roll: roll)
+                    } else {
+                        env.diceLog.didRoll(result, roll: .custom(expression))
+                    }
+                }
+                return .none
+            }
+
             state.intermediaryResult = expression.roll
 
             return Effect(value: .intermediaryResultsStep(expression, remaining-1))

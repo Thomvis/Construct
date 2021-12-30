@@ -39,6 +39,7 @@ struct ConstructApp: App {
             environment: env
         )
         self.viewStore = ViewStore(store)
+        viewStore.send(.onLaunch)
     }
 
     @SceneBuilder

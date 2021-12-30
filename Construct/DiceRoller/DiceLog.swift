@@ -8,21 +8,61 @@
 
 import Foundation
 import Tagged
+import Combine
+
+struct DiceLog {
+    private let subject: PassthroughSubject<(RolledDiceExpression, RollDescription), Never> = .init()
+
+    var rolls: AnyPublisher<(RolledDiceExpression, RollDescription), Never> {
+        subject.eraseToAnyPublisher()
+    }
+
+    func didRoll(_ expression: RolledDiceExpression, roll: RollDescription) {
+        subject.send((expression, roll))
+    }
+}
+
+struct RollDescription: Hashable {
+    var expression: DiceExpression
+    var title: AttributedString
+
+    static func custom(_ expression: DiceExpression) -> Self {
+        RollDescription(
+            expression: expression,
+            title: AttributedString(expression.description)
+        )
+    }
+
+    static func abilityCheck(_ modifier: Int, ability: Ability, skill: Skill? = nil, combatant: Combatant? = nil, environment: Environment) -> Self {
+        .abilityCheck(modifier, ability: ability, skill: skill, creatureName: combatant?.discriminatedName, environment: environment)
+    }
+
+    static func abilityCheck(_ modifier: Int, ability: Ability, skill: Skill? = nil, creatureName: String? = nil, environment: Environment) -> Self {
+        var title = AttributedString("\(environment.modifierFormatter.stringWithFallback(for: modifier))")
+
+        title += AttributedString(" \(ability.localizedDisplayName)")
+
+        if let skill = skill {
+            title += AttributedString(" (\(skill.localizedDisplayName))")
+        }
+
+        title += AttributedString(" Check")
+
+        if let creatureName = creatureName {
+            title += AttributedString(" - \(creatureName)")
+        }
+
+        return RollDescription(
+            expression: 1.d(20)+modifier,
+            title: title
+        )
+    }
+}
 
 struct DiceLogEntry: Hashable {
     let id: Tagged<DiceLogEntry, UUID>
-    let roll: Roll
-    let rolledBy: RollAuthor
+    let roll: RollDescription
     var results: [Result]
-
-    // Future-proofing
-    enum RollAuthor: Hashable {
-        case DM
-    }
-
-    enum Roll: Hashable {
-        case custom(DiceExpression)
-    }
 
     struct Result: Hashable {
         let id: Tagged<Result, UUID>

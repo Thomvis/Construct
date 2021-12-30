@@ -21,7 +21,7 @@ struct DiceLogFeedView: View {
 
                         ForEach(entries.suffix(20), id: \.id) { entry in
                             VStack(alignment: .trailing, spacing: 2) {
-                                Text(entry.rollDescription).font(.footnote).bold()
+                                Text(entry.roll.title).font(.footnote).bold()
 
                                 VStack(alignment: .trailing, spacing: 8) {
                                     ForEach(entry.results.suffix(20), id: \.id) { result in
@@ -57,6 +57,13 @@ struct DiceLogFeedView: View {
                     .frame(maxWidth: .infinity, minHeight: proxy.size.height, alignment: .bottomTrailing)
                 }
                 .onChange(of: entries.last) { _ in
+                    DispatchQueue.main.async {
+                        withAnimation(.spring()) {
+                            p.scrollTo("bottom", anchor: .bottom)
+                        }
+                    }
+                }
+                .onAppear {
                     DispatchQueue.main.async {
                         withAnimation(.spring()) {
                             p.scrollTo("bottom", anchor: .bottom)
@@ -141,18 +148,8 @@ struct DiceLogFeedView: View {
                 right.addQuadCurve(to: rightPoints[0].offset(dx: -cr), control: rightPoints[0])
                 right.closeSubpath()
 
-
                 context.stroke(right, with: .color(Color(UIColor.systemGray5)), lineWidth: 2)
             }
-        }
-    }
-}
-
-extension DiceLogEntry {
-    var rollDescription: AttributedString {
-        switch roll {
-        case .custom(let expression):
-            return AttributedString(expression.description)
         }
     }
 }

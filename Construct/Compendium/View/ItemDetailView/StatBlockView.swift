@@ -183,7 +183,7 @@ struct StatBlockView: View {
             let title = "\(s.localizedDisplayName) (\(s.ability.localizedAbbreviation.uppercased()))"
             if let modifier = stats.skillModifier(s) {
                 Button(action: {
-                    onTap?(.rollCheck(1.d(20)+modifier.modifier))
+                    onTap?(.skill(s))
                 }) {
                     Label(title: {
                         Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
@@ -240,6 +240,7 @@ struct StatBlockView: View {
 
     enum TapTarget: Codable {
         case ability(Ability)
+        case skill(Skill)
         case action(CreatureAction, CreatureActionParser.Action)
         case rollCheck(DiceExpression)
         case compendiumItemReferenceTextAnnotation(CompendiumItemReferenceTextAnnotation)

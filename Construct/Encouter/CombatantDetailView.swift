@@ -278,7 +278,10 @@ struct CombatantDetailView: View {
                 switch target {
                 case .ability(let a):
                     let modifier: Int = stats.abilityScores?.score(for: a).modifier.modifier ?? 0
-                    self.viewStore.send(.popover(.rollCheck(.rollingExpression(1.d(20)+modifier, rollOnAppear: true))))
+                    self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, combatant: combatant, environment: self.env), rollOnAppear: true))))
+                case .skill(let s):
+                    let modifier: Int = stats.skillModifier(s)?.modifier ?? 0
+                    self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, combatant: combatant, environment: self.env), rollOnAppear: true))))
                 case .action(let a, let p):
                     if let action = DiceAction(title: a.name, parsedAction: p, env: env) {
                         self.viewStore.send(.popover(.diceAction(DiceActionViewState(action: action))))

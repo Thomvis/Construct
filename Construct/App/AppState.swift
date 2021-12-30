@@ -62,6 +62,7 @@ struct AppState: Equatable {
     }
 
     enum Action: Equatable {
+        case onLaunch
         case navigation(AppStateNavigationAction)
 
         case onHorizontalSizeClassChange(UserInterfaceSizeClass)
@@ -82,6 +83,15 @@ struct AppState: Equatable {
         return Reducer.combine(
             Reducer { state, action, env in
                 switch action {
+                case .onLaunch:
+                    // Listen to dice rolls and forward them to the right place
+                    return env.diceLog.rolls.flatMap { (result, roll) in
+                        [
+                            .navigation(.tab(.diceRoller(.onProcessRollForDiceLog(result, roll))))
+                        ].publisher
+                    }
+                    .eraseToEffect()
+                    .cancellable(id: "diceLog", cancelInFlight: true)
                 case .navigation: break // handled below
                 case .onHorizontalSizeClassChange(let sizeClass):
                     switch (state.navigation, sizeClass) {

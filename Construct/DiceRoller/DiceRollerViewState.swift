@@ -21,52 +21,7 @@ struct DiceRollerViewState: Equatable {
             expression: .number(0),
             mode: .editingExpression
         )
-        self.diceLog = [
-            DiceLogEntry(
-                id: UUID().tagged(),
-                roll: .custom(1.d(20) + 5),
-                rolledBy: .DM,
-                results: [
-                    .init(
-                        id: UUID().tagged(),
-                        type: .normal,
-                        first: (1.d(20)+5).roll,
-                        second: nil
-                    ),
-                    .init(
-                        id: UUID().tagged(),
-                        type: .normal,
-                        first: (1.d(20)+5).roll,
-                        second: nil
-                    ),
-                    .init(
-                        id: UUID().tagged(),
-                        type: .normal,
-                        first: (1.d(20)+5).roll,
-                        second: nil
-                    )
-                ]
-            ),
-            DiceLogEntry(
-                id: UUID().tagged(),
-                roll: .custom(1.d(20) + 5),
-                rolledBy: .DM,
-                results: [
-                    .init(
-                        id: UUID().tagged(),
-                        type: .normal,
-                        first: (1.d(20)+5).roll,
-                        second: nil
-                    ),
-                    .init(
-                        id: UUID().tagged(),
-                        type: .disadvantage,
-                        first: (1.d(20)+5).roll,
-                        second: (1.d(20)+5).roll
-                    )
-                ]
-            )
-        ]
+        self.diceLog = []
         self.showOutcome = false
     }
 }
@@ -74,6 +29,7 @@ struct DiceRollerViewState: Equatable {
 enum DiceRollerViewAction: Equatable {
     case calculatorState(DiceCalculatorAction)
     case hideOutcome
+    case onProcessRollForDiceLog(RolledDiceExpression, RollDescription)
 
     var calculatorState: DiceCalculatorAction? {
         guard case .calculatorState(let a) = self else { return nil }
@@ -90,36 +46,54 @@ extension DiceRollerViewState {
             case .calculatorState: break
             case .hideOutcome:
                 state.showOutcome = false
+            case .onProcessRollForDiceLog(let result, let roll):
+                let result: DiceLogEntry.Result = .init(
+                    id: UUID().tagged(),
+                    type: .normal,
+                    first: result,
+                    second: nil
+                )
+
+                if state.diceLog.last?.roll == roll {
+                    state.diceLog[state.diceLog.endIndex-1].results.append(result)
+                } else {
+                    state.diceLog.append(DiceLogEntry(
+                        id: UUID().tagged(),
+                        roll: roll,
+                        results: [
+                            result
+                        ]
+                    ))
+                }
             }
             return .none
         },
         DiceCalculatorState.reducer.pullback(state: \.calculatorState, action: /DiceRollerViewAction.calculatorState, environment: { $0 })
-            .onChange(of: { $0.calculatorState.result }) { _, state, action, env in
-                if let result = state.calculatorState.result {
-                    let roll: DiceLogEntry.Roll = .custom(state.calculatorState.expression)
-                    let result: DiceLogEntry.Result = .init(
-                        id: UUID().tagged(),
-                        type: .normal,
-                        first: result,
-                        second: nil
-                    )
-
-                    if state.diceLog.last?.roll == roll {
-                        state.diceLog[state.diceLog.endIndex-1].results.append(result)
-                    } else {
-                        state.diceLog.append(DiceLogEntry(
-                            id: UUID().tagged(),
-                            roll: roll,
-                            rolledBy: .DM,
-                            results: [
-                                result
-                            ]
-                        ))
-                    }
-                }
-
-                return .none
-            }
+//            .onChange(of: { $0.calculatorState.intermediaryResult == nil ? $0.calculatorState.result : nil }) { result, state, action, env in
+//                if let result = result {
+//                    let roll: DiceLogEntry.Roll = .custom(state.calculatorState.expression)
+//                    let result: DiceLogEntry.Result = .init(
+//                        id: UUID().tagged(),
+//                        type: .normal,
+//                        first: result,
+//                        second: nil
+//                    )
+//
+//                    if state.diceLog.last?.roll == roll {
+//                        state.diceLog[state.diceLog.endIndex-1].results.append(result)
+//                    } else {
+//                        state.diceLog.append(DiceLogEntry(
+//                            id: UUID().tagged(),
+//                            roll: roll,
+//                            results: [
+//                                result
+//                            ]
+//                        ))
+//                    }
+//                }
+//
+//                return .none
+//            }
     )
 
     static let nullInstance = DiceRollerViewState()

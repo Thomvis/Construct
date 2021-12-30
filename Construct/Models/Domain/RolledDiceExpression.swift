@@ -60,6 +60,14 @@ enum RolledDiceExpression: Hashable {
         }
     }
 
+    var unroll: DiceExpression {
+        switch self {
+        case .dice(let d, let rs): return .dice(count: rs.count, die: d)
+        case .compound(let lhs, let op, let rhs): return .compound(lhs.unroll, op, rhs.unroll)
+        case .number(let n): return .number(n)
+        }
+    }
+
     mutating func rerollDice(_ index: Int) {
         var offset = index
         var rng = SystemRandomNumberGenerator()

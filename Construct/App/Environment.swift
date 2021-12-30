@@ -33,6 +33,8 @@ class Environment: ObservableObject {
 
     var dismissKeyboard: () -> Void
 
+    var diceLog: DiceLog
+
     internal init(
         modifierFormatter: NumberFormatter,
         ordinalFormatter: NumberFormatter,
@@ -45,7 +47,8 @@ class Environment: ObservableObject {
         generateUUID: @escaping () -> UUID,
         rng: AnyRandomNumberGenerator,
         mainQueue: AnySchedulerOf<DispatchQueue>,
-        dismissKeyboard: @escaping () -> Void
+        dismissKeyboard: @escaping () -> Void,
+        diceLog: DiceLog
     ) {
         self.modifierFormatter = modifierFormatter
         self.ordinalFormatter = ordinalFormatter
@@ -59,6 +62,7 @@ class Environment: ObservableObject {
         self.rng = rng
         self.mainQueue = mainQueue
         self.dismissKeyboard = dismissKeyboard
+        self.diceLog = diceLog
     }
 
     var compendium: Compendium {
@@ -124,7 +128,8 @@ extension Environment {
             mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
             dismissKeyboard: {
                 keyWindow()?.endEditing(true)
-            }
+            },
+            diceLog: DiceLog()
         )
     }
 
