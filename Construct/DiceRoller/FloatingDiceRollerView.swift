@@ -42,7 +42,7 @@ struct FloatingDiceRollerContainerView: View {
                         Image("tabbar_d20")
                             .padding(18)
                             .background(
-                                Circle().foregroundColor(Color(UIColor.systemBackground))
+                                Circle().foregroundColor(Color(UIColor.secondarySystemBackground))
                                     .shadow(color: Color.black.opacity(0.33), radius: 5)
                             )
                             .padding(12)
@@ -97,7 +97,7 @@ struct FloatingDiceRollerContainerView: View {
                     Image(systemName: "pip.remove")
                 }
             }
-            .background(Color(UIColor.systemGray6).padding(EdgeInsets(
+            .background(Color(UIColor.systemGray4).padding(EdgeInsets(
                                                             top: -Self.panelToolbarVerticalPadding,
                                                             leading: -Self.innerPanelPadding,
                                                             bottom: -Self.panelToolbarVerticalPadding,
@@ -111,7 +111,7 @@ struct FloatingDiceRollerContainerView: View {
         .frame(width: 280)
         .fixedSize()
         .padding([.leading, .trailing, .bottom], Self.innerPanelPadding)
-        .background(Color(UIColor.systemBackground))
+        .background(Color(UIColor.secondarySystemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.33), radius: 5)
         .offset(dragOffset)
