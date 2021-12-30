@@ -69,7 +69,7 @@ struct DiceRollerView: View {
                         Color(UIColor.systemBackground).opacity(0.9)
                     ]), startPoint: .top, endPoint: .bottom)
 
-                    DiceLogFeedView(entries: viewStore.state.diceLog)
+                    DiceLogFeedView(entries: viewStore.state.diceLog.entries)
                         .padding(.trailing, 12)
                         .mask(alignment: .top) {
                             VStack(spacing: 0) {

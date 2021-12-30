@@ -12,6 +12,7 @@ import ComposableArchitecture
 struct FloatingDiceRollerViewState: Equatable {
     var hidden: Bool = false
     var diceCalculator: DiceCalculatorState
+    var diceLog = DiceLog()
 
     var canCollapse: Bool {
         diceCalculator.mode != .rollingExpression
@@ -24,6 +25,8 @@ enum FloatingDiceRollerViewAction: Equatable {
     case show
     case collapse
     case expand
+
+    case onProcessRollForDiceLog(RolledDiceExpression, RollDescription)
 }
 
 extension FloatingDiceRollerViewState {
@@ -41,6 +44,8 @@ extension FloatingDiceRollerViewState {
                 state.diceCalculator.mode = .rollingExpression
             case .expand:
                 state.diceCalculator.mode = .editingExpression
+            case .onProcessRollForDiceLog(let result, let roll):
+                state.diceLog.receive(result, for: roll)
             }
             return .none
         }

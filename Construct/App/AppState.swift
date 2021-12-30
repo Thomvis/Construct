@@ -77,6 +77,8 @@ struct AppState: Equatable {
 
         case sceneDidBecomeActive
         case sceneWillResignActive
+
+        case onProcessRollForDiceLog(RolledDiceExpression, RollDescription)
     }
 
     static var reducer: Reducer<AppState, Action, Environment> {
@@ -85,10 +87,8 @@ struct AppState: Equatable {
                 switch action {
                 case .onLaunch:
                     // Listen to dice rolls and forward them to the right place
-                    return env.diceLog.rolls.flatMap { (result, roll) in
-                        [
-                            .navigation(.tab(.diceRoller(.onProcessRollForDiceLog(result, roll))))
-                        ].publisher
+                    return env.diceLog.rolls.map { (result, roll) in
+                        .onProcessRollForDiceLog(result, roll)
                     }
                     .eraseToEffect()
                     .cancellable(id: "diceLog", cancelInFlight: true)
@@ -163,6 +163,12 @@ struct AppState: Equatable {
                     }
                 case .sceneWillResignActive:
                     state.sceneIsActive = false
+                case .onProcessRollForDiceLog(let result, let roll):
+                    if state.navigation?.tabState != nil {
+                        return Effect(value: .navigation(.tab(.diceRoller(.onProcessRollForDiceLog(result, roll)))))
+                    } else {
+                        return Effect(value: .navigation(.column(.diceCalculator(.onProcessRollForDiceLog(result, roll)))))
+                    }
                 }
                 return .none
             },

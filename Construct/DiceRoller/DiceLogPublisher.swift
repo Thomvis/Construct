@@ -10,7 +10,7 @@ import Foundation
 import Tagged
 import Combine
 
-struct DiceLog {
+struct DiceLogPublisher {
     private let subject: PassthroughSubject<(RolledDiceExpression, RollDescription), Never> = .init()
 
     var rolls: AnyPublisher<(RolledDiceExpression, RollDescription), Never> {
@@ -19,6 +19,31 @@ struct DiceLog {
 
     func didRoll(_ expression: RolledDiceExpression, roll: RollDescription) {
         subject.send((expression, roll))
+    }
+}
+
+struct DiceLog: Hashable {
+    var entries: [DiceLogEntry] = []
+
+    mutating func receive(_ result: RolledDiceExpression, for roll: RollDescription) {
+        let result: DiceLogEntry.Result = .init(
+            id: UUID().tagged(),
+            type: .normal,
+            first: result,
+            second: nil
+        )
+
+        if entries.last?.roll == roll {
+            entries[entries.endIndex-1].results.append(result)
+        } else {
+            entries.append(DiceLogEntry(
+                id: UUID().tagged(),
+                roll: roll,
+                results: [
+                    result
+                ]
+            ))
+        }
     }
 }
 

@@ -33,7 +33,7 @@ class Environment: ObservableObject {
 
     var dismissKeyboard: () -> Void
 
-    var diceLog: DiceLog
+    var diceLog: DiceLogPublisher
 
     internal init(
         modifierFormatter: NumberFormatter,
@@ -48,7 +48,7 @@ class Environment: ObservableObject {
         rng: AnyRandomNumberGenerator,
         mainQueue: AnySchedulerOf<DispatchQueue>,
         dismissKeyboard: @escaping () -> Void,
-        diceLog: DiceLog
+        diceLog: DiceLogPublisher
     ) {
         self.modifierFormatter = modifierFormatter
         self.ordinalFormatter = ordinalFormatter
@@ -129,7 +129,7 @@ extension Environment {
             dismissKeyboard: {
                 keyWindow()?.endEditing(true)
             },
-            diceLog: DiceLog()
+            diceLog: DiceLogPublisher()
         )
     }
 
