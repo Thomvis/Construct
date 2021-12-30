@@ -18,7 +18,7 @@ struct InlineCombatantTagsView: View {
         if viewStore.state.combatant.tags.isEmpty {
             Text("No tags").italic()
         } else {
-            CollectionView(data: viewStore.state.combatant.tags, id: \.definition.name) { tag in
+            CollectionView(layout: FlowLayout(), data: viewStore.state.combatant.tags, id: \.definition.name) { tag in
                 TagView(tag: tag, combatant: self.viewStore.state.combatant, runningEncounter: self.viewStore.state.runningEncounter, onDetailTap: {
                     if tag.hasLongNote || tag.duration != nil {
                         self.viewStore.send(.popover(.tagDetails(tag)))

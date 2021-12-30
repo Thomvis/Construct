@@ -63,12 +63,6 @@ struct DiceRollerViewState: Equatable {
                         type: .disadvantage,
                         first: (1.d(20)+5).roll,
                         second: (1.d(20)+5).roll
-                    ),
-                    .init(
-                        id: UUID().tagged(),
-                        type: .normal,
-                        first: (1.d(20)+5).roll,
-                        second: nil
                     )
                 ]
             )

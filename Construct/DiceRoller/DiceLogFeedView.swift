@@ -23,8 +23,6 @@ struct DiceLogFeedView: View {
                             VStack(alignment: .trailing, spacing: 2) {
                                 Text(entry.rollDescription).font(.footnote).bold()
 
-//                                CollectionView(data: entry.results.suffix(20), id: \.id) { result in
-//                                LazyVGrid(columns: [GridItem(GridItem.Size.flexible(maximum: 100)), GridItem(GridItem.Size.flexible(maximum: 100))], alignment: .trailing, spacing: 8) {
                                 VStack(alignment: .trailing, spacing: 8) {
                                     ForEach(entry.results.suffix(20), id: \.id) { result in
                                         VStack(alignment: .trailing, spacing: 2) {
@@ -44,7 +42,6 @@ struct DiceLogFeedView: View {
                                         .transition(.move(edge: .leading).combined(with: .opacity).animation(.default.delay(0.1)))
                                     }
                                 }
-                                .frame(minWidth: 0)
                                 .padding(.trailing, 12)
                                 .background(alignment: .trailing) {
                                     Color(UIColor.systemGray2)

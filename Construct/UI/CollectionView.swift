@@ -7,64 +7,98 @@
 //
 // Copied from https://github.com/objcio/collection-view-swiftui/blob/master/FlowLayoutST/ContentView.swift
 // Updated based on https://talk.objc.io/episodes/S01E253-flow-layout-revisited
+// And then some
 
 import SwiftUI
 
-struct FlowLayout {
+struct FlowLayout: CollectionViewLayout {
     let spacing: UIOffset
-    let containerWidth: CGFloat
+    let alignment: HorizontalAlignment
 
-    init(containerWidth: CGFloat, spacing: UIOffset = UIOffset(horizontal: 10, vertical: 10)) {
-        self.spacing = spacing
-        self.containerWidth = containerWidth
+    var horizontalAlignment: HorizontalAlignment {
+        alignment
     }
 
-    var currentX = 0 as CGFloat
-    var currentY = 0 as CGFloat
-    var lineHeight = 0 as CGFloat
+    init(spacing: UIOffset = UIOffset(horizontal: 10, vertical: 10), alignment: HorizontalAlignment = .leading) {
+        self.spacing = spacing
+        self.alignment = alignment
+    }
 
-    mutating func add(element size: CGSize) -> CGRect {
-        if currentX + size.width > containerWidth {
+    func layout<Elements, ID>(for elements: Elements, id: KeyPath<Elements.Element, ID>, containerWidth: CGFloat, sizes: [ID : CGSize]) -> [ID : CGPoint] where Elements : RandomAccessCollection, ID : Hashable {
+
+        var currentX: CGFloat = 0
+        var currentY: CGFloat = 0
+        var lineHeight: CGFloat = 0
+
+        var result: [ID: CGPoint] = [:]
+        var line: [(ID, CGRect)] = []
+
+        // Writes the current line to the results dictionary, aligning if needed
+        func finishLine() {
+            switch alignment {
+            case .leading:
+                for (id, rect) in line {
+                    result[id] = rect.origin
+                }
+            case .trailing:
+                let lineWidth = line.map { $0.1.width }.reduce(0, +) + CGFloat(line.count-1)*spacing.horizontal
+                let emptySpace = containerWidth - lineWidth
+                for (id, rect) in line {
+                    result[id] = rect.origin.offset(dx: emptySpace)
+                }
+            default: assertionFailure("FlowLayout does not support \(alignment) alignment")
+            }
+
             currentX = 0
             currentY += lineHeight + spacing.vertical
             lineHeight = 0
-        }
-        defer {
-            lineHeight = max(lineHeight, size.height)
-            currentX += size.width + spacing.horizontal
-        }
-        return CGRect(origin: CGPoint(x: currentX, y: currentY), size: size)
-    }
 
-    var size: CGSize {
-        return CGSize(width: containerWidth, height: currentY + lineHeight)
+            line.removeAll()
+        }
+
+        // Adds the next element
+        func add(element: Elements.Element, size: CGSize) {
+            if currentX + size.width > containerWidth && !line.isEmpty {
+                finishLine()
+            }
+            defer {
+                lineHeight = max(lineHeight, size.height)
+                currentX += size.width + spacing.horizontal
+            }
+
+            let rect = CGRect(origin: CGPoint(x: currentX, y: currentY), size: size)
+            line.append((element[keyPath: id], rect))
+        }
+
+        for element in elements {
+            add(element: element, size: sizes[element[keyPath: id]] ?? .zero)
+        }
+        finishLine()
+
+        return result
     }
 }
 
-func flowLayout<Elements, ID>(for elements: Elements, id: KeyPath<Elements.Element, ID>, containerWidth: CGFloat, sizes: [ID: CGSize]) -> [ID: CGPoint] where Elements: RandomAccessCollection, ID: Hashable {
-    var state = FlowLayout(containerWidth: containerWidth)
-    var result: [ID: CGPoint] = [:]
-    for element in elements {
-        let rect = state.add(element: sizes[element[keyPath: id]] ?? .zero)
-        result[element[keyPath: id]] = rect.origin
-    }
-    return result
+protocol CollectionViewLayout {
+    var horizontalAlignment: HorizontalAlignment { get }
+
+    func layout<Elements, ID>(for elements: Elements, id: KeyPath<Elements.Element, ID>, containerWidth: CGFloat, sizes: [ID: CGSize]) -> [ID: CGPoint] where Elements: RandomAccessCollection, ID: Hashable
 }
 
 private let containerWidthKey = UUID()
 struct CollectionView<Element, ID, Cell>: View where ID: Hashable, Cell: View {
 
+    let layout: CollectionViewLayout
+
     let data: [Element]
     let id: KeyPath<Element, ID>
     let cell: (Element) -> Cell
-
-    let layout: ([Element], KeyPath<Element, ID>, CGFloat, [ID: CGSize]) -> [ID: CGPoint] = flowLayout
 
     @State private var sizes: [ID: CGSize] = [:]
     @State private var proposedContainerWidth: CGFloat = 0
 
     var body: some View {
-        let itemPositions = layout(data, id, proposedContainerWidth, sizes)
+        let itemPositions = layout.layout(for: data, id: id, containerWidth: proposedContainerWidth, sizes: sizes)
 
         return VStack(alignment: .leading, spacing: 0) {
             GeometryReader { proxy in
@@ -91,8 +125,12 @@ struct CollectionView<Element, ID, Cell>: View where ID: Hashable, Cell: View {
             .onPreferenceChange(CollectionViewSizeKey<ID>.self) {
                 self.sizes = $0
             }
-            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: alignment)
         }
+    }
+
+    var alignment: SwiftUI.Alignment {
+        SwiftUI.Alignment(horizontal: layout.horizontalAlignment, vertical: .top)
     }
 }
 
