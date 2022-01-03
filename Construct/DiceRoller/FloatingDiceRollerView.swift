@@ -26,7 +26,7 @@ struct FloatingDiceRollerContainerView: View {
 
     init(store: Store<FloatingDiceRollerViewState, FloatingDiceRollerViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { ($0.hidden, $0.canCollapse) == ($1.hidden, $1.canCollapse) })
+        self.viewStore = ViewStore(store, removeDuplicates: { ($0.hidden, $0.canCollapse, $0.content) == ($1.hidden, $1.canCollapse, $1.content) })
     }
 
     var body: some View {
@@ -82,6 +82,20 @@ struct FloatingDiceRollerContainerView: View {
 
         return VStack {
             HStack {
+                Button(action: {
+                    if viewStore.state.content == .log {
+                        viewStore.send(.content(.calculator), animation: .default)
+                    } else {
+                        viewStore.send(.content(.log), animation: .default)
+                    }
+                }) {
+                    if viewStore.state.content == .log {
+                        Image("tabbar_d20")
+                    } else {
+                        Image(systemName: "clock.arrow.circlepath")
+                    }
+                }
+
                 Spacer()
 
                 Button(action: {
@@ -106,7 +120,14 @@ struct FloatingDiceRollerContainerView: View {
             .padding([.top, .bottom], Self.panelToolbarVerticalPadding)
             .padding(.bottom, Self.panelToolbarVerticalPadding)
 
-            DiceCalculatorView(store: store.scope(state: { $0.diceCalculator }, action: { .diceCalculator($0) }))
+            switch viewStore.state.content {
+            case .calculator: DiceCalculatorView(store: store.scope(state: { $0.diceCalculator }, action: { .diceCalculator($0) }))
+            case .log:
+                WithViewStore(store.scope(state: { $0.diceLog })) { viewStore in
+                    DiceLogFeedView(entries: viewStore.state.entries)
+                        .frame(height: 300)
+                }
+            }
         }
         .frame(width: 280)
         .fixedSize()

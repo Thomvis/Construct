@@ -22,6 +22,7 @@ struct DiceLogFeedView: View {
                         ForEach(entries.suffix(20), id: \.id) { entry in
                             VStack(alignment: .trailing, spacing: 2) {
                                 Text(entry.roll.title).font(.footnote).bold()
+                                    .multilineTextAlignment(.trailing)
 
                                 VStack(alignment: .trailing, spacing: 8) {
                                     ForEach(entry.results.suffix(20), id: \.id) { result in
