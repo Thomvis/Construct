@@ -200,6 +200,7 @@ struct DiceActionViewDebugHost: View {
     var body: some View {
         DiceActionView(store: Store(
             initialState: DiceActionViewState(
+                creatureName: "",
                 action: DiceAction(
                     title: "Scimitar",
                     parsedAction: CreatureActionParser.parse("Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.")!,

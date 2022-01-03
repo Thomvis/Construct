@@ -11,26 +11,30 @@ import Tagged
 import Combine
 
 struct DiceLogPublisher {
-    private let subject: PassthroughSubject<(RolledDiceExpression, RollDescription), Never> = .init()
+    private let subject: PassthroughSubject<(DiceLogEntry.Result, RollDescription), Never> = .init()
 
-    var rolls: AnyPublisher<(RolledDiceExpression, RollDescription), Never> {
+    var rolls: AnyPublisher<(DiceLogEntry.Result, RollDescription), Never> {
         subject.eraseToAnyPublisher()
     }
 
     func didRoll(_ expression: RolledDiceExpression, roll: RollDescription) {
-        subject.send((expression, roll))
+        didRoll(DiceLogEntry.Result(id: UUID().tagged(), type: .normal, first: expression, second: nil), roll: roll)
+    }
+
+    func didRoll(_ result: DiceLogEntry.Result, roll: RollDescription) {
+        subject.send((result, roll))
     }
 }
 
 struct DiceLog: Hashable {
     var entries: [DiceLogEntry] = []
 
-    mutating func receive(_ result: RolledDiceExpression, for roll: RollDescription) {
+    mutating func receive(_ result: DiceLogEntry.Result, for roll: RollDescription) {
         let result: DiceLogEntry.Result = .init(
             id: UUID().tagged(),
-            type: .normal,
-            first: result,
-            second: nil
+            type: result.type,
+            first: result.first,
+            second: result.second
         )
 
         if entries.last?.roll == roll {
@@ -80,6 +84,13 @@ struct RollDescription: Hashable {
         return RollDescription(
             expression: 1.d(20)+modifier,
             title: title
+        )
+    }
+
+    static func diceActionStep(creatureName: String, actionTitle: String, stepTitle: String, expression: DiceExpression) -> Self {
+        RollDescription(
+            expression: expression,
+            title: AttributedString("\(stepTitle) - \(actionTitle) - \(creatureName)")
         )
     }
 }

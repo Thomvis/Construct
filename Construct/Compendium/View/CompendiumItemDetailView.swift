@@ -161,7 +161,7 @@ struct CompendiumItemDetailView: View {
                 self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, creatureName: stats.name, environment: self.env), rollOnAppear: true))))
             case .action(let a, let p):
                 if let action = DiceAction(title: a.name, parsedAction: p, env: env) {
-                    self.viewStore.send(.popover(.creatureAction(DiceActionViewState(action: action))))
+                    self.viewStore.send(.popover(.creatureAction(DiceActionViewState(creatureName: stats.name, action: action))))
                 }
             case .rollCheck(let e):
                 self.viewStore.send(.popover(.rollCheck(DiceCalculatorState.rollingExpression(e, rollOnAppear: true))))

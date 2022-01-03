@@ -78,7 +78,7 @@ struct AppState: Equatable {
         case sceneDidBecomeActive
         case sceneWillResignActive
 
-        case onProcessRollForDiceLog(RolledDiceExpression, RollDescription)
+        case onProcessRollForDiceLog(DiceLogEntry.Result, RollDescription)
     }
 
     static var reducer: Reducer<AppState, Action, Environment> {

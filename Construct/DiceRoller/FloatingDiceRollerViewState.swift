@@ -33,7 +33,7 @@ enum FloatingDiceRollerViewAction: Equatable {
     case collapse
     case expand
 
-    case onProcessRollForDiceLog(RolledDiceExpression, RollDescription)
+    case onProcessRollForDiceLog(DiceLogEntry.Result, RollDescription)
 }
 
 extension FloatingDiceRollerViewState {

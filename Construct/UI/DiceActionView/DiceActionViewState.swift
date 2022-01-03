@@ -11,7 +11,11 @@ import ComposableArchitecture
 import CasePaths
 
 struct DiceActionViewState: Hashable {
+    var creatureName: String
     var action: DiceAction
+
+    // to keep track of which steps are being rolled
+    var rollingSteps: [UUID] = []
 }
 
 enum DiceActionViewAction: Hashable {
@@ -54,6 +58,56 @@ extension DiceActionViewState {
                 return state.action.steps.filter { $0.id != id && $0.rollDetails != nil }.map {
                     .stepAction($0.id, .value(.roll(.details(nil))))
                 }.publisher.eraseToEffect()
+            case .stepAction(let id, .value(.roll(.first(.roll)))),
+                    .stepAction(let id, .value(.roll(.second(.roll)))):
+                state.rollingSteps.append(id)
+            case .stepAction(let id, .rollDetails(DiceCalculatorAction.onResultDieTap)):
+                state.rollingSteps.append(id)
+                fallthrough
+            case .stepAction(_, .value(.roll(.first(.rollIntermediary(_, 0))))),
+                    .stepAction(_, .value(.roll(.second(AnimatedRollAction.rollIntermediary(_, 0))))),
+                    .stepAction(_, .rollDetails(.intermediaryResultsStep(_, 0))):
+
+                // check if all rolling steps have finished
+                for id in state.rollingSteps {
+                    guard let step = state.action.steps[id: id] else { return .none }
+                    guard case .roll(let roll) = step.value else { return .none }
+                    guard roll.first.intermediaryResult == nil && roll.second?.intermediaryResult == nil else { return .none }
+                }
+
+                // report rolls to the dice log
+                for id in state.rollingSteps {
+                    guard let step = state.action.steps[id: id] else { continue }
+                    guard case .roll(let roll) = step.value else { continue }
+                    guard let firstResult = roll.first.result else { continue }
+
+                    let description = RollDescription.diceActionStep(
+                        creatureName: state.creatureName,
+                        actionTitle: state.action.title,
+                        stepTitle: step.title,
+                        expression: firstResult.unroll
+                    )
+
+                    if roll.type == .normal {
+                        env.diceLog.didRoll(
+                            firstResult,
+                            roll: description
+                        )
+                    } else if let second = roll.second {
+                        guard let secondResult = second.result else { break }
+                        env.diceLog.didRoll(
+                            DiceLogEntry.Result(
+                                id: UUID().tagged(),
+                                type: roll.type == .advantage ? .advantage : .disadvantage, // todo: unify enums
+                                first: firstResult,
+                                second: secondResult
+                            ),
+                            roll: description
+                        )
+                    }
+                }
+
+                state.rollingSteps.removeAll()
             case .stepAction: break
             }
             return .none
@@ -111,5 +165,5 @@ extension DiceAction.Step {
 }
 
 extension DiceActionViewState {
-    static let nullInstance = DiceActionViewState(action: DiceAction(title: "", subtitle: "", steps: []))
+    static let nullInstance = DiceActionViewState(creatureName: "", action: DiceAction(title: "", subtitle: "", steps: []))
 }

@@ -29,7 +29,7 @@ struct DiceRollerViewState: Equatable {
 enum DiceRollerViewAction: Equatable {
     case calculatorState(DiceCalculatorAction)
     case hideOutcome
-    case onProcessRollForDiceLog(RolledDiceExpression, RollDescription)
+    case onProcessRollForDiceLog(DiceLogEntry.Result, RollDescription)
 
     var calculatorState: DiceCalculatorAction? {
         guard case .calculatorState(let a) = self else { return nil }

@@ -26,7 +26,10 @@ struct FloatingDiceRollerContainerView: View {
 
     init(store: Store<FloatingDiceRollerViewState, FloatingDiceRollerViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { ($0.hidden, $0.canCollapse, $0.content) == ($1.hidden, $1.canCollapse, $1.content) })
+        self.viewStore = ViewStore(store, removeDuplicates: {
+            ($0.hidden, $0.canCollapse, $0.content, $0.diceLog.entries.isEmpty) ==
+            ($1.hidden, $1.canCollapse, $1.content, $1.diceLog.entries.isEmpty)
+        })
     }
 
     var body: some View {
@@ -95,6 +98,7 @@ struct FloatingDiceRollerContainerView: View {
                         Image(systemName: "clock.arrow.circlepath")
                     }
                 }
+                .disabled(viewStore.state.content == .calculator && viewStore.state.diceLog.entries.isEmpty)
 
                 Spacer()
 
