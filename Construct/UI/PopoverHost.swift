@@ -79,7 +79,7 @@ struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: V
                     .clipped()
                     .frame(maxWidth: 500)
                     .background(
-                         Color(UIColor.systemBackground)
+                         Color(UIColor.secondarySystemBackground)
                             .cornerRadius(8)
                             .shadow(radius: 5)
                     )
