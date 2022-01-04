@@ -76,8 +76,7 @@ extension DiceActionViewState {
                 }
 
                 // report rolls to the dice log
-                for id in state.rollingSteps {
-                    guard let step = state.action.steps[id: id] else { continue }
+                for step in state.action.steps where state.rollingSteps.contains(step.id) {
                     guard case .roll(let roll) = step.value else { continue }
                     guard let firstResult = roll.first.result else { continue }
 
