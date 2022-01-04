@@ -34,6 +34,7 @@ struct CompendiumIndexView: View {
                     text: viewStore.binding(get: { $0.text.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
                     accessory: Self.filterButton(viewStore)
                 )
+                .disableAutocorrection(true)
             }
             .introspectTextField { textField in
                 if !textField.isFirstResponder, localViewStore.state.initiallyFocusOnSearch, !didFocusOnSearch {
