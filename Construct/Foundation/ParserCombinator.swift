@@ -295,11 +295,14 @@ extension Parser where A: Sequence, A.Element: CustomStringConvertible {
     }
 }
 
+fileprivate let intNumberFormatter = apply(NumberFormatter()) { f in
+    f.locale = Locale(identifier: "en_US")
+}
+
 extension Parser where A == String {
     func toInt() -> Parser<Int> {
         return flatMap { str -> Int? in
-            let f = NumberFormatter()
-            return f.number(from: str)?.intValue
+            return intNumberFormatter.number(from: str)?.intValue
         }
     }
 }
