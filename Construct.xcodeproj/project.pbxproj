@@ -1192,7 +1192,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which sourcery >/dev/null; then\n  sourcery --sources Construct --templates Sourcery --output Construct/Sourcery\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\n\nif which sourcery >/dev/null; then\n  sourcery --sources Construct --templates Sourcery --output Construct/Sourcery\nelse\n  echo \"warning: Sourcery not installed\"\nfi\n\nwhich sourcery\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
