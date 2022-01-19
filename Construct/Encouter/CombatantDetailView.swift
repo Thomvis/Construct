@@ -171,7 +171,18 @@ struct CombatantDetailView: View {
                         }
                     }
 
-                    SectionContainer(title: "Stats") {
+                    SectionContainer(
+                        title: "Stats",
+                        accessory: Button {
+                            viewStore.send(.editCreatureConfirmingUnlinkIfNeeded)
+                        } label: {
+                            if combatant.definition is CompendiumCombatantDefinition {
+                                Text("Edit...")
+                            } else {
+                                Text("Edit")
+                            }
+                        }
+                    ) {
                         contentView(for: combatant)
                     }
 
@@ -194,9 +205,9 @@ struct CombatantDetailView: View {
                                     Button(action: {
                                         self.viewStore.send(.unlinkFromCompendium)
                                     }) {
-                                        Text("Unlink from compendium")
+                                        Text("Detach from compendium")
                                     }
-                                    Text("This combatant was added from the compendium. Unlink it to further tailor it for this encounter.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel)).fixedSize(horizontal: false, vertical: true)
+                                    Text("This combatant was added from the compendium. Detach it to further tailor it for this encounter.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel)).fixedSize(horizontal: false, vertical: true)
                                 }
                             }
 
@@ -244,6 +255,7 @@ struct CombatantDetailView: View {
                     }
                 )
                 .popover(self.popover)
+                .alert(store.scope(state: { $0.alert }), dismiss: CombatantDetailViewAction.alert(nil))
             }
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)

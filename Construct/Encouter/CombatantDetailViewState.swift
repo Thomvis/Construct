@@ -25,6 +25,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
     }
 
     var popover: Popover?
+    var alert: AlertState<CombatantDetailViewAction>?
 
     var presentedScreens: [NavigationDestination: NextScreen] = [:]
 
@@ -135,6 +136,8 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             case .combatant: break // should be handled by parent
             case .popover(let p):
                 state.popover = p
+            case .alert(let a):
+                state.alert = a
             case .addLimitedResource(.onDoneTap):
                 guard case .addLimitedResource(let s) = state.popover else { return .none }
                 return Effect.fireAndForget {
@@ -145,6 +148,25 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             case .rollCheckDialog: break // handled above
             case .diceActionPopover: break // handled above
             case .initiativePopover: break // handled above
+            case .editCreatureConfirmingUnlinkIfNeeded:
+                if let def = state.combatant.definition as? AdHocCombatantDefinition {
+                    return Effect(value: .setNextScreen(.creatureEditView(CreatureEditViewState(edit: def))))
+                }
+
+                if state.combatant.definition is CompendiumCombatantDefinition {
+                    state.alert = AlertState(
+                        title: TextState("Detach Combatant to Edit"),
+                        message: TextState("This combatant needs to be detached from the compendium to make changes just for this encounter."),
+                        primaryButton: .default(
+                            TextState("Detach & Edit"),
+                            action: .send(.unlinkAndEditCreature)
+                        ),
+                        secondaryButton: .cancel(
+                            TextState("Cancel"),
+                            action: nil
+                        )
+                    )
+                }
             case .saveToCompendium:
                 guard let def = state.combatant.definition as? AdHocCombatantDefinition, let stats = def.stats else { return .none }
 
@@ -163,6 +185,11 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 let original = (currentDefinition as? CompendiumCombatantDefinition).map { CompendiumItemReference(itemTitle: $0.name, itemKey: $0.item.key) }
                 let def = AdHocCombatantDefinition(id: UUID().tagged(), stats: currentDefinition.stats, player: currentDefinition.player, level: currentDefinition.level, original: original)
                 return Effect(value: .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def))))
+            case .unlinkAndEditCreature:
+                return Effect(value: .editCreatureConfirmingUnlinkIfNeeded)
+                    .delay(for: 0, scheduler: env.mainQueue)
+                    .prepend(.unlinkFromCompendium)
+                    .eraseToEffect()
             case .didTapCompendiumItemReferenceTextAnnotation: break // handled by CompendiumItemReferenceTextAnnotation.handleTapReducer
             case .setNextScreen(let s):
                 state.presentedScreens[.nextInStack] = s
@@ -226,13 +253,16 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
     case combatant(CombatantAction)
     case popover(CombatantDetailViewState.Popover?)
+    case alert(AlertState<Self>?)
     case addLimitedResource(CombatantTrackerEditViewAction)
     case healthDialog(HealthDialogAction)
     case rollCheckDialog(DiceCalculatorAction)
     case diceActionPopover(DiceActionViewAction)
     case initiativePopover(NumberEntryViewAction)
+    case editCreatureConfirmingUnlinkIfNeeded
     case saveToCompendium
     case unlinkFromCompendium
+    case unlinkAndEditCreature
 
     case didTapCompendiumItemReferenceTextAnnotation(CompendiumItemReferenceTextAnnotation, AppNavigation)
 
