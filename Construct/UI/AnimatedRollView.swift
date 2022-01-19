@@ -12,10 +12,10 @@ import ComposableArchitecture
 
 struct AnimatedRollView<Content>: View where Content: View {
     @Binding var roll: AnimatedRollState
-    let content: (Int?, Bool) -> Content
+    let content: (RolledDiceExpression?, Bool) -> Content
 
     var body: some View {
-        content(roll.effectiveResult?.total, roll.isFinal)
+        content(roll.effectiveResult, roll.isFinal)
     }
 }
 

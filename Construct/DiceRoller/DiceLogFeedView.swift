@@ -76,10 +76,7 @@ struct DiceLogFeedView: View {
     }
 
     private func singleRollView(_ displayRoll: DisplayRoll) -> some View {
-        Text("\(displayRoll.expression.total)")
-            .foregroundColor(displayRoll.foregroundColor)
-            .opacity(displayRoll.opacity)
-            .font(.body)
+        coreRollComponentView(displayRoll)
             .padding(6)
             .frame(minWidth: 33, minHeight: 33)
             .background(
@@ -91,16 +88,22 @@ struct DiceLogFeedView: View {
     }
 
     private func doubleRollComponentView(_ displayRoll: DisplayRoll, isFirst: Bool) -> some View {
-        Text("\(displayRoll.expression.total)")
-            .foregroundColor(displayRoll.foregroundColor)
-            .opacity(displayRoll.opacity)
-            .font(.body)
+        coreRollComponentView(displayRoll)
             .padding(EdgeInsets(top: 6, leading: isFirst ? 4 : 8, bottom: 6, trailing: isFirst ? 8 : 4))
             .frame(minWidth: 33, minHeight: 33)
             .background(
                 doubleRollBackground(isFirst: isFirst)
             )
             .opacity(displayRoll.opacity)
+    }
+
+    private func coreRollComponentView(_ displayRoll: DisplayRoll) -> some View {
+        Text("\(displayRoll.expression.total)")
+                    .underline(displayRoll.expression.total == displayRoll.expression.unroll.maximum)
+                    .italic(displayRoll.expression.total == displayRoll.expression.unroll.minimum)
+                    .foregroundColor(displayRoll.foregroundColor)
+                    .opacity(displayRoll.opacity)
+                    .font(.body)
     }
 
     private func doubleRollBackground(isFirst: Bool) -> some View {

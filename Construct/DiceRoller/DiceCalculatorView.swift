@@ -423,7 +423,7 @@ struct ResultDetailView: View {
 
     func view(_ die: RolledDie, index idx: Int) -> some View {
         return Text("\(die.value)")
-            .bold().underline(die.value == die.die.sides)
+            .bold().underline(die.value == die.die.sides).italic(die.value == 1)
             .frame(width: 44, height: 44)
             .background(((die.die.color?.UIColor).map(Color.init) ?? Color(UIColor.systemGray5)).cornerRadius(4))
             .animation(nil, value: die.value)

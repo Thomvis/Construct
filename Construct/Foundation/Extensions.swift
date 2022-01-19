@@ -375,3 +375,13 @@ extension Deferred {
         })
     }
 }
+
+extension View {
+    func italic(_ active: Bool = true) -> some View {
+        transformEnvironment(\.font) { f in
+            if active {
+                f = (f ?? .body).italic()
+            }
+        }
+    }
+}

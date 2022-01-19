@@ -147,8 +147,10 @@ struct DiceActionView: View {
             }
 
             private func rollView(_ viewStore: ViewStore<AnimatedRollState, DiceActionStepAction.ValueAction.RollAction>, _ step: DiceAction.Step, _ rollValue: DiceAction.Step.Value.RollValue, _ roll: DiceAction.Step.Value.RollValue.Details) -> some View {
-                AnimatedRollView(roll: viewStore.binding(send: { _ in fatalError() })) { val, final in
-                    Text("\(val ?? 0)")
+                AnimatedRollView(roll: viewStore.binding(send: { _ in fatalError() })) { res, final in
+                    Text("\(res?.total ?? 0)")
+                        .underline(res != nil && res?.total == res?.unroll.maximum)
+                        .italic(res != nil && res?.total == res?.unroll.minimum)
                         .foregroundColor(rollValue.emphasis(for: roll).map { emphasisColor(for: $0) })
                         .opacity(final ? 1 : 0.66)
                         .opacity(rollValue.emphasis(for: roll.other) == nil ? 1 : 0.33)
@@ -160,7 +162,7 @@ struct DiceActionView: View {
                                 .stroke(style: StrokeStyle(lineWidth: 4))
                                 .foregroundColor(Color(UIColor.systemGray5))
                         )
-                        .animation(nil, value: val)
+                        .animation(nil, value: res)
                 }
             }
 
