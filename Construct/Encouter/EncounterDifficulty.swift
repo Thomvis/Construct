@@ -16,12 +16,13 @@ struct EncounterDifficulty {
     let partyThresholds: EncounterDifficultyThresholds
     let adjustedXp: Int // A value used to measure an encounter difficulty (not to reward the players)
 
-    init(party: [Int], monsters: [Fraction]) {
+    init?(party: [Int], monsters: [Fraction]) {
         self.init(party: party.map { .init(level: $0, name: nil) }, monsters: monsters)
     }
 
-    init(party: [PartyEntry], monsters: [Fraction]) {
-        precondition(!party.isEmpty)
+    init?(party: [PartyEntry], monsters: [Fraction]) {
+        guard !party.isEmpty else { return nil }
+
         self.party = party
         self.monsters = monsters
 

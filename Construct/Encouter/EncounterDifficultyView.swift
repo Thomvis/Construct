@@ -146,10 +146,15 @@ fileprivate struct Bar: View {
 
 extension EncounterDifficultyView {
     init?(encounter: Encounter) {
-        guard !encounter.partyWithEntriesForDifficulty.1.isEmpty && !encounter.combatants.isEmpty else { return nil }
-        self.init(difficulty: EncounterDifficulty(
-            party: encounter.partyWithEntriesForDifficulty.1,
-            monsters: encounter.combatants.compactMap { $0.definition.stats?.challengeRating }
-        ))
+        guard !encounter.partyWithEntriesForDifficulty.1.isEmpty,
+                !encounter.combatants.isEmpty,
+                let difficulty = EncounterDifficulty(
+                    party: encounter.partyWithEntriesForDifficulty.1,
+                    monsters: encounter.combatants.compactMap { $0.definition.stats?.challengeRating }
+                ) else {
+                    return nil
+                }
+
+        self.init(difficulty: difficulty)
     }
 }

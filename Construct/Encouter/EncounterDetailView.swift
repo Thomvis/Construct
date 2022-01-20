@@ -38,10 +38,18 @@ struct EncounterDetailView: View {
                         SimpleButton(action: {
                             self.viewStore.send(.sheet(.settings))
                         }) {
-                            EncounterDifficultyView(difficulty: EncounterDifficulty(
+                            if let difficulty = EncounterDifficulty(
                                 party: encounter.partyWithEntriesForDifficulty.1,
                                 monsters: encounter.combatants.compactMap { $0.definition.stats?.challengeRating }
-                            ))
+                            ) {
+                                EncounterDifficultyView(difficulty: difficulty)
+                            } else {
+                                Text("Cannot calculate difficulty for current settings. Tap to change.")
+                                    .multilineTextAlignment(.center)
+                                    .font(.callout)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                            }
                         }
                     }
                 }

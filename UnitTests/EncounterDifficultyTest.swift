@@ -13,7 +13,7 @@ import XCTest
 class EncounterDifficultyTest: XCTestCase {
 
     func test1() {
-        let sut = EncounterDifficulty(party: [1, 1, 1], monsters: [.oneQuarter])
+        let sut = EncounterDifficulty(party: [1, 1, 1], monsters: [.oneQuarter])!
         XCTAssertEqual(sut.partyThresholds.easy, 75)
         XCTAssertEqual(sut.partyThresholds.medium, 150)
         XCTAssertEqual(sut.partyThresholds.hard, 225)
@@ -25,7 +25,7 @@ class EncounterDifficultyTest: XCTestCase {
 
 
     func test2() {
-        let sut = EncounterDifficulty(party: [1, 1, 1], monsters: [.oneQuarter, .oneQuarter])
+        let sut = EncounterDifficulty(party: [1, 1, 1], monsters: [.oneQuarter, .oneQuarter])!
         XCTAssertEqual(sut.partyThresholds.easy, 75)
         XCTAssertEqual(sut.partyThresholds.medium, 150)
         XCTAssertEqual(sut.partyThresholds.hard, 225)
@@ -36,7 +36,7 @@ class EncounterDifficultyTest: XCTestCase {
     }
 
     func testHetrogenousParty() {
-        let sut = EncounterDifficulty(party: [1, 1, 1, 3, 3], monsters: [.init(integer: 1), .init(integer: 3)])
+        let sut = EncounterDifficulty(party: [1, 1, 1, 3, 3], monsters: [.init(integer: 1), .init(integer: 3)])!
         XCTAssertEqual(sut.partyThresholds.easy, 225)
         XCTAssertEqual(sut.partyThresholds.medium, 450)
         XCTAssertEqual(sut.partyThresholds.hard, 675)
@@ -47,7 +47,7 @@ class EncounterDifficultyTest: XCTestCase {
     }
 
     func testSmallParty() {
-        let sut = EncounterDifficulty(party: [3, 3], monsters: [.init(integer: 1)])
+        let sut = EncounterDifficulty(party: [3, 3], monsters: [.init(integer: 1)])!
 
         XCTAssertEqual(sut.partyThresholds.easy, 150)
         XCTAssertEqual(sut.partyThresholds.medium, 300)
@@ -59,7 +59,7 @@ class EncounterDifficultyTest: XCTestCase {
     }
 
     func testLargeParty() {
-        let sut = EncounterDifficulty(party: [1, 1, 1, 1, 1, 1], monsters: [.init(integer: 4)])
+        let sut = EncounterDifficulty(party: [1, 1, 1, 1, 1, 1], monsters: [.init(integer: 4)])!
 
         XCTAssertEqual(sut.partyThresholds.easy, 150)
         XCTAssertEqual(sut.partyThresholds.medium, 300)

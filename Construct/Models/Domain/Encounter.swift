@@ -95,11 +95,7 @@ struct Encounter: Equatable, Codable {
                 combatants.first { $0.id == id }
             } ?? playerControlledCombatants)
             let entries: [EncounterDifficulty.PartyEntry] = partyCombatants.compactMap { c in c.definition.level.map { .init(level: $0, name: c.name) } }
-            if !entries.isEmpty {
-                return entries
-            } else {
-                return nil
-            }
+            return entries
         } else if let simple = party.simplePartyEntries, !simple.isEmpty {
             return simple.flatMap { Array(repeating: .init(level: $0.level, name: nil), count: $0.count) }
         }
