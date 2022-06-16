@@ -1178,6 +1178,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		E991F8D8254B22E6006CE8E8 /* Sourcery */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -1192,7 +1193,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\n\nif which sourcery >/dev/null; then\n  sourcery --sources Construct --templates Sourcery --output Construct/Sourcery\nelse\n  echo \"warning: Sourcery not installed\"\nfi\n\nwhich sourcery\n";
+			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\n\nif which sourcery >/dev/null; then\n  sourcery --sources Construct --templates Sourcery --output Construct/Sourcery\nelse\n  echo \"warning: Sourcery not installed\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
