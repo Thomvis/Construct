@@ -11,9 +11,9 @@ import CasePaths
 
 extension CompendiumEntry: HasParseableVisitor {
     static let parseableVisitor: ParseableVisitor<CompendiumEntry> = .combine(
-        Monster.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.monster, action: CasePath.`self`),
-        Character.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.character, action: CasePath.`self`),
-        Spell.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.spell, action: CasePath.`self`)
+        Monster.parseableVisitor.ifSome().pullback(state: \.monster, action: CasePath.`self`),
+        Character.parseableVisitor.ifSome().pullback(state: \.character, action: CasePath.`self`),
+        Spell.parseableVisitor.ifSome().pullback(state: \.spell, action: CasePath.`self`)
     )
 
     var monster: Monster? {

@@ -37,25 +37,23 @@ class EncounterDetailTest: XCTestCase {
             }
         )
 
-        store.assert(
-            // start encounter
-            .send(.run(nil)) {
-                var encounter = $0.building
-                encounter.ensureStableDiscriminators = true
-                $0.running = RunningEncounter(id: UUID(fakeSeq: 0).tagged(), base: encounter, current: encounter)
-            },
-            // roll initiative
-            .send(.runningEncounter(.current(.initiative(InitiativeSettings.default)))) {
-                $0.running!.current.combatants[position: 0].initiative = 2
-                $0.running!.current.combatants[position: 1].initiative = 3
-                $0.running!.turn = .init(round: 1, combatantId: $0.running!.current.combatants[1].id)
-            },
-            // remove second combatant (who has the current turn)
-            .send(.runningEncounter(.current(.remove(initialState.building.combatants[1])))) {
-                $0.running!.current.combatants.remove(at: 1)
-                $0.running!.turn = .init(round: 1, combatantId: $0.running!.current.combatants[0].id)
-            }
-        )
+        // start encounter
+        store.send(.run(nil)) {
+            var encounter = $0.building
+            encounter.ensureStableDiscriminators = true
+            $0.running = RunningEncounter(id: UUID(fakeSeq: 0).tagged(), base: encounter, current: encounter)
+        }
+        // roll initiative
+        store.send(.runningEncounter(.current(.initiative(InitiativeSettings.default)))) {
+            $0.running!.current.combatants[position: 0].initiative = 2
+            $0.running!.current.combatants[position: 1].initiative = 3
+            $0.running!.turn = .init(round: 1, combatantId: $0.running!.current.combatants[1].id)
+        }
+        // remove second combatant (who has the current turn)
+        store.send(.runningEncounter(.current(.remove(initialState.building.combatants[1])))) {
+            $0.running!.current.combatants.remove(at: 1)
+            $0.running!.turn = .init(round: 1, combatantId: $0.running!.current.combatants[0].id)
+        }
     }
 
 }

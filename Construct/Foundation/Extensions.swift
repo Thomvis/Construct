@@ -204,6 +204,16 @@ extension Reducer {
             : effects
         }
     }
+
+    /// Equivalent to TCA's `optional()` except that `ifSome()` silently does nothing if the state is nil
+    public func ifSome() -> Reducer<State?, Action, Environment> {
+        .init { state, action, environment in
+            guard state != nil else {
+                return .none
+            }
+            return self(&state!, action, environment)
+        }
+    }
 }
 
 extension CasePath {

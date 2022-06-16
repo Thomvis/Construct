@@ -18,8 +18,8 @@ extension Encounter: HasParseableVisitor {
 
 extension Combatant {
     static let parseableVisitor: ParseableVisitor<Combatant> = .combine(
-        AdHocCombatantDefinition.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.adHocDefinition, action: CasePath.`self`),
-        CompendiumCombatantDefinition.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.compendiumDefinition, action: CasePath.`self`)
+        AdHocCombatantDefinition.parseableVisitor.ifSome().pullback(state: \.adHocDefinition, action: CasePath.`self`),
+        CompendiumCombatantDefinition.parseableVisitor.ifSome().pullback(state: \.compendiumDefinition, action: CasePath.`self`)
     )
 
     var adHocDefinition: AdHocCombatantDefinition? {
@@ -47,14 +47,14 @@ extension Combatant {
 
 extension AdHocCombatantDefinition {
     static let parseableVisitor: ParseableVisitor<AdHocCombatantDefinition> = .combine(
-        StatBlock.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.stats, action: CasePath.`self`)
+        StatBlock.parseableVisitor.ifSome().pullback(state: \.stats, action: CasePath.`self`)
     )
 }
 
 extension CompendiumCombatantDefinition {
     static let parseableVisitor: ParseableVisitor<CompendiumCombatantDefinition> = .combine(
-        Monster.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.monster, action: CasePath.`self`),
-        Character.parseableVisitor.optional(breakpointOnNil: false).pullback(state: \.character, action: CasePath.`self`)
+        Monster.parseableVisitor.ifSome().pullback(state: \.monster, action: CasePath.`self`),
+        Character.parseableVisitor.ifSome().pullback(state: \.character, action: CasePath.`self`)
     )
 
     var monster: Monster? {

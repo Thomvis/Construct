@@ -111,7 +111,7 @@ extension ParseableVisitor where Action == ParseableVisitorAction, Environment =
             return .merge(
                 state[keyPath: toCollection].ids
                     .map {
-                        self.optional(breakpointOnNil: false).run(
+                        self.ifSome().run(
                             &state[keyPath: toCollection][id: $0],
                             ParseableVisitorAction.visit,
                             env
