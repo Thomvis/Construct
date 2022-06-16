@@ -17,8 +17,8 @@ import WebKit
 /// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests
 class AppStoreScreenshotTests: XCTestCase {
     static let phones: [(String, ViewImageConfig)] = [
-        ("iPhone65", .iPhoneXsMax),
-        ("iPhone55", .iPhone8Plus)
+        ("iPhone65", apply(.iPhoneXsMax) { $0.traits = UITraitCollection(traitsFrom: [$0.traits, .init(displayScale: 3)]) }),
+        ("iPhone55", apply(.iPhone8Plus) { $0.traits = UITraitCollection(traitsFrom: [$0.traits, .init(displayScale: 3)]) })
     ]
 
     static let pads: [(String, ViewImageConfig)] = [
@@ -108,7 +108,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     matching: FakeDeviceScreenView(imageConfig: device, content: view)
                         .environment(\.colorScheme, colorScheme)
                         .environmentObject(environment),
-                    as: .imageAfterDelay(precision: 0.99, layout: .device(config: device)),
+                    as: .imageAfterDelay(precision: 0.99, layout: .device(config: device), traits: device.traits),
                     named: name,
                     file: file,
                     testName: testName,
