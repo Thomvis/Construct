@@ -268,7 +268,7 @@ extension View {
     }
 }
 
-private final class PageView<ID, Content>: UIViewControllerRepresentable where ID: Hashable, Content: View {
+private struct PageView<ID, Content>: UIViewControllerRepresentable where ID: Hashable, Content: View {
     let itemIds: [ID]
     let selectedId: ID?
     let content: (ID) -> Content
