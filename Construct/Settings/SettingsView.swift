@@ -136,7 +136,6 @@ struct SettingsView: View {
 
     func dest(destination: Destination) -> AnyView? {
         switch destination {
-        case nil: return nil
         case .safariView: return nil
         case .ogl:
             return ScrollView {
