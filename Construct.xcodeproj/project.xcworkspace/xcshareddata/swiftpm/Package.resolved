@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Thomvis/GRDB.swift.git",
       "state" : {
-        "revision" : "8cf3c5a0f14e98e0212420ec9d97e0fd8e58ae0c",
-        "version" : "5.12.0"
+        "revision" : "0cd186a58b1cd80f0e3444bb265bee7f40956c9f",
+        "version" : "5.25.0"
       }
     },
     {
