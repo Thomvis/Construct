@@ -42,7 +42,7 @@ struct CombatantTagsView: View {
                                             self.viewStore.send(.removeTag(CombatantTagsViewState.TagId(group.tag), section), animation: .default)
                                         }) {
                                             Image(systemName: "minus.circle").font(Font.title.weight(.light))
-                                                .foregroundColor(Color(UIColor.systemRed))
+                                                .foregroundColor(Color.systemRed)
                                         }
                                     }
                                 }
@@ -83,7 +83,7 @@ struct CombatantTagsView: View {
                                                             }) {
                                                                 Image(systemName: "minus.circle")
                                                                     .font(Font.title.weight(.light))
-                                                                    .accentColor(Color(UIColor.systemRed))
+                                                                    .accentColor(Color.systemRed)
                                                             }
                                                             .disabled(groups.count > 1)
                                                         } else {
@@ -108,15 +108,20 @@ struct CombatantTagsView: View {
             .listStyle(.plain)
         }
         .stateDrivenNavigationLink(store: store, state: CasePath.`self`, action: CasePath.`self`, destination: CombatantTagEditView.init)
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-        .navigationBarItems(trailing: Group {
-            if self.sheetPresentationMode != nil {
-                Button(action: {
-                    self.sheetPresentationMode?.dismiss()
-                }) {
-                    Text("Done").bold()
-                }
-            }
-        })
+        .navigationTitle(Text(viewStore.state.navigationTitle))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+//        .toolbar {
+//            if self.sheetPresentationMode != nil {
+//                ToolbarItem(placement: .confirmationAction) {
+//                    Button(action: {
+//                        self.sheetPresentationMode?.dismiss()
+//                    }) {
+//                        Text("Done").bold()
+//                    }
+//                }
+//            }
+//        }
     }
 }

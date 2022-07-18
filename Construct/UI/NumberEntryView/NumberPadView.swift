@@ -33,7 +33,7 @@ struct NumberPadView: View {
                 SwiftUI.Button(action: { self.viewStore.send(.deleteButtonTap) }) {
                     Image(systemName: "delete.left").font(.title)
                 }
-                .accentColor(Color(UIColor.systemRed))
+                .accentColor(Color.systemRed)
                 .keyboardShortcut(.delete, modifiers: [])
             }
 

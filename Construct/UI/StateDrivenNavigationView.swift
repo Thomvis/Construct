@@ -14,7 +14,7 @@ func NavigationRowButton<Label>(action: @escaping () -> Void, @ViewBuilder label
         HStack {
             label()
             Spacer()
-            Image(systemName: "chevron.right").font(Font.body.weight(.semibold)).foregroundColor(Color(UIColor.systemGray3)).scaleEffect(0.8)
+            Image(systemName: "chevron.right").font(Font.body.weight(.semibold)).foregroundColor(Color.systemGray3).scaleEffect(0.8)
         }
     }
 }

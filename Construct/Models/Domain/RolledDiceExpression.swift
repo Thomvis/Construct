@@ -9,7 +9,7 @@
 import Foundation
 import SwiftUI
 import Tagged
-import UIKit
+//import UIKit
 
 enum RolledDiceExpression: Hashable {
     case dice(Die, [RolledDie])
@@ -122,7 +122,7 @@ struct Die: Hashable, Codable {
     enum Color: String, Codable, CaseIterable {
         case red, yellow, green, blue
 
-        var UIColor: UIColor {
+        var swiftUIColor: SwiftUI.Color {
             switch self {
             case .red: return .systemRed
             case .yellow: return .systemYellow

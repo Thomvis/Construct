@@ -85,7 +85,7 @@ struct CombatantTagEditView: View {
                     }.map { ds in
                         Text(ds)
                     }.replaceNilWith {
-                        Text("Duration").foregroundColor(Color(UIColor.placeholderText))
+                        Text("Duration").foregroundColor(Color.placeholderText)
                     }
 
                     Spacer()
@@ -115,17 +115,28 @@ struct CombatantTagEditView: View {
                 }
             }
         }
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+        .navigationTitle(Text(viewStore.state.navigationTitle))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        .navigationBarItems(leading: Button(action: {
-            self.presentationMode.wrappedValue.dismiss()
-        }) {
-            Text("Cancel")
-        }, trailing: Button(action: {
-            self.viewStore.send(.onDoneTap)
-        }) {
-            Text("Done").bold()
-        })
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button(action: {
+                    self.presentationMode.wrappedValue.dismiss()
+                }) {
+                    Text("Cancel")
+                }
+            }
+
+            ToolbarItem(placement: .confirmationAction) {
+                Button(action: {
+                    self.viewStore.send(.onDoneTap)
+                }) {
+                    Text("Done").bold()
+                }
+            }
+        }
         .popover(popoverBinding)
     }
 

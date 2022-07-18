@@ -44,13 +44,13 @@ struct CombatantRow: View {
                     .multilineTextAlignment(.leading)
                     .lineLimit(2)
                     .font(.caption)
-                    .foregroundColor(Color(UIColor.secondaryLabel))
+                    .foregroundColor(Color.secondaryLabel)
                     .layoutPriority(0.5)
             }.layoutPriority(0.5)
             Spacer()
 
             if hasExpiredTags {
-                Image(systemName: "tag").foregroundColor(Color(UIColor.systemRed))
+                Image(systemName: "tag").foregroundColor(Color.systemRed)
             }
 
             SimpleButton(action: {
@@ -112,9 +112,9 @@ struct CombatantRow: View {
     @ViewBuilder
     var turnIndicator: some View {
         if running?.turn?.combatantId == combatant.id {
-            Circle().foregroundColor(Color(UIColor.systemGreen))
+            Circle().foregroundColor(Color.systemGreen)
         } else if let id = running?.turn?.combatantId, encounter.combatant(for: id)?.initiative == combatant.initiative {
-            Circle().strokeBorder(Color(UIColor.systemGreen).opacity(0.33), lineWidth: 4)
+            Circle().strokeBorder(Color.systemGreen.opacity(0.33), lineWidth: 4)
         } else {
             EmptyView()
         }

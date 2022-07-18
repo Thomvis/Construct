@@ -47,7 +47,9 @@ struct EncounterDetailViewState: Equatable {
     var sheet: Sheet?
     var popover: Popover?
 
+    #if os(iOS)
     var editMode: EditMode = .inactive
+    #endif
     var selection = Set<Combatant.Id>()
 
     var encounter: Encounter {
@@ -183,7 +185,9 @@ extension EncounterDetailViewState {
         case resumableRunningEncounters(ResumableRunningEncounters.Action)
         case removeResumableRunningEncounter(String) // key of the running encounter
         case resetEncounter(Bool) // false = clear monsters, true = clear all
+        #if os(iOS)
         case editMode(EditMode)
+        #endif
         case selection(Set<Combatant.Id>)
 
         case selectionEncounterAction(SelectionEncounterAction)
@@ -313,11 +317,13 @@ extension EncounterDetailViewState {
                         _ = try? env.database.keyValueStore.removeAll(runningEncounterPrefix)
                         callback(.success(.resumableRunningEncounters(.startLoading)))
                     }
+                #if os(iOS)
                 case .editMode(let mode):
                     state.editMode = mode
                     if mode == .inactive {
                         state.selection.removeAll()
                     }
+                #endif
                 case .selection(let s):
                     state.selection = s
                 case .selectionCombatantAction(let action):
@@ -387,7 +393,6 @@ extension EncounterDetailViewState: NavigationStackItemState {
     var navigationStackItemStateId: String { encounter.key }
 
     var navigationTitle: String { encounter.name }
-    var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
 }
 
 struct AddCombatantSheet: Identifiable, Equatable {

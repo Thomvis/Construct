@@ -38,7 +38,7 @@ struct CampaignBrowseView: View {
                     .disabled(viewStore.state.isMoveOrigin)
                     .font(.footnote)
                     .padding(12)
-                    .frame(maxWidth: .infinity).background(Color(UIColor.secondarySystemBackground))
+                    .frame(maxWidth: .infinity).background(Color.secondarySystemBackground)
                 }
 
                 List {
@@ -47,7 +47,10 @@ struct CampaignBrowseView: View {
                             self.itemView(item).disabled(viewStore.state.isItemDisabled(item))
                         }.onDelete(perform:self.onDelete)
                     }
-                }.listStyle(InsetGroupedListStyle())
+                }
+                #if os(iOS)
+                .listStyle(InsetGroupedListStyle())
+                #endif
             }
 
             HStack {
@@ -70,24 +73,29 @@ struct CampaignBrowseView: View {
             .ignoresSafeArea(.keyboard, edges: .all)
         }
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, content: self.sheetView)
-        .navigationBarTitle(viewStore.state.navigationBarTitle, displayMode: .inline)
-        .background(Group {
-            if viewStore.state.showSettingsButton {
-                EmptyView()
-                    .navigationBarItems(leading: Button(action: {
-                        self.viewStore.send(.sheet(.settings))
-                    }) {
-                        Text("About")
-                    })
-            } else if viewStore.state.isMoveMode {
-                EmptyView()
-                    .navigationBarItems(trailing: Button(action: {
-                        self.sheetPresentationMode?.dismiss()
-                    }) {
-                        Text("Cancel")
-                    })
-            }
-        })
+        .navigationTitle(viewStore.state.navigationBarTitle)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+//        .toolbar {
+//            if viewStore.state.showSettingsButton {
+//                ToolbarItem(placement: .navigation) {
+//                    Button(action: {
+//                        self.viewStore.send(.sheet(.settings))
+//                    }) {
+//                        Text("About")
+//                    }
+//                }
+//            } else if viewStore.state.isMoveMode {
+//                ToolbarItem(placement: .cancellationAction) {
+//                    Button(action: {
+//                        self.sheetPresentationMode?.dismiss()
+//                    }) {
+//                        Text("Cancel")
+//                    }
+//                }
+//            }
+//        }
         .onAppear {
             self.viewStore.send(.items(.startLoading))
         }
@@ -134,7 +142,7 @@ struct CampaignBrowseView: View {
                 }
             } else if self.viewStore.state.isMoveMode {
                 if self.viewStore.state.isBeingMoved(item) {
-                    content().foregroundColor(Color(UIColor.secondaryLabel))
+                    content().foregroundColor(Color.secondaryLabel)
                 } else {
                     self.navigationLink(for: item) {
                         content()
@@ -211,7 +219,9 @@ struct CampaignBrowseView: View {
                 IfLetStore(self.store.scope(state: { $0.moveSheetState }, action: { .moveSheet($0) })) { store in
                     CampaignBrowseView(store: store)
                 }
+                #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
+                #endif
             }.environmentObject(env).eraseToAnyView
         }
     }
@@ -239,7 +249,7 @@ struct NodeEditView: View {
                         .disableAutocorrection(true)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .introspectTextField { textField in
-                            if !textField.isFirstResponder, !didFocusOnField {
+                            if textField.currentEditor() != nil, !didFocusOnField {
                                 textField.becomeFirstResponder()
                                 didFocusOnField = true
                             }
@@ -247,23 +257,31 @@ struct NodeEditView: View {
                         .submitLabel(.done)
                 }
                 .padding(8)
-                .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
+                .background(Color.secondarySystemBackground.cornerRadius(4))
             }
             .padding(22)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor.systemBackground).opacity(0.90).edgesIgnoringSafeArea(.all))
-        .navigationBarTitle("\(state.node != nil ? "Rename" : "Add") \(state.contentType.displayName)", displayMode: .inline)
-        .navigationBarItems(
-            leading: Button(action: {
-                self.presentationMode.wrappedValue.dismiss()
-            }) {
-                Text("Cancel")
-            },
-            trailing: Button(action: self.saveAndDismissIfValid) {
-                Text("Done").bold()
-            }.disabled(state.name.isEmpty)
-        )
+        .background(Color.systemBackground.opacity(0.90).edgesIgnoringSafeArea(.all))
+        .navigationTitle("\(state.node != nil ? "Rename" : "Add") \(state.contentType.displayName)")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button(action: {
+                    self.presentationMode.wrappedValue.dismiss()
+                }) {
+                    Text("Cancel")
+                }
+            }
+
+            ToolbarItem(placement: .confirmationAction) {
+                Button(action: self.saveAndDismissIfValid) {
+                    Text("Done").bold()
+                }.disabled(state.name.isEmpty)
+            }
+        }
     }
 
     func saveAndDismissIfValid() {

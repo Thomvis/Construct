@@ -76,13 +76,16 @@ struct EncounterDetailView: View {
                     EmptyView().padding(.bottom, 80)
                 }
             }
+            #if os(iOS)
             .listStyle(GroupedListStyle())
             .environment(\.editMode, Binding(get: {
                 self.viewStore.state.editMode
             }, set: {
                 self.viewStore.send(.editMode($0))
             }))
+            #endif
         }
+        #if os(iOS)
         .safeAreaInset(edge: .bottom) {
             VStack {
                 if viewStore.state.running == nil {
@@ -102,14 +105,24 @@ struct EncounterDetailView: View {
             .ignoresSafeArea(.keyboard, edges: .all)
             .padding(8)
         }
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-        .navigationBarItems(trailing: Button(action: {
-            withAnimation {
-                self.viewStore.send(.editMode(self.viewStore.state.editMode.isEditing ? .inactive : .active))
+        #endif
+        .navigationTitle(Text(viewStore.state.navigationTitle))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            #if os(iOS)
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    withAnimation {
+                        self.viewStore.send(.editMode(self.viewStore.state.editMode.isEditing ? .inactive : .active))
+                    }
+                }) {
+                    Text(self.viewStore.state.editMode.isEditing ? "Done" : "Edit")
+                }
             }
-        }) {
-            Text(self.viewStore.state.editMode.isEditing ? "Done" : "Edit")
-        })
+            #endif
+        }
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, onDismiss: {
             self.viewStore.send(.sheet(nil))
         }, content: self.sheetView)
@@ -367,6 +380,7 @@ struct CombatantSection: View {
     var body: some View {
         Section(header: Group {
             HStack {
+                #if os(iOS)
                 if parent.viewStore.state.editMode == .active {
                     with(Set(self.parent.viewStore.state.encounter.combatants.map { $0.id })) { allIds in
                         with(parent.viewStore.state.selection == allIds) { selectedAll in
@@ -386,6 +400,7 @@ struct CombatantSection: View {
                         .accessibility(hidden: true)
                     Text(title).bold()
                 }
+                #endif
 
                 Spacer()
                 Image(systemName: "hare")
@@ -404,7 +419,9 @@ struct CombatantSection: View {
                 })
                 // contentShape is needed or else the tapGesture on the whole cell doesn't work
                 // scale is used to make the row easier selectable in edit mode
+                #if os(iOS)
                 .contentShape(Rectangle().scale(self.parent.viewStore.state.editMode.isEditing ? 0 : 1))
+                #endif
                 .onTapGesture {
                     if parent.appNavigation == .tab {
                         self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))

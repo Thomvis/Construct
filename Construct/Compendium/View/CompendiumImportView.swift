@@ -27,26 +27,26 @@ struct CompendiumImportView: View {
 
     var body: some View {
         Form {
-            // Select importer
-            Section(header: Text("Type")) {
-                ForEach(Self.readers) { reader in
-                    HStack(spacing: 12) {
-                        Checkbox(selected: self.selectedReader?.id == reader.id)
-                            .foregroundColor(Color(UIColor.systemFill))
-
-                        VStack(alignment: .leading) {
-                            Text(reader.name)
-                            reader.description.map {
-                                Text($0).font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
-                            }
-                        }
-                    }
-                    .onTapGesture {
-                        self.selectedReader = reader
-                    }
-                }
-            }
-
+//            // Select importer
+//            Section(header: Text("Type")) {
+//                ForEach(Self.readers) { reader in
+//                    HStack(spacing: 12) {
+//                        Checkbox(selected: self.selectedReader?.id == reader.id)
+//                            .foregroundColor(Color.systemFill)
+//
+//                        VStack(alignment: .leading) {
+//                            Text(reader.name)
+//                            reader.description.map {
+//                                Text($0).font(.footnote).foregroundColor(Color.secondaryLabel)
+//                            }
+//                        }
+//                    }
+//                    .onTapGesture {
+//                        self.selectedReader = reader
+//                    }
+//                }
+//            }
+//
             // Configure source
             Section(header: Text("Source")) {
                 Picker(selection: $source, label: Text("Source")) {
@@ -83,11 +83,15 @@ struct CompendiumImportView: View {
                 }
             }.disabled(!canImport || importProgress.isImporting)
         }
-        .navigationBarTitle(CompendiumImportViewState().navigationTitle)
+        .navigationTitle(CompendiumImportViewState().navigationTitle)
         .sheet(isPresented: $openDocumentPicker) {
+            #if os(iOS)
             DocumentPicker { urls in
                 self.pickedFileUrl = urls.first
             }
+            #elseif os(macOS)
+            Text("FIXME DocumentPicker")
+            #endif
         }
         .alert(item: Binding(get: { importProgress.forAlert }, set: { _ in })) { progress in
             guard let title = progress.localizedTitle else {
@@ -106,7 +110,7 @@ struct CompendiumImportView: View {
                         }
                     }
                 )
-            );
+            )
         }
     }
 

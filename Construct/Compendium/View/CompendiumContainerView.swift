@@ -15,11 +15,10 @@ struct CompendiumContainerView: View {
     var store: Store<CompendiumIndexState, CompendiumIndexAction>
 
     var body: some View {
-        NavigationView {
+//        NavigationStack {
             CompendiumIndexView(store: store)
-        }
-        .navigationViewStyle(StackNavigationViewStyle())
-        .edgesIgnoringSafeArea(.top)
+//        }
+//        .edgesIgnoringSafeArea(.top)
     }
 }
 

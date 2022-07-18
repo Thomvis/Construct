@@ -11,18 +11,27 @@ import SwiftUI
 
 extension View {
     func popover(_ content: Binding<Popover?>) -> some View {
+        #if os(iOS)
         self.background(PopoverPresenter(
                             content: Binding(
                                 get: { content.wrappedValue?.makeBody() },
                                 set: { _ in content.wrappedValue = nil }
                             )).opacity(0))
+        #elseif os(macOS)
+        EmptyView()
+        #endif
     }
 
     func popover<Content>(_ content: Binding<Content?>) -> some View where Content: View {
+        #if os(iOS)
         self.background(PopoverPresenter(content: content).opacity(0))
+        #elseif os(macOS)
+        EmptyView()
+        #endif
     }
 }
 
+#if os(iOS)
 // Inspired by https://www.objc.io/blog/2020/04/21/swiftui-alert-with-textfield/
 struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: View {
     @Binding var content: Popover?
@@ -67,7 +76,7 @@ struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: V
 
         var body: some View {
             ZStack {
-                Color(UIColor.systemGray3).opacity(0.66).edgesIgnoringSafeArea(.all)
+                Color.systemGray3.opacity(0.66).edgesIgnoringSafeArea(.all)
                     .onTapGesture {
                         $popover.wrappedValue = nil
                     }
@@ -79,7 +88,7 @@ struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: V
                     .clipped()
                     .frame(maxWidth: 500)
                     .background(
-                         Color(UIColor.secondarySystemBackground)
+                         Color.secondarySystemBackground
                             .cornerRadius(8)
                             .shadow(radius: 5)
                     )
@@ -90,3 +99,4 @@ struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: V
     }
 
 }
+#endif

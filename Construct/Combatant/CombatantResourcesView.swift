@@ -31,7 +31,7 @@ struct CombatantResourcesView: View {
                             SimpleButton(action: {
                                 self.viewStore.send(.combatant(.removeResource(resource)))
                             }) {
-                                Image(systemName: "minus.circle").font(Font.title.weight(.light)).foregroundColor(Color(UIColor.systemRed))
+                                Image(systemName: "minus.circle").font(Font.title.weight(.light)).foregroundColor(Color.systemRed)
                             }
 
                             Text("\(resource.title) (\(resource.slots.count))")
@@ -69,6 +69,9 @@ struct CombatantResourcesView: View {
                 self.viewStore.send(.setEditState(nil))
             }
         }))
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+        .navigationTitle(Text(viewStore.state.navigationTitle))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }

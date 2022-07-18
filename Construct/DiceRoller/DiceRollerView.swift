@@ -65,8 +65,8 @@ struct DiceRollerView: View {
                         .position(x: proxy.size.width*0.8, y: proxy.size.height*0.4)
 
                     LinearGradient(gradient: Gradient(colors: [
-                        Color(UIColor.systemBackground).opacity(0.1),
-                        Color(UIColor.systemBackground).opacity(0.9)
+                        Color.systemBackground.opacity(0.1),
+                        Color.systemBackground.opacity(0.9)
                     ]), startPoint: .top, endPoint: .bottom)
 
                     DiceLogFeedView(entries: viewStore.state.diceLog.entries)
@@ -104,7 +104,7 @@ struct DiceRollerView: View {
 
             DiceCalculatorView(store: store.scope(state: { $0.calculatorState }, action: { .calculatorState($0) }))
                 .padding(12)
-                .background(Color(UIColor.systemBackground).opacity(0.9))
+                .background(Color.systemBackground.opacity(0.9))
         }
         .edgesIgnoringSafeArea(.top)
         .onAppear {

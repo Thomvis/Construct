@@ -12,14 +12,14 @@
 import SwiftUI
 
 struct FlowLayout: CollectionViewLayout {
-    let spacing: UIOffset
+    let spacing: CGSize
     let alignment: HorizontalAlignment
 
     var horizontalAlignment: HorizontalAlignment {
         alignment
     }
 
-    init(spacing: UIOffset = UIOffset(horizontal: 10, vertical: 10), alignment: HorizontalAlignment = .leading) {
+    init(spacing: CGSize = CGSize(width: 10, height: 10), alignment: HorizontalAlignment = .leading) {
         self.spacing = spacing
         self.alignment = alignment
     }
@@ -41,7 +41,7 @@ struct FlowLayout: CollectionViewLayout {
                     result[id] = rect.origin
                 }
             case .trailing:
-                let lineWidth = line.map { $0.1.width }.reduce(0, +) + CGFloat(line.count-1)*spacing.horizontal
+                let lineWidth = line.map { $0.1.width }.reduce(0, +) + CGFloat(line.count-1)*spacing.width
                 let emptySpace = containerWidth - lineWidth
                 for (id, rect) in line {
                     result[id] = rect.origin.offset(dx: emptySpace)
@@ -50,7 +50,7 @@ struct FlowLayout: CollectionViewLayout {
             }
 
             currentX = 0
-            currentY += lineHeight + spacing.vertical
+            currentY += lineHeight + spacing.height
             lineHeight = 0
 
             line.removeAll()
@@ -63,7 +63,7 @@ struct FlowLayout: CollectionViewLayout {
             }
             defer {
                 lineHeight = max(lineHeight, size.height)
-                currentX += size.width + spacing.horizontal
+                currentX += size.width + spacing.width
             }
 
             let rect = CGRect(origin: CGPoint(x: currentX, y: currentY), size: size)

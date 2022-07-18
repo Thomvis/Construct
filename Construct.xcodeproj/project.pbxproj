@@ -60,6 +60,7 @@
 		E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93777EC233CF81F00C9F41A /* O5eModels.swift */; };
 		E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */ = {isa = PBXBuildFile; productRef = E93FA1C924EC5B7F007441BF /* Parma */; };
 		E940B5D7237B45EE00A8DAF4 /* spells.json in Resources */ = {isa = PBXBuildFile; fileRef = E940B5D6237B45EE00A8DAF4 /* spells.json */; };
+		E94284642877576D00871F92 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94284632877576D00871F92 /* Colors.swift */; };
 		E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA902477E56300F313D7 /* CompendiumIndexState.swift */; };
 		E942E00D247E8F6600170FAC /* StatBlockCombatantResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD3235C8AC6000CCC8B /* StatBlockCombatantResources.swift */; };
 		E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */; };
@@ -117,7 +118,6 @@
 		E963CCFE247BDEE8009863D7 /* Monster.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6EB2314FB37004D84E2 /* Monster.swift */; };
 		E96D3AFA268FC07500927C67 /* FlipTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96D3AF9268FC07500927C67 /* FlipTransition.swift */; };
 		E96FC16923D3A5BE00A12F1E /* ogl.md in Resources */ = {isa = PBXBuildFile; fileRef = E96FC16823D3A5BE00A12F1E /* ogl.md */; };
-		E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96FC16A23D3A64800A12F1E /* WebView.swift */; };
 		E971E5262374C3130005725F /* RoundedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E971E5252374C3130005725F /* RoundedButton.swift */; };
 		E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */; };
 		E972BA942477F8B200F313D7 /* EquatablePropertyWrappers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA932477F8B100F313D7 /* EquatablePropertyWrappers.swift */; };
@@ -198,7 +198,6 @@
 		E999896822A6B4F20067BA25 /* ConstructApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999896722A6B4F20067BA25 /* ConstructApp.swift */; };
 		E999896A22A6B4F30067BA25 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E999896922A6B4F30067BA25 /* Assets.xcassets */; };
 		E999896D22A6B4F30067BA25 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E999896C22A6B4F30067BA25 /* Preview Assets.xcassets */; };
-		E999897022A6B4F30067BA25 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E999896E22A6B4F30067BA25 /* LaunchScreen.storyboard */; };
 		E999FBC12359F7EE000CCC8B /* ddb_thrall.json in Resources */ = {isa = PBXBuildFile; fileRef = E999FBC02359F7EE000CCC8B /* ddb_thrall.json */; };
 		E999FBC5235B4AC1000CCC8B /* CollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBC4235B4AC1000CCC8B /* CollectionView.swift */; };
 		E999FBC9235BA536000CCC8B /* SimpleList.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBC8235BA536000CCC8B /* SimpleList.swift */; };
@@ -318,6 +317,7 @@
 		E940B5D8237B45FC00A8DAF4 /* Spell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spell.swift; sourceTree = "<group>"; };
 		E940B5DA237B4AD900A8DAF4 /* Open5eSpellDataSourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Open5eSpellDataSourceReader.swift; sourceTree = "<group>"; };
 		E940B5DC237BE7F800A8DAF4 /* CombatantTagEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagEditView.swift; sourceTree = "<group>"; };
+		E94284632877576D00871F92 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 		E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Combatant+SwiftUI.swift"; sourceTree = "<group>"; };
 		E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningEncounterLogViewState.swift; sourceTree = "<group>"; };
 		E943295F2739B74B006F1B6F /* Parseable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parseable.swift; sourceTree = "<group>"; };
@@ -346,7 +346,6 @@
 		E96D3AF9268FC07500927C67 /* FlipTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlipTransition.swift; sourceTree = "<group>"; };
 		E96FC16523D3976800A12F1E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E96FC16823D3A5BE00A12F1E /* ogl.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ogl.md; sourceTree = "<group>"; };
-		E96FC16A23D3A64800A12F1E /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		E971E5252374C3130005725F /* RoundedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedButton.swift; sourceTree = "<group>"; };
 		E972BA8E2477E50A00F313D7 /* AddCombatantState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantState.swift; sourceTree = "<group>"; };
 		E972BA902477E56300F313D7 /* CompendiumIndexState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumIndexState.swift; sourceTree = "<group>"; };
@@ -660,7 +659,6 @@
 				E9A71EBB239ADB400098317E /* Style.swift */,
 				E978861423BDF398003B2DA2 /* NumberEntryView.swift */,
 				E92B8FD723C904D70040E6C5 /* ActivityButton.swift */,
-				E96FC16A23D3A64800A12F1E /* WebView.swift */,
 				E9AB031223EBF09B0091C908 /* EqualSize.swift */,
 				E9AB031723EC52C80091C908 /* SimpleButton.swift */,
 				E91C167A2402DF3E004B5C85 /* SheetNavigationContainer.swift */,
@@ -671,6 +669,7 @@
 				E962FF352504FC2E00919B34 /* AnimatedRollView.swift */,
 				E991F88625449C7D006CE8E8 /* TabbedDocumentView.swift */,
 				E96D3AF9268FC07500927C67 /* FlipTransition.swift */,
+				E94284632877576D00871F92 /* Colors.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -1148,7 +1147,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E91E4711231D9CB6005D1E6F /* monsters.json in Resources */,
-				E999897022A6B4F30067BA25 /* LaunchScreen.storyboard in Resources */,
 				E91EB0B423EE08CB00F40E46 /* roll.ahap in Resources */,
 				E91B857F23DA355B009AF6D7 /* software_licenses.md in Resources */,
 				E999896D22A6B4F30067BA25 /* Preview Assets.xcassets in Resources */,
@@ -1312,7 +1310,6 @@
 				E946B023247D9E91008A407C /* AdHocCombatant.swift in Sources */,
 				E9AB031823EC52C90091C908 /* SimpleButton.swift in Sources */,
 				E97A43AA2332C31A00A8B032 /* Entity.swift in Sources */,
-				E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */,
 				E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */,
 				E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */,
 				E931CF8324FD0E54006CEE78 /* CreatureActionParser.swift in Sources */,
@@ -1347,6 +1344,7 @@
 				E946B02A247DBB2F008A407C /* CompendiumFilterPopover.swift in Sources */,
 				E962FF362504FC2E00919B34 /* AnimatedRollView.swift in Sources */,
 				E942E015247EB3CE00170FAC /* Open5eMonsterDataSourceReader.swift in Sources */,
+				E94284642877576D00871F92 /* Colors.swift in Sources */,
 				E931CF932500CA3F006CEE78 /* DiceActionViewState.swift in Sources */,
 				E991F88C25449D86006CE8E8 /* ReferenceView.swift in Sources */,
 				E972BAA22478588800F313D7 /* CompendiumEntry.swift in Sources */,
@@ -1571,9 +1569,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
 				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-expression-type-checking=100 -Xfrontend -warn-long-function-bodies=100";
 				PRODUCT_BUNDLE_IDENTIFIER = me.thomasvisser.construct5e;
 				PRODUCT_NAME = Construct;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1593,9 +1595,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 12.4;
 				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-expression-type-checking=100 -Xfrontend -warn-long-function-bodies=100";
 				PRODUCT_BUNDLE_IDENTIFIER = me.thomasvisser.construct5e;
 				PRODUCT_NAME = Construct;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

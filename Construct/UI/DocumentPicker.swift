@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
+#if os(iOS)
 final class DocumentPicker: NSObject, UIViewControllerRepresentable, UIDocumentPickerDelegate {
 
     typealias UIViewControllerType = UIDocumentPickerViewController
@@ -43,3 +44,4 @@ final class DocumentPicker: NSObject, UIViewControllerRepresentable, UIDocumentP
     }
 
 }
+#endif

@@ -10,7 +10,9 @@ import Foundation
 import SwiftUI
 import Combine
 import CoreHaptics
+#if os(iOS)
 import MessageUI
+#endif
 import CombineSchedulers
 import StoreKit
 
@@ -78,14 +80,20 @@ class Environment: ObservableObject {
 extension Environment {
     static func live() throws -> Environment {
         let database: Database = try .live()
+        #if os(iOS)
         let mailComposeDelegate = MailComposeDelegate()
+        #endif
 
         let keyWindow = {
+            #if os(iOS)
             UIApplication.shared.connectedScenes
                 .compactMap { $0 as? UIWindowScene }
                 .flatMap { $0.windows }
                 .filter(\.isKeyWindow)
                 .first
+            #elseif os(macOS)
+            NSApplication.shared.keyWindow
+            #endif
         }
 
         return Environment(
@@ -96,8 +104,15 @@ extension Environment {
                 f.numberStyle = .ordinal
             },
             database: database,
-            canSendMail: { MFMailComposeViewController.canSendMail() },
+            canSendMail: {
+                #if os(iOS)
+                MFMailComposeViewController.canSendMail()
+                #elseif os(macOS)
+                true
+                #endif
+            },
             sendMail: {
+                #if os(iOS)
                 let composeVC = MFMailComposeViewController()
                 composeVC.mailComposeDelegate = mailComposeDelegate
 
@@ -107,37 +122,56 @@ extension Environment {
 
                 // Present the view controller modally.
                 keyWindow()?.rootViewController?.deepestPresentedViewController.present(composeVC, animated: true, completion:nil)
+                #elseif os(macOS)
+                NSWorkspace.shared.open(URL(string: "mailto:hello@construct5e.app?subject=Construct%20feedback")!)
+                #endif
             },
             rateInAppStore: {
+                #if os(iOS)
                 let appID = 1490015210
                 let url = "https://itunes.apple.com/app/id\(appID)?action=write-review"
                 UIApplication.shared.open(URL(string: url)!, options: [:], completionHandler: nil)
+                #endif
             },
             requestAppStoreReview: {
+                #if os(iOS)
                 if let windowScene = keyWindow()?.windowScene {
                     SKStoreReviewController.requestReview(in: windowScene)
                 }
+                #else
+                SKStoreReviewController.requestReview()
+                #endif
             },
             isIdleTimerDisabled: Binding<Bool>(get: {
+                #if os(iOS)
                 UIApplication.shared.isIdleTimerDisabled
+                #else
+                false
+                #endif
             }, set: {
+                #if os(iOS)
                 UIApplication.shared.isIdleTimerDisabled = $0
+                #endif
             }),
             generateUUID: UUID.init,
             rng: AnyRandomNumberGenerator(wrapped: SystemRandomNumberGenerator()),
             mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
             dismissKeyboard: {
+                #if os(iOS)
                 keyWindow()?.endEditing(true)
+                #endif
             },
             diceLog: DiceLogPublisher()
         )
     }
 
+    #if os(iOS)
     private class MailComposeDelegate: NSObject, MFMailComposeViewControllerDelegate {
         func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
             controller.dismiss(animated: true, completion: nil)
         }
     }
+    #endif
 }
 
 extension Database {
@@ -149,11 +183,13 @@ extension Database {
     }
 }
 
+#if os(iOS)
 extension UIViewController {
     var deepestPresentedViewController: UIViewController {
         presentedViewController ?? self
     }
 }
+#endif
 
 struct AnyRandomNumberGenerator: RandomNumberGenerator {
     var wrapped: RandomNumberGenerator

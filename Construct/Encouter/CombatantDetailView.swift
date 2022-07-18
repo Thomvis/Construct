@@ -23,15 +23,19 @@ struct CombatantDetailContainerView: View {
     var body: some View {
         NavigationView {
             CombatantDetailView(store: store)
-                .navigationBarItems(trailing: Group {
-                    Button(action: {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Text("Done").bold()
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(action: {
+                            self.presentationMode.wrappedValue.dismiss()
+                        }) {
+                            Text("Done").bold()
+                        }
                     }
-                })
+                }
         }
+        #if os(iOS)
         .navigationViewStyle(StackNavigationViewStyle())
+        #endif
         .edgesIgnoringSafeArea(.all)
     }
 }
@@ -66,19 +70,19 @@ struct CombatantDetailView: View {
                                     HStack(alignment: .firstTextBaseline) {
                                         VStack {
                                             Text("\(hp.current)").font(.title)
-                                            Text("Cur").font(.subheadline).foregroundColor(Color(UIColor.secondaryLabel))
+                                            Text("Cur").font(.subheadline).foregroundColor(Color.secondaryLabel)
                                         }
                                         VStack {
                                             Text("/").font(.title)
-                                            Text("").font(.subheadline).foregroundColor(Color(UIColor.secondaryLabel))
+                                            Text("").font(.subheadline).foregroundColor(Color.secondaryLabel)
                                         }
                                         VStack {
                                             Text("\(hp.maximum)").font(.title)
-                                            Text("Max").font(.subheadline).foregroundColor(Color(UIColor.secondaryLabel))
+                                            Text("Max").font(.subheadline).foregroundColor(Color.secondaryLabel)
                                         }
                                         VStack {
                                             Text("\(hp.temporary)").font(.title)
-                                            Text("Temp").font(.subheadline).foregroundColor(Color(UIColor.secondaryLabel))
+                                            Text("Temp").font(.subheadline).foregroundColor(Color.secondaryLabel)
                                         }
                                     }
                                 }.replaceNilWith {
@@ -87,7 +91,7 @@ struct CombatantDetailView: View {
                                 .equalSize()
                             }
                             .padding(8)
-                            .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
+                            .background(Color.secondarySystemBackground.cornerRadius(8))
                         }
 
                         Text(combatant.definition.ac.map { "\($0)" } ?? "--")
@@ -113,7 +117,7 @@ struct CombatantDetailView: View {
                                     combatant.definition.initiativeModifier.map {
                                         Text(env.modifierFormatter.stringWithFallback(for: $0)).italic().opacity(0.6)
                                     }.replaceNilWith {
-                                        Text("--").italic().foregroundColor(Color(UIColor.secondaryLabel))
+                                        Text("--").italic().foregroundColor(Color.secondaryLabel)
                                     }
                                 }
                                 .font(.title)
@@ -121,7 +125,7 @@ struct CombatantDetailView: View {
                             }
                         }
                         .padding(8)
-                        .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
+                        .background(Color.secondarySystemBackground.cornerRadius(8))
                     }.equalSizes(horizontal: false, vertical: true)
 
                     SectionContainer(
@@ -207,7 +211,7 @@ struct CombatantDetailView: View {
                                     }) {
                                         Text("Detach from compendium")
                                     }
-                                    Text("This combatant was added from the compendium. Detach it to further tailor it for this encounter.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel)).fixedSize(horizontal: false, vertical: true)
+                                    Text("This combatant was added from the compendium. Detach it to further tailor it for this encounter.").font(.footnote).foregroundColor(Color.secondaryLabel).fixedSize(horizontal: false, vertical: true)
                                 }
                             }
 
@@ -220,7 +224,7 @@ struct CombatantDetailView: View {
                                     }) {
                                         Text("Save to compendium")
                                     }
-                                    Text("This combatant was created for this encounter. Save it to the compendium to make it available for other encounters.").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel)).fixedSize(horizontal: false, vertical: true)
+                                    Text("This combatant was created for this encounter. Save it to the compendium to make it available for other encounters.").font(.footnote).foregroundColor(Color.secondaryLabel).fixedSize(horizontal: false, vertical: true)
                                 }
 
                                 Divider()
@@ -245,6 +249,7 @@ struct CombatantDetailView: View {
                 .padding(12)
                 .padding(.bottom, 50)
                 // Placing this (and .popover) inside the scrollview to work around https://github.com/stleamist/BetterSafariView/issues/23
+                #if os(iOS)
                 .safariView(
                     item: viewStore.binding(get: { $0.presentedNextSafariView }, send: { _ in .setNextScreen(nil) }),
                     onDismiss: { viewStore.send(.setNextScreen(nil)) },
@@ -254,11 +259,15 @@ struct CombatantDetailView: View {
                         )
                     }
                 )
+                #endif
                 .popover(self.popover)
                 .alert(store.scope(state: { $0.alert }), dismiss: CombatantDetailViewAction.alert(nil))
             }
         }
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+        .navigationTitle(Text(viewStore.state.navigationTitle))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
         // START: work-around for https://forums.swift.org/t/14-5-beta3-navigationlink-unexpected-pop/45279/27
         .background(VStack {
             NavigationLink(destination: EmptyView()) {

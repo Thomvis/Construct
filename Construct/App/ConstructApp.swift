@@ -47,6 +47,7 @@ struct ConstructApp: App {
         WindowGroup {
             ConstructView(store: self.store)
                 .environmentObject(env)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .onChange(of: scenePhase) { phase in
             switch phase {
@@ -64,7 +65,9 @@ struct ConstructApp: App {
 }
 
 struct ConstructView: View {
+    #if os(iOS)
     @SwiftUI.Environment(\.horizontalSizeClass) var horizontalSizeClass
+    #endif
 
     @EnvironmentObject var env: Environment
     let store: Store<AppState, AppState.Action>
@@ -89,16 +92,20 @@ struct ConstructView: View {
                 }
             }
             .onAppear {
+                #if os(iOS)
                 if let sizeClass = horizontalSizeClass {
                     viewStore.send(.onHorizontalSizeClassChange(sizeClass))
                 }
+                #endif
                 viewStore.send(.onAppear)
             }
+            #if os(iOS)
             .onChange(of: horizontalSizeClass) { sizeClass in
                 if let sizeClass = sizeClass {
                     viewStore.send(.onHorizontalSizeClassChange(sizeClass))
                 }
             }
+            #endif
             .overlay {
                 if viewStore.state.showPostLaunchLoadingScreen {
                     ZStack {
@@ -112,7 +119,7 @@ struct ConstructView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(UIColor.systemBackground))
+                    .background(Color.systemBackground)
                     .transition(.opacity)
                 }
             }

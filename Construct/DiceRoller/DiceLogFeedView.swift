@@ -45,7 +45,7 @@ struct DiceLogFeedView: View {
                                 }
                                 .padding(.trailing, 12)
                                 .background(alignment: .trailing) {
-                                    Color(UIColor.systemGray2)
+                                    Color.systemGray2
                                         .frame(maxWidth: 2)
                                         .padding(.trailing, 1)
                                 }
@@ -82,7 +82,7 @@ struct DiceLogFeedView: View {
             .background(
                 RoundedRectangle(cornerRadius: 4)
                     .stroke(style: StrokeStyle(lineWidth: 2))
-                    .foregroundColor(Color(UIColor.systemGray5))
+                    .foregroundColor(Color.systemGray5)
             )
             .opacity(displayRoll.opacity)
     }
@@ -133,7 +133,7 @@ struct DiceLogFeedView: View {
                 left.addQuadCurve(to: leftPoints[0].offset(dx: cr), control: leftPoints[0])
                 left.closeSubpath()
 
-                context.stroke(left, with: .color(Color(UIColor.systemGray5)), lineWidth: 2)
+                context.stroke(left, with: .color(Color.systemGray5), lineWidth: 2)
             } else {
                 let rightPoints: [CGPoint] = [
                     CGPoint(x: safeArea.maxX, y: safeArea.maxY),
@@ -152,7 +152,7 @@ struct DiceLogFeedView: View {
                 right.addQuadCurve(to: rightPoints[0].offset(dx: -cr), control: rightPoints[0])
                 right.closeSubpath()
 
-                context.stroke(right, with: .color(Color(UIColor.systemGray5)), lineWidth: 2)
+                context.stroke(right, with: .color(Color.systemGray5), lineWidth: 2)
             }
         }
     }
@@ -182,8 +182,8 @@ fileprivate struct DisplayRoll {
         switch emphasis {
         case .none: return nil
         case .demphasize: return nil
-        case .lowestWithDisadvantage: return Color(UIColor.systemRed)
-        case .highestWithAdvantage: return Color(UIColor.systemGreen)
+        case .lowestWithDisadvantage: return Color.systemRed
+        case .highestWithAdvantage: return Color.systemGreen
         }
     }
 

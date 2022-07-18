@@ -9,11 +9,11 @@
 import Foundation
 import SwiftUI
 
-func RoundedButton<Label>(color: Color = Color(UIColor.systemGray4), action: @escaping () -> Void, @ViewBuilder label: () -> Label) -> some View where Label: View {
+func RoundedButton<Label>(color: Color = Color.systemGray4, action: @escaping () -> Void, @ViewBuilder label: () -> Label) -> some View where Label: View {
     Button(action: action, label: label).buttonStyle(RoundedButtonStyle(color: color))
 }
 
-func RoundedButton(color: Color = Color(UIColor.systemGray4), action: @escaping () -> Void, label: () -> SwiftUI.Label<Text, Image>) -> some View {
+func RoundedButton(color: Color = Color.systemGray4, action: @escaping () -> Void, label: () -> SwiftUI.Label<Text, Image>) -> some View {
     Button(action: action) {
         label().labelStyle(VerticalStackLabelStyle())
     }.buttonStyle(RoundedButtonStyle(color: color))
@@ -30,7 +30,7 @@ private struct RoundedButtonStyle: SwiftUI.ButtonStyle {
             .padding(10)
             .frame(maxWidth: .infinity)
             .equalSize()
-            .background(Color(UIColor.systemBackground).opacity(configuration.isPressed ? 0.33 : 0).cornerRadius(8))
+            .background(Color.systemBackground.opacity(configuration.isPressed ? 0.33 : 0).cornerRadius(8))
             .background(color.cornerRadius(8))
     }
 }

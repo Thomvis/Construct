@@ -23,6 +23,7 @@ struct SheetNavigationContainer<Content>: View where Content: View {
         .environment(\.sheetPresentationMode, SheetPresentationMode {
             self.presentationMode.wrappedValue.dismiss()
         })
+        #if os(iOS)
         .introspectViewController { vc in
             guard presentationMode.wrappedValue.isPresented else { return }
 
@@ -31,6 +32,7 @@ struct SheetNavigationContainer<Content>: View where Content: View {
                 vc.isModalInPresentation = true
             }
         }
+        #endif
     }
 
 }

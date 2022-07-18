@@ -39,7 +39,7 @@ struct CompendiumItemGroupEditView: View {
                                 self.viewStore.send(.removeMember(member.itemKey))
                             }) {
                                 Image(systemName: "minus.circle")
-                            }.accentColor(Color(UIColor.systemRed))
+                            }.accentColor(Color.systemRed)
 
                             Text(member.itemTitle)
                         }
@@ -64,7 +64,7 @@ struct CompendiumItemGroupEditView: View {
 
                             VStack(alignment: .leading) {
                                 Text(character.title)
-                                Text(character.localizedSummary).font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+                                Text(character.localizedSummary).font(.footnote).foregroundColor(Color.secondaryLabel)
                             }
                         }.disabled(self.viewStore.state.group.contains(character))
                     }
@@ -79,7 +79,7 @@ struct CompendiumItemGroupEditView: View {
                         self.viewStore.send(.onRemoveTap(self.viewStore.state.group))
                     }) {
                         Text("Remove group")
-                            .foregroundColor(Color(UIColor.systemRed))
+                            .foregroundColor(Color.systemRed)
                     }
                 }
             }
@@ -87,6 +87,7 @@ struct CompendiumItemGroupEditView: View {
         .onAppear {
             self.viewStore.send(.allCharacters(.startLoading))
         }
+        #if os(iOS)
         .background(Group {
             if viewStore.state.mode.isEdit {
                 EmptyView()
@@ -103,7 +104,9 @@ struct CompendiumItemGroupEditView: View {
                         }
                         .disabled(!self.viewStore.state.isValid)
                     )
+                    #if os(iOS)
                     .navigationBarBackButtonHidden(true)
+                    #endif
             } else {
                 EmptyView()
                     .navigationBarItems(
@@ -119,9 +122,13 @@ struct CompendiumItemGroupEditView: View {
                         }
                         .disabled(!self.viewStore.state.isValid)
                     )
-                    .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+                    .navigationTitle(Text(viewStore.state.navigationTitle))
+                    #if os(iOS)
+                    .navigationBarTitleDisplayMode(.inline)
+                    #endif
             }
         })
+        #endif
     }
 
     func onDeleteMembers(_ indices: IndexSet) {

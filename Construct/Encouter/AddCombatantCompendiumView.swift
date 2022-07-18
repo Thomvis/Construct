@@ -41,7 +41,10 @@ struct AddCombatantCompendiumView: View {
                 return AddCombatantDetailView(parentStore: self.store, store: store, onSelection: { action in
                     self.onSelection(action, false)
                 })
-                .navigationBarTitle(Text(ViewStore(store).state.item.title), displayMode: .inline)
+                .navigationTitle(Text(ViewStore(store).state.item.title))
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
                 .eraseToAnyView
             }
         )
@@ -64,7 +67,7 @@ struct AddCombatantCompendiumView: View {
             HStack {
                 VStack(alignment: .leading) {
                     Text(combatant.title).foregroundColor(Color.primary)
-                    combatant.localizedSummary(in: compendiumIndexViewStore.state, env: parent.env).font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+                    combatant.localizedSummary(in: compendiumIndexViewStore.state, env: parent.env).font(.footnote).foregroundColor(Color.secondaryLabel)
                 }
 
                 Spacer()

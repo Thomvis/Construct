@@ -30,7 +30,7 @@ struct CombatantResourceTrackerView: View {
                     }, label: {
                         HStack {
                             Text("Used \(viewStore.state.slots.filter { $0 }.count) of \(viewStore.state.slots.count)")
-                                .foregroundColor(Color(UIColor.label))
+                                .foregroundColor(Color.label)
 
                             Image(systemName: "ellipsis.circle")
                         }
@@ -58,16 +58,16 @@ extension CombatantResourceTrackerView {
 
         var body: some View {
             Circle()
-                .stroke(Color(UIColor.systemGray2), lineWidth: 2)
+                .stroke(Color.systemGray2, lineWidth: 2)
                 .overlay(Group {
                     if used {
                         Circle()
-                            .foregroundColor(Color(UIColor.systemGray))
+                            .foregroundColor(Color.systemGray)
                             .padding(4)
                     }
                 })
                 .frame(width: 33, height: 33)
-                .background(Color(UIColor.systemBackground).opacity(0.001))
+                .background(Color.systemBackground.opacity(0.001))
                 .onTapGesture {
                     self.used.toggle()
                 }

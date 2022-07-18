@@ -65,7 +65,9 @@ struct AppState: Equatable {
         case onLaunch
         case navigation(AppStateNavigationAction)
 
+        #if os(iOS)
         case onHorizontalSizeClassChange(UserInterfaceSizeClass)
+        #endif
 
         case welcomeSheet(Bool)
         case welcomeSheetSampleEncounterTapped
@@ -93,6 +95,7 @@ struct AppState: Equatable {
                     .eraseToEffect()
                     .cancellable(id: "diceLog", cancelInFlight: true)
                 case .navigation: break // handled below
+                #if os(iOS)
                 case .onHorizontalSizeClassChange(let sizeClass):
                     switch (state.navigation, sizeClass) {
                     case (nil, .compact):
@@ -106,6 +109,7 @@ struct AppState: Equatable {
                     default:
                         break
                     }
+                #endif
                 case .welcomeSheet(let show):
                     state.showWelcomeSheet = show
                     if !show {
@@ -134,6 +138,9 @@ struct AppState: Equatable {
                             env.requestAppStoreReview()
                         }
                     }
+                    #if os(macOS)
+                    state.navigation = .column(ColumnNavigationViewState())
+                    #endif
                 case .showPostLaunchLoadingScreen(let b):
                     state.showPostLaunchLoadingScreen = b
                 case .parseableManagerDidFinish:

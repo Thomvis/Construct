@@ -42,7 +42,7 @@ struct CompendiumItemDetailView: View {
                 if let sourceDisplayName = viewStore.state.entry.source?.displayName {
                     Text(sourceDisplayName)
                         .font(.footnote).italic()
-                        .foregroundColor(Color(UIColor.secondaryLabel))
+                        .foregroundColor(Color.secondaryLabel)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                 }
             }
@@ -71,7 +71,10 @@ struct CompendiumItemDetailView: View {
                 }
             }
         }
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+        .navigationTitle(Text(viewStore.state.navigationTitle))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
         .onAppear {
             viewStore.send(.onAppear)

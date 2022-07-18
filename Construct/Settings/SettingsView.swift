@@ -89,14 +89,22 @@ struct SettingsView: View {
                 Text("Version \(version)")
             }
         }
+        #if os(iOS)
         .listStyle(InsetGroupedListStyle())
+        #endif
         .sheet(item: sheetDest, content: sheetView)
-        .navigationBarTitle("About", displayMode: .inline)
-        .navigationBarItems(trailing: Button(action: {
-            self.presentationMode.dismiss()
-        }) {
-            Text("Done").bold()
-        })
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button(action: {
+                    self.presentationMode.dismiss()
+                }) {
+                    Text("Done").bold()
+                }
+            }
+        }
     }
 
     var version: String {
@@ -162,7 +170,11 @@ struct SettingsView: View {
     func sheetView(destination: Destination?) -> AnyView {
         switch destination {
         case .safariView(let url):
+            #if os(iOS)
             return SafariView(url: URL(string: url)!).edgesIgnoringSafeArea(.all).eraseToAnyView
+            #elseif os(macOS)
+            return EmptyView().eraseToAnyView
+            #endif
         default:
             return EmptyView().eraseToAnyView
         }

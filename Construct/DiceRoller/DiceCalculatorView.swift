@@ -280,7 +280,7 @@ fileprivate struct DiceExpressionView: View {
                     SwiftUI.Button(action: { viewStore.send(.onExpressionEditUndoButtonTap) }) {
                         Image(systemName: "arrow.uturn.left").font(.title)
                     }
-                    .accentColor(Color(UIColor.systemRed))
+                    .accentColor(Color.systemRed)
                     .keyboardShortcut(.delete, modifiers: [])
                 } else if viewStore.state.showExpressionEditButton {
                     Button(action: {
@@ -364,7 +364,7 @@ struct OutcomeView: View {
 
     @ViewBuilder
     func diceSummary(_ expr: RolledDiceExpression) -> some View {
-        expr.text.font(.footnote).lineLimit(nil).foregroundColor(Color(UIColor.tertiaryLabel))
+        expr.text.font(.footnote).lineLimit(nil).foregroundColor(Color.tertiaryLabel)
     }
 
     struct TrailingButtons: View {
@@ -411,7 +411,7 @@ struct ResultDetailView: View {
                     }
                 }.padding(10)
 
-                Text("Tap a die to re-roll").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+                Text("Tap a die to re-roll").font(.footnote).foregroundColor(Color.secondaryLabel)
             }
         }
     }
@@ -425,7 +425,7 @@ struct ResultDetailView: View {
         return Text("\(die.value)")
             .bold().underline(die.value == die.die.sides).italic(die.value == 1)
             .frame(width: 44, height: 44)
-            .background(((die.die.color?.UIColor).map(Color.init) ?? Color(UIColor.systemGray5)).cornerRadius(4))
+            .background((die.die.color?.swiftUIColor ?? Color.systemGray5).cornerRadius(4))
             .animation(nil, value: die.value)
             .transition(.flip)
             .id(die.id)
@@ -472,7 +472,7 @@ fileprivate struct DicePadView: View {
                 }) {
                     Text("Roll")
                 }
-                .buttonStyle(ButtonStyle(color: Color(UIColor.systemBlue).opacity(0.5)))
+                .buttonStyle(ButtonStyle(color: Color.systemBlue.opacity(0.5)))
                 .disabled(store.state.expression.diceCount == 0)
                 .opacity(store.state.expression.diceCount == 0 ? 0.33 : 1.0)
             }
@@ -494,7 +494,7 @@ fileprivate struct DicePadView: View {
     struct FnButtonStyle: SwiftUI.ButtonStyle {
         let color: Color
 
-        init(color: Color = Color(UIColor.systemGray5)) {
+        init(color: Color = Color.systemGray5) {
             self.color = color
         }
 
@@ -534,7 +534,7 @@ fileprivate struct CycleColorButton: View {
     var color: Die.Color?
 
     var body: some View {
-        let effectiveColor: Color = (color?.UIColor).map(Color.init) ?? Color(UIColor.label)
+        let effectiveColor: Color = color?.swiftUIColor ?? Color.label
         return Button(action: action) {
             return effectiveColor
                 .cornerRadius(15)
@@ -547,7 +547,7 @@ extension DiceExpression {
     var text: Text {
         switch self {
         case .dice(let count, let die):
-            return Text("\(count)d\(die.sides)").foregroundColor((die.color?.UIColor).map(Color.init))
+            return Text("\(count)d\(die.sides)").foregroundColor(die.color?.swiftUIColor)
         case .compound(let lhs, let op, let rhs):
             return lhs.text + Text(op.string) + rhs.text
         case .number(let n):
@@ -560,8 +560,8 @@ extension RolledDiceExpression {
     var text: Text {
         switch self {
         case .dice(let die, let values):
-            return Text("(" + values.map({ "\($0.value)" }).joined(separator: ", ") + ")").foregroundColor((die.color?.UIColor).map(Color.init) ?? Color(UIColor.tertiaryLabel))
-                + Text("/d\(die.sides)").foregroundColor(Color(UIColor.quaternaryLabel))
+            return Text("(" + values.map({ "\($0.value)" }).joined(separator: ", ") + ")").foregroundColor(die.color?.swiftUIColor ?? Color.tertiaryLabel)
+                + Text("/d\(die.sides)").foregroundColor(Color.quaternaryLabel)
         case .compound(let lhs, let op, let rhs):
             return lhs.text + Text(" \(op.string) ") + rhs.text
         case .number(let n):
@@ -573,7 +573,7 @@ extension RolledDiceExpression {
 struct ButtonStyle: SwiftUI.ButtonStyle {
     let color: Color
 
-    init(color: Color = Color(UIColor.systemGray3)) {
+    init(color: Color = Color.systemGray3) {
         self.color = color
     }
 

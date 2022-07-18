@@ -39,7 +39,7 @@ struct CreatureEditView: View {
                 ClearableTextField("Name", text: model.statBlock.name)
                     .disableAutocorrection(true)
                     .disabled(!viewStore.state.canEditName)
-                    .foregroundColor(viewStore.state.canEditName ? Color(UIColor.label) : Color(UIColor.secondaryLabel))
+                    .foregroundColor(viewStore.state.canEditName ? Color.label : Color.secondaryLabel)
                 monsterFields
             }
 
@@ -54,12 +54,16 @@ struct CreatureEditView: View {
                 HStack {
                     Image(systemName: "shield").frame(width: Self.iconColumnWidth)
                     ClearableTextField("Armor class (Optional)", text: model.statBlock.ac)
-                    .keyboardType(.numberPad)
+                        #if os(iOS)
+                        .keyboardType(.numberPad)
+                        #endif
                 }
                 HStack {
                     Image(systemName: "heart").frame(width: Self.iconColumnWidth)
                     ClearableTextField("Hit Points (Optional)", text: model.statBlock.hp)
+                        #if os(iOS)
                         .keyboardType(.numberPad)
+                        #endif
                     Button(action: {
                         self.viewStore.send(.popover(.numberEntry(NumberEntryViewState.dice(.editingExpression()))))
                     }) {
@@ -95,7 +99,9 @@ struct CreatureEditView: View {
                                 self.model.wrappedValue.statBlock.setSpeed($0, for: mode)
                             })
                         )
+                        #if os(iOS)
                         .keyboardType(.numberPad)
+                        #endif
                         .offset(x: 0, y: 1)
                     }
                     .deleteDisabled(self.model.wrappedValue.statBlock.movementModes.count == 1)
@@ -132,7 +138,10 @@ struct CreatureEditView: View {
                     Text("Controlled by player").bold()
                 }
                 if model.wrappedValue.isPlayer {
-                    ClearableTextField("Player name (Optional)", text: model.playerName).textContentType(.name)
+                    ClearableTextField("Player name (Optional)", text: model.playerName)
+                        #if os(iOS)
+                        .textContentType(.name)
+                        #endif
                 }
             }
 
@@ -142,47 +151,54 @@ struct CreatureEditView: View {
                         self.viewStore.send(.onRemoveTap(self.viewStore.state))
                     }) {
                         Text("Remove \(viewStore.state.creatureType.localizedDisplayName)")
-                            .foregroundColor(Color(UIColor.systemRed))
+                            .foregroundColor(Color.systemRed)
                     }
                 }
             }
         }
         .popover(popoverBinding)
-        .background(Group {
-            if viewStore.state.mode.isEdit {
-                EmptyView()
-                    .navigationBarItems(
-                        leading: Button(action: {
-                            self.presentationMode.wrappedValue.dismiss()
-                        }) {
-                            Text("Cancel")
-                        },
-                        trailing: Button(action: {
-                            self.viewStore.send(.onDoneTap(self.viewStore.state))
-                        }) {
-                            Text("Done").bold()
-                        }
-                        .disabled(!self.viewStore.state.isValid)
-                    )
-                    .navigationBarBackButtonHidden(true)
-            } else {
-                EmptyView()
-                    .navigationBarItems(
-                        leading: Button(action: {
-                            self.presentationMode.wrappedValue.dismiss()
-                        }) {
-                            Text("Cancel")
-                        },
-                        trailing: Button(action: {
-                            self.viewStore.send(.onAddTap(self.viewStore.state))
-                        }) {
-                            Text("Add").bold()
-                        }
-                        .disabled(!self.viewStore.state.isValid)
-                    )
-            }
-        })
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+        .toolbar {
+//            if viewStore.state.mode.isEdit {
+//                ToolbarItem(placement: .cancellationAction) {
+//                    Button(action: {
+//                        self.presentationMode.wrappedValue.dismiss()
+//                    }) {
+//                        Text("Cancel")
+//                    }
+//                }
+//
+//                ToolbarItem(placement: .confirmationAction) {
+//                    Button(action: {
+//                        self.viewStore.send(.onDoneTap(self.viewStore.state))
+//                    }) {
+//                        Text("Done").bold()
+//                    }
+//                    .disabled(!self.viewStore.state.isValid)
+//                }
+//            } else {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(action: {
+                        self.presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Text("Cancel")
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(action: {
+                        self.viewStore.send(.onAddTap(self.viewStore.state))
+                    }) {
+                        Text("Add").bold()
+                    }
+                    .disabled(!self.viewStore.state.isValid)
+                }
+//            }
+        }
+        .navigationTitle(Text(viewStore.state.navigationTitle))
+        #if os(iOS)
+        .navigationBarBackButtonHidden(true)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 
     var characterFields: some View {
@@ -199,7 +215,7 @@ struct CreatureEditView: View {
                         Text("Challenge rating: \(cr.rawValue)")
 
                         crToXpMapping[cr].map { xp in
-                            Text("(\(xp) XP)").foregroundColor(Color(UIColor.secondaryLabel))
+                            Text("(\(xp) XP)").foregroundColor(Color.secondaryLabel)
                         }
                     }
                 }.replaceNilWith {

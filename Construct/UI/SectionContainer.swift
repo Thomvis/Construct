@@ -9,11 +9,11 @@
 import Foundation
 import SwiftUI
 
-func SectionContainer<Content>(title: String, backgroundColor: Color = Color(UIColor.secondarySystemBackground), @ViewBuilder content: () -> Content) -> some View where Content: View {
+func SectionContainer<Content>(title: String, backgroundColor: Color = Color.secondarySystemBackground, @ViewBuilder content: () -> Content) -> some View where Content: View {
     SectionContainer(title: title, accessory: EmptyView(), backgroundColor: backgroundColor, content: content)
 }
 
-func SectionContainer<Accessory, Content>(title: String, accessory: Accessory, backgroundColor: Color = Color(UIColor.secondarySystemBackground), @ViewBuilder content: () -> Content) -> some View where Accessory: View, Content: View {
+func SectionContainer<Accessory, Content>(title: String, accessory: Accessory, backgroundColor: Color = Color.secondarySystemBackground, @ViewBuilder content: () -> Content) -> some View where Accessory: View, Content: View {
     VStack(alignment: .leading, spacing: 4) {
         HStack {
             Text(title).font(.headline)
@@ -24,11 +24,11 @@ func SectionContainer<Accessory, Content>(title: String, accessory: Accessory, b
     }
 }
 
-func SectionContainer<Content>(backgroundColor: Color = Color(UIColor.secondarySystemBackground), @ViewBuilder content: () -> Content) -> some View where Content: View {
+func SectionContainer<Content>(backgroundColor: Color = Color.secondarySystemBackground, @ViewBuilder content: () -> Content) -> some View where Content: View {
     SectionContainerContent(backgroundColor, content)
 }
 
-fileprivate func SectionContainerContent<Content>(_ backgroundColor: Color = Color(UIColor.secondarySystemBackground), @ViewBuilder _ content: () -> Content) -> some View where Content: View {
+fileprivate func SectionContainerContent<Content>(_ backgroundColor: Color = Color.secondarySystemBackground, @ViewBuilder _ content: () -> Content) -> some View where Content: View {
     content()
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)

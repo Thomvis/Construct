@@ -11,6 +11,7 @@ import SwiftUI
 import SafariServices
 import ComposableArchitecture
 
+#if os(iOS)
 final class SafariView: UIViewControllerRepresentable {
     let url: URL
 
@@ -27,6 +28,14 @@ final class SafariView: UIViewControllerRepresentable {
     }
 }
 
+extension SafariView {
+    convenience init(store: Store<SafariViewState, Void>) {
+        self.init(url: ViewStore(store).url)
+    }
+}
+
+#endif
+
 struct SafariViewState: Hashable, Codable, Identifiable {
     let url: URL
 
@@ -42,11 +51,5 @@ extension SafariViewState: NavigationStackItemState {
 
     var navigationTitle: String {
         "Safari"
-    }
-}
-
-extension SafariView {
-    convenience init(store: Store<SafariViewState, Void>) {
-        self.init(url: ViewStore(store).url)
     }
 }

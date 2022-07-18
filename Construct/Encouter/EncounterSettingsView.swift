@@ -112,13 +112,20 @@ struct EncounterSettingsView: View {
                     }
                 }
             }
+            .navigationTitle("Settings")
+            #if os(iOS)
             .listStyle(GroupedListStyle())
-            .navigationBarTitle("Settings", displayMode: .inline)
-            .navigationBarItems(trailing: Button(action: {
-                self.presentationMode.wrappedValue.dismiss()
-            }) {
-                Text("Done").bold()
-            })
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(action: {
+                        self.presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Text("Done").bold()
+                    }
+                }
+            }
         }
         .popover($popover)
     }

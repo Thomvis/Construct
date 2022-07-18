@@ -31,7 +31,7 @@ struct ClearableTextField: View {
                 SimpleButton(action: {
                     self.text = ""
                 }) {
-                    Image(systemName: "xmark.circle.fill").foregroundColor(Color(UIColor.systemGray))
+                    Image(systemName: "xmark.circle.fill").foregroundColor(Color.systemGray)
                 }
             }
         }

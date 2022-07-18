@@ -115,7 +115,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
                     onAdd()
                 }) {
                     Image(systemName: "plus")
-                        .foregroundColor(Color(UIColor.secondaryLabel))
+                        .foregroundColor(Color.secondaryLabel)
                         .padding(4)
                         .frame(minWidth: 44)
                 }
@@ -124,7 +124,7 @@ struct TabbedDocumentView<Content>: View where Content: View {
             .onPreferenceChange(PropagatedFramesKey<TabbedDocumentViewContentItem.Id>.self) {
                 self.frames = $0
             }
-            .background(Color(UIColor.systemGray5).ignoresSafeArea(.all, edges: .bottom))
+            .background(Color.systemGray5.ignoresSafeArea(.all, edges: .bottom))
         }
 
         private func offset(for item: TabbedDocumentViewContentItem) -> CGSize {
@@ -213,8 +213,8 @@ struct TabbedDocumentView<Content>: View where Content: View {
             }
             .padding(10)
             .frame(minHeight: 32)
-            .background(Color(selected ? UIColor.systemGray6 : UIColor.systemGray5).ignoresSafeArea(.all, edges: .bottom))
-            .accentColor(Color(UIColor.gray))
+            .background((selected ? Color.systemGray6 : Color.systemGray5).ignoresSafeArea(.all, edges: .bottom))
+            .accentColor(Color.gray)
         }
 
         struct LabelStyle: SwiftUI.LabelStyle {
@@ -223,12 +223,12 @@ struct TabbedDocumentView<Content>: View where Content: View {
             func makeBody(configuration: Configuration) -> some View {
                 HStack {
 //                    configuration.icon
-//                        .foregroundColor(Color(UIColor.gray))
+//                        .foregroundColor(Color.gray)
 
                     configuration.title
                         .lineLimit(1)
                         .if(selected) { $0.font(Font.footnote.weight(.bold)) }
-                        .foregroundColor(Color(selected ? UIColor.label : UIColor.gray))
+                        .foregroundColor(selected ? Color.label : Color.gray)
                 }
             }
         }
@@ -268,6 +268,7 @@ extension View {
     }
 }
 
+#if os(iOS)
 private struct PageView<ID, Content>: UIViewControllerRepresentable where ID: Hashable, Content: View {
     let itemIds: [ID]
     let selectedId: ID?
@@ -343,3 +344,20 @@ private struct PageView<ID, Content>: UIViewControllerRepresentable where ID: Ha
         }
     }
 }
+#else
+private struct PageView<ID, Content>: View where ID: Hashable, Content: View {
+    let itemIds: [ID]
+    let selectedId: ID?
+    let content: (ID) -> Content
+
+    init(itemIds: [ID], selectedId id: ID, @ViewBuilder content: @escaping (ID) -> Content) {
+        self.itemIds = itemIds
+        self.selectedId = id
+        self.content = content
+    }
+
+    var body: some View {
+        Text("PageView")
+    }
+}
+#endif

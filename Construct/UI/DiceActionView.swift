@@ -37,7 +37,7 @@ struct DiceActionView: View {
                         .font(.footnote)
                         .foregroundColor(Color.white)
                         .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-                        .background(Color(UIColor.systemGray).cornerRadius(4))
+                        .background(Color.systemGray.cornerRadius(4))
 
                     Spacer()
                     Button(action: {
@@ -160,7 +160,7 @@ struct DiceActionView: View {
                         .background(
                             RoundedRectangle(cornerRadius: 4)
                                 .stroke(style: StrokeStyle(lineWidth: 4))
-                                .foregroundColor(Color(UIColor.systemGray5))
+                                .foregroundColor(Color.systemGray5)
                         )
                         .animation(nil, value: res)
                 }
@@ -168,9 +168,9 @@ struct DiceActionView: View {
 
             private func emphasisColor(for rollType: DiceAction.Step.Value.RollValue.RollType) -> Color {
                 switch rollType {
-                case .advantage: return Color(UIColor.systemGreen)
-                case .disadvantage: return Color(UIColor.systemRed)
-                case .normal: return Color(UIColor.label)
+                case .advantage: return Color.systemGreen
+                case .disadvantage: return Color.systemRed
+                case .normal: return Color.label
                 }
             }
         }
@@ -186,7 +186,7 @@ struct DiceActionView: View {
                             .padding(10)
                             .frame(maxWidth: .infinity)
                             .background(
-                                Color(UIColor.systemGray6).cornerRadius(4)
+                                Color.systemGray6.cornerRadius(4)
                             )
                     }
                 }

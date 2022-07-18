@@ -10,13 +10,13 @@ import Foundation
 import SwiftUI
 
 extension Combatant {
-    func discriminatedNameText(discriminatorColor: Color = Color(UIColor.secondaryLabel)) -> Text {
+    func discriminatedNameText(discriminatorColor: Color = Color.secondaryLabel) -> Text {
         let n = Text(name)
         let d = discriminator.map {
             Text(" \($0)").foregroundColor(discriminatorColor)
         } ?? Text("")
 
-        return (n + d).strikethrough(isDead, color: Color(UIColor.systemRed))
+        return (n + d).strikethrough(isDead, color: Color.systemRed)
     }
 
     var discriminatedName: String {

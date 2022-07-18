@@ -183,7 +183,7 @@ class AppStoreScreenshotTests: XCTestCase {
 
         let store = Store<CombatantDetailViewState, CombatantDetailViewAction>(initialState: state, reducer: Reducer.empty, environment: ())
         return FakeSheetView(
-            background: Color(UIColor.secondarySystemBackground),
+            background: Color.secondarySystemBackground,
             sheet: CombatantDetailContainerView(store: store)
         )
     }
@@ -265,7 +265,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
         let store = Store<CombatantDetailViewState, CombatantDetailViewAction>(initialState: state, reducer: Reducer.empty, environment: ())
         return FakeSheetView(
-            background: Color(UIColor.secondarySystemBackground),
+            background: Color.secondarySystemBackground,
             sheet: CombatantDetailContainerView(store: store)
         )
     }
@@ -768,7 +768,7 @@ struct FakeSheetView<Background, Modal>: View where Background: View, Modal: Vie
     var body: some View {
         if horizontalSizeClass == .regular {
             ZStack {
-                background.accentColor(Color(UIColor.systemGray))
+                background.accentColor(Color.systemGray)
 
                 Color.black.opacity(0.2)
                     .ignoresSafeArea()
@@ -845,7 +845,7 @@ struct FakeDeviceScreenView<Content>: View where Content: View {
             if imageConfig.safeArea.bottom > 0 {
                 // home indicator
                 Rectangle()
-                    .foregroundColor(Color(UIColor.label))
+                    .foregroundColor(Color.label)
                     .opacity(0.80)
                     .frame(width: isPad ? 350 : 140, height: 6)
                     .cornerRadius(3)

@@ -26,7 +26,7 @@ struct HomeView: View {
                                 SearchField(text: Binding.constant(""), accessory: EmptyView())
                                     .allowsHitTesting(false)
                                     .padding(8)
-                                    .background(Color(UIColor.systemBackground).cornerRadius(4))
+                                    .background(Color.systemBackground.cornerRadius(4))
                                     .contentShape(Rectangle())
                             }
 
@@ -59,7 +59,7 @@ struct HomeView: View {
                 action: /ReferenceItemViewAction.Home.NextScreenAction.compendium,
                 destination: { CompendiumIndexView(store: $0) }
             )
-            .navigationBarTitle(ViewStore(store).state.navigationTitle)
+            .navigationTitle(ViewStore(store).state.navigationTitle)
         }
     }
 
@@ -70,7 +70,7 @@ struct HomeView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .aspectRatio(1, contentMode: .fit)
                 .background(
-                    Color(UIColor.systemGray3)
+                    Color.systemGray3
                         .cornerRadius(8)
                 )
                 .opacity(configuration.isPressed ? 0.66 : 1.0)

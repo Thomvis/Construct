@@ -17,7 +17,7 @@ struct HealthFractionView: View {
         VStack(spacing: 0) {
             Text("-").modifier(EffectiveModifier(anim: $anim, number: Double(hp.effective))).animation(.easeOut(duration: 0.66), value: hp.effective)
             Divider()
-            Text("\(hp.maximum)").foregroundColor(Color(UIColor.secondaryLabel))
+            Text("\(hp.maximum)").foregroundColor(Color.secondaryLabel)
         }
         .background(Rectangle().cornerRadius(4).foregroundColor(colorForDirection.opacity(0.33)).animation(.easeInOut(duration: 0.33), value: hp.effective))
         .font(.footnote)
@@ -31,9 +31,9 @@ struct HealthFractionView: View {
 
         let ed = Double(hp.effective)
         if anim < ed {
-            return Color(UIColor.systemGreen)
+            return Color.systemGreen
         } else if anim > ed {
-            return Color(UIColor.systemRed)
+            return Color.systemRed
         } else {
             return Color.clear
         }

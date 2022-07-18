@@ -55,7 +55,7 @@ fileprivate struct TagView: View {
                     if tag.duration != nil {
                         Image(systemName: "stopwatch")
                             .font(.footnote)
-                            .foregroundColor(isTagActive ? Color.white : Color(UIColor.systemRed))
+                            .foregroundColor(isTagActive ? Color.white : Color.systemRed)
                     }
                 }
                 .padding(.leading, 6)
@@ -70,7 +70,7 @@ fileprivate struct TagView: View {
                 .background(Color.black.opacity(0.2).padding([.top, .trailing, .bottom], -100))
             }
             .foregroundColor(Color.white)
-            .background(isTagActive ? Color(UIColor.purple) : Color.black.opacity(0.2))
+            .background(isTagActive ? Color.purple : Color.black.opacity(0.2))
             .cornerRadius(4)
         }
     }

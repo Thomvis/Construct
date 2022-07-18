@@ -25,7 +25,7 @@ struct RunningEncounterEventRow: View {
                 encounter.combatant(for: event.turn.combatantId).map { combatant in
                     (combatant.discriminatedNameText() + Text("'s turn - Round \(event.turn.round)"))
                         .fixedSize(horizontal: true, vertical: false)
-                        .font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+                        .font(.footnote).foregroundColor(Color.secondaryLabel)
                 }
             }
         }
@@ -35,9 +35,9 @@ struct RunningEncounterEventRow: View {
     var eventIcon: some View {
         if let hp = event.combatantEvent?.effect.currentHp {
             if hp > 0 {
-                Image(systemName: "suit.heart.fill").foregroundColor(Color(UIColor.systemGreen))
+                Image(systemName: "suit.heart.fill").foregroundColor(Color.systemGreen)
             } else if hp < 0 {
-                Image(systemName: "suit.heart.fill").foregroundColor(Color(UIColor.systemRed))
+                Image(systemName: "suit.heart.fill").foregroundColor(Color.systemRed)
             }
         }
     }

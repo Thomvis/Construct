@@ -32,7 +32,6 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
     var navigationStackItemStateId: String { entry.item.compendiumItemDetailViewStateId }
 
     var navigationTitle: String { item.title }
-    var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
 
     var createActionPopover: DiceActionViewState? {
         get {

@@ -19,7 +19,6 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
     var presentedScreens: [NavigationDestination: CombatantTagEditViewState]
 
     var navigationTitle: String { "Manage Tags" }
-    var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
 
     init(combatants: [Combatant], effectContext: EffectContext?, presentedScreens: [NavigationDestination: CombatantTagEditViewState] = [:]) {
         self.combatants = combatants

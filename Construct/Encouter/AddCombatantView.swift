@@ -42,12 +42,18 @@ struct AddCombatantView: View {
                 } else {
                     NavigationView {
                         AddCombatantCompendiumView(store: store, viewStore: viewStore, onSelection: onSelection)
-                        .navigationBarItems(trailing: Button(action: {
-                            self.presentationMode.wrappedValue.dismiss()
-                        }) {
-                            Text("Done").bold()
-                        })
-                        .navigationBarTitleDisplayMode(.inline)
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) {
+                                    Button(action: {
+                                        self.presentationMode.wrappedValue.dismiss()
+                                    }) {
+                                        Text("Done").bold()
+                                    }
+                                }
+                            }
+                            #if os(iOS)
+                            .navigationBarTitleDisplayMode(.inline)
+                            #endif
                     }
                 }
 
@@ -69,7 +75,7 @@ struct AddCombatantView: View {
                         .padding(12)
                 }
                 .padding(.bottom, 30) // fixme: static value because I can't make this view not ignore the safe area
-                .background(Color(UIColor.tertiarySystemBackground))
+                .background(Color.tertiarySystemBackground)
             }
         }
         .sheet(isPresented: Binding(get: {
@@ -82,7 +88,10 @@ struct AddCombatantView: View {
             IfLetStore(self.store.scope(state: replayNonNil({ $0.creatureEditViewState }), action: { .creatureEditView($0) })) { store in
                 SheetNavigationContainer(isModalInPresentation: true) {
                     CreatureEditView(store: store)
-                        .navigationBarTitle(Text("Quick create"), displayMode: .inline)
+                        .navigationTitle(Text("Quick create"))
+                        #if os(iOS)
+                        .navigationBarTitleDisplayMode(.inline)
+                        #endif
                 }
                 .environmentObject(self.env)
             }

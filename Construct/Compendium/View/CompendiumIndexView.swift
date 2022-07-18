@@ -37,7 +37,7 @@ struct CompendiumIndexView: View {
                 .disableAutocorrection(true)
             }
             .introspectTextField { textField in
-                if !textField.isFirstResponder, localViewStore.state.initiallyFocusOnSearch, !didFocusOnSearch {
+                if textField.currentEditor() != nil, localViewStore.state.initiallyFocusOnSearch, !didFocusOnSearch {
                     textField.becomeFirstResponder()
                     didFocusOnSearch = true
                 }
@@ -63,6 +63,7 @@ struct CompendiumIndexView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    #if os(iOS)
                     .safariView(
                         item: safariViewStore.binding(get: { $0 }, send: { _ in .setNextScreen(nil) }),
                         onDismiss: { localViewStore.send(.setNextScreen(nil)) },
@@ -70,8 +71,10 @@ struct CompendiumIndexView: View {
                             BetterSafariView.SafariView(
                                 url: state.url
                             )
+                            EmptyView()
                         }
                     )
+                    #endif
                 }
             case .succeededWithResults:
                 CompendiumItemList(store: store, viewProvider: viewProvider)
@@ -95,16 +98,21 @@ struct CompendiumIndexView: View {
             // Dismiss the keyboard when the user starts scrolling in the list
             env.dismissKeyboard()
         })
-        .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
-        .navigationBarItems(trailing: Group {
-            if localViewStore.state.showImportButton {
-                Button(action: {
-                    localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
-                }) {
-                    Text("Import").bold()
-                }
-            }
-        })
+        .navigationTitle(localViewStore.state.title)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+//            if localViewStore.state.showImportButton {
+//                ToolbarItem(placement: .primaryAction) {
+//                    Button(action: {
+//                        localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
+//                    }) {
+//                        Text("Import").bold()
+//                    }
+//                }
+//            }
+        }
         .onAppear {
             loadResultsIfNeeded()
         }
@@ -277,7 +285,9 @@ fileprivate struct CompendiumTocView: View {
                 }
             }
         }
+        #if os(iOS)
         .listStyle(InsetGroupedListStyle())
+        #endif
         // Workaround: we use a single NavigationLink instead of one per row because that breaks
         // programmatic navigation inside the reference view.
         // Apparently NavigationLinks inside a List work slightly differently
@@ -399,7 +409,7 @@ fileprivate struct CompendiumItemRow: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text(item.title)
-            item.localizedSummary(in: ViewStore(store).state, env: env).font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+            item.localizedSummary(in: ViewStore(store).state, env: env).font(.footnote).foregroundColor(Color.secondaryLabel)
         }
     }
 }
@@ -425,7 +435,7 @@ struct FilterButton: View {
         }) {
             Image(systemName: "slider.horizontal.3")
                 .font(Font.body.weight(filtersAreActive ? .bold : .regular))
-                .foregroundColor(filtersAreActive ? Color(UIColor.systemBlue) : Color(UIColor.label))
+                .foregroundColor(filtersAreActive ? Color.systemBlue : Color.label)
         }
         .popover($popover)
     }

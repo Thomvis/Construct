@@ -38,7 +38,7 @@ struct WelcomeView: View {
                                     .accessibilityAddTraits([.isHeader])
                                 Text(item.body)
                                     .multilineTextAlignment(.leading)
-                                    .foregroundColor(Color(UIColor.secondaryLabel))
+                                    .foregroundColor(Color.secondaryLabel)
                             }
                         }
                     }
@@ -48,9 +48,9 @@ struct WelcomeView: View {
 
             Text("Check out the sample encounter or tap Continue to start building your own adventures.")
                 .font(.footnote)
-                .foregroundColor(Color(UIColor.secondaryLabel))
+                .foregroundColor(Color.secondaryLabel)
 
-            RoundedButton(color: Color(UIColor.systemBlue), action: {
+            RoundedButton(color: Color.systemBlue, action: {
                 self.action(.sampleEncounter)
             }) {
                 Text("Open sample encounter")

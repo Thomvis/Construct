@@ -34,7 +34,6 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
     }
 
     var navigationTitle: String { combatant.discriminatedName }
-    var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
 
     var itemRequest: ReferenceViewItemRequest?
 

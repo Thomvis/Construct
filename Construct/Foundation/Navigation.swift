@@ -17,11 +17,6 @@ protocol NavigationStackItemState {
     // in a StateDrivenNavigationView
     // The title set through .navigationBarTitle comes in a fraction too late :(
     var navigationTitle: String { get }
-    var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { get }
-}
-
-extension NavigationStackItemState {
-    var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { nil }
 }
 
 protocol NavigationStackSourceState: NavigationStackItemState {
@@ -80,7 +75,9 @@ func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, Dest
     {
         label()
     }
+    #if os(iOS)
     .isDetailLink(navDest == .detail)
+    #endif
 }
 
 func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination, Label>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, isActive: @escaping (DestinationState) -> Bool, initialState: DestinationState, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination, label: () -> Label) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, Destination: View, Label: View {

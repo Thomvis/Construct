@@ -20,7 +20,7 @@ struct EncounterDifficultyView: View {
             HStack(spacing: 8) {
                 //Text(challengeText)
                 ZStack {
-                    Bar(color: Color(UIColor.systemGray5), percentage: 1)
+                    Bar(color: Color.systemGray5, percentage: 1)
                     if difficulty.category != nil {
                         Bar(color: barColor, percentage: max(0, min(1, difficulty.percentageOfDeadly))).animation(.spring(), value: difficulty.percentageOfDeadly)
                     }
@@ -30,7 +30,7 @@ struct EncounterDifficultyView: View {
                             Group {
                                 // draw difficulty thresholds
                                 Circle()
-                                    .fill(Color(UIColor.systemBackground).opacity(0.3))
+                                    .fill(Color.systemBackground.opacity(0.3))
                                     .frame(width: 8, height: 8)
                                     .offset(x: proxy.size.width*self.difficulty.percentageOfDeadly(c)-4, y: 0)
                             }
@@ -45,7 +45,7 @@ struct EncounterDifficultyView: View {
                     }
                 }
             }
-            (Text(challengeText).bold() + Text(" for \(partySummary)").foregroundColor(Color(UIColor.secondaryLabel))).font(.footnote)
+            (Text(challengeText).bold() + Text(" for \(partySummary)").foregroundColor(Color.secondaryLabel)).font(.footnote)
         }.padding(.top, 3)
     }
 
@@ -95,14 +95,14 @@ struct EncounterDifficultyView: View {
 
     var barColor: Color {
         guard let category = difficulty.category else {
-            return Color(UIColor.systemGray)
+            return Color.systemGray
         }
 
         switch category {
-        case .easy: return Color(UIColor.systemGreen)
-        case .medium: return Color(UIColor.systemYellow)
-        case .hard: return Color(UIColor.systemOrange)
-        case .deadly: return Color(UIColor.systemRed)
+        case .easy: return Color.systemGreen
+        case .medium: return Color.systemYellow
+        case .hard: return Color.systemOrange
+        case .deadly: return Color.systemRed
         }
     }
 }

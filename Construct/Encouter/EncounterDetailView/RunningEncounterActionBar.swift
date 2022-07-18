@@ -103,7 +103,7 @@ struct RunningEncounterActionBar: View {
         .foregroundColor(Color.white)
         .padding(12)
         .frame(maxWidth: .infinity, minHeight: 70)
-        .background(Color(UIColor.systemBlue))
+        .background(Color.systemBlue)
         .cornerRadius(8)
         .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
     }

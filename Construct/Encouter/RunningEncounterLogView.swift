@@ -29,21 +29,28 @@ struct RunningEncounterLogView: View {
                 }
 
                 HStack {
-                    Image(systemName: "shield.fill").foregroundColor(Color(UIColor.systemGray))
+                    Image(systemName: "shield.fill").foregroundColor(Color.systemGray)
                     Text("Start of encounter").italic()
                 }
             }
         }
+        #if os(iOS)
         .listStyle(InsetGroupedListStyle())
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-        .navigationBarItems(trailing: Group {
-            if self.sheetPresentationMode != nil {
-                Button(action: {
-                    self.sheetPresentationMode?.dismiss()
-                }) {
-                    Text("Done").bold()
+        #endif
+        .navigationTitle(Text(viewStore.state.navigationTitle))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+//            if self.sheetPresentationMode != nil {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(action: {
+                        self.sheetPresentationMode?.dismiss()
+                    }) {
+                        Text("Done").bold()
+                    }
                 }
-            }
-        })
+//            }
+        }
     }
 }

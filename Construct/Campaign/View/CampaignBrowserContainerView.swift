@@ -23,9 +23,8 @@ struct CampaignBrowserContainerView: View {
 
     @ViewBuilder
     var navigationView: some View {
-        NavigationView {
+//        NavigationStack {
             CampaignBrowseView(store: store)
-        }
-        .navigationViewStyle(StackNavigationViewStyle())
+//        }
     }
 }
