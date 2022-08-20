@@ -1,0 +1,102 @@
+//
+//  CompendiumImporter.swift
+//  Construct
+//
+//  Created by Thomas Visser on 18/09/2019.
+//  Copyright © 2019 Thomas Visser. All rights reserved.
+//
+
+import Foundation
+import Combine
+import GRDB
+import Helpers
+
+class CompendiumImporter {
+    let compendium: Compendium
+
+    init(compendium: Compendium) {
+        self.compendium = compendium
+    }
+
+    func run(_ task: CompendiumImportTask) -> AnyPublisher<Result, CompendiumImporterError> {
+        task.reader.read().output
+            .mapError { CompendiumImporterError.reader($0) }
+            .tryScan(Result()) { res, read in
+                var result = res
+                switch read {
+                case .item(let item):
+                    let entry = apply(CompendiumEntry(item, source: task.source)) {
+                        $0.visitParseable()
+                    }
+                    do {
+                        let willOverwriteExisting = try self.compendium.database.keyValueStore.contains(entry.key, in: task.db)
+
+                        if task.overwriteExisting || !willOverwriteExisting {
+                            try self.compendium.put(entry, in: task.db)
+
+                            if willOverwriteExisting {
+                                result.overwrittenItemCount += 1
+                            } else {
+                                result.newItemCount += 1
+                            }
+                        }
+                    } catch {
+                        throw CompendiumImporterError.database(error)
+                    }
+                case .invalidItem:
+                    result.invalidItemCount += 1
+                }
+                return result
+            }
+            .mapError {
+                guard let error = $0 as? CompendiumImporterError else { return CompendiumImporterError.other($0) }
+                return error
+            }
+            .last()
+            .eraseToAnyPublisher()
+    }
+
+    struct Result: Equatable {
+        // valid
+        var newItemCount = 0
+        var overwrittenItemCount = 0
+
+        // invalid
+        var invalidItemCount = 0
+    }
+}
+
+enum CompendiumImporterError: LocalizedError {
+    case reader(CompendiumDataSourceReaderError)
+    case database(Error)
+    case other(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .reader(let error): return error.localizedDescription
+        case .database(let error): return error.localizedDescription
+        case .other(let error): return error.localizedDescription
+        }
+    }
+}
+
+struct CompendiumImportTask {
+    let reader: CompendiumDataSourceReader
+
+    let overwriteExisting: Bool
+    var source: CompendiumEntry.Source
+
+    let db: GRDB.Database?
+
+    init(reader: CompendiumDataSourceReader, overwriteExisting: Bool = false, db: GRDB.Database? = nil) {
+        self.reader = reader
+        self.overwriteExisting = overwriteExisting
+        self.source = CompendiumEntry.Source(
+            readerName: type(of: reader).name,
+            sourceName: type(of: reader.dataSource).name,
+            bookmark: reader.dataSource.bookmark,
+            displayName: nil
+        )
+        self.db = db
+    }
+}
