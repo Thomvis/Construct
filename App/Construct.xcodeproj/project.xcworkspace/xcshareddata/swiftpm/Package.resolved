@@ -109,6 +109,15 @@
       }
     },
     {
+      "identity" : "swift-parsing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-parsing",
+      "state" : {
+        "revision" : "bc92e84968990b41640214b636667f35b6e5d44c",
+        "version" : "0.10.0"
+      }
+    },
+    {
       "identity" : "swift-snapshot-testing",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-snapshot-testing.git",
@@ -127,6 +136,15 @@
       }
     },
     {
+      "identity" : "swift-url-routing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-url-routing.git",
+      "state" : {
+        "revision" : "5bf79bb370015e43842a61d558a9ee053171124e",
+        "version" : "0.3.0"
+      }
+    },
+    {
       "identity" : "swiftui-introspect",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/siteline/SwiftUI-Introspect.git",
@@ -140,8 +158,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
       "state" : {
-        "revision" : "50a70a9d3583fe228ce672e8923010c8df2deddd",
-        "version" : "0.2.1"
+        "revision" : "38bc9242e4388b80bd23ddfdf3071428859e3260",
+        "version" : "0.4.0"
       }
     }
   ],

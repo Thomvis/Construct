@@ -11,6 +11,7 @@ import CasePaths
 import Helpers
 import GameModels
 import Helpers
+import Dice
 
 extension CompendiumEntry: HasParseableVisitor {
     public static let parseableVisitor: ParseableVisitor<CompendiumEntry> = .combine(

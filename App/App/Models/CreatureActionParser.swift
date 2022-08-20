@@ -9,6 +9,7 @@
 import Foundation
 import GameModels
 import Helpers
+import Dice
 
 struct CreatureActionParser {
     typealias Action = ParsedCreatureAction.Model

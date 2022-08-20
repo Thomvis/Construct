@@ -39,9 +39,9 @@ public enum DiceRollerViewAction: Equatable {
 }
 
 public struct DiceRollerEnvironment {
-    let mainQueue: AnySchedulerOf<DispatchQueue>
-    let diceLog: DiceLogPublisher
-    let modifierFormatter: NumberFormatter
+    public let mainQueue: AnySchedulerOf<DispatchQueue>
+    public let diceLog: DiceLogPublisher
+    public let modifierFormatter: NumberFormatter
 
     public init(mainQueue: AnySchedulerOf<DispatchQueue>, diceLog: DiceLogPublisher, modifierFormatter: NumberFormatter) {
         self.mainQueue = mainQueue

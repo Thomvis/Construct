@@ -9,6 +9,7 @@
 import Foundation
 import GameModels
 import Helpers
+import Dice
 
 extension CreatureSize {
     init?(englishName s: String) {

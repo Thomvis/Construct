@@ -10,6 +10,7 @@ import Foundation
 import Combine
 import GameModels
 import Helpers
+import Dice
 
 class ImprovedInitiativeDataSourceReader: CompendiumDataSourceReader {
     static let name = "ImprovedInitiativeDataSourceReader"

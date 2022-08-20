@@ -8,19 +8,18 @@
 
 import Foundation
 import Helpers
-import Dice
 
 // Parses expressions like:
 // - "1d6"
 // - "1d6 + 1d4"
 // - "+5"
-enum DiceExpressionParser {
+public enum DiceExpressionParser {
 
-    static func parse(_ string: String) -> DiceExpression? {
+    public static func parse(_ string: String) -> DiceExpression? {
         return diceExpression().run(string)
     }
 
-    static func diceExpression() -> Parser<DiceExpression> {
+    public static func diceExpression() -> Parser<DiceExpression> {
         return dice().or(number()).followed(by: any(op().followed(by: dice().or(number())))).map { i in
             var res = i.0
             for (op, expr) in i.1 {
@@ -39,7 +38,7 @@ enum DiceExpressionParser {
         }
     }
 
-    static func number() -> Parser<DiceExpression> {
+    private static func number() -> Parser<DiceExpression> {
         return int().map {
             DiceExpression.number($0)
         }
@@ -66,7 +65,7 @@ enum DiceExpressionParser {
     }
 }
 
-extension DiceExpressionParser {
+public extension DiceExpressionParser {
     /**
      Returns a match for each dice expression with at least one dice
      in the input string.

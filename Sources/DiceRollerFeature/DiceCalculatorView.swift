@@ -79,6 +79,13 @@ public struct DiceCalculatorState: Hashable {
         return result
     }
 
+    public mutating func reset() {
+        expression = .number(0)
+        previousExpressions = []
+
+        result = nil
+    }
+
     public enum Mode: Hashable {
         case editingExpression
         case rollingExpression
@@ -176,10 +183,7 @@ public struct DiceCalculatorState: Hashable {
         case .onPlusMinusButtonTap:
             state.entryContext.subtract.toggle()
         case .clearExpression:
-            state.expression = .number(0)
-            state.previousExpressions = []
-
-            state.result = nil
+            state.reset()
         case .startGeneratingIntermediaryResults(let expression):
             return Effect(value: .intermediaryResultsStep(expression, state.intermediaryResultStepCount))
         case .intermediaryResultsStep(let expression, let remaining):

@@ -10,6 +10,7 @@ import Foundation
 import Combine
 import GameModels
 import Helpers
+import Dice
 
 class Open5eMonsterDataSourceReader: CompendiumDataSourceReader {
     static let name = "Open5eMonsterDataSourceReader"
