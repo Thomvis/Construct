@@ -15,22 +15,22 @@
 
 default_platform(:ios)
 
-ENV["FL_XCODE_VERSION"] = "13.2.1"
+ENV["FL_XCODE_VERSION"] = "13.3.0"
 
 platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :beta do
     xcversion
-    increment_build_number(xcodeproj: "Construct.xcodeproj")
-    build_app(project: "Construct.xcodeproj", scheme: "Construct", include_bitcode: false)
+    increment_build_number(xcodeproj: "App/Construct.xcodeproj")
+    build_app(project: "App/Construct.xcodeproj", scheme: "Construct", include_bitcode: false)
     upload_to_testflight
   end
 
   lane :appstore do
     xcversion
     
-    increment_build_number(xcodeproj: "Construct.xcodeproj")
-    build_app(project: "Construct.xcodeproj", scheme: "Construct", include_bitcode: false, clean: true)
+    increment_build_number(xcodeproj: "App/Construct.xcodeproj")
+    build_app(project: "App/Construct.xcodeproj", scheme: "Construct", include_bitcode: false, clean: true)
 
     prepare_app_store_screenshots
 
