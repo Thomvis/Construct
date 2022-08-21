@@ -18,6 +18,7 @@ enum Invocation {
 
     enum Roll {
         case qwixx
+        case yahtzee
         case expression(DiceExpression)
     }
 }
@@ -30,6 +31,7 @@ extension Invocation.Roll {
                 .appending(.dice(count: 1, die: Die(color: .yellow, sides: 6)))?
                 .appending(.dice(count: 1, die: Die(color: .green, sides: 6)))?
                 .appending(.dice(count: 1, die: Die(color: .blue, sides: 6))) ?? .number(0)
+        case .yahtzee: return .dice(count: 5, die: Die(color: nil, sides: 6))
         case .expression(let ex): return ex
         }
     }
