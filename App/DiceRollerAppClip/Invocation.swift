@@ -13,17 +13,13 @@ import Parsing
 import Helpers
 import Dice
 
-enum Invocation {
-    case roll(Roll)
-
-    enum Roll {
-        case qwixx
-        case yahtzee
-        case expression(DiceExpression)
-    }
+enum RollInvocation {
+    case qwixx
+    case yahtzee
+    case expression(DiceExpression)
 }
 
-extension Invocation.Roll {
+extension RollInvocation {
     var expression: DiceExpression {
         switch self {
         case .qwixx: return .dice(count: 2, die: Die(color: nil, sides: 6))
@@ -38,18 +34,16 @@ extension Invocation.Roll {
 }
 
 let invocationRouter = OneOf {
-    Route(.case(Invocation.roll)) {
-        Path { "roll" }
+    Route(.case(RollInvocation.qwixx)) {
+        Fragment { "qwixx"}
+    }
 
-        OneOf {
-            Route(.case(Invocation.Roll.qwixx)) {
-                Path { "qwixx" }
-            }
+    Route(.case(RollInvocation.yahtzee)) {
+        Fragment { "yahtzee" }
+    }
 
-            Route(.case(Invocation.Roll.expression)) {
-                Path { DiceExpressionParser.diceExpression() }
-            }
-        }
+    Route(.case(RollInvocation.expression)) {
+        Fragment { DiceExpressionParser.diceExpression() }
     }
 }
 

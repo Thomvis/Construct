@@ -82,9 +82,8 @@ let appReducer: Reducer<AppState, AppAction, DiceRollerEnvironment> = .combine(
                 break
             }
 
-            guard case .roll(let roll) = invocation else { break }
             state.diceRoller.calculatorState.reset()
-            state.diceRoller.calculatorState.expression = roll.expression
+            state.diceRoller.calculatorState.expression = invocation.expression
         case .diceRoller(.hideOutcome):
             if !state.didShowAppStoreOverlay {
                 state.showAppStoreOverlay = true
