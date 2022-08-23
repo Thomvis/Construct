@@ -21,6 +21,7 @@ public enum DiceRollerInvocation {
 }
 
 public extension DiceRollerInvocation {
+    /// When the roll is unspecified, we pre-fill 1d20
     var expression: DiceExpression {
         switch self {
         case .unspecified: return 1.d(20)
@@ -47,6 +48,8 @@ public let diceRollerInvocationRouter = OneOf {
     Route(.case(DiceRollerInvocation.expression)) {
         Fragment { DiceExpressionParser.diceExpression() }
     }
+
+    Route(.case(DiceRollerInvocation.unspecified))
 }
 
 public struct ParsingError: Error {
