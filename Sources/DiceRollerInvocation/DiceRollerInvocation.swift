@@ -1,6 +1,6 @@
 //
-//  Invocation.swift
-//  DiceRollerAppClip
+//  DiceRollerInvocation.swift
+//  DiceRollerInvocation
 //
 //  Created by Thomas Visser on 20/08/2022.
 //  Copyright © 2022 Thomas Visser. All rights reserved.
@@ -13,15 +13,17 @@ import Parsing
 import Helpers
 import Dice
 
-enum RollInvocation {
+public enum DiceRollerInvocation {
+    case unspecified
     case qwixx
     case yahtzee
     case expression(DiceExpression)
 }
 
-extension RollInvocation {
+public extension DiceRollerInvocation {
     var expression: DiceExpression {
         switch self {
+        case .unspecified: return 1.d(20)
         case .qwixx: return .dice(count: 2, die: Die(color: nil, sides: 6))
                 .appending(.dice(count: 1, die: Die(color: .red, sides: 6)))?
                 .appending(.dice(count: 1, die: Die(color: .yellow, sides: 6)))?
@@ -33,16 +35,16 @@ extension RollInvocation {
     }
 }
 
-let invocationRouter = OneOf {
-    Route(.case(RollInvocation.qwixx)) {
+public let diceRollerInvocationRouter = OneOf {
+    Route(.case(DiceRollerInvocation.qwixx)) {
         Fragment { "qwixx"}
     }
 
-    Route(.case(RollInvocation.yahtzee)) {
+    Route(.case(DiceRollerInvocation.yahtzee)) {
         Fragment { "yahtzee" }
     }
 
-    Route(.case(RollInvocation.expression)) {
+    Route(.case(DiceRollerInvocation.expression)) {
         Fragment { DiceExpressionParser.diceExpression() }
     }
 }

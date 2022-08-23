@@ -47,6 +47,9 @@ struct ConstructApp: App {
         WindowGroup {
             ConstructView(store: self.store)
                 .environmentObject(env)
+                .onOpenURL { url in
+                    viewStore.send(.onOpenURL(url))
+                }
         }
         .onChange(of: scenePhase) { phase in
             switch phase {

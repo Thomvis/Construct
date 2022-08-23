@@ -8,6 +8,7 @@
 
 import SwiftUI
 import DiceRollerFeature
+import DiceRollerInvocation
 import Helpers
 import ComposableArchitecture
 import StoreKit
@@ -77,7 +78,7 @@ let appReducer: Reducer<AppState, AppAction, DiceRollerEnvironment> = .combine(
             .eraseToEffect()
             .cancellable(id: "diceLog", cancelInFlight: true)
         case .onContinueUserActivity(let activity):
-            guard let url = activity.webpageURL, let invocation = try? invocationRouter.match(url: url) else {
+            guard let url = activity.webpageURL, let invocation = try? diceRollerInvocationRouter.match(url: url) else {
                 print("ERROR: Could not continue user activity")
                 break
             }

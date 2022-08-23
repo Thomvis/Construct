@@ -12,6 +12,7 @@ import Combine
 import ComposableArchitecture
 import DiceRollerFeature
 import Helpers
+import URLRouting
 
 struct AppState: Equatable {
 
@@ -79,6 +80,8 @@ struct AppState: Equatable {
 
         case sceneDidBecomeActive
         case sceneWillResignActive
+
+        case onOpenURL(URL)
 
         case onProcessRollForDiceLog(DiceLogEntry.Result, RollDescription)
     }
@@ -165,6 +168,21 @@ struct AppState: Equatable {
                     }
                 case .sceneWillResignActive:
                     state.sceneIsActive = false
+                case .onOpenURL(let url):
+                    guard let invocation = try? appInvocationRouter.match(url: url) else { break }
+                    if case .diceRoller(let roller) = invocation {
+                        // tab
+                        state.navigation?.tabState?.selectedTab = .diceRoller
+                        state.navigation?.tabState?.diceRoller.calculatorState.mode = .editingExpression
+                        state.navigation?.tabState?.diceRoller.calculatorState.reset()
+                        state.navigation?.tabState?.diceRoller.calculatorState.expression = roller.expression
+
+                        // column
+                        state.navigation?.columnState?.diceCalculator.hidden = false
+                        state.navigation?.columnState?.diceCalculator.diceCalculator.mode = .editingExpression
+                        state.navigation?.columnState?.diceCalculator.diceCalculator.reset()
+                        state.navigation?.columnState?.diceCalculator.diceCalculator.expression = roller.expression
+                    }
                 case .onProcessRollForDiceLog(let result, let roll):
                     if state.navigation?.tabState != nil {
                         return Effect(value: .navigation(.tab(.diceRoller(.onProcessRollForDiceLog(result, roll)))))
