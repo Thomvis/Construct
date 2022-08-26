@@ -50,6 +50,10 @@ struct ConstructApp: App {
                 .onOpenURL { url in
                     viewStore.send(.onOpenURL(url))
                 }
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+                    guard let url = activity.webpageURL else { return }
+                    viewStore.send(.onOpenURL(url))
+                }
         }
         .onChange(of: scenePhase) { phase in
             switch phase {
