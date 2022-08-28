@@ -55,21 +55,33 @@ extension CompendiumEntry: Codable {
 }
 
 extension CompendiumEntry: KeyValueStoreEntity {
+    static let keySeparator = CompendiumItemKey.keySeparator
     static let keyPrefix: KeyPrefix = .compendiumEntry
 
     var key: String {
-        return item.key.rawValue
+        return Self.key(for: item.key)
+    }
+
+    static func keyPrefix(for type: CompendiumItemType? = nil) -> String {
+        return [Self.keyPrefix.rawValue, type?.rawValue]
+            .compactMap { $0 }
+            .joined(separator: Self.keySeparator)
+    }
+
+    static func key(for itemKey: CompendiumItemKey) -> String {
+        [Self.keyPrefix.rawValue, itemKey.type.rawValue, itemKey.realm.description, itemKey.identifier]
+            .joined(separator: Self.keySeparator)
     }
 }
 
 extension KeyValueStore {
     func get(_ itemKey: CompendiumItemKey) throws -> CompendiumEntry? {
-        return try get(itemKey.rawValue)
+        return try get(CompendiumEntry.key(for: itemKey))
     }
 
     @discardableResult
     func remove(_ itemKey: CompendiumItemKey) throws -> Bool {
-        try remove(itemKey.rawValue)
+        try remove(CompendiumEntry.key(for: itemKey))
     }
 }
 

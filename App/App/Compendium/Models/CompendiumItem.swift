@@ -42,29 +42,3 @@ extension CompendiumItem {
         try container.encode(self, forKey: key)
     }
 }
-
-// Convert CompendiumItemKey from and to a string that can be used in KeyValueStore
-extension CompendiumItemKey: RawRepresentable {
-    private static let prefix = KeyValueStoreEntityKeyPrefix.compendiumEntry.rawValue
-    static let separator = "::"
-
-    // compendium::monster::core::Aboleth
-    public init?(rawValue: String) {
-        let components = rawValue.components(separatedBy: Self.separator)
-        guard components.count == 4, components[0] == Self.prefix, let type = CompendiumItemType(rawValue: components[1]) else { return nil }
-
-        self.init(type: type, realm: Realm(components[2]), identifier: components[3])
-    }
-
-    public var rawValue: String {
-        return Self.rawValue(from: [Self.prefix, type.rawValue, realm.description, identifier])
-    }
-
-    static func prefix(for type: CompendiumItemType? = nil) -> String {
-        return rawValue(from: [Self.prefix, type?.rawValue].compactMap { $0 })
-    }
-
-    private static func rawValue(from components: [String]) -> String {
-        components.joined(separator: Self.separator)
-    }
-}

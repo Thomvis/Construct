@@ -11,7 +11,7 @@ import Foundation
 public protocol MigrationTarget {
     associatedtype Source
 
-    init(migrateFrom source: Source)
+    init(migrateFrom source: Source) throws
 }
 
 public protocol MigratedWrapper {
@@ -37,12 +37,18 @@ public struct Migrated<OldValue, Value>: MigratedWrapper, Codable where Value: C
             return
         } catch let newError {
             // if that fails, we try to decode a value of the old type and migrate
+            let old: OldValue
             do {
-                let old = try OldValue(from: decoder)
-                self.wrappedValue = Value(migrateFrom: old)
-                return
+                old = try OldValue(from: decoder)
             } catch let oldError {
-                throw Error.migrationFailed(newError, oldError)
+                throw Error.decodingFailed(newError, oldError)
+            }
+
+            do {
+                self.wrappedValue = try Value(migrateFrom: old)
+                return
+            } catch {
+                throw Error.migrationFailed(error)
             }
         }
     }
@@ -56,7 +62,8 @@ public struct Migrated<OldValue, Value>: MigratedWrapper, Codable where Value: C
     }
 
     enum Error: Swift.Error {
-        case migrationFailed(Swift.Error, Swift.Error)
+        case decodingFailed(Swift.Error, Swift.Error)
+        case migrationFailed(Swift.Error)
     }
 }
 

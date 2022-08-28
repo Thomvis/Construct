@@ -48,7 +48,7 @@ extension Database {
 
         migrator.registerMigration("v2") { db in
             // gave characters an id
-            let characters = try KeyValueStore.Record.filter(Column("key").like("\(CompendiumItemKey.prefix(for: .character))%")).fetchAll(db)
+            let characters = try KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .character))%")).fetchAll(db)
             for c in characters {
                 guard var entry = try JSONSerialization.jsonObject(with: c.value, options: []) as? [String: Any],
                     var item = entry["item"] as? [String: Any] else { continue }
@@ -183,11 +183,11 @@ extension Database {
             // Most characters have a UUID in their key (current behavior), others have their title (old behavior)
             // Characters with a title key don't work well
 
-            let characterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumItemKey.prefix(for: .character))%")).fetchAll(db)
+            let characterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .character))%")).fetchAll(db)
 
             var updates: [String:String] = [:] // fromKey -> toKey
             for r in characterRecords {
-                guard let lastKeyComponent = r.key.components(separatedBy: CompendiumItemKey.separator).last else { continue }
+                guard let lastKeyComponent = r.key.components(separatedBy: CompendiumEntry.keySeparator).last else { continue }
                 guard UUID(uuidString: lastKeyComponent) == nil else { continue }
 
                 let entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
@@ -203,7 +203,7 @@ extension Database {
 
             // Update references
             // Adventuring Parties
-            let groupRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumItemKey.prefix(for: .group))%")).fetchAll(db)
+            let groupRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .group))%")).fetchAll(db)
 
             for r in groupRecords {
                 var entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
@@ -215,7 +215,7 @@ extension Database {
                     members: group.members.map {
                         CompendiumItemReference(
                             itemTitle: $0.itemTitle,
-                            itemKey: updates[$0.itemKey.rawValue].flatMap(CompendiumItemKey.init) ?? $0.itemKey
+                            itemKey: updates[CompendiumEntry.key(for: $0.itemKey)].flatMap(CompendiumItemKey.init(compendiumEntryKey:)) ?? $0.itemKey
                         )
                     }
                 )
@@ -235,9 +235,9 @@ extension Database {
                 // AdHocCombatant.original
                 newEncounter.combatants = IdentifiedArray(uniqueElements: newEncounter.combatants.map { c in
                     if let adHoc = c.definition as? AdHocCombatantDefinition {
-                        if let original = adHoc.original, let newKey = updates[original.itemKey.rawValue] {
+                        if let original = adHoc.original, let newKey = updates[CompendiumEntry.key(for: original.itemKey)] {
                             var newDefinition = adHoc
-                            newDefinition.original = CompendiumItemReference(itemTitle: original.itemTitle, itemKey: CompendiumItemKey(rawValue: newKey) ?? original.itemKey)
+                            newDefinition.original = CompendiumItemReference(itemTitle: original.itemTitle, itemKey: CompendiumItemKey(compendiumEntryKey: newKey) ?? original.itemKey)
                         }
                     }
                     return c

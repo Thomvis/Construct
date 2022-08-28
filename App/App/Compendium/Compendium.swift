@@ -28,7 +28,7 @@ class Compendium {
 
     func fetchAll(query: String?, types: [CompendiumItemType]? = []) throws -> [CompendiumEntry] {
         let entries: [CompendiumEntry]
-        let typeKeyPrefixes = types.map { $0.map { CompendiumItemKey.prefix(for: $0) } } ?? [CompendiumItemKey.prefix(for: nil)]
+        let typeKeyPrefixes = types.map { $0.map { CompendiumEntry.keyPrefix(for: $0) } } ?? [CompendiumEntry.keyPrefix(for: nil)]
         if let query = query {
             entries = try self.database.keyValueStore.match("\(query)*", keyPrefixes: typeKeyPrefixes)
         } else {

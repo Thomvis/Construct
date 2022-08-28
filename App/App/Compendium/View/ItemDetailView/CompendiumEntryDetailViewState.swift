@@ -291,7 +291,7 @@ enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
 }
 
 extension CompendiumItem {
-    var compendiumItemDetailViewStateId: String { key.rawValue }
+    var compendiumItemDetailViewStateId: String { key.keyString }
 }
 
 extension CompendiumEntryDetailViewState {

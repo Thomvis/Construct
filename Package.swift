@@ -55,6 +55,12 @@ let package = Package(
                 "Helpers"
             ]
         ),
+        .testTarget(
+            name: "GameModelsTests",
+            dependencies: [
+                "GameModels"
+            ]
+        ),
         .target(
             name: "Helpers",
             dependencies: [

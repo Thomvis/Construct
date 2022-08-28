@@ -6,13 +6,26 @@
 //
 
 import Foundation
+import Helpers
 
 public struct CompendiumItemReference: Codable, Hashable {
     public var itemTitle: String
-    public let itemKey: CompendiumItemKey
+    @Migrated public var itemKey: CompendiumItemKey
 
     public init(itemTitle: String, itemKey: CompendiumItemKey) {
         self.itemTitle = itemTitle
-        self.itemKey = itemKey
+        self._itemKey = Migrated(itemKey)
     }
+}
+
+extension CompendiumItemKey: MigrationTarget {
+    public init(migrateFrom source: String) throws {
+        guard let key = CompendiumItemKey(compendiumEntryKey: source) else {
+            throw MigrationFailedError()
+        }
+
+        self = key
+    }
+
+    struct MigrationFailedError: Swift.Error { }
 }

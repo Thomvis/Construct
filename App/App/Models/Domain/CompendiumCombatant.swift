@@ -25,7 +25,7 @@ struct CompendiumCombatantDefinition: CombatantDefinition, Codable, Equatable {
     var hitPoints: Int? { return item.stats.hitPoints }
 
     var initiativeModifier: Int? { item.stats.effectiveInitiativeModifier }
-    var initiativeGroupingHint: String { return item.key.rawValue }
+    var initiativeGroupingHint: String { return item.key.keyString }
 
     var stats: StatBlock? { return item.stats }
 
@@ -39,14 +39,14 @@ struct CompendiumCombatantDefinition: CombatantDefinition, Codable, Equatable {
         self.persistent = persistent
     }
 
-    var definitionID: String { Self.definitionID(for: item) }
+    var definitionID: String { Self.definitionID(for: item.key) }
 
     static func definitionID(for combatant: CompendiumCombatant) -> String {
-        definitionID(for: combatant.key)
+        Self.definitionID(for: combatant.key)
     }
 
     static func definitionID(for key: CompendiumItemKey) -> String {
-        key.rawValue
+        key.keyString
     }
 }
 
