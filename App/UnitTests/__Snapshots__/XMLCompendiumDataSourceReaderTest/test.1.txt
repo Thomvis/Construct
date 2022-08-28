@@ -12,7 +12,7 @@
             ▿ both: (2 elements)
               - .0: Moral.chaotic
               - .1: Ethic.evil
-      ▿ _reactions: Wrapper<EmptyList<Array<Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>>>>
+      ▿ _reactions: Wrapper<EmptyList<Array<Parseable<CreatureAction, ParsedCreatureAction>>>>
         - wrappedValue: 0 elements
       ▿ abilityScores: Optional<AbilityScores>
         ▿ some: AbilityScores
@@ -29,32 +29,32 @@
           ▿ wisdom: AbilityScore
             - score: 12
       ▿ actions: 6 elements
-        ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+        ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
             - description: "The dragon can use its Frightful Presence. It then makes three attacks: one with its bite and two with its claws."
             - name: "Multiattack"
           - result: Optional<ParserResult>.none
-        ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+        ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
             - description: "Melee Weapon Attack: +11 to hit, reach 10 ft., one target. Hit: 17 (2d10 + 6) piercing damage plus 4 (1d8) cold damage."
             - name: "Bite"
           - result: Optional<ParserResult>.none
-        ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+        ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
             - description: "Melee Weapon Attack: +11 to hit, reach 5 ft., one target. Hit: 13 (2d6 + 6) slashing damage."
             - name: "Claw"
           - result: Optional<ParserResult>.none
-        ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+        ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
             - description: "Melee Weapon Attack: +11 to hit, reach 15 ft., one target. Hit: 15 (2d8 + 6) bludgeoning damage."
             - name: "Tail"
           - result: Optional<ParserResult>.none
-        ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+        ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
             - description: "Each creature of the dragon\'s choice that is within 120 ft. of the dragon and aware of it must succeed on a DC 14 Wisdom saving throw or become frightened for 1 minute. A creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. If a creature\'s saving throw is successful or the effect ends for it, the creature is immune to the dragon\'s Frightful Presence for the next 24 hours."
             - name: "Frightful Presence"
           - result: Optional<ParserResult>.none
-        ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+        ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
             - description: "The dragon exhales an icy blast in a 60-foot cone. Each creature in that area must make a DC 19 Constitution saving throw, taking 54 (12d8) cold damage on a failed save, or half as much damage on a successful one."
             - name: "Cold Breath (Recharge 5-6)"
@@ -82,12 +82,12 @@
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
-        ▿ Parseable<CreatureFeature, ParsedCreatureFeature, CreatureFeatureDomainParser>
+        ▿ Parseable<CreatureFeature, ParsedCreatureFeature>
           ▿ input: CreatureFeature
             - description: "The dragon can move across and climb icy surfaces without needing to make an ability check. Additionally, difficult terrain composed of ice or snow doesn\'t cost it extra moment."
             - name: "Ice Walk"
           - result: Optional<ParserResult>.none
-        ▿ Parseable<CreatureFeature, ParsedCreatureFeature, CreatureFeatureDomainParser>
+        ▿ Parseable<CreatureFeature, ParsedCreatureFeature>
           ▿ input: CreatureFeature
             - description: "If the dragon fails a saving throw, it can choose to succeed instead."
             - name: "Legendary Resistance (3/Day)"
@@ -112,17 +112,17 @@
       ▿ legendary: Optional<Legendary>
         ▿ some: Legendary
           ▿ actions: 3 elements
-            ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+            ▿ Parseable<CreatureAction, ParsedCreatureAction>
               ▿ input: CreatureAction
                 - description: "The dragon makes a Wisdom (Perception) check."
                 - name: "Detect"
               - result: Optional<ParserResult>.none
-            ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+            ▿ Parseable<CreatureAction, ParsedCreatureAction>
               ▿ input: CreatureAction
                 - description: "The dragon makes a tail attack."
                 - name: "Tail Attack"
               - result: Optional<ParserResult>.none
-            ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+            ▿ Parseable<CreatureAction, ParsedCreatureAction>
               ▿ input: CreatureAction
                 - description: "The dragon beats its wings. Each creature within 10 ft. of the dragon must succeed on a DC 19 Dexterity saving throw or take 13 (2d6 + 6) bludgeoning damage and be knocked prone. The dragon can then fly up to half its flying speed."
                 - name: "Wing Attack (Costs 2 Actions)"
@@ -189,7 +189,7 @@
             ▿ both: (2 elements)
               - .0: Moral.chaotic
               - .1: Ethic.evil
-      ▿ _reactions: Wrapper<EmptyList<Array<Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>>>>
+      ▿ _reactions: Wrapper<EmptyList<Array<Parseable<CreatureAction, ParsedCreatureAction>>>>
         - wrappedValue: 0 elements
       ▿ abilityScores: Optional<AbilityScores>
         ▿ some: AbilityScores
@@ -206,12 +206,12 @@
           ▿ wisdom: AbilityScore
             - score: 11
       ▿ actions: 2 elements
-        ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+        ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
             - description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 11 (2d8 + 2) piercing damage."
             - name: "Morningstar"
           - result: Optional<ParserResult>.none
-        ▿ Parseable<CreatureAction, ParsedCreatureAction, CreatureActionDomainParser>
+        ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
             - description: "Melee or Ranged Weapon Attack: +4 to hit, reach 5 ft. or range 30/120 ft., one target. Hit: 9 (2d6 + 2) piercing damage in melee or 5 (1d6 + 2) piercing damage at range."
             - name: "Javelin"
@@ -228,12 +228,12 @@
       - damageResistances: Optional<String>.none
       - damageVulnerabilities: Optional<String>.none
       ▿ features: 2 elements
-        ▿ Parseable<CreatureFeature, ParsedCreatureFeature, CreatureFeatureDomainParser>
+        ▿ Parseable<CreatureFeature, ParsedCreatureFeature>
           ▿ input: CreatureFeature
             - description: "A melee weapon deals one extra die of its damage when the bugbear hits with it (included in the attack)."
             - name: "Brute"
           - result: Optional<ParserResult>.none
-        ▿ Parseable<CreatureFeature, ParsedCreatureFeature, CreatureFeatureDomainParser>
+        ▿ Parseable<CreatureFeature, ParsedCreatureFeature>
           ▿ input: CreatureFeature
             - description: "If the bugbear surprises a creature and hits it with an attack during the first round of combat, the target takes an extra 7 (2d6) damage from the attack."
             - name: "Surprise Attack"
@@ -290,7 +290,7 @@
       - Component.somatic
       - Component.material
     - concentration: false
-    ▿ description: Parseable<String, ParsedSpellDescription, SpellDescriptionDomainParser>
+    ▿ description: Parseable<String, ParsedSpellDescription>
       - input: "Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target\'s hit point maximum and current hit points increase by 5 for the duration."
       - result: Optional<ParserResult>.none
     - duration: "8 hours"
@@ -315,7 +315,7 @@
       - Component.verbal
       - Component.somatic
     - concentration: false
-    ▿ description: Parseable<String, ParsedSpellDescription, SpellDescriptionDomainParser>
+    ▿ description: Parseable<String, ParsedSpellDescription>
       - input: "You hurl a bubble of acid. Choose one creature you can see within range, or choose two creatures you can see within range that are within 5 feet of each other. A target must succeed on a Dexterity saving throw or take 1d6 acid damage.\nThis spell\'s damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6)."
       - result: Optional<ParserResult>.none
     - duration: "Instantaneous"
