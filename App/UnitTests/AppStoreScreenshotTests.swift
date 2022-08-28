@@ -110,10 +110,10 @@ class AppStoreScreenshotTests: XCTestCase {
 
             withTransaction(transaction) {
                 assertSnapshot(
-                    matching: view//FakeDeviceScreenView(imageConfig: device, content: view)
+                    matching: FakeDeviceScreenView(imageConfig: device, content: view)
                         .environment(\.colorScheme, colorScheme)
                         .environmentObject(environment),
-                    as: .renderedImage(precision: 0.99, layout: .device(config: device), traits: device.traits),
+                    as: .imageAfterDelay(precision: 0.99, layout: .device(config: device), traits: device.traits),
                     named: name,
                     file: file,
                     testName: testName,
@@ -1275,77 +1275,5 @@ extension Array {
                 }
             }
         }
-    }
-}
-
-extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
-
-    /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
-    ///
-    /// - Parameters:
-    ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your tests and will _not_ work for framework test targets.
-    ///   - precision: The percentage of pixels that must match.
-    ///   - size: A view size override.
-    ///   - traits: A trait collection override.
-    @available(iOS 16.0, *)
-    public static func renderedImage(
-        precision: Float = 1,
-        layout: SwiftUISnapshotLayout = .sizeThatFits,
-        traits: UITraitCollection = .init()
-    )
-    -> Snapshotting {
-        let config: ViewImageConfig
-
-        switch layout {
-#if os(iOS) || os(tvOS)
-        case let .device(config: deviceConfig):
-            config = deviceConfig
-#endif
-        case .sizeThatFits:
-            config = .init(safeArea: .zero, size: nil, traits: traits)
-        case let .fixed(width: width, height: height):
-            let size = CGSize(width: width, height: height)
-            config = .init(safeArea: .zero, size: size, traits: traits)
-        }
-
-        return SimplySnapshotting.image(precision: precision, scale: traits.displayScale).asyncPullback { view in
-            return Async { completion in
-                Task.detached { @MainActor in
-                    let renderer = ImageRenderer(content: view)
-                    renderer.scale = traits.displayScale
-                    renderer.proposedSize = config.size.map { ProposedViewSize($0) } ?? .unspecified
-                    let image = renderer.uiImage
-
-                    completion(image!)
-                }
-            }
-        }
-
-//        return SimplySnapshotting.image(precision: precision, scale: traits.displayScale).asyncPullback { view in
-//            var config = config
-//
-//            let controller: UIViewController
-//
-//            if config.size != nil {
-//                controller = UIHostingController.init(
-//                    rootView: view
-//                )
-//            } else {
-//                let hostingController = UIHostingController.init(rootView: view)
-//
-//                let maxSize = CGSize(width: 0.0, height: 0.0)
-//                config.size = hostingController.sizeThatFits(in: maxSize)
-//
-//                controller = hostingController
-//            }
-//
-//            return snapshotView(
-//                config: config,
-//                drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
-//                traits: traits,
-//                view: controller.view,
-//                viewController: controller
-//            )
-//        }
     }
 }
