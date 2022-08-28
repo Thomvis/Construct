@@ -48,9 +48,12 @@ struct ConstructApp: App {
             ConstructView(store: self.store)
                 .environmentObject(env)
                 .onOpenURL { url in
+                    // This is called for universal links
                     viewStore.send(.onOpenURL(url))
                 }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+                    // This is called when launching an advanced App Clip experience (e.g. QR code)
+                    // while the main app is installed
                     guard let url = activity.webpageURL else { return }
                     viewStore.send(.onOpenURL(url))
                 }
