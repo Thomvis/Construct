@@ -9,7 +9,9 @@
 import Foundation
 import SwiftUI
 
-struct ActivityButton<Normal, Confirmation>: View where Normal: View, Confirmation: View{
+private let animationSpeed = 1.0
+
+struct ActivityButton<Normal, Confirmation>: View where Normal: View, Confirmation: View {
 
     //                  (direction, state)
     //                  (normal, normal) -> (confirmation, normal) -> (confirmation, confirmation) -> (normal, confirmation) ->
@@ -33,7 +35,7 @@ struct ActivityButton<Normal, Confirmation>: View where Normal: View, Confirmati
             self.action()
 
             self.transition(to: .confirmation)
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + (1/animationSpeed)) {
                 self.cachedNormal = nil
                 self.transition(to: .normal)
             }
@@ -43,13 +45,13 @@ struct ActivityButton<Normal, Confirmation>: View where Normal: View, Confirmati
                     .padding(4)
                     .offset(x: 0, y: direction == .confirmation && state == .confirmation ? height : 0)
                     .opacity(direction == .normal && state == .confirmation ? 0 : 1)
-                    .animation(Animation.spring().delay(direction == .normal && state == .normal ? 0.33 : 0.0), value: [direction, state])
+                    .animation(Animation.spring().delay(direction == .normal && state == .confirmation ? 0.33 : 0.0).speed(animationSpeed), value: [direction, state])
 
                 confirmation
                     .padding(4)
                     .offset(x: 0, y: direction == .confirmation && state == .normal ? -height : 0)
                     .opacity(direction == .normal && state == .normal ? 0 : 1)
-                    .animation(.spring(), value: [direction, state])
+                    .animation(direction == .confirmation && state == .normal ? nil : .spring().speed(animationSpeed), value: [direction, state])
             }
         }, id: "")
             .clipped()
