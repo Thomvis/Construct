@@ -298,9 +298,7 @@ fileprivate struct DiceExpressionView: View {
                     .font(viewStore.state.showMinimizedExpressionView ? .body : .largeTitle)
                     .fixedSize(horizontal: false, vertical: true)
                     .onTapGesture {
-                        withAnimation(.spring()) {
-                            viewStore.send(.onExpressionEditButtonTap)
-                        }
+                        viewStore.send(.onExpressionEditButtonTap, animation: .spring())
                     }
 
                 Spacer()
@@ -312,9 +310,7 @@ fileprivate struct DiceExpressionView: View {
                     .keyboardShortcut(.delete, modifiers: [])
                 } else if viewStore.state.showExpressionEditButton {
                     Button(action: {
-                        withAnimation(.spring()) {
-                            viewStore.send(.onExpressionEditButtonTap)
-                        }
+                        viewStore.send(.onExpressionEditButtonTap, animation: .spring())
                     }) {
                         Text("Edit")
                     }
@@ -374,9 +370,7 @@ struct OutcomeView: View {
             )
             .overlay(Group {
                 Button(action: {
-                    withAnimation {
-                        viewStore.send(.onShowDiceButtonTap)
-                    }
+                    viewStore.send(.onShowDiceButtonTap, animation: .default)
                 }) {
                     Text(viewStore.state.showDice && viewStore.state.showDiceSummary ? "Hide dice" : "Show dice").font(.footnote)
                 }
@@ -401,9 +395,7 @@ struct OutcomeView: View {
         var body: some View {
             VStack {
                 Button(action: {
-                    withAnimation {
-                        self.store.send(.onRerollButtonTap)
-                    }
+                    self.store.send(.onRerollButtonTap, animation: .default)
                 }) {
                     Text("Re-roll").font(.footnote)
                 }.disabled(!self.store.canRerollResult)
@@ -428,9 +420,7 @@ public struct ResultDetailView: View {
                 ) {
                     ForEach(Array(viewStore.state.dice.enumerated()), id: \.0) { (idx, die) in
                         SimpleButton(action: {
-                            withAnimation(.spring()) {
-                                viewStore.send(.onResultDieTap(idx))
-                            }
+                            viewStore.send(.onResultDieTap(idx), animation: .spring())
                         }) {
                             self.view(die, index: idx)
                         }

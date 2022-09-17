@@ -26,14 +26,10 @@ struct ReferenceView: View {
                 },
                 selection: viewStore.binding(get: { $0.selectedItemId }, send: { .selectItem($0) }),
                 onAdd: {
-                    withAnimation {
-                        viewStore.send(.onNewTabTapped)
-                    }
+                    viewStore.send(.onNewTabTapped, animation: .default)
                 },
                 onDelete: { tab in
-                    withAnimation {
-                        viewStore.send(.removeTab(tab))
-                    }
+                    viewStore.send(.removeTab(tab), animation: .default)
                 },
                 onMove: { from, to in
                     viewStore.send(.moveTab(from, to))

@@ -22,9 +22,7 @@ struct RunningEncounterActionBar: View {
         HStack(spacing: 12) {
             Menu(content: {
                 Button(action: {
-                    withAnimation {
-                        viewStore.send(.runningEncounter(.previousTurn))
-                    }
+                    viewStore.send(.runningEncounter(.previousTurn), animation: .default)
                 }) {
                     Label("Previous turn", systemImage: "backward.frame")
                 }
@@ -54,9 +52,7 @@ struct RunningEncounterActionBar: View {
                 Divider()
 
                 Button(action: {
-                    withAnimation {
-                        viewStore.send(.stop)
-                    }
+                    viewStore.send(.stop, animation: .default)
                 }) {
                     Label("Stop run", systemImage: "stop.fill")
                 }

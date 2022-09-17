@@ -63,9 +63,7 @@ struct DiceActionView: View {
                 VStack(spacing: 8) {
                     HStack {
                         SimpleButton(action: {
-                            withAnimation {
-                                viewStore.send(.value(.roll(.details(.firstRoll))))
-                            }
+                            viewStore.send(.value(.roll(.details(.firstRoll))), animation: .default)
                         }) {
                             Text(viewStore.state.title)
                                 .padding([.top, .bottom], 12)
@@ -96,25 +94,19 @@ struct DiceActionView: View {
                         if viewStore.state.isAbilityCheck {
                             Menu(content: {
                                 Button(action: {
-                                    withAnimation {
-                                        viewStore.send(.type(.advantage))
-                                    }
+                                    viewStore.send(.type(.advantage), animation: .default)
                                 }) {
                                     Label("Advantage", systemImage: "arrow.up.circle")
                                 }
 
                                 Button(action: {
-                                    withAnimation {
-                                        viewStore.send(.type(.normal))
-                                    }
+                                    viewStore.send(.type(.normal), animation: .default)
                                 }) {
                                     Label("Normal", systemImage: "equal.circle")
                                 }
 
                                 Button(action: {
-                                    withAnimation {
-                                        viewStore.send(.type(.disadvantage))
-                                    }
+                                    viewStore.send(.type(.disadvantage), animation: .default)
                                 }) {
                                     Label("Disadvantage", systemImage: "arrow.down.circle")
                                 }
@@ -124,9 +116,7 @@ struct DiceActionView: View {
                         }
 
                         SimpleButton(action: {
-                            withAnimation {
-                                viewStore.send(.details(viewStore.state.details.toggled(.firstRoll)))
-                            }
+                            viewStore.send(.details(viewStore.state.details.toggled(.firstRoll)), animation: .default)
                         }) {
                             rollView(ViewStore(store.scope(state: { $0.first })), step, viewStore.state, .firstRoll)
                                 .opacity(viewStore.state.details == .secondRoll ? 0.33 : 1.0)
@@ -135,9 +125,7 @@ struct DiceActionView: View {
                         IfLetStore(store.scope(state: { $0.second })) { store in
                             WithViewStore(store) { secondViewStore in
                                 SimpleButton(action: {
-                                    withAnimation {
-                                        viewStore.send(.details(viewStore.state.details.toggled(.secondRoll)))
-                                    }
+                                    viewStore.send(.details(viewStore.state.details.toggled(.secondRoll)), animation: .default)
                                 }) {
                                     rollView(secondViewStore, step, viewStore.state, .secondRoll)
                                         .opacity(viewStore.state.details == .firstRoll ? 0.33 : 1.0)

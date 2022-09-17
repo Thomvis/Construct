@@ -26,9 +26,7 @@ struct InlineCombatantTagsView: View {
                         self.viewStore.send(.setNextScreen(.combatantTagEditView(CombatantTagEditViewState(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.viewStore.state.combatant], running: $0) }))))
                     }
                 }, onRemoveTap: {
-                    withAnimation(.default) {
-                        self.viewStore.send(.combatant(.removeTag(tag)))
-                    }
+                    self.viewStore.send(.combatant(.removeTag(tag)), animation: .default)
                 })
             }
         }

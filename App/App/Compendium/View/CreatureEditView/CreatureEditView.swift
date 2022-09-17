@@ -263,9 +263,7 @@ extension CreatureEditView {
                     Toggle(isOn: Binding(get: {
                         viewStore.state.sections.contains(section)
                     }, set: { b in
-                        withAnimation {
-                            self.viewStore.send(b ? .addSection(section) : .removeSection(section))
-                        }
+                        self.viewStore.send(b ? .addSection(section) : .removeSection(section), animation: .default)
                     })) {
                         Text(section.localizedHeader ?? "").bold()
                     }

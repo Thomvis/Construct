@@ -106,9 +106,7 @@ struct EncounterDetailView: View {
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .navigationBarItems(trailing: Button(action: {
-            withAnimation {
-                self.viewStore.send(.editMode(self.viewStore.state.editMode.isEditing ? .inactive : .active))
-            }
+            self.viewStore.send(.editMode(self.viewStore.state.editMode.isEditing ? .inactive : .active), animation: .default)
         }) {
             Text(self.viewStore.state.editMode.isEditing ? "Done" : "Edit")
         })
@@ -400,9 +398,7 @@ struct CombatantSection: View {
                 CombatantRow(encounter: self.encounter, running: self.running, combatant: combatant, onHealthTap: {
                     self.parent.viewStore.send(.popover(.health(.single(combatant))))
                 }, onInitiativeTap: {
-                    withAnimation {
-                        self.parent.viewStore.send(.popover(.combatantInitiative(combatant, NumberEntryViewState.initiative(combatant: combatant))))
-                    }
+                    self.parent.viewStore.send(.popover(.combatantInitiative(combatant, NumberEntryViewState.initiative(combatant: combatant))), animation: .default)
                 })
                 // contentShape is needed or else the tapGesture on the whole cell doesn't work
                 // scale is used to make the row easier selectable in edit mode
