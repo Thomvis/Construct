@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import SharedViews
 
 private let animationSpeed = 1.0
 
@@ -55,7 +56,7 @@ struct ActivityButton<Normal, Confirmation>: View where Normal: View, Confirmati
             }
         }, id: "")
             .clipped()
-            .onPreferenceChange(CollectionViewSizeKey<String>.self) { sizes in
+            .onPreferenceChange(PropagatedSizeKey<String>.self) { sizes in
                 self.height = sizes[""]?.height ?? 0
             }
     }

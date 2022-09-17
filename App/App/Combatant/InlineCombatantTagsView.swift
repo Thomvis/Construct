@@ -18,16 +18,18 @@ struct InlineCombatantTagsView: View {
         if viewStore.state.combatant.tags.isEmpty {
             Text("No tags").italic()
         } else {
-            CollectionView(layout: FlowLayout(), data: viewStore.state.combatant.tags, id: \.definition.name) { tag in
-                TagView(tag: tag, combatant: self.viewStore.state.combatant, runningEncounter: self.viewStore.state.runningEncounter, onDetailTap: {
-                    if tag.hasLongNote || tag.duration != nil {
-                        self.viewStore.send(.popover(.tagDetails(tag)))
-                    } else {
-                        self.viewStore.send(.setNextScreen(.combatantTagEditView(CombatantTagEditViewState(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.viewStore.state.combatant], running: $0) }))))
-                    }
-                }, onRemoveTap: {
-                    self.viewStore.send(.combatant(.removeTag(tag)), animation: .default)
-                })
+            FlowLayout {
+                ForEach(viewStore.state.combatant.tags, id: \.definition.name) { tag in
+                    TagView(tag: tag, combatant: self.viewStore.state.combatant, runningEncounter: self.viewStore.state.runningEncounter, onDetailTap: {
+                        if tag.hasLongNote || tag.duration != nil {
+                            self.viewStore.send(.popover(.tagDetails(tag)))
+                        } else {
+                            self.viewStore.send(.setNextScreen(.combatantTagEditView(CombatantTagEditViewState(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.viewStore.state.combatant], running: $0) }))))
+                        }
+                    }, onRemoveTap: {
+                        self.viewStore.send(.combatant(.removeTag(tag)), animation: .default)
+                    })
+                }
             }
         }
     }
