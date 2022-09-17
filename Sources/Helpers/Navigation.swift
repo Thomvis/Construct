@@ -58,37 +58,39 @@ public protocol NavigationStackSourceAction {
 
 }
 
-public func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination, Label>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, isActive: @escaping (DestinationState) -> Bool, initialState: @escaping () -> DestinationState, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination, label: () -> Label) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, Destination: View, Label: View {
-    NavigationLink(
-        destination: IfLetStore(store.scope(state: replayNonNil({ $0.presentedScreens[navDest].flatMap(state.extract) }), action: { .presentedScreen(navDest, action.embed($0)) })) { destination($0) },
-        isActive: Binding(get: {
-            if let nextScreen = ViewStore(store).state.presentedScreens[navDest], let state = state.extract(from: nextScreen) {
-                return isActive(state)
-            } else {
-                return false
-            }
-        }, set: { active in
-            let nextScreen = ViewStore(store).state.presentedScreens[navDest]
-            let destinationState = nextScreen.flatMap { state.extract(from: $0) }
+public func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination, Label>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, isActive: @escaping (DestinationState) -> Bool, initialState: @escaping () -> DestinationState, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination, label: @escaping () -> Label) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, GlobalState.NextScreenState: Equatable, Destination: View, Label: View {
+    WithViewStore(store, observe: { $0.presentedScreens[navDest] }) { viewStore in
+        NavigationLink(
+            destination: IfLetStore(store.scope(state: replayNonNil({ $0.presentedScreens[navDest].flatMap(state.extract) }), action: { .presentedScreen(navDest, action.embed($0)) })) { destination($0) },
+            isActive: Binding(get: {
+                if let nextScreen = viewStore.state, let state = state.extract(from: nextScreen) {
+                    return isActive(state)
+                } else {
+                    return false
+                }
+            }, set: { active in
+                let nextScreen = viewStore.state
+                let destinationState = nextScreen.flatMap { state.extract(from: $0) }
 
-            if active && !(destinationState.map(isActive) ?? false) {
-                ViewStore(store).send(.presentScreen(navDest, state.embed(initialState())))
-            } else if navDest != .detail, let nextScreen = ViewStore(store).state.presentedScreens[navDest], let state = state.extract(from: nextScreen), isActive(state) {
-                ViewStore(store).send(.presentScreen(navDest, nil))
-            }
-        }))
-    {
-        label()
+                if active && !(destinationState.map(isActive) ?? false) {
+                    viewStore.send(.presentScreen(navDest, state.embed(initialState())))
+                } else if navDest != .detail, let nextScreen = viewStore.state, let state = state.extract(from: nextScreen), isActive(state) {
+                    viewStore.send(.presentScreen(navDest, nil))
+                }
+            }))
+        {
+            label()
+        }
+        .isDetailLink(navDest == .detail)
     }
-    .isDetailLink(navDest == .detail)
 }
 
-public func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination, Label>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, isActive: @escaping (DestinationState) -> Bool, initialState: DestinationState, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination, label: () -> Label) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, Destination: View, Label: View {
+public func StateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination, Label>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, isActive: @escaping (DestinationState) -> Bool, initialState: DestinationState, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination, label: @escaping () -> Label) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, GlobalState.NextScreenState: Equatable, Destination: View, Label: View {
     StateDrivenNavigationLink(store: store, state: state, action: action, navDest: navDest, isActive: isActive, initialState: { initialState }, destination: destination, label: label)
 }
 
 extension View {
-    public func stateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, DestinationState: Equatable, DestinationState: NavigationStackItemState, Destination: View {
+    public func stateDrivenNavigationLink<GlobalState, GlobalAction, DestinationState, DestinationAction, Destination>(store: Store<GlobalState, GlobalAction>, state: CasePath<GlobalState.NextScreenState, DestinationState>, action: CasePath<GlobalAction.NextScreenAction, DestinationAction>, navDest: NavigationDestination = .nextInStack, destination: @escaping (Store<DestinationState, DestinationAction>) -> Destination) -> some View where GlobalState: NavigationStackSourceState, GlobalAction: NavigationStackSourceAction, GlobalState: Equatable, GlobalState.NextScreenState == GlobalAction.NextScreenState, GlobalState.NextScreenState: Equatable, DestinationState: Equatable, DestinationState: NavigationStackItemState, Destination: View {
         self.background(
             StateDrivenNavigationLink(
                 store: store,
