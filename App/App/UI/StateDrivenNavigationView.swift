@@ -17,4 +17,6 @@ func NavigationRowButton<Label>(action: @escaping () -> Void, @ViewBuilder label
             Image(systemName: "chevron.right").font(Font.body.weight(.semibold)).foregroundColor(Color(UIColor.systemGray3)).scaleEffect(0.8)
         }
     }
+    .foregroundColor(Color.primary)
+    .buttonStyle(.borderless)
 }
