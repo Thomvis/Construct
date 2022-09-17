@@ -2,14 +2,17 @@
 
 import SwiftUI
 
-struct FlowLayout: Layout {
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+public struct FlowLayout: Layout {
+
+    public init() { }
+
+    public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let containerWidth = proposal.replacingUnspecifiedDimensions().width
         let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
         return layout(sizes: sizes, containerWidth: containerWidth).size
     }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+    public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
         let offsets = layout(sizes: sizes, containerWidth: bounds.width).offsets
         for (offset, subview) in zip(offsets, subviews) {
