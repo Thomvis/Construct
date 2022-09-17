@@ -60,7 +60,7 @@ struct CompendiumItemDetailView: View {
                         Button(action: only.action) {
                             Text(only.text)
                         }
-                    } else {
+                    } else if items.count > 1 {
                         Menu(content: {
                             ForEach(menuItems, id: \.text) { item in
                                 Button(action: item.action) {
