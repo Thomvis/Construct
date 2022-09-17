@@ -17,23 +17,14 @@ extension CompendiumIndexState {
         var filters: Filters?
         var order: Order?
 
-        var compatibleFilterProperties: [Query.Filters.Property] {
-            var result: [Query.Filters.Property] = []
-            if (filters?.types ?? [.monster]).contains(.monster) {
-                // monster is included or there is no filter at all
-                result.append(.minMonsterCR)
-                result.append(.maxMonsterCR)
-            }
-            return result
-        }
-
         struct Filters: Equatable {
-            let types: [CompendiumItemType]?
-            
+            var types: [CompendiumItemType]?
+
             var minMonsterChallengeRating: Fraction? = nil
             var maxMonsterChallengeRating: Fraction? = nil
 
             enum Property: CaseIterable, Equatable {
+                case itemType
                 case minMonsterCR
                 case maxMonsterCR
             }

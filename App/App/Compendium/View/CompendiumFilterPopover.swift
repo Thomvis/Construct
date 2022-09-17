@@ -11,6 +11,7 @@ import SwiftUI
 import ComposableArchitecture
 import Helpers
 import SharedViews
+import GameModels
 
 struct CompendiumFilterPopover: View, Popover {
     var popoverId: AnyHashable { "CompendiumFilterPopover" }
@@ -26,44 +27,72 @@ struct CompendiumFilterPopover: View, Popover {
     }
 
     var body: some View {
-        VStack {
-            ZStack {
-                Text("Filters").font(.headline)
+        NavigationStack {
+            ScrollView {
+                VStack {
+                    SectionContainer {
+                        LabeledContent {
+                            Picker("Type", selection: viewStore.binding(get: \.current.itemType, send: CompendiumFilterPopoverAction.itemType).animation()) {
+                                Text("All").tag(Optional<CompendiumItemType>.none)
+                                ForEach(CompendiumItemType.allCases, id: \.rawValue) { type in
+                                    Text("\(type.localizedScreenDisplayName)").tag(Optional.some(type))
+                                }
+                            }
+                        } label: {
+                            Text("Kind")
+                        }
+                    }
+                    .bold()
+                    .padding(8)
+
+                    with(Double(viewStore.state.challengeRatings.count-1)) { crRangeMax in
+                        if viewStore.state.compatibleFilters.contains(.minMonsterCR) {
+                            SectionContainer(title: "Minimum CR", accessory: clearButton(for: .minMonsterCR)) {
+                                HStack {
+                                    Text(viewStore.state.minMonsterCrString).frame(width: 30)
+                                    Slider(value: viewStore.binding(get: \.minMonsterCrDouble, send: { .minMonsterCR($0) }), in: 0.0...crRangeMax, step: 1.0, onEditingChanged: onEditingChanged(.minMonsterCR))
+                                        .environment(\.layoutDirection, .rightToLeft)
+                                }
+                            }
+                        }
+
+                        if viewStore.state.compatibleFilters.contains(.maxMonsterCR) {
+                            SectionContainer(title: "Maximum CR", accessory: clearButton(for: .maxMonsterCR)) {
+                                HStack {
+                                    Text(viewStore.state.maxMonsterCrString).frame(width: 30)
+                                    Slider(value: viewStore.binding(get: \.maxMonsterCrDouble, send: { .maxMonsterCR($0) }), in: 0.0...crRangeMax, step: 1.0, onEditingChanged: onEditingChanged(.maxMonsterCR))
+                                }
+                            }
+                        }
+                    }
+                    .padding(8)
+                }
+                .autoSizingSheetContent()
+            }
+            .safeAreaInset(edge: .bottom) {
                 Button(action: {
-                    self.viewStore.send(.clearAll)
+                    self.onApply(self.viewStore.state.effectiveCurrentValues)
                 }) {
-                    Text("Clear all")
-                }.frame(maxWidth: .infinity, alignment: .trailing).disabled(!viewStore.state.hasAnyValue())
-            }
-            Divider()
-            with(Double(viewStore.state.challengeRatings.count-1)) { crRangeMax in
-                if viewStore.state.filters.contains(.minMonsterCR) {
-                    SectionContainer(title: "Minimum CR", accessory: clearButton(for: .minMonsterCR)) {
-                        HStack {
-                            Text(viewStore.state.minMonsterCrString).frame(width: 30)
-                            Slider(value: viewStore.binding(get: \.minMonsterCrDouble, send: { .minMonsterCR($0) }), in: 0.0...crRangeMax, step: 1.0, onEditingChanged: onEditingChanged(.minMonsterCR))
-                                .environment(\.layoutDirection, .rightToLeft)
-                        }
-                    }
+                    Text("Apply").frame(maxWidth: .infinity)
                 }
-
-                if viewStore.state.filters.contains(.maxMonsterCR) {
-                    SectionContainer(title: "Maximum CR", accessory: clearButton(for: .maxMonsterCR)) {
-                        HStack {
-                            Text(viewStore.state.maxMonsterCrString).frame(width: 30)
-                            Slider(value: viewStore.binding(get: \.maxMonsterCrDouble, send: { .maxMonsterCR($0) }), in: 0.0...crRangeMax, step: 1.0, onEditingChanged: onEditingChanged(.maxMonsterCR))
-                        }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(!viewStore.state.hasChanges())
+                .padding(8)
+                .autoSizingSheetContent(constant: 100)
+            }
+            .navigationTitle("Filters")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        self.viewStore.send(.clearAll)
+                    }) {
+                        Text("Clear all")
                     }
+                    .disabled(viewStore.effectiveCurrentValues == .init())
                 }
             }
-
-            Divider()
-
-            Button(action: {
-                self.onApply(self.viewStore.state.current)
-            }) {
-                Text("Apply")
-            }.disabled(!viewStore.state.hasChanges())
         }
     }
 
@@ -91,27 +120,47 @@ struct CompendiumFilterPopover: View, Popover {
 }
 
 struct CompendiumFilterPopoverState: Equatable {
-    let filters: [Filter]
     let challengeRatings = crToXpMapping.keys.sorted()
 
     let initial: Values
     var current: Values
 
     init() {
-        self.filters = Filter.allCases
         self.initial = Values()
         self.current = Values()
     }
 
     struct Values: Equatable {
+        var itemType: CompendiumItemType?
         var minMonsterCR: Fraction?
         var maxMonsterCR: Fraction?
+    }
+
+    var compatibleFilters: [Filter] {
+        var result: [Filter] = []
+        if (current.itemType == .monster) {
+            // monster is included or there is no filter at all
+            result.append(.minMonsterCR)
+            result.append(.maxMonsterCR)
+        }
+        return result
+    }
+
+    /// Removes values that are not compatible with the currently selected type
+    var effectiveCurrentValues: Values {
+        let filters = compatibleFilters
+        return Values(
+            itemType: current.itemType,
+            minMonsterCR: compatibleFilters.contains(.minMonsterCR) ? current.minMonsterCR : nil,
+            maxMonsterCR: compatibleFilters.contains(.maxMonsterCR) ? current.maxMonsterCR : nil
+        )
     }
 
     typealias Filter = CompendiumIndexState.Query.Filters.Property
 }
 
 enum CompendiumFilterPopoverAction {
+    case itemType(CompendiumItemType?)
     case minMonsterCR(Double)
     case maxMonsterCR(Double)
     case editing(CompendiumFilterPopoverState.Filter, Bool)
@@ -154,6 +203,8 @@ extension CompendiumFilterPopoverState {
 
     func hasValue(for filter: Filter) -> Bool {
         switch filter {
+        case .itemType:
+            return current.itemType != nil
         case .minMonsterCR:
             return current.minMonsterCR != nil
         case .maxMonsterCR:
@@ -171,6 +222,8 @@ extension CompendiumFilterPopoverState {
 
     static var reducer: Reducer<Self, CompendiumFilterPopoverAction, Environment> = Reducer { state, action, _ in
         switch action {
+        case .itemType(let type):
+            state.current.itemType = type
         case .minMonsterCR(let v):
             state.minMonsterCrDouble = v
         case .maxMonsterCR(let v):
@@ -184,6 +237,8 @@ extension CompendiumFilterPopoverState {
                 state.current.minMonsterCR = min(minCr, maxCr)
             }
         case .editing: break
+        case .clear(.itemType):
+            state.current.itemType = nil
         case .clear(.minMonsterCR):
             state.current.minMonsterCR = nil
         case .clear(.maxMonsterCR):

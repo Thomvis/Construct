@@ -7,11 +7,15 @@
 
 import Foundation
 
-public enum CompendiumItemType: String, CaseIterable, Codable {
+public enum CompendiumItemType: String, CaseIterable, Codable, Identifiable {
     case monster
     case character
     case spell
     case group
+
+    public var id: String {
+        rawValue
+    }
 
     public var localizedDisplayName: String {
         switch self {

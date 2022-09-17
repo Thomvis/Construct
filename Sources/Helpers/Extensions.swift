@@ -75,6 +75,10 @@ extension Optional {
     public var nonNilArray: [Wrapped] {
         map { [$0] } ?? []
     }
+
+    public var optionalArray: [Wrapped]? {
+        map { [$0] } ?? nil
+    }
 }
 
 extension Array where Element: Identifiable {

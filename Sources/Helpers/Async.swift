@@ -163,6 +163,7 @@ public struct ResultSet<Input, Success, Failure> where Failure: Error {
                         return Effect(value: .reset)
                     }
                 case .reset:
+                    asyncReducer = Async<Success, Failure>.reducer { _ in Empty().eraseToAnyPublisher() }
                     state.lastResult = nil
                     return Effect(value: .result(.reset))
                 case .reload:

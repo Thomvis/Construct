@@ -368,6 +368,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 
 enum CompendiumIndexQueryAction: Equatable {
     case onTextDidChange(String?)
+    case onTypeFilterDidChange([CompendiumItemType]?)
     case onFiltersDidChange(CompendiumIndexState.Query.Filters)
 }
 
@@ -377,6 +378,12 @@ extension CompendiumIndexState.Query {
             switch action {
             case .onTextDidChange(let t):
                 state.text = t
+            case .onTypeFilterDidChange(let types):
+                if state.filters != nil {
+                    state.filters?.types = types
+                } else {
+                    state.filters = Filters(types: types)
+                }
             case .onFiltersDidChange(let f):
                 state.filters = f
             }

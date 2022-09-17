@@ -16,7 +16,7 @@ struct TabNavigationViewState: Equatable {
     var selectedTab: Tabs = .campaign
 
     var campaignBrowser: CampaignBrowseViewState = CampaignBrowseViewState(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)
-    var compendium: CompendiumIndexState = CompendiumIndexState(title: "Compendium", properties: .index, results: .initial)
+    var compendium: CompendiumIndexState = CompendiumIndexState(title: "Compendium", properties: .secondary, results: .initial)
     var diceRoller: DiceRollerViewState = DiceRollerViewState()
 
     var topNavigationItems: [Any] {
