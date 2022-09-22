@@ -74,7 +74,7 @@
 		E946B026247D9EE3008A407C /* RunningEncounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92B8FD923CA482C0040E6C5 /* RunningEncounter.swift */; };
 		E946B027247D9F53008A407C /* Encounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6EA2314FB37004D84E2 /* Encounter.swift */; };
 		E946B028247DA1D8008A407C /* CompendiumCombatant.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93777EE233E41FB00C9F41A /* CompendiumCombatant.swift */; };
-		E946B02A247DBB2F008A407C /* CompendiumFilterPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861B23BE8E5A003B2DA2 /* CompendiumFilterPopover.swift */; };
+		E946B02A247DBB2F008A407C /* CompendiumFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861B23BE8E5A003B2DA2 /* CompendiumFilterSheet.swift */; };
 		E946B02C247E6225008A407C /* CompendiumItemGroupDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978862123C20B90003B2DA2 /* CompendiumItemGroupDetailView.swift */; };
 		E946B02F247E62CD008A407C /* NumberEntryPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = E946B02E247E62CD008A407C /* NumberEntryPopover.swift */; };
 		E949030023660A4F0094CD1A /* ddb_ishmadon.json in Resources */ = {isa = PBXBuildFile; fileRef = E94902FE23660A4F0094CD1A /* ddb_ishmadon.json */; };
@@ -84,7 +84,6 @@
 		E9558B702757FBBC000837AB /* BetterSafariView in Frameworks */ = {isa = PBXBuildFile; productRef = E9558B6F2757FBBC000837AB /* BetterSafariView */; };
 		E957C08125BB30580042ECF6 /* ReferenceContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08025BB30580042ECF6 /* ReferenceContext.swift */; };
 		E957C08725BEFC110042ECF6 /* AddCombatantCompendiumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */; };
-		E957C08B25BF57A30042ECF6 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08A25BF57A30042ECF6 /* HomeView.swift */; };
 		E959BB5728BBF1AE0063CB64 /* CompendiumEntryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E959BB5628BBF1AE0063CB64 /* CompendiumEntryTest.swift */; };
 		E95B3D7C2354F35700F93BA8 /* EntityChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */; };
 		E95DE630251E8D160085D550 /* FloatingDiceRollerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */; };
@@ -101,7 +100,6 @@
 		E963CCFE247BDEE8009863D7 /* Monster.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6EB2314FB37004D84E2 /* Monster.swift */; };
 		E96FC16923D3A5BE00A12F1E /* ogl.md in Resources */ = {isa = PBXBuildFile; fileRef = E96FC16823D3A5BE00A12F1E /* ogl.md */; };
 		E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96FC16A23D3A64800A12F1E /* WebView.swift */; };
-		E971E5262374C3130005725F /* RoundedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E971E5252374C3130005725F /* RoundedButton.swift */; };
 		E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */; };
 		E972BA9724784A6400F313D7 /* EncounterDifficulty.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9517FDE23617C5A005A51FC /* EncounterDifficulty.swift */; };
 		E972BAA12478586900F313D7 /* CompendiumItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A402320DE1400F0D0C6 /* CompendiumItem.swift */; };
@@ -177,7 +175,6 @@
 		E999896D22A6B4F30067BA25 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E999896C22A6B4F30067BA25 /* Preview Assets.xcassets */; };
 		E999897022A6B4F30067BA25 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E999896E22A6B4F30067BA25 /* LaunchScreen.storyboard */; };
 		E999FBC12359F7EE000CCC8B /* ddb_thrall.json in Resources */ = {isa = PBXBuildFile; fileRef = E999FBC02359F7EE000CCC8B /* ddb_thrall.json */; };
-		E999FBC5235B4AC1000CCC8B /* CollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBC4235B4AC1000CCC8B /* CollectionView.swift */; };
 		E999FBC9235BA536000CCC8B /* SimpleList.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBC8235BA536000CCC8B /* SimpleList.swift */; };
 		E999FBCB235C52AD000CCC8B /* ii_mm.json in Resources */ = {isa = PBXBuildFile; fileRef = E999FBCA235C52AD000CCC8B /* ii_mm.json */; };
 		E999FBD0235C533A000CCC8B /* ImprovedInitiativeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBCF235C533A000CCC8B /* ImprovedInitiativeModels.swift */; };
@@ -326,7 +323,6 @@
 		E95246FD274C390B00262C15 /* ParseableCreatureActionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseableCreatureActionTest.swift; sourceTree = "<group>"; };
 		E957C08025BB30580042ECF6 /* ReferenceContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceContext.swift; sourceTree = "<group>"; };
 		E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantCompendiumView.swift; sourceTree = "<group>"; };
-		E957C08A25BF57A30042ECF6 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		E959BB5628BBF1AE0063CB64 /* CompendiumEntryTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryTest.swift; sourceTree = "<group>"; };
 		E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityChangeObserver.swift; sourceTree = "<group>"; };
 		E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerView.swift; sourceTree = "<group>"; };
@@ -336,7 +332,6 @@
 		E96FC16523D3976800A12F1E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E96FC16823D3A5BE00A12F1E /* ogl.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ogl.md; sourceTree = "<group>"; };
 		E96FC16A23D3A64800A12F1E /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
-		E971E5252374C3130005725F /* RoundedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedButton.swift; sourceTree = "<group>"; };
 		E972BA8E2477E50A00F313D7 /* AddCombatantState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantState.swift; sourceTree = "<group>"; };
 		E972BA902477E56300F313D7 /* CompendiumIndexState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumIndexState.swift; sourceTree = "<group>"; };
 		E972BA95247849A900F313D7 /* CombatantDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantDetailViewState.swift; sourceTree = "<group>"; };
@@ -345,7 +340,7 @@
 		E974888E28B522B9004A5CFD /* AppInvocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInvocation.swift; sourceTree = "<group>"; };
 		E978861423BDF398003B2DA2 /* NumberEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberEntryView.swift; sourceTree = "<group>"; };
 		E978861723BDF4E5003B2DA2 /* NumberPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberPadView.swift; sourceTree = "<group>"; };
-		E978861B23BE8E5A003B2DA2 /* CompendiumFilterPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumFilterPopover.swift; sourceTree = "<group>"; };
+		E978861B23BE8E5A003B2DA2 /* CompendiumFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumFilterSheet.swift; sourceTree = "<group>"; };
 		E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumQuery.swift; sourceTree = "<group>"; };
 		E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroup.swift; sourceTree = "<group>"; };
 		E978862123C20B90003B2DA2 /* CompendiumItemGroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupDetailView.swift; sourceTree = "<group>"; };
@@ -392,7 +387,6 @@
 		E999897122A6B4F30067BA25 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E999FBC02359F7EE000CCC8B /* ddb_thrall.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ddb_thrall.json; sourceTree = "<group>"; };
 		E999FBC2235B4A67000CCC8B /* CombatantResourceTrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantResourceTrackerView.swift; sourceTree = "<group>"; };
-		E999FBC4235B4AC1000CCC8B /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		E999FBC6235B80B6000CCC8B /* CombatantTrackerEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTrackerEditView.swift; sourceTree = "<group>"; };
 		E999FBC8235BA536000CCC8B /* SimpleList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleList.swift; sourceTree = "<group>"; };
 		E999FBCA235C52AD000CCC8B /* ii_mm.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ii_mm.json; sourceTree = "<group>"; };
@@ -527,7 +521,7 @@
 				E91E4700231D95A9005D1E6F /* CompendiumIndexView.swift */,
 				E97A43B32338B5FC00A8B032 /* CompendiumItemDetailView.swift */,
 				E999FBFC235E28AD000CCC8B /* CompendiumImportView.swift */,
-				E978861B23BE8E5A003B2DA2 /* CompendiumFilterPopover.swift */,
+				E978861B23BE8E5A003B2DA2 /* CompendiumFilterSheet.swift */,
 				E972BA902477E56300F313D7 /* CompendiumIndexState.swift */,
 			);
 			path = View;
@@ -643,13 +637,11 @@
 				E931CF8D2500C896006CEE78 /* DiceActionView */,
 				E978861623BDF4C9003B2DA2 /* NumberEntryView */,
 				E931E54A233971B300C3FE9A /* SearchField.swift */,
-				E999FBC4235B4AC1000CCC8B /* CollectionView.swift */,
 				E999FBC8235BA536000CCC8B /* SimpleList.swift */,
 				E999FBFE235E2F29000CCC8B /* DocumentPicker.swift */,
 				E9517FD8235F9547005A51FC /* SectionContainer.swift */,
 				E97A4FB0236240EA0044E424 /* Checkbox.swift */,
 				E990F4F023706AAC00276EB6 /* StateDrivenNavigationView.swift */,
-				E971E5252374C3130005725F /* RoundedButton.swift */,
 				E97AEE632396F6A100569E79 /* ClearableTextField.swift */,
 				E9A71EBB239ADB400098317E /* Style.swift */,
 				E978861423BDF398003B2DA2 /* NumberEntryView.swift */,
@@ -782,7 +774,6 @@
 				E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */,
 				E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */,
 				E957C08025BB30580042ECF6 /* ReferenceContext.swift */,
-				E957C08A25BF57A30042ECF6 /* HomeView.swift */,
 				E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */,
 			);
 			path = Reference;
@@ -1284,7 +1275,6 @@
 				E963CCFB247BDEB5009863D7 /* CompendiumImporter.swift in Sources */,
 				E97651DA248AEB9200C76865 /* EffectDurationEditView.swift in Sources */,
 				E9A71EBC239ADB400098317E /* Style.swift in Sources */,
-				E971E5262374C3130005725F /* RoundedButton.swift in Sources */,
 				E9B432BB22AAF7540054324E /* Environment.swift in Sources */,
 				E9AB031323EBF09B0091C908 /* EqualSize.swift in Sources */,
 				E9517FD9235F9547005A51FC /* SectionContainer.swift in Sources */,
@@ -1318,7 +1308,6 @@
 				E946B026247D9EE3008A407C /* RunningEncounter.swift in Sources */,
 				E978862023C0B04D003B2DA2 /* CompendiumItemGroup.swift in Sources */,
 				E97651D5248AE2DA00C76865 /* InlineCombatantTagsView.swift in Sources */,
-				E957C08B25BF57A30042ECF6 /* HomeView.swift in Sources */,
 				E9819BE12482E6AA005B898E /* CombatantResourcesViewState.swift in Sources */,
 				E991F89025449DA8006CE8E8 /* ReferenceViewState.swift in Sources */,
 				E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */,
@@ -1332,7 +1321,6 @@
 				E931CF8324FD0E54006CEE78 /* CreatureActionParser.swift in Sources */,
 				E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */,
 				E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */,
-				E999FBC5235B4AC1000CCC8B /* CollectionView.swift in Sources */,
 				E996919B247C411300A8B1A0 /* CompendiumEntryDetailViewState.swift in Sources */,
 				E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */,
 				E946B024247D9EBE008A407C /* CombatantTag.swift in Sources */,
@@ -1352,7 +1340,7 @@
 				E999896822A6B4F20067BA25 /* ConstructApp.swift in Sources */,
 				E931CF912500C8BF006CEE78 /* DiceActionView.swift in Sources */,
 				E963CCFA247BDEA6009863D7 /* CompendiumImportView.swift in Sources */,
-				E946B02A247DBB2F008A407C /* CompendiumFilterPopover.swift in Sources */,
+				E946B02A247DBB2F008A407C /* CompendiumFilterSheet.swift in Sources */,
 				E962FF362504FC2E00919B34 /* AnimatedRollView.swift in Sources */,
 				E942E015247EB3CE00170FAC /* Open5eMonsterDataSourceReader.swift in Sources */,
 				E931CF932500CA3F006CEE78 /* DiceActionViewState.swift in Sources */,

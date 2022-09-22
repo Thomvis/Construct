@@ -22,7 +22,9 @@ struct ReferenceItemView: View {
         WithViewStore(store, removeDuplicates: { $0.content.typeHash == $1.content.typeHash }) { viewStore in
             NavigationView {
                 ZStack {
-                    IfLetStore(store.scope(state: { $0.content.homeState }, action: { .contentHome($0) }), then: HomeView.init)
+                    IfLetStore(store.scope(state: { $0.content.compendiumState?.compendium }, action: { .contentCompendium(.compendium($0)) })) { store in
+                        CompendiumIndexView(store: store)
+                    }
 
                     IfLetStore(store.scope(state: { $0.content.combatantDetailState }, action: { .contentCombatantDetail($0) }), then: CombatantDetailView.init)
 

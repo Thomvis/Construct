@@ -270,9 +270,9 @@ extension TabNavigationViewState {
                 items: [
                     ReferenceViewState.Item(
                         state: ReferenceItemViewState(
-                            content: .home(
-                                ReferenceItemViewState.Content.Home(
-                                    presentedScreens: compendium.presentedNextCompendiumIndex.map { [.nextInStack: .compendium($0)] } ?? [:]
+                            content: .compendium(
+                                ReferenceItemViewState.Content.Compendium(
+                                    compendium: compendium
                                 )
                             )
                         )
@@ -299,7 +299,7 @@ extension ColumnNavigationViewState {
         let activeCompendiumReferenceItemTab = referenceView.items
             .first(where: { $0.id == referenceView.selectedItemId })
             .flatMap {
-                $0.state.content.homeState?.presentedNextCompendium
+                $0.state.content.compendiumState?.compendium
             }
 
         let selectedTab: TabNavigationViewState.Tabs = {

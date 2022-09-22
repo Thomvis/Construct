@@ -334,39 +334,6 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
     }
 }
 
-extension ReferenceItemViewState.Content.Home.NextScreen: NavigationNode {
-    var nodeId: String {
-        navigationNode.nodeId
-    }
-
-    private var navigationNode: NavigationNode {
-        get {
-            switch self {
-            case .compendium(let s): return s
-            }
-        }
-
-        set {
-            switch newValue {
-            case let v as CompendiumIndexState: self = .compendium(v)
-            default: break
-            }
-        }
-    }
-
-    func topNavigationItems() -> [Any] {
-        return navigationNode.topNavigationItems()
-    }
-
-    func navigationStackSize() -> Int {
-        return navigationNode.navigationStackSize()
-    }
-
-    mutating func popLastNavigationStackItem() {
-        navigationNode.popLastNavigationStackItem()
-    }
-}
-
 
 extension CampaignBrowseViewState: NavigationNode {
 
@@ -949,69 +916,6 @@ extension CompendiumIndexState: NavigationNode {
         set { 
             if let value = newValue {
                 presentedScreens[.detail] = .safariView(value) 
-            }
-        }
-    }
-}
-extension ReferenceItemViewState.Content.Home: NavigationNode {
-
-    var nodeId: String { 
-        navigationStackItemStateId
-    }
-
-    func topNavigationItems() -> [Any] {
-        var result: [Any] = []
-        if let next = presentedScreens[.nextInStack] {
-            result.append(contentsOf: next.topNavigationItems())
-        } else {
-            result.append(self)
-        }
-
-        if let detail = presentedScreens[.detail] {
-            result.append(contentsOf: detail.topNavigationItems())
-        }
-        return result
-    }
-
-    func navigationStackSize() -> Int {
-        if let next = presentedScreens[.nextInStack] {
-            return 1 + next.navigationStackSize()
-        }
-        return 1
-    }
-
-    mutating func popLastNavigationStackItem() {
-        if navigationStackSize() <= 2 {
-            presentedScreens[.nextInStack] = nil
-        } else {
-            presentedScreens[.nextInStack]?.popLastNavigationStackItem()
-        }
-    }
-
-    var presentedNextCompendium: CompendiumIndexState? {
-        get { 
-            if case .compendium(let s) = presentedScreens[.nextInStack] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.nextInStack] = .compendium(value) 
-            }
-        }
-    }
-
-    var presentedDetailCompendium: CompendiumIndexState? {
-        get { 
-            if case .compendium(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.detail] = .compendium(value) 
             }
         }
     }

@@ -17,20 +17,20 @@ struct ReferenceItemViewState: Equatable {
     var content: Content
 
     indirect enum Content: Equatable {
-        case home(Home)
+        case compendium(Compendium)
         case combatantDetail(CombatantDetail)
         case addCombatant(AddCombatant)
         case compendiumItem(CompendiumEntryDetailViewState)
         case safari(SafariViewState)
 
-        var homeState: Content.Home? {
+        var compendiumState: Content.Compendium? {
             get {
-                guard case .home(let s) = self else { return nil }
+                guard case .compendium(let s) = self else { return nil }
                 return s
             }
             set {
                 if let newValue = newValue {
-                    self = .home(newValue)
+                    self = .compendium(newValue)
                 }
             }
         }
@@ -90,7 +90,7 @@ struct ReferenceItemViewState: Equatable {
         var context: ReferenceContext {
             get {
                 switch self {
-                case .home(let state): return state.context
+                case .compendium(let state): return state.context
                 case .combatantDetail(let state): return state.context
                 case .addCombatant(let state): return state.context
                 case .compendiumItem, .safari: return .empty
@@ -98,9 +98,9 @@ struct ReferenceItemViewState: Equatable {
             }
             set {
                 switch self {
-                case .home(var state):
+                case .compendium(var state):
                     state.context = newValue
-                    self = .home(state)
+                    self = .compendium(state)
                 case .combatantDetail(var state):
                     state.context = newValue
                     self = .combatantDetail(state)
@@ -115,7 +115,7 @@ struct ReferenceItemViewState: Equatable {
         var navigationNode: NavigationNode {
             get {
                 switch self {
-                case .home(let h): return h
+                case .compendium(let c): return c.compendium
                 case .combatantDetail(let cd): return cd.detailState
                 case .addCombatant(let ad): return ad.addCombatantState
                 case .compendiumItem(let d): return d
@@ -124,8 +124,8 @@ struct ReferenceItemViewState: Equatable {
             }
             set {
                 switch newValue {
-                case let v as Home:
-                    self = .home(v)
+                case let v as CompendiumIndexState:
+                    self.compendiumState?.compendium = v
                 case let v as CombatantDetailViewState:
                     self.combatantDetailState?.detailState = v
                 case let v as AddCombatantState:
@@ -138,11 +138,10 @@ struct ReferenceItemViewState: Equatable {
 
         var tabItemTitle: String? {
             switch self {
-            case .home(let home):
-                let title = home.presentedNextCompendium?.presentedNextItemDetail?.navigationTitle
-                    ?? home.presentedNextCompendium?.title
+            case .compendium(let compendium):
+                let title = compendium.compendium.presentedNextItemDetail?.navigationTitle
 
-                return title.map { "\($0) - Compendium" } ?? "Compendium"
+                return title.map { "\($0) - Compendium" } ?? compendium.compendium.title
             case .addCombatant(let addCombatant):
                 return "\(addCombatant.addCombatantState.compendiumState.title) - \(addCombatant.addCombatantState.encounter.name)"
             case .combatantDetail(let combatantDetail):
@@ -160,17 +159,17 @@ struct ReferenceItemViewState: Equatable {
 
         /// Provides access to the compendium to be used as reference material
         /// or to build an encounter
-        struct Home: Equatable, NavigationStackSourceState {
+        struct Compendium: Equatable {
 
-            let navigationStackItemStateId: String = "home"
+            let navigationStackItemStateId: String = "compendium"
             let navigationTitle: String = "Compendium"
 
             var context: ReferenceContext = .empty
-            var presentedScreens: [NavigationDestination: NextScreen] = [:]
-
-            enum NextScreen: Equatable {
-                case compendium(CompendiumIndexState)
-            }
+            var compendium = CompendiumIndexState(
+                title: "Compendium",
+                properties: .init(showImport: true, showAdd: true, typeRestriction: nil),
+                results: .initial
+            )
         }
 
         /// Displays the details of combatants in the encounter, one at a time
@@ -242,15 +241,14 @@ struct ReferenceItemViewState: Equatable {
                         addCombatantState.encounter = encounter
                     }
 
-                    // Add open items to the suggestions displayed on the compendium toc
-                    if case .toc(var toc) = addCombatantState.compendiumState.properties.initialContent {
-                        // Add new open compendium entries
-                        toc.suggested += context.openCompendiumEntries.filter { entry in
-                            [.character, .group, .monster].contains(entry.itemType)
-                                && !toc.suggested.contains(where: { $0.key == entry.key })
-                        }
-                        addCombatantState.compendiumState.properties.initialContent = .toc(toc)
+                    let newSuggestions = context.openCompendiumEntries.filter { entry in
+                        [.character, .group, .monster].contains(entry.itemType)
+                            && !(addCombatantState.compendiumState.suggestions?.contains(where: { $0.key == entry.key }) ?? false)
                     }
+
+                    // Add open items to the suggestions displayed on the compendium
+                    addCombatantState.compendiumState.suggestions = addCombatantState.compendiumState.suggestions
+                        .map { $0 + newSuggestions } ?? newSuggestions.nonEmptyArray
                 }
             }
         }
@@ -258,7 +256,7 @@ struct ReferenceItemViewState: Equatable {
 }
 
 enum ReferenceItemViewAction: Equatable {
-    case contentHome(Home)
+    case contentCompendium(Compendium)
     case contentCombatantDetail(CombatantDetail)
     case contentAddCombatant(AddCombatant)
     case contentCompendiumItem(CompendiumItemDetailViewAction)
@@ -272,32 +270,8 @@ enum ReferenceItemViewAction: Equatable {
     case set(ReferenceItemViewState)
     case close // handled by ReferenceView
 
-    enum Home: Equatable, NavigationStackSourceAction {
-        case compendiumSearchTapped
-        case compendiumSectionTapped(CompendiumItemType)
-        case setNextScreen(ReferenceItemViewState.Content.Home.NextScreen?)
-        indirect case nextScreen(NextScreenAction)
-        case setDetailScreen(ReferenceItemViewState.Content.Home.NextScreen?)
-        indirect case detailScreen(NextScreenAction)
-
-        static func presentScreen(_ destination: NavigationDestination, _ screen: ReferenceItemViewState.Content.Home.NextScreen?) -> Self {
-            switch destination {
-            case .nextInStack: return .setNextScreen(screen)
-            case .detail: return .setDetailScreen(screen)
-            }
-        }
-
-        static func presentedScreen(_ destination: NavigationDestination, _ action: NextScreenAction) -> Self {
-            switch destination {
-            case .nextInStack: return .nextScreen(action)
-            case .detail: return .detailScreen(action)
-            }
-        }
-
-        enum NextScreenAction: Equatable {
-            case compendium(CompendiumIndexAction)
-            case addCombatant(AddCombatantState.Action)
-        }
+    enum Compendium: Equatable {
+        case compendium(CompendiumIndexAction)
     }
 
     enum CombatantDetail: Equatable {
@@ -314,10 +288,10 @@ enum ReferenceItemViewAction: Equatable {
 }
 
 extension ReferenceItemViewState {
-    static let nullInstance = ReferenceItemViewState(content: .home(Content.Home()))
+    static let nullInstance = ReferenceItemViewState(content: .compendium(Content.Compendium()))
 
     static let reducer: Reducer<Self, ReferenceItemViewAction, Environment> = Reducer.combine(
-        ReferenceItemViewState.Content.Home.reducer.optional().pullback(state: \.content.homeState, action: /ReferenceItemViewAction.contentHome),
+        ReferenceItemViewState.Content.Compendium.reducer.optional().pullback(state: \.content.compendiumState, action: /ReferenceItemViewAction.contentCompendium),
         ReferenceItemViewState.Content.CombatantDetail.reducer.optional().pullback(state: \.content.combatantDetailState, action: /ReferenceItemViewAction.contentCombatantDetail),
         ReferenceItemViewState.Content.AddCombatant.reducer.optional().pullback(state: \.content.addCombatantState, action: /ReferenceItemViewAction.contentAddCombatant),
         CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.content.compendiumItemState, action: /ReferenceItemViewAction.contentCompendiumItem),
@@ -336,7 +310,7 @@ extension ReferenceItemViewState {
                     return .none
                 }
                 return Effect(value: .inEncounterDetailContext(.combatantAction(combatant.id, a)))
-            case .contentCombatantDetail, .contentHome, .contentAddCombatant, .contentCompendiumItem: break // handled above
+            case .contentCombatantDetail, .contentCompendium, .contentAddCombatant, .contentCompendiumItem: break // handled above
             case .contentSafari: break // does not occur
             case .inEncounterDetailContext: break // handled by parent
             case .close: break // handled by parent
@@ -346,39 +320,9 @@ extension ReferenceItemViewState {
     )
 }
 
-extension ReferenceItemViewState.Content.Home {
-    static let reducer: Reducer<Self, ReferenceItemViewAction.Home, Environment> = Reducer.combine(
-        compendiumRootReducer.optional().pullback(state: \.presentedNextCompendium, action: /ReferenceItemViewAction.Home.nextScreen..ReferenceItemViewAction.Home.NextScreenAction.compendium),
-        Reducer { state, action, env in
-            switch action {
-            case .compendiumSearchTapped:
-                let state = CompendiumIndexState(
-                    title: "Compendium",
-                    properties: CompendiumIndexState.Properties(
-                        showImport: true,
-                        showAdd: false,
-                        initiallyFocusOnSearch: true,
-                        initialContent: .searchResults
-                    ),
-                    results: .initial
-                )
-                return Effect(value: .setNextScreen(.compendium(state)))
-            case .compendiumSectionTapped(let t):
-                let compendiumIndexState = CompendiumIndexState.init(
-                    title: t.localizedScreenDisplayName,
-                    properties: .init(showImport: [.monster, .character].contains(t), showAdd: true, initiallyFocusOnSearch: false, initialContent: .searchResults),
-                    results: .initial(type: t)
-                )
-                return Effect(value: .setNextScreen(.compendium(compendiumIndexState)))
-            case .setNextScreen(let s):
-                state.presentedScreens[.nextInStack] = s
-            case .nextScreen: break // handled above
-            case .setDetailScreen(let s):
-                state.presentedScreens[.detail] = s
-            case .detailScreen: break // handled above
-            }
-            return .none
-        }
+extension ReferenceItemViewState.Content.Compendium {
+    static let reducer: Reducer<Self, ReferenceItemViewAction.Compendium, Environment> = Reducer.combine(
+        compendiumRootReducer.pullback(state: \.compendium, action: /ReferenceItemViewAction.Compendium.compendium)
     )
 }
 
@@ -419,7 +363,7 @@ extension ReferenceItemViewState.Content.AddCombatant {
 extension ReferenceItemViewState.Content {
     var typeHash: AnyHashable {
         switch self {
-        case .home: return "home"
+        case .compendium: return "compendium"
         case .combatantDetail: return "combatantDetail"
         case .addCombatant: return "addCombatant"
         case .compendiumItem: return "compendiumItem"

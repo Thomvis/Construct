@@ -11,6 +11,7 @@ import SwiftUI
 import ComposableArchitecture
 import GameModels
 import Helpers
+import SharedViews
 
 struct AddCombatantView: View {
     @EnvironmentObject var env: Environment
@@ -50,17 +51,16 @@ struct AddCombatantView: View {
                             Text("Done").bold()
                         })
                         .navigationBarTitleDisplayMode(.inline)
+                        .safeAreaInset(edge: .bottom) {
+                            RoundedButton(action: {
+                                self.viewStore.send(.quickCreate)
+                            }) {
+                                Label("Quick create", systemImage: "plus.circle")
+                            }
+                            .padding([.leading, .trailing, .bottom], 8)
+                        }
                     }
                 }
-
-                HStack {
-                    RoundedButton(action: {
-                        self.viewStore.send(.quickCreate)
-                    }) {
-                        Label("Quick create", systemImage: "plus.circle")
-                    }
-                }
-                .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
             }
 
             if showEncounterDifficulty {

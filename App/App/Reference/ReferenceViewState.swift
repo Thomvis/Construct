@@ -131,7 +131,7 @@ struct ReferenceViewState: Equatable {
             ReferenceItemViewState.reducer.pullback(state: \.state, action: /ReferenceItemViewAction.self),
             Reducer { state, action, env in
                 switch action {
-                case .contentCombatantDetail, .contentHome, .contentAddCombatant, .contentCompendiumItem, .contentSafari, .onBackTapped, .set:
+                case .contentCombatantDetail, .contentCompendium, .contentAddCombatant, .contentCompendiumItem, .contentSafari, .onBackTapped, .set:
                     if let title = state.state.content.tabItemTitle {
                         state.title = title;
                     }
@@ -165,7 +165,7 @@ extension ReferenceViewState {
                     return .init(value: .item(id, .onBackTapped))
                 }
             case .onNewTabTapped:
-                var item = Item(state: ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home())))
+                var item = Item(state: ReferenceItemViewState(content: .compendium(ReferenceItemViewState.Content.Compendium())))
                 item.state.content.context = state.itemContext(for: item)
                 state.items.append(item)
                 state.selectedItemId = item.id
@@ -225,7 +225,7 @@ extension ReferenceViewState {
     static let nullInstance = ReferenceViewState(items: [])
 
     static let defaultInstance = ReferenceViewState(items: [.init(state: defaultItemState)])
-    private static let defaultItemState = ReferenceItemViewState(content: .home(ReferenceItemViewState.Content.Home()))
+    private static let defaultItemState = ReferenceItemViewState(content: .compendium(ReferenceItemViewState.Content.Compendium()))
 
     //Is this correct?
     var localStateForDeduplication: (TabbedDocumentViewContentItem.Id?, [Item]) {

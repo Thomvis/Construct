@@ -55,6 +55,7 @@ struct CombatantResourcesView: View {
                 }) {
                     Label("Add resource", systemImage: "plus.circle")
                 }
+                .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
         }
