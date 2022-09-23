@@ -197,27 +197,30 @@ struct CampaignBrowseView: View {
         }
     }
 
-    func sheetView(_ sheet: CampaignBrowseViewState.Sheet) -> AnyView {
+    @ViewBuilder
+    func sheetView(_ sheet: CampaignBrowseViewState.Sheet) -> some View {
         switch sheet {
         case .settings:
-            return SettingsContainerView().environmentObject(env).eraseToAnyView
+            SettingsContainerView().environmentObject(env)
         case .nodeEdit(let s):
-            return SheetNavigationContainer {
+            SheetNavigationContainer {
                 NodeEditView(onDoneTap: { (state, node, title) in
                     viewStore.send(.didTapNodeEditDone(state, node, title))
                 }, state: Binding(get: {
                     self.viewStore.state.nodeEditState ?? s
                 }, set: {
-                    self.viewStore.send(.sheet(.nodeEdit($0)))
+                    if case .nodeEdit = viewStore.state.sheet {
+                        self.viewStore.send(.sheet(.nodeEdit($0)))
+                    }
                 }))
-            }.eraseToAnyView
+            }
         case .move:
-            return SheetNavigationContainer {
+            SheetNavigationContainer {
                 IfLetStore(self.store.scope(state: { $0.moveSheetState }, action: { .moveSheet($0) })) { store in
                     CampaignBrowseView(store: store)
                 }
                 .navigationBarTitleDisplayMode(.inline)
-            }.environmentObject(env).eraseToAnyView
+            }.environmentObject(env)
         }
     }
 
