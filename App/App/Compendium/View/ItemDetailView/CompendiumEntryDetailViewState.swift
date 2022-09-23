@@ -167,7 +167,10 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                         return Effect.future { callback in
                             do {
                                 let characters = try group.members.compactMap { member -> Character? in
-                                    let item = try env.database.keyValueStore.get(member.itemKey)?.item
+                                    let item = try env.database.keyValueStore.get(
+                                        member.itemKey,
+                                        crashReporter: env.crashReporter
+                                    )?.item
                                     return item as? Character
                                 }
 

@@ -37,6 +37,8 @@ class Environment: ObservableObject {
 
     var diceLog: DiceLogPublisher
 
+    var crashReporter: CrashReporter
+
     internal init(
         modifierFormatter: NumberFormatter,
         ordinalFormatter: NumberFormatter,
@@ -50,7 +52,8 @@ class Environment: ObservableObject {
         rng: AnyRandomNumberGenerator,
         mainQueue: AnySchedulerOf<DispatchQueue>,
         dismissKeyboard: @escaping () -> Void,
-        diceLog: DiceLogPublisher
+        diceLog: DiceLogPublisher,
+        crashReporter: CrashReporter
     ) {
         self.modifierFormatter = modifierFormatter
         self.ordinalFormatter = ordinalFormatter
@@ -65,6 +68,7 @@ class Environment: ObservableObject {
         self.mainQueue = mainQueue
         self.dismissKeyboard = dismissKeyboard
         self.diceLog = diceLog
+        self.crashReporter = crashReporter
     }
 
     var compendium: Compendium {
@@ -131,7 +135,8 @@ extension Environment {
             dismissKeyboard: {
                 keyWindow()?.endEditing(true)
             },
-            diceLog: DiceLogPublisher()
+            diceLog: DiceLogPublisher(),
+            crashReporter: CrashReporter.appCenter
         )
     }
 

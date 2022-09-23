@@ -238,7 +238,11 @@ extension CampaignBrowseViewState {
                     return Effect.fireAndForget {
                         // perform move
                         for item in items {
-                            try? env.campaignBrowser.move(item, to: destination)
+                            do {
+                                try env.campaignBrowser.move(item, to: destination)
+                            } catch {
+                                env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                            }
                         }
                     }.append([.sheet(nil), .items(.startLoading)]).eraseToEffect()
                 case .moveSheet:
@@ -268,7 +272,11 @@ extension CampaignBrowseViewState {
                         }
 
                         node.title = title
-                        try? env.campaignBrowser.put(node)
+                        do {
+                            try env.campaignBrowser.put(node)
+                        } catch {
+                            env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                        }
                         return .success(.items(.startLoading))
                     }
                 case .didTapNodeEditDone(let state, nil, let title):
@@ -277,23 +285,35 @@ extension CampaignBrowseViewState {
                         var contents: CampaignNode.Contents? = nil
                         if state.contentType == .encounter {
                             let encounter = Encounter(name: title, combatants: [])
-                            try? env.campaignBrowser.store.put(encounter)
+                            do {
+                                try env.campaignBrowser.store.put(encounter)
+                            } catch {
+                                env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                            }
 
                             contents = CampaignNode.Contents(key: encounter.key, type: .encounter)
                         }
 
-                        try? env.campaignBrowser.put(CampaignNode(
-                            id: UUID().tagged(),
-                            title: title,
-                            contents: contents,
-                            special: nil,
-                            parentKeyPrefix: node.keyPrefixForChildren
-                        ))
+                        do {
+                            try env.campaignBrowser.put(CampaignNode(
+                                id: UUID().tagged(),
+                                title: title,
+                                contents: contents,
+                                special: nil,
+                                parentKeyPrefix: node.keyPrefixForChildren
+                            ))
+                        } catch {
+                            env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                        }
                         return .success(.items(.startLoading))
                     }
                 case .remove(let n):
                     return Effect.fireAndForget {
-                        try? env.campaignBrowser.remove(n)
+                        do {
+                            try env.campaignBrowser.remove(n)
+                        } catch {
+                            env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                        }
                     }.append(.items(.startLoading)).eraseToEffect()
                 case .items: break // handled below
                 }
@@ -305,6 +325,7 @@ extension CampaignBrowseViewState {
                         let nodes = try env.campaignBrowser.nodes(in: state.node)
                         return Just(nodes).setFailureType(to: Error.self).eraseToAnyPublisher()
                     } catch {
+                        env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                         return Fail(error: error).eraseToAnyPublisher()
                     }
                 }.pullback(state: \.items, action: /CampaignBrowseViewAction.items)

@@ -216,6 +216,7 @@
 		E9D266B22756B39400E83595 /* ExternalCompendium.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D266B12756B39400E83595 /* ExternalCompendium.swift */; };
 		E9D266B42756B3A600E83595 /* DndBeyondExternalCompendium.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D266B32756B3A600E83595 /* DndBeyondExternalCompendium.swift */; };
 		E9D266B62756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */; };
+		E9E3575128DC822D00484DFA /* CrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E3575028DC822D00484DFA /* CrashReporter.swift */; };
 		E9F56AC6235483780085A72D /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC5235483780085A72D /* AppState.swift */; };
 		E9F9EB532319696C00A70D11 /* RolledDiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F9EB522319696C00A70D11 /* RolledDiceExpressionTest.swift */; };
 /* End PBXBuildFile section */
@@ -445,6 +446,7 @@
 		E9D5A6EB2314FB37004D84E2 /* Monster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Monster.swift; sourceTree = "<group>"; };
 		E9D5A6F323150151004D84E2 /* Combatant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Combatant.swift; sourceTree = "<group>"; };
 		E9DF660C2313A98E005D4FE5 /* InitiativeDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitiativeDialog.swift; sourceTree = "<group>"; };
+		E9E3575028DC822D00484DFA /* CrashReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporter.swift; sourceTree = "<group>"; };
 		E9F56AC32350FA5D0085A72D /* CampaignBrowserContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowserContainerView.swift; sourceTree = "<group>"; };
 		E9F56AC5235483780085A72D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		E9F56AC72354E4350085A72D /* EncounterDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailViewState.swift; sourceTree = "<group>"; };
@@ -624,6 +626,7 @@
 				E9869F9425223E870098A166 /* ColumnNavigationView.swift */,
 				E9869F9825223EBB0098A166 /* ColumnNavigationViewState.swift */,
 				E974888E28B522B9004A5CFD /* AppInvocation.swift */,
+				E9E3575028DC822D00484DFA /* CrashReporter.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -1292,6 +1295,7 @@
 				E9F56AC6235483780085A72D /* AppState.swift in Sources */,
 				E90EFF39262082E200F5443E /* XMLDocumentElement.generated.swift in Sources */,
 				E99C931028B0298A00018518 /* DiceExtensions.swift in Sources */,
+				E9E3575128DC822D00484DFA /* CrashReporter.swift in Sources */,
 				E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */,
 				E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */,
 				E97AEE642396F6A100569E79 /* ClearableTextField.swift in Sources */,
@@ -1592,6 +1596,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 2.3.6;
 				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-expression-type-checking=100 -Xfrontend -warn-long-function-bodies=100";
 				PRODUCT_BUNDLE_IDENTIFIER = me.thomasvisser.construct5e;
 				PRODUCT_NAME = Construct;
@@ -1615,6 +1620,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 2.3.6;
 				OTHER_SWIFT_FLAGS = "-Xfrontend -warn-long-expression-type-checking=100 -Xfrontend -warn-long-function-bodies=100";
 				PRODUCT_BUNDLE_IDENTIFIER = me.thomasvisser.construct5e;
 				PRODUCT_NAME = Construct;

@@ -172,8 +172,12 @@ struct CampaignBrowseView: View {
                 navDest: .nextInStack,
                 isActive: { $0.encounter.key == contents.key },
                 initialState: {
-                    if let encounter: Encounter = try? self.env.database.keyValueStore.get(contents.key) {
-                        let runningEncounter: RunningEncounter? = encounter.runningEncounterKey.flatMap { try? self.env.database.keyValueStore.get($0) }
+                    if let encounter: Encounter = try? self.env.database.keyValueStore.get(
+                        contents.key,
+                        crashReporter: self.env.crashReporter
+                    ) {
+                        let runningEncounter: RunningEncounter? = encounter.runningEncounterKey
+                            .flatMap { try? self.env.database.keyValueStore.get($0, crashReporter: self.env.crashReporter) }
                         return EncounterDetailViewState(building: encounter, running: runningEncounter)
                     } else {
                         return EncounterDetailViewState(building: Encounter(name: "", combatants: []))

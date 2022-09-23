@@ -22,6 +22,10 @@ class Compendium {
         try database.keyValueStore.get(key)
     }
 
+    func get(_ key: CompendiumItemKey, crashReporter: CrashReporter) throws -> CompendiumEntry? {
+        try database.keyValueStore.get(key, crashReporter: crashReporter)
+    }
+
     func put(_ entry: CompendiumEntry, in db: GRDB.Database? = nil) throws {
         try database.keyValueStore.put(entry, fts: FTSDocument(title: entry.item.title, subtitle: nil, body: nil), in: db)
     }
