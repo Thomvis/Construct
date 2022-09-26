@@ -40,12 +40,17 @@ extension CrashReporter {
             }
         },
         trackError: { report in
-            Crashes.trackError(
-                report.error,
+            Crashes.trackException(
+                ExceptionModel(
+                    // NSError.domain gives the fully qualified name of the Swift error type
+                    withType: (report.error as NSError).domain,
+                    exceptionMessage: String(describing: report.error),
+                    stackTrace: Array(Thread.callStackSymbols[2...])
+                ),
                 properties: report.properties,
                 attachments: report.attachments.map { name, text in
                     ErrorAttachmentLog(filename: name, attachmentText: text)
-                }.nonEmptyArray
+                }
             )
         }
     )
