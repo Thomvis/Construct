@@ -18,7 +18,7 @@ public enum CompendiumItemType: String, CaseIterable, Codable {
         case .monster: return NSLocalizedString("monster", comment: "Compendium item type monster")
         case .character: return NSLocalizedString("character", comment: "Compendium item type character")
         case .spell: return NSLocalizedString("spell", comment: "Compendium item type spell")
-        case .group: return NSLocalizedString("group", comment: "Compendium item type group")
+        case .group: return NSLocalizedString("party", comment: "Compendium item type group")
         }
     }
 
