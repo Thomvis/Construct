@@ -52,11 +52,11 @@ final class CompendiumItemReferenceTest: XCTestCase {
     // Version used initially after modularisation (without @Migrated)
     struct CompendiumItemReference_V1: Codable, Hashable {
         var itemTitle: String
-        @Migrated var itemKey: CompendiumItemKey
+        var itemKey: CompendiumItemKey
 
         init(itemTitle: String, itemKey: CompendiumItemKey) {
             self.itemTitle = itemTitle
-            self._itemKey = Migrated(itemKey)
+            self.itemKey = itemKey
         }
     }
 }
