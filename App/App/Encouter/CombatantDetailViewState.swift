@@ -315,7 +315,7 @@ extension CompendiumItemReferenceTextAnnotation {
             if let (annotation, appNavigation) = didTapAction.extract(from: action) {
                 switch env.compendium.resolve(annotation: annotation) {
                 case .internal(let ref):
-                    if let entry = try? env.compendium.get(ref.itemKey) {
+                    if let entry = try? env.compendium.get(ref.itemKey, crashReporter: env.crashReporter) {
                         let detailState = CompendiumEntryDetailViewState(entry: entry)
                         switch appNavigation {
                         case .column:

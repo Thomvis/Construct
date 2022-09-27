@@ -219,7 +219,9 @@ struct Encounter: Equatable, Codable {
             case .addByKey(let key, let party):
                 return Effect<Action?, Never>.future { callback in
                     do {
-                        if let entry = try env.compendium.get(key), let combatant = entry.item as? CompendiumCombatant {
+                        if let entry = try env.compendium.get(key, crashReporter: env.crashReporter),
+                            let combatant = entry.item as? CompendiumCombatant
+                        {
                             let combatant = Combatant(
                                 compendiumCombatant: combatant,
                                 party: party.map { CompendiumItemReference(itemTitle: $0.title, itemKey: $0.key) }
@@ -243,7 +245,9 @@ struct Encounter: Equatable, Codable {
             case .refreshCompendiumItems:
                 return state.combatants.publisher.compactMap { combatant in
                     if var def = combatant.definition as? CompendiumCombatantDefinition {
-                        if let entry = try? env.compendium.get(def.item.key), let item = entry.item as? CompendiumCombatant {
+                        if let entry = try? env.compendium.get(def.item.key, crashReporter: env.crashReporter),
+                            let item = entry.item as? CompendiumCombatant
+                        {
                             def.item = item
                             return .combatant(combatant.id, .setDefinition(Combatant.CodableCombatDefinition(definition: def)))
                         }

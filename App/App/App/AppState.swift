@@ -17,17 +17,18 @@ import URLRouting
 struct AppState: Equatable {
 
     var navigation: Navigation?
+    var presentation: Presentation?
+    var pendingPresentations: [Presentation] = []
 
     var preferences: Preferences
 
-    var showWelcomeSheet = false
     var showPostLaunchLoadingScreen = false
 
     var appDidLaunch = false // becomes true once the scene has become active for the first time
     var sceneIsActive = false
 
     var topNavigationItems: [Any] {
-        guard !showWelcomeSheet else { return [] }
+        guard presentation != .welcomeSheet else { return [] }
         switch navigation {
         case .tab(let s): return s.topNavigationItems
         case .column(let s): return s.topNavigationItems
@@ -64,15 +65,23 @@ struct AppState: Equatable {
         }
     }
 
+    enum Presentation: Equatable {
+        case welcomeSheet
+        case crashReportingPermissionAlert
+    }
+
     enum Action: Equatable {
         case onLaunch
         case navigation(AppStateNavigationAction)
 
         case onHorizontalSizeClassChange(UserInterfaceSizeClass)
 
-        case welcomeSheet(Bool)
+        case requestPresentation(AppState.Presentation)
+        case dismissPresentation(AppState.Presentation)
+
+        case onReceiveCrashReportingUserPermission(CrashReporter.UserPermission)
+
         case welcomeSheetSampleEncounterTapped
-        case welcomeSheetDismissTapped
         case onAppear
 
         case showPostLaunchLoadingScreen(Bool)
@@ -111,26 +120,46 @@ struct AppState: Equatable {
                     default:
                         break
                     }
-                case .welcomeSheet(let show):
-                    state.showWelcomeSheet = show
-                    if !show {
-                        state.preferences.didShowWelcomeSheet = true
+                case .requestPresentation(let p):
+                    if state.presentation == nil {
+                        state.presentation = p
+                    } else {
+                        state.pendingPresentations.append(p)
                     }
+                case .dismissPresentation(let p):
+                    // we can't add this precondition because SwiftUI invokes the isPresented binding
+                    // _after_ we hid the sheet by nilling underlying field.
+                    // Instead, we ignore the dismiss action
+                    // precondition(state.presentation == p)
+                    guard state.presentation == p else { break }
+                    state.presentation = nil
+
+                    if let next = state.pendingPresentations.first {
+                        state.pendingPresentations.removeFirst()
+                        // workaround: we need to delay the action to work around
+                        // a "Attempt to present X which is already presenting Y" error
+                        return .init(value: .requestPresentation(next))
+                            .delay(for: 0.1, scheduler: env.mainQueue)
+                            .eraseToEffect()
+                    }
+                case .onReceiveCrashReportingUserPermission(let permission):
+                    env.crashReporter.registerUserPermission(permission)
                 case .welcomeSheetSampleEncounterTapped:
                     return SampleEncounter.create(with: env)
                         .append(Effect.result { () -> Result<Action?, Never> in
                             // navigate to scratch pad
-                            if let encounter: Encounter = try? env.database.keyValueStore.get(Encounter.key(Encounter.scratchPadEncounterId)) {
+                            if let encounter: Encounter = try? env.database.keyValueStore.get(
+                                Encounter.key(Encounter.scratchPadEncounterId),
+                                crashReporter: env.crashReporter
+                            ) {
                                 return .success(.navigation(.openEncounter(encounter)))
                             } else {
                                 return .success(nil)
                             }
-                        }.compactMap { $0 }.append(.welcomeSheet(false))).eraseToEffect()
-                case .welcomeSheetDismissTapped:
-                    return Effect(value: .welcomeSheet(false))
+                        }.compactMap { $0 }.append(.dismissPresentation(.welcomeSheet))).eraseToEffect()
                 case .onAppear:
                     if !state.preferences.didShowWelcomeSheet {
-                        state.showWelcomeSheet = true
+                        return .init(value: .requestPresentation(.welcomeSheet))
                     } else {
                         // check if user created some campaign nodes
                         if let nodeCount = try? env.campaignBrowser.nodeCount(),
@@ -189,6 +218,11 @@ struct AppState: Equatable {
                     } else {
                         return Effect(value: .navigation(.column(.diceCalculator(.onProcessRollForDiceLog(result, roll)))))
                     }
+                }
+                return .none
+            }.onChange(of: { $0.presentation}) { p, state, a, env in
+                if p == .welcomeSheet {
+                    state.preferences.didShowWelcomeSheet = true
                 }
                 return .none
             },

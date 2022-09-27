@@ -27,6 +27,9 @@ struct SettingsView: View {
     @Binding var presentationMode: PresentationMode
     @State var destination: Destination?
 
+    @State var initialPreferences: Preferences?
+    @State var preferences = Preferences()
+
     var body: some View {
         List {
             Section {
@@ -49,6 +52,10 @@ struct SettingsView: View {
                 }) {
                     Text("Please rate Construct").foregroundColor(Color.primary)
                 }
+            }
+
+            Section(footer: Text("Help me improve Construct by sending an anonymous report when an unexpected error occurs.").font(.footnote)) {
+                Toggle("Send diagnostic reports", isOn: $preferences.errorReportingEnabled.withDefault(false))
             }
 
             #if DEBUG
@@ -97,6 +104,17 @@ struct SettingsView: View {
         }) {
             Text("Done").bold()
         })
+        .onAppear {
+            if let preferences: Preferences = try? env.database.keyValueStore.get(Preferences.key) {
+                self.initialPreferences = preferences
+                self.preferences = preferences
+            }
+        }
+        .onChange(of: preferences) { p in
+            if p != initialPreferences && p != Preferences() {
+                try? env.database.keyValueStore.put(p)
+            }
+        }
     }
 
     var version: String {

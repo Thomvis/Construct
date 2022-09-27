@@ -172,8 +172,12 @@ struct CampaignBrowseView: View {
                 navDest: .nextInStack,
                 isActive: { $0.encounter.key == contents.key },
                 initialState: {
-                    if let encounter: Encounter = try? self.env.database.keyValueStore.get(contents.key) {
-                        let runningEncounter: RunningEncounter? = encounter.runningEncounterKey.flatMap { try? self.env.database.keyValueStore.get($0) }
+                    if let encounter: Encounter = try? self.env.database.keyValueStore.get(
+                        contents.key,
+                        crashReporter: self.env.crashReporter
+                    ) {
+                        let runningEncounter: RunningEncounter? = encounter.runningEncounterKey
+                            .flatMap { try? self.env.database.keyValueStore.get($0, crashReporter: self.env.crashReporter) }
                         return EncounterDetailViewState(building: encounter, running: runningEncounter)
                     } else {
                         return EncounterDetailViewState(building: Encounter(name: "", combatants: []))
@@ -193,27 +197,30 @@ struct CampaignBrowseView: View {
         }
     }
 
-    func sheetView(_ sheet: CampaignBrowseViewState.Sheet) -> AnyView {
+    @ViewBuilder
+    func sheetView(_ sheet: CampaignBrowseViewState.Sheet) -> some View {
         switch sheet {
         case .settings:
-            return SettingsContainerView().environmentObject(env).eraseToAnyView
+            SettingsContainerView().environmentObject(env)
         case .nodeEdit(let s):
-            return SheetNavigationContainer {
+            SheetNavigationContainer {
                 NodeEditView(onDoneTap: { (state, node, title) in
                     viewStore.send(.didTapNodeEditDone(state, node, title))
                 }, state: Binding(get: {
                     self.viewStore.state.nodeEditState ?? s
                 }, set: {
-                    self.viewStore.send(.sheet(.nodeEdit($0)))
+                    if case .nodeEdit = viewStore.state.sheet {
+                        self.viewStore.send(.sheet(.nodeEdit($0)))
+                    }
                 }))
-            }.eraseToAnyView
+            }
         case .move:
-            return SheetNavigationContainer {
+            SheetNavigationContainer {
                 IfLetStore(self.store.scope(state: { $0.moveSheetState }, action: { .moveSheet($0) })) { store in
                     CampaignBrowseView(store: store)
                 }
                 .navigationBarTitleDisplayMode(.inline)
-            }.environmentObject(env).eraseToAnyView
+            }.environmentObject(env)
         }
     }
 

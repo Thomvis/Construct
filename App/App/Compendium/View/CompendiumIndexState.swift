@@ -265,8 +265,13 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     }
 
                     return { env in
-                        return Deferred(catching: {
-                            try env.compendium.fetchAll(query: query.text?.nonEmptyString, types: query.filters?.types)
+                        return Deferred(catching: { () -> [CompendiumEntry] in
+                            do {
+                                return try env.compendium.fetchAll(query: query.text?.nonEmptyString, types: query.filters?.types)
+                            } catch {
+                                env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                                throw error
+                            }
                         }).map { entries in
                             var result = entries
                             // filter

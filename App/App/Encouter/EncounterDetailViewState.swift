@@ -218,7 +218,10 @@ extension EncounterDetailViewState {
                 case .onResumeRunningEncounterTap(let resumableKey):
                     return Effect.future { callback in
                         do {
-                            if let runningEncounter: RunningEncounter = try env.database.keyValueStore.get(resumableKey) {
+                            if let runningEncounter: RunningEncounter = try env.database.keyValueStore.get(
+                                resumableKey,
+                                crashReporter: env.crashReporter
+                            ) {
                                 callback(.success(.run(runningEncounter)))
                             } else {
                                 assertionFailure("Could not resume run: \(resumableKey) not found")

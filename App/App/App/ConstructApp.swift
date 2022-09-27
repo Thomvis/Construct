@@ -40,6 +40,8 @@ struct ConstructApp: App {
         )
         self.viewStore = ViewStore(store)
         viewStore.send(.onLaunch)
+
+        setUpCrashesUserConfirmationHandler()
     }
 
     @SceneBuilder
@@ -71,6 +73,20 @@ struct ConstructApp: App {
             }
         }
     }
+
+    private func setUpCrashesUserConfirmationHandler() {
+        Crashes.userConfirmationHandler = { (errorReports: [ErrorReport]) in
+            if let preferences: Preferences = try? env.database.keyValueStore.get(Preferences.key),
+                preferences.errorReportingEnabled == true
+            {
+                // user consent has been given, send reports
+                return false
+            }
+
+            viewStore.send(.requestPresentation(.crashReportingPermissionAlert))
+            return true
+        }
+    }
 }
 
 struct ConstructView: View {
@@ -88,16 +104,19 @@ struct ConstructView: View {
                     ColumnNavigationView(store: store)
                 }
             })
-            .sheet(isPresented: viewStore.binding(get: { $0.showWelcomeSheet }, send: { _ in .welcomeSheet(false) })) {
+            .sheet(isPresented: viewStore.binding(get: { $0.presentation == .welcomeSheet }, send: { _ in
+                .dismissPresentation(.welcomeSheet) }
+            )) {
                 WelcomeView { tap in
                     switch tap {
                     case .sampleEncounter:
                         viewStore.send(.welcomeSheetSampleEncounterTapped)
                     case .dismiss:
-                        viewStore.send(.welcomeSheetDismissTapped)
+                        viewStore.send(.dismissPresentation(.welcomeSheet))
                     }
                 }
             }
+            .alert(store.scope(state: { $0.crashReportingPermissionAlert }), dismiss: .dismissPresentation(.crashReportingPermissionAlert))
             .onAppear {
                 if let sizeClass = horizontalSizeClass {
                     viewStore.send(.onHorizontalSizeClassChange(sizeClass))
@@ -127,5 +146,19 @@ struct ConstructView: View {
                 }
             }
         }
+    }
+}
+
+extension AppState {
+    var crashReportingPermissionAlert: AlertState<AppState.Action>? {
+        guard presentation == .crashReportingPermissionAlert else { return nil }
+        return AlertState(
+            title: .init("Construct quit unexpectedly."),
+            message: .init("Do you want to send an anonymous crash report so I can fix the issue?"),
+            buttons: [
+                .cancel(.init("Don't send")),
+                .default(.init("Send"), action: .send(.onReceiveCrashReportingUserPermission(.send))),
+                .default(.init("Always send"), action: .send(.onReceiveCrashReportingUserPermission(.sendAlways)))
+            ])
     }
 }

@@ -139,6 +139,7 @@ public extension Int {
 public protocol OptionalProtocol {
     associatedtype Wrapped
 
+    init(_ value: Wrapped)
     static func emptyOptional() -> Self
     var optional: Optional<Wrapped> { get }
 }
@@ -397,5 +398,16 @@ public extension View {
                 f = (f ?? .body).italic()
             }
         }
+    }
+}
+
+public extension Binding {
+    func withDefault(_ defaultValue: Value.Wrapped) -> Binding<Value.Wrapped> where Value: OptionalProtocol, Value.Wrapped: Equatable {
+        Binding<Value.Wrapped>(get: {
+            wrappedValue.optional ?? defaultValue
+        }, set: { value, transaction in
+            guard wrappedValue.optional != defaultValue || value != defaultValue else { return }
+            self.transaction(transaction).wrappedValue = Value(value)
+        })
     }
 }

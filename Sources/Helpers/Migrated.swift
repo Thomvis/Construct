@@ -41,6 +41,13 @@ public struct Migrated<OldValue, Value>: MigratedWrapper, Codable where Value: C
             do {
                 old = try OldValue(from: decoder)
             } catch let oldError {
+                // try to decode the new value without it being inside a unkeyed container
+                // this is the case when the @Migrated wrapper was added later
+                do {
+                    self.wrappedValue = try Value(from: decoder)
+                    return
+                } catch { }
+
                 throw Error.decodingFailed(newError, oldError)
             }
 
