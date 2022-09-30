@@ -11,6 +11,7 @@ import SwiftUI
 import Combine
 import ComposableArchitecture
 import Helpers
+import SharedViews
 
 struct CampaignBrowseView: View {
     @EnvironmentObject var env: Environment
@@ -51,22 +52,21 @@ struct CampaignBrowseView: View {
                 }.listStyle(InsetGroupedListStyle())
             }
 
-            HStack {
-                RoundedButton(action: {
+            RoundedButtonToolbar {
+                Button(action: {
                     self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewState.NodeEditState(name: "", node: nil))))
                 }) {
                     Label("New group", systemImage: "folder")
                 }
 
                 if !viewStore.state.isMoveMode {
-                    RoundedButton(action: {
+                    Button(action: {
                         self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewState.NodeEditState(name: "", contentType: .encounter, node: nil))))
                     }) {
                         Label("New encounter", systemImage: "shield")
                     }
                 }
             }
-            .equalSizes(horizontal: false, vertical: true)
             .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
             .ignoresSafeArea(.keyboard, edges: .all)
         }

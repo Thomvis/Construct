@@ -1,5 +1,5 @@
 //
-//  CompendiumFilterPopover.swift
+//  CompendiumFilterSheet.swift
 //  Construct
 //
 //  Created by Thomas Visser on 02/01/2020.
@@ -13,14 +13,13 @@ import Helpers
 import SharedViews
 import GameModels
 
-struct CompendiumFilterPopover: View, Popover {
-    var popoverId: AnyHashable { "CompendiumFilterPopover" }
-    var store: Store<CompendiumFilterPopoverState, CompendiumFilterPopoverAction>
-    @ObservedObject var viewStore: ViewStore<CompendiumFilterPopoverState, CompendiumFilterPopoverAction>
+struct CompendiumFilterSheet: View {
+    var store: Store<CompendiumFilterSheetState, CompendiumFilterSheetAction>
+    @ObservedObject var viewStore: ViewStore<CompendiumFilterSheetState, CompendiumFilterSheetAction>
 
-    let onApply: (CompendiumFilterPopoverState.Values) -> Void
+    let onApply: (CompendiumFilterSheetState.Values) -> Void
 
-    init(store: Store<CompendiumFilterPopoverState, CompendiumFilterPopoverAction>, onApply: @escaping (CompendiumFilterPopoverState.Values) -> Void) {
+    init(store: Store<CompendiumFilterSheetState, CompendiumFilterSheetAction>, onApply: @escaping (CompendiumFilterSheetState.Values) -> Void) {
         self.store = store
         self.viewStore = ViewStore(store)
         self.onApply = onApply
@@ -32,7 +31,7 @@ struct CompendiumFilterPopover: View, Popover {
                 VStack {
                     SectionContainer {
                         LabeledContent {
-                            Picker("Type", selection: viewStore.binding(get: \.current.itemType, send: CompendiumFilterPopoverAction.itemType).animation()) {
+                            Picker("Type", selection: viewStore.binding(get: \.current.itemType, send: CompendiumFilterSheetAction.itemType).animation()) {
                                 Text("All").tag(Optional<CompendiumItemType>.none)
                                 ForEach(CompendiumItemType.allCases, id: \.rawValue) { type in
                                     Text("\(type.localizedScreenDisplayName)").tag(Optional.some(type))
@@ -96,13 +95,13 @@ struct CompendiumFilterPopover: View, Popover {
         }
     }
 
-    func onEditingChanged(_ filter: CompendiumFilterPopoverState.Filter) -> (Bool) -> Void {
+    func onEditingChanged(_ filter: CompendiumFilterSheetState.Filter) -> (Bool) -> Void {
         return { b in
             self.viewStore.send(.editing(filter, b))
         }
     }
 
-    func clearButton(for filter: CompendiumFilterPopoverState.Filter) -> some View {
+    func clearButton(for filter: CompendiumFilterSheetState.Filter) -> some View {
         Group {
             if viewStore.state.hasValue(for: filter) {
                 Button(action: {
@@ -119,7 +118,7 @@ struct CompendiumFilterPopover: View, Popover {
     }
 }
 
-struct CompendiumFilterPopoverState: Equatable {
+struct CompendiumFilterSheetState: Equatable {
     let challengeRatings = crToXpMapping.keys.sorted()
 
     let initial: Values
@@ -151,24 +150,24 @@ struct CompendiumFilterPopoverState: Equatable {
         let filters = compatibleFilters
         return Values(
             itemType: current.itemType,
-            minMonsterCR: compatibleFilters.contains(.minMonsterCR) ? current.minMonsterCR : nil,
-            maxMonsterCR: compatibleFilters.contains(.maxMonsterCR) ? current.maxMonsterCR : nil
+            minMonsterCR: filters.contains(.minMonsterCR) ? current.minMonsterCR : nil,
+            maxMonsterCR: filters.contains(.maxMonsterCR) ? current.maxMonsterCR : nil
         )
     }
 
     typealias Filter = CompendiumIndexState.Query.Filters.Property
 }
 
-enum CompendiumFilterPopoverAction {
+enum CompendiumFilterSheetAction {
     case itemType(CompendiumItemType?)
     case minMonsterCR(Double)
     case maxMonsterCR(Double)
-    case editing(CompendiumFilterPopoverState.Filter, Bool)
-    case clear(CompendiumFilterPopoverState.Filter)
+    case editing(CompendiumFilterSheetState.Filter, Bool)
+    case clear(CompendiumFilterSheetState.Filter)
     case clearAll
 }
 
-extension CompendiumFilterPopoverState {
+extension CompendiumFilterSheetState {
     var minMonsterCrDouble: Double {
         get {
             if let fraction = current.minMonsterCR, let idx = challengeRatings.firstIndex(of: fraction) {
@@ -220,7 +219,7 @@ extension CompendiumFilterPopoverState {
         initial != current
     }
 
-    static var reducer: Reducer<Self, CompendiumFilterPopoverAction, Environment> = Reducer { state, action, _ in
+    static var reducer: Reducer<Self, CompendiumFilterSheetAction, Environment> = Reducer { state, action, _ in
         switch action {
         case .itemType(let type):
             state.current.itemType = type

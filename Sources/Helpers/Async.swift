@@ -54,6 +54,7 @@ public struct Async<Success, Failure> where Failure: Error {
                     .eraseToEffect()
                     .cancellable(id: state.identifier, cancelInFlight: true)
             case .didStartLoading:
+                state.result = nil
                 state.isLoading = true
             case .didFinishLoading(let result):
                 state.result = result

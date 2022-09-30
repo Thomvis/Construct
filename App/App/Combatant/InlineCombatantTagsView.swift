@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
+import SharedViews
 
 struct InlineCombatantTagsView: View {
     var store: Store<CombatantDetailViewState, CombatantDetailViewAction>

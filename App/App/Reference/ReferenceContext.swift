@@ -115,8 +115,8 @@ extension ReferenceItemViewState {
     // TODO: ensure all content types have their requests properly handled
     var referenceItemRequests: [ReferenceViewItemRequest] {
         switch content {
-        case .home(let s):
-            return s.presentedNextCompendium?.referenceItemRequests ?? []
+        case .compendium(let s):
+            return s.compendium.referenceItemRequests ?? []
         case .combatantDetail(let s):
             return s.detailState.itemRequest.nonNilArray
         case .addCombatant: return []

@@ -22,6 +22,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     var properties: Properties
 
     var results: RS
+    var suggestions: [CompendiumEntry]?
+    
     var scrollTo: String? // the key of the entry to scroll to
 
     var presentedScreens: [NavigationDestination: NextScreen]
@@ -34,6 +36,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         self.results = results
         self.presentedScreens = presentedScreens
         self.sheet = sheet
+
+        #warning("suggestions not yet used")
     }
 
     var canAddItem: Bool {
@@ -103,58 +107,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     struct Properties: Equatable {
         let showImport: Bool
         let showAdd: Bool
-        let initiallyFocusOnSearch: Bool
-        @EqIgnore var initialContent: ContentDefinition
-
-        static let index = Properties(
-            showImport: true,
-            showAdd: true,
-            initiallyFocusOnSearch: false,
-            initialContent: .initial
-        )
-
-        static let secondary = Properties(
-            showImport: false,
-            showAdd: true,
-            initiallyFocusOnSearch: false,
-            initialContent: .searchResults
-        )
-
-        enum ContentDefinition {
-            indirect case toc(Toc)
-            case searchResults
-
-            func view(_ env: Environment, _ parent: CompendiumIndexView) -> AnyView? {
-                switch self {
-                case .toc: return nil
-                case .searchResults: return nil
-                }
-            }
-
-            var isSearchResults: Bool {
-                if case .searchResults = self { return true }
-                return false
-            }
-
-            var toc: Toc? {
-                guard case .toc(let toc) = self else { return nil }
-                return toc
-            }
-
-            static var initial: ContentDefinition {
-                initial(types: CompendiumItemType.allCases)
-            }
-
-            static func initial(types: [CompendiumItemType], destinationProperties: Properties = .secondary) -> ContentDefinition {
-                .toc(Toc(types: types, destinationProperties: destinationProperties, suggested: []))
-            }
-
-            struct Toc: Equatable {
-                var types: [CompendiumItemType]
-                var destinationProperties: Properties
-                var suggested: [CompendiumEntry]
-            }
-        }
+        let typeRestriction: [CompendiumItemType]?
     }
 
     enum NextScreen: Equatable {
@@ -258,37 +211,31 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 }
                 return .none
             },
-            Reducer.withState({ $0.properties.initialContent.isSearchResults }) { state in
-                RS.reducer(CompendiumIndexState.Query.reducer) { query in
-                    guard state.properties.initialContent.isSearchResults || (query.text?.nonEmptyString != nil || query.filters?.test != nil) else {
-                        return nil // show initial content
-                    }
+            RS.reducer(CompendiumIndexState.Query.reducer) { query in
+                return { env in
+                    return Deferred(catching: {
+                        do {
+                            return try env.compendium.fetchAll(query: query.text?.nonEmptyString, types: query.filters?.types)
+                        } catch {
+                            env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                            throw error
+                        }
+                    }).map { entries in
+                        var result = entries
+                        // filter
+                        if let filterTest = query.filters?.test {
+                            result = result.filter { filterTest($0.item) }
+                        }
 
-                    return { env in
-                        return Deferred(catching: { () -> [CompendiumEntry] in
-                            do {
-                                return try env.compendium.fetchAll(query: query.text?.nonEmptyString, types: query.filters?.types)
-                            } catch {
-                                env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
-                                throw error
-                            }
-                        }).map { entries in
-                            var result = entries
-                            // filter
-                            if let filterTest = query.filters?.test {
-                                result = result.filter { filterTest($0.item) }
-                            }
+                        // sort
+                        if let order = query.order {
+                            result = result.sorted(by: order.descriptor.pullback(\.item))
+                        }
 
-                            // sort
-                            if let order = query.order {
-                                result = result.sorted(by: order.descriptor.pullback(\.item))
-                            }
-
-                            return result
-                        }.eraseToAnyPublisher()
-                    }
-                }.pullback(state: \.results, action: /CompendiumIndexAction.results, environment: { $0 })
-            },
+                        return result
+                    }.eraseToAnyPublisher()
+                }
+            }.pullback(state: \.results, action: /CompendiumIndexAction.results),
             Reducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex),
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumIndexAction.creatureEditSheet),
             CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet)
@@ -402,7 +349,7 @@ extension CompendiumIndexState.Query {
 extension CompendiumIndexState {
     static let nullInstance = CompendiumIndexState(
         title: "",
-        properties: Properties.index,
+        properties: Properties(showImport: false, showAdd: false, typeRestriction: nil),
         results: .initial,
         presentedScreens: [:]
     )

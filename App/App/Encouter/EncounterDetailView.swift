@@ -86,7 +86,7 @@ struct EncounterDetailView: View {
             }))
         }
         .safeAreaInset(edge: .bottom) {
-            VStack {
+            Group {
                 if viewStore.state.running == nil {
                     if viewStore.state.editMode == .active {
                         buildingEditModeActionBar()
@@ -120,7 +120,7 @@ struct EncounterDetailView: View {
     }
 
     func defaultActionBar() -> some View {
-        return HStack {
+        return RoundedButtonToolbar {
             if viewStore.state.building.isScratchPad {
                 Menu(content: {
                     Button(action: {
@@ -135,7 +135,7 @@ struct EncounterDetailView: View {
                         Text("Clear all").foregroundColor(Color.red)
                     }
                 }) {
-                    RoundedButton(action: { }) {
+                    Button(action: { }) {
                         Label("Reset…", systemImage: "xmark.circle")
                     }
                     .accessibilityHint(Text("Activate to clear the encounter."))
@@ -143,16 +143,12 @@ struct EncounterDetailView: View {
                 .disabled(self.viewStore.state.building.combatants.isEmpty)
             }
 
-            RoundedButton(action: {
-                if appNavigation == .tab {
-                    self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter: self.viewStore.state.encounter)))))
-                } else {
-                    self.viewStore.send(.showAddCombatantReferenceItem)
-                }
+            Button(action: {
+
             }) {
                 Label("Add combatants", systemImage: "plus.circle")
             }
-            .contextMenu {
+            .menu(content: {
                 Button(action: {
                     self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter:
                         self.viewStore.state.encounter)))))
@@ -161,7 +157,13 @@ struct EncounterDetailView: View {
                     Text("Quick create")
                     Image(systemName: "plus.circle")
                 }
-            }
+            }, primaryAction: {
+                if appNavigation == .tab {
+                    self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter: self.viewStore.state.encounter)))))
+                } else {
+                    self.viewStore.send(.showAddCombatantReferenceItem)
+                }
+            })
 
             if let resumables = viewStore.state.resumableRunningEncounters.value, resumables.count > 0 {
                 Menu(content: {
@@ -186,7 +188,7 @@ struct EncounterDetailView: View {
                         }
                     }
                 }) {
-                    RoundedButton(action: {
+                    Button(action: {
                         viewStore.send(.run(nil), animation: .default)
                     }) {
                         Label("Run encounter", systemImage: "play")
@@ -194,7 +196,7 @@ struct EncounterDetailView: View {
                     .disabled(self.viewStore.state.building.combatants.isEmpty)
                 }
             } else {
-                RoundedButton(action: {
+                Button(action: {
                     viewStore.send(.run(nil), animation: .default)
                 }) {
                     Label("Run encounter", systemImage: "play")
@@ -202,45 +204,43 @@ struct EncounterDetailView: View {
                 .disabled(self.viewStore.state.building.combatants.isEmpty)
             }
         }
-        .equalSizes(horizontal: false, vertical: true)
         .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
     }
 
     func buildingEditModeActionBar() -> some View {
-        return HStack {
-            RoundedButton(action: {
+        return RoundedButtonToolbar {
+            Button(action: {
                 self.viewStore.send(.sheet(.settings))
             }) {
                 Label("Settings", systemImage: "gear")
             }
 
-            RoundedButton(action: {
+            Button(action: {
                 self.viewStore.send(.selectionEncounterAction(.duplicate))
             }) {
                 Label("Duplicate", systemImage: "plus.square.on.square")
             }
             .disabled(viewStore.state.selection.isEmpty)
 
-            RoundedButton(action: {
+            Button(action: {
                 self.viewStore.send(.selectionEncounterAction(.remove))
             }) {
                 Label("Remove", systemImage: "trash")
             }
             .disabled(viewStore.state.selection.isEmpty)
         }
-        .equalSizes(horizontal: false, vertical: true)
     }
 
     func runningEditModeActionBar() -> some View {
-        return HStack {
-            RoundedButton(action: {
+        RoundedButtonToolbar {
+            Button(action: {
                 self.viewStore.send(.selectionCombatantAction(.hp(.current(.set(0)))))
             }) {
                 Label("Eliminate", systemImage: "heart.slash")
             }
             .disabled(viewStore.state.selection.isEmpty)
 
-            RoundedButton(action: {
+            Button(action: {
                 let selection = self.viewStore.state.selection.compactMap { self.viewStore.state.encounter.combatant(for: $0) }
                 let state = CombatantTagsViewState(
                     combatants: selection,
@@ -258,14 +258,13 @@ struct EncounterDetailView: View {
             }
             .disabled(viewStore.state.selection.isEmpty)
 
-            RoundedButton(action: {
+            Button(action: {
                 self.viewStore.send(.popover(.health(.selection)))
             }) {
                 Label("Health...", systemImage: "suit.heart")
             }
             .disabled(viewStore.state.selection.isEmpty)
         }
-        .equalSizes(horizontal: false, vertical: true)
     }
 
     func sheetView(_ sheet: EncounterDetailViewState.Sheet) -> some View {
@@ -400,17 +399,8 @@ struct CombatantSection: View {
                 }, onInitiativeTap: {
                     self.parent.viewStore.send(.popover(.combatantInitiative(combatant, NumberEntryViewState.initiative(combatant: combatant))), animation: .default)
                 })
-                // contentShape is needed or else the tapGesture on the whole cell doesn't work
-                // scale is used to make the row easier selectable in edit mode
-                .contentShape(Rectangle().scale(self.parent.viewStore.state.editMode.isEditing ? 0 : 1))
-                .onTapGesture {
-                    if parent.appNavigation == .tab {
-                        self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
-                    } else {
-                        self.parent.viewStore.send(.showCombatantDetailReferenceItem(combatant))
-                    }
-                }
-                .contextMenu {
+                .accentColor(Color.primary)
+                .menu {
                     Button(action: {
                         self.parent.viewStore.send(.encounter(.remove(combatant)))
                     }) {
@@ -441,6 +431,12 @@ struct CombatantSection: View {
                     }) {
                         Text("Reset")
                         Image(systemName: "arrow.counterclockwise")
+                    }
+                } primaryAction: {
+                    if parent.appNavigation == .tab {
+                        self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
+                    } else {
+                        self.parent.viewStore.send(.showCombatantDetailReferenceItem(combatant))
                     }
                 }
             }

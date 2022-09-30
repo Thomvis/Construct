@@ -35,24 +35,17 @@ struct AddCombatantState: Equatable {
     /// If a combatant is removed from the encounter, it is not removed from the suggestions. (Until a whole new state
     /// is created.)
     private mutating func updateSuggestedCombatants() {
-        if case .toc(let toc) = compendiumState.properties.initialContent {
-            let newSuggestions = combatantsByDefinitionCache.values.compactMap { combatants in
-                combatants.first?.definition as? CompendiumCombatantDefinition
-            }.compactMap { definition -> CompendiumEntry? in
-                if !definition.isUnique {
-                    // FIXME: we don't have all the info here to properly create the entry
-                    return CompendiumEntry(definition.item)
-                }
-                return nil
-            }.filter { c in !toc.suggested.contains(where: { $0.key == c.key })}
+        let newSuggestions = combatantsByDefinitionCache.values.compactMap { combatants in
+            combatants.first?.definition as? CompendiumCombatantDefinition
+        }.compactMap { definition -> CompendiumEntry? in
+            if !definition.isUnique {
+                // FIXME: we don't have all the info here to properly create the entry
+                return CompendiumEntry(definition.item)
+            }
+            return nil
+        }.filter { c in !(compendiumState.suggestions?.contains(where: { $0.key == c.key }) ?? false) }
 
-            let toc = CompendiumIndexState.Properties.ContentDefinition.Toc(
-                types: toc.types,
-                destinationProperties: toc.destinationProperties,
-                suggested: toc.suggested + newSuggestions
-            )
-            compendiumState.properties.initialContent = .toc(toc)
-        }
+        compendiumState.suggestions = compendiumState.suggestions.map { $0 + newSuggestions } ?? newSuggestions.nonEmptyArray
     }
 
     var localStateForDeduplication: Self {
@@ -100,7 +93,15 @@ extension AddCombatantState {
     static let nullInstance = AddCombatantState(encounter: Encounter.nullInstance)
 
     init(
-        compendiumState: CompendiumIndexState = CompendiumIndexState(title: "Add Combatant", properties: CompendiumIndexState.Properties(showImport: false, showAdd: false, initiallyFocusOnSearch: false, initialContent: .initial(types: [.monster, .character, .group], destinationProperties: .init(showImport: false, showAdd: false, initiallyFocusOnSearch: false, initialContent: .searchResults))), results: .initial(types: [.monster, .character, .group])),
+        compendiumState: CompendiumIndexState = CompendiumIndexState(
+            title: "Add Combatant",
+            properties: CompendiumIndexState.Properties(
+                showImport: false,
+                showAdd: false,
+                typeRestriction: [.monster, .character, .group]
+            ),
+            results: .initial(types: [.monster, .character, .group])
+        ),
         encounter: Encounter,
         creatureEditViewState: CreatureEditViewState? = nil
     ) {
