@@ -8,6 +8,7 @@
 
 import Foundation
 import Helpers
+import GameModels
 
 struct RunningEncounterLogViewState: Equatable {
     var encounter: RunningEncounter

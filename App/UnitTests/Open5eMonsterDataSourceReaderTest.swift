@@ -11,6 +11,7 @@ import XCTest
 @testable import Construct
 import Combine
 import SnapshotTesting
+import Compendium
 
 class Open5eMonsterDataSourceReaderTest: XCTestCase {
 

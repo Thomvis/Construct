@@ -11,6 +11,7 @@ import XCTest
 import CustomDump
 @testable import Construct
 import GameModels
+import Compendium
 
 class DndBeyondExternalCompendiumTest: XCTestCase {
 

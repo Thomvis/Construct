@@ -9,6 +9,7 @@
 import Foundation
 import XCTest
 @testable import Construct
+import Persistence
 
 class KeyValueStoreEntityTest: XCTestCase {
 
@@ -20,12 +21,6 @@ class KeyValueStoreEntityTest: XCTestCase {
                 let p2 = KeyValueStoreEntityKeyPrefix.allCases[i2]
                 XCTAssertFalse(p1.rawValue.hasPrefix(p2.rawValue), "\(p2) is a prefix of \(p1)")
             }
-        }
-    }
-
-    func testEnsureKeyPrefixTypeConsistency() {
-        for p in KeyValueStoreEntityKeyPrefix.allCases {
-            XCTAssertEqual(p.entityType.keyPrefix, p)
         }
     }
 

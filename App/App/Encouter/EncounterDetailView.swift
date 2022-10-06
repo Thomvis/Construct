@@ -11,6 +11,7 @@ import SwiftUI
 import ComposableArchitecture
 import SharedViews
 import Helpers
+import GameModels
 
 struct EncounterDetailView: View {
     @EnvironmentObject var environment: Environment

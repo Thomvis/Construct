@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import GameModels
 
 struct HealthFractionView: View {
     var hp: Hp

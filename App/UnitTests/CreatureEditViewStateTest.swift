@@ -14,7 +14,7 @@ import GameModels
 class CreatureEditViewStateTest: XCTestCase {
 
     func testCharacterStability() {
-        let character = Construct.Character(id: UUID().tagged(), realm: .homebrew, level: nil, stats: StatBlock.default, player: nil)
+        let character = GameModels.Character(id: UUID().tagged(), realm: .homebrew, level: nil, stats: StatBlock.default, player: nil)
         let sut = CreatureEditViewState(edit: character)
         XCTAssertEqual(character, sut.character)
     }

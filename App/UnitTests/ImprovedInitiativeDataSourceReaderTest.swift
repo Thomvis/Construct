@@ -12,6 +12,7 @@ import Combine
 import GameModels
 import Helpers
 import Dice
+import Compendium
 
 class ImprovedInitiativeDataSourceReaderTest: XCTestCase {
 

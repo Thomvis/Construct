@@ -12,6 +12,7 @@ import ComposableArchitecture
 import AppCenter
 import AppCenterAnalytics
 import AppCenterCrashes
+import GameModels
 
 @main
 struct ConstructApp: App {

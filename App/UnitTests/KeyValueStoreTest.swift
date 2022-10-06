@@ -9,6 +9,7 @@
 import Foundation
 import XCTest
 @testable import Construct
+@testable import Persistence
 import GRDB
 
 class KeyValueStoreTest: XCTestCase {

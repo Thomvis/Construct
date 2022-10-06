@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 import SharedViews
+import GameModels
 
 struct HealthDialog: View {
     var popoverId: AnyHashable { "HealthDialog" } // fine unless a view tries to replace one health dialog with another

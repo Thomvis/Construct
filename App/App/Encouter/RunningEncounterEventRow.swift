@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import GameModels
 
 struct RunningEncounterEventRow: View {
     let encounter: Encounter

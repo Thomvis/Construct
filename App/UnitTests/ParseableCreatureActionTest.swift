@@ -10,7 +10,7 @@ import Foundation
 import XCTest
 import CustomDump
 @testable import Construct
-import GameModels
+@testable import GameModels
 import Helpers
 
 class ParseableCreatureActionTest: XCTestCase {

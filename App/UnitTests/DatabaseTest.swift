@@ -8,7 +8,7 @@
 
 import Foundation
 import XCTest
-@testable import Construct
+import Persistence
 
 class DatabaseTest: XCTestCase {
 

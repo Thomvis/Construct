@@ -11,6 +11,7 @@ import SwiftUI
 import ComposableArchitecture
 import SharedViews
 import DiceRollerFeature
+import GameModels
 
 struct DiceActionView: View {
     let store: Store<DiceActionViewState, DiceActionViewAction>

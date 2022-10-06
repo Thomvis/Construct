@@ -8,8 +8,8 @@
 
 import Foundation
 import XCTest
-@testable import Construct
 import Combine
+import Compendium
 
 class FileDataSourceTest: XCTestCase {
     func test() {

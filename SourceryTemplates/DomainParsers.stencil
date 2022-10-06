@@ -1,0 +1,5 @@
+public enum DomainParsers {
+	public static var combinedVersion: String {
+		return "{% for type in types.implementing.DomainParser %}{{ type.name }}:\({{ type.name }}.version),{% endfor %}"
+	}
+}

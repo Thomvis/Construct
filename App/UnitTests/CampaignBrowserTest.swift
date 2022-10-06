@@ -10,6 +10,8 @@ import Foundation
 import XCTest
 @testable import Construct
 import Combine
+import Persistence
+import GameModels
 
 class CampaignBrowserTest: XCTestCase {
 

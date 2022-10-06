@@ -9,19 +9,32 @@ let package = Package(
         .iOS(.v16)
     ],
     products: [
+        .library(name: "Compendium", targets: ["Compendium"]),
         .library(name: "DiceRollerFeature", targets: ["DiceRollerFeature"]),
         .library(name: "DiceRollerInvocation", targets: ["DiceRollerInvocation"]),
         .library(name: "Dice", targets: ["Dice"]),
         .library(name: "GameModels", targets: ["GameModels"]),
         .library(name: "Helpers", targets: ["Helpers"]),
+        .library(name: "Persistence", targets: ["Persistence"]),
         .library(name: "SharedViews", targets: ["Helpers"]),
     ],
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.36.0"),
         .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
-        .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.3.0")
+        .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.3.0"),
+        .package(url: "https://github.com/Thomvis/GRDB.swift.git", from: "5.0.0")
     ],
     targets: [
+        .target(
+            name: "Compendium",
+            dependencies: [
+                "GameModels"
+            ],
+            resources: [
+                .copy("Fixtures/monsters.json"),
+                .copy("Fixtures/spells.json")
+            ]
+        ),
         .target(
             name: "DiceRollerFeature",
             dependencies: [
@@ -66,6 +79,14 @@ let package = Package(
             dependencies: [
                 .product(name: "Tagged", package: "swift-tagged"),
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            ]
+        ),
+        .target(
+            name: "Persistence",
+            dependencies: [
+                "Compendium",
+                "GameModels",
+                .product(name: "GRDB", package: "GRDB.swift")
             ]
         ),
         .target(

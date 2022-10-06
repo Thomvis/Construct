@@ -8,8 +8,9 @@
 
 import Foundation
 import SwiftUI
+import GameModels
 
-extension Combatant {
+public extension Combatant {
     func discriminatedNameText(discriminatorColor: Color = Color(UIColor.secondaryLabel)) -> Text {
         let n = Text(name)
         let d = discriminator.map {
@@ -17,12 +18,5 @@ extension Combatant {
         } ?? Text("")
 
         return (n + d).strikethrough(isDead, color: Color(UIColor.systemRed))
-    }
-
-    var discriminatedName: String {
-        if let discriminator = discriminator {
-            return "\(name) \(discriminator)"
-        }
-        return name
     }
 }

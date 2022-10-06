@@ -12,6 +12,7 @@ import XCTest
 import Combine
 import GameModels
 import Dice
+import Compendium
 
 class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
 

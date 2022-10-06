@@ -10,6 +10,8 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 import SharedViews
+import GameModels
+import Persistence
 
 struct EncounterSettingsView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>

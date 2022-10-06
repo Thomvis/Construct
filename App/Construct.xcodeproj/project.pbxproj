@@ -10,9 +10,7 @@
 		E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */; };
 		E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E905E0BB246D83B800698C0A /* ComposableArchitecture */; };
 		E90EFF2A262056FE00F5443E /* compendium.xml in Resources */ = {isa = PBXBuildFile; fileRef = E90EFF29262056FE00F5443E /* compendium.xml */; };
-		E90EFF2E262057F000F5443E /* XMLCompendiumDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF2D262057F000F5443E /* XMLCompendiumDataSourceReader.swift */; };
 		E90EFF322620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF312620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift */; };
-		E90EFF39262082E200F5443E /* XMLDocumentElement.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF38262082E200F5443E /* XMLDocumentElement.generated.swift */; };
 		E90EFF412623220300F5443E /* DataSourceReaderParsersTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */; };
 		E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */; };
 		E9121E2925FA75D50048BE32 /* FloatingDiceRollerViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9121E2825FA75D50048BE32 /* FloatingDiceRollerViewState.swift */; };
@@ -21,17 +19,11 @@
 		E91C167D2405C5BB004B5C85 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91C167C2405C5BB004B5C85 /* SafariView.swift */; };
 		E91CCC832614C4D200CB0527 /* Tagged in Frameworks */ = {isa = PBXBuildFile; productRef = E91CCC822614C4D200CB0527 /* Tagged */; };
 		E91CCC872615D21B00CB0527 /* AppStoreScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91CCC862615D21B00CB0527 /* AppStoreScreenshotTests.swift */; };
-		E91E4706231D992E005D1E6F /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E4705231D992E005D1E6F /* Database.swift */; };
-		E91E470D231D9BD2005D1E6F /* Migrations.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E470C231D9BD2005D1E6F /* Migrations.swift */; };
-		E91E4711231D9CB6005D1E6F /* monsters.json in Resources */ = {isa = PBXBuildFile; fileRef = E91E4710231D9CB6005D1E6F /* monsters.json */; };
-		E91E4718231E8CD0005D1E6F /* CompendiumDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E4717231E8CD0005D1E6F /* CompendiumDataSource.swift */; };
 		E91E596F24477D3E00975453 /* AlignmentTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E596E24477D3E00975453 /* AlignmentTest.swift */; };
 		E91EB0B423EE08CB00F40E46 /* roll.ahap in Resources */ = {isa = PBXBuildFile; fileRef = E91EB0B323EE08CA00F40E46 /* roll.ahap */; };
 		E929AD202745A2E400A39CAD /* ParseableCreatureFeatureTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */; };
 		E92A41E4240D2F0C009AF440 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E3240D2F0C009AF440 /* WelcomeView.swift */; };
-		E92A41E8240D3A66009AF440 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E7240D3A66009AF440 /* Preferences.swift */; };
 		E92B8FD823C904D70040E6C5 /* ActivityButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92B8FD723C904D70040E6C5 /* ActivityButton.swift */; };
-		E931CF8324FD0E54006CEE78 /* CreatureActionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8224FD0E53006CEE78 /* CreatureActionParser.swift */; };
 		E931CF8524FD17B8006CEE78 /* CreatureActionParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8424FD17B8006CEE78 /* CreatureActionParserTest.swift */; };
 		E931CF8824FE5D68006CEE78 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = E931CF8724FE5D68006CEE78 /* SnapshotTesting */; };
 		E931CF8A25003077006CEE78 /* ParserCombinatorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8925003076006CEE78 /* ParserCombinatorTest.swift */; };
@@ -40,40 +32,25 @@
 		E931CF932500CA3F006CEE78 /* DiceActionViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF922500CA3F006CEE78 /* DiceActionViewState.swift */; };
 		E931E5442339525800C3FE9A /* DiceExpressionParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931E5432339525800C3FE9A /* DiceExpressionParserTest.swift */; };
 		E931E54B233971B300C3FE9A /* SearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931E54A233971B300C3FE9A /* SearchField.swift */; };
-		E9323A31231FF14900F0D0C6 /* KeyValueStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A30231FF14900F0D0C6 /* KeyValueStore.swift */; };
 		E9323A332320169F00F0D0C6 /* DatabaseTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A322320169F00F0D0C6 /* DatabaseTest.swift */; };
 		E9323A352320171000F0D0C6 /* KeyValueStoreTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A342320171000F0D0C6 /* KeyValueStoreTest.swift */; };
-		E9323A3B23205C4700F0D0C6 /* FileDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3A23205C4700F0D0C6 /* FileDataSource.swift */; };
 		E9323A3D23205E7700F0D0C6 /* FileDataSourceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3C23205E7700F0D0C6 /* FileDataSourceTest.swift */; };
 		E9323A3F23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */; };
-		E935641827621750008E6698 /* DomainParsers.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93564172762174F008E6698 /* DomainParsers.generated.swift */; };
 		E93777EA233C05D500C9F41A /* ddb_riverine.json in Resources */ = {isa = PBXBuildFile; fileRef = E93777E9233C05D500C9F41A /* ddb_riverine.json */; };
-		E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93777EC233CF81F00C9F41A /* O5eModels.swift */; };
 		E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */ = {isa = PBXBuildFile; productRef = E93FA1C924EC5B7F007441BF /* Parma */; };
-		E940B5D7237B45EE00A8DAF4 /* spells.json in Resources */ = {isa = PBXBuildFile; fileRef = E940B5D6237B45EE00A8DAF4 /* spells.json */; };
 		E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA902477E56300F313D7 /* CompendiumIndexState.swift */; };
-		E942E00D247E8F6600170FAC /* StatBlockCombatantResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD3235C8AC6000CCC8B /* StatBlockCombatantResources.swift */; };
 		E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */; };
 		E942E010247EA5DE00170FAC /* AddCombatantState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA8E2477E50A00F313D7 /* AddCombatantState.swift */; };
 		E942E011247EA78200170FAC /* CompendiumIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E4700231D95A9005D1E6F /* CompendiumIndexView.swift */; };
 		E942E012247EAA2600170FAC /* CompendiumItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43B32338B5FC00A8B032 /* CompendiumItemDetailView.swift */; };
 		E942E013247EABA900170FAC /* StatBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43B82338B7EA00A8B032 /* StatBlockView.swift */; };
 		E942E014247EACA900170FAC /* CreatureEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9238C3023871C8A0023DFC3 /* CreatureEditView.swift */; };
-		E942E015247EB3CE00170FAC /* Open5eMonsterDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A372320531B00F0D0C6 /* Open5eMonsterDataSourceReader.swift */; };
-		E942E016247EB3D300170FAC /* Open5eSpellDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E940B5DA237B4AD900A8DAF4 /* Open5eSpellDataSourceReader.swift */; };
 		E942E019247FE9E900170FAC /* CampaignBrowseViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB31323505B0F00CA0AF4 /* CampaignBrowseViewState.swift */; };
 		E942E01B247FEA6D00170FAC /* EncounterDetailViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC72354E4350085A72D /* EncounterDetailViewState.swift */; };
 		E942E01C2480090000170FAC /* CombatantDetailViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA95247849A900F313D7 /* CombatantDetailViewState.swift */; };
 		E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */; };
 		E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA9924784E3500F313D7 /* CombatantTagsViewState.swift */; };
 		E942E02024800C5200170FAC /* CombatantTagEditViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA9B24784F1500F313D7 /* CombatantTagEditViewState.swift */; };
-		E946B022247D9E7F008A407C /* Combatant.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6F323150151004D84E2 /* Combatant.swift */; };
-		E946B023247D9E91008A407C /* AdHocCombatant.swift in Sources */ = {isa = PBXBuildFile; fileRef = E926176B2398563E004B1958 /* AdHocCombatant.swift */; };
-		E946B024247D9EBE008A407C /* CombatantTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBDA235DC6E1000CCC8B /* CombatantTag.swift */; };
-		E946B025247D9ED9008A407C /* Duration.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99F959D241C260600183B5B /* Duration.swift */; };
-		E946B026247D9EE3008A407C /* RunningEncounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92B8FD923CA482C0040E6C5 /* RunningEncounter.swift */; };
-		E946B027247D9F53008A407C /* Encounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6EA2314FB37004D84E2 /* Encounter.swift */; };
-		E946B028247DA1D8008A407C /* CompendiumCombatant.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93777EE233E41FB00C9F41A /* CompendiumCombatant.swift */; };
 		E946B02A247DBB2F008A407C /* CompendiumFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861B23BE8E5A003B2DA2 /* CompendiumFilterSheet.swift */; };
 		E946B02C247E6225008A407C /* CompendiumItemGroupDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978862123C20B90003B2DA2 /* CompendiumItemGroupDetailView.swift */; };
 		E946B02F247E62CD008A407C /* NumberEntryPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = E946B02E247E62CD008A407C /* NumberEntryPopover.swift */; };
@@ -85,25 +62,15 @@
 		E957C08125BB30580042ECF6 /* ReferenceContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08025BB30580042ECF6 /* ReferenceContext.swift */; };
 		E957C08725BEFC110042ECF6 /* AddCombatantCompendiumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */; };
 		E959BB5728BBF1AE0063CB64 /* CompendiumEntryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E959BB5628BBF1AE0063CB64 /* CompendiumEntryTest.swift */; };
-		E95B3D7C2354F35700F93BA8 /* EntityChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */; };
 		E95DE630251E8D160085D550 /* FloatingDiceRollerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */; };
 		E95FA115231C58A30098BD83 /* DiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */; };
-		E95FD429249BF26C0023F363 /* DDBCharacterDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95173233B87E300141552 /* DDBCharacterDataSourceReader.swift */; };
 		E95FD42F249BFA280023F363 /* EncounterDetailTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */; };
 		E962FF362504FC2E00919B34 /* AnimatedRollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E962FF352504FC2E00919B34 /* AnimatedRollView.swift */; };
-		E963CCA824794360009863D7 /* CampaignNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30A234F9D8F00CA0AF4 /* CampaignNode.swift */; };
 		E963CCF7247AE5CD009863D7 /* CompendiumContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E46FC231D9390005D1E6F /* CompendiumContainerView.swift */; };
 		E963CCFA247BDEA6009863D7 /* CompendiumImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBFC235E28AD000CCC8B /* CompendiumImportView.swift */; };
-		E963CCFB247BDEB5009863D7 /* CompendiumImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43A72332C07200A8B032 /* CompendiumImporter.swift */; };
-		E963CCFC247BDEBF009863D7 /* CompendiumDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E471C231E8E3C005D1E6F /* CompendiumDataSourceReader.swift */; };
-		E963CCFD247BDED8009863D7 /* ImprovedInitiativeDataSourceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBCC235C52E0000CCC8B /* ImprovedInitiativeDataSourceReader.swift */; };
-		E963CCFE247BDEE8009863D7 /* Monster.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6EB2314FB37004D84E2 /* Monster.swift */; };
 		E96FC16923D3A5BE00A12F1E /* ogl.md in Resources */ = {isa = PBXBuildFile; fileRef = E96FC16823D3A5BE00A12F1E /* ogl.md */; };
 		E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96FC16A23D3A64800A12F1E /* WebView.swift */; };
 		E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */; };
-		E972BA9724784A6400F313D7 /* EncounterDifficulty.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9517FDE23617C5A005A51FC /* EncounterDifficulty.swift */; };
-		E972BAA12478586900F313D7 /* CompendiumItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A402320DE1400F0D0C6 /* CompendiumItem.swift */; };
-		E972BAA22478588800F313D7 /* CompendiumEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E471E231E8F62005D1E6F /* CompendiumEntry.swift */; };
 		E972BAA524793EFC00F313D7 /* NumberPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861723BDF4E5003B2DA2 /* NumberPadView.swift */; };
 		E974888F28B522B9004A5CFD /* AppInvocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E974888E28B522B9004A5CFD /* AppInvocation.swift */; };
 		E974889128B5231D004A5CFD /* DiceRollerInvocation in Frameworks */ = {isa = PBXBuildFile; productRef = E974889028B5231D004A5CFD /* DiceRollerInvocation */; };
@@ -127,16 +94,9 @@
 		E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93777F0233E4F5B00C9F41A /* EncounterSettingsView.swift */; };
 		E97651DD248BC1EF00C76865 /* CombatantTagPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */; };
 		E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861423BDF398003B2DA2 /* NumberEntryView.swift */; };
-		E978862023C0B04D003B2DA2 /* CompendiumItemGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */; };
-		E97983D82741B9A700800D38 /* ParseableKeyValueRecordManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983D72741B9A700800D38 /* ParseableKeyValueRecordManager.swift */; };
-		E97983DA2742E69E00800D38 /* CompendiumParseableVisitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */; };
-		E97983DC2742EB9500800D38 /* ModelsParseableVisitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983DB2742EB9500800D38 /* ModelsParseableVisitor.swift */; };
 		E97983DE2742F23300800D38 /* KeyValueStoreEntityTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */; };
-		E97983E22744591600800D38 /* ParseableSpellDescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983E12744591600800D38 /* ParseableSpellDescription.swift */; };
-		E97A43AA2332C31A00A8B032 /* Entity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43A92332C31A00A8B032 /* Entity.swift */; };
 		E97A43AC2334004B00A8B032 /* CompendiumImporterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */; };
 		E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AD233407D000A8B032 /* Fixtures.swift */; };
-		E97A43B02334159800A8B032 /* Compendium.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AF2334159800A8B032 /* Compendium.swift */; };
 		E97A4FAD23621FDA0044E424 /* EncounterDifficultyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A4FAC23621FDA0044E424 /* EncounterDifficultyTest.swift */; };
 		E97A4FB1236240EA0044E424 /* Checkbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A4FB0236240EA0044E424 /* Checkbox.swift */; };
 		E97AEE642396F6A100569E79 /* ClearableTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97AEE632396F6A100569E79 /* ClearableTextField.swift */; };
@@ -163,12 +123,9 @@
 		E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */; };
 		E991F89D2545A791006CE8E8 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = E991F89C2545A791006CE8E8 /* Introspect */; };
 		E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */; };
-		E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */; };
-		E9969199247C3C0100A8B1A0 /* Spell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E940B5D8237B45FC00A8DAF4 /* Spell.swift */; };
 		E996919A247C40E500A8B1A0 /* CreatureEditViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */; };
 		E996919B247C411300A8B1A0 /* CompendiumEntryDetailViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */; };
 		E996919C247C4C9200A8B1A0 /* CompendiumItemGroupEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */; };
-		E996919D247C4F1400A8B1A0 /* Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D5A6E92314FB37004D84E2 /* Character.swift */; };
 		E996919E247C664200A8B1A0 /* StateDrivenNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990F4F023706AAC00276EB6 /* StateDrivenNavigationView.swift */; };
 		E999896822A6B4F20067BA25 /* ConstructApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999896722A6B4F20067BA25 /* ConstructApp.swift */; };
 		E999896A22A6B4F30067BA25 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E999896922A6B4F30067BA25 /* Assets.xcassets */; };
@@ -177,7 +134,6 @@
 		E999FBC12359F7EE000CCC8B /* ddb_thrall.json in Resources */ = {isa = PBXBuildFile; fileRef = E999FBC02359F7EE000CCC8B /* ddb_thrall.json */; };
 		E999FBC9235BA536000CCC8B /* SimpleList.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBC8235BA536000CCC8B /* SimpleList.swift */; };
 		E999FBCB235C52AD000CCC8B /* ii_mm.json in Resources */ = {isa = PBXBuildFile; fileRef = E999FBCA235C52AD000CCC8B /* ii_mm.json */; };
-		E999FBD0235C533A000CCC8B /* ImprovedInitiativeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBCF235C533A000CCC8B /* ImprovedInitiativeModels.swift */; };
 		E999FBD2235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD1235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift */; };
 		E999FBD6235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBD5235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift */; };
 		E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBFE235E2F29000CCC8B /* DocumentPicker.swift */; };
@@ -185,7 +141,6 @@
 		E99C930A28B0189D00018518 /* GameModels in Frameworks */ = {isa = PBXBuildFile; productRef = E99C930928B0189D00018518 /* GameModels */; };
 		E99C930C28B0189D00018518 /* Helpers in Frameworks */ = {isa = PBXBuildFile; productRef = E99C930B28B0189D00018518 /* Helpers */; };
 		E99C930E28B0189D00018518 /* SharedViews in Frameworks */ = {isa = PBXBuildFile; productRef = E99C930D28B0189D00018518 /* SharedViews */; };
-		E99C931028B0298A00018518 /* DiceExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99C930F28B0298A00018518 /* DiceExtensions.swift */; };
 		E99C931828B1542800018518 /* DiceRollerAppClipApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99C931728B1542800018518 /* DiceRollerAppClipApp.swift */; };
 		E99C931A28B1542800018518 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99C931928B1542800018518 /* ContentView.swift */; };
 		E99C931C28B1542900018518 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E99C931B28B1542900018518 /* Assets.xcassets */; };
@@ -196,12 +151,8 @@
 		E99C932D28B1551F00018518 /* DiceRollerFeature in Frameworks */ = {isa = PBXBuildFile; productRef = E99C932C28B1551F00018518 /* DiceRollerFeature */; };
 		E99F95A42428DCB100183B5B /* RunningEncounterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99F95A32428DCB000183B5B /* RunningEncounterTest.swift */; };
 		E9A71EBC239ADB400098317E /* Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A71EBB239ADB400098317E /* Style.swift */; };
-		E9A95177233B8A3A00141552 /* DDBModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95176233B8A3A00141552 /* DDBModels.swift */; };
 		E9A95179233B8BC300141552 /* DDBCharacterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95178233B8BC300141552 /* DDBCharacterDataSourceReaderTest.swift */; };
 		E9A9517C233B8C4B00141552 /* ddb_sarovin.json in Resources */ = {isa = PBXBuildFile; fileRef = E9A9517B233B8C4B00141552 /* ddb_sarovin.json */; };
-		E9A9517E233B940000141552 /* SharedLiterals.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A9517D233B940000141552 /* SharedLiterals.swift */; };
-		E9A95183233BF3CF00141552 /* URLDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95182233BF3CF00141552 /* URLDataSource.swift */; };
-		E9A95185233BF67D00141552 /* DDBCharacterSheetURLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95184233BF67D00141552 /* DDBCharacterSheetURLParser.swift */; };
 		E9A95187233BF83000141552 /* DDBCharacterSheetURLParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95186233BF83000141552 /* DDBCharacterSheetURLParserTest.swift */; };
 		E9AB031323EBF09B0091C908 /* EqualSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AB031223EBF09B0091C908 /* EqualSize.swift */; };
 		E9AEA49B24C62A9600ACB44C /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AEA49A24C62A9600ACB44C /* Helpers.swift */; };
@@ -210,10 +161,14 @@
 		E9C7F7862632C193000351AB /* NumberPadTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C7F7852632C193000351AB /* NumberPadTest.swift */; };
 		E9CFB30F2350515700CA0AF4 /* CampaignBrowserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */; };
 		E9D1138B28AFBCA300CEF923 /* DiceRollerFeature in Frameworks */ = {isa = PBXBuildFile; productRef = E9D1138A28AFBCA300CEF923 /* DiceRollerFeature */; };
-		E9D266B22756B39400E83595 /* ExternalCompendium.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D266B12756B39400E83595 /* ExternalCompendium.swift */; };
-		E9D266B42756B3A600E83595 /* DndBeyondExternalCompendium.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D266B32756B3A600E83595 /* DndBeyondExternalCompendium.swift */; };
 		E9D266B62756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */; };
 		E9E3575128DC822D00484DFA /* CrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E3575028DC822D00484DFA /* CrashReporter.swift */; };
+		E9F1286D28E6D6130040C90C /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = E9F1286C28E6D6130040C90C /* Persistence */; };
+		E9F1286F28E6D8510040C90C /* EntityChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1286E28E6D8510040C90C /* EntityChangeObserver.swift */; };
+		E9F1287328E9B6B00040C90C /* DiceExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1287228E9B6B00040C90C /* DiceExtensions.swift */; };
+		E9F1287528E9BA330040C90C /* EncounterFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1287428E9BA330040C90C /* EncounterFeature.swift */; };
+		E9F1287728E9BADB0040C90C /* CombatantFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1287628E9BADB0040C90C /* CombatantFeature.swift */; };
+		E9F1287928EA0BF40040C90C /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1287828EA0BF40040C90C /* CompendiumQuery.swift */; };
 		E9F56AC6235483780085A72D /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC5235483780085A72D /* AppState.swift */; };
 		E9F9EB532319696C00A70D11 /* RolledDiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F9EB522319696C00A70D11 /* RolledDiceExpressionTest.swift */; };
 /* End PBXBuildFile section */
@@ -254,9 +209,7 @@
 		E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagPopover.swift; sourceTree = "<group>"; };
 		E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryDetailViewState.swift; sourceTree = "<group>"; };
 		E90EFF29262056FE00F5443E /* compendium.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = compendium.xml; sourceTree = "<group>"; };
-		E90EFF2D262057F000F5443E /* XMLCompendiumDataSourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMLCompendiumDataSourceReader.swift; sourceTree = "<group>"; };
 		E90EFF312620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMLCompendiumDataSourceReaderTest.swift; sourceTree = "<group>"; };
-		E90EFF38262082E200F5443E /* XMLDocumentElement.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLDocumentElement.generated.swift; sourceTree = "<group>"; };
 		E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSourceReaderParsersTest.swift; sourceTree = "<group>"; };
 		E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantReferenceItemView.swift; sourceTree = "<group>"; };
 		E9121E2825FA75D50048BE32 /* FloatingDiceRollerViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerViewState.swift; sourceTree = "<group>"; };
@@ -268,26 +221,16 @@
 		E91CCC862615D21B00CB0527 /* AppStoreScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreScreenshotTests.swift; sourceTree = "<group>"; };
 		E91E46FC231D9390005D1E6F /* CompendiumContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumContainerView.swift; sourceTree = "<group>"; };
 		E91E4700231D95A9005D1E6F /* CompendiumIndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumIndexView.swift; sourceTree = "<group>"; };
-		E91E4705231D992E005D1E6F /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
-		E91E470C231D9BD2005D1E6F /* Migrations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Migrations.swift; path = GRDB/Migrations.swift; sourceTree = "<group>"; };
-		E91E4710231D9CB6005D1E6F /* monsters.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = monsters.json; sourceTree = "<group>"; };
-		E91E4717231E8CD0005D1E6F /* CompendiumDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumDataSource.swift; sourceTree = "<group>"; };
-		E91E471C231E8E3C005D1E6F /* CompendiumDataSourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumDataSourceReader.swift; sourceTree = "<group>"; };
-		E91E471E231E8F62005D1E6F /* CompendiumEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntry.swift; sourceTree = "<group>"; };
 		E91E596E24477D3E00975453 /* AlignmentTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlignmentTest.swift; sourceTree = "<group>"; };
 		E91EB0B323EE08CA00F40E46 /* roll.ahap */ = {isa = PBXFileReference; lastKnownFileType = text; path = roll.ahap; sourceTree = "<group>"; };
 		E9238C3023871C8A0023DFC3 /* CreatureEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureEditView.swift; sourceTree = "<group>"; };
 		E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureEditViewState.swift; sourceTree = "<group>"; };
-		E926176B2398563E004B1958 /* AdHocCombatant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdHocCombatant.swift; sourceTree = "<group>"; };
 		E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseableCreatureFeatureTest.swift; sourceTree = "<group>"; };
 		E92A41E3240D2F0C009AF440 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
-		E92A41E7240D3A66009AF440 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleEncounter.swift; sourceTree = "<group>"; };
 		E92B8FD723C904D70040E6C5 /* ActivityButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityButton.swift; sourceTree = "<group>"; };
-		E92B8FD923CA482C0040E6C5 /* RunningEncounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningEncounter.swift; sourceTree = "<group>"; };
 		E92B8FDB23CA5AAD0040E6C5 /* RunningEncounterEventRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningEncounterEventRow.swift; sourceTree = "<group>"; };
 		E92C502423C66E1E00EFBD66 /* HealthFractionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthFractionView.swift; sourceTree = "<group>"; };
-		E931CF8224FD0E53006CEE78 /* CreatureActionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureActionParser.swift; sourceTree = "<group>"; };
 		E931CF8424FD17B8006CEE78 /* CreatureActionParserTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureActionParserTest.swift; sourceTree = "<group>"; };
 		E931CF8925003076006CEE78 /* ParserCombinatorTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParserCombinatorTest.swift; sourceTree = "<group>"; };
 		E931CF8E2500C8A8006CEE78 /* DiceAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceAction.swift; sourceTree = "<group>"; };
@@ -296,22 +239,12 @@
 		E931E5432339525800C3FE9A /* DiceExpressionParserTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExpressionParserTest.swift; sourceTree = "<group>"; };
 		E931E54723396D6B00C3FE9A /* AddCombatantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantView.swift; sourceTree = "<group>"; };
 		E931E54A233971B300C3FE9A /* SearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchField.swift; sourceTree = "<group>"; };
-		E9323A30231FF14900F0D0C6 /* KeyValueStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueStore.swift; sourceTree = "<group>"; };
 		E9323A322320169F00F0D0C6 /* DatabaseTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseTest.swift; sourceTree = "<group>"; };
 		E9323A342320171000F0D0C6 /* KeyValueStoreTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueStoreTest.swift; sourceTree = "<group>"; };
-		E9323A372320531B00F0D0C6 /* Open5eMonsterDataSourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Open5eMonsterDataSourceReader.swift; sourceTree = "<group>"; };
-		E9323A3A23205C4700F0D0C6 /* FileDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDataSource.swift; sourceTree = "<group>"; };
 		E9323A3C23205E7700F0D0C6 /* FileDataSourceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDataSourceTest.swift; sourceTree = "<group>"; };
 		E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Open5eMonsterDataSourceReaderTest.swift; sourceTree = "<group>"; };
-		E9323A402320DE1400F0D0C6 /* CompendiumItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItem.swift; sourceTree = "<group>"; };
-		E93564172762174F008E6698 /* DomainParsers.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DomainParsers.generated.swift; sourceTree = "<group>"; };
 		E93777E9233C05D500C9F41A /* ddb_riverine.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ddb_riverine.json; sourceTree = "<group>"; };
-		E93777EC233CF81F00C9F41A /* O5eModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = O5eModels.swift; sourceTree = "<group>"; };
-		E93777EE233E41FB00C9F41A /* CompendiumCombatant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumCombatant.swift; sourceTree = "<group>"; };
 		E93777F0233E4F5B00C9F41A /* EncounterSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterSettingsView.swift; sourceTree = "<group>"; };
-		E940B5D6237B45EE00A8DAF4 /* spells.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = spells.json; sourceTree = "<group>"; };
-		E940B5D8237B45FC00A8DAF4 /* Spell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spell.swift; sourceTree = "<group>"; };
-		E940B5DA237B4AD900A8DAF4 /* Open5eSpellDataSourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Open5eSpellDataSourceReader.swift; sourceTree = "<group>"; };
 		E940B5DC237BE7F800A8DAF4 /* CombatantTagEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagEditView.swift; sourceTree = "<group>"; };
 		E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Combatant+SwiftUI.swift"; sourceTree = "<group>"; };
 		E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningEncounterLogViewState.swift; sourceTree = "<group>"; };
@@ -319,13 +252,11 @@
 		E94902FE23660A4F0094CD1A /* ddb_ishmadon.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ddb_ishmadon.json; sourceTree = "<group>"; };
 		E94902FF23660A4F0094CD1A /* ddb_misty.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ddb_misty.json; sourceTree = "<group>"; };
 		E9517FD8235F9547005A51FC /* SectionContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionContainer.swift; sourceTree = "<group>"; };
-		E9517FDE23617C5A005A51FC /* EncounterDifficulty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDifficulty.swift; sourceTree = "<group>"; };
 		E951BD9723FFD39400F890D5 /* CombatantRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantRow.swift; sourceTree = "<group>"; };
 		E95246FD274C390B00262C15 /* ParseableCreatureActionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseableCreatureActionTest.swift; sourceTree = "<group>"; };
 		E957C08025BB30580042ECF6 /* ReferenceContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceContext.swift; sourceTree = "<group>"; };
 		E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantCompendiumView.swift; sourceTree = "<group>"; };
 		E959BB5628BBF1AE0063CB64 /* CompendiumEntryTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryTest.swift; sourceTree = "<group>"; };
-		E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityChangeObserver.swift; sourceTree = "<group>"; };
 		E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerView.swift; sourceTree = "<group>"; };
 		E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExpressionTest.swift; sourceTree = "<group>"; };
 		E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailTest.swift; sourceTree = "<group>"; };
@@ -342,20 +273,11 @@
 		E978861423BDF398003B2DA2 /* NumberEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberEntryView.swift; sourceTree = "<group>"; };
 		E978861723BDF4E5003B2DA2 /* NumberPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberPadView.swift; sourceTree = "<group>"; };
 		E978861B23BE8E5A003B2DA2 /* CompendiumFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumFilterSheet.swift; sourceTree = "<group>"; };
-		E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumQuery.swift; sourceTree = "<group>"; };
-		E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroup.swift; sourceTree = "<group>"; };
 		E978862123C20B90003B2DA2 /* CompendiumItemGroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupDetailView.swift; sourceTree = "<group>"; };
 		E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupEditView.swift; sourceTree = "<group>"; };
-		E97983D72741B9A700800D38 /* ParseableKeyValueRecordManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseableKeyValueRecordManager.swift; sourceTree = "<group>"; };
-		E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumParseableVisitor.swift; sourceTree = "<group>"; };
-		E97983DB2742EB9500800D38 /* ModelsParseableVisitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsParseableVisitor.swift; sourceTree = "<group>"; };
 		E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueStoreEntityTest.swift; sourceTree = "<group>"; };
-		E97983E12744591600800D38 /* ParseableSpellDescription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseableSpellDescription.swift; sourceTree = "<group>"; };
-		E97A43A72332C07200A8B032 /* CompendiumImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporter.swift; sourceTree = "<group>"; };
-		E97A43A92332C31A00A8B032 /* Entity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entity.swift; sourceTree = "<group>"; };
 		E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporterTest.swift; sourceTree = "<group>"; };
 		E97A43AD233407D000A8B032 /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
-		E97A43AF2334159800A8B032 /* Compendium.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Compendium.swift; sourceTree = "<group>"; };
 		E97A43B32338B5FC00A8B032 /* CompendiumItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemDetailView.swift; sourceTree = "<group>"; };
 		E97A43B82338B7EA00A8B032 /* StatBlockView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatBlockView.swift; sourceTree = "<group>"; };
 		E97A4FAC23621FDA0044E424 /* EncounterDifficultyTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDifficultyTest.swift; sourceTree = "<group>"; };
@@ -391,17 +313,12 @@
 		E999FBC6235B80B6000CCC8B /* CombatantTrackerEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTrackerEditView.swift; sourceTree = "<group>"; };
 		E999FBC8235BA536000CCC8B /* SimpleList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleList.swift; sourceTree = "<group>"; };
 		E999FBCA235C52AD000CCC8B /* ii_mm.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ii_mm.json; sourceTree = "<group>"; };
-		E999FBCC235C52E0000CCC8B /* ImprovedInitiativeDataSourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImprovedInitiativeDataSourceReader.swift; sourceTree = "<group>"; };
-		E999FBCF235C533A000CCC8B /* ImprovedInitiativeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImprovedInitiativeModels.swift; sourceTree = "<group>"; };
 		E999FBD1235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImprovedInitiativeDataSourceReaderTest.swift; sourceTree = "<group>"; };
-		E999FBD3235C8AC6000CCC8B /* StatBlockCombatantResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatBlockCombatantResources.swift; sourceTree = "<group>"; };
 		E999FBD5235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatBlockCombatantResourcesTest.swift; sourceTree = "<group>"; };
 		E999FBD8235DC688000CCC8B /* CombatantTagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagsView.swift; sourceTree = "<group>"; };
-		E999FBDA235DC6E1000CCC8B /* CombatantTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTag.swift; sourceTree = "<group>"; };
 		E999FBFC235E28AD000CCC8B /* CompendiumImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImportView.swift; sourceTree = "<group>"; };
 		E999FBFE235E2F29000CCC8B /* DocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPicker.swift; sourceTree = "<group>"; };
 		E99BAB1623CE57300086D42E /* RunningEncounterLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningEncounterLogView.swift; sourceTree = "<group>"; };
-		E99C930F28B0298A00018518 /* DiceExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExtensions.swift; sourceTree = "<group>"; };
 		E99C931528B1542800018518 /* DiceRollerAppClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiceRollerAppClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E99C931728B1542800018518 /* DiceRollerAppClipApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceRollerAppClipApp.swift; sourceTree = "<group>"; };
 		E99C931928B1542800018518 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -409,38 +326,30 @@
 		E99C931E28B1542900018518 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		E99C932028B1542900018518 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E99C932128B1542900018518 /* DiceRollerAppClip.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DiceRollerAppClip.entitlements; sourceTree = "<group>"; };
-		E99F959D241C260600183B5B /* Duration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duration.swift; sourceTree = "<group>"; };
 		E99F95A1241CFA9300183B5B /* EffectDurationEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectDurationEditView.swift; sourceTree = "<group>"; };
 		E99F95A32428DCB000183B5B /* RunningEncounterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningEncounterTest.swift; sourceTree = "<group>"; };
 		E9A71EBB239ADB400098317E /* Style.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Style.swift; sourceTree = "<group>"; };
 		E9A95171233B3BFF00141552 /* CombatantDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantDetailView.swift; sourceTree = "<group>"; };
-		E9A95173233B87E300141552 /* DDBCharacterDataSourceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDBCharacterDataSourceReader.swift; sourceTree = "<group>"; };
-		E9A95176233B8A3A00141552 /* DDBModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDBModels.swift; sourceTree = "<group>"; };
 		E9A95178233B8BC300141552 /* DDBCharacterDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDBCharacterDataSourceReaderTest.swift; sourceTree = "<group>"; };
 		E9A9517B233B8C4B00141552 /* ddb_sarovin.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ddb_sarovin.json; sourceTree = "<group>"; };
-		E9A9517D233B940000141552 /* SharedLiterals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedLiterals.swift; sourceTree = "<group>"; };
-		E9A95182233BF3CF00141552 /* URLDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLDataSource.swift; sourceTree = "<group>"; };
-		E9A95184233BF67D00141552 /* DDBCharacterSheetURLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDBCharacterSheetURLParser.swift; sourceTree = "<group>"; };
 		E9A95186233BF83000141552 /* DDBCharacterSheetURLParserTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDBCharacterSheetURLParserTest.swift; sourceTree = "<group>"; };
 		E9AB031223EBF09B0091C908 /* EqualSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EqualSize.swift; sourceTree = "<group>"; };
 		E9AB031923ECA9310091C908 /* HealthDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDialog.swift; sourceTree = "<group>"; };
 		E9AEA49A24C62A9600ACB44C /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		E9B432BA22AAF7540054324E /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		E9C7F7852632C193000351AB /* NumberPadTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberPadTest.swift; sourceTree = "<group>"; };
-		E9CFB30A234F9D8F00CA0AF4 /* CampaignNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignNode.swift; sourceTree = "<group>"; };
 		E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowser.swift; sourceTree = "<group>"; };
 		E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowserTest.swift; sourceTree = "<group>"; };
 		E9CFB31123505AF400CA0AF4 /* CampaignBrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseView.swift; sourceTree = "<group>"; };
 		E9CFB31323505B0F00CA0AF4 /* CampaignBrowseViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseViewState.swift; sourceTree = "<group>"; };
-		E9D266B12756B39400E83595 /* ExternalCompendium.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalCompendium.swift; sourceTree = "<group>"; };
-		E9D266B32756B3A600E83595 /* DndBeyondExternalCompendium.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DndBeyondExternalCompendium.swift; sourceTree = "<group>"; };
 		E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DndBeyondExternalCompendiumTest.swift; sourceTree = "<group>"; };
-		E9D5A6E92314FB37004D84E2 /* Character.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Character.swift; sourceTree = "<group>"; };
-		E9D5A6EA2314FB37004D84E2 /* Encounter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Encounter.swift; sourceTree = "<group>"; };
-		E9D5A6EB2314FB37004D84E2 /* Monster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Monster.swift; sourceTree = "<group>"; };
-		E9D5A6F323150151004D84E2 /* Combatant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Combatant.swift; sourceTree = "<group>"; };
 		E9DF660C2313A98E005D4FE5 /* InitiativeDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitiativeDialog.swift; sourceTree = "<group>"; };
 		E9E3575028DC822D00484DFA /* CrashReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporter.swift; sourceTree = "<group>"; };
+		E9F1286E28E6D8510040C90C /* EntityChangeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityChangeObserver.swift; sourceTree = "<group>"; };
+		E9F1287228E9B6B00040C90C /* DiceExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiceExtensions.swift; sourceTree = "<group>"; };
+		E9F1287428E9BA330040C90C /* EncounterFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterFeature.swift; sourceTree = "<group>"; };
+		E9F1287628E9BADB0040C90C /* CombatantFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantFeature.swift; sourceTree = "<group>"; };
+		E9F1287828EA0BF40040C90C /* CompendiumQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumQuery.swift; sourceTree = "<group>"; };
 		E9F56AC32350FA5D0085A72D /* CampaignBrowserContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowserContainerView.swift; sourceTree = "<group>"; };
 		E9F56AC5235483780085A72D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		E9F56AC72354E4350085A72D /* EncounterDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailViewState.swift; sourceTree = "<group>"; };
@@ -461,6 +370,7 @@
 				E991F89D2545A791006CE8E8 /* Introspect in Frameworks */,
 				E9869F7D2520A64B0098A166 /* GRDB in Frameworks */,
 				E99C930A28B0189D00018518 /* GameModels in Frameworks */,
+				E9F1286D28E6D6130040C90C /* Persistence in Frameworks */,
 				E99C930C28B0189D00018518 /* Helpers in Frameworks */,
 				E9D1138B28AFBCA300CEF923 /* DiceRollerFeature in Frameworks */,
 				E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */,
@@ -505,11 +415,7 @@
 		E91E46FA231D9378005D1E6F /* Compendium */ = {
 			isa = PBXGroup;
 			children = (
-				E9D266B02756B38900E83595 /* External */,
-				E91E471B231E8D9F005D1E6F /* Models */,
-				E91E4716231E8CB8005D1E6F /* Sources */,
 				E91E46FB231D937F005D1E6F /* View */,
-				E97A43AF2334159800A8B032 /* Compendium.swift */,
 			);
 			path = Compendium;
 			sourceTree = "<group>";
@@ -524,70 +430,18 @@
 				E97A43B32338B5FC00A8B032 /* CompendiumItemDetailView.swift */,
 				E999FBFC235E28AD000CCC8B /* CompendiumImportView.swift */,
 				E978861B23BE8E5A003B2DA2 /* CompendiumFilterSheet.swift */,
+				E9F1287828EA0BF40040C90C /* CompendiumQuery.swift */,
 				E972BA902477E56300F313D7 /* CompendiumIndexState.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
 		};
-		E91E4704231D9913005D1E6F /* Persistence */ = {
-			isa = PBXGroup;
-			children = (
-				E91E4705231D992E005D1E6F /* Database.swift */,
-				E91E470C231D9BD2005D1E6F /* Migrations.swift */,
-				E9323A30231FF14900F0D0C6 /* KeyValueStore.swift */,
-				E97A43A92332C31A00A8B032 /* Entity.swift */,
-				E95B3D7B2354F35700F93BA8 /* EntityChangeObserver.swift */,
-				E97983D72741B9A700800D38 /* ParseableKeyValueRecordManager.swift */,
-			);
-			path = Persistence;
-			sourceTree = "<group>";
-		};
 		E91E470E231D9C51005D1E6F /* Fixtures */ = {
 			isa = PBXGroup;
 			children = (
-				E91E470F231D9CA2005D1E6F /* open5e */,
 				E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */,
 			);
 			path = Fixtures;
-			sourceTree = "<group>";
-		};
-		E91E470F231D9CA2005D1E6F /* open5e */ = {
-			isa = PBXGroup;
-			children = (
-				E940B5D6237B45EE00A8DAF4 /* spells.json */,
-				E91E4710231D9CB6005D1E6F /* monsters.json */,
-			);
-			path = open5e;
-			sourceTree = "<group>";
-		};
-		E91E4716231E8CB8005D1E6F /* Sources */ = {
-			isa = PBXGroup;
-			children = (
-				E9323A3923205C2C00F0D0C6 /* DataSources */,
-				E9323A362320530300F0D0C6 /* Readers */,
-				E91E4717231E8CD0005D1E6F /* CompendiumDataSource.swift */,
-				E91E471C231E8E3C005D1E6F /* CompendiumDataSourceReader.swift */,
-				E97A43A72332C07200A8B032 /* CompendiumImporter.swift */,
-			);
-			path = Sources;
-			sourceTree = "<group>";
-		};
-		E91E471B231E8D9F005D1E6F /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				E91E471E231E8F62005D1E6F /* CompendiumEntry.swift */,
-				E9D5A6E92314FB37004D84E2 /* Character.swift */,
-				E9D5A6EB2314FB37004D84E2 /* Monster.swift */,
-				E9323A402320DE1400F0D0C6 /* CompendiumItem.swift */,
-				E940B5D8237B45FC00A8DAF4 /* Spell.swift */,
-				E978861D23BE8F21003B2DA2 /* CompendiumQuery.swift */,
-				E978861F23C0B04C003B2DA2 /* CompendiumItemGroup.swift */,
-				E99F959D241C260600183B5B /* Duration.swift */,
-				E97983D92742E69E00800D38 /* CompendiumParseableVisitor.swift */,
-				E97983E12744591600800D38 /* ParseableSpellDescription.swift */,
-				E99C930F28B0298A00018518 /* DiceExtensions.swift */,
-			);
-			path = Models;
 			sourceTree = "<group>";
 		};
 		E91EB0B223EE089A00F40E46 /* Resources */ = {
@@ -610,11 +464,11 @@
 		E92A41E2240D2CCD009AF440 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				E9F1286E28E6D8510040C90C /* EntityChangeObserver.swift */,
 				E9B432BA22AAF7540054324E /* Environment.swift */,
 				E9F56AC5235483780085A72D /* AppState.swift */,
 				E999896722A6B4F20067BA25 /* ConstructApp.swift */,
 				E92A41E3240D2F0C009AF440 /* WelcomeView.swift */,
-				E92A41E7240D3A66009AF440 /* Preferences.swift */,
 				E9869F8C252203BA0098A166 /* TabNavigationView.swift */,
 				E9869F90252203F40098A166 /* TabNavigationViewState.swift */,
 				E9869F9425223E870098A166 /* ColumnNavigationView.swift */,
@@ -659,39 +513,6 @@
 				E991F88625449C7D006CE8E8 /* TabbedDocumentView.swift */,
 			);
 			path = UI;
-			sourceTree = "<group>";
-		};
-		E9323A362320530300F0D0C6 /* Readers */ = {
-			isa = PBXGroup;
-			children = (
-				E999FBCE235C5322000CCC8B /* Improved Initiative */,
-				E93777EB233CF80A00C9F41A /* Open5e */,
-				E9A95175233B8A2C00141552 /* D&D Beyond */,
-				E9323A372320531B00F0D0C6 /* Open5eMonsterDataSourceReader.swift */,
-				E9A95173233B87E300141552 /* DDBCharacterDataSourceReader.swift */,
-				E9A9517D233B940000141552 /* SharedLiterals.swift */,
-				E999FBCC235C52E0000CCC8B /* ImprovedInitiativeDataSourceReader.swift */,
-				E940B5DA237B4AD900A8DAF4 /* Open5eSpellDataSourceReader.swift */,
-				E90EFF2D262057F000F5443E /* XMLCompendiumDataSourceReader.swift */,
-			);
-			path = Readers;
-			sourceTree = "<group>";
-		};
-		E9323A3923205C2C00F0D0C6 /* DataSources */ = {
-			isa = PBXGroup;
-			children = (
-				E9323A3A23205C4700F0D0C6 /* FileDataSource.swift */,
-				E9A95182233BF3CF00141552 /* URLDataSource.swift */,
-			);
-			path = DataSources;
-			sourceTree = "<group>";
-		};
-		E93777EB233CF80A00C9F41A /* Open5e */ = {
-			isa = PBXGroup;
-			children = (
-				E93777EC233CF81F00C9F41A /* O5eModels.swift */,
-			);
-			path = Open5e;
 			sourceTree = "<group>";
 		};
 		E96FC16423D3974200A12F1E /* Settings */ = {
@@ -749,23 +570,9 @@
 		E98F96FF230B32250080372A /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				E98F9700230B32310080372A /* Domain */,
-				E92B8FD923CA482C0040E6C5 /* RunningEncounter.swift */,
-				E931CF8224FD0E53006CEE78 /* CreatureActionParser.swift */,
-				E97983DB2742EB9500800D38 /* ModelsParseableVisitor.swift */,
+				E9F1287228E9B6B00040C90C /* DiceExtensions.swift */,
 			);
 			path = Models;
-			sourceTree = "<group>";
-		};
-		E98F9700230B32310080372A /* Domain */ = {
-			isa = PBXGroup;
-			children = (
-				E9D5A6F323150151004D84E2 /* Combatant.swift */,
-				E9D5A6EA2314FB37004D84E2 /* Encounter.swift */,
-				E93777EE233E41FB00C9F41A /* CompendiumCombatant.swift */,
-				E926176B2398563E004B1958 /* AdHocCombatant.swift */,
-			);
-			path = Domain;
 			sourceTree = "<group>";
 		};
 		E991F88A25449D61006CE8E8 /* Reference */ = {
@@ -785,8 +592,6 @@
 		E991F8D9254B250B006CE8E8 /* Sourcery */ = {
 			isa = PBXGroup;
 			children = (
-				E93564172762174F008E6698 /* DomainParsers.generated.swift */,
-				E90EFF38262082E200F5443E /* XMLDocumentElement.generated.swift */,
 				E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */,
 			);
 			path = Sourcery;
@@ -828,7 +633,6 @@
 				E931E5492339719500C3FE9A /* UI */,
 				E91E470E231D9C51005D1E6F /* Fixtures */,
 				E991F88A25449D61006CE8E8 /* Reference */,
-				E91E4704231D9913005D1E6F /* Persistence */,
 				E91E46FA231D9378005D1E6F /* Compendium */,
 				E9DF660B2313A978005D4FE5 /* Encouter */,
 				E98F96FF230B32250080372A /* Models */,
@@ -848,14 +652,6 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		E999FBCE235C5322000CCC8B /* Improved Initiative */ = {
-			isa = PBXGroup;
-			children = (
-				E999FBCF235C533A000CCC8B /* ImprovedInitiativeModels.swift */,
-			);
-			path = "Improved Initiative";
-			sourceTree = "<group>";
-		};
 		E999FBD7235DC66F000CCC8B /* Combatant */ = {
 			isa = PBXGroup;
 			children = (
@@ -863,13 +659,13 @@
 				E985FDCB23E89F0200F1A62C /* CombatantResourcesView.swift */,
 				E985FDCD23E89F0B00F1A62C /* CombatantResourcesViewState.swift */,
 				E999FBD8235DC688000CCC8B /* CombatantTagsView.swift */,
-				E999FBDA235DC6E1000CCC8B /* CombatantTag.swift */,
 				E940B5DC237BE7F800A8DAF4 /* CombatantTagEditView.swift */,
 				E903F71F237F42AF004C1AC8 /* InlineCombatantTagsView.swift */,
 				E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */,
 				E99F95A1241CFA9300183B5B /* EffectDurationEditView.swift */,
 				E972BA9924784E3500F313D7 /* CombatantTagsViewState.swift */,
 				E972BA9B24784F1500F313D7 /* CombatantTagEditViewState.swift */,
+				E9F1287628E9BADB0040C90C /* CombatantFeature.swift */,
 			);
 			path = Combatant;
 			sourceTree = "<group>";
@@ -893,15 +689,6 @@
 				E99C931E28B1542900018518 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		E9A95175233B8A2C00141552 /* D&D Beyond */ = {
-			isa = PBXGroup;
-			children = (
-				E9A95176233B8A3A00141552 /* DDBModels.swift */,
-				E9A95184233BF67D00141552 /* DDBCharacterSheetURLParser.swift */,
-			);
-			path = "D&D Beyond";
 			sourceTree = "<group>";
 		};
 		E9A9517A233B8C1D00141552 /* Fixtures */ = {
@@ -932,7 +719,6 @@
 		E9CFB307234F9D1000CA0AF4 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				E9CFB30A234F9D8F00CA0AF4 /* CampaignNode.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -947,15 +733,6 @@
 			path = View;
 			sourceTree = "<group>";
 		};
-		E9D266B02756B38900E83595 /* External */ = {
-			isa = PBXGroup;
-			children = (
-				E9D266B12756B39400E83595 /* ExternalCompendium.swift */,
-				E9D266B32756B3A600E83595 /* DndBeyondExternalCompendium.swift */,
-			);
-			path = External;
-			sourceTree = "<group>";
-		};
 		E9DF660B2313A978005D4FE5 /* Encouter */ = {
 			isa = PBXGroup;
 			children = (
@@ -967,8 +744,6 @@
 				E93777F0233E4F5B00C9F41A /* EncounterSettingsView.swift */,
 				E9F56AC72354E4350085A72D /* EncounterDetailViewState.swift */,
 				E999FBC2235B4A67000CCC8B /* CombatantResourceTrackerView.swift */,
-				E999FBD3235C8AC6000CCC8B /* StatBlockCombatantResources.swift */,
-				E9517FDE23617C5A005A51FC /* EncounterDifficulty.swift */,
 				E97A4FAE2362276B0044E424 /* EncounterDifficultyView.swift */,
 				E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */,
 				E92C502423C66E1E00EFBD66 /* HealthFractionView.swift */,
@@ -981,6 +756,7 @@
 				E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */,
 				E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */,
 				E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */,
+				E9F1287428E9BA330040C90C /* EncounterFeature.swift */,
 			);
 			path = Encouter;
 			sourceTree = "<group>";
@@ -1059,6 +835,7 @@
 				E99C930B28B0189D00018518 /* Helpers */,
 				E99C930D28B0189D00018518 /* SharedViews */,
 				E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */,
+				E9F1286C28E6D6130040C90C /* Persistence */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -1164,12 +941,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E91E4711231D9CB6005D1E6F /* monsters.json in Resources */,
 				E999897022A6B4F30067BA25 /* LaunchScreen.storyboard in Resources */,
 				E91EB0B423EE08CB00F40E46 /* roll.ahap in Resources */,
 				E91B857F23DA355B009AF6D7 /* software_licenses.md in Resources */,
 				E999896D22A6B4F30067BA25 /* Preview Assets.xcassets in Resources */,
-				E940B5D7237B45EE00A8DAF4 /* spells.json in Resources */,
 				E999896A22A6B4F30067BA25 /* Assets.xcassets in Resources */,
 				E96FC16923D3A5BE00A12F1E /* ogl.md in Resources */,
 			);
@@ -1220,7 +995,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\n\nif which sourcery >/dev/null; then\n  sourcery --sources App --sources ../Sources --templates Sourcery --output App/Sourcery\nelse\n  echo \"warning: Sourcery not installed\"\nfi\n";
+			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\n\nif which sourcery >/dev/null; then\n  cd ..\n  sh sourcery-gen.sh\nelse\n  echo \"warning: Sourcery not installed\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1229,53 +1004,35 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E95B3D7C2354F35700F93BA8 /* EntityChangeObserver.swift in Sources */,
-				E946B022247D9E7F008A407C /* Combatant.swift in Sources */,
 				E942E013247EABA900170FAC /* StatBlockView.swift in Sources */,
-				E996919D247C4F1400A8B1A0 /* Character.swift in Sources */,
-				E935641827621750008E6698 /* DomainParsers.generated.swift in Sources */,
 				E91C167D2405C5BB004B5C85 /* SafariView.swift in Sources */,
-				E963CCFE247BDEE8009863D7 /* Monster.swift in Sources */,
 				E9121E2925FA75D50048BE32 /* FloatingDiceRollerViewState.swift in Sources */,
 				E942E019247FE9E900170FAC /* CampaignBrowseViewState.swift in Sources */,
 				E97651D3248AE11400C76865 /* HealthFractionView.swift in Sources */,
-				E9323A31231FF14900F0D0C6 /* KeyValueStore.swift in Sources */,
 				E963CCF7247AE5CD009863D7 /* CompendiumContainerView.swift in Sources */,
 				E996919C247C4C9200A8B1A0 /* CompendiumItemGroupEditView.swift in Sources */,
 				E972BAA524793EFC00F313D7 /* NumberPadView.swift in Sources */,
-				E9A95185233BF67D00141552 /* DDBCharacterSheetURLParser.swift in Sources */,
+				E9F1287728E9BADB0040C90C /* CombatantFeature.swift in Sources */,
 				E97651CD248ADC1E00C76865 /* RunningEncounterActionBar.swift in Sources */,
-				E92A41E8240D3A66009AF440 /* Preferences.swift in Sources */,
 				E97651DD248BC1EF00C76865 /* CombatantTagPopover.swift in Sources */,
-				E97983DA2742E69E00800D38 /* CompendiumParseableVisitor.swift in Sources */,
 				E999FBC9235BA536000CCC8B /* SimpleList.swift in Sources */,
 				E97651D7248AE50600C76865 /* CombatantResourcesView.swift in Sources */,
 				E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */,
 				E957C08725BEFC110042ECF6 /* AddCombatantCompendiumView.swift in Sources */,
 				E97651D1248AE0AC00C76865 /* CombatantRow.swift in Sources */,
-				E972BAA12478586900F313D7 /* CompendiumItem.swift in Sources */,
 				E942E01C2480090000170FAC /* CombatantDetailViewState.swift in Sources */,
 				E9819BE324852498005B898E /* CampaignBrowserContainerView.swift in Sources */,
-				E9A95177233B8A3A00141552 /* DDBModels.swift in Sources */,
 				E931CF8F2500C8A8006CEE78 /* DiceAction.swift in Sources */,
 				E957C08125BB30580042ECF6 /* ReferenceContext.swift in Sources */,
-				E942E00D247E8F6600170FAC /* StatBlockCombatantResources.swift in Sources */,
-				E91E470D231D9BD2005D1E6F /* Migrations.swift in Sources */,
 				E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */,
 				E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */,
 				E98BF12B257E6D4900CBC174 /* ReferenceViewPreference.swift in Sources */,
 				E9819BE02482E478005B898E /* HealthDialog.swift in Sources */,
 				E97651D6248AE3C600C76865 /* CombatantResourceTrackerView.swift in Sources */,
-				E946B027247D9F53008A407C /* Encounter.swift in Sources */,
 				E996919A247C40E500A8B1A0 /* CreatureEditViewState.swift in Sources */,
-				E946B028247DA1D8008A407C /* CompendiumCombatant.swift in Sources */,
 				E97651CF248ADD1700C76865 /* EncounterDifficultyView.swift in Sources */,
-				E999FBD0235C533A000CCC8B /* ImprovedInitiativeModels.swift in Sources */,
-				E9A9517E233B940000141552 /* SharedLiterals.swift in Sources */,
-				E963CCFD247BDED8009863D7 /* ImprovedInitiativeDataSourceReader.swift in Sources */,
 				E996919E247C664200A8B1A0 /* StateDrivenNavigationView.swift in Sources */,
 				E92B8FD823C904D70040E6C5 /* ActivityButton.swift in Sources */,
-				E963CCFB247BDEB5009863D7 /* CompendiumImporter.swift in Sources */,
 				E97651DA248AEB9200C76865 /* EffectDurationEditView.swift in Sources */,
 				E9A71EBC239ADB400098317E /* Style.swift in Sources */,
 				E9B432BB22AAF7540054324E /* Environment.swift in Sources */,
@@ -1283,77 +1040,54 @@
 				E9517FD9235F9547005A51FC /* SectionContainer.swift in Sources */,
 				E95DE630251E8D160085D550 /* FloatingDiceRollerView.swift in Sources */,
 				E9F56AC6235483780085A72D /* AppState.swift in Sources */,
-				E90EFF39262082E200F5443E /* XMLDocumentElement.generated.swift in Sources */,
-				E99C931028B0298A00018518 /* DiceExtensions.swift in Sources */,
 				E9E3575128DC822D00484DFA /* CrashReporter.swift in Sources */,
 				E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */,
 				E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */,
 				E97AEE642396F6A100569E79 /* ClearableTextField.swift in Sources */,
-				E97983D82741B9A700800D38 /* ParseableKeyValueRecordManager.swift in Sources */,
 				E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */,
-				E91E4718231E8CD0005D1E6F /* CompendiumDataSource.swift in Sources */,
 				E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */,
-				E946B025247D9ED9008A407C /* Duration.swift in Sources */,
 				E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */,
-				E90EFF2E262057F000F5443E /* XMLCompendiumDataSourceReader.swift in Sources */,
 				E946B02C247E6225008A407C /* CompendiumItemGroupDetailView.swift in Sources */,
 				E97651DB248BBF1B00C76865 /* RunningEncounterLogView.swift in Sources */,
-				E942E016247EB3D300170FAC /* Open5eSpellDataSourceReader.swift in Sources */,
-				E97983DC2742EB9500800D38 /* ModelsParseableVisitor.swift in Sources */,
-				E97A43B02334159800A8B032 /* Compendium.swift in Sources */,
-				E9A95183233BF3CF00141552 /* URLDataSource.swift in Sources */,
 				E942E012247EAA2600170FAC /* CompendiumItemDetailView.swift in Sources */,
+				E9F1287928EA0BF40040C90C /* CompendiumQuery.swift in Sources */,
 				E942E014247EACA900170FAC /* CreatureEditView.swift in Sources */,
-				E9969199247C3C0100A8B1A0 /* Spell.swift in Sources */,
 				E99095B3249797F400731EB9 /* AddCombatantDetailView.swift in Sources */,
 				E974888F28B522B9004A5CFD /* AppInvocation.swift in Sources */,
 				E942E02024800C5200170FAC /* CombatantTagEditViewState.swift in Sources */,
-				E93777ED233CF81F00C9F41A /* O5eModels.swift in Sources */,
-				E946B026247D9EE3008A407C /* RunningEncounter.swift in Sources */,
-				E978862023C0B04D003B2DA2 /* CompendiumItemGroup.swift in Sources */,
 				E97651D5248AE2DA00C76865 /* InlineCombatantTagsView.swift in Sources */,
 				E9819BE12482E6AA005B898E /* CombatantResourcesViewState.swift in Sources */,
 				E991F89025449DA8006CE8E8 /* ReferenceViewState.swift in Sources */,
 				E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */,
+				E9F1286F28E6D8510040C90C /* EntityChangeObserver.swift in Sources */,
 				E97651D4248AE1CF00C76865 /* CombatantDetailView.swift in Sources */,
 				E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */,
-				E946B023247D9E91008A407C /* AdHocCombatant.swift in Sources */,
-				E97A43AA2332C31A00A8B032 /* Entity.swift in Sources */,
 				E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */,
 				E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */,
 				E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */,
-				E931CF8324FD0E54006CEE78 /* CreatureActionParser.swift in Sources */,
 				E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */,
 				E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */,
 				E996919B247C411300A8B1A0 /* CompendiumEntryDetailViewState.swift in Sources */,
 				E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */,
-				E946B024247D9EBE008A407C /* CombatantTag.swift in Sources */,
+				E9F1287528E9BA330040C90C /* EncounterFeature.swift in Sources */,
 				E97A4FB1236240EA0044E424 /* Checkbox.swift in Sources */,
 				E97651CC248ADA0100C76865 /* EncounterDetailView.swift in Sources */,
 				E931E54B233971B300C3FE9A /* SearchField.swift in Sources */,
-				E9D266B22756B39400E83595 /* ExternalCompendium.swift in Sources */,
 				E97651D2248AE0D600C76865 /* RunningEncounterEventRow.swift in Sources */,
 				E9819BE22482E772005B898E /* CombatantTrackerEditView.swift in Sources */,
 				E97651D9248AEA8000C76865 /* CombatantTagEditView.swift in Sources */,
 				E97651CA248AD9AA00C76865 /* SettingsView.swift in Sources */,
 				E942E011247EA78200170FAC /* CompendiumIndexView.swift in Sources */,
 				E946B02F247E62CD008A407C /* NumberEntryPopover.swift in Sources */,
-				E9323A3B23205C4700F0D0C6 /* FileDataSource.swift in Sources */,
-				E963CCFC247BDEBF009863D7 /* CompendiumDataSourceReader.swift in Sources */,
-				E963CCA824794360009863D7 /* CampaignNode.swift in Sources */,
+				E9F1287328E9B6B00040C90C /* DiceExtensions.swift in Sources */,
 				E999896822A6B4F20067BA25 /* ConstructApp.swift in Sources */,
 				E931CF912500C8BF006CEE78 /* DiceActionView.swift in Sources */,
 				E963CCFA247BDEA6009863D7 /* CompendiumImportView.swift in Sources */,
 				E946B02A247DBB2F008A407C /* CompendiumFilterSheet.swift in Sources */,
 				E962FF362504FC2E00919B34 /* AnimatedRollView.swift in Sources */,
-				E942E015247EB3CE00170FAC /* Open5eMonsterDataSourceReader.swift in Sources */,
 				E931CF932500CA3F006CEE78 /* DiceActionViewState.swift in Sources */,
 				E991F88C25449D86006CE8E8 /* ReferenceView.swift in Sources */,
-				E972BAA22478588800F313D7 /* CompendiumEntry.swift in Sources */,
-				E9D266B42756B3A600E83595 /* DndBeyondExternalCompendium.swift in Sources */,
 				E991F88725449C7D006CE8E8 /* TabbedDocumentView.swift in Sources */,
-				E972BA9724784A6400F313D7 /* EncounterDifficulty.swift in Sources */,
-				E97983E22744591600800D38 /* ParseableSpellDescription.swift in Sources */,
 				E97651D0248ADF5A00C76865 /* AddCombatantView.swift in Sources */,
 				E9819BE4248524AA005B898E /* CampaignBrowseView.swift in Sources */,
 				E9869F8D252203BA0098A166 /* TabNavigationView.swift in Sources */,
@@ -1361,10 +1095,7 @@
 				E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */,
 				E9819BE52485252A005B898E /* SheetNavigationContainer.swift in Sources */,
 				E97651CE248ADC9700C76865 /* InitiativeDialog.swift in Sources */,
-				E91E4706231D992E005D1E6F /* Database.swift in Sources */,
-				E95FD429249BF26C0023F363 /* DDBCharacterDataSourceReader.swift in Sources */,
 				E92A41E4240D2F0C009AF440 /* WelcomeView.swift in Sources */,
-				E9969198247C3BE300A8B1A0 /* CompendiumQuery.swift in Sources */,
 				E97651D8248AE9EC00C76865 /* CombatantTagsView.swift in Sources */,
 				E942E010247EA5DE00170FAC /* AddCombatantState.swift in Sources */,
 			);
@@ -1906,6 +1637,10 @@
 		E9D1138A28AFBCA300CEF923 /* DiceRollerFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DiceRollerFeature;
+		};
+		E9F1286C28E6D6130040C90C /* Persistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Persistence;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

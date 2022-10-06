@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import Combine
 import Helpers
+import Compendium
 
 // Fixme: this view is not using the reducer architecture
 struct CompendiumImportView: View {

@@ -11,6 +11,7 @@ import SwiftUI
 import ComposableArchitecture
 import SharedViews
 import DiceRollerFeature
+import GameModels
 
 struct CombatantTagEditView: View {
     @EnvironmentObject var env: Environment
@@ -82,7 +83,7 @@ struct CombatantTagEditView: View {
 
                     tag.duration.flatMap { d in
                         self.viewStore.state.effectContext.flatMap { effectContext in
-                            d.description(environment: self.env, context: effectContext)
+                            d.description(ordinalFormatter: self.env.ordinalFormatter, context: effectContext)
                         }
                     }.map { ds in
                         Text(ds)

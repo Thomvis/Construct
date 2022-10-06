@@ -12,6 +12,7 @@ import ComposableArchitecture
 import Tagged
 import Helpers
 import SharedViews
+import GameModels
 
 struct CombatantTagsView: View {
     @SwiftUI.Environment(\.sheetPresentationMode) var sheetPresentationMode: SheetPresentationMode?

@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import Persistence
+import GameModels
 
 class CampaignBrowser {
     /// The number of existing nodes (excluding root node) when the app is first opened

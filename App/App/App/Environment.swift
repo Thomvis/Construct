@@ -15,6 +15,8 @@ import CombineSchedulers
 import StoreKit
 import DiceRollerFeature
 import Helpers
+import Persistence
+import Compendium
 
 class Environment: ObservableObject {
 
@@ -72,7 +74,7 @@ class Environment: ObservableObject {
     }
 
     var compendium: Compendium {
-        Compendium(database)
+        DatabaseCompendium(database: database, fallback: DndBeyondExternalCompendium())
     }
 
     var campaignBrowser: CampaignBrowser {

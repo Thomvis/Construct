@@ -10,15 +10,18 @@ import Foundation
 import XCTest
 @testable import Construct
 import Combine
+import Compendium
+import Persistence
+import GameModels
 
 class CompendiumImporterTest: XCTestCase {
 
-    var compendium: Compendium!
+    var compendium: DatabaseCompendium!
 
     override func setUp() {
         super.setUp()
 
-        self.compendium = Compendium(try! Database(path: nil))
+        self.compendium = DatabaseCompendium(database: try! Database(path: nil))
     }
 
     func test() {

@@ -10,6 +10,7 @@ import Foundation
 import XCTest
 @testable import Construct
 import Combine
+import Compendium
 
 class DDBCharacterSheetURLParserTest: XCTestCase {
 

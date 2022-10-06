@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 import SharedViews
+import GameModels
 
 struct InlineCombatantTagsView: View {
     var store: Store<CombatantDetailViewState, CombatantDetailViewAction>

@@ -13,6 +13,7 @@ import SnapshotTesting
 import CustomDump
 import GameModels
 import Dice
+import Compendium
 
 class CreatureActionParserTest: XCTestCase {
 

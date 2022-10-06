@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import SharedViews
+import GameModels
 
 struct CombatantRow: View {
     @EnvironmentObject var env: Environment

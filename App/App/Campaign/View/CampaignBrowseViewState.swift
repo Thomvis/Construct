@@ -11,6 +11,7 @@ import Combine
 import SwiftUI
 import ComposableArchitecture
 import Helpers
+import GameModels
 
 struct CampaignBrowseViewState: NavigationStackSourceState, Equatable {
     let node: CampaignNode
