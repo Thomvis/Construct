@@ -21,11 +21,6 @@ struct AppState: Equatable {
     var presentation: Presentation?
     var pendingPresentations: [Presentation] = []
 
-    var preferences: Preferences
-
-    var showPostLaunchLoadingScreen = false
-
-    var appDidLaunch = false // becomes true once the scene has become active for the first time
     var sceneIsActive = false
 
     var topNavigationItems: [Any] {
@@ -68,6 +63,7 @@ struct AppState: Equatable {
 
     enum Presentation: Equatable {
         case welcomeSheet
+        case postLaunchLoadingScreen
         case crashReportingPermissionAlert
     }
 
@@ -85,9 +81,6 @@ struct AppState: Equatable {
         case welcomeSheetSampleEncounterTapped
         case onAppear
 
-        case showPostLaunchLoadingScreen(Bool)
-        case parseableManagerDidFinish
-
         case sceneDidBecomeActive
         case sceneWillResignActive
 
@@ -103,7 +96,7 @@ struct AppState: Equatable {
                 case .onLaunch:
                     // Listen to dice rolls and forward them to the right place
                     return env.diceLog.rolls.map { (result, roll) in
-                        .onProcessRollForDiceLog(result, roll)
+                            .onProcessRollForDiceLog(result, roll)
                     }
                     .eraseToEffect()
                     .cancellable(id: "diceLog", cancelInFlight: true)
@@ -122,6 +115,8 @@ struct AppState: Equatable {
                         break
                     }
                 case .requestPresentation(let p):
+                    precondition(p != .welcomeSheet || !env.database.needsPrepareForUse)
+
                     if state.presentation == nil {
                         state.presentation = p
                     } else {
@@ -159,42 +154,36 @@ struct AppState: Equatable {
                             }
                         }.compactMap { $0 }.append(.dismissPresentation(.welcomeSheet))).eraseToEffect()
                 case .onAppear:
-                    if !state.preferences.didShowWelcomeSheet {
-                        return .init(value: .requestPresentation(.welcomeSheet))
-                    } else {
-                        // check if user created some campaign nodes
-                        if let nodeCount = try? env.campaignBrowser.nodeCount(),
-                           nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
-                        {
-                            env.requestAppStoreReview()
-                        }
-                    }
-                case .showPostLaunchLoadingScreen(let b):
-                    state.showPostLaunchLoadingScreen = b
-                case .parseableManagerDidFinish:
-                    state.preferences.parseableManagerLastRunVersion = DomainParsers.combinedVersion
+                    break
                 case .sceneDidBecomeActive:
                     state.sceneIsActive = true
 
-                    if (!state.appDidLaunch) {
-                        defer {
-                            state.appDidLaunch = true
+                    if env.database.needsPrepareForUse {
+                        precondition(state.presentation == nil)
+
+                        if !env.preferences().didShowWelcomeSheet {
+                            state.pendingPresentations.append(.welcomeSheet)
                         }
 
-                        if state.preferences.parseableManagerLastRunVersion != DomainParsers.combinedVersion {
-                            return Effect<Void, Never>.future { callback in
-                                DispatchQueue.global().async {
-                                    try? env.database.parseableManager.run()
-                                    callback(.success(()))
-                                }
-                            }
-                            .receive(on: DispatchQueue.main)
-                            .ensureMinimumIntervalUntilFirstOutput(2.0, scheduler: DispatchQueue.main)
-                            .flatMap { _ in [.parseableManagerDidFinish, .showPostLaunchLoadingScreen(false)].publisher }
-                            .receive(on: DispatchQueue.main.animation(.default)) // animate the disappearance, not the appearance
-                            .prepend(.showPostLaunchLoadingScreen(true))
-                            .eraseToEffect()
+                        return Effect.run { operation in
+                            await operation.send(.requestPresentation(.postLaunchLoadingScreen))
+
+                            async let preparations: () = try env.database.prepareForUse()
+                            async let minimumShowDuration: () = await Task {
+                                try await Task.sleep(nanoseconds: NSEC_PER_SEC*2)
+                            }.value
+
+                            try await preparations
+                            try await minimumShowDuration
+                            await operation.send(.dismissPresentation(.postLaunchLoadingScreen))
                         }
+                    } else if !env.preferences().didShowWelcomeSheet {
+                        return .init(value: .requestPresentation(.welcomeSheet))
+                    } else if let nodeCount = try? env.campaignBrowser.nodeCount(),
+                              nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
+                    {
+                        // if the user created some campaign nodes
+                        env.requestAppStoreReview()
                     }
                 case .sceneWillResignActive:
                     state.sceneIsActive = false
@@ -223,7 +212,9 @@ struct AppState: Equatable {
                 return .none
             }.onChange(of: { $0.presentation}) { p, state, a, env in
                 if p == .welcomeSheet {
-                    state.preferences.didShowWelcomeSheet = true
+                    try? env.updatePreferences {
+                        $0.didShowWelcomeSheet = true
+                    }
                 }
                 return .none
             },

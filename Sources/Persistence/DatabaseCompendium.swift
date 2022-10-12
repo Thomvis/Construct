@@ -32,7 +32,7 @@ public class DatabaseCompendium: Compendium {
     }
 
     public func put(_ entry: CompendiumEntry) throws {
-        try database.keyValueStore.put(entry, fts: FTSDocument(title: entry.item.title, subtitle: nil, body: nil))
+        try database.keyValueStore.put(entry, fts: entry.ftsDocument)
     }
 
     public func contains(_ key: GameModels.CompendiumItemKey) throws -> Bool {
@@ -71,5 +71,17 @@ public class DatabaseCompendium: Compendium {
         }
 
         return .notFound
+    }
+}
+
+extension CompendiumEntry {
+    var ftsDocument: FTSDocument {
+        Persistence.FTSDocument(title: item.title, subtitle: nil, body: nil)
+    }
+}
+
+extension DatabaseCompendium {
+    public static func put(_ entry: CompendiumEntry, in db: GRDB.Database) throws {
+        try KeyValueStore.put(entry, fts: entry.ftsDocument, in: db)
     }
 }

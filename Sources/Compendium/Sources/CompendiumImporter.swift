@@ -18,42 +18,37 @@ public class CompendiumImporter {
         self.compendium = compendium
     }
 
-    public func run(_ task: CompendiumImportTask) -> AnyPublisher<Result, CompendiumImporterError> {
-        task.reader.read().output
-            .mapError { CompendiumImporterError.reader($0) }
-            .tryScan(Result()) { res, read in
-                var result = res
-                switch read {
-                case .item(let item):
-                    let entry = apply(CompendiumEntry(item, source: task.source)) {
-                        $0.visitParseable()
-                    }
-                    do {
-                        let willOverwriteExisting = try self.compendium.contains(entry.item.key)
-
-                        if task.overwriteExisting || !willOverwriteExisting {
-                            try self.compendium.put(entry)
-
-                            if willOverwriteExisting {
-                                result.overwrittenItemCount += 1
-                            } else {
-                                result.newItemCount += 1
-                            }
-                        }
-                    } catch {
-                        throw CompendiumImporterError.database(error)
-                    }
-                case .invalidItem:
-                    result.invalidItemCount += 1
+    public func run(_ task: CompendiumImportTask) async throws -> Result {
+        var result = Result()
+        let job = try await task.reader.read()
+        for await read in job.output {
+            switch read {
+            case .item(let item):
+                let entry = apply(CompendiumEntry(item, source: task.source)) {
+                    $0.visitParseable()
                 }
-                return result
+                do {
+                    let willOverwriteExisting = try self.compendium.contains(entry.item.key)
+
+                    if task.overwriteExisting || !willOverwriteExisting {
+                        try self.compendium.put(entry)
+
+                        if willOverwriteExisting {
+                            result.overwrittenItemCount += 1
+                        } else {
+                            result.newItemCount += 1
+                        }
+                    }
+                } catch {
+                    throw CompendiumImporterError.database(error)
+                }
+            case .invalidItem:
+                result.invalidItemCount += 1
             }
-            .mapError {
-                guard let error = $0 as? CompendiumImporterError else { return CompendiumImporterError.other($0) }
-                return error
-            }
-            .last()
-            .eraseToAnyPublisher()
+
+            await Task.yield()
+        }
+        return result
     }
 
     public struct Result: Equatable {

@@ -32,10 +32,14 @@ public final class KeyValueStore {
     public func put<V>(_ value: V, at key: String, fts: FTSDocument? = nil, in db: GRDB.Database? = nil) throws where V: Codable {
         guard let db = db else {
             return try queue.write { db in
-                try put(value, at: key, fts: fts, in: db)
+                try Self.put(value, at: key, fts: fts, in: db)
             }
         }
 
+        return try Self.put(value, at: key, fts: fts, in: db)
+    }
+
+    public static func put<V>(_ value: V, at key: String, fts: FTSDocument? = nil, in db: GRDB.Database) throws where V: Codable {
         let previousLastInsertedRowId = db.lastInsertedRowID
 
         let encodedValue = try Self.encoder.encode(value)

@@ -16,14 +16,24 @@ import Helpers
 import Compendium
 
 extension Database {
-    private static let v1 = "v1"
+    enum Migration: String {
+        case v1 = "v1"
+        case v2 = "v2"
+        case v3 = "v3-scratchPadEncounter"
+        case v4 = "v4-encounter.ensureStableDiscriminators"
+        case v5 = "v5-updatedOpen5eFixtures1"
+        case v6 = "v6-runningEncounterTurn"
+        case v7 = "v7-updatedOpen5eFixtures"
+        case v8 = "v8-updatedOpen5eFixtures"
+        case v9 = "v9-updatedOpen5eFixtures-reactions&legendary"
+        case v10 = "v10-consistentCharacterKeys"
+        case v11 = "v11-runningEncounterKeyFix"
+    }
 
-    func migrator(_ queue: DatabaseQueue, importDefaultContent: Bool = true) throws -> DatabaseMigrator {
+    static func migrator() throws -> DatabaseMigrator {
         var migrator = DatabaseMigrator()
 
-        var didImportDefaultContent = false
-
-        migrator.registerMigration(Self.v1) { db in
+        migrator.registerMigration(Migration.v1.rawValue) { db in
             try db.create(table: "key_value") { t in
                 t.column(KeyValueStore.Record.Columns.key.name, .text).primaryKey()
                 t.column(KeyValueStore.Record.Columns.modified_at.name, .integer)
@@ -40,14 +50,10 @@ extension Database {
                 t.column(KeyValueStore.FTSRecord.Columns.title_suffixes.name)
             }
 
-            // Import default data
-            if importDefaultContent && !didImportDefaultContent {
-//                try Compendium(self).importDefaultContent(db)
-                didImportDefaultContent = true
-            }
+            // import of default content now happens outside of the migrations
         }
 
-        migrator.registerMigration("v2") { db in
+        migrator.registerMigration(Migration.v2) { db in
             // gave characters an id
             let characters = try KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .character))%")).fetchAll(db)
             for c in characters {
@@ -67,19 +73,11 @@ extension Database {
             // forgot to update possible references to these characters that are now broken
         }
 
-        if importDefaultContent {
-            migrator.registerMigration("v3-scratchPadEncounter") { db in
-                let encounter = Encounter(id: Encounter.scratchPadEncounterId.rawValue, name: "Scratch pad", combatants: [])
-
-                try self.keyValueStore.put(encounter, in: db)
-                try self.keyValueStore.put(CampaignNode.scratchPadEncounter, in: db)
-            }
-        }
 
         // Note after the fact: there's two issues with this migration:
         // - it also added ensureStableDiscriminators to RunningEncounters (now resolved with the where clause of for)
         // - it did not update encounters inside RunningEncounters (not fixed, damage has been done)
-        migrator.registerMigration("v4-encounter.ensureStableDiscriminators") { db in
+        migrator.registerMigration(Migration.v4) { db in
             let encounters = try KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
             for e in encounters where !e.key.contains(".running.") {
                 guard var encounter = try JSONSerialization.jsonObject(with: e.value, options: []) as? [String: Any] else { continue }
@@ -97,15 +95,11 @@ extension Database {
             }
         }
 
-        migrator.registerMigration("v5-updatedOpen5eFixtures1") { db in
-            if importDefaultContent && !didImportDefaultContent {
-                // v1 was applied before, let's re-import defaults
-//                try Compendium(self).importDefaultContent(db)
-                didImportDefaultContent = true
-            }
+        migrator.registerMigration(Migration.v5) { db in
+            // re-import of default content now happens outside of the migrations
         }
 
-        migrator.registerMigration("v6-runningEncounterTurn") { db in
+        migrator.registerMigration(Migration.v6) { db in
             let encounters = try KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
 
             let runs: [KeyValueStore.Record] = try encounters.flatMap { encounter -> [KeyValueStore.Record] in
@@ -156,31 +150,19 @@ extension Database {
             }
         }
 
-        migrator.registerMigration("v7-updatedOpen5eFixtures") { db in
-            if importDefaultContent && !didImportDefaultContent {
-                // v1 was applied before, let's re-import defaults
-//                try Compendium(self).importDefaultContent(db)
-                didImportDefaultContent = true
-            }
+        migrator.registerMigration(Migration.v7) { db in
+            // re-import of default content now happens outside of the migrations
         }
 
-        migrator.registerMigration("v8-updatedOpen5eFixtures") { db in
-            if importDefaultContent && !didImportDefaultContent {
-                // v1 or v7 was applied before, let's re-import defaults
-//                try Compendium(self).importDefaultContent(db)
-                didImportDefaultContent = true
-            }
+        migrator.registerMigration(Migration.v8) { db in
+            // re-import of default content now happens outside of the migrations
         }
 
-        migrator.registerMigration("v9-updatedOpen5eFixtures-reactions&legendary") { db in
-            if importDefaultContent && !didImportDefaultContent {
-                // v1, v7 or v8 was applied before, let's re-import defaults
-//                try Compendium(self).importDefaultContent(db)
-                didImportDefaultContent = true
-            }
+        migrator.registerMigration(Migration.v9) { db in
+            // re-import of default content now happens outside of the migrations
         }
 
-        migrator.registerMigration("v10-consistentCharacterKeys") { db in
+        migrator.registerMigration(Migration.v10) { db in
             // Most characters have a UUID in their key (current behavior), others have their title (old behavior)
             // Characters with a title key don't work well
 
@@ -195,8 +177,7 @@ extension Database {
                 let newRecord = KeyValueStore.Record(key: entry.key, modifiedAt: r.modifiedAt, value: r.value)
 
                 if try !newRecord.exists(db) {
-//                    try Compendium(self).put(entry, in: db)
-                    #warning("FIXME")
+                    try DatabaseCompendium.put(entry, in: db)
                 }
                 try r.delete(db)
 
@@ -300,7 +281,7 @@ extension Database {
 
         // Before this, the prefix of Encounters and RunningEncounters would be identical
         // That was a mistake
-        migrator.registerMigration("v11-runningEncounterKeyFix") { db in
+        migrator.registerMigration(Migration.v11) { db in
 
             // Encounters and RunningEncounters
             let records = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
@@ -322,5 +303,17 @@ extension Database {
         }
 
         return migrator
+    }
+}
+
+let legacyDefaultContentImportingMigrations: [Database.Migration] = [.v1, .v5, .v7, .v8, .v9]
+
+extension DatabaseMigrator {
+    mutating func registerMigration(
+        _ identifier: Database.Migration,
+        foreignKeyChecks: ForeignKeyChecks = .deferred,
+        migrate: @escaping (GRDB.Database) throws -> Void
+    ) {
+        registerMigration(identifier.rawValue, foreignKeyChecks: foreignKeyChecks, migrate: migrate)
     }
 }

@@ -142,18 +142,19 @@ struct CompendiumImportView: View {
         let importer = CompendiumImporter(compendium: env.compendium)
         let task = CompendiumImportTask(reader: reader.create(dataSource), overwriteExisting: true)
 
-        let cancellable = importer.run(task)
-            .subscribe(on: DispatchQueue.global())
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
-                if case .failure(let e as Error) = completion {
-                    self.importProgress = .failed(e)
-                }
-            }, receiveValue: { result in
-                self.importProgress = .succeeded(result)
-            })
+//        let cancellable = importer.run(task)
+//            .subscribe(on: DispatchQueue.global())
+//            .receive(on: DispatchQueue.main)
+//            .sink(receiveCompletion: { completion in
+//                if case .failure(let e as Error) = completion {
+//                    self.importProgress = .failed(e)
+//                }
+//            }, receiveValue: { result in
+//                self.importProgress = .succeeded(result)
+//            })
+        #warning("FIXME")
 
-        importProgress = .started(cancellable)
+//        importProgress = .started(cancellable)
     }
 
     struct Reader: Identifiable {

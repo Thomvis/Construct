@@ -21,26 +21,28 @@ public class DDBCharacterDataSourceReader: CompendiumDataSourceReader {
     }
 
     public func read() -> CompendiumDataSourceReaderJob {
-        return Job(data: dataSource.read())
+//        return Job(data: dataSource.read())
+        fatalError()
     }
 
     class Job: CompendiumDataSourceReaderJob {
-        let output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
+        let output: AsyncStream<CompendiumDataSourceReaderOutput>
 
         init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
-            output = data
-                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
-                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
-                    do {
-                        let characterSheet = try JSONDecoder().decode(DDB.CharacterSheet.self, from: data)
-                        guard let character = Character(characterSheet: characterSheet, realm: .homebrew) else {
-                            return Empty().eraseToAnyPublisher()
-                        }
-                        return Just(.item(character as CompendiumItem)).setFailureType(to: CompendiumDataSourceReaderError.self).eraseToAnyPublisher()
-                    } catch {
-                        return Fail(error: CompendiumDataSourceReaderError.incompatibleDataSource).eraseToAnyPublisher()
-                    }
-                }.eraseToAnyPublisher()
+            fatalError()
+//            output = data
+//                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
+//                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
+//                    do {
+//                        let characterSheet = try JSONDecoder().decode(DDB.CharacterSheet.self, from: data)
+//                        guard let character = Character(characterSheet: characterSheet, realm: .homebrew) else {
+//                            return Empty().eraseToAnyPublisher()
+//                        }
+//                        return Just(.item(character as CompendiumItem)).setFailureType(to: CompendiumDataSourceReaderError.self).eraseToAnyPublisher()
+//                    } catch {
+//                        return Fail(error: CompendiumDataSourceReaderError.incompatibleDataSource).eraseToAnyPublisher()
+//                    }
+//                }.eraseToAnyPublisher()
         }
     }
 }

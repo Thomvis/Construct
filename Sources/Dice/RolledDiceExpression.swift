@@ -9,7 +9,9 @@
 import Foundation
 import SwiftUI
 import Tagged
+#if canImport(UIKit)
 import UIKit
+#endif
 import Helpers
 
 public enum RolledDiceExpression: Hashable {
@@ -123,6 +125,7 @@ public struct Die: Hashable, Codable {
     public enum Color: String, Codable, CaseIterable {
         case red, yellow, green, blue
 
+        #if canImport(UIKit)
         public var UIColor: UIColor {
             switch self {
             case .red: return .systemRed
@@ -131,6 +134,7 @@ public struct Die: Hashable, Codable {
             case .blue: return .systemBlue
             }
         }
+        #endif
     }
 }
 

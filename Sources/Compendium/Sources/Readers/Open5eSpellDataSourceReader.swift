@@ -9,6 +9,7 @@
 import Foundation
 import Combine
 import GameModels
+import AsyncAlgorithms
 
 public class Open5eSpellDataSourceReader: CompendiumDataSourceReader {
     public static let name = "Open5eSpellDataSourceReader"
@@ -19,28 +20,25 @@ public class Open5eSpellDataSourceReader: CompendiumDataSourceReader {
         self.dataSource = dataSource
     }
 
-    public func read() -> CompendiumDataSourceReaderJob {
-        return Job(data: dataSource.read())
+    public func read() async throws -> CompendiumDataSourceReaderJob {
+        return try Job(data: await dataSource.read())
     }
 
     class Job: CompendiumDataSourceReaderJob {
-        let output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
+        let output: AsyncStream<CompendiumDataSourceReaderOutput>
 
-        init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
-            output = data
-                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
-                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
-                    do {
-                        let spells = try JSONDecoder().decode([O5e.Spell].self, from: data)
-                        return Publishers.Sequence(sequence: spells.map { m in
-                            guard let spell = Spell(open5eSpell: m, realm: .core) else { return CompendiumDataSourceReaderOutput.invalidItem(String(describing: m)) }
-                            return .item(spell)
-                        }).eraseToAnyPublisher()
-                    } catch {
-                        return Fail(error: CompendiumDataSourceReaderError.incompatibleDataSource).eraseToAnyPublisher()
-                    }
-                }
-                .eraseToAnyPublisher()
+        init(data: Data) throws {
+            let spells: [O5e.Spell]
+            do {
+                spells = try JSONDecoder().decode([O5e.Spell].self, from: data)
+            } catch {
+                throw CompendiumDataSourceReaderError.incompatibleDataSource
+            }
+
+            output = spells.async.map { s in
+                guard let spell = Spell(open5eSpell: s, realm: .core) else { return CompendiumDataSourceReaderOutput.invalidItem(String(describing: s)) }
+                return .item(spell)
+            }.stream
         }
     }
 

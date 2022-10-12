@@ -9,6 +9,7 @@
 import Foundation
 import GRDB
 import GameModels
+import Compendium
 
 // Conforming types can be easily stored in the KV store
 public protocol KeyValueStoreEntity: Codable {
@@ -29,12 +30,17 @@ public enum KeyValueStoreEntityKeyPrefix: String, CaseIterable {
     case compendiumEntry = "compendium"
     case campaignNode = "cn_"
     case preferences = "Construct::Preferences"
+    case defaultContentVersions = "Construct::DefaultContentVersions"
 
     case any
 }
 
 public extension KeyValueStore {
     func put<V>(_ entity: V, fts: FTSDocument? = nil, in db: GRDB.Database? = nil) throws where V: KeyValueStoreEntity {
+        try put(entity, at: entity.key, fts: fts, in: db)
+    }
+
+    static func put<V>(_ entity: V, fts: FTSDocument? = nil, in db: GRDB.Database) throws where V: KeyValueStoreEntity {
         try put(entity, at: entity.key, fts: fts, in: db)
     }
 }
@@ -50,6 +56,7 @@ extension KeyValueStore.Record {
         case .compendiumEntry: return try decoder.decode(CompendiumEntry.self, from: value)
         case .campaignNode: return try decoder.decode(CampaignNode.self, from: value)
         case .preferences: return try decoder.decode(Preferences.self, from: value)
+        case .defaultContentVersions: return try decoder.decode(DefaultContentVersions.self, from: value)
         case .any: return try decoder.decode(AnyKeyValueStoreEntity.self, from: value)
         }
     }

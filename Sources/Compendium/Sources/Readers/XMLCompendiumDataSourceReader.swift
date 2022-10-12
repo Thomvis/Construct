@@ -21,34 +21,36 @@ public class XMLCompendiumDataSourceReader: CompendiumDataSourceReader {
     }
 
     public func read() -> CompendiumDataSourceReaderJob {
-        return Job(data: dataSource.read())
+//        return Job(data: dataSource.read())
+        fatalError()
     }
 
     class Job: CompendiumDataSourceReaderJob {
-        let output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
+        let output: AsyncStream<CompendiumDataSourceReaderOutput>
 
-        init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
-            output = data
-                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
-                .flatMap { data in
-                    XMLCompendiumParser.parse(data: data, elements: [.compendium(.monster(nil)), .compendium(.spell(nil))])
-                        .mapError { _ in CompendiumDataSourceReaderError.incompatibleDataSource }
-                }
-                .map { (element, content) -> CompendiumDataSourceReaderOutput in
-                    switch (element) {
-                    case .compendium(.monster(nil)):
-                        if let monster = Monster(elementContent: content, realm: .core) {
-                            return .item(monster)
-                        }
-                    case .compendium(.spell(nil)):
-                        if let spell = Spell(elementContent: content, realm: .core) {
-                            return .item(spell)
-                        }
-                    default: break
-                    }
-                    return .invalidItem(String(describing: element))
-                }
-                .eraseToAnyPublisher()
+        init(data: Data) {
+            fatalError()
+//            output = data
+//                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
+//                .flatMap { data in
+//                    XMLCompendiumParser.parse(data: data, elements: [.compendium(.monster(nil)), .compendium(.spell(nil))])
+//                        .mapError { _ in CompendiumDataSourceReaderError.incompatibleDataSource }
+//                }
+//                .map { (element, content) -> CompendiumDataSourceReaderOutput in
+//                    switch (element) {
+//                    case .compendium(.monster(nil)):
+//                        if let monster = Monster(elementContent: content, realm: .core) {
+//                            return .item(monster)
+//                        }
+//                    case .compendium(.spell(nil)):
+//                        if let spell = Spell(elementContent: content, realm: .core) {
+//                            return .item(spell)
+//                        }
+//                    default: break
+//                    }
+//                    return .invalidItem(String(describing: element))
+//                }
+//                .eraseToAnyPublisher()
         }
     }
 }

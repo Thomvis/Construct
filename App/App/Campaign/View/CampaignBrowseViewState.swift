@@ -322,6 +322,7 @@ extension CampaignBrowseViewState {
             },
             Reducer.withState({ $0.node.id != $1.node.id }) { state in
                 Async<[CampaignNode], Error>.reducer { env in
+                    precondition(!env.database.needsPrepareForUse)
                     do {
                         let nodes = try env.campaignBrowser.nodes(in: state.node)
                         return Just(nodes).setFailureType(to: Error.self).eraseToAnyPublisher()

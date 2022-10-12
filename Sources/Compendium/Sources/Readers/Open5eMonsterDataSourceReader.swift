@@ -11,6 +11,7 @@ import Combine
 import GameModels
 import Helpers
 import Dice
+import AsyncAlgorithms
 
 public class Open5eMonsterDataSourceReader: CompendiumDataSourceReader {
     public static let name = "Open5eMonsterDataSourceReader"
@@ -21,27 +22,25 @@ public class Open5eMonsterDataSourceReader: CompendiumDataSourceReader {
         self.dataSource = dataSource
     }
 
-    public func read() -> CompendiumDataSourceReaderJob {
-        return Job(data: dataSource.read())
+    public func read() async throws -> CompendiumDataSourceReaderJob {
+        return try Job(data: await dataSource.read())
     }
 
     class Job: CompendiumDataSourceReaderJob {
-        let output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
+        let output: AsyncStream<CompendiumDataSourceReaderOutput>
 
-        init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
-            output = data
-                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
-                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
-                    do {
-                        let monsters = try JSONDecoder().decode([O5e.Monster].self, from: data)
-                        return Publishers.Sequence(sequence: monsters.map { m in
-                            guard let monster = Monster(open5eMonster: m, realm: .core) else { return .invalidItem(String(describing: m)) }
-                            return .item(monster)
-                        }).eraseToAnyPublisher()
-                    } catch {
-                        return Fail(error: CompendiumDataSourceReaderError.incompatibleDataSource).eraseToAnyPublisher()
-                    }
-                }.eraseToAnyPublisher()
+        init(data: Data) throws {
+            let monsters: [O5e.Monster]
+            do {
+                monsters = try JSONDecoder().decode([O5e.Monster].self, from: data)
+            } catch {
+                throw CompendiumDataSourceReaderError.incompatibleDataSource
+            }
+
+            output = monsters.async.map { m in
+                guard let monster = Monster(open5eMonster: m, realm: .core) else { return .invalidItem(String(describing: m)) }
+                return .item(monster)
+            }.stream
         }
     }
     

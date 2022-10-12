@@ -21,13 +21,12 @@ public class URLDataSource: CompendiumDataSource {
         self.urlSession = urlSession
     }
 
-    public func read() -> AnyPublisher<Data, CompendiumDataSourceError> {
-        return urlSession.dataTaskPublisher(for: URL(string: url)!).map { data, response in
-            return data
+    public func read() async throws -> Data {
+        do {
+            return try await urlSession.data(from: URL(string: url)!).0
+        } catch {
+            throw CompendiumDataSourceError.other(error)
         }
-        .mapError { CompendiumDataSourceError.other($0) }
-        .receive(on: DispatchQueue.main)
-        .eraseToAnyPublisher()
     }
 
 }

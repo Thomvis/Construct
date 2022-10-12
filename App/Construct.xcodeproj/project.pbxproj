@@ -874,6 +874,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				E95AC5D128F20A9300AF91A8 /* PBXTargetDependency */,
 				E9F9EB4E2319694200A70D11 /* PBXTargetDependency */,
 			);
 			name = UnitTests;
@@ -1151,6 +1152,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		E95AC5D128F20A9300AF91A8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = E95AC5D028F20A9300AF91A8 /* PersistenceTestSupport */;
+		};
 		E99C932328B1542900018518 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = E99C931428B1542800018518 /* DiceRollerAppClip */;
@@ -1581,6 +1586,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E9558B6E2757FBBC000837AB /* XCRemoteSwiftPackageReference "BetterSafariView" */;
 			productName = BetterSafariView;
+		};
+		E95AC5D028F20A9300AF91A8 /* PersistenceTestSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PersistenceTestSupport;
 		};
 		E974889028B5231D004A5CFD /* DiceRollerInvocation */ = {
 			isa = XCSwiftPackageProductDependency;

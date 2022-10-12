@@ -14,7 +14,7 @@ public protocol CompendiumDataSource {
     static var name: String { get }
     var bookmark: Data? { get }
 
-    func read() -> AnyPublisher<Data, CompendiumDataSourceError>
+    func read() async throws -> Data
 }
 
 public enum CompendiumDataSourceError: LocalizedError {

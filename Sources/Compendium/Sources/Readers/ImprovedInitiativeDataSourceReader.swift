@@ -21,39 +21,40 @@ public class ImprovedInitiativeDataSourceReader: CompendiumDataSourceReader {
         self.dataSource = dataSource
     }
 
-    public func read() -> CompendiumDataSourceReaderJob {
-        return Job(data: dataSource.read())
+    public func read() async throws -> CompendiumDataSourceReaderJob {
+        return try Job(data: await dataSource.read())
     }
 
     class Job: CompendiumDataSourceReaderJob {
-        let output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
+        let output: AsyncStream<CompendiumDataSourceReaderOutput>
 
-        init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
-            output = data
-                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
-                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
-                    do {
-                        let file = try JSONDecoder().decode([String: String].self, from: data)
-                        guard let creatureListJson = file["ImprovedInitiative.Creatures"] else {
-                            return Fail(error: .incompatibleDataSource).eraseToAnyPublisher()
-                        }
-
-                        let creatureList = try JSONDecoder().decode([String].self, from: creatureListJson.data(using: .utf8)!)
-                        let monsters = try creatureList
-                            .compactMap { file["ImprovedInitiative.Creatures.\($0)"]?.data(using:. utf8) }
-                            .map { try JSONDecoder().decode(ImprovedInitiative.Creature.self, from: $0) }
-                            .map { creature -> CompendiumDataSourceReaderOutput in
-                                guard let monster = Monster(improvedInitiativeCreature: creature, realm: .core) else {
-                                    return .invalidItem(String(describing: creature))
-                                }
-                                return .item(monster)
-                            }
-
-                        return Publishers.Sequence(sequence: monsters).eraseToAnyPublisher()
-                    } catch {
-                        return Fail(error: .incompatibleDataSource).eraseToAnyPublisher()
-                    }
-                }.eraseToAnyPublisher()
+        init(data: Data) {
+            fatalError()
+//            output = data
+//                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
+//                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
+//                    do {
+//                        let file = try JSONDecoder().decode([String: String].self, from: data)
+//                        guard let creatureListJson = file["ImprovedInitiative.Creatures"] else {
+//                            return Fail(error: .incompatibleDataSource).eraseToAnyPublisher()
+//                        }
+//
+//                        let creatureList = try JSONDecoder().decode([String].self, from: creatureListJson.data(using: .utf8)!)
+//                        let monsters = try creatureList
+//                            .compactMap { file["ImprovedInitiative.Creatures.\($0)"]?.data(using:. utf8) }
+//                            .map { try JSONDecoder().decode(ImprovedInitiative.Creature.self, from: $0) }
+//                            .map { creature -> CompendiumDataSourceReaderOutput in
+//                                guard let monster = Monster(improvedInitiativeCreature: creature, realm: .core) else {
+//                                    return .invalidItem(String(describing: creature))
+//                                }
+//                                return .item(monster)
+//                            }
+//
+//                        return Publishers.Sequence(sequence: monsters).eraseToAnyPublisher()
+//                    } catch {
+//                        return Fail(error: .incompatibleDataSource).eraseToAnyPublisher()
+//                    }
+//                }.eraseToAnyPublisher()
         }
     }
 }

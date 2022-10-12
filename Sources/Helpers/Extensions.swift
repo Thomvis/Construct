@@ -417,3 +417,10 @@ public extension Binding {
         })
     }
 }
+
+public extension AsyncSequence {
+    /// Hides the specific type of the AsyncSequence (e.g. AsyncMapSequence)
+    var stream: AsyncStream<Element> {
+        AsyncStream(self)
+    }
+}

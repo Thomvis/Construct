@@ -19,7 +19,7 @@ extension AppState: HavingEntities {
         return [
             navigation?.tabState?.entities,
             navigation?.columnState?.entities
-        ].compactMap { $0 }.flatMap { $0 } + [AnyKeyValueStoreEntity(preferences)]
+        ].compactMap { $0 }.flatMap { $0 }
     }
 }
 

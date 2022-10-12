@@ -15,11 +15,11 @@ public protocol CompendiumDataSourceReader {
 
     var dataSource: CompendiumDataSource { get }
 
-    func read() -> CompendiumDataSourceReaderJob
+    func read() async throws -> any CompendiumDataSourceReaderJob
 }
 
 public protocol CompendiumDataSourceReaderJob {
-    var output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> { get }
+    var output: AsyncStream<CompendiumDataSourceReaderOutput> { get }
 }
 
 public enum CompendiumDataSourceReaderOutput {
