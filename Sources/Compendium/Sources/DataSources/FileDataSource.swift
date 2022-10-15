@@ -24,7 +24,7 @@ public class FileDataSource: CompendiumDataSource {
 
     public func read() async throws -> Data {
         do {
-            return try Data(contentsOf: URL(filePath: path))
+            return try Data(contentsOf: URL(fileURLWithPath: path))
         } catch {
             throw CompendiumDataSourceError.notFound
         }

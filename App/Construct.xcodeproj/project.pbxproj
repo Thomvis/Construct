@@ -156,6 +156,7 @@
 		E9A95187233BF83000141552 /* DDBCharacterSheetURLParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95186233BF83000141552 /* DDBCharacterSheetURLParserTest.swift */; };
 		E9AB031323EBF09B0091C908 /* EqualSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AB031223EBF09B0091C908 /* EqualSize.swift */; };
 		E9AEA49B24C62A9600ACB44C /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AEA49A24C62A9600ACB44C /* Helpers.swift */; };
+		E9B3B85A28FB41C4003764DD /* PersistenceTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = E9B3B85928FB41C4003764DD /* PersistenceTestSupport */; };
 		E9B432BB22AAF7540054324E /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B432BA22AAF7540054324E /* Environment.swift */; };
 		E9BE1C4F28B524FF00D80464 /* DiceRollerInvocation in Frameworks */ = {isa = PBXBuildFile; productRef = E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */; };
 		E9C7F7862632C193000351AB /* NumberPadTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C7F7852632C193000351AB /* NumberPadTest.swift */; };
@@ -396,6 +397,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9B3B85A28FB41C4003764DD /* PersistenceTestSupport in Frameworks */,
 				E931CF8824FE5D68006CEE78 /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -874,12 +876,12 @@
 			buildRules = (
 			);
 			dependencies = (
-				E95AC5D128F20A9300AF91A8 /* PBXTargetDependency */,
 				E9F9EB4E2319694200A70D11 /* PBXTargetDependency */,
 			);
 			name = UnitTests;
 			packageProductDependencies = (
 				E931CF8724FE5D68006CEE78 /* SnapshotTesting */,
+				E9B3B85928FB41C4003764DD /* PersistenceTestSupport */,
 			);
 			productName = UnitTests;
 			productReference = E9F9EB482319694100A70D11 /* UnitTests.xctest */;
@@ -1152,10 +1154,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E95AC5D128F20A9300AF91A8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = E95AC5D028F20A9300AF91A8 /* PersistenceTestSupport */;
-		};
 		E99C932328B1542900018518 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = E99C931428B1542800018518 /* DiceRollerAppClip */;
@@ -1587,10 +1585,6 @@
 			package = E9558B6E2757FBBC000837AB /* XCRemoteSwiftPackageReference "BetterSafariView" */;
 			productName = BetterSafariView;
 		};
-		E95AC5D028F20A9300AF91A8 /* PersistenceTestSupport */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = PersistenceTestSupport;
-		};
 		E974889028B5231D004A5CFD /* DiceRollerInvocation */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DiceRollerInvocation;
@@ -1638,6 +1632,10 @@
 		E99C932C28B1551F00018518 /* DiceRollerFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DiceRollerFeature;
+		};
+		E9B3B85928FB41C4003764DD /* PersistenceTestSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PersistenceTestSupport;
 		};
 		E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -86,8 +86,13 @@ class Environment: ObservableObject {
 
 extension Environment {
     @MainActor
-    static func live() async throws -> Environment {
-        let database: Database = try await .live()
+    static func live(database db: Database? = nil) async throws -> Environment {
+        let database: Database
+        if let db {
+            database = db
+        } else {
+            database = try await .live()
+        }
         let mailComposeDelegate = MailComposeDelegate()
 
         let keyWindow = {

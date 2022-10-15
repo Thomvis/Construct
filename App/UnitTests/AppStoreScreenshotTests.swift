@@ -17,6 +17,8 @@ import Helpers
 import DiceRollerFeature
 import Dice
 import GameModels
+import Persistence
+import PersistenceTestSupport
 
 /// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests
 @available(iOS 16.0, *)
@@ -31,10 +33,7 @@ class AppStoreScreenshotTests: XCTestCase {
         ("iPadPro129_3rd_gen", .iPadPro12_9)
     ]
 
-    static var environment: Construct.Environment!
-    var environment: Construct.Environment {
-        Self.environment
-    }
+    var environment: Construct.Environment!
 
     override class func setUp() {
         super.setUp()
@@ -45,11 +44,10 @@ class AppStoreScreenshotTests: XCTestCase {
         UITabBar.appearance().unselectedItemTintColor = UIColor.systemGray2
         // Workaround for transparent tab bar
         UITabBar.appearance().backgroundColor = UIColor.systemBackground
+    }
 
-        // Initializing the environment once saves a lot of time (importing & parsing default content is slow)
-//        environment = try! await apply(Environment.live()) {
-//            $0.database = try .init(path: nil)
-//        }
+    override func setUp() async throws {
+        environment = try! await Environment.live(database: Database(path: InitialDatabase.path))
     }
 
     func test_iPhone_screenshot1() {

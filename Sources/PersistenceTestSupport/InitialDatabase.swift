@@ -7,4 +7,7 @@
 
 import Foundation
 
-public let initialDatabasePath = Bundle.module.path(forResource: "initial", ofType: "sqlite")
+public enum InitialDatabase {
+    public static let path = Bundle.module.path(forResource: "initial", ofType: "sqlite")
+}
+

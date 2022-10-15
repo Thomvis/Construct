@@ -19,6 +19,15 @@
       }
     },
     {
+      "identity" : "swift-async-algorithms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-async-algorithms",
+      "state" : {
+        "revision" : "98d42293179ddd7f8c516eae8bec7b4e014d911a",
+        "version" : "0.0.1"
+      }
+    },
+    {
       "identity" : "swift-case-paths",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-case-paths",
