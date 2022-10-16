@@ -20,8 +20,8 @@ public class CompendiumImporter {
 
     public func run(_ task: CompendiumImportTask) async throws -> Result {
         var result = Result()
-        let job = try await task.reader.read()
-        for await read in job.output {
+        let job = task.reader.makeJob()
+        for await read in try await job.output {
             switch read {
             case .item(let item):
                 let entry = apply(CompendiumEntry(item, source: task.source)) {

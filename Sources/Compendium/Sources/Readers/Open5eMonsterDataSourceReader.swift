@@ -22,25 +22,29 @@ public class Open5eMonsterDataSourceReader: CompendiumDataSourceReader {
         self.dataSource = dataSource
     }
 
-    public func read() async throws -> CompendiumDataSourceReaderJob {
-        return try Job(data: await dataSource.read())
+    public func makeJob() -> CompendiumDataSourceReaderJob {
+        return Job(source: dataSource)
     }
 
-    class Job: CompendiumDataSourceReaderJob {
-        let output: AsyncStream<CompendiumDataSourceReaderOutput>
+    struct Job: CompendiumDataSourceReaderJob {
+        let source: CompendiumDataSource
 
-        init(data: Data) throws {
-            let monsters: [O5e.Monster]
-            do {
-                monsters = try JSONDecoder().decode([O5e.Monster].self, from: data)
-            } catch {
-                throw CompendiumDataSourceReaderError.incompatibleDataSource
+        var output: AsyncStream<CompendiumDataSourceReaderOutput> {
+            get async throws {
+                let data = try await source.read()
+
+                let monsters: [O5e.Monster]
+                do {
+                    monsters = try JSONDecoder().decode([O5e.Monster].self, from: data)
+                } catch {
+                    throw CompendiumDataSourceReaderError.incompatibleDataSource
+                }
+
+                return monsters.async.map { m in
+                    guard let monster = Monster(open5eMonster: m, realm: .core) else { return .invalidItem(String(describing: m)) }
+                    return .item(monster)
+                }.stream
             }
-
-            output = monsters.async.map { m in
-                guard let monster = Monster(open5eMonster: m, realm: .core) else { return .invalidItem(String(describing: m)) }
-                return .item(monster)
-            }.stream
         }
     }
     

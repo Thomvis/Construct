@@ -20,25 +20,29 @@ public class Open5eSpellDataSourceReader: CompendiumDataSourceReader {
         self.dataSource = dataSource
     }
 
-    public func read() async throws -> CompendiumDataSourceReaderJob {
-        return try Job(data: await dataSource.read())
+    public func makeJob() -> CompendiumDataSourceReaderJob {
+        return Job(source: dataSource)
     }
 
-    class Job: CompendiumDataSourceReaderJob {
-        let output: AsyncStream<CompendiumDataSourceReaderOutput>
+    struct Job: CompendiumDataSourceReaderJob {
+        let source: CompendiumDataSource
 
-        init(data: Data) throws {
-            let spells: [O5e.Spell]
-            do {
-                spells = try JSONDecoder().decode([O5e.Spell].self, from: data)
-            } catch {
-                throw CompendiumDataSourceReaderError.incompatibleDataSource
+        var output: AsyncStream<CompendiumDataSourceReaderOutput> {
+            get async throws {
+                let data = try await source.read()
+
+                let spells: [O5e.Spell]
+                do {
+                    spells = try JSONDecoder().decode([O5e.Spell].self, from: data)
+                } catch {
+                    throw CompendiumDataSourceReaderError.incompatibleDataSource
+                }
+
+                return spells.async.map { s in
+                    guard let spell = Spell(open5eSpell: s, realm: .core) else { return CompendiumDataSourceReaderOutput.invalidItem(String(describing: s)) }
+                    return .item(spell)
+                }.stream
             }
-
-            output = spells.async.map { s in
-                guard let spell = Spell(open5eSpell: s, realm: .core) else { return CompendiumDataSourceReaderOutput.invalidItem(String(describing: s)) }
-                return .item(spell)
-            }.stream
         }
     }
 

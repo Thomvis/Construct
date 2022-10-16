@@ -10,36 +10,40 @@ import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
-final class DocumentPicker: NSObject, UIViewControllerRepresentable, UIDocumentPickerDelegate {
+struct DocumentPicker: UIViewControllerRepresentable {
 
     typealias UIViewControllerType = UIDocumentPickerViewController
 
     let didPick: ([URL]) -> Void
-    var dp: DocumentPicker? // fixme/bug: if we don't keep a strong reference here, this object is dealloc'ed before it can call didPick
 
-    init(didPick: @escaping ([URL]) -> Void) {
-        self.didPick = didPick
-        super.init()
-        self.dp = self
+    func makeCoordinator() -> Delegate {
+        return Delegate(didPick: didPick)
     }
 
     func makeUIViewController(context: UIViewControllerRepresentableContext<DocumentPicker>) -> UIDocumentPickerViewController {
         let vc = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.content], asCopy: true)
-        vc.delegate = self
+        vc.delegate = context.coordinator
         return vc
     }
 
     func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: UIViewControllerRepresentableContext<DocumentPicker>) {
-
+        context.coordinator.didPick = didPick
     }
 
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        self.dp = nil
-        self.didPick(urls)
-    }
+    final class Delegate: NSObject, UIDocumentPickerDelegate {
+        var didPick: ([URL]) -> Void
 
-    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-        self.dp = nil
+        init(didPick: @escaping ([URL]) -> Void) {
+            self.didPick = didPick
+        }
+
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            self.didPick(urls)
+        }
+
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+
+        }
     }
 
 }

@@ -20,29 +20,29 @@ public class DDBCharacterDataSourceReader: CompendiumDataSourceReader {
         self.dataSource = dataSource
     }
 
-    public func read() -> CompendiumDataSourceReaderJob {
-//        return Job(data: dataSource.read())
-        fatalError()
+    public func makeJob() -> CompendiumDataSourceReaderJob {
+        return Job(source: dataSource)
     }
 
-    class Job: CompendiumDataSourceReaderJob {
-        let output: AsyncStream<CompendiumDataSourceReaderOutput>
+    struct Job: CompendiumDataSourceReaderJob {
+        let source: CompendiumDataSource
 
-        init(data: AnyPublisher<Data, CompendiumDataSourceError>) {
-            fatalError()
-//            output = data
-//                .mapError { CompendiumDataSourceReaderError.dataSource($0) }
-//                .flatMap { data -> AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError> in
-//                    do {
-//                        let characterSheet = try JSONDecoder().decode(DDB.CharacterSheet.self, from: data)
-//                        guard let character = Character(characterSheet: characterSheet, realm: .homebrew) else {
-//                            return Empty().eraseToAnyPublisher()
-//                        }
-//                        return Just(.item(character as CompendiumItem)).setFailureType(to: CompendiumDataSourceReaderError.self).eraseToAnyPublisher()
-//                    } catch {
-//                        return Fail(error: CompendiumDataSourceReaderError.incompatibleDataSource).eraseToAnyPublisher()
-//                    }
-//                }.eraseToAnyPublisher()
+        var output: AsyncStream<CompendiumDataSourceReaderOutput> {
+            get async throws {
+                let data = try await source.read()
+                let characterSheet: DDB.CharacterSheet
+                do {
+                    characterSheet = try JSONDecoder().decode(DDB.CharacterSheet.self, from: data)
+                } catch {
+                    throw CompendiumDataSourceReaderError.incompatibleDataSource
+                }
+
+                guard let character = Character(characterSheet: characterSheet, realm: .homebrew) else {
+                    throw CompendiumDataSourceReaderError.incompatibleDataSource
+                }
+
+                return [.item(character)].async.stream
+            }
         }
     }
 }
