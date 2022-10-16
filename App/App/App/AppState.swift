@@ -63,7 +63,6 @@ struct AppState: Equatable {
 
     enum Presentation: Equatable {
         case welcomeSheet
-        case postLaunchLoadingScreen
         case crashReportingPermissionAlert
     }
 
@@ -81,8 +80,7 @@ struct AppState: Equatable {
         case welcomeSheetSampleEncounterTapped
         case onAppear
 
-        case sceneDidBecomeActive
-        case sceneWillResignActive
+        case scene(ScenePhase)
 
         case onOpenURL(URL)
 
@@ -154,30 +152,7 @@ struct AppState: Equatable {
                             }
                         }.compactMap { $0 }.append(.dismissPresentation(.welcomeSheet))).eraseToEffect()
                 case .onAppear:
-                    break
-                case .sceneDidBecomeActive:
-                    state.sceneIsActive = true
-
-                    if env.database.needsPrepareForUse {
-                        precondition(state.presentation == nil)
-
-                        if !env.preferences().didShowWelcomeSheet {
-                            state.pendingPresentations.append(.welcomeSheet)
-                        }
-
-                        return Effect.run { operation in
-                            await operation.send(.requestPresentation(.postLaunchLoadingScreen))
-
-                            async let preparations: () = try env.database.prepareForUse()
-                            async let minimumShowDuration: () = await Task {
-                                try await Task.sleep(nanoseconds: NSEC_PER_SEC*2)
-                            }.value
-
-                            try await preparations
-                            try await minimumShowDuration
-                            await operation.send(.dismissPresentation(.postLaunchLoadingScreen))
-                        }
-                    } else if !env.preferences().didShowWelcomeSheet {
+                    if !env.preferences().didShowWelcomeSheet {
                         return .init(value: .requestPresentation(.welcomeSheet))
                     } else if let nodeCount = try? env.campaignBrowser.nodeCount(),
                               nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
@@ -185,8 +160,8 @@ struct AppState: Equatable {
                         // if the user created some campaign nodes
                         env.requestAppStoreReview()
                     }
-                case .sceneWillResignActive:
-                    state.sceneIsActive = false
+                case .scene(let phase):
+                    state.sceneIsActive = phase == .active
                 case .onOpenURL(let url):
                     guard let invocation = try? appInvocationRouter.match(url: url) else { break }
                     if case .diceRoller(let roller) = invocation {
