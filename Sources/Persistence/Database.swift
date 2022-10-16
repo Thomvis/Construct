@@ -30,26 +30,27 @@ public class Database {
         try await self.init(queue: queue, importDefaultContent: importDefaultContent)
     }
 
-//    public convenience init(
-//        path: String?,
-//        source: Database
-//    ) async throws {
-//        let queue = try path.map { try DatabaseQueue(path: $0) } ?? DatabaseQueue()
-//
-//        try await withCheckedThrowingContinuation { continuation in
-//            do {
-//                try source.queue.backup(to: queue) { progress in
-//                    if progress.isCompleted {
-//                        continuation.resume()
-//                    }
-//                }
-//            } catch {
-//                continuation.resume(with: .failure(error))
-//            }
-//        }
-//
-//        try await self.init(queue: queue)
-//    }
+    /// Copies all content from `source` into this database
+    public convenience init(
+        path: String?,
+        source: Database
+    ) async throws {
+        let queue = try path.map { try DatabaseQueue(path: $0) } ?? DatabaseQueue()
+
+        try await withCheckedThrowingContinuation { continuation in
+            do {
+                try source.queue.backup(to: queue) { progress in
+                    if progress.isCompleted {
+                        continuation.resume()
+                    }
+                }
+            } catch {
+                continuation.resume(with: .failure(error))
+            }
+        }
+
+        try await self.init(queue: queue, importDefaultContent: false)
+    }
 
     private init(queue: DatabaseQueue, importDefaultContent: Bool) async throws {
         self.queue = queue

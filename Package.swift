@@ -84,7 +84,7 @@ let package = Package(
             name: "Helpers",
             dependencies: [
                 .product(name: "Tagged", package: "swift-tagged"),
-                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
             ]
         ),
         .target(

@@ -75,46 +75,41 @@ class CreatureActionParserTest: XCTestCase {
         XCTAssertNoDifference(action, .weaponAttack(.init(type: .melee, range: .reach(5), hitModifier: Modifier(modifier: 5), effects: [])))
     }
 
-//    func testAllMonsterActions() {
-//        let sut = Open5eMonsterDataSourceReader(
-//            dataSource: FileDataSource(path: Bundle.main.path(forResource: "monsters", ofType: "json")!)
-//        )
-//        let job = sut.read()
-//
-//        let e = expectation(description: "Receive at least one item")
-//        _ = job.output.compactMap { $0.item }.collect().sink(receiveCompletion: { _ in
-//            e.fulfill()
-//        }, receiveValue: { items in
-//            var actions: [(CreatureAction, CreatureActionParser.Action?)] = []
-////            self.measure {
-//                actions = items
-//                    .compactMap { $0 as? Monster }
-//                    .flatMap { $0.stats.actions }
-//                    .map {
-//                        ($0.input, CreatureActionParser.parse($0.description))
-//                    }
-////            }
-//
-//
-//            let attacks = actions.filter { $0.0.description.lowercased().contains("weapon attack") }
-//            let parsed = attacks.filter {
-//                if case .weaponAttack(let a)? = $0.1 {
-//                    return a.effects.count > 0
-//                }
-//                return false
+    func testAllMonsterActions() async throws {
+        let sut = Open5eMonsterDataSourceReader(
+            dataSource: FileDataSource(path: defaultMonstersPath)
+        )
+        let job = sut.makeJob()
+
+        let items = try await Array(job.output.compactMap { $0.item })
+
+        var actions: [(CreatureAction, CreatureActionParser.Action?)] = []
+//            self.measure {
+            actions = items
+                .compactMap { $0 as? Monster }
+                .flatMap { $0.stats.actions }
+                .map {
+                    ($0.input, CreatureActionParser.parse($0.description))
+                }
 //            }
-////            let unparsed = attacks.filter {
-////                if case .weaponAttack(let a)? = $0.1 {
-////                    return a.effects.count == 0
-////                }
-////                return true
-////            }
-//            print("total: \(attacks.count), parsed: \(parsed.count)")
-//
-//            assertSnapshot(matching: actions, as: .dump)
-//        })
-//
-//        waitForExpectations(timeout: 2, handler: nil)
-//    }
+
+
+        let attacks = actions.filter { $0.0.description.lowercased().contains("weapon attack") }
+        let parsed = attacks.filter {
+            if case .weaponAttack(let a)? = $0.1 {
+                return a.effects.count > 0
+            }
+            return false
+        }
+//            let unparsed = attacks.filter {
+//                if case .weaponAttack(let a)? = $0.1 {
+//                    return a.effects.count == 0
+//                }
+//                return true
+//            }
+        print("total: \(attacks.count), parsed: \(parsed.count)")
+
+        assertSnapshot(matching: actions, as: .dump)
+    }
 
 }

@@ -25,7 +25,6 @@
 		E92A41E4240D2F0C009AF440 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E3240D2F0C009AF440 /* WelcomeView.swift */; };
 		E92B8FD823C904D70040E6C5 /* ActivityButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92B8FD723C904D70040E6C5 /* ActivityButton.swift */; };
 		E931CF8524FD17B8006CEE78 /* CreatureActionParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8424FD17B8006CEE78 /* CreatureActionParserTest.swift */; };
-		E931CF8824FE5D68006CEE78 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = E931CF8724FE5D68006CEE78 /* SnapshotTesting */; };
 		E931CF8A25003077006CEE78 /* ParserCombinatorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8925003076006CEE78 /* ParserCombinatorTest.swift */; };
 		E931CF8F2500C8A8006CEE78 /* DiceAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8E2500C8A8006CEE78 /* DiceAction.swift */; };
 		E931CF912500C8BF006CEE78 /* DiceActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF902500C8BF006CEE78 /* DiceActionView.swift */; };
@@ -156,7 +155,8 @@
 		E9A95187233BF83000141552 /* DDBCharacterSheetURLParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95186233BF83000141552 /* DDBCharacterSheetURLParserTest.swift */; };
 		E9AB031323EBF09B0091C908 /* EqualSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AB031223EBF09B0091C908 /* EqualSize.swift */; };
 		E9AEA49B24C62A9600ACB44C /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AEA49A24C62A9600ACB44C /* Helpers.swift */; };
-		E9B3B85A28FB41C4003764DD /* PersistenceTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = E9B3B85928FB41C4003764DD /* PersistenceTestSupport */; };
+		E9B3B87528FC8824003764DD /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = E9B3B87428FC8824003764DD /* SnapshotTesting */; };
+		E9B3B87728FC8847003764DD /* PersistenceTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = E9B3B87628FC8847003764DD /* PersistenceTestSupport */; };
 		E9B432BB22AAF7540054324E /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B432BA22AAF7540054324E /* Environment.swift */; };
 		E9BE1C4F28B524FF00D80464 /* DiceRollerInvocation in Frameworks */ = {isa = PBXBuildFile; productRef = E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */; };
 		E9C7F7862632C193000351AB /* NumberPadTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C7F7852632C193000351AB /* NumberPadTest.swift */; };
@@ -397,8 +397,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E9B3B85A28FB41C4003764DD /* PersistenceTestSupport in Frameworks */,
-				E931CF8824FE5D68006CEE78 /* SnapshotTesting in Frameworks */,
+				E9B3B87728FC8847003764DD /* PersistenceTestSupport in Frameworks */,
+				E9B3B87528FC8824003764DD /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -880,8 +880,8 @@
 			);
 			name = UnitTests;
 			packageProductDependencies = (
-				E931CF8724FE5D68006CEE78 /* SnapshotTesting */,
-				E9B3B85928FB41C4003764DD /* PersistenceTestSupport */,
+				E9B3B87428FC8824003764DD /* SnapshotTesting */,
+				E9B3B87628FC8847003764DD /* PersistenceTestSupport */,
 			);
 			productName = UnitTests;
 			productReference = E9F9EB482319694100A70D11 /* UnitTests.xctest */;
@@ -921,12 +921,12 @@
 			packageReferences = (
 				E905E0BA246D83B800698C0A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				E93FA1C824EC5B7F007441BF /* XCRemoteSwiftPackageReference "Parma" */,
-				E931CF8624FE5D68006CEE78 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 				E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
 				E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 				E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
 				E91CCC812614C4D200CB0527 /* XCRemoteSwiftPackageReference "swift-tagged" */,
 				E9558B6E2757FBBC000837AB /* XCRemoteSwiftPackageReference "BetterSafariView" */,
+				E9B3B87328FC8824003764DD /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -1509,14 +1509,6 @@
 				minimumVersion = 0.5.0;
 			};
 		};
-		E931CF8624FE5D68006CEE78 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.8.2;
-			};
-		};
 		E93FA1C824EC5B7F007441BF /* XCRemoteSwiftPackageReference "Parma" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/dasautoooo/Parma";
@@ -1557,6 +1549,14 @@
 				minimumVersion = 0.1.1;
 			};
 		};
+		E9B3B87328FC8824003764DD /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1569,11 +1569,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E91CCC812614C4D200CB0527 /* XCRemoteSwiftPackageReference "swift-tagged" */;
 			productName = Tagged;
-		};
-		E931CF8724FE5D68006CEE78 /* SnapshotTesting */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E931CF8624FE5D68006CEE78 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
-			productName = SnapshotTesting;
 		};
 		E93FA1C924EC5B7F007441BF /* Parma */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1633,7 +1628,12 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = DiceRollerFeature;
 		};
-		E9B3B85928FB41C4003764DD /* PersistenceTestSupport */ = {
+		E9B3B87428FC8824003764DD /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9B3B87328FC8824003764DD /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
+		};
+		E9B3B87628FC8847003764DD /* PersistenceTestSupport */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PersistenceTestSupport;
 		};

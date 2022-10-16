@@ -12,6 +12,7 @@ import XCTest
 import Combine
 import Persistence
 import GameModels
+import PersistenceTestSupport
 
 class CampaignBrowserTest: XCTestCase {
 
@@ -55,7 +56,7 @@ class CampaignBrowserTest: XCTestCase {
     }
 
     func testCount() async {
-        let db = try! await Database(path: nil, importDefaultContent: true)
+        let db = try! await Database(path: nil, source: Database(path: InitialDatabase.path))
         let sut = CampaignBrowser(store: db.keyValueStore)
 
         XCTAssertEqual(try! sut.nodeCount(), CampaignBrowser.initialSpecialNodeCount)

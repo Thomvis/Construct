@@ -27,7 +27,7 @@ public class DDBCharacterDataSourceReader: CompendiumDataSourceReader {
     struct Job: CompendiumDataSourceReaderJob {
         let source: CompendiumDataSource
 
-        var output: AsyncStream<CompendiumDataSourceReaderOutput> {
+        var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
             get async throws {
                 let data = try await source.read()
                 let characterSheet: DDB.CharacterSheet

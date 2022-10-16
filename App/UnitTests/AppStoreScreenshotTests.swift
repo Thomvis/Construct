@@ -47,7 +47,8 @@ class AppStoreScreenshotTests: XCTestCase {
     }
 
     override func setUp() async throws {
-        environment = try! await Environment.live(database: Database(path: InitialDatabase.path))
+        let db = try! await Database(path: nil, source: Database(path: InitialDatabase.path))
+        environment = try! await Environment.live(database: db)
     }
 
     func test_iPhone_screenshot1() {

@@ -15,6 +15,7 @@ import GameModels
 
 class EncounterDetailTest: XCTestCase {
 
+    @MainActor
     func testFlow_RemoveActiveCombatant() async throws {
         let initialState = EncounterDetailViewState(building: Encounter(name: "", combatants: [
             Combatant(adHoc: AdHocCombatantDefinition(

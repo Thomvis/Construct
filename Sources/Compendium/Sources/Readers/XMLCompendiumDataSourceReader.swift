@@ -27,12 +27,14 @@ public class XMLCompendiumDataSourceReader: CompendiumDataSourceReader {
     struct Job: CompendiumDataSourceReaderJob {
         let source: CompendiumDataSource
 
-        var output: AsyncStream<CompendiumDataSourceReaderOutput> {
+        var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
             get async throws {
                 let items = try XMLCompendiumParser.parse(data: await source.read(), elements: [.compendium(.monster(nil)), .compendium(.spell(nil))]).values
 
                 return items
-                    .mapError { _ in CompendiumDataSourceReaderError.incompatibleDataSource }
+                    .mapError { error in
+                        CompendiumDataSourceReaderError.incompatibleDataSource
+                    }
                     .map { (element, content) -> CompendiumDataSourceReaderOutput in
                         switch (element) {
                         case .compendium(.monster(nil)):

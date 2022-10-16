@@ -19,7 +19,7 @@ public protocol CompendiumDataSourceReader {
 }
 
 public protocol CompendiumDataSourceReaderJob {
-    var output: AsyncStream<CompendiumDataSourceReaderOutput> { get async throws }
+    var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> { get async throws }
 }
 
 public enum CompendiumDataSourceReaderOutput {

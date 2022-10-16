@@ -19,5 +19,5 @@ public extension DefaultContentVersions {
     )
 }
 
-public let defaultMonstersPath = Bundle.main.path(forResource: "monsters", ofType: "json")
-public let defaultSpellsPath = Bundle.main.path(forResource: "spells", ofType: "json")
+public let defaultMonstersPath = Bundle.module.path(forResource: "monsters", ofType: "json")!
+public let defaultSpellsPath = Bundle.module.path(forResource: "spells", ofType: "json")!
