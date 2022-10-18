@@ -8,9 +8,8 @@
 
 import Foundation
 import XCTest
-@testable import Construct
 import Combine
-import GameModels
+@testable import GameModels
 import Helpers
 
 class StatBlockCombatantResourcesTest: XCTestCase {

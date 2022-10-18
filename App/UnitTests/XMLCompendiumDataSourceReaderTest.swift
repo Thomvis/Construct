@@ -11,39 +11,33 @@ import XCTest
 @testable import Construct
 import Combine
 import SnapshotTesting
+import Compendium
 
 class XMLCompendiumDataSourceReaderTest: XCTestCase {
 
-    func test() {
+    func test() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "compendium", ofType: "xml")!)
         let sut = XMLCompendiumDataSourceReader(dataSource: dataSource)
-        let job = sut.read()
+        let job = sut.makeJob()
 
-        let e = expectation(description: "Receive items")
-        _ = job.output.compactMap { $0.item }.collect().sink(receiveCompletion: { c in
-            if case .failure(let e) = c {
-                XCTFail(e.localizedDescription)
-            }
-        }) { items in
-            assertSnapshot(matching: items, as: .dump)
-            e.fulfill()
-        }
 
-        waitForExpectations(timeout: 2.0, handler: nil)
+        let items = try await Array(job.output.compactMap { $0.item })
+        assertSnapshot(matching: items, as: .dump)
     }
 
-    func testIncorrectFormat() {
+    func testIncorrectFormat() async throws{
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ii_mm", ofType: "json")!)
         let sut = XMLCompendiumDataSourceReader(dataSource: dataSource)
-        let job = sut.read()
+        let job = sut.makeJob()
 
-        let e = expectation(description: "Receive items")
-        _ = job.output.compactMap { $0.item }.collect().sink(receiveCompletion: { c in
-            guard case .failure(.incompatibleDataSource) = c else { XCTFail(); return }
-            e.fulfill()
-        }, receiveValue: { _ in })
-
-        waitForExpectations(timeout: 2.0, handler: nil)
+        do {
+            _ = try await Array(job.output)
+            XCTFail("Expected job to fail")
+        } catch CompendiumDataSourceReaderError.incompatibleDataSource {
+            // expected
+        } catch {
+            XCTFail("Expected job to fail with CompendiumDataSourceReaderError.incompatibleDataSource")
+        }
     }
 
 }

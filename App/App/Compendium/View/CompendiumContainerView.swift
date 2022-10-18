@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
+import GameModels
 
 struct CompendiumContainerView: View {
     @EnvironmentObject var environment: Environment

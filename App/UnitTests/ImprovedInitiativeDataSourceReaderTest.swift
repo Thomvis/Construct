@@ -12,6 +12,7 @@ import Combine
 import GameModels
 import Helpers
 import Dice
+import Compendium
 
 class ImprovedInitiativeDataSourceReaderTest: XCTestCase {
 
@@ -21,59 +22,51 @@ class ImprovedInitiativeDataSourceReaderTest: XCTestCase {
         dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ii_mm", ofType: "json")!)
     }
 
-    func test() {
+    func test() async throws {
         let sut = ImprovedInitiativeDataSourceReader(dataSource: dataSource)
-        let job = sut.read()
+        let job = sut.makeJob()
 
-        let e = expectation(description: "Receive items")
-        _ = job.output.compactMap { $0.item }.collect().sink(receiveCompletion: { c in
-            if case .failure(let e) = c {
-                XCTFail(e.localizedDescription)
-            }
-        }) { items in
-            XCTAssertEqual(items.count, 1)
+        let items = try await Array(job.output.compactMap { $0.item })
 
-            // Some (random) checks
-            let last = try! XCTUnwrap(items.last) as! Monster
-            XCTAssertEqual(last.stats.name, "Adult White Dragon")
-            XCTAssertEqual(last.stats.size, .huge)
-            XCTAssertEqual(last.stats.type, "dragon")
-            XCTAssertEqual(last.stats.subtype, nil)
-            XCTAssertEqual(last.stats.alignment, .chaoticEvil)
-            XCTAssertEqual(last.stats.hitPoints, 200)
-            XCTAssertEqual(last.stats.hitPointDice, 16.d(12) + 96)
-            XCTAssertEqual(last.stats.movement, [MovementMode.walk: 40, MovementMode.burrow: 30, MovementMode.fly: 80, MovementMode.swim: 40])
-            XCTAssertEqual(last.stats.armorClass, 18)
-            XCTAssertEqual(last.stats.armor.count, 1)
-            XCTAssertEqual(last.stats.armor[0].name, "natural armor")
+        XCTAssertEqual(items.count, 1)
 
-            XCTAssertEqual(last.stats.savingThrows.count, 4)
-            XCTAssertEqual(last.stats.skills.count, 2)
+        // Some (random) checks
+        let last = try! XCTUnwrap(items.last) as! Monster
+        XCTAssertEqual(last.stats.name, "Adult White Dragon")
+        XCTAssertEqual(last.stats.size, .huge)
+        XCTAssertEqual(last.stats.type, "dragon")
+        XCTAssertEqual(last.stats.subtype, nil)
+        XCTAssertEqual(last.stats.alignment, .chaoticEvil)
+        XCTAssertEqual(last.stats.hitPoints, 200)
+        XCTAssertEqual(last.stats.hitPointDice, 16.d(12) + 96)
+        XCTAssertEqual(last.stats.movement, [MovementMode.walk: 40, MovementMode.burrow: 30, MovementMode.fly: 80, MovementMode.swim: 40])
+        XCTAssertEqual(last.stats.armorClass, 18)
+        XCTAssertEqual(last.stats.armor.count, 1)
+        XCTAssertEqual(last.stats.armor[0].name, "natural armor")
 
-            XCTAssertEqual(last.stats.features.count, 2)
-            XCTAssertEqual(last.stats.actions.count, 6)
+        XCTAssertEqual(last.stats.savingThrows.count, 4)
+        XCTAssertEqual(last.stats.skills.count, 2)
 
-            XCTAssertEqual(last.stats.legendary?.description, nil)
-            XCTAssertEqual(last.stats.legendary?.actions.count, 3)
+        XCTAssertEqual(last.stats.features.count, 2)
+        XCTAssertEqual(last.stats.actions.count, 6)
 
-            e.fulfill()
-        }
-
-        waitForExpectations(timeout: 2.0, handler: nil)
+        XCTAssertEqual(last.stats.legendary?.description, nil)
+        XCTAssertEqual(last.stats.legendary?.actions.count, 3)
     }
 
-    func testIncorrectFormat() {
+    func testIncorrectFormat() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "compendium", ofType: "xml")!)
         let sut = ImprovedInitiativeDataSourceReader(dataSource: dataSource)
-        let job = sut.read()
+        let job = sut.makeJob()
 
-        let e = expectation(description: "Receive items")
-        _ = job.output.compactMap { $0.item }.collect().sink(receiveCompletion: { c in
-            guard case .failure(.incompatibleDataSource) = c else { XCTFail(); return }
-            e.fulfill()
-        }, receiveValue: { _ in })
-
-        waitForExpectations(timeout: 2.0, handler: nil)
+        do {
+            _ = try await Array(job.output)
+            XCTFail("Expected job to fail")
+        } catch CompendiumDataSourceReaderError.incompatibleDataSource {
+            // expected
+        } catch {
+            XCTFail("Expected job to fail with CompendiumDataSourceReaderError.incompatibleDataSource")
+        }
     }
 
 }

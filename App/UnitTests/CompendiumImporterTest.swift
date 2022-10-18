@@ -10,65 +10,59 @@ import Foundation
 import XCTest
 @testable import Construct
 import Combine
+import Compendium
+import Persistence
+import GameModels
+import PersistenceTestSupport
 
 class CompendiumImporterTest: XCTestCase {
 
-    var compendium: Compendium!
+    var compendium: DatabaseCompendium!
 
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
 
-        self.compendium = Compendium(try! Database(path: nil))
+        let db = try! await Database(path: nil, source: Database(path: InitialDatabase.path))
+        self.compendium = DatabaseCompendium(database: db)
     }
 
-    func test() {
+    func test() async throws {
         let sut = CompendiumImporter(compendium: compendium)
         let item = Fixtures.monster
         let task = CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]))
 
-        let e = expectation(description: "Importing ends")
-        _ = sut.run(task).sink(receiveCompletion: { completion in
-            switch completion {
-            case .finished: e.fulfill()
-            default: XCTFail()
-            }
-        }, receiveValue: { result in
-            XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 1, overwrittenItemCount: 0, invalidItemCount: 0))
-        })
-
-        waitForExpectations(timeout: 2, handler: nil)
+        let result = try await sut.run(task)
+        XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 1, overwrittenItemCount: 0, invalidItemCount: 0))
 
         let entry = try! compendium.database.keyValueStore.get(item.key)
         XCTAssertEqual(entry?.item.title, item.title)
     }
 
-    func testOverwritingDisabled() {
+    func testOverwritingDisabled() async throws {
         let sut = CompendiumImporter(compendium: compendium)
         var item = Fixtures.monster
 
-        _ = sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting:  false)).sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+        _ = try await sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting:  false))
 
         // change the item and import it again
         item.stats.hitPoints = 1000
-        _ = sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting:  false)).sink(receiveCompletion: { _ in }, receiveValue: { result in
-            XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 0, overwrittenItemCount: 0, invalidItemCount: 0))
-        })
+        let result = try await sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting:  false))
+        XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 0, overwrittenItemCount: 0, invalidItemCount: 0))
 
         let entry = try! compendium.database.keyValueStore.get(item.key)
         XCTAssertEqual((entry?.item as? Monster)?.stats.hitPoints, 3)
     }
 
-    func testOverwritingEnabled() {
+    func testOverwritingEnabled() async throws {
         let sut = CompendiumImporter(compendium: compendium)
         var item = Fixtures.monster
 
-        _ = sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting: true)).sink(receiveCompletion: { _ in }, receiveValue: { _ in })
+        _ = try await sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting: true))
 
         // change the item and import it again
         item.stats.hitPoints = 1000
-        _ = sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting: true)).sink(receiveCompletion: { _ in }, receiveValue: { result in
-            XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 0, overwrittenItemCount: 1, invalidItemCount: 0))
-        })
+        let result = try await sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting: true))
+        XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 0, overwrittenItemCount: 1, invalidItemCount: 0))
 
         let entry = try! compendium.database.keyValueStore.get(item.key)
         XCTAssertEqual((entry?.item as? Monster)?.stats.hitPoints, 1000)
@@ -81,12 +75,12 @@ struct DummyCompendiumDataSourceReader: CompendiumDataSourceReader {
     let dataSource: CompendiumDataSource = DummyCompendiumDataSource()
     let items: [CompendiumItem]
 
-    func read() -> CompendiumDataSourceReaderJob {
-        return Job(output: Publishers.Sequence(sequence: items).map { .item($0) }.eraseToAnyPublisher())
+    func makeJob() -> CompendiumDataSourceReaderJob {
+        return Job(output: AsyncThrowingStream(items.map {CompendiumDataSourceReaderOutput.item($0) }.async))
     }
 
     struct Job: CompendiumDataSourceReaderJob {
-        var output: AnyPublisher<CompendiumDataSourceReaderOutput, CompendiumDataSourceReaderError>
+        var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error>
     }
 }
 
@@ -94,7 +88,7 @@ struct DummyCompendiumDataSource: CompendiumDataSource {
     static var name = "DummyCompendiumDataSource"
     var bookmark: Data? = nil
 
-    func read() -> AnyPublisher<Data, CompendiumDataSourceError> {
-        return Empty().eraseToAnyPublisher()
+    func read() -> Data {
+        return Data()
     }
 }

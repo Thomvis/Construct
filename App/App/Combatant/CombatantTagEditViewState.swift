@@ -9,6 +9,7 @@
 import Foundation
 import ComposableArchitecture
 import Helpers
+import GameModels
 
 struct CombatantTagEditViewState: Equatable, NavigationStackItemState {
 

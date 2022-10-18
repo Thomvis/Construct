@@ -9,6 +9,7 @@
 import Foundation
 import XCTest
 @testable import Construct
+import GameModels
 
 class RunningEncounterTest: XCTestCase {
 

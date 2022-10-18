@@ -10,6 +10,7 @@ import Foundation
 import XCTest
 import GameModels
 @testable import Construct
+@testable import Persistence
 
 class CompendiumEntryTest: XCTestCase {
     func testKey() {

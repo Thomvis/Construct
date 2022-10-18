@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import SharedViews
+import GameModels
 
 struct CombatantTagPopover: View, Popover {
     var popoverId: AnyHashable { "CombatantTagPopover" }

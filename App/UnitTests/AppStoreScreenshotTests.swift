@@ -17,6 +17,8 @@ import Helpers
 import DiceRollerFeature
 import Dice
 import GameModels
+import Persistence
+import PersistenceTestSupport
 
 /// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests
 @available(iOS 16.0, *)
@@ -31,10 +33,7 @@ class AppStoreScreenshotTests: XCTestCase {
         ("iPadPro129_3rd_gen", .iPadPro12_9)
     ]
 
-    static var environment: Construct.Environment!
-    var environment: Construct.Environment {
-        Self.environment
-    }
+    var environment: Construct.Environment!
 
     override class func setUp() {
         super.setUp()
@@ -45,11 +44,11 @@ class AppStoreScreenshotTests: XCTestCase {
         UITabBar.appearance().unselectedItemTintColor = UIColor.systemGray2
         // Workaround for transparent tab bar
         UITabBar.appearance().backgroundColor = UIColor.systemBackground
+    }
 
-        // Initializing the environment once saves a lot of time (importing & parsing default content is slow)
-        environment = try! apply(Environment.live()) {
-            $0.database = try .init(path: nil)
-        }
+    override func setUp() async throws {
+        let db = try! await Database(path: nil, source: Database(path: InitialDatabase.path))
+        environment = try! await Environment.live(database: db)
     }
 
     func test_iPhone_screenshot1() {
@@ -152,8 +151,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     compendium: CompendiumIndexState.nullInstance,
                     diceRoller: DiceRollerViewState.nullInstance
                 )
-            ),
-            preferences: Preferences()
+            )
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
@@ -172,8 +170,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         state.calculatorState.previousExpressions = [1.d(20)+1.d(6)]
                     }
                 )
-            ),
-            preferences: Preferences()
+            )
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
@@ -210,8 +207,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     },
                     diceRoller: DiceRollerViewState.nullInstance
                 )
-            ),
-            preferences: Preferences()
+            )
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
@@ -238,8 +234,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     compendium: .nullInstance,
                     diceRoller: DiceRollerViewState.nullInstance
                 )
-            ),
-            preferences: Preferences()
+            )
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
@@ -322,8 +317,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         diceCalculator: DiceCalculatorState.abilityCheck(3, rollOnAppear: false, prefilledResult: 22)
                     )
                 )
-            ),
-            preferences: Preferences()
+            )
         )
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
         return ConstructView(store: store)
@@ -524,8 +518,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         diceCalculator: DiceCalculatorState.abilityCheck(3, rollOnAppear: false, prefilledResult: 22)
                     )
                 )
-            ),
-            preferences: Preferences()
+            )
         )
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
         return ConstructView(store: store)
@@ -575,8 +568,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     ),
                     diceCalculator: FloatingDiceRollerViewState(hidden: true, diceCalculator: DiceCalculatorState.nullInstance)
                 )
-            ),
-            preferences: Preferences()
+            )
         )
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
         return ConstructView(store: store)
@@ -682,8 +674,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         )
                     )
                 )
-            ),
-            preferences: Preferences()
+            )
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
@@ -725,8 +716,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         diceCalculator: DiceCalculatorState.nullInstance
                     )
                 )
-            ),
-            preferences: Preferences()
+            )
         )
         let backgroundStore = Store<AppState, AppState.Action>(initialState: backgroundState, reducer: Reducer.empty, environment: ())
         let backgroundView = ConstructView(store: backgroundStore)

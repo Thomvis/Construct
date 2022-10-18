@@ -8,18 +8,14 @@
 
 import Foundation
 import XCTest
-@testable import Construct
 import Combine
+import Compendium
 
 class FileDataSourceTest: XCTestCase {
-    func test() {
-        let sut = FileDataSource(path: Bundle.main.path(forResource: "monsters", ofType: "json")!)
+    func test() async throws {
+        let sut = FileDataSource(path: defaultMonstersPath)
 
-        let e = expectation(description: "Data is read from file")
-        _ = sut.read().sink(receiveCompletion: { _ in }) { data in
-            XCTAssertNotNil(data)
-            e.fulfill()
-        }
-        waitForExpectations(timeout: 2, handler: nil)
+        let data = try await sut.read()
+        XCTAssertNotNil(data)
     }
 }

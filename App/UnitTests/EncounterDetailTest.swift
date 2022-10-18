@@ -15,7 +15,8 @@ import GameModels
 
 class EncounterDetailTest: XCTestCase {
 
-    func testFlow_RemoveActiveCombatant() throws {
+    @MainActor
+    func testFlow_RemoveActiveCombatant() async throws {
         let initialState = EncounterDetailViewState(building: Encounter(name: "", combatants: [
             Combatant(adHoc: AdHocCombatantDefinition(
                         id: UUID().tagged(),
@@ -29,7 +30,7 @@ class EncounterDetailTest: XCTestCase {
                         })),
         ]))
 
-        let store = TestStore(
+        let store = await TestStore(
             initialState: initialState,
             reducer: EncounterDetailViewState.reducer,
             environment: try apply(Environment.live()) {
@@ -40,19 +41,19 @@ class EncounterDetailTest: XCTestCase {
         )
 
         // start encounter
-        store.send(.run(nil)) {
+        await store.send(.run(nil)) {
             var encounter = $0.building
             encounter.ensureStableDiscriminators = true
             $0.running = RunningEncounter(id: UUID(fakeSeq: 0).tagged(), base: encounter, current: encounter)
         }
         // roll initiative
-        store.send(.runningEncounter(.current(.initiative(InitiativeSettings.default)))) {
+        await store.send(.runningEncounter(.current(.initiative(InitiativeSettings.default)))) {
             $0.running!.current.combatants[position: 0].initiative = 2
             $0.running!.current.combatants[position: 1].initiative = 3
             $0.running!.turn = .init(round: 1, combatantId: $0.running!.current.combatants[1].id)
         }
         // remove second combatant (who has the current turn)
-        store.send(.runningEncounter(.current(.remove(initialState.building.combatants[1])))) {
+        await store.send(.runningEncounter(.current(.remove(initialState.building.combatants[1])))) {
             $0.running!.current.combatants.remove(at: 1)
             $0.running!.turn = .init(round: 1, combatantId: $0.running!.current.combatants[0].id)
         }

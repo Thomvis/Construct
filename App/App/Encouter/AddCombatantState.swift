@@ -9,6 +9,7 @@
 import Foundation
 import ComposableArchitecture
 import Helpers
+import GameModels
 
 struct AddCombatantState: Equatable {
     var compendiumState: CompendiumIndexState

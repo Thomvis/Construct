@@ -10,6 +10,7 @@ import Foundation
 import ComposableArchitecture
 import DiceRollerFeature
 import Dice
+import GameModels
 
 struct ColumnNavigationViewState: Equatable {
     var campaignBrowse = CampaignBrowseViewState(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)

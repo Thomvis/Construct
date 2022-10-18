@@ -11,6 +11,7 @@ import SwiftUI
 import ComposableArchitecture
 import DiceRollerFeature
 import Dice
+import GameModels
 
 // A view that allows entry of a number, either directly or through a simulated dice roll
 struct NumberEntryView: View {

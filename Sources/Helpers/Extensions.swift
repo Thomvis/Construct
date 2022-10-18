@@ -417,3 +417,16 @@ public extension Binding {
         })
     }
 }
+
+public extension AsyncSequence {
+    /// Hides the specific type of the AsyncSequence (e.g. AsyncMapSequence)
+    var stream: AsyncThrowingStream<Element, Error> {
+        AsyncThrowingStream(self)
+    }
+
+    var first: Element? {
+        get async throws {
+            try await self.first(where: { _ in true })
+        }
+    }
+}

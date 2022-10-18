@@ -12,217 +12,153 @@ import XCTest
 import Combine
 import GameModels
 import Dice
+import Compendium
 
 class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
 
-    func testSarovin() {
+    func testSarovin() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_sarovin", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.read()
+        let job = sut.makeJob()
 
-        let e = expectation(description: "Receive at least one item")
-        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
-            switch completion {
-            case .failure(let e): XCTFail(e.localizedDescription)
-            case .finished: break
-            }
-        }) { item in
-            let char = item as! Character
-            XCTAssertEqual(char.level, 3)
+        let item = try await job.output.compactMap { $0.item }.first
 
-            XCTAssertEqual(char.stats.name, "Sarovin a'Ryr")
-            XCTAssertEqual(char.stats.size, .medium)
-            XCTAssertEqual(char.stats.type, "Aasimar")
-            XCTAssertEqual(char.stats.subtype, "Scourge")
-            XCTAssertEqual(char.stats.alignment, .lawfulNeutral)
+        let char = item as! Character
+        XCTAssertEqual(char.level, 3)
 
-            XCTAssertEqual(char.stats.armorClass, 13)
-            XCTAssertEqual(char.stats.hitPointDice, 3.d(8) + 6)
-            XCTAssertEqual(char.stats.hitPoints, 24)
-            XCTAssertEqual(char.stats.movement, [.walk: 30])
-            XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 10, dexterity: 13, constitution: 15, intelligence: 8, wisdom: 12, charisma: 17))
+        XCTAssertEqual(char.stats.name, "Sarovin a'Ryr")
+        XCTAssertEqual(char.stats.size, .medium)
+        XCTAssertEqual(char.stats.type, "Aasimar")
+        XCTAssertEqual(char.stats.subtype, "Scourge")
+        XCTAssertEqual(char.stats.alignment, .lawfulNeutral)
 
-            // FIXME: add other fields
+        XCTAssertEqual(char.stats.armorClass, 13)
+        XCTAssertEqual(char.stats.hitPointDice, 3.d(8) + 6)
+        XCTAssertEqual(char.stats.hitPoints, 24)
+        XCTAssertEqual(char.stats.movement, [.walk: 30])
+        XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 10, dexterity: 13, constitution: 15, intelligence: 8, wisdom: 12, charisma: 17))
 
-            e.fulfill()
-        }
-
-        waitForExpectations(timeout: 2.0, handler: nil)
+        // FIXME: add other fields
     }
 
-    func testRiverine() {
+    func testRiverine() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_riverine", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.read()
+        let job = sut.makeJob()
 
-        let e = expectation(description: "Receive at least one item")
-        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
-            switch completion {
-            case .failure(let e): XCTFail(e.localizedDescription)
-            case .finished: break
-            }
-        }) { item in
-            let char = item as! Character
-            XCTAssertEqual(char.level, 3)
+        let item = try await job.output.compactMap { $0.item }.first
+        let char = item as! Character
+        XCTAssertEqual(char.level, 3)
 
-            XCTAssertEqual(char.stats.name, "Riverine")
-            XCTAssertEqual(char.stats.size, .medium)
-            XCTAssertEqual(char.stats.type, "Genasi")
-            XCTAssertEqual(char.stats.subtype, "Water")
-            XCTAssertEqual(char.stats.alignment, .neutralGood)
+        XCTAssertEqual(char.stats.name, "Riverine")
+        XCTAssertEqual(char.stats.size, .medium)
+        XCTAssertEqual(char.stats.type, "Genasi")
+        XCTAssertEqual(char.stats.subtype, "Water")
+        XCTAssertEqual(char.stats.alignment, .neutralGood)
 
-            XCTAssertEqual(char.stats.armorClass, 15)
-            XCTAssertEqual(char.stats.hitPointDice, 3.d(8) + 3)
-            XCTAssertEqual(char.stats.hitPoints, 21)
-            XCTAssertEqual(char.stats.movement, [.walk: 30, .swim: 30])
-            XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 10, dexterity: 14, constitution: 12, intelligence: 14, wisdom: 16, charisma: 8))
+        XCTAssertEqual(char.stats.armorClass, 15)
+        XCTAssertEqual(char.stats.hitPointDice, 3.d(8) + 3)
+        XCTAssertEqual(char.stats.hitPoints, 21)
+        XCTAssertEqual(char.stats.movement, [.walk: 30, .swim: 30])
+        XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 10, dexterity: 14, constitution: 12, intelligence: 14, wisdom: 16, charisma: 8))
 
-            // FIXME: add other fields
-
-            e.fulfill()
-        }
-
-        waitForExpectations(timeout: 2.0, handler: nil)
+        // FIXME: add other fields
     }
 
-    func testMisty() {
+    func testMisty() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_misty", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.read()
+        let job = sut.makeJob()
 
-        let e = expectation(description: "Receive at least one item")
-        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
-            switch completion {
-            case .failure(let e): XCTFail(e.localizedDescription)
-            case .finished: break
-            }
-        }) { item in
-            let char = item as! Character
-            XCTAssertEqual(char.level, 4)
+        let item = try await job.output.compactMap { $0.item }.first
+        let char = item as! Character
+        XCTAssertEqual(char.level, 4)
 
-            XCTAssertEqual(char.stats.name, "Misty Mountain")
-            XCTAssertEqual(char.stats.size, .medium)
-            XCTAssertEqual(char.stats.type, "Tabaxi")
-            XCTAssertEqual(char.stats.subtype, nil)
-            XCTAssertEqual(char.stats.alignment, Alignment.neutralGood)
+        XCTAssertEqual(char.stats.name, "Misty Mountain")
+        XCTAssertEqual(char.stats.size, .medium)
+        XCTAssertEqual(char.stats.type, "Tabaxi")
+        XCTAssertEqual(char.stats.subtype, nil)
+        XCTAssertEqual(char.stats.alignment, Alignment.neutralGood)
 
-            XCTAssertEqual(char.stats.armorClass, 14)
-            XCTAssertEqual(char.stats.hitPointDice, 4.d(8) + 4)
-            XCTAssertEqual(char.stats.hitPoints, 26)
-            XCTAssertEqual(char.stats.movement, [.walk: 30])
-            XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 12, dexterity: 17, constitution: 13, intelligence: 9, wisdom: 14, charisma: 13))
+        XCTAssertEqual(char.stats.armorClass, 14)
+        XCTAssertEqual(char.stats.hitPointDice, 4.d(8) + 4)
+        XCTAssertEqual(char.stats.hitPoints, 26)
+        XCTAssertEqual(char.stats.movement, [.walk: 30])
+        XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 12, dexterity: 17, constitution: 13, intelligence: 9, wisdom: 14, charisma: 13))
 
-            // FIXME: add other fields
-
-            e.fulfill()
-        }
-
-        waitForExpectations(timeout: 2.0, handler: nil)
+        // FIXME: add other fields
     }
 
-    func testIshmadon() {
+    func testIshmadon() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_ishmadon", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.read()
+        let job = sut.makeJob()
 
-        let e = expectation(description: "Receive at least one item")
-        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
-            switch completion {
-            case .failure(let e): XCTFail(e.localizedDescription)
-            case .finished: break
-            }
-        }) { item in
-            let char = item as! Character
-            XCTAssertEqual(char.level, 4)
+        let item = try await job.output.compactMap { $0.item }.first
+        let char = item as! Character
+        XCTAssertEqual(char.level, 4)
 
-            XCTAssertEqual(char.stats.name, "Ishmadon Molari")
-            XCTAssertEqual(char.stats.size, .medium)
-            XCTAssertEqual(char.stats.type, "Dragonborn")
-            XCTAssertEqual(char.stats.subtype, nil)
-            XCTAssertEqual(char.stats.alignment, Alignment.chaoticGood)
+        XCTAssertEqual(char.stats.name, "Ishmadon Molari")
+        XCTAssertEqual(char.stats.size, .medium)
+        XCTAssertEqual(char.stats.type, "Dragonborn")
+        XCTAssertEqual(char.stats.subtype, nil)
+        XCTAssertEqual(char.stats.alignment, Alignment.chaoticGood)
 
-            XCTAssertEqual(char.stats.armorClass, 15)
-            XCTAssertEqual(char.stats.hitPointDice, 4.d(8) + 4)
-            XCTAssertEqual(char.stats.hitPoints, 25)
-            XCTAssertEqual(char.stats.movement, [.walk: 30])
-            XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 12, dexterity: 14, constitution: 13, intelligence: 8, wisdom: 12, charisma: 17))
+        XCTAssertEqual(char.stats.armorClass, 15)
+        XCTAssertEqual(char.stats.hitPointDice, 4.d(8) + 4)
+        XCTAssertEqual(char.stats.hitPoints, 25)
+        XCTAssertEqual(char.stats.movement, [.walk: 30])
+        XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 12, dexterity: 14, constitution: 13, intelligence: 8, wisdom: 12, charisma: 17))
 
-            // FIXME: add other fields
-
-            e.fulfill()
-        }
-
-        waitForExpectations(timeout: 2.0, handler: nil)
+        // FIXME: add other fields
     }
 
-    func testThrall() {
+    func testThrall() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_thrall", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.read()
+        let job = sut.makeJob()
 
-        let e = expectation(description: "Receive at least one item")
-        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
-            switch completion {
-            case .failure(let e): XCTFail(e.localizedDescription)
-            case .finished: break
-            }
-        }) { item in
-            let char = item as! Character
-            XCTAssertEqual(char.level, 3)
+        let item = try await job.output.compactMap { $0.item }.first
+        let char = item as! Character
+        XCTAssertEqual(char.level, 3)
 
-            XCTAssertEqual(char.stats.name, "Thrall 'Anak")
-            XCTAssertEqual(char.stats.size, .medium)
-            XCTAssertEqual(char.stats.type, "Half-Orc")
-            XCTAssertEqual(char.stats.subtype, nil)
-            XCTAssertEqual(char.stats.alignment, nil)
+        XCTAssertEqual(char.stats.name, "Thrall 'Anak")
+        XCTAssertEqual(char.stats.size, .medium)
+        XCTAssertEqual(char.stats.type, "Half-Orc")
+        XCTAssertEqual(char.stats.subtype, nil)
+        XCTAssertEqual(char.stats.alignment, nil)
 
-            XCTAssertEqual(char.stats.armorClass, 16)
-            XCTAssertEqual(char.stats.hitPointDice, 3.d(10) + 6)
-            XCTAssertEqual(char.stats.hitPoints, 24)
-            XCTAssertEqual(char.stats.movement, [.walk: 30])
-            XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 17, dexterity: 14, constitution: 14, intelligence: 12, wisdom: 10, charisma: 8))
+        XCTAssertEqual(char.stats.armorClass, 16)
+        XCTAssertEqual(char.stats.hitPointDice, 3.d(10) + 6)
+        XCTAssertEqual(char.stats.hitPoints, 24)
+        XCTAssertEqual(char.stats.movement, [.walk: 30])
+        XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 17, dexterity: 14, constitution: 14, intelligence: 12, wisdom: 10, charisma: 8))
 
-            // FIXME: add other fields
-
-            e.fulfill()
-        }
-
-        waitForExpectations(timeout: 2.0, handler: nil)
+        // FIXME: add other fields
     }
 
-    func testBass() {
+    func testBass() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_bass", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.read()
+        let job = sut.makeJob()
 
-        let e = expectation(description: "Receive at least one item")
-        _ = job.output.compactMap { $0.item }.prefix(1).sink(receiveCompletion: { completion in
-            switch completion {
-            case .failure(let e): XCTFail(e.localizedDescription)
-            case .finished: break
-            }
-        }) { item in
-            let char = item as! Character
-            XCTAssertEqual(char.level, 3)
+        let item = try await job.output.compactMap { $0.item }.first
+        let char = item as! Character
+        XCTAssertEqual(char.level, 3)
 
-            XCTAssertEqual(char.stats.name, "Bass")
-            XCTAssertEqual(char.stats.size, .medium)
-            XCTAssertEqual(char.stats.type, "Tiefling")
-            XCTAssertEqual(char.stats.subtype, nil)
-            XCTAssertEqual(char.stats.alignment, .chaoticNeutral)
+        XCTAssertEqual(char.stats.name, "Bass")
+        XCTAssertEqual(char.stats.size, .medium)
+        XCTAssertEqual(char.stats.type, "Tiefling")
+        XCTAssertEqual(char.stats.subtype, nil)
+        XCTAssertEqual(char.stats.alignment, .chaoticNeutral)
 
-            XCTAssertEqual(char.stats.armorClass, 12)
-            XCTAssertEqual(char.stats.hitPointDice, 3.d(8) + 6)
-            XCTAssertEqual(char.stats.hitPoints, 18)
-            XCTAssertEqual(char.stats.movement, [.walk: 30])
-            XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 8, dexterity: 13, constitution: 14, intelligence: 13, wisdom: 10, charisma: 17))
+        XCTAssertEqual(char.stats.armorClass, 12)
+        XCTAssertEqual(char.stats.hitPointDice, 3.d(8) + 6)
+        XCTAssertEqual(char.stats.hitPoints, 18)
+        XCTAssertEqual(char.stats.movement, [.walk: 30])
+        XCTAssertEqual(char.stats.abilityScores, AbilityScores(strength: 8, dexterity: 13, constitution: 14, intelligence: 13, wisdom: 10, charisma: 17))
 
-            // FIXME: add other fields
-
-            e.fulfill()
-        }
-
-        waitForExpectations(timeout: 2.0, handler: nil)
+        // FIXME: add other fields
     }
 
 }

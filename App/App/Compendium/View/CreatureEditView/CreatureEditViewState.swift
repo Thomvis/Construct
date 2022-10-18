@@ -357,12 +357,6 @@ extension CreatureEditViewState: NavigationStackItemState {
     }
 }
 
-extension StatBlock {
-    static var `default`: StatBlock {
-        StatBlock(name: "", size: nil, type: nil, subtype: nil, alignment: nil, armorClass: nil, armor: [], hitPointDice: nil, hitPoints: nil, movement: nil, abilityScores: nil, savingThrows: [:], skills: [:], damageVulnerabilities: nil, damageResistances: nil, damageImmunities: nil, conditionImmunities: nil, senses: nil, languages: nil, challengeRating: nil, features: [], actions: [], reactions: [])
-    }
-}
-
 extension AbilityScores {
     static var `default`: AbilityScores {
         AbilityScores(strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10)

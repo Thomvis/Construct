@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 import Combine
 import Helpers
+import Compendium
 
 // Fixme: this view is not using the reducer architecture
 struct CompendiumImportView: View {
@@ -141,18 +142,16 @@ struct CompendiumImportView: View {
         let importer = CompendiumImporter(compendium: env.compendium)
         let task = CompendiumImportTask(reader: reader.create(dataSource), overwriteExisting: true)
 
-        let cancellable = importer.run(task)
-            .subscribe(on: DispatchQueue.global())
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
-                if case .failure(let e as Error) = completion {
-                    self.importProgress = .failed(e)
-                }
-            }, receiveValue: { result in
-                self.importProgress = .succeeded(result)
-            })
-
-        importProgress = .started(cancellable)
+        let t = Task {
+            do {
+                let result = try await importer.run(task)
+                importProgress = .succeeded(result)
+            }
+            catch {
+                importProgress = .failed(error)
+            }
+        }
+        importProgress = .started(t)
     }
 
     struct Reader: Identifiable {
@@ -194,7 +193,7 @@ struct CompendiumImportView: View {
     }
 
     enum ImportProgress {
-        case none, started(AnyCancellable), failed(Error), succeeded(CompendiumImporter.Result)
+        case none, started(Task<Void, Never>), failed(Error), succeeded(CompendiumImporter.Result)
 
         var isImporting: Bool {
             if case .started = self { return true }

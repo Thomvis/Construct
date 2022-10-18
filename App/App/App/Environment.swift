@@ -15,6 +15,9 @@ import CombineSchedulers
 import StoreKit
 import DiceRollerFeature
 import Helpers
+import Persistence
+import Compendium
+import GameModels
 
 class Environment: ObservableObject {
 
@@ -72,7 +75,7 @@ class Environment: ObservableObject {
     }
 
     var compendium: Compendium {
-        Compendium(database)
+        DatabaseCompendium(database: database, fallback: DndBeyondExternalCompendium())
     }
 
     var campaignBrowser: CampaignBrowser {
@@ -82,8 +85,14 @@ class Environment: ObservableObject {
 }
 
 extension Environment {
-    static func live() throws -> Environment {
-        let database: Database = try .live()
+    @MainActor
+    static func live(database db: Database? = nil) async throws -> Environment {
+        let database: Database
+        if let db {
+            database = db
+        } else {
+            database = try await .live()
+        }
         let mailComposeDelegate = MailComposeDelegate()
 
         let keyWindow = {
@@ -148,11 +157,11 @@ extension Environment {
 }
 
 extension Database {
-    static func live() throws -> Database {
+    static func live() async throws -> Database {
         let dbUrl = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             .appendingPathComponent("db.sqlite")
 
-        return try Database(path: dbUrl.absoluteString)
+        return try await Database(path: dbUrl.absoluteString)
     }
 }
 
@@ -177,5 +186,17 @@ extension Environment {
             diceLog: diceLog,
             modifierFormatter: modifierFormatter
         )
+    }
+}
+
+extension Environment {
+    func preferences() -> Preferences {
+        (try? database.keyValueStore.get(Preferences.key)) ?? Preferences()
+    }
+
+    func updatePreferences(_ f: (inout Preferences) -> Void) throws {
+        var p = preferences()
+        f(&p)
+        try database.keyValueStore.put(p)
     }
 }

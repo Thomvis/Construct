@@ -10,6 +10,7 @@ import Foundation
 import ComposableArchitecture
 import DiceRollerFeature
 import Helpers
+import GameModels
 
 struct TabNavigationViewState: Equatable {
 

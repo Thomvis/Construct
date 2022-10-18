@@ -6,6 +6,8 @@
 //  Copyright © 2019 Thomas Visser. All rights reserved.
 //
 
+#if os(iOS)
+
 import Foundation
 import SwiftUI
 import ComposableArchitecture
@@ -107,3 +109,5 @@ extension View {
         )
     }
 }
+
+#endif

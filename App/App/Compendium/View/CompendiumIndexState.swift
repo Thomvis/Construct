@@ -13,6 +13,7 @@ import CasePaths
 import Combine
 import Helpers
 import GameModels
+import Compendium
 
 struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 

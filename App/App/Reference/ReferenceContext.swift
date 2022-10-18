@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import GameModels
 
 struct ReferenceContext: Equatable {
     /// Non-nil if there is an EncounterDetailView open

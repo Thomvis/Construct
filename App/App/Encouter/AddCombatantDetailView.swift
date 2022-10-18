@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
+import GameModels
 
 struct AddCombatantDetailView: View {
     @EnvironmentObject var env: Environment

@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import GameModels
 
 struct CompendiumItemGroupDetailView: View {
     @EnvironmentObject var env: Environment

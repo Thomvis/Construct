@@ -12,6 +12,7 @@ import ComposableArchitecture
 import Combine
 import Tagged
 import Helpers
+import GameModels
 
 struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
     var combatants: [Combatant]

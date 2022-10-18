@@ -9,14 +9,15 @@
 import Foundation
 import XCTest
 @testable import Construct
+@testable import Persistence
 import GRDB
 
 class KeyValueStoreTest: XCTestCase {
     var sut: KeyValueStore!
 
-    override func setUp() {
-        super.setUp()
-        let database = try! Database(path: nil, importDefaultContent: false)
+    override func setUp() async throws {
+        try await super.setUp()
+        let database = try! await Database(path: nil, importDefaultContent: false)
         self.sut = database.keyValueStore
     }
 

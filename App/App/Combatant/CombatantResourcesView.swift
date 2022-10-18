@@ -11,6 +11,7 @@ import SwiftUI
 import ComposableArchitecture
 import Tagged
 import SharedViews
+import GameModels
 
 struct CombatantResourcesView: View {
     var store: Store<CombatantResourcesViewState, CombatantResourcesViewAction>

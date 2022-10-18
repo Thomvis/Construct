@@ -15,6 +15,7 @@ import BetterSafariView
 import SharedViews
 import Helpers
 import DiceRollerFeature
+import GameModels
 
 struct CombatantDetailContainerView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode

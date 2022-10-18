@@ -8,13 +8,18 @@
 
 import Foundation
 import XCTest
-@testable import Construct
+import Persistence
 
 class DatabaseTest: XCTestCase {
 
     func testInitialization() {
         measure {
-            let _ = try! Database(path: nil)
+            let exp = expectation(description: "task")
+            Task {
+                let _ = try! await Database(path: nil)
+                exp.fulfill()
+            }
+            wait(for: [exp], timeout: 60)
         }
     }
 

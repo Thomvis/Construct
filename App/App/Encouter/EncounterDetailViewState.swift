@@ -12,6 +12,8 @@ import CasePaths
 import SwiftUI
 import ComposableArchitecture
 import Helpers
+import Persistence
+import GameModels
 
 struct EncounterDetailViewState: Equatable {
     var building: Encounter {

@@ -12,6 +12,7 @@ import Combine
 import ComposableArchitecture
 import Helpers
 import SharedViews
+import GameModels
 
 struct CampaignBrowseView: View {
     @EnvironmentObject var env: Environment

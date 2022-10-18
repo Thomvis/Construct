@@ -8,9 +8,9 @@
 
 import Foundation
 import XCTest
-@testable import Construct
 import Combine
 import GameModels
+@testable import Compendium
 
 class DataSourceReaderParsersTest: XCTestCase {
 

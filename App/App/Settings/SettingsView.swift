@@ -9,6 +9,8 @@
 import Foundation
 import SwiftUI
 import Parma
+import GameModels
+import Compendium
 
 struct SettingsContainerView: View {
 
@@ -67,9 +69,10 @@ struct SettingsView: View {
                 }
 
                 NavigationRowButton(action: {
-                    try? self.env.database.queue.write { db in
-                        try Compendium(self.env.database).importDefaultContent(db)
-                    }
+//                    try? self.env.database.queue.write { db in
+//                        try Compendium(self.env.database).importDefaultContent(db)
+//                    }
+                    #warning("fix here")
                 }) {
                     Text("Import default content").foregroundColor(Color.primary)
                 }

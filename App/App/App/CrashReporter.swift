@@ -9,23 +9,7 @@
 import Foundation
 import AppCenterCrashes
 import GameModels
-
-struct CrashReporter {
-    let registerUserPermission: (UserPermission) -> Void
-    let trackError: (ErrorReport) -> Void
-
-    enum UserPermission {
-        case dontSend
-        case send
-        case sendAlways
-    }
-
-    struct ErrorReport {
-        let error: Swift.Error
-        let properties: [String: String]
-        let attachments: [String: String]
-    }
-}
+import Helpers
 
 extension CrashReporter {
     static let appCenter = CrashReporter(
@@ -54,36 +38,4 @@ extension CrashReporter {
             )
         }
     )
-}
-
-extension KeyValueStore {
-    func get<V>(_ key: String, crashReporter: CrashReporter) throws -> V? where V: Codable {
-        do {
-            return try get(key)
-        } catch let error as DecodingError {
-            guard let preferences: Preferences = try? get(Preferences.key),
-                  preferences.errorReportingEnabled == true else { throw error }
-
-            let data = try? (getRaw(key)?.value)
-                .flatMap { String(data: $0, encoding: .utf8) }
-
-            crashReporter.trackError(.init(
-                error: error,
-                properties: [
-                    "key": key,
-                    "type": String(describing: V.self)
-                ],
-                attachments: [
-                    "data": data ?? "((missing))"
-                ]
-            ))
-            throw error
-        } catch {
-            throw error
-        }
-    }
-
-    func get(_ itemKey: CompendiumItemKey, crashReporter: CrashReporter) throws -> CompendiumEntry? {
-        try get(CompendiumEntry.key(for: itemKey), crashReporter: crashReporter)
-    }
 }
