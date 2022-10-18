@@ -139,6 +139,11 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 case .results: break
                 case .scrollTo(let id):
                     state.scrollTo = id
+                case .onQueryTypeFilterDidChange(let typeFilter, debounce: let debounce):
+                    let restrictions = state.properties.typeRestriction ?? CompendiumItemType.allCases
+                    let new = typeFilter ?? CompendiumItemType.allCases
+                    let withinRestrictions = new.filter { restrictions.contains($0 )}
+                    return Effect(value: .query(.onTypeFilterDidChange(withinRestrictions), debounce: debounce))
                 case .onAddButtonTap:
                     if let type = state.editViewCreatureType {
                         state.sheet = .creatureEdit(CreatureEditViewState(create: type))
@@ -267,6 +272,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 
     case results(CompendiumIndexState.RS.Action<CompendiumIndexQueryAction>)
     case scrollTo(String?)
+    case onQueryTypeFilterDidChange([CompendiumItemType]?, debounce: Bool)
     case onAddButtonTap
     case onSearchOnWebButtonTap
 

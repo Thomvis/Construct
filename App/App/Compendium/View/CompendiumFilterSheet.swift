@@ -33,7 +33,7 @@ struct CompendiumFilterSheet: View {
                         LabeledContent {
                             Picker("Type", selection: viewStore.binding(get: \.current.itemType, send: CompendiumFilterSheetAction.itemType).animation()) {
                                 Text("All").tag(Optional<CompendiumItemType>.none)
-                                ForEach(CompendiumItemType.allCases, id: \.rawValue) { type in
+                                ForEach(viewStore.state.allAllowedItemTypes, id: \.rawValue) { type in
                                     Text("\(type.localizedScreenDisplayName)").tag(Optional.some(type))
                                 }
                             }
@@ -120,11 +120,13 @@ struct CompendiumFilterSheet: View {
 
 struct CompendiumFilterSheetState: Equatable {
     let challengeRatings = crToXpMapping.keys.sorted()
+    let allAllowedItemTypes: [CompendiumItemType]
 
     let initial: Values
     var current: Values
 
     init() {
+        self.allAllowedItemTypes = CompendiumItemType.allCases
         self.initial = Values()
         self.current = Values()
     }

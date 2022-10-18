@@ -22,12 +22,22 @@ struct AddCombatantCompendiumView: View {
 
     var body: some View {
         WithViewStore(store) { viewStore in
-            CompendiumIndexView(store: store.scope(state: { $0.compendiumState }, action: { .compendiumState($0) }), viewProvider: compendiumIndexViewProvider)
+            CompendiumIndexView(
+                store: store.scope(state: { $0.compendiumState }, action: { .compendiumState($0) }),
+                viewProvider: compendiumIndexViewProvider,
+                bottomBarButtons: {
+                    RoundedButton(action: {
+                        self.viewStore.send(.quickCreate)
+                    }) {
+                        Label("Quick create", systemImage: "plus.circle")
+                    }
+                }
+            )
         }
     }
 
-    var compendiumIndexViewProvider: CompendiumIndexView.ViewProvider {
-        CompendiumIndexView.ViewProvider(
+    var compendiumIndexViewProvider: CompendiumIndexViewProvider {
+        CompendiumIndexViewProvider(
             row: { store, entry in
                 (entry.item as? CompendiumCombatant).map { combatant in
                     CombatantRowView(parent: self, compendiumIndexStore: store, combatant: combatant)
@@ -35,12 +45,12 @@ struct AddCombatantCompendiumView: View {
                     (entry.item as? CompendiumItemGroup).map { group in
                         GroupRowView(parent: self, compendiumIndexStore: store, entry: entry, group: group)
                     }.replaceNilWith {
-                        CompendiumIndexView.ViewProvider.default.row(store, entry)
+                        CompendiumIndexViewProvider.default.row(store, entry)
                     }
                 }.eraseToAnyView
             },
             detail: { store in
-                guard ViewStore(store).state.item is Monster else { return CompendiumIndexView.ViewProvider.default.detail(store).eraseToAnyView }
+                guard ViewStore(store).state.item is Monster else { return CompendiumIndexViewProvider.default.detail(store).eraseToAnyView }
                 return AddCombatantDetailView(parentStore: self.store, store: store, onSelection: { action in
                     self.onSelection(action, false)
                 })
@@ -113,7 +123,7 @@ struct AddCombatantCompendiumView: View {
 
         var body: some View {
             HStack {
-                CompendiumIndexView.ViewProvider.default.row(compendiumIndexStore, entry)
+                CompendiumIndexViewProvider.default.row(compendiumIndexStore, entry)
                 Spacer()
 
                 with(combatantsNotInEncounter) { combatants in

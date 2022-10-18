@@ -51,14 +51,6 @@ struct AddCombatantView: View {
                             Text("Done").bold()
                         })
                         .navigationBarTitleDisplayMode(.inline)
-                        .safeAreaInset(edge: .bottom) {
-                            RoundedButton(action: {
-                                self.viewStore.send(.quickCreate)
-                            }) {
-                                Label("Quick create", systemImage: "plus.circle")
-                            }
-                            .padding([.leading, .trailing, .bottom], 8)
-                        }
                     }
                 }
             }
