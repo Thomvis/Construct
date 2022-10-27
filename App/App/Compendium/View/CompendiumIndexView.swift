@@ -282,13 +282,17 @@ struct CompendiumIndexViewProvider {
     let row: (Store<CompendiumIndexState, CompendiumIndexAction>, CompendiumEntry) -> AnyView
     let detail: (Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>) -> AnyView
 
+    /// Can be used by the view to invalidate itself if the state changes
+    let state: () -> any Equatable
+
     static let `default` = CompendiumIndexViewProvider(
         row: { store, entry in
             CompendiumItemRow(store: store, item: entry.item).eraseToAnyView
         },
         detail: { store in
             CompendiumItemDetailView(store: store).eraseToAnyView
-        }
+        },
+        state: { 0 }
     )
 }
 
@@ -306,20 +310,15 @@ fileprivate struct CompendiumItemList: View, Equatable {
     }
 
     var body: some View {
-        let listHash = AnyHashable(viewStore.state.entries.map { $0.key })
-        // The closure passed to ScrollViewReader explicitly captures state
-        // to make sure the closure is re-evaluated when the state changes.
-        // This works around an issue that broke item detail navigation
-        // after going to and coming back from the first tapped item which
-        // started happening when view was made equatable
+        let listHash = AnyHashable((viewStore.state.entries + (viewStore.state.suggestions ?? [])).map { $0.key })
+
         return ScrollViewReader { scrollView in
-            List {
-                ForEach(viewStore.state.entries, id: \.key) { entry in
-                    NavigationRowButton(action: {
-                        viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
-                    }) {
-                        viewProvider.row(self.store, entry)
-                    }
+            return List {
+                if let suggestions = viewStore.state.suggestions {
+                    section(header: Text("Suggestions"), entries: suggestions)
+                    section(header: Text("All"), entries: viewStore.state.entries)
+                } else {
+                    section(entries: viewStore.state.entries)
                 }
             }
             .listStyle(.plain)
@@ -352,9 +351,27 @@ fileprivate struct CompendiumItemList: View, Equatable {
         }
     }
 
+    @ViewBuilder
+    func section<H>(header: H, entries: [CompendiumEntry]) -> some View where H: View  {
+        Section(header: header) {
+            ForEach(entries, id: \.key) { entry in
+                NavigationRowButton(action: {
+                    viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                }) {
+                    viewProvider.row(self.store, entry)
+                }
+            }
+        }
+    }
+
+    func section(entries: [CompendiumEntry]) -> some View {
+        section(header: EmptyView(), entries: entries)
+    }
+
     struct LocalState: Equatable {
         let title: String
         let entries: [CompendiumEntry]
+        let suggestions: [CompendiumEntry]?
         // not used by the view (store is used directly) but here to ensure the view is re-evaluated
         let presentedItemDetail: String?
 
@@ -363,6 +380,13 @@ fileprivate struct CompendiumItemList: View, Equatable {
         init(_ state: CompendiumIndexState) {
             self.title = state.title
             self.entries = state.results.value ?? []
+
+            if state.results.input.text?.nonEmptyString == nil && Set(state.results.input.filters?.types ?? []) == Set(state.properties.typeRestriction ?? []) {
+                self.suggestions = state.suggestions?.nonEmptyArray
+            } else {
+                self.suggestions = nil
+            }
+
             self.presentedItemDetail = state.presentedNextItemDetail?.navigationStackItemStateId
                 ?? state.presentedDetailItemDetail?.navigationStackItemStateId
 
@@ -371,7 +395,11 @@ fileprivate struct CompendiumItemList: View, Equatable {
     }
 
     static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.viewStore.state == rhs.viewStore.state
+        func eq<E>(_ lhs: E, _ rhs: Any) -> Bool where E: Equatable {
+            lhs == (rhs as? E)
+        }
+
+        return lhs.viewStore.state == rhs.viewStore.state && eq(lhs.viewProvider.state(), rhs.viewProvider.state())
     }
 }
 

@@ -21,19 +21,17 @@ struct AddCombatantCompendiumView: View {
     let onSelection: (AddCombatantView.Action, _ dismiss: Bool) -> Void
 
     var body: some View {
-        WithViewStore(store) { viewStore in
-            CompendiumIndexView(
-                store: store.scope(state: { $0.compendiumState }, action: { .compendiumState($0) }),
-                viewProvider: compendiumIndexViewProvider,
-                bottomBarButtons: {
-                    RoundedButton(action: {
-                        self.viewStore.send(.quickCreate)
-                    }) {
-                        Label("Quick create", systemImage: "plus.circle")
-                    }
+        CompendiumIndexView(
+            store: store.scope(state: { $0.compendiumState }, action: { .compendiumState($0) }),
+            viewProvider: compendiumIndexViewProvider,
+            bottomBarButtons: {
+                RoundedButton(action: {
+                    self.viewStore.send(.quickCreate)
+                }) {
+                    Label("Quick create", systemImage: "plus.circle")
                 }
-            )
-        }
+            }
+        )
     }
 
     var compendiumIndexViewProvider: CompendiumIndexViewProvider {
@@ -56,7 +54,8 @@ struct AddCombatantCompendiumView: View {
                 })
                 .navigationBarTitle(Text(ViewStore(store).state.item.title), displayMode: .inline)
                 .eraseToAnyView
-            }
+            },
+            state: { [state=viewStore.state] in state.combatantsByDefinitionCache }
         )
     }
 
