@@ -76,8 +76,6 @@ struct CombatantRow: View {
             }
         }
         .opacity(combatant.isDead ? 0.33 : 1.0)
-        .padding([.top, .bottom], 5)
-        .frame(minHeight: 40)
     }
 
     // Returned text will contain at most two segments (i.e. different pieces of info)

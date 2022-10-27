@@ -30,62 +30,56 @@ struct EncounterDetailView: View {
     }
 
     var body: some View {
-        return ZStack {
-            List(selection: Binding(get: {
-                self.viewStore.state.selection
-            }, set: {
-                self.viewStore.send(.selection($0))
-            })) {
-                if viewStore.state.shouldShowEncounterDifficulty {
-                    Section {
-                        SimpleButton(action: {
-                            self.viewStore.send(.sheet(.settings))
-                        }) {
-                            if let difficulty = EncounterDifficulty(
-                                party: encounter.partyWithEntriesForDifficulty.1,
-                                monsters: encounter.combatants.compactMap { $0.definition.stats?.challengeRating }
-                            ) {
-                                EncounterDifficultyView(difficulty: difficulty)
-                            } else {
-                                Text("Cannot calculate difficulty for current settings. Tap to change.")
-                                    .multilineTextAlignment(.center)
-                                    .font(.callout)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                            }
+        List(selection: Binding(get: {
+            self.viewStore.state.selection
+        }, set: {
+            self.viewStore.send(.selection($0))
+        })) {
+            if viewStore.state.shouldShowEncounterDifficulty {
+                Section {
+                    SimpleButton(action: {
+                        self.viewStore.send(.sheet(.settings))
+                    }) {
+                        if let difficulty = EncounterDifficulty(
+                            party: encounter.partyWithEntriesForDifficulty.1,
+                            monsters: encounter.combatants.compactMap { $0.definition.stats?.challengeRating }
+                        ) {
+                            EncounterDifficultyView(difficulty: difficulty)
+                        } else {
+                            Text("Cannot calculate difficulty for current settings. Tap to change.")
+                                .multilineTextAlignment(.center)
+                                .font(.callout)
+                                .frame(maxWidth: .infinity)
+                                .padding()
                         }
                     }
                 }
-
-                if viewStore.state.encounter.combatants.isEmpty {
-                    Section {
-                        VStack(spacing: 8) {
-                            Text("Empty encounter").font(.headline)
-                            Text("Start by adding one or more combatants.")
-                        }.frame(maxWidth: .infinity).padding(18)
-                    }
-                } else {
-                    CombatantSection(
-                        parent: self,
-                        title: "Combatants",
-                        encounter: viewStore.state.encounter,
-                        running: viewStore.state.running,
-                        combatants: viewStore.state.encounter.combatantsInDisplayOrder
-                    )
-                }
-
-                // Adds padding for the bottom action bar
-                Section {
-                    EmptyView().padding(.bottom, 80)
-                }
             }
-            .listStyle(GroupedListStyle())
-            .environment(\.editMode, Binding(get: {
-                self.viewStore.state.editMode
-            }, set: {
-                self.viewStore.send(.editMode($0))
-            }))
+
+            if viewStore.state.encounter.combatants.isEmpty {
+                Section {
+                    VStack(spacing: 8) {
+                        Text("Empty encounter").font(.headline)
+                        Text("Start by adding one or more combatants.")
+                    }.frame(maxWidth: .infinity).padding(18)
+                }
+            } else {
+                CombatantSection(
+                    parent: self,
+                    title: "Combatants",
+                    encounter: viewStore.state.encounter,
+                    running: viewStore.state.running,
+                    combatants: viewStore.state.encounter.combatantsInDisplayOrder
+                )
+            }
         }
+        .listStyle(GroupedListStyle())
+        .environment(\.defaultMinListRowHeight, 0) // this fixed the CombatantRow height
+        .environment(\.editMode, Binding(get: {
+            self.viewStore.state.editMode
+        }, set: {
+            self.viewStore.send(.editMode($0))
+        }))
         .safeAreaInset(edge: .bottom) {
             Group {
                 if viewStore.state.running == nil {
@@ -401,7 +395,18 @@ struct CombatantSection: View {
                     self.parent.viewStore.send(.popover(.combatantInitiative(combatant, NumberEntryViewState.initiative(combatant: combatant))), animation: .default)
                 })
                 .accentColor(Color.primary)
-                .menu {
+                // contentShape is needed or else the tapGesture on the whole cell doesn't work
+                // scale is used to make the row easier selectable in edit mode
+                .contentShape(Rectangle().scale(self.parent.viewStore.state.editMode.isEditing ? 0 : 1))
+                .onTapGesture {
+                    if parent.appNavigation == .tab {
+                        self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
+                    } else {
+                        self.parent.viewStore.send(.showCombatantDetailReferenceItem(combatant))
+                    }
+                }
+                // Using a menu (instead of a contextMenu) here would be nice, but it blocks interaction with the row's content
+                .contextMenu {
                     Button(action: {
                         self.parent.viewStore.send(.encounter(.remove(combatant)))
                     }) {
@@ -432,12 +437,6 @@ struct CombatantSection: View {
                     }) {
                         Text("Reset")
                         Image(systemName: "arrow.counterclockwise")
-                    }
-                } primaryAction: {
-                    if parent.appNavigation == .tab {
-                        self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
-                    } else {
-                        self.parent.viewStore.send(.showCombatantDetailReferenceItem(combatant))
                     }
                 }
             }
