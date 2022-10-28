@@ -557,17 +557,6 @@ extension CompendiumItem {
     }
 }
 
-extension CompendiumItemType {
-    var defaultOrder: CompendiumIndexState.Query.Order? {
-        switch self {
-        case .monster: return .monsterChallengeRating
-        case .character: return .title
-        case .spell: return .spellLevel
-        case .group: return nil
-        }
-    }
-}
-
 // Used for communicating with the filter popover
 fileprivate extension CompendiumFilterSheetState {
     init(_ queryFilters: CompendiumIndexState.Query.Filters?, allAllowedItemTypes: [CompendiumItemType]) {

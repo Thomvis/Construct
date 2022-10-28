@@ -85,6 +85,19 @@ extension CompendiumIndexState {
                     return SortDescriptor(\.title)
                 }
             }
+
+            static func `default`(_ itemTypes: [CompendiumItemType]) -> Self {
+                if let single = itemTypes.single {
+                    switch single {
+                    case .monster: return .monsterChallengeRating
+                    case .spell: return .spellLevel
+                    case .character, .group: break
+                    }
+                }
+
+                // multiple types
+                return .title
+            }
         }
     }
 }

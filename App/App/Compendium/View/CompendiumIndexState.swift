@@ -232,9 +232,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         }
 
                         // sort
-                        if let order = query.order {
-                            result = result.sorted(by: order.descriptor.pullback(\.item))
-                        }
+                        let order = query.order ?? .default(query.filters?.types ?? CompendiumItemType.allCases)
+                        result = result.sorted(by: order.descriptor.pullback(\.item))
 
                         return result
                     }.eraseToAnyPublisher()
@@ -251,7 +250,7 @@ extension CompendiumIndexState.RS {
     static let initial = CompendiumIndexState.RS(input: CompendiumIndexState.Query(text: nil, filters: nil))
 
     static func initial(types: [CompendiumItemType]) -> CompendiumIndexState.RS {
-        CompendiumIndexState.RS(input: CompendiumIndexState.Query(text: nil, filters: CompendiumIndexState.Query.Filters(types: types), order: types.single?.defaultOrder))
+        CompendiumIndexState.RS(input: CompendiumIndexState.Query(text: nil, filters: CompendiumIndexState.Query.Filters(types: types), order: nil))
     }
 
     static func initial(type: CompendiumItemType) -> CompendiumIndexState.RS {
