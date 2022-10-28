@@ -409,7 +409,10 @@ fileprivate struct CompendiumItemRow: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text(item.title)
-            item.localizedSummary(in: ViewStore(store).state, env: env).font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+            item.localizedSummary(in: ViewStore(store).state, env: env)
+                .font(.footnote)
+                .foregroundColor(Color(UIColor.secondaryLabel))
+                .multilineTextAlignment(.leading)
         }
     }
 }
