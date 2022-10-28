@@ -70,9 +70,10 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                 bottomBarButtons()
 
                 if localViewStore.state.showAddButton {
-                    if let type = localViewStore.state.itemTypeFilter?.single {
+                    let addableTypes = localViewStore.state.addableItemTypes
+                    if let type = addableTypes.single {
                         RoundedButton(action: {
-                            self.localViewStore.send(.onAddButtonTap)
+                            self.localViewStore.send(.onAddButtonTap(type))
                         }) {
                             Label("Add \(type.localizedDisplayName)", systemImage: "plus.circle")
                         }
@@ -86,9 +87,9 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 
                             Divider()
 
-                            ForEach([CompendiumItemType.monster, CompendiumItemType.character, CompendiumItemType.group], id: \.rawValue) { type in
+                            ForEach(addableTypes, id: \.rawValue) { type in
                                 Button {
-
+                                    self.localViewStore.send(.onAddButtonTap(type))
                                 } label: {
                                     Text("New \(type.localizedDisplayName)")
                                 }
@@ -115,15 +116,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             .padding([.leading, .trailing, .bottom], 8)
         }
         .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
-        .navigationBarItems(trailing: Group {
-            if localViewStore.state.showImportButton {
-                Button(action: {
-                    localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
-                }) {
-                    Text("Import").bold()
-                }
-            }
-        })
         .onAppear {
             loadResultsIfNeeded()
         }
@@ -263,6 +255,10 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 
         var allAllowedItemTypes: [CompendiumItemType] {
             itemTypeRestriction ?? CompendiumItemType.allCases
+        }
+
+        var addableItemTypes: [CompendiumItemType] {
+            return (itemTypeFilter ?? CompendiumItemType.allCases).filter { [.monster, .character, .group].contains($0) }
         }
 
         enum ResultsStatus: Hashable {

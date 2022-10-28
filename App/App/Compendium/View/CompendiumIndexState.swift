@@ -37,21 +37,6 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         self.results = results
         self.presentedScreens = presentedScreens
         self.sheet = sheet
-
-        #warning("suggestions not yet used")
-    }
-
-    var canAddItem: Bool {
-        editViewCreatureType != nil || canCreateNewEmptyItem
-    }
-
-    var editViewCreatureType: CreatureEditViewState.CreatureType? {
-        results.input.filters?.types?.single?.creatureType
-    }
-
-    var canCreateNewEmptyItem: Bool {
-        guard let type = results.input.filters?.types?.single else { return false }
-        return type == .group
     }
 
     var localStateForDeduplication: Self {
@@ -141,10 +126,6 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 case .scrollTo(let id):
                     state.scrollTo = id
                 case .onQueryTypeFilterDidChange(let typeFilter, debounce: let debounce):
-                case .onAddButtonTap:
-                    if let type = state.editViewCreatureType {
-                        state.sheet = .creatureEdit(CreatureEditViewState(create: type))
-                    } else if state.results.input.filters?.types?.single == .group {
                     if typeFilter == nil && state.properties.typeRestriction == nil {
                         return Effect(value: .query(.onTypeFilterDidChange(nil), debounce: debounce))
                     } else {
@@ -153,8 +134,21 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         let withinRestrictions = new.filter { restrictions.contains($0 )}
                         return Effect(value: .query(.onTypeFilterDidChange(withinRestrictions), debounce: debounce))
                     }
+                case .onAddButtonTap(let type):
+                    switch type {
+                    case .monster, .character:
+                        guard let creatureType = type.creatureType else {
+                            assertionFailure("Adding item of type \(type) is not supported yet")
+                            break
+                        }
+                        state.sheet = .creatureEdit(CreatureEditViewState(create: creatureType))
+                    case .spell:
+                        assertionFailure("Adding spells is not supported")
+                        break
+                    case .group:
                         state.sheet = .groupEdit(CompendiumItemGroupEditState(mode: .create, group: CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])))
                     }
+
                 case .onSearchOnWebButtonTap:
                     let externalCompendium = DndBeyondExternalCompendium()
                     state.presentedNextSafariView = SafariViewState(
@@ -278,7 +272,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     case results(CompendiumIndexState.RS.Action<CompendiumIndexQueryAction>)
     case scrollTo(String?)
     case onQueryTypeFilterDidChange([CompendiumItemType]?, debounce: Bool)
-    case onAddButtonTap
+    case onAddButtonTap(CompendiumItemType)
     case onSearchOnWebButtonTap
 
     case setNextScreen(CompendiumIndexState.NextScreen?)
