@@ -244,7 +244,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             resultsIsFirstTimeLoading = state.results.value == nil && state.results.result.isLoading
 
             itemTypeRestriction = state.properties.typeRestriction
-            if Set(state.results.input.filters?.types ?? []) == Set(state.properties.typeRestriction ?? []) {
+            if Set(state.results.input.filters?.types ?? []) == Set(state.properties.typeRestriction ?? CompendiumItemType.allCases) {
                 itemTypeFilter = nil
             } else {
                 itemTypeFilter = state.results.input.filters?.types

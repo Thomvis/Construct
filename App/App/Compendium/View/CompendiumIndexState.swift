@@ -141,14 +141,18 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 case .scrollTo(let id):
                     state.scrollTo = id
                 case .onQueryTypeFilterDidChange(let typeFilter, debounce: let debounce):
-                    let restrictions = state.properties.typeRestriction ?? CompendiumItemType.allCases
-                    let new = typeFilter ?? CompendiumItemType.allCases
-                    let withinRestrictions = new.filter { restrictions.contains($0 )}
-                    return Effect(value: .query(.onTypeFilterDidChange(withinRestrictions), debounce: debounce))
                 case .onAddButtonTap:
                     if let type = state.editViewCreatureType {
                         state.sheet = .creatureEdit(CreatureEditViewState(create: type))
                     } else if state.results.input.filters?.types?.single == .group {
+                    if typeFilter == nil && state.properties.typeRestriction == nil {
+                        return Effect(value: .query(.onTypeFilterDidChange(nil), debounce: debounce))
+                    } else {
+                        let restrictions = state.properties.typeRestriction ?? CompendiumItemType.allCases
+                        let new = typeFilter ?? CompendiumItemType.allCases
+                        let withinRestrictions = new.filter { restrictions.contains($0 )}
+                        return Effect(value: .query(.onTypeFilterDidChange(withinRestrictions), debounce: debounce))
+                    }
                         state.sheet = .groupEdit(CompendiumItemGroupEditState(mode: .create, group: CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])))
                     }
                 case .onSearchOnWebButtonTap:
