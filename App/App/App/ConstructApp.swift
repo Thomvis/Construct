@@ -47,12 +47,10 @@ struct RootView: View {
                         do {
                             try await Task.sleep(until: .now + .milliseconds(100), clock: .suspending)
                             guard env == nil else { return }
-                            print("TV: Short loading")
                             withAnimation {
                                 loadingDuration = .short
                             }
                             try await Task.sleep(until: .now + .seconds(2), clock: .suspending)
-                            print("TV: Long loading")
                             withAnimation {
                                 loadingDuration = .long
                             }
@@ -61,12 +59,16 @@ struct RootView: View {
             }
         }
         .task {
-            assert(env == nil)
+            guard env == nil else {
+                // I first thought this would never happen, but closing a (Better)SafariView
+                // causes this task to fire again
+                return
+            }
+
             do {
                 let e = try await Environment.live()
                 withAnimation {
                     env = e
-                    print("TV: Environment did load")
                 }
             } catch {
                 fatalError("Failed loading the environment")
