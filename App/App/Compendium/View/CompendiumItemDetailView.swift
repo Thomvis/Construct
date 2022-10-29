@@ -12,6 +12,7 @@ import ComposableArchitecture
 import GameModels
 import Helpers
 import DiceRollerFeature
+import BetterSafariView
 
 struct CompendiumItemDetailView: View {
     @EnvironmentObject var env: Environment
@@ -79,6 +80,21 @@ struct CompendiumItemDetailView: View {
         .onAppear {
             viewStore.send(.onAppear)
         }
+        .stateDrivenNavigationLink(
+            store: store,
+            state: /CompendiumEntryDetailViewState.NextScreen.compendiumItemDetailView,
+            action: /CompendiumItemDetailViewAction.NextScreenAction.compendiumItemDetailView,
+            destination: CompendiumItemDetailView.init
+        )
+        .safariView(
+            item: viewStore.binding(get: { $0.presentedNextSafariView }, send: { _ in .setNextScreen(nil) }),
+            onDismiss: { viewStore.send(.setNextScreen(nil)) },
+            content: { state in
+                BetterSafariView.SafariView(
+                    url: state.url
+                )
+            }
+        )
     }
 
     @ViewBuilder
