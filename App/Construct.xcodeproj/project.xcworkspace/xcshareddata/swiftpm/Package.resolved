@@ -147,10 +147,10 @@
     {
       "identity" : "swift-url-routing",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/pointfreeco/swift-url-routing.git",
+      "location" : "https://github.com/pointfreeco/swift-url-routing",
       "state" : {
-        "revision" : "5bf79bb370015e43842a61d558a9ee053171124e",
-        "version" : "0.3.0"
+        "revision" : "80e8a0257ccdd639e31f709954ceca6b690fdc67",
+        "version" : "0.3.1"
       }
     },
     {
