@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/microsoft/appcenter-sdk-apple.git",
       "state" : {
-        "revision" : "8354a50fe01a7e54e196d3b5493b5ab53dd5866a",
-        "version" : "4.4.2"
+        "branch" : "master",
+        "revision" : "88e65475ffd3a7cf2bbde07df9e62159a1fd60a8"
       }
     },
     {
@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/microsoft/PLCrashReporter.git",
       "state" : {
-        "revision" : "6b27393cad517c067dceea85fadf050e70c4ceaa",
-        "version" : "1.10.1"
+        "revision" : "b1a342da19ed9b3af61ea2efa7656c2af30aeb7c",
+        "version" : "1.11.0"
       }
     },
     {

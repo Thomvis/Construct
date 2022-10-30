@@ -1529,8 +1529,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.0;
+				branch = master;
+				kind = branch;
 			};
 		};
 		E9869F7B2520A64B0098A166 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
