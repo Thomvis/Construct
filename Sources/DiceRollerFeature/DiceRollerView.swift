@@ -157,7 +157,7 @@ struct DiceRollerView_Preview: PreviewProvider {
             store: Store(
                 initialState: DiceRollerViewState(),
                 reducer: DiceRollerViewState.reducer,
-                environment: DiceRollerEnvironment(
+                environment: StandaloneDiceRollerEnvironment(
                     mainQueue: .main,
                     diceLog: DiceLogPublisher(),
                     modifierFormatter: NumberFormatter()

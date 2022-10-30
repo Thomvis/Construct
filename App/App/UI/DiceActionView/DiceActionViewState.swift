@@ -124,7 +124,7 @@ extension DiceAction.Step {
         )
         .optional()
         .pullback(state: \DiceAction.Step.rollValue, action: /DiceActionStepAction.value..DiceActionStepAction.ValueAction.roll),
-        DiceCalculatorState.reducer.optional().pullback(state: \.rollDetails, action: /DiceActionStepAction.rollDetails, environment: \.diceRollerEnvironment),
+        DiceCalculatorState.reducer.optional().pullback(state: \.rollDetails, action: /DiceActionStepAction.rollDetails, environment: { $0 }),
         Reducer { state, action, env in
             let cp: CasePath<DiceActionStepAction, DiceActionStepAction.ValueAction> = /DiceActionStepAction.value
             switch action {

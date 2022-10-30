@@ -9,6 +9,7 @@
 import Foundation
 import ComposableArchitecture
 import Dice
+import Helpers
 
 public struct DiceRollerViewState: Equatable {
     public var calculatorState: DiceCalculatorState
@@ -38,7 +39,13 @@ public enum DiceRollerViewAction: Equatable {
     }
 }
 
-public struct DiceRollerEnvironment {
+public protocol EnvironmentWithDiceLog {
+    var diceLog: DiceLogPublisher { get }
+}
+
+public typealias DiceRollerEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog
+
+public struct StandaloneDiceRollerEnvironment: DiceRollerEnvironment {
     public let mainQueue: AnySchedulerOf<DispatchQueue>
     public let diceLog: DiceLogPublisher
     public let modifierFormatter: NumberFormatter

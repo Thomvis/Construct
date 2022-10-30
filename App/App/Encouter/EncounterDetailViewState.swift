@@ -207,7 +207,7 @@ extension EncounterDetailViewState {
     static var reducer: Reducer<EncounterDetailViewState, Action, Environment> {
         return Reducer.combine(
             AddCombatantState.reducer.optional().pullback(state: \.addCombatantState, action: /Action.addCombatant),
-            NumberEntryViewState.reducer.optional().pullback(state: \.combatantInitiativePopover, action: /Action.combatantInitiativePopover),
+            NumberEntryViewState.reducer.optional().pullback(state: \.combatantInitiativePopover, action: /Action.combatantInitiativePopover, environment: { $0 }),
             Reducer { state, action, env in
                 switch action {
                 case .onAppear:

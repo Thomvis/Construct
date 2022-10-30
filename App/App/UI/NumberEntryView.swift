@@ -12,6 +12,7 @@ import ComposableArchitecture
 import DiceRollerFeature
 import Dice
 import GameModels
+import Helpers
 
 // A view that allows entry of a number, either directly or through a simulated dice roll
 struct NumberEntryView: View {
@@ -87,7 +88,7 @@ extension NumberEntryViewState {
         }
     }
 
-    static var reducer: Reducer<Self, NumberEntryViewAction, Environment> = Reducer.combine(
+    static var reducer: Reducer<Self, NumberEntryViewAction, NumberEntryViewEnvironment> = Reducer.combine(
         Reducer { state, action, _ in
             switch action {
             case .mode(let m):
@@ -96,10 +97,12 @@ extension NumberEntryViewState {
             }
             return .none
         },
-        NumberPadViewState.reducer.pullback(state: \.padState, action: /NumberEntryViewAction.pad),
-        DiceCalculatorState.reducer.pullback(state: \.diceState, action: /NumberEntryViewAction.dice, environment: \.diceRollerEnvironment)
+        NumberPadViewState.reducer.pullback(state: \.padState, action: /NumberEntryViewAction.pad, environment: { _ in () }),
+        DiceCalculatorState.reducer.pullback(state: \.diceState, action: /NumberEntryViewAction.dice)
     )
 }
+
+typealias NumberEntryViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog
 
 extension NumberEntryViewState {
     static let nullInstance = NumberEntryViewState(mode: .dice, padState: NumberPadViewState(value: 0), diceState: DiceCalculatorState(displayOutcomeExternally: false, rollOnAppear: false, expression: .number(0), mode: .editingExpression))

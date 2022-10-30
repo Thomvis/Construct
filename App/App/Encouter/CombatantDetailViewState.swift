@@ -130,9 +130,9 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 
     static let reducer: Reducer<Self, CombatantDetailViewAction, Environment> = Reducer.combine(
         CombatantTagEditViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagEditView),
-        DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog, environment: \.diceRollerEnvironment),
+        DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog, environment: { $0 }),
         DiceActionViewState.reducer.optional().pullback(state: \.diceActionPopoverState, action: /CombatantDetailViewAction.diceActionPopover),
-        NumberEntryViewState.reducer.optional().pullback(state: \.initiativePopoverState, action: /CombatantDetailViewAction.initiativePopover),
+        NumberEntryViewState.reducer.optional().pullback(state: \.initiativePopoverState, action: /CombatantDetailViewAction.initiativePopover, environment: { $0 }),
         CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView),
         Reducer { state, action, env in
             switch action {
@@ -227,7 +227,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         ),
         CombatantTagsViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagsView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagsView),
         CombatantResourcesViewState.reducer.optional().pullback(state: \.presentedNextCombatantResourcesView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantResourcesView),
-        CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.creatureEditView),
+        CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.creatureEditView, environment: { $0 }),
         CombatantTrackerEditViewState.reducer.optional().pullback(state: \.addLimitedResourceState, action: /CombatantDetailViewAction.addLimitedResource),
         HealthDialogState.reducer.optional().pullback(state: \.healthDialogState, action: /CombatantDetailViewAction.healthDialog)
     )

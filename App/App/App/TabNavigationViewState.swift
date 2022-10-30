@@ -53,7 +53,7 @@ extension TabNavigationViewState {
     public static let reducer: Reducer<Self, TabNavigationViewAction, Environment> = Reducer.combine(
         CampaignBrowseViewState.reducer.pullback(state: \.campaignBrowser, action: /TabNavigationViewAction.campaignBrowser),
         compendiumRootReducer.pullback(state: \.compendium, action: /TabNavigationViewAction.compendium),
-        DiceRollerViewState.reducer.pullback(state: \.diceRoller, action: /TabNavigationViewAction.diceRoller, environment: \.diceRollerEnvironment),
+        DiceRollerViewState.reducer.pullback(state: \.diceRoller, action: /TabNavigationViewAction.diceRoller, environment: { $0 }),
         Reducer { state, action, env in
             switch action {
             case .selectedTab(let t):

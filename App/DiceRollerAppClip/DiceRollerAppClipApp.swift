@@ -21,7 +21,7 @@ struct DiceRollerAppClipApp: App {
         store = Store(
             initialState: AppState(),
             reducer: appReducer,
-            environment: DiceRollerEnvironment(
+            environment: StandaloneDiceRollerEnvironment(
                 mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
                 diceLog: DiceLogPublisher(),
                 modifierFormatter: apply(NumberFormatter()) { f in

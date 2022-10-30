@@ -67,7 +67,7 @@ struct AddCombatantState: Equatable {
 
     static var reducer: Reducer<AddCombatantState, AddCombatantState.Action, Environment> {
         Reducer.combine(
-            CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditViewState, action: /Action.creatureEditView),
+            CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditViewState, action: /Action.creatureEditView, environment: { $0 }),
             Reducer { state, action, _ in
                 switch action {
                 case .quickCreate:

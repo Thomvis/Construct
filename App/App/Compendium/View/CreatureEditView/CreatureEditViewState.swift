@@ -11,6 +11,7 @@ import SwiftUI
 import ComposableArchitecture
 import GameModels
 import Helpers
+import DiceRollerFeature
 
 struct CreatureEditViewState: Equatable {
     var mode: Mode
@@ -318,8 +319,10 @@ enum CreatureEditViewAction: Equatable {
     case onRemoveTap(CreatureEditViewState)
 }
 
+typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog
+
 extension CreatureEditViewState {
-    static let reducer: Reducer<Self, CreatureEditViewAction, Environment> = Reducer.combine(
+    static let reducer: Reducer<Self, CreatureEditViewAction, CreatureEditViewEnvironment> = Reducer.combine(
         NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CreatureEditViewAction.numberEntryPopover),
         Reducer { state, action, _ in
             switch action {

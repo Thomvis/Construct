@@ -10,12 +10,12 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 import GameModels
+import DiceRollerFeature
 
 struct CreatureEditView: View {
     static let iconColumnWidth: CGFloat = 30
 
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    @EnvironmentObject var env: Environment
     var store: Store<CreatureEditViewState, CreatureEditViewAction>
     @ObservedObject var viewStore: ViewStore<CreatureEditViewState, CreatureEditViewAction>
 
@@ -115,7 +115,7 @@ struct CreatureEditView: View {
                     }), in: 1...20) {
                         Text("\(ability.localizedDisplayName): ")
                             + Text("\(self.model.statBlock.abilities.wrappedValue.score(for: ability).score)")
-                            + Text(" (\(self.env.modifierFormatter.stringWithFallback(for: self.model.statBlock.abilities.wrappedValue.score(for: ability).modifier.modifier)))").bold()
+                            + Text(" (\(modifierFormatter.stringWithFallback(for: self.model.statBlock.abilities.wrappedValue.score(for: ability).modifier.modifier)))").bold()
 
                     }
                 }
@@ -124,7 +124,7 @@ struct CreatureEditView: View {
             FormSection(.initiative) {
                 Stepper(value: model.statBlock.initiative.modifier.modifier, in: -10...10) {
                     Text("Initiative: ")
-                        + Text(self.env.modifierFormatter.stringWithFallback(for: model.wrappedValue.statBlock.initiative.modifier.modifier)).bold()
+                        + Text(modifierFormatter.stringWithFallback(for: model.wrappedValue.statBlock.initiative.modifier.modifier)).bold()
                 }
             }
 
@@ -276,3 +276,27 @@ extension CreatureEditView {
         }
     }
 }
+
+#if DEBUG
+struct CreatureEditView_Preview: PreviewProvider {
+    static var previews: some View {
+        CreatureEditView(
+            store: Store(
+                initialState: CreatureEditViewState(create: .monster),
+                reducer: CreatureEditViewState.reducer,
+                environment: CEVE(
+                    modifierFormatter: modifierFormatter,
+                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                    diceLog: DiceLogPublisher()
+                )
+            )
+        )
+    }
+}
+
+struct CEVE: CreatureEditViewEnvironment {
+    var modifierFormatter: NumberFormatter
+    var mainQueue: AnySchedulerOf<DispatchQueue>
+    var diceLog: DiceLogPublisher
+}
+#endif

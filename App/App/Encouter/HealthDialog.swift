@@ -129,7 +129,7 @@ extension HealthDialog: Popover {
 }
 
 extension HealthDialogState {
-    static let reducer: Reducer<Self, HealthDialogAction, Environment> = NumberEntryViewState.reducer.pullback(state: \.numberEntryView, action: /HealthDialogAction.numberEntryView)
+    static let reducer: Reducer<Self, HealthDialogAction, Environment> = NumberEntryViewState.reducer.pullback(state: \.numberEntryView, action: /HealthDialogAction.numberEntryView, environment: { $0 })
 }
 
 extension HealthDialogState {

@@ -104,9 +104,7 @@ extension Environment {
         }
 
         return Environment(
-            modifierFormatter: apply(NumberFormatter()) { f in
-                f.positivePrefix = f.plusSign
-            },
+            modifierFormatter: Construct.modifierFormatter,
             ordinalFormatter: apply(NumberFormatter()) { f in
                 f.numberStyle = .ordinal
             },
@@ -180,16 +178,6 @@ struct AnyRandomNumberGenerator: RandomNumberGenerator {
 }
 
 extension Environment {
-    var diceRollerEnvironment: DiceRollerEnvironment {
-        DiceRollerEnvironment(
-            mainQueue: mainQueue,
-            diceLog: diceLog,
-            modifierFormatter: modifierFormatter
-        )
-    }
-}
-
-extension Environment {
     func preferences() -> Preferences {
         (try? database.keyValueStore.get(Preferences.key)) ?? Preferences()
     }
@@ -199,4 +187,12 @@ extension Environment {
         f(&p)
         try database.keyValueStore.put(p)
     }
+}
+
+extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog {
+
+}
+
+public let modifierFormatter: NumberFormatter = apply(NumberFormatter()) { f in
+    f.positivePrefix = f.plusSign
 }

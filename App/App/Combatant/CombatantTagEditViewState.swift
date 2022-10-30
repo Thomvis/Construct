@@ -64,7 +64,7 @@ struct CombatantTagEditViewState: Equatable, NavigationStackItemState {
     }
 
     static let reducer: Reducer<CombatantTagEditViewState, CombatantTagEditViewAction, Environment> = Reducer.combine(
-        NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CombatantTagEditViewAction.numberEntryPopover),
+        NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CombatantTagEditViewAction.numberEntryPopover, environment: { $0 }),
         Reducer { state, action, _ in
             switch action {
             case .onNoteTextDidChange(let text):
