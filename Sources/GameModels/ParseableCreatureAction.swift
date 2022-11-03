@@ -9,6 +9,7 @@
 import Foundation
 import Helpers
 import Dice
+import Tagged
 
 public typealias ParseableCreatureAction = Parseable<CreatureAction, ParsedCreatureAction>
 
@@ -37,7 +38,11 @@ public extension ParseableCreatureAction {
     }
 }
 
-public struct ParsedCreatureAction: Codable, Hashable {
+public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
+
+    public static let version: String = "2"
+
+    public let id: Id
 
     /**
      Parsed from `name`. Range is scoped to `name`.
@@ -62,9 +67,15 @@ public struct ParsedCreatureAction: Codable, Hashable {
     /**
      Returns nil if all parameters are nil
      */
-    public init?(limitedUse: Located<LimitedUse>?, action: Model?, otherDescriptionAnnotations: [Located<TextAnnotation>]?) {
+    public init?(
+        id: Id = UUID().tagged(),
+        limitedUse: Located<LimitedUse>?,
+        action: Model?,
+        otherDescriptionAnnotations: [Located<TextAnnotation>]?
+    ) {
         guard limitedUse != nil || action != nil || otherDescriptionAnnotations?.nonEmptyArray != nil else { return nil }
 
+        self.id = id
         self.limitedUse = limitedUse
         self.action = action
         self.otherDescriptionAnnotations = otherDescriptionAnnotations
@@ -134,6 +145,6 @@ public struct ParsedCreatureAction: Codable, Hashable {
         }
     }
 
+    public typealias Id = Tagged<ParsedCreatureAction, UUID>
+
 }
-
-

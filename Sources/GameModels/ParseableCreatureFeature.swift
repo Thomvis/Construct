@@ -9,6 +9,7 @@
 import Foundation
 import Dice
 import Helpers
+import Tagged
 
 public typealias ParseableCreatureFeature = Parseable<CreatureFeature, ParsedCreatureFeature>
 
@@ -39,7 +40,11 @@ public extension ParseableCreatureFeature {
     }
 }
 
-public struct ParsedCreatureFeature: Codable, Hashable {
+public struct ParsedCreatureFeature: DomainModel, Codable, Hashable {
+
+    public static let version: String = "2"
+
+    public let id: Id
 
     /**
      Parsed from `name`. Range is scoped to `name`.
@@ -50,10 +55,12 @@ public struct ParsedCreatureFeature: Codable, Hashable {
     let otherDescriptionAnnotations: [Located<TextAnnotation>]?
 
     public init(
+        id: Id = UUID().tagged(),
         limitedUse: Located<LimitedUse>? = nil,
         spellcasting: Spellcasting? = nil,
         otherDescriptionAnnotations: [Located<TextAnnotation>]? = nil
     ) {
+        self.id = id
         self.limitedUse = limitedUse
         self.spellcasting = spellcasting
         self.otherDescriptionAnnotations = otherDescriptionAnnotations
@@ -84,6 +91,8 @@ public struct ParsedCreatureFeature: Codable, Hashable {
 
         return result
     }
+
+    public typealias Id = Tagged<ParsedCreatureFeature, UUID>
 }
 
 extension ParsedCreatureFeature {

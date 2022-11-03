@@ -10,7 +10,7 @@ import Foundation
 import ComposableArchitecture
 
 @propertyWrapper
-public struct Parseable<Input, Result> {
+public struct Parseable<Input, Result> where Result: DomainModel {
 
     public var input: Input
     public var result: ParserResult?
@@ -32,12 +32,17 @@ public struct Parseable<Input, Result> {
     }
 
     public mutating func parseIfNeeded<Parser>(parser: Parser.Type) where Parser: DomainParser, Parser.Input == Input, Parser.Result == Result {
-        guard result?.version != Parser.version || result?.parserName != String(describing: parser) else { return }
+        guard result?.version != Parser.version ||
+                result?.modelVersion != Result.version ||
+                result?.parserName != String(describing: parser)
+        else { return }
+
         var result = ParserResult(
             value: Parser.parse(input: input),
             version: Parser.version
         )
         result.parserName = String(describing: parser)
+        result.modelVersion = Result.version
         self.result = result
     }
 
@@ -45,6 +50,7 @@ public struct Parseable<Input, Result> {
         public let value: Result?
         @DecodableDefault.EmptyString public var parserName: String
         let version: String
+        @DecodableDefault.EmptyString public var modelVersion: String
     }
 
 }
@@ -53,8 +59,17 @@ public protocol DomainParser {
     associatedtype Input
     associatedtype Result
 
+    /// Update the version when making a change to the parser that changes its output
+    /// This causes the app to recompute all (relevant) values on launch
     static var version: String { get }
     static func parse(input: Input) -> Result?
+}
+
+public protocol DomainModel {
+    /// Update the version when making a change to the model that changes the codable implementation
+    /// and/or requires recomputation from the input
+    /// This causes the app to recompute all (relevant) values on launch
+    static var version: String { get }
 }
 
 extension Parseable: Codable where Input: Codable, Result: Codable {
@@ -70,7 +85,11 @@ extension Parseable: Codable where Input: Codable, Result: Codable {
             do {
                 self.result = try container.decodeIfPresent(ParserResult.self, forKey: .result)
             } catch {
-                assertionFailure("Parseable result could not be decoded. Did \(Result.self) change in a breaking way?")
+                let resultContainer = try container.nestedContainer(keyedBy: AnyCodingKey.self, forKey: .result)
+                // Only if the model version changed, it is expected that the result can't be decoded
+                if ParserResult.modelVersion(from: resultContainer) == Result.version {
+                    assertionFailure("Parseable result could not be decoded. Did \(Result.self) change in a breaking way?: \(error)")
+                }
                 self.result = nil
             }
         } catch {
@@ -84,6 +103,12 @@ extension Parseable: Codable where Input: Codable, Result: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(input, forKey: .input)
         try container.encode(result, forKey: .result)
+    }
+}
+
+extension Parseable.ParserResult {
+    static func modelVersion(from container: KeyedDecodingContainer<AnyCodingKey>) -> String? {
+        try? container.decode(String.self, forKey: AnyCodingKey(stringValue: "modelVersion"))
     }
 }
 

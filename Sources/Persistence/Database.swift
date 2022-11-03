@@ -103,7 +103,7 @@ public class Database {
     private var needsParseableProcessing: Bool {
         do {
             guard let preferences: Preferences = try keyValueStore.get(Preferences.key) else { return true }
-            return preferences.parseableManagerLastRunVersion != DomainParsers.combinedVersion
+            return preferences.parseableManagerLastRunVersion != ParseableGameModels.combinedVersion
         } catch {
             return false
         }
@@ -147,7 +147,7 @@ public class Database {
         if needsParseableProcessing {
             try parseableManager.run()
             var preferences: Preferences = try keyValueStore.get(Preferences.key) ?? Preferences()
-            preferences.parseableManagerLastRunVersion = DomainParsers.combinedVersion
+            preferences.parseableManagerLastRunVersion = ParseableGameModels.combinedVersion
             try keyValueStore.put(preferences)
         }
     }

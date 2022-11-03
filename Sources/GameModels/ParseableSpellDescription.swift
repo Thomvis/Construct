@@ -26,7 +26,9 @@ public extension ParseableSpellDescription {
     }
 }
 
-public struct ParsedSpellDescription: Codable, Hashable {
+public struct ParsedSpellDescription: DomainModel, Codable, Hashable {
+    public static let version: String = "1"
+    
     public let diceExpressions: [Located<DiceExpression>]
 }
 

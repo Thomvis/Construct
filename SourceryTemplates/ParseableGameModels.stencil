@@ -1,0 +1,13 @@
+public enum ParseableGameModels {
+	public static var combinedParserVersion: String {
+		return "{% for type in types.implementing.DomainParser %}{{ type.name }}:\({{ type.name }}.version),{% endfor %}"
+	}
+
+	public static var combinedModelVersion: String {
+		return "{% for type in types.implementing.DomainModel %}{{ type.name }}:\({{ type.name }}.version),{% endfor %}"
+	}
+
+	public static var combinedVersion: String {
+		"parsers:\(combinedParserVersion),models:\(combinedModelVersion)"
+	}
+}
