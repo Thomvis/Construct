@@ -145,7 +145,7 @@ public class Database {
 
         // process parseables
         if needsParseableProcessing {
-            try parseableManager.run()
+            try await parseableManager.run()
             var preferences: Preferences = try keyValueStore.get(Preferences.key) ?? Preferences()
             preferences.parseableManagerLastRunVersion = ParseableGameModels.combinedVersion
             try keyValueStore.put(preferences)

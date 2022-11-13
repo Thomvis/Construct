@@ -72,38 +72,42 @@ extension Spell: HasParseableVisitor {
 
 extension StatBlock: HasParseableVisitor {
     public static let parseableVisitor: ParseableVisitor<StatBlock> = ParseableVisitor { statBlock in
-        for i in statBlock.features.indices {
-            statBlock.features[i].parseIfNeeded()
+        var res = false
+        for id in statBlock.features.ids {
+            res = res || (statBlock.features[id: id]?.parseIfNeeded() ?? false)
         }
 
-        for i in statBlock.actions.indices {
-            statBlock.actions[i].parseIfNeeded()
+        for id in statBlock.actions.ids {
+            res = res || (statBlock.actions[id: id]?.parseIfNeeded() ?? false)
         }
 
-        for i in statBlock.reactions.indices {
-            statBlock.reactions[i].parseIfNeeded()
+        for id in statBlock.reactions.ids {
+            res = res || (statBlock.reactions[id: id]?.parseIfNeeded() ?? false)
         }
 
-        for i in (statBlock.legendary?.actions.indices ?? [].indices) {
-            statBlock.legendary?.actions[i].parseIfNeeded()
+        for id in (statBlock.legendary?.actions ?? []).ids {
+            res = res || (statBlock.legendary?.actions[id: id]?.parseIfNeeded() ?? false)
         }
+        return res
     }
 }
 
-extension ParseableCreatureAction {
-    mutating func parseIfNeeded() {
+public extension ParseableCreatureAction {
+    mutating func parseIfNeeded() -> Bool {
         parseIfNeeded(parser: CreatureActionDomainParser.self)
     }
 }
 
-extension ParseableCreatureFeature {
-    mutating func parseIfNeeded() {
+public extension ParseableCreatureFeature {
+    @discardableResult
+    mutating func parseIfNeeded() -> Bool {
         parseIfNeeded(parser: CreatureFeatureDomainParser.self)
     }
 }
 
-extension ParseableSpellDescription {
-    mutating func parseIfNeeded() {
+public extension ParseableSpellDescription {
+    @discardableResult
+    mutating func parseIfNeeded() -> Bool {
         parseIfNeeded(parser: SpellDescriptionDomainParser.self)
     }
 }

@@ -31,11 +31,12 @@ public struct Parseable<Input, Result> where Result: DomainModel {
         self
     }
 
-    public mutating func parseIfNeeded<Parser>(parser: Parser.Type) where Parser: DomainParser, Parser.Input == Input, Parser.Result == Result {
+    /// Returns true if parsing was needed
+    public mutating func parseIfNeeded<Parser>(parser: Parser.Type) -> Bool where Parser: DomainParser, Parser.Input == Input, Parser.Result == Result {
         guard result?.version != Parser.version ||
                 result?.modelVersion != Result.version ||
                 result?.parserName != String(describing: parser)
-        else { return }
+        else { return false }
 
         var result = ParserResult(
             value: Parser.parse(input: input),
@@ -44,6 +45,8 @@ public struct Parseable<Input, Result> where Result: DomainModel {
         result.parserName = String(describing: parser)
         result.modelVersion = Result.version
         self.result = result
+
+        return true
     }
 
     public struct ParserResult {
@@ -124,20 +127,22 @@ extension Parseable.ParserResult: Hashable where Result: Hashable { }
 
 public enum ParseableVisitorAction {
     case visit
+    case didParse
 }
 
 public typealias ParseableVisitor<T> = Reducer<T, ParseableVisitorAction, Void>
 
 extension ParseableVisitor where Action == ParseableVisitorAction, Environment == Void {
-    public init(visit: @escaping (inout State) -> Void) {
+    public init(visit: @escaping (inout State) -> Bool) {
         self.init { state, action, env in
-            visit(&state)
-            return .none
+            assert(action == .visit)
+            return visit(&state) ? Effect(value: .didParse) : .none
         }
     }
 
     public func visitEach<ID, Global>(in toCollection: WritableKeyPath<Global, IdentifiedArray<ID, State>>) -> ParseableVisitor<Global> {
         return ParseableVisitor<Global> { state, action, env in
+            assert(action == .visit)
             return .merge(
                 state[keyPath: toCollection].ids
                     .map {
@@ -153,7 +158,7 @@ extension ParseableVisitor where Action == ParseableVisitorAction, Environment =
 }
 
 public protocol ParseableVisitable {
-    mutating func visitParseable()
+    mutating func visitParseable() -> Effect<ParseableVisitorAction, Never>
 }
 
 public protocol HasParseableVisitor: ParseableVisitable {
@@ -161,7 +166,7 @@ public protocol HasParseableVisitor: ParseableVisitable {
 }
 
 extension ParseableVisitable where Self: HasParseableVisitor {
-    public mutating func visitParseable() {
-        _ = Self.parseableVisitor.run(&self, .visit, ())
+    public mutating func visitParseable() -> Effect<ParseableVisitorAction, Never> {
+        return Self.parseableVisitor.run(&self, .visit, ())
     }
 }

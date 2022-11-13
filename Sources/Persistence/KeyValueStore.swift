@@ -158,6 +158,18 @@ public final class KeyValueStore {
         try fetchAllRaw([keyPrefix])
     }
 
+    /// Returns an array of all keys in the store, ordered by rowId
+    public func allKeys() throws -> [String] {
+        try queue.read { db in
+            try Row.fetchAll(
+                db,
+                sql: "SELECT \(Record.Columns.key) FROM \(Record.databaseTableName) ORDER BY \(Column.rowID.name) ASC"
+            ).map { row in
+                row[KeyValueStore.Record.Columns.key] as String
+            }
+        }
+    }
+
     public func fetchAllRaw(_ keyPrefixes: [String]? = []) throws -> [Record] {
         return try queue.read { db in
             if let keyPrefixes = keyPrefixes {
