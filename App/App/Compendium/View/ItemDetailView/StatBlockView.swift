@@ -338,7 +338,21 @@ private extension AbilityScores {
     }
 }
 
-struct CreatureFeatureView: View {
+public struct StatBlockNamedContentItemView: View {
+    let item: NamedStatBlockContentItem
+
+    public var body: some View {
+        switch item {
+        case .feature(let f):
+            CreatureFeatureView(feature: f)
+        case .action(let a), .reaction(let a), .legendaryAction(let a):
+            CreatureActionView(action: a)
+        }
+    }
+}
+
+
+private struct CreatureFeatureView: View {
     let feature: ParseableCreatureFeature
 
     var body: some View {
@@ -360,7 +374,7 @@ struct CreatureFeatureView: View {
     }
 }
 
-struct CreatureActionView: View {
+private struct CreatureActionView: View {
     let action: ParseableCreatureAction
 
     var body: some View {

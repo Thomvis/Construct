@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import IdentifiedCollections
 
 // From https://www.swiftbysundell.com/tips/default-decoding-values/
 
@@ -34,7 +35,7 @@ extension DecodableDefault.Wrapper: Decodable {
     }
 }
 
-extension KeyedDecodingContainer {
+public extension KeyedDecodingContainer {
     func decode<T>(_ type: DecodableDefault.Wrapper<T>.Type,
                    forKey key: Key) throws -> DecodableDefault.Wrapper<T> {
         try decodeIfPresent(type, forKey: key) ?? .init()
@@ -66,6 +67,10 @@ public extension DecodableDefault {
         public enum EmptyMap<T: Map>: Source {
             public static var defaultValue: T { [:] }
         }
+
+        public enum UUID: Source {
+            public static var defaultValue: Foundation.UUID { Foundation.UUID() }
+        }
     }
 }
 
@@ -75,6 +80,7 @@ public extension DecodableDefault {
     typealias EmptyString = Wrapper<Sources.EmptyString>
     typealias EmptyList<T: List> = Wrapper<Sources.EmptyList<T>>
     typealias EmptyMap<T: Map> = Wrapper<Sources.EmptyMap<T>>
+    typealias UUID = Wrapper<Sources.UUID>
 }
 
 extension DecodableDefault.Wrapper: Equatable where Value: Equatable {}

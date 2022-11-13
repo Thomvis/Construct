@@ -36,6 +36,8 @@
 		E9323A3D23205E7700F0D0C6 /* FileDataSourceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3C23205E7700F0D0C6 /* FileDataSourceTest.swift */; };
 		E9323A3F23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */; };
 		E93777EA233C05D500C9F41A /* ddb_riverine.json in Resources */ = {isa = PBXBuildFile; fileRef = E93777E9233C05D500C9F41A /* ddb_riverine.json */; };
+		E93CCC4B29153DFA001E35BA /* NamedStatBlockContentItemEditViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93CCC4A29153DFA001E35BA /* NamedStatBlockContentItemEditViewState.swift */; };
+		E93CCC4D29153E03001E35BA /* NamedStatBlockContentItemEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93CCC4C29153E03001E35BA /* NamedStatBlockContentItemEditView.swift */; };
 		E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */ = {isa = PBXBuildFile; productRef = E93FA1C924EC5B7F007441BF /* Parma */; };
 		E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA902477E56300F313D7 /* CompendiumIndexState.swift */; };
 		E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */; };
@@ -246,6 +248,8 @@
 		E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Open5eMonsterDataSourceReaderTest.swift; sourceTree = "<group>"; };
 		E93777E9233C05D500C9F41A /* ddb_riverine.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ddb_riverine.json; sourceTree = "<group>"; };
 		E93777F0233E4F5B00C9F41A /* EncounterSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterSettingsView.swift; sourceTree = "<group>"; };
+		E93CCC4A29153DFA001E35BA /* NamedStatBlockContentItemEditViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamedStatBlockContentItemEditViewState.swift; sourceTree = "<group>"; };
+		E93CCC4C29153E03001E35BA /* NamedStatBlockContentItemEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamedStatBlockContentItemEditView.swift; sourceTree = "<group>"; };
 		E940B5DC237BE7F800A8DAF4 /* CombatantTagEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagEditView.swift; sourceTree = "<group>"; };
 		E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Combatant+SwiftUI.swift"; sourceTree = "<group>"; };
 		E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningEncounterLogViewState.swift; sourceTree = "<group>"; };
@@ -459,6 +463,8 @@
 			children = (
 				E9238C3023871C8A0023DFC3 /* CreatureEditView.swift */,
 				E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */,
+				E93CCC4A29153DFA001E35BA /* NamedStatBlockContentItemEditViewState.swift */,
+				E93CCC4C29153E03001E35BA /* NamedStatBlockContentItemEditView.swift */,
 			);
 			path = CreatureEditView;
 			sourceTree = "<group>";
@@ -1046,6 +1052,7 @@
 				E9E3575128DC822D00484DFA /* CrashReporter.swift in Sources */,
 				E999FBFF235E2F29000CCC8B /* DocumentPicker.swift in Sources */,
 				E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */,
+				E93CCC4B29153DFA001E35BA /* NamedStatBlockContentItemEditViewState.swift in Sources */,
 				E97AEE642396F6A100569E79 /* ClearableTextField.swift in Sources */,
 				E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */,
 				E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */,
@@ -1087,6 +1094,7 @@
 				E931CF912500C8BF006CEE78 /* DiceActionView.swift in Sources */,
 				E963CCFA247BDEA6009863D7 /* CompendiumImportView.swift in Sources */,
 				E946B02A247DBB2F008A407C /* CompendiumFilterSheet.swift in Sources */,
+				E93CCC4D29153E03001E35BA /* NamedStatBlockContentItemEditView.swift in Sources */,
 				E962FF362504FC2E00919B34 /* AnimatedRollView.swift in Sources */,
 				E931CF932500CA3F006CEE78 /* DiceActionViewState.swift in Sources */,
 				E991F88C25449D86006CE8E8 /* ReferenceView.swift in Sources */,

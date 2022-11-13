@@ -430,3 +430,9 @@ public extension AsyncSequence {
         }
     }
 }
+
+public extension Sequence where Element: Identifiable {
+    var identified: IdentifiedArrayOf<Element> {
+        IdentifiedArrayOf(uniqueElements: self)
+    }
+}

@@ -11,6 +11,8 @@ import SwiftUI
 import ComposableArchitecture
 import GameModels
 import DiceRollerFeature
+import SharedViews
+import Helpers
 
 struct CreatureEditView: View {
     static let iconColumnWidth: CGFloat = 30
@@ -128,6 +130,8 @@ struct CreatureEditView: View {
                 }
             }
 
+            allNamedContentItemSections
+
             FormSection(.player) {
                 Toggle(isOn: model.isPlayer.animation()) {
                     Text("Controlled by player").bold()
@@ -149,6 +153,21 @@ struct CreatureEditView: View {
             }
         }
         .popover(popoverBinding)
+        .sheet(item: viewStore.binding(get: { $0.sheet }, send: { .sheet($0) })) { item in
+            IfLetStore(store.scope(state: replayNonNil({ $0.sheet }))) { store in
+                SwitchStore(store) {
+                    CaseLet(state: /CreatureEditViewState.Sheet.actionEditor, action: CreatureEditViewAction.creatureActionEditSheet) { store in
+                        AutoSizingSheetContainer {
+                            SheetNavigationContainer {
+                                NamedStatBlockContentItemEditView(store: store)
+                                    .navigationTitle(ViewStore(store).state.title)
+                                    .navigationBarTitleDisplayMode(.inline)
+                            }
+                        }
+                    }
+                }
+            }
+        }
         .background(Group {
             if viewStore.state.mode.isEdit {
                 EmptyView()
@@ -227,6 +246,52 @@ struct CreatureEditView: View {
         }
     }
 
+    @ViewBuilder
+    var allNamedContentItemSections: some View {
+        ForEach(CreatureEditViewState.Section.allNamedContentItemCases) { section in
+            if case .namedContentItems(let t) = section {
+                FormSection(section, footer: HStack {
+                    Button(action: {
+                        viewStore.send(.sheet(.actionEditor(NamedStatBlockContentItemEditViewState(newItemOfType: t))))
+                    }) {
+                        Image(systemName: "plus.circle").font(Font.footnote.bold())
+                        Text("Add \(t.localizedDisplayName)").bold()
+                    }
+
+                    Spacer()
+
+                    EditButton()
+                }) {
+                    ForEach(model.wrappedValue.statBlock[itemsOfType: t], id: \.id) { item in
+                        NavigationRowButton {
+                            viewStore.send(.onNamedContentItemTap(t, item.id))
+                        } label: {
+                            VStack(alignment: .leading) {
+                                Text(item.attributedName)
+                                Text(item.attributedDescription)
+                                    .font(.footnote)
+                                    .foregroundStyle(Color.secondary)
+                                    .multilineTextAlignment(.leading)
+                                    .lineLimit(1)
+                            }
+                            .padding([.top, .bottom], 1)
+                        }
+                    }
+                    .onDelete { indices in
+                        viewStore.send(.onNamedContentItemRemove(t, indices))
+                    }
+                    .onMove { indices, offset in
+                        viewStore.send(.onNamedContentItemMove(t, indices, offset))
+                    }
+
+                    if model.wrappedValue.statBlock[itemsOfType: t].isEmpty {
+                        Text("No items").italic()
+                    }
+                }
+            }
+        }
+    }
+
     var popoverBinding: Binding<AnyView?> {
         Binding(get: {
             switch self.viewStore.state.popover {
@@ -277,12 +342,39 @@ extension CreatureEditView {
     }
 }
 
+extension NamedStatBlockContentItemEditViewState {
+    var title: String {
+        let verb: String
+        switch intent {
+        case .edit: verb = "Edit"
+        case .new: verb = "New"
+        }
+
+        return "\(verb) \(itemType.localizedDisplayName)"
+    }
+}
+
 #if DEBUG
 struct CreatureEditView_Preview: PreviewProvider {
     static var previews: some View {
         CreatureEditView(
             store: Store(
-                initialState: CreatureEditViewState(create: .monster),
+                initialState: CreatureEditViewState(edit: Monster(
+                    realm: .homebrew,
+                    stats: StatBlock(
+                        name: "Goblin",
+                        armor: [],
+                        savingThrows: [:],
+                        skills: [:],
+                        features: [],
+                        actions: [
+                            CreatureAction(name: "Scimitar", description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage."),
+                            CreatureAction(name: "Shortbow", description: "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage.")
+                        ],
+                        reactions: []
+                    ),
+                    challengeRating: Fraction(integer: 1)
+                )),
                 reducer: CreatureEditViewState.reducer,
                 environment: CEVE(
                     modifierFormatter: modifierFormatter,

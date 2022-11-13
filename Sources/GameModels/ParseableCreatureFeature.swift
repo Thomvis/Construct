@@ -13,38 +13,9 @@ import Tagged
 
 public typealias ParseableCreatureFeature = Parseable<CreatureFeature, ParsedCreatureFeature>
 
-public extension ParseableCreatureFeature {
-    var name: String { input.name }
-    var description: String { input.description }
-
-    var attributedName: AttributedString {
-        guard let parsed = result?.value else { return AttributedString(description) }
-
-        var result = AttributedString(name)
-        for annotation in parsed.nameAnnotations {
-            result.apply(annotation)
-        }
-
-        return result
-    }
-
-    var attributedDescription: AttributedString {
-        guard let parsed = result?.value else { return AttributedString(description) }
-
-        var result = AttributedString(description)
-        for annotation in parsed.descriptionAnnotations {
-            result.apply(annotation)
-        }
-
-        return result
-    }
-}
-
 public struct ParsedCreatureFeature: DomainModel, Codable, Hashable {
 
-    public static let version: String = "2"
-
-    public let id: Id
+    public static let version: String = "1"
 
     /**
      Parsed from `name`. Range is scoped to `name`.
@@ -55,25 +26,23 @@ public struct ParsedCreatureFeature: DomainModel, Codable, Hashable {
     let otherDescriptionAnnotations: [Located<TextAnnotation>]?
 
     public init(
-        id: Id = UUID().tagged(),
         limitedUse: Located<LimitedUse>? = nil,
         spellcasting: Spellcasting? = nil,
         otherDescriptionAnnotations: [Located<TextAnnotation>]? = nil
     ) {
-        self.id = id
         self.limitedUse = limitedUse
         self.spellcasting = spellcasting
         self.otherDescriptionAnnotations = otherDescriptionAnnotations
     }
 
-    var nameAnnotations: [Located<TextAnnotation>] {
+    public var nameAnnotations: [Located<TextAnnotation>] {
         limitedUse.flatMap { llu in
             guard case .turnStart = llu.value.recharge else { return nil }
             return [llu.map { _ in TextAnnotation.diceExpression(1.d(6)) }]
         } ?? []
     }
 
-    var descriptionAnnotations: [Located<TextAnnotation>] {
+    public var descriptionAnnotations: [Located<TextAnnotation>] {
         var result: [Located<TextAnnotation>] = otherDescriptionAnnotations ?? []
 
         if let s = spellcasting {
@@ -91,8 +60,6 @@ public struct ParsedCreatureFeature: DomainModel, Codable, Hashable {
 
         return result
     }
-
-    public typealias Id = Tagged<ParsedCreatureFeature, UUID>
 }
 
 extension ParsedCreatureFeature {

@@ -19,6 +19,7 @@ struct CreatureEditViewState: Equatable {
     var sections: Set<Section>
 
     var popover: Popover?
+    var sheet: Sheet? = nil
 
     init(create creatureType: CreatureType) {
         self.mode = .create(creatureType)
@@ -92,11 +93,30 @@ struct CreatureEditViewState: Equatable {
         }
     }
 
+    var actionEditor: NamedStatBlockContentItemEditViewState? {
+        get {
+            if case .actionEditor(let s) = sheet {
+                return s
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                sheet = .actionEditor(newValue)
+            }
+        }
+    }
+
     var localStateForDeduplication: Self {
         var res = self
         res.popover = popover.map {
             switch $0 {
             case .numberEntry: return .numberEntry(.nullInstance)
+            }
+        }
+        res.sheet = sheet.map {
+            switch $0 {
+            case .actionEditor: return .actionEditor(.nullInstance)
             }
         }
         return res
@@ -143,17 +163,48 @@ struct CreatureEditViewState: Equatable {
         }
     }
 
-    enum Section: Int, CaseIterable, Hashable {
+    enum Section: CaseIterable, Hashable, Identifiable {
         case basicMonster
         case basicCharacter
         case basicStats
         case abilities
         case initiative
+        case namedContentItems(NamedStatBlockContentItemType)
         case player
+
+        static var allCases: [CreatureEditViewState.Section] =
+            [.basicMonster, .basicCharacter, .basicStats, .abilities, .initiative]
+            + allNamedContentItemCases
+            + [.player]
+
+        static var allNamedContentItemCases: [CreatureEditViewState.Section] =
+            NamedStatBlockContentItemType.allCases.map { .namedContentItems($0) }
+
+        var id: String {
+            switch self {
+            case .basicMonster: return "bm"
+            case .basicCharacter: return "bc"
+            case .basicStats: return "bs"
+            case .abilities: return "abs"
+            case .initiative: return "init"
+            case .namedContentItems(let t): return "nci_\(t.rawValue)"
+            case .player: return "pl"
+            }
+        }
     }
 
     enum Popover: Equatable {
         case numberEntry(NumberEntryViewState)
+    }
+
+    enum Sheet: Equatable, Identifiable {
+        case actionEditor(NamedStatBlockContentItemEditViewState)
+
+        var id: String {
+            switch self {
+            case .actionEditor: return "actionEditor"
+            }
+        }
     }
 }
 
@@ -306,12 +357,22 @@ struct StatBlockFormModel: Equatable {
             movementModes.remove(at: idx)
         }
     }
+
+    subscript(itemsOfType type: NamedStatBlockContentItemType) -> IdentifiedArrayOf<NamedStatBlockContentItem> {
+        get { statBlock[itemsOfType: type] }
+        set { statBlock[itemsOfType: type] = newValue }
+    }
 }
 
 enum CreatureEditViewAction: Equatable {
     case model(CreatureEditFormModel)
     case popover(CreatureEditViewState.Popover?)
     case numberEntryPopover(NumberEntryViewAction)
+    case sheet(CreatureEditViewState.Sheet?)
+    case creatureActionEditSheet(CreatureActionEditViewAction)
+    case onNamedContentItemTap(NamedStatBlockContentItemType, UUID)
+    case onNamedContentItemRemove(NamedStatBlockContentItemType, IndexSet)
+    case onNamedContentItemMove(NamedStatBlockContentItemType, IndexSet, Int)
     case addSection(CreatureEditViewState.Section)
     case removeSection(CreatureEditViewState.Section)
     case onAddTap(CreatureEditViewState)
@@ -324,11 +385,41 @@ typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & Envir
 extension CreatureEditViewState {
     static let reducer: Reducer<Self, CreatureEditViewAction, CreatureEditViewEnvironment> = Reducer.combine(
         NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CreatureEditViewAction.numberEntryPopover),
+        NamedStatBlockContentItemEditViewState.reducer.optional().pullback(state: \.actionEditor, action: /CreatureEditViewAction.creatureActionEditSheet),
         Reducer { state, action, _ in
             switch action {
             case .model(let m): state.model = m
             case .popover(let p): state.popover = p
             case .numberEntryPopover: break // handled above
+            case .sheet(let s): state.sheet = s
+            case .creatureActionEditSheet(.onDoneButtonTap):
+                guard case let .actionEditor(editorState) = state.sheet else { break }
+                switch editorState.intent {
+                case .new(let t):
+                    var item = editorState.makeItem()
+                    item.parseIfNeeded()
+                    state.model.statBlock[itemsOfType: editorState.itemType].append(item)
+                case .edit(let i):
+                    state.model.statBlock[itemsOfType: editorState.itemType][id: i.id]?.name = editorState.fields.name
+                    state.model.statBlock[itemsOfType: editorState.itemType][id: i.id]?.description = editorState.fields.description
+                    state.model.statBlock[itemsOfType: editorState.itemType][id: i.id]?.parseIfNeeded()
+                }
+
+                state.sheet = nil
+                state.sections.insert(.namedContentItems(editorState.itemType))
+            case .creatureActionEditSheet(.onRemoveButtonTap):
+                guard case let .actionEditor(editorState) = state.sheet, case let .edit(i) = editorState.intent else { break }
+                state.model.statBlock[itemsOfType: editorState.itemType].remove(id: i.id)
+                state.sheet = nil
+            case .onNamedContentItemTap(let t, let id):
+                if let item = state.model.statBlock[itemsOfType: t][id: id] {
+                    state.sheet = .actionEditor(NamedStatBlockContentItemEditViewState(editing: item))
+                }
+            case .onNamedContentItemRemove(let t, let indices):
+                state.model.statBlock[itemsOfType: t].remove(atOffsets: indices)
+            case .onNamedContentItemMove(let t, let indices, let offset):
+                state.model.statBlock[itemsOfType: t].move(fromOffsets: indices, toOffset: offset)
+            case .creatureActionEditSheet: break // handled above
             case .addSection(let s): state.sections.insert(s)
             case .removeSection(let s): state.sections.remove(s)
             case .onAddTap: break // should be handled by parent
@@ -384,9 +475,19 @@ extension CreatureEditViewState.CreatureType {
 
     var compatibleSections: Set<CreatureEditViewState.Section> {
         switch self {
-        case .monster: return [.basicMonster, .basicStats, .abilities, .initiative]
-        case .character: return [.basicCharacter, .basicStats, .abilities, .initiative, .player]
-        case .adHocCombatant: return [.basicCharacter, .basicStats, .abilities, .initiative, .player]
+        case .monster: return Set(
+            [.basicMonster, .basicStats, .abilities, .initiative]
+            + CreatureEditViewState.Section.allNamedContentItemCases
+        )
+        case .character: return Set(
+            [.basicCharacter, .basicStats, .abilities, .initiative]
+            + CreatureEditViewState.Section.allNamedContentItemCases
+            + [.player]
+        )
+        case .adHocCombatant: return Set([.basicCharacter, .basicStats, .abilities, .initiative]
+            + CreatureEditViewState.Section.allNamedContentItemCases
+            + [.player]
+        )
         }
     }
 }
@@ -399,6 +500,7 @@ extension CreatureEditViewState.Section {
         case .basicStats: return localizedName
         case .abilities: return localizedName
         case .initiative: return localizedName
+        case .namedContentItems: return localizedName
         case .player: return nil
         }
     }
@@ -408,8 +510,12 @@ extension CreatureEditViewState.Section {
         case .basicMonster: return ""
         case .basicCharacter: return ""
         case .basicStats: return "AC / HP / Speed"
-        case .abilities: return "Abilities"
+        case .abilities: return "Ability Scores"
         case .initiative: return "Initiative"
+        case .namedContentItems(.feature): return "Features & Traits"
+        case .namedContentItems(.action): return "Actions"
+        case .namedContentItems(.reaction): return "Reactions"
+        case .namedContentItems(.legendaryAction): return "Legendary Actions"
         case .player: return ""
         }
     }
@@ -477,6 +583,11 @@ extension CreatureEditViewState {
             result.armorClass = nil
             result.movement = nil
         }
+        for case .namedContentItems(let type) in Section.allNamedContentItemCases {
+            if !sections.contains(.namedContentItems(type)) {
+                result[itemsOfType: type] = []
+            }
+        }
 
         return result
     }
@@ -525,6 +636,12 @@ extension CreatureEditFormModel {
 
         if statBlock.statBlock.initiative != nil {
             result.insert(.initiative)
+        }
+
+        for type in NamedStatBlockContentItemType.allCases {
+            if !statBlock.statBlock[itemsOfType: type].isEmpty {
+                result.insert(.namedContentItems(type))
+            }
         }
 
         return result

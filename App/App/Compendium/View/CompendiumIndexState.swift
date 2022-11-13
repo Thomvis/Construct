@@ -221,6 +221,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         do {
                             return try env.compendium.fetchAll(query: query.text?.nonEmptyString, types: query.filters?.types)
                         } catch {
+                            assertionFailure("compendium.fetchAll failed with error: \(error)")
                             env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                             throw error
                         }

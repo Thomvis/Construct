@@ -29,87 +29,6 @@ extension Optional: MigrationTarget where Wrapped == Alignment {
     }
 }
 
-// Shared between monsters and characters
-public struct StatBlock: Codable, Hashable {
-    public var name: String
-    public var size: CreatureSize?
-    public var type: String?
-    public var subtype: String?
-    @Migrated public var alignment: Alignment?
-
-    public var armorClass: Int?
-    public var armor: [Armor]
-    public var hitPointDice: DiceExpression?
-    public var hitPoints: Int?
-    public var movement: [MovementMode: Int]?
-
-    public var abilityScores: AbilityScores?
-    public var savingThrows: [Ability: Modifier]
-    public var skills: [Skill: Modifier]
-    public var initiative: Initiative?
-
-    public var damageVulnerabilities: String?
-    public var damageResistances: String?
-    public var damageImmunities: String?
-    public var conditionImmunities: String?
-
-    public var senses: String?
-    public var languages: String?
-
-    public var challengeRating: Fraction?
-
-    public var features: [ParseableCreatureFeature] // features & traits
-    public var actions: [ParseableCreatureAction]
-    @DecodableDefault.EmptyList public var reactions: [ParseableCreatureAction]
-    public var legendary: Legendary?
-
-    public init(name: String, size: CreatureSize? = nil, type: String? = nil, subtype: String? = nil, alignment: Alignment? = nil, armorClass: Int? = nil, armor: [Armor], hitPointDice: DiceExpression? = nil, hitPoints: Int? = nil, movement: [MovementMode : Int]? = nil, abilityScores: AbilityScores? = nil, savingThrows: [Ability : Modifier], skills: [Skill : Modifier], initiative: Initiative? = nil, damageVulnerabilities: String? = nil, damageResistances: String? = nil, damageImmunities: String? = nil, conditionImmunities: String? = nil, senses: String? = nil, languages: String? = nil, challengeRating: Fraction? = nil, features: [CreatureFeature], actions: [CreatureAction], reactions: [CreatureAction], legendary: Legendary? = nil) {
-        self.name = name
-        self.size = size
-        self.type = type
-        self.subtype = subtype
-        self._alignment = Migrated(alignment)
-        self.armorClass = armorClass
-        self.armor = armor
-        self.hitPointDice = hitPointDice
-        self.hitPoints = hitPoints
-        self.movement = movement
-        self.abilityScores = abilityScores
-        self.savingThrows = savingThrows
-        self.skills = skills
-        self.initiative = initiative
-        self.damageVulnerabilities = damageVulnerabilities
-        self.damageResistances = damageResistances
-        self.damageImmunities = damageImmunities
-        self.conditionImmunities = conditionImmunities
-        self.senses = senses
-        self.languages = languages
-        self.challengeRating = challengeRating
-        self.features = features.map(ParseableCreatureFeature.init)
-        self.actions = actions.map(ParseableCreatureAction.init)
-        self.reactions = reactions.map(ParseableCreatureAction.init)
-        self.legendary = legendary
-    }
-
-    public func savingThrowModifier(_ ability: Ability) -> Modifier? {
-        savingThrows[ability] ?? abilityScores?.score(for: ability).modifier
-    }
-
-    public func skillModifier(_ skill: Skill) -> Modifier? {
-        skills[skill] ?? abilityScores?.score(for: skill.ability).modifier
-    }
-
-    public struct Legendary: Codable, Hashable {
-        public var description: String?
-        public var actions: [ParseableCreatureAction]
-
-        public init(description: String? = nil, actions: [ParseableCreatureAction]) {
-            self.description = description
-            self.actions = actions
-        }
-    }
-}
-
 public enum CreatureSize: String, Codable, CaseIterable {
     case tiny, small, medium, large, huge, gargantuan
 }
@@ -346,8 +265,15 @@ public enum CreatureCondition: String, Codable {
 }
 
 public struct CreatureAction: Codable, Hashable {
+    @DecodableDefault.UUID public private(set) var id: UUID
     public var name: String
     public var description: String
+
+    public init(id: UUID, name: String, description: String) {
+        self.id = id
+        self.name = name
+        self.description = description
+    }
 
     public init(name: String, description: String) {
         self.name = name
@@ -356,10 +282,17 @@ public struct CreatureAction: Codable, Hashable {
 }
 
 public struct CreatureFeature: Codable, Hashable {
+    @DecodableDefault.UUID public private(set) var id: UUID
     public var name: String
     public var description: String
 
     public init(name: String, description: String) {
+        self.name = name
+        self.description = description
+    }
+
+    public init(id: UUID, name: String, description: String) {
+        self.id = id
         self.name = name
         self.description = description
     }
@@ -578,11 +511,5 @@ extension Alignment: Codable {
 
     enum CodableError: Error {
         case unrecognizedAlignment
-    }
-}
-
-public extension StatBlock {
-    static var `default`: StatBlock {
-        StatBlock(name: "", size: nil, type: nil, subtype: nil, alignment: nil, armorClass: nil, armor: [], hitPointDice: nil, hitPoints: nil, movement: nil, abilityScores: nil, savingThrows: [:], skills: [:], damageVulnerabilities: nil, damageResistances: nil, damageImmunities: nil, conditionImmunities: nil, senses: nil, languages: nil, challengeRating: nil, features: [], actions: [], reactions: [])
     }
 }

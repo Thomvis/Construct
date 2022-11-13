@@ -13,36 +13,9 @@ import Tagged
 
 public typealias ParseableCreatureAction = Parseable<CreatureAction, ParsedCreatureAction>
 
-public extension ParseableCreatureAction {
-    var name: String { input.name }
-    var description: String { input.description }
-
-    var attributedName: AttributedString {
-        guard let parsed = result?.value else { return AttributedString(name) }
-
-        var result = AttributedString(name)
-        for annotation in parsed.nameAnnotations {
-            result.apply(annotation)
-        }
-        return result
-    }
-
-    var attributedDescription: AttributedString {
-        guard let parsed = result?.value else { return AttributedString(description) }
-
-        var result = AttributedString(description)
-        for annotation in parsed.descriptionAnnotations {
-            result.apply(annotation)
-        }
-        return result
-    }
-}
-
 public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
 
-    public static let version: String = "2"
-
-    public let id: Id
+    public static let version: String = "1"
 
     /**
      Parsed from `name`. Range is scoped to `name`.
@@ -68,14 +41,12 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
      Returns nil if all parameters are nil
      */
     public init?(
-        id: Id = UUID().tagged(),
         limitedUse: Located<LimitedUse>?,
         action: Model?,
         otherDescriptionAnnotations: [Located<TextAnnotation>]?
     ) {
         guard limitedUse != nil || action != nil || otherDescriptionAnnotations?.nonEmptyArray != nil else { return nil }
 
-        self.id = id
         self.limitedUse = limitedUse
         self.action = action
         self.otherDescriptionAnnotations = otherDescriptionAnnotations
@@ -144,7 +115,5 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
             }
         }
     }
-
-    public typealias Id = Tagged<ParsedCreatureAction, UUID>
 
 }
