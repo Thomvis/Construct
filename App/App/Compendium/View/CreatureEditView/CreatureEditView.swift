@@ -207,28 +207,32 @@ struct CreatureEditView: View {
 
     var characterFields: some View {
         Group {
+            OptionalSelectField(
+                \.size,
+                 fieldLabel: "Size",
+                 valueLabel: \.localizedDisplayName.capitalized
+            )
+
             Stepper("Level: \(model.wrappedValue.levelOrNilAsZeroString)", value: model.levelOrNilAsZero, in: 0...20)
         }
     }
 
     var monsterFields: some View {
         Group {
-            HStack {
-                model.wrappedValue.challengeRating.map { cr in
-                    Group {
-                        Text("Challenge rating: \(cr.rawValue)")
+            OptionalSelectField(
+                \.size,
+                 fieldLabel: "Size",
+                 valueLabel: \.localizedDisplayName.capitalized
+            )
 
-                        crToXpMapping[cr].map { xp in
-                            Text("(\(xp) XP)").foregroundColor(Color(UIColor.secondaryLabel))
-                        }
-                    }
-                }.replaceNilWith {
-                    Text("Challenge rating")
-                }
+            OptionalSelectField(
+                \.type,
+                 fieldLabel: "Type",
+                 valueLabel: \.localizedDisplayName.capitalized
+            )
 
-                Spacer()
-
-                Menu("Select") {
+            LabeledContent {
+                Menu {
                     Picker(
                         selection: viewStore.binding(get: { $0.model.challengeRating }, send: {
                             var model = viewStore.model
@@ -241,7 +245,25 @@ struct CreatureEditView: View {
                             Text("\(option.rawValue)").tag(Optional.some(option))
                         }
                     }
+                } label: {
+                    model.wrappedValue.challengeRating.map { cr in
+                        Group {
+                            Text("\(cr.rawValue)")
+
+                            crToXpMapping[cr].map { xp in
+                                Text("(\(xp) XP)")
+                            }
+                        }
+                    }.replaceNilWith {
+                        Text("Select")
+                    }
+                    .foregroundColor(Color(UIColor.secondaryLabel))
+
+                    Image(systemName: "chevron.down.square.fill")
+                        .foregroundColor(Color.secondary)
                 }
+            } label: {
+                Text("Challenge rating")
             }
         }
     }
@@ -338,6 +360,40 @@ extension CreatureEditView {
                     content()
                 }
             }
+        }
+    }
+
+    fileprivate func OptionalSelectField<M: Hashable>(
+        _ path: WritableKeyPath<StatBlockFormModel, M?>,
+        fieldLabel: String,
+        valueLabel: @escaping (M) -> String
+    ) -> some View where M: CaseIterable, M.AllCases: RandomAccessCollection, M: RawRepresentable, M.RawValue: Hashable {
+        LabeledContent {
+            Menu {
+                Picker(
+                    selection: viewStore.binding(get: { $0.model.statBlock[keyPath: path] }, send: {
+                        var model = viewStore.model
+                        model.statBlock[keyPath: path] = $0
+                        return .model(model)
+                    }),
+                    label: EmptyView()
+                ) {
+                    Text("None").tag(Optional<M>.none)
+                    Divider()
+                    ForEach(M.allCases, id: \.rawValue) { value in
+                        Text(valueLabel(value)).tag(Optional.some(value))
+                    }
+                }
+            } label: {
+                let string = viewStore.state.model.statBlock[keyPath: path].map(valueLabel) ?? "Select (Optional)"
+                Text(string)
+                    .foregroundColor(Color.secondary)
+
+                Image(systemName: "chevron.down.square.fill")
+                    .foregroundColor(Color.secondary)
+            }
+        } label: {
+            Text(fieldLabel)
         }
     }
 }

@@ -16,7 +16,7 @@ import IdentifiedCollections
 public struct StatBlock: Codable, Hashable {
     public var name: String
     public var size: CreatureSize?
-    public var type: String?
+    public var type: ParseableMonsterType?
     public var subtype: String?
     @Migrated public var alignment: Alignment?
 
@@ -49,7 +49,7 @@ public struct StatBlock: Codable, Hashable {
     public init(name: String, size: CreatureSize? = nil, type: String? = nil, subtype: String? = nil, alignment: Alignment? = nil, armorClass: Int? = nil, armor: [Armor], hitPointDice: DiceExpression? = nil, hitPoints: Int? = nil, movement: [MovementMode : Int]? = nil, abilityScores: AbilityScores? = nil, savingThrows: [Ability : Modifier], skills: [Skill : Modifier], initiative: Initiative? = nil, damageVulnerabilities: String? = nil, damageResistances: String? = nil, damageImmunities: String? = nil, conditionImmunities: String? = nil, senses: String? = nil, languages: String? = nil, challengeRating: Fraction? = nil, features: [CreatureFeature], actions: [CreatureAction], reactions: [CreatureAction], legendary: Legendary? = nil) {
         self.name = name
         self.size = size
-        self.type = type
+        self.type = type.map(ParseableMonsterType.init(input:))
         self.subtype = subtype
         self._alignment = Migrated(alignment)
         self.armorClass = armorClass
@@ -68,9 +68,9 @@ public struct StatBlock: Codable, Hashable {
         self.senses = senses
         self.languages = languages
         self.challengeRating = challengeRating
-        self.features = IdentifiedArrayOf(uniqueElements: features.map(ParseableCreatureFeature.init))
-        self.actions = IdentifiedArrayOf(uniqueElements: actions.map(ParseableCreatureAction.init))
-        self.reactions = IdentifiedArrayOf(uniqueElements: reactions.map(ParseableCreatureAction.init))
+        self.features = IdentifiedArrayOf(uniqueElements: features.map(ParseableCreatureFeature.init(input:)))
+        self.actions = IdentifiedArrayOf(uniqueElements: actions.map(ParseableCreatureAction.init(input:)))
+        self.reactions = IdentifiedArrayOf(uniqueElements: reactions.map(ParseableCreatureAction.init(input:)))
         self.legendary = legendary
     }
 

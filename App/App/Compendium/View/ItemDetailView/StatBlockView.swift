@@ -290,7 +290,7 @@ private extension StatBlock {
     var subheading: String {
         let type = [
             size?.localizedDisplayName,
-            self.type?.nonEmptyString,
+            self.type?.localizedDisplayName.nonEmptyString,
             (subtype?.nonEmptyString).map { "(\($0))"}
         ].compactMap { $0 }.joined(separator: " ").nonEmptyString
 

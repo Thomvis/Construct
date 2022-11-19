@@ -504,7 +504,7 @@ extension CompendiumItem {
         case let c as Character:
             if let level = c.level {
                 if let type = c.stats.type {
-                    components.append(Text("Level \(level) \(type)"))
+                    components.append(Text("Level \(level) \(type.localizedDisplayName)"))
                 } else {
                     components.append(Text("Level \(level)"))
                 }

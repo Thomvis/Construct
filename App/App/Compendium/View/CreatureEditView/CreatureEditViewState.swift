@@ -288,6 +288,16 @@ struct StatBlockFormModel: Equatable {
         set { statBlock.name = newValue }
     }
 
+    var size: CreatureSize? {
+        get { statBlock.size }
+        set { statBlock.size = newValue }
+    }
+
+    var type: MonsterType? {
+        get { statBlock.type?.result?.value }
+        set { statBlock.type = newValue.map(ParseableMonsterType.init(from:)) }
+    }
+
     var ac: String {
         get { numberFormatter.string(for: statBlock.armorClass) ?? "" }
         set { statBlock.armorClass = numberFormatter.number(from: newValue)?.intValue }

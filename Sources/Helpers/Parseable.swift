@@ -27,6 +27,11 @@ public struct Parseable<Input, Result> where Result: DomainModel {
         self.input = input
     }
 
+    public init(input: Input, result: ParserResult) {
+        self.input = input
+        self.result = result
+    }
+
     public var projectedValue: Self? {
         self
     }
@@ -38,13 +43,12 @@ public struct Parseable<Input, Result> where Result: DomainModel {
                 result?.parserName != String(describing: parser)
         else { return false }
 
-        var result = ParserResult(
+        self.result = ParserResult(
             value: Parser.parse(input: input),
-            version: Parser.version
+            parserName: String(describing: parser),
+            version: Parser.version,
+            modelVersion: Result.version
         )
-        result.parserName = String(describing: parser)
-        result.modelVersion = Result.version
-        self.result = result
 
         return true
     }
@@ -54,6 +58,13 @@ public struct Parseable<Input, Result> where Result: DomainModel {
         @DecodableDefault.EmptyString public var parserName: String
         let version: String
         @DecodableDefault.EmptyString public var modelVersion: String
+
+        public init(value: Result?, parserName: String, version: String, modelVersion: String) {
+            self.value = value
+            self.parserName = parserName
+            self.version = version
+            self.modelVersion = modelVersion
+        }
     }
 
 }

@@ -73,6 +73,8 @@ extension Spell: HasParseableVisitor {
 extension StatBlock: HasParseableVisitor {
     public static let parseableVisitor: ParseableVisitor<StatBlock> = ParseableVisitor { statBlock in
         var res = false
+        res = res || statBlock.type?.parseIfNeeded() ?? false
+
         for id in statBlock.features.ids {
             res = res || (statBlock.features[id: id]?.parseIfNeeded() ?? false)
         }
@@ -89,6 +91,12 @@ extension StatBlock: HasParseableVisitor {
             res = res || (statBlock.legendary?.actions[id: id]?.parseIfNeeded() ?? false)
         }
         return res
+    }
+}
+
+public extension ParseableMonsterType {
+    mutating func parseIfNeeded() -> Bool {
+        parseIfNeeded(parser: MonsterTypeDomainParser.self)
     }
 }
 
@@ -109,6 +117,14 @@ public extension ParseableSpellDescription {
     @discardableResult
     mutating func parseIfNeeded() -> Bool {
         parseIfNeeded(parser: SpellDescriptionDomainParser.self)
+    }
+}
+
+struct MonsterTypeDomainParser: DomainParser {
+    static let version: String = "1"
+
+    static func parse(input: String) -> MonsterType? {
+        MonsterType(rawValue: input.lowercased(with: Locale(identifier: "en_US")))
     }
 }
 

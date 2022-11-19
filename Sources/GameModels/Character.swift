@@ -52,7 +52,7 @@ public extension Character {
             if let subtype = self.stats.subtype?.nonEmptyString {
                 components.append("\(subtype) \(type)")
             } else {
-                components.append(type)
+                components.append(type.localizedDisplayName)
             }
         }
 
