@@ -12,7 +12,7 @@ public typealias ParseableMonsterType = Parseable<String, MonsterType>
 
 public extension ParseableMonsterType {
     var localizedDisplayName: String {
-        result?.value?.localizedDisplayName ?? input
+        result?.value?.localizedDisplayName ?? input.capitalized
     }
 
     init(from type: MonsterType) {

@@ -82,15 +82,19 @@ struct StatBlockView: View {
                     Self.line(title: "Skills", text: stats.skillsSummary(env))
                 }
 
-                stats.damageVulnerabilities.map { Self.line(title: "Damage Vulnerabilities", text: $0) }
-                stats.damageResistances.map { Self.line(title: "Damage Resitances", text: $0) }
-                stats.damageImmunities.map { Self.line(title: "Damage Immunities", text: $0) }
-                stats.conditionImmunities.map { Self.line(title: "Condition Immunities", text: $0) }
+                Group {
+                    stats.damageVulnerabilities.map { Self.line(title: "Damage Vulnerabilities", text: $0) }
+                    stats.damageResistances.map { Self.line(title: "Damage Resitances", text: $0) }
+                    stats.damageImmunities.map { Self.line(title: "Damage Immunities", text: $0) }
+                    stats.conditionImmunities.map { Self.line(title: "Condition Immunities", text: $0) }
+                }
 
                 stats.senses.map { Self.line(title: "Senses", text: $0) }
                 stats.languages.map { Self.line(title: "Languages", text: $0) }
 
                 stats.challengeRating.map { Self.line(title: "Challenge Rating", text: $0.rawValue) }
+
+                stats.level.map { Self.line(title: "Level", text: "\($0)") }
             }
 
             if !stats.features.isEmpty {
@@ -316,11 +320,23 @@ private extension StatBlock {
     }
 
     func savingThrowsSummary(_ env: Environment) -> String {
-        Ability.allCases.compactMap { k in savingThrows[k].map { v in "\(k.localizedAbbreviation.uppercased()) \(env.modifierFormatter.string(for: v.modifier) ?? "-")" } }.joined(separator: ", ")
+        Ability.allCases.compactMap { k in
+            savingThrows[k].flatMap { _ in
+                savingThrowModifier(k)
+            }.map { v in
+                "\(k.localizedAbbreviation.uppercased()) \(env.modifierFormatter.string(for: v.modifier) ?? "-")"
+            }
+        }.joined(separator: ", ")
     }
 
     func skillsSummary(_ env: Environment) -> String {
-        Skill.allCases.compactMap { k in skills[k].map { v in "\(k.localizedDisplayName) \(env.modifierFormatter.string(for: v.modifier) ?? "-")" } }.joined(separator: ", ")
+        Skill.allCases.compactMap { k in
+            skills[k].flatMap { _ in
+                skillModifier(k)
+            }.map { v in
+                "\(k.localizedDisplayName) \(env.modifierFormatter.string(for: v.modifier) ?? "-")"
+            }
+        }.joined(separator: ", ")
     }
 
     var hasTertiaryInfo: Bool {

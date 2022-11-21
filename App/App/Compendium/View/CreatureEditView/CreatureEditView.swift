@@ -123,6 +123,8 @@ struct CreatureEditView: View {
                 }
             }
 
+            skillsAndSavesSection
+
             FormSection(.initiative) {
                 Stepper(value: model.statBlock.initiative.modifier.modifier, in: -10...10) {
                     Text("Initiative: ")
@@ -269,6 +271,34 @@ struct CreatureEditView: View {
     }
 
     @ViewBuilder
+    var skillsAndSavesSection: some View {
+        // Mockup
+        FormSection(.skillsAndSaves, footer: Group {
+            Text("The proficiency bonus for a \(viewStore.state.model.statBlock.difficultyDescription) \(viewStore.state.creatureType.localizedDisplayName) is \(viewStore.state.model.statBlock.proficiencyBonusModifier).")
+        }) {
+            ProficiencyMultiPicker(
+                fieldName: "Skill proficiencies",
+                allValues: Skill.allCases,
+                proficiencies: viewStore.state.model.statBlock.skillProficiencies,
+                statLabel: \.localizedDisplayName,
+                setProficiency: { $0.setProficiency($1, for: $2) },
+                removeProficiency: { $0.removeProficiency(for: $1) },
+                removeAllProficiencies: { $0.removeAllSkillProficiencies() }
+            )
+
+            ProficiencyMultiPicker(
+                fieldName: "Saving throw proficiencies",
+                allValues: Ability.allCases,
+                proficiencies: viewStore.state.model.statBlock.savingThrowProficiencies,
+                statLabel: \.localizedAbbreviation.localizedUppercase,
+                setProficiency: { $0.setProficiency($1, for: $2) },
+                removeProficiency: { $0.removeProficiency(for: $1) },
+                removeAllProficiencies: { $0.removeAllSavingThrowProficiencies() }
+            )
+        }
+    }
+
+    @ViewBuilder
     var allNamedContentItemSections: some View {
         ForEach(CreatureEditViewState.Section.allNamedContentItemCases) { section in
             if case .namedContentItems(let t) = section {
@@ -394,6 +424,117 @@ extension CreatureEditView {
             }
         } label: {
             Text(fieldLabel)
+        }
+    }
+
+    @ViewBuilder
+    fileprivate func ProficiencyMultiPicker<Stat>(
+        fieldName: String,
+        allValues: [Stat],
+        proficiencies: [StatBlockFormModel.Proficiency<Stat>],
+        statLabel: KeyPath<Stat, String>,
+        setProficiency: @escaping (inout StatBlockFormModel, Modifier?, Stat) -> Void,
+        removeProficiency: @escaping (inout StatBlockFormModel, Stat) -> Void,
+        removeAllProficiencies: @escaping (inout StatBlockFormModel) -> Void
+    ) -> some View where Stat: RawRepresentable, Stat.RawValue: Hashable {
+        VStack(alignment: .leading) {
+
+            HStack {
+                Menu {
+                    if !proficiencies.isEmpty {
+                        Button(role: .destructive) {
+                            var model = viewStore.model
+                            removeAllProficiencies(&model.statBlock)
+                            viewStore.send(.model(model))
+                        } label: {
+                            Label("Remove all", systemImage: "clear")
+                        }
+
+                        Divider()
+                    }
+
+                    ForEach(allValues, id: \.rawValue) { stat in
+                        let active = proficiencies.contains(where: { $0.stat == stat })
+                        Button {
+                            var model = viewStore.model
+                            if active {
+                                removeProficiency(&model.statBlock, stat)
+                            } else {
+                                setProficiency(&model.statBlock, nil, stat)
+                            }
+                            viewStore.send(.model(model))
+                        } label: {
+                            Label(
+                                stat[keyPath: statLabel],
+                                systemImage: active ? "circlebadge.fill" : "circlebadge"
+                            )
+                        }
+                    }
+                } label: {
+                    Text(fieldName)
+                        .foregroundColor(proficiencies.isEmpty ? Color.secondary : Color.primary)
+                        .bold(!proficiencies.isEmpty)
+                        .font(proficiencies.isEmpty ? .body : .footnote)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.down.square.fill")
+                        .foregroundColor(Color.secondary)
+                }
+            }
+
+            if !proficiencies.isEmpty {
+                FlowLayout {
+                    ForEach(proficiencies, id: \.stat) { proficiency in
+                        Menu {
+                            Button("Reset bonus") {
+                                var model = viewStore.model
+                                setProficiency(&model.statBlock, nil, proficiency.stat)
+                                viewStore.send(.model(model))
+                            }
+                            .disabled(!proficiency.isOverride)
+
+                            Menu {
+                                ForEach(0...20) { i in
+                                    Button(modifierFormatter.stringWithFallback(for: i)) {
+                                        var model = viewStore.model
+                                        setProficiency(&model.statBlock, Modifier(modifier: i), proficiency.stat)
+                                        viewStore.send(.model(model))
+                                    }
+                                }
+                            } label: {
+                                Text("Override bonus")
+                            }
+
+                            Divider()
+
+                            Button(role: .destructive) {
+                                var model = viewStore.model
+                                removeProficiency(&model.statBlock, proficiency.stat)
+                                viewStore.send(.model(model))
+                            } label: {
+                                Label("Remove", systemImage: "trash")
+                            }
+                        } label: {
+                            HStack(spacing: 8) {
+                                Text(proficiency.stat[keyPath: statLabel])
+
+                                let modifierColor = proficiency.isOverride
+                                                        ? Color(UIColor.systemYellow)
+                                                        : Color.black.opacity(0.05)
+
+                                Text(modifierFormatter.stringWithFallback(for: proficiency.modifier.modifier))
+                                    .padding(.leading, 4)
+                                    .background(modifierColor.padding([.top, .trailing, .bottom], -10))
+                            }
+                            .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(4)
+                            .foregroundColor(Color.primary)
+                        }
+                    }
+                }
+            }
         }
     }
 }

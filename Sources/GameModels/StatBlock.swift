@@ -27,8 +27,10 @@ public struct StatBlock: Codable, Hashable {
     public var movement: [MovementMode: Int]?
 
     public var abilityScores: AbilityScores?
-    public var savingThrows: [Ability: Modifier]
-    public var skills: [Skill: Modifier]
+    /// if the value is nil, the default proficiency bonus applies
+    public var savingThrows: [Ability: Modifier?]
+    /// if the value is nil, the default proficiency bonus applies
+    public var skills: [Skill: Modifier?]
     public var initiative: Initiative?
 
     public var damageVulnerabilities: String?
@@ -40,6 +42,7 @@ public struct StatBlock: Codable, Hashable {
     public var languages: String?
 
     public var challengeRating: Fraction?
+    public var level: Int?
 
     public var features: IdentifiedArrayOf<ParseableCreatureFeature> // features & traits
     public var actions: IdentifiedArrayOf<ParseableCreatureAction>
@@ -74,12 +77,36 @@ public struct StatBlock: Codable, Hashable {
         self.legendary = legendary
     }
 
-    public func savingThrowModifier(_ ability: Ability) -> Modifier? {
-        savingThrows[ability] ?? abilityScores?.score(for: ability).modifier
+    public func savingThrowModifier(_ ability: Ability) -> Modifier {
+        switch savingThrows[ability] {
+        case let explicit??: // override
+            return explicit
+        case .some(.none): // default proficiency
+            return (abilityScores?.score(for: ability).modifier ?? 0) + proficiencyBonus
+        case nil: // no proficiency
+            return abilityScores?.score(for: ability).modifier ?? 0
+        }
     }
 
-    public func skillModifier(_ skill: Skill) -> Modifier? {
-        skills[skill] ?? abilityScores?.score(for: skill.ability).modifier
+    public func skillModifier(_ skill: Skill) -> Modifier {
+        switch skills[skill] {
+        case let explicit??: // override
+            return explicit
+        case .some(.none): // default proficiency
+            return (abilityScores?.score(for: skill.ability).modifier ?? 0) + proficiencyBonus
+        case nil: // no proficiency
+            return abilityScores?.score(for: skill.ability).modifier ?? 0
+        }
+    }
+
+    public var proficiencyBonus: Modifier {
+        assert(challengeRating == nil || level == nil)
+        if let challengeRating {
+            return crToProficiencyBonusMapping[challengeRating] ?? 0
+        } else if let level {
+            return levelToProficiencyBonusMapping[level] ?? 0
+        }
+        return 0
     }
 
     public struct Legendary: Codable, Hashable {

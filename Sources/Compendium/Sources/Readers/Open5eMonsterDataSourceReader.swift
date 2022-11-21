@@ -61,24 +61,24 @@ private extension StatBlock {
         guard let hitPointDice = DiceExpressionParser.parse(m.hitDice) else { return nil }
 
         let optionalSkills: [Skill: Modifier?] = [
-            .acrobatics: m.acrobatics.map(Modifier.init),
-            .animalHandling: m.animalHandling.map(Modifier.init),
-            .arcana: m.arcana.map(Modifier.init),
-            .athletics: m.athletics.map(Modifier.init),
-            .deception: m.deception.map(Modifier.init),
-            .history: m.history.map(Modifier.init),
-            .insight: m.insight.map(Modifier.init),
-            .intimidation: m.intimidation.map(Modifier.init),
-            .investigation: m.investigation.map(Modifier.init),
-            .medicine: m.medicine.map(Modifier.init),
-            .nature: m.nature.map(Modifier.init),
-            .perception: m.perception.map(Modifier.init),
-            .performance: m.performance.map(Modifier.init),
-            .persuasion: m.persuasion.map(Modifier.init),
-            .religion: m.religion.map(Modifier.init),
-            .sleightOfHand: m.sleightOfHand.map(Modifier.init),
-            .stealth: m.stealth.map(Modifier.init),
-            .survival: m.survival.map(Modifier.init)
+            .acrobatics: m.acrobatics.map(Modifier.init(modifier:)),
+            .animalHandling: m.animalHandling.map(Modifier.init(modifier:)),
+            .arcana: m.arcana.map(Modifier.init(modifier:)),
+            .athletics: m.athletics.map(Modifier.init(modifier:)),
+            .deception: m.deception.map(Modifier.init(modifier:)),
+            .history: m.history.map(Modifier.init(modifier:)),
+            .insight: m.insight.map(Modifier.init(modifier:)),
+            .intimidation: m.intimidation.map(Modifier.init(modifier:)),
+            .investigation: m.investigation.map(Modifier.init(modifier:)),
+            .medicine: m.medicine.map(Modifier.init(modifier:)),
+            .nature: m.nature.map(Modifier.init(modifier:)),
+            .perception: m.perception.map(Modifier.init(modifier:)),
+            .performance: m.performance.map(Modifier.init(modifier:)),
+            .persuasion: m.persuasion.map(Modifier.init(modifier:)),
+            .religion: m.religion.map(Modifier.init(modifier:)),
+            .sleightOfHand: m.sleightOfHand.map(Modifier.init(modifier:)),
+            .stealth: m.stealth.map(Modifier.init(modifier:)),
+            .survival: m.survival.map(Modifier.init(modifier:))
         ]
 
         self.init(
@@ -102,12 +102,12 @@ private extension StatBlock {
             abilityScores: AbilityScores(open5eMonster: m),
 
             savingThrows: [
-                .strength: m.strengthSave.map(Modifier.init),
-                .dexterity: m.dexteritySave.map(Modifier.init),
-                .constitution: m.constitutionSave.map(Modifier.init),
-                .intelligence: m.intelligenceSave.map(Modifier.init),
-                .wisdom: m.wisdomSave.map(Modifier.init),
-                .charisma: m.charismaSave.map(Modifier.init),
+                .strength: m.strengthSave.map(Modifier.init(modifier:)),
+                .dexterity: m.dexteritySave.map(Modifier.init(modifier:)),
+                .constitution: m.constitutionSave.map(Modifier.init(modifier:)),
+                .intelligence: m.intelligenceSave.map(Modifier.init(modifier:)),
+                .wisdom: m.wisdomSave.map(Modifier.init(modifier:)),
+                .charisma: m.charismaSave.map(Modifier.init(modifier:)),
             ].compactMapValues { $0 },
 
             skills: optionalSkills.compactMapValues { $0 },

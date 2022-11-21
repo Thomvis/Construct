@@ -8,13 +8,18 @@
 
 import Foundation
 
-public struct Fraction: Codable, Hashable {
+public struct Fraction: Codable, Hashable, ExpressibleByIntegerLiteral {
     public let numenator: Int
     public let denominator: Int
 
     public init(numenator: Int, denominator: Int) {
         self.numenator = numenator
         self.denominator = denominator
+    }
+
+    public init(integerLiteral value: IntegerLiteralType) {
+        self.numenator = value
+        self.denominator = 1
     }
 
     public var double: Double {
@@ -55,8 +60,13 @@ extension Fraction: RawRepresentable {
     }
 }
 
+
 public extension Fraction {
     static let oneEighth = Fraction(numenator: 1, denominator: 8)
     static let oneQuarter = Fraction(numenator: 1, denominator: 4)
     static let half = Fraction(numenator: 1, denominator: 2)
+}
+
+public func / (lhs: Int, rhs: Int) -> Fraction {
+    Fraction(numenator: lhs, denominator: rhs)
 }

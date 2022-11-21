@@ -213,15 +213,23 @@ public struct AbilityScores: Hashable, Codable {
     }
 }
 
-public struct Modifier: Codable, Hashable {
+public struct Modifier: Codable, Hashable, ExpressibleByIntegerLiteral {
     public var modifier: Int
 
     public init(modifier: Int) {
         self.modifier = modifier
     }
 
+    public init(integerLiteral value: IntegerLiteralType) {
+        self.modifier = value
+    }
+
     public func apply(to expr: DiceExpression) -> DiceExpression {
         return expr + modifier
+    }
+
+    public static func +(lhs: Modifier, rhs: Modifier) -> Modifier {
+        Modifier(modifier: lhs.modifier + rhs.modifier)
     }
 }
 

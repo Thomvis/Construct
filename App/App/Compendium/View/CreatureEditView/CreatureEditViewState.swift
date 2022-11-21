@@ -158,7 +158,7 @@ struct CreatureEditViewState: Equatable {
             switch self {
             case .monster: return CompendiumItemType.monster.localizedDisplayName
             case .character: return CompendiumItemType.character.localizedDisplayName
-            case .adHocCombatant: return "Combatant"
+            case .adHocCombatant: return "combatant"
             }
         }
     }
@@ -168,12 +168,13 @@ struct CreatureEditViewState: Equatable {
         case basicCharacter
         case basicStats
         case abilities
+        case skillsAndSaves
         case initiative
         case namedContentItems(NamedStatBlockContentItemType)
         case player
 
         static var allCases: [CreatureEditViewState.Section] =
-            [.basicMonster, .basicCharacter, .basicStats, .abilities, .initiative]
+            [.basicMonster, .basicCharacter, .basicStats, .abilities, .skillsAndSaves, .initiative]
             + allNamedContentItemCases
             + [.player]
 
@@ -186,6 +187,7 @@ struct CreatureEditViewState: Equatable {
             case .basicCharacter: return "bc"
             case .basicStats: return "bs"
             case .abilities: return "abs"
+            case .skillsAndSaves: return "ss"
             case .initiative: return "init"
             case .namedContentItems(let t): return "nci_\(t.rawValue)"
             case .player: return "pl"
@@ -210,9 +212,17 @@ struct CreatureEditViewState: Equatable {
 
 struct CreatureEditFormModel: Equatable {
     var statBlock: StatBlockFormModel
-    var level: Int?
+    var level: Int? {
+        didSet {
+            statBlock.statBlock.level = level
+        }
+    }
     var player: Player?
-    var challengeRating: Fraction?
+    var challengeRating: Fraction? {
+        didSet {
+            statBlock.statBlock.challengeRating = challengeRating
+        }
+    }
     var originalItemForAdHocCombatant: CompendiumItemReference?
 
     var isPlayer: Bool {
@@ -372,6 +382,75 @@ struct StatBlockFormModel: Equatable {
         get { statBlock[itemsOfType: type] }
         set { statBlock[itemsOfType: type] = newValue }
     }
+
+    var skillProficiencies: [Proficiency<Skill>] {
+        Skill.allCases.compactMap { s in
+            statBlock.skills[s].map { (s, $0) }
+        }.map { s, m in
+            Proficiency(
+                stat: s,
+                modifier: statBlock.skillModifier(s),
+                isOverride: m != nil
+            )
+        }
+    }
+
+    /// Passing nil as the modifier makes it use the proficiency bonus
+    mutating func setProficiency(_ modifier: Modifier?, for skill: Skill) {
+        statBlock.skills[skill] = modifier
+    }
+
+    mutating func removeProficiency(for skill: Skill) {
+        statBlock.skills.removeValue(forKey: skill)
+    }
+
+    mutating func removeAllSkillProficiencies() {
+        statBlock.skills.removeAll()
+    }
+
+    var savingThrowProficiencies: [Proficiency<Ability>] {
+        Ability.allCases.compactMap { s in
+            statBlock.savingThrows[s].map { (s, $0) }
+        }.map { s, m in
+            Proficiency(
+                stat: s,
+                modifier: statBlock.savingThrowModifier(s),
+                isOverride: m != nil
+            )
+        }
+    }
+
+    /// Passing nil as the modifier makes it use the proficiency bonus
+    mutating func setProficiency(_ modifier: Modifier?, for save: Ability) {
+        statBlock.savingThrows[save] = modifier
+    }
+
+    mutating func removeProficiency(for save: Ability) {
+        statBlock.savingThrows.removeValue(forKey: save)
+    }
+
+    mutating func removeAllSavingThrowProficiencies() {
+        statBlock.savingThrows.removeAll()
+    }
+
+    var difficultyDescription: String {
+        if let cr = statBlock.challengeRating {
+            return "CR \(cr.rawValue)"
+        } else if let level = statBlock.level {
+            return "level \(level)"
+        }
+        return "unknown"
+    }
+
+    var proficiencyBonusModifier: String {
+        modifierFormatter.stringWithFallback(for: statBlock.proficiencyBonus.modifier)
+    }
+
+    struct Proficiency<Stat: Hashable> {
+        let stat: Stat
+        let modifier: Modifier
+        let isOverride: Bool
+    }
 }
 
 enum CreatureEditViewAction: Equatable {
@@ -486,15 +565,16 @@ extension CreatureEditViewState.CreatureType {
     var compatibleSections: Set<CreatureEditViewState.Section> {
         switch self {
         case .monster: return Set(
-            [.basicMonster, .basicStats, .abilities, .initiative]
+            [.basicMonster, .basicStats, .abilities, .skillsAndSaves, .initiative]
             + CreatureEditViewState.Section.allNamedContentItemCases
         )
         case .character: return Set(
-            [.basicCharacter, .basicStats, .abilities, .initiative]
+            [.basicCharacter, .basicStats, .abilities, .skillsAndSaves, .initiative]
             + CreatureEditViewState.Section.allNamedContentItemCases
             + [.player]
         )
-        case .adHocCombatant: return Set([.basicCharacter, .basicStats, .abilities, .initiative]
+        case .adHocCombatant: return Set(
+            [.basicCharacter, .basicStats, .abilities, .skillsAndSaves, .initiative]
             + CreatureEditViewState.Section.allNamedContentItemCases
             + [.player]
         )
@@ -509,6 +589,7 @@ extension CreatureEditViewState.Section {
         case .basicCharacter: return nil
         case .basicStats: return localizedName
         case .abilities: return localizedName
+        case .skillsAndSaves: return localizedName
         case .initiative: return localizedName
         case .namedContentItems: return localizedName
         case .player: return nil
@@ -519,8 +600,9 @@ extension CreatureEditViewState.Section {
         switch self {
         case .basicMonster: return ""
         case .basicCharacter: return ""
-        case .basicStats: return "AC / HP / Speed"
+        case .basicStats: return "AC / HP / Movement"
         case .abilities: return "Ability Scores"
+        case .skillsAndSaves: return "Skills / Saves"
         case .initiative: return "Initiative"
         case .namedContentItems(.feature): return "Features & Traits"
         case .namedContentItems(.action): return "Actions"
@@ -593,6 +675,10 @@ extension CreatureEditViewState {
             result.armorClass = nil
             result.movement = nil
         }
+        if !sections.contains(.skillsAndSaves) {
+            result.skills = [:]
+            result.savingThrows = [:]
+        }
         for case .namedContentItems(let type) in Section.allNamedContentItemCases {
             if !sections.contains(.namedContentItems(type)) {
                 result[itemsOfType: type] = []
@@ -642,6 +728,10 @@ extension CreatureEditFormModel {
 
         if statBlock.statBlock.abilityScores != nil {
             result.insert(.abilities)
+        }
+
+        if !statBlock.statBlock.skills.isEmpty || !statBlock.statBlock.savingThrows.isEmpty {
+            result.insert(.skillsAndSaves)
         }
 
         if statBlock.statBlock.initiative != nil {

@@ -22,6 +22,8 @@ public struct Character: Hashable {
         self.level = level
         self.stats = stats
         self.player = player
+        assert(self.stats.level == nil || self.stats.level == level)
+        self.stats.level = stats.level
     }
 
     public typealias Id = Tagged<Character, UUID>
@@ -50,7 +52,7 @@ public extension Character {
 
         if let type = self.stats.type {
             if let subtype = self.stats.subtype?.nonEmptyString {
-                components.append("\(subtype) \(type)")
+                components.append("\(subtype) \(type.localizedDisplayName)")
             } else {
                 components.append(type.localizedDisplayName)
             }
