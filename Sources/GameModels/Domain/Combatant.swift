@@ -83,7 +83,7 @@ public protocol CombatantDefinition {
     var initiativeModifier: Int? { get }
     var initiativeGroupingHint: String { get }
 
-    var stats: StatBlock? { get }
+    var stats: StatBlock? { get set }
 
     var player: Player? { get }
     var level: Int? { get }

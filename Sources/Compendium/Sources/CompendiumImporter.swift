@@ -25,7 +25,14 @@ public class CompendiumImporter {
             switch read {
             case .item(let item):
                 let entry = apply(CompendiumEntry(item, source: task.source)) {
+                    // post-processing
+
                     _ = $0.visitParseable()
+
+                    if var combatant = $0.item as? CompendiumCombatant {
+                        combatant.stats.removeDefaultProficiencyOverrides()
+                        $0.item = combatant
+                    }
                 }
                 do {
                     let willOverwriteExisting = try self.compendium.contains(entry.item.key)

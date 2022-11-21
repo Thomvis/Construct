@@ -335,4 +335,26 @@ public extension StatBlock {
     static var `default`: StatBlock {
         StatBlock(name: "", size: nil, type: nil, subtype: nil, alignment: nil, armorClass: nil, armor: [], hitPointDice: nil, hitPoints: nil, movement: nil, abilityScores: nil, savingThrows: [:], skills: [:], damageVulnerabilities: nil, damageResistances: nil, damageImmunities: nil, conditionImmunities: nil, senses: nil, languages: nil, challengeRating: nil, features: [], actions: [], reactions: [])
     }
+
+    /// Updates the skills & savingThrows of this statBlock for a model change:
+    /// the value of those dictionaries have become optional, where a nil value
+    /// means that the stat should get a bonus according to the proficiency bonus (based on CR or level)
+    ///
+    /// This method replaces all non-nil values that are equal to the proficiency bonus-based
+    /// value. (So that they will update when the CR or level or ability is updated)
+    mutating func removeDefaultProficiencyOverrides() {
+        for s in skills.keys {
+            guard case let mod?? = skills[s] else { continue }
+            if mod == (abilityScores?.score(for: s.ability).modifier ?? 0) + proficiencyBonus {
+                skills[s] = .some(nil)
+            }
+        }
+
+        for a in savingThrows.keys {
+            guard case let mod?? = savingThrows[a] else { continue }
+            if mod == (abilityScores?.score(for: a).modifier ?? 0) + proficiencyBonus {
+                savingThrows[a] = .some(nil)
+            }
+        }
+    }
 }

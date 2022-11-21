@@ -28,6 +28,7 @@ extension Database {
         case v9 = "v9-updatedOpen5eFixtures-reactions&legendary"
         case v10 = "v10-consistentCharacterKeys"
         case v11 = "v11-runningEncounterKeyFix"
+        case v12 = "v12-statBlock-removeDefaultProficiencyOverrides"
     }
 
     static func migrator() throws -> DatabaseMigrator {
@@ -299,6 +300,50 @@ extension Database {
 
                 // Remove since
                 _ = try? r.delete(db)
+            }
+        }
+
+        migrator.registerMigration(Migration.v12) { db in
+
+            // update the compendium
+            let itemRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix())%")).fetchAll(db)
+            for var r in itemRecords {
+                var entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+                if var combatant = entry.item as? CompendiumCombatant {
+                    combatant.stats.removeDefaultProficiencyOverrides()
+                    entry.item = combatant
+
+                    r.value = try KeyValueStore.encoder.encode(entry)
+                    try r.save(db)
+                }
+            }
+
+            // update combatants in all encounters
+            let encounterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
+            for var r in encounterRecords {
+                var encounter = try KeyValueStore.decoder.decode(Encounter.self, from: r.value)
+                for cid in encounter.combatants.ids {
+                    encounter.combatants[id: cid]?.definition.stats?.removeDefaultProficiencyOverrides()
+                }
+                r.value = try KeyValueStore.encoder.encode(encounter)
+                try r.save(db)
+            }
+
+            // update combatants in all running encounters
+            let reRecords = try! KeyValueStore.Record.filter(Column("key").like("\(RunningEncounter.keyPrefix)")).fetchAll(db)
+            for var r in reRecords {
+                var runningEncounter = try KeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
+
+                for cid in runningEncounter.base.combatants.ids {
+                    runningEncounter.base.combatants[id: cid]?.definition.stats?.removeDefaultProficiencyOverrides()
+                }
+
+                for cid in runningEncounter.current.combatants.ids {
+                    runningEncounter.current.combatants[id: cid]?.definition.stats?.removeDefaultProficiencyOverrides()
+                }
+
+                r.value = try KeyValueStore.encoder.encode(runningEncounter)
+                try r.save(db)
             }
         }
 

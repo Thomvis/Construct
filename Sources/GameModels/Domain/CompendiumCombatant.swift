@@ -26,7 +26,14 @@ public struct CompendiumCombatantDefinition: CombatantDefinition, Codable, Equat
     public var initiativeModifier: Int? { item.stats.effectiveInitiativeModifier }
     public var initiativeGroupingHint: String { return item.key.keyString }
 
-    public var stats: StatBlock? { return item.stats }
+    public var stats: StatBlock? {
+        get { item.stats }
+        set {
+            if let newValue {
+                item.stats = newValue
+            }
+        }
+    }
 
     public var player: Player? { return item.player }
     public var level: Int? { return (item as? Character)?.level }
@@ -50,7 +57,7 @@ public struct CompendiumCombatantDefinition: CombatantDefinition, Codable, Equat
 }
 
 public protocol CompendiumCombatant: CompendiumItem {
-    var stats: StatBlock { get }
+    var stats: StatBlock { get set }
     var player: Player? { get }
 
     var isUnique: Bool { get }
