@@ -73,22 +73,22 @@ extension Spell: HasParseableVisitor {
 extension StatBlock: HasParseableVisitor {
     public static let parseableVisitor: ParseableVisitor<StatBlock> = ParseableVisitor { statBlock in
         var res = false
-        res = res || statBlock.type?.parseIfNeeded() ?? false
+        res = (statBlock.type?.parseIfNeeded() ?? false) || res
 
         for id in statBlock.features.ids {
-            res = res || (statBlock.features[id: id]?.parseIfNeeded() ?? false)
+            res = (statBlock.features[id: id]?.parseIfNeeded() ?? false) || res
         }
 
         for id in statBlock.actions.ids {
-            res = res || (statBlock.actions[id: id]?.parseIfNeeded() ?? false)
+            res = (statBlock.actions[id: id]?.parseIfNeeded() ?? false) || res
         }
 
         for id in statBlock.reactions.ids {
-            res = res || (statBlock.reactions[id: id]?.parseIfNeeded() ?? false)
+            res = (statBlock.reactions[id: id]?.parseIfNeeded() ?? false) || res
         }
 
         for id in (statBlock.legendary?.actions ?? []).ids {
-            res = res || (statBlock.legendary?.actions[id: id]?.parseIfNeeded() ?? false)
+            res = (statBlock.legendary?.actions[id: id]?.parseIfNeeded() ?? false) || res
         }
         return res
     }
