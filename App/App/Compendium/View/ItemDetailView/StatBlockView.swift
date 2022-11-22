@@ -293,12 +293,12 @@ private struct AbilityScoresView: View {
 private extension StatBlock {
     var subheading: String {
         let type = [
-            size?.localizedDisplayName,
+            size?.localizedDisplayName.capitalized,
             self.type?.localizedDisplayName.nonEmptyString,
-            (subtype?.nonEmptyString).map { "(\($0))"}
+            (subtype?.capitalized.nonEmptyString).map { "(\($0))"}
         ].compactMap { $0 }.joined(separator: " ").nonEmptyString
 
-        let alignment = self.alignment?.localizedDisplayName
+        let alignment = self.alignment?.localizedDisplayName.capitalized
         return [type, alignment].compactMap { $0 }.joined(separator: ", ")
     }
 
