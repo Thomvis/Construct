@@ -433,7 +433,7 @@ extension CreatureEditView {
         allValues: [Stat],
         proficiencies: [StatBlockFormModel.Proficiency<Stat>],
         statLabel: KeyPath<Stat, String>,
-        setProficiency: @escaping (inout StatBlockFormModel, Modifier?, Stat) -> Void,
+        setProficiency: @escaping (inout StatBlockFormModel, StatBlock.Proficiency, Stat) -> Void,
         removeProficiency: @escaping (inout StatBlockFormModel, Stat) -> Void,
         removeAllProficiencies: @escaping (inout StatBlockFormModel) -> Void
     ) -> some View where Stat: RawRepresentable, Stat.RawValue: Hashable {
@@ -454,19 +454,22 @@ extension CreatureEditView {
                     }
 
                     ForEach(allValues, id: \.rawValue) { stat in
-                        let active = proficiencies.contains(where: { $0.stat == stat })
+                        let proficiency = proficiencies.first(where: { $0.stat == stat })
                         Button {
                             var model = viewStore.model
-                            if active {
+                            if proficiency != nil {
                                 removeProficiency(&model.statBlock, stat)
                             } else {
-                                setProficiency(&model.statBlock, nil, stat)
+                                setProficiency(&model.statBlock, .times(1), stat)
                             }
                             viewStore.send(.model(model))
                         } label: {
+                            let image = proficiency?.proficiency.systemImageName(filled: true)
+                                            ?? StatBlock.Proficiency.times(1).systemImageName(filled: false)
+
                             Label(
                                 stat[keyPath: statLabel],
-                                systemImage: active ? "circlebadge.fill" : "circlebadge"
+                                systemImage: image
                             )
                         }
                     }
@@ -487,23 +490,42 @@ extension CreatureEditView {
                 FlowLayout {
                     ForEach(proficiencies, id: \.stat) { proficiency in
                         Menu {
-                            Button("Reset bonus") {
+                            let times = (/StatBlock.Proficiency.times).extract(from: proficiency.proficiency)
+                            Button {
                                 var model = viewStore.model
-                                setProficiency(&model.statBlock, nil, proficiency.stat)
+                                setProficiency(&model.statBlock, .times(1), proficiency.stat)
                                 viewStore.send(.model(model))
+                            } label: {
+                                Label(
+                                    "Single proficiency",
+                                    systemImage: StatBlock.Proficiency.times(1).systemImageName(filled: times == 1)
+                                )
                             }
-                            .disabled(!proficiency.isOverride)
+
+                            Button {
+                                var model = viewStore.model
+                                setProficiency(&model.statBlock, .times(2), proficiency.stat)
+                                viewStore.send(.model(model))
+                            } label: {
+                                Label(
+                                    "Double proficiency",
+                                    systemImage: StatBlock.Proficiency.times(2).systemImageName(filled: times == 2)
+                                )
+                            }
 
                             Menu {
                                 ForEach(0...20) { i in
                                     Button(modifierFormatter.stringWithFallback(for: i)) {
                                         var model = viewStore.model
-                                        setProficiency(&model.statBlock, Modifier(modifier: i), proficiency.stat)
+                                        setProficiency(&model.statBlock, .custom(Modifier(modifier: i)), proficiency.stat)
                                         viewStore.send(.model(model))
                                     }
                                 }
                             } label: {
-                                Text("Override bonus")
+                                Label(
+                                    "Custom…",
+                                    systemImage: StatBlock.Proficiency.custom(0).systemImageName(filled: proficiency.proficiency.isCustom)
+                                )
                             }
 
                             Divider()
@@ -517,23 +539,24 @@ extension CreatureEditView {
                             }
                         } label: {
                             HStack(spacing: 8) {
-                                Text(proficiency.stat[keyPath: statLabel])
+                                Image(systemName: proficiency.proficiency.systemImageName(filled: true))
+                                    .foregroundColor(Color.primary.opacity(0.2))
 
-                                let modifierColor = proficiency.isOverride
-                                                        ? Color(UIColor.systemYellow)
-                                                        : Color.black.opacity(0.05)
+                                Text(proficiency.stat[keyPath: statLabel])
 
                                 Text(modifierFormatter.stringWithFallback(for: proficiency.modifier.modifier))
                                     .padding(.leading, 4)
-                                    .background(modifierColor.padding([.top, .trailing, .bottom], -10))
+                                    .background(Color.primary.opacity(0.05).padding([.top, .trailing, .bottom], -10))
                             }
                             .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-                            .background(Color(UIColor.secondarySystemBackground))
+                            .background(Color.primary.opacity(0.05))
                             .cornerRadius(4)
                             .foregroundColor(Color.primary)
+                            .font(.callout)
                         }
                     }
                 }
+                .padding(.trailing, -10) // make layout a bit tighter, increase chance of showing multiple items on a line
             }
         }
     }
@@ -548,6 +571,19 @@ extension NamedStatBlockContentItemEditViewState {
         }
 
         return "\(verb) \(itemType.localizedDisplayName)"
+    }
+}
+
+extension StatBlock.Proficiency {
+    func systemImageName(filled: Bool) -> String {
+        let baseName: String
+        switch self {
+        case .times(1): baseName = "circlebadge"
+        case .times(2): baseName = "circlebadge.2"
+        default: baseName = "rhombus"
+        }
+
+        return filled ? baseName + ".fill" : baseName
     }
 }
 

@@ -28,7 +28,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
 
         XCTAssertEqual(char.stats.name, "Sarovin a'Ryr")
         XCTAssertEqual(char.stats.size, .medium)
-        XCTAssertEqual(char.stats.type, "Aasimar")
+        XCTAssertEqual(char.stats.type?.input, "Aasimar")
         XCTAssertEqual(char.stats.subtype, "Scourge")
         XCTAssertEqual(char.stats.alignment, .lawfulNeutral)
 
@@ -52,7 +52,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
 
         XCTAssertEqual(char.stats.name, "Riverine")
         XCTAssertEqual(char.stats.size, .medium)
-        XCTAssertEqual(char.stats.type, "Genasi")
+        XCTAssertEqual(char.stats.type?.input, "Genasi")
         XCTAssertEqual(char.stats.subtype, "Water")
         XCTAssertEqual(char.stats.alignment, .neutralGood)
 
@@ -76,7 +76,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
 
         XCTAssertEqual(char.stats.name, "Misty Mountain")
         XCTAssertEqual(char.stats.size, .medium)
-        XCTAssertEqual(char.stats.type, "Tabaxi")
+        XCTAssertEqual(char.stats.type?.input, "Tabaxi")
         XCTAssertEqual(char.stats.subtype, nil)
         XCTAssertEqual(char.stats.alignment, Alignment.neutralGood)
 
@@ -100,7 +100,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
 
         XCTAssertEqual(char.stats.name, "Ishmadon Molari")
         XCTAssertEqual(char.stats.size, .medium)
-        XCTAssertEqual(char.stats.type, "Dragonborn")
+        XCTAssertEqual(char.stats.type?.input, "Dragonborn")
         XCTAssertEqual(char.stats.subtype, nil)
         XCTAssertEqual(char.stats.alignment, Alignment.chaoticGood)
 
@@ -124,7 +124,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
 
         XCTAssertEqual(char.stats.name, "Thrall 'Anak")
         XCTAssertEqual(char.stats.size, .medium)
-        XCTAssertEqual(char.stats.type, "Half-Orc")
+        XCTAssertEqual(char.stats.type?.input, "Half-Orc")
         XCTAssertEqual(char.stats.subtype, nil)
         XCTAssertEqual(char.stats.alignment, nil)
 
@@ -148,7 +148,7 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
 
         XCTAssertEqual(char.stats.name, "Bass")
         XCTAssertEqual(char.stats.size, .medium)
-        XCTAssertEqual(char.stats.type, "Tiefling")
+        XCTAssertEqual(char.stats.type?.input, "Tiefling")
         XCTAssertEqual(char.stats.subtype, nil)
         XCTAssertEqual(char.stats.alignment, .chaoticNeutral)
 

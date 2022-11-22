@@ -30,7 +30,7 @@ public class CompendiumImporter {
                     _ = $0.visitParseable()
 
                     if var combatant = $0.item as? CompendiumCombatant {
-                        combatant.stats.removeDefaultProficiencyOverrides()
+                        combatant.stats.makeSkillAndSaveProficienciesRelative()
                         $0.item = combatant
                     }
                 }

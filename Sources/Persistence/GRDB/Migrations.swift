@@ -310,8 +310,13 @@ extension Database {
             for var r in itemRecords {
                 var entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
                 if var combatant = entry.item as? CompendiumCombatant {
-                    combatant.stats.removeDefaultProficiencyOverrides()
+                    combatant.stats.makeSkillAndSaveProficienciesRelative()
                     entry.item = combatant
+
+                    if var character = combatant as? Character {
+                        character.stats.level = character.level
+                        combatant = character
+                    }
 
                     r.value = try KeyValueStore.encoder.encode(entry)
                     try r.save(db)
@@ -323,7 +328,9 @@ extension Database {
             for var r in encounterRecords {
                 var encounter = try KeyValueStore.decoder.decode(Encounter.self, from: r.value)
                 for cid in encounter.combatants.ids {
-                    encounter.combatants[id: cid]?.definition.stats?.removeDefaultProficiencyOverrides()
+                    encounter.combatants[id: cid]?.definition.stats?.makeSkillAndSaveProficienciesRelative()
+                    let level = encounter.combatants[id: cid]?.definition.level
+                    encounter.combatants[id: cid]?.definition.stats?.level = level
                 }
                 r.value = try KeyValueStore.encoder.encode(encounter)
                 try r.save(db)
@@ -335,11 +342,15 @@ extension Database {
                 var runningEncounter = try KeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
 
                 for cid in runningEncounter.base.combatants.ids {
-                    runningEncounter.base.combatants[id: cid]?.definition.stats?.removeDefaultProficiencyOverrides()
+                    runningEncounter.base.combatants[id: cid]?.definition.stats?.makeSkillAndSaveProficienciesRelative()
+                    let level = runningEncounter.base.combatants[id: cid]?.definition.level
+                    runningEncounter.base.combatants[id: cid]?.definition.stats?.level = level
                 }
 
                 for cid in runningEncounter.current.combatants.ids {
-                    runningEncounter.current.combatants[id: cid]?.definition.stats?.removeDefaultProficiencyOverrides()
+                    runningEncounter.current.combatants[id: cid]?.definition.stats?.makeSkillAndSaveProficienciesRelative()
+                    let level = runningEncounter.current.combatants[id: cid]?.definition.level
+                    runningEncounter.current.combatants[id: cid]?.definition.stats?.level = level
                 }
 
                 r.value = try KeyValueStore.encoder.encode(runningEncounter)

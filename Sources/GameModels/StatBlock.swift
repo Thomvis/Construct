@@ -28,9 +28,9 @@ public struct StatBlock: Codable, Hashable {
 
     public var abilityScores: AbilityScores?
     /// if the value is nil, the default proficiency bonus applies
-    public var savingThrows: [Ability: Modifier?]
+    public var savingThrows: [Ability: Proficiency]
     /// if the value is nil, the default proficiency bonus applies
-    public var skills: [Skill: Modifier?]
+    public var skills: [Skill: Proficiency]
     public var initiative: Initiative?
 
     public var damageVulnerabilities: String?
@@ -61,8 +61,8 @@ public struct StatBlock: Codable, Hashable {
         self.hitPoints = hitPoints
         self.movement = movement
         self.abilityScores = abilityScores
-        self.savingThrows = savingThrows
-        self.skills = skills
+        self.savingThrows = savingThrows.mapValues { .custom($0) }
+        self.skills = skills.mapValues { .custom($0) }
         self.initiative = initiative
         self.damageVulnerabilities = damageVulnerabilities
         self.damageResistances = damageResistances
@@ -79,22 +79,22 @@ public struct StatBlock: Codable, Hashable {
 
     public func savingThrowModifier(_ ability: Ability) -> Modifier {
         switch savingThrows[ability] {
-        case let explicit??: // override
-            return explicit
-        case .some(.none): // default proficiency
-            return (abilityScores?.score(for: ability).modifier ?? 0) + proficiencyBonus
-        case nil: // no proficiency
+        case .times(let t):
+            return (abilityScores?.score(for: ability).modifier ?? 0) + t * proficiencyBonus
+        case .custom(let m):
+            return m
+        case nil:
             return abilityScores?.score(for: ability).modifier ?? 0
         }
     }
 
     public func skillModifier(_ skill: Skill) -> Modifier {
         switch skills[skill] {
-        case let explicit??: // override
-            return explicit
-        case .some(.none): // default proficiency
-            return (abilityScores?.score(for: skill.ability).modifier ?? 0) + proficiencyBonus
-        case nil: // no proficiency
+        case .times(let t):
+            return (abilityScores?.score(for: skill.ability).modifier ?? 0) + t * proficiencyBonus
+        case .custom(let m):
+            return m
+        case nil:
             return abilityScores?.score(for: skill.ability).modifier ?? 0
         }
     }
@@ -116,6 +116,23 @@ public struct StatBlock: Codable, Hashable {
         public init(description: String? = nil, actions: [ParseableCreatureAction]) {
             self.description = description
             self.actions = IdentifiedArrayOf(uniqueElements: actions)
+        }
+    }
+
+    public enum Proficiency: Hashable {
+        case times(Int) // the bonus is equal to one or more times the proficiency bonus
+        case custom(Modifier) // the bonus is equal to a custom modifier
+
+        func modifier(proficiencyBonus: Modifier) -> Modifier {
+            switch self {
+            case .times(let t): return Modifier(modifier: t * proficiencyBonus.modifier)
+            case .custom(let m): return m
+            }
+        }
+
+        public var isCustom: Bool {
+            if case .custom = self { return true }
+            return false
         }
     }
 }
@@ -331,6 +348,54 @@ public extension StatBlock {
     }
 }
 
+extension StatBlock.Proficiency: Codable {
+    enum CodingKeys: CodingKey {
+        case times
+    }
+
+    // backward compatible with an encoded Modifier
+    public init(from decoder: Decoder) throws {
+
+        if let container = try? decoder.container(keyedBy: CodingKeys.self),
+            let times = try? container.decode(Int.self, forKey: .times)
+        {
+            self = .times(times)
+        } else {
+            self = .custom(try Modifier(from: decoder))
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        switch self {
+        case .times(let times):
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(times, forKey: .times)
+        case .custom(let m):
+            try m.encode(to: encoder)
+        }
+    }
+}
+
+public extension StatBlock.Proficiency {
+    init(modifier: Modifier, base: Modifier, proficiencyBonus: Modifier) {
+        let diff = (modifier.modifier - base.modifier)
+        let (quot, rem) = diff.quotientAndRemainder(dividingBy: proficiencyBonus.modifier)
+        if rem == 0 {
+            self = .times(quot)
+        } else {
+            self = .custom(modifier)
+        }
+    }
+
+    mutating func makeRelative(base: Modifier, proficiencyBonus: Modifier) {
+        self = .init(
+            modifier: self.modifier(proficiencyBonus: proficiencyBonus),
+            base: base,
+            proficiencyBonus: proficiencyBonus
+        )
+    }
+}
+
 public extension StatBlock {
     static var `default`: StatBlock {
         StatBlock(name: "", size: nil, type: nil, subtype: nil, alignment: nil, armorClass: nil, armor: [], hitPointDice: nil, hitPoints: nil, movement: nil, abilityScores: nil, savingThrows: [:], skills: [:], damageVulnerabilities: nil, damageResistances: nil, damageImmunities: nil, conditionImmunities: nil, senses: nil, languages: nil, challengeRating: nil, features: [], actions: [], reactions: [])
@@ -342,19 +407,21 @@ public extension StatBlock {
     ///
     /// This method replaces all non-nil values that are equal to the proficiency bonus-based
     /// value. (So that they will update when the CR or level or ability is updated)
-    mutating func removeDefaultProficiencyOverrides() {
+    mutating func makeSkillAndSaveProficienciesRelative() {
+        let proficiencyBonus = self.proficiencyBonus
+
         for s in skills.keys {
-            guard case let mod?? = skills[s] else { continue }
-            if mod == (abilityScores?.score(for: s.ability).modifier ?? 0) + proficiencyBonus {
-                skills[s] = .some(nil)
-            }
+            skills[s]?.makeRelative(
+                base: (abilityScores?.score(for: s.ability).modifier ?? 0),
+                proficiencyBonus: proficiencyBonus
+            )
         }
 
         for a in savingThrows.keys {
-            guard case let mod?? = savingThrows[a] else { continue }
-            if mod == (abilityScores?.score(for: a).modifier ?? 0) + proficiencyBonus {
-                savingThrows[a] = .some(nil)
-            }
+            savingThrows[a]?.makeRelative(
+                base: (abilityScores?.score(for: a).modifier ?? 0),
+                proficiencyBonus: proficiencyBonus
+            )
         }
     }
 }

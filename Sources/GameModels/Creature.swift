@@ -231,6 +231,10 @@ public struct Modifier: Codable, Hashable, ExpressibleByIntegerLiteral {
     public static func +(lhs: Modifier, rhs: Modifier) -> Modifier {
         Modifier(modifier: lhs.modifier + rhs.modifier)
     }
+
+    public static func *(lhs: Int, rhs: Modifier) -> Modifier {
+        Modifier(modifier: lhs * rhs.modifier)
+    }
 }
 
 public enum Skill: String, CaseIterable, Codable {

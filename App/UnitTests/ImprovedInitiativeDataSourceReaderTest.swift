@@ -34,7 +34,7 @@ class ImprovedInitiativeDataSourceReaderTest: XCTestCase {
         let last = try! XCTUnwrap(items.last) as! Monster
         XCTAssertEqual(last.stats.name, "Adult White Dragon")
         XCTAssertEqual(last.stats.size, .huge)
-        XCTAssertEqual(last.stats.type, "dragon")
+        XCTAssertEqual(last.stats.type?.input, "dragon")
         XCTAssertEqual(last.stats.subtype, nil)
         XCTAssertEqual(last.stats.alignment, .chaoticEvil)
         XCTAssertEqual(last.stats.hitPoints, 200)

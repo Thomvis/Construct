@@ -386,18 +386,18 @@ struct StatBlockFormModel: Equatable {
     var skillProficiencies: [Proficiency<Skill>] {
         Skill.allCases.compactMap { s in
             statBlock.skills[s].map { (s, $0) }
-        }.map { s, m in
+        }.map { s, p in
             Proficiency(
                 stat: s,
                 modifier: statBlock.skillModifier(s),
-                isOverride: m != nil
+                proficiency: p
             )
         }
     }
 
     /// Passing nil as the modifier makes it use the proficiency bonus
-    mutating func setProficiency(_ modifier: Modifier?, for skill: Skill) {
-        statBlock.skills[skill] = modifier
+    mutating func setProficiency(_ proficiency: StatBlock.Proficiency, for skill: Skill) {
+        statBlock.skills[skill] = proficiency
     }
 
     mutating func removeProficiency(for skill: Skill) {
@@ -411,18 +411,18 @@ struct StatBlockFormModel: Equatable {
     var savingThrowProficiencies: [Proficiency<Ability>] {
         Ability.allCases.compactMap { s in
             statBlock.savingThrows[s].map { (s, $0) }
-        }.map { s, m in
+        }.map { s, p in
             Proficiency(
                 stat: s,
                 modifier: statBlock.savingThrowModifier(s),
-                isOverride: m != nil
+                proficiency: p
             )
         }
     }
 
     /// Passing nil as the modifier makes it use the proficiency bonus
-    mutating func setProficiency(_ modifier: Modifier?, for save: Ability) {
-        statBlock.savingThrows[save] = modifier
+    mutating func setProficiency(_ proficiency: StatBlock.Proficiency, for save: Ability) {
+        statBlock.savingThrows[save] = proficiency
     }
 
     mutating func removeProficiency(for save: Ability) {
@@ -446,10 +446,11 @@ struct StatBlockFormModel: Equatable {
         modifierFormatter.stringWithFallback(for: statBlock.proficiencyBonus.modifier)
     }
 
+    // todo: rename
     struct Proficiency<Stat: Hashable> {
         let stat: Stat
         let modifier: Modifier
-        let isOverride: Bool
+        let proficiency: StatBlock.Proficiency
     }
 }
 
