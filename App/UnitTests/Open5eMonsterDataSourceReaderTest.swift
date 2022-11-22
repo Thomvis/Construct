@@ -21,8 +21,9 @@ class Open5eMonsterDataSourceReaderTest: XCTestCase {
         dataSource = FileDataSource(path: defaultMonstersPath)
     }
 
+    @MainActor
     func test() async throws {
-        let sut = Open5eMonsterDataSourceReader(dataSource: dataSource)
+        let sut = Open5eMonsterDataSourceReader(dataSource: dataSource, generateUUID: UUID.fakeGenerator())
         let job = sut.makeJob()
 
         let items = try await Array(job.output.compactMap { $0.item })

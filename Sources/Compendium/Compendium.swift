@@ -30,7 +30,13 @@ public extension Compendium {
     func importDefaultContent(monsters: Bool = true, spells: Bool = true) async throws {
         // Monsters
         if monsters {
-            var task = CompendiumImportTask(reader: Open5eMonsterDataSourceReader(dataSource: FileDataSource(path: defaultMonstersPath)), overwriteExisting: true)
+            var task = CompendiumImportTask(
+                reader: Open5eMonsterDataSourceReader(
+                    dataSource: FileDataSource(path: defaultMonstersPath),
+                    generateUUID: { UUID() }
+                ),
+                overwriteExisting: true
+            )
             task.source.displayName = "Open Game Content (SRD 5.1)"
 
             _ = try await CompendiumImporter(compendium: self).run(task)

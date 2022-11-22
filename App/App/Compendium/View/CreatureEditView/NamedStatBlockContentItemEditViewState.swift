@@ -47,11 +47,13 @@ struct NamedStatBlockContentItemEditViewState: Equatable {
         switch itemType {
         case .feature:
             return .feature(ParseableCreatureFeature(input: CreatureFeature(
+                id: UUID(),
                 name: fields.name,
                 description: fields.description
             )))
         case .action, .reaction, .legendaryAction:
             return .action(ParseableCreatureAction(input: CreatureAction(
+                id: UUID(),
                 name: fields.name,
                 description: fields.description
             )))

@@ -17,17 +17,20 @@ public class Open5eMonsterDataSourceReader: CompendiumDataSourceReader {
     public static let name = "Open5eMonsterDataSourceReader"
 
     public let dataSource: CompendiumDataSource
+    let generateUUID: () -> UUID
 
-    public init(dataSource: CompendiumDataSource) {
+    public init(dataSource: CompendiumDataSource, generateUUID: @escaping () -> UUID) {
         self.dataSource = dataSource
+        self.generateUUID = generateUUID
     }
 
     public func makeJob() -> CompendiumDataSourceReaderJob {
-        return Job(source: dataSource)
+        return Job(source: dataSource, generateUUID: generateUUID)
     }
 
     struct Job: CompendiumDataSourceReaderJob {
         let source: CompendiumDataSource
+        let generateUUID: () -> UUID
 
         var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
             get async throws {
@@ -41,7 +44,8 @@ public class Open5eMonsterDataSourceReader: CompendiumDataSourceReader {
                 }
 
                 return monsters.async.map { m in
-                    guard let monster = Monster(open5eMonster: m, realm: .core) else { return .invalidItem(String(describing: m)) }
+                    let monster = Monster(open5eMonster: m, realm: .core, generateUUID: generateUUID)
+                    guard let monster else { return .invalidItem(String(describing: m)) }
                     return .item(monster)
                 }.stream
             }
@@ -51,13 +55,17 @@ public class Open5eMonsterDataSourceReader: CompendiumDataSourceReader {
 }
 
 private extension Monster {
-    init?(open5eMonster m: O5e.Monster, realm: CompendiumItemKey.Realm) {
-        self.init(realm: realm, stats: StatBlock(open5eMonster: m)!, challengeRating: Fraction(rawValue: m.challengeRating)!)
+    init?(open5eMonster m: O5e.Monster, realm: CompendiumItemKey.Realm, generateUUID: () -> UUID) {
+        self.init(
+            realm: realm,
+            stats: StatBlock(open5eMonster: m, generateUUID: generateUUID)!,
+            challengeRating: Fraction(rawValue: m.challengeRating)!
+        )
     }
 }
 
 private extension StatBlock {
-    init?(open5eMonster m: O5e.Monster) {
+    init?(open5eMonster m: O5e.Monster, generateUUID: () -> UUID) {
         guard let hitPointDice = DiceExpressionParser.parse(m.hitDice) else { return nil }
 
         let optionalSkills: [Skill: Modifier?] = [
@@ -124,19 +132,19 @@ private extension StatBlock {
             challengeRating: Fraction(rawValue: m.challengeRating)!,
 
             features: m.specialAbilities?.map { a in
-                CreatureFeature(name: a.name, description: a.desc)
+                CreatureFeature(id: generateUUID(), name: a.name, description: a.desc)
             } ?? [],
             actions: m.actions?.map { a in
-                CreatureAction(name: a.name, description: a.desc)
+                CreatureAction(id: generateUUID(), name: a.name, description: a.desc)
             } ?? [],
             reactions: m.reactions?.map { r in
-                CreatureAction(name: r.name, description: r.desc)
+                CreatureAction(id: generateUUID(), name: r.name, description: r.desc)
             } ?? [],
             legendary: m.legendaryActions.map { actions in
                 Legendary(
                     description: m.legendaryDesc,
                     actions: actions.map { a in
-                        ParseableCreatureAction(input: CreatureAction(name: a.name, description: a.desc))
+                        ParseableCreatureAction(input: CreatureAction(id: generateUUID(), name: a.name, description: a.desc))
                     }
                 )
             }

@@ -77,7 +77,8 @@ class CreatureActionParserTest: XCTestCase {
 
     func testAllMonsterActions() async throws {
         let sut = Open5eMonsterDataSourceReader(
-            dataSource: FileDataSource(path: defaultMonstersPath)
+            dataSource: FileDataSource(path: defaultMonstersPath),
+            generateUUID: UUID.fakeGenerator()
         )
         let job = sut.makeJob()
 

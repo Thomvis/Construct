@@ -119,13 +119,13 @@ extension StatBlock {
             challengeRating: Fraction(rawValue: c.Challenge)!,
 
             features: c.Traits.map { t in
-                CreatureFeature(name: t.Name, description: t.Content)
+                CreatureFeature(id: UUID(), name: t.Name, description: t.Content)
             },
             actions: c.Actions.map { a in
-                CreatureAction(name: a.Name, description: a.Content)
+                CreatureAction(id: UUID(), name: a.Name, description: a.Content)
             },
             reactions: c.Reactions.map { r in
-                CreatureAction(name: r.Name, description: r.Content)
+                CreatureAction(id: UUID(), name: r.Name, description: r.Content)
             },
             legendary: with(c.LegendaryActions) { actions in
                 let isDescriptionAction: (ImprovedInitiative.Creature.TraitOrAction) -> Bool = { $0.Name == "" || $0.Name == "Legendary Actions" }
@@ -135,7 +135,7 @@ extension StatBlock {
                 return Legendary(
                     description: description,
                     actions: actions.filter { !isDescriptionAction($0) }.map { a in
-                        ParseableCreatureAction(input: CreatureAction(name: a.Name, description: a.Content))
+                        ParseableCreatureAction(input: CreatureAction(id: UUID(), name: a.Name, description: a.Content))
                     }
                 )
             }

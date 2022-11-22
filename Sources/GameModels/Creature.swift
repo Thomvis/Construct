@@ -286,22 +286,12 @@ public struct CreatureAction: Codable, Hashable {
         self.name = name
         self.description = description
     }
-
-    public init(name: String, description: String) {
-        self.name = name
-        self.description = description
-    }
 }
 
 public struct CreatureFeature: Codable, Hashable {
     @DecodableDefault.UUID public private(set) var id: UUID
     public var name: String
     public var description: String
-
-    public init(name: String, description: String) {
-        self.name = name
-        self.description = description
-    }
 
     public init(id: UUID, name: String, description: String) {
         self.id = id

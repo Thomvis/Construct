@@ -601,8 +601,8 @@ struct CreatureEditView_Preview: PreviewProvider {
                         skills: [:],
                         features: [],
                         actions: [
-                            CreatureAction(name: "Scimitar", description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage."),
-                            CreatureAction(name: "Shortbow", description: "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage.")
+                            CreatureAction(id: UUID(), name: "Scimitar", description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage."),
+                            CreatureAction(id: UUID(), name: "Shortbow", description: "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage.")
                         ],
                         reactions: []
                     ),

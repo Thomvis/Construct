@@ -17,7 +17,7 @@ import Dice
 class ParseableCreatureFeatureTest: XCTestCase {
 
     func testSpellcasting() {
-        let feature = CreatureFeature(name: "Spellcasting", description: "The acolyte is a 1st-level spellcaster. Its spellcasting ability is Wisdom (spell save DC 12, +4 to hit with spell attacks). The acolyte has following cleric spells prepared:\n\n• Cantrips (at will): light, sacred flame, thaumaturgy\n• 1st level (3 slots): bless, cure wounds, sanctuary")
+        let feature = CreatureFeature(id: UUID(), name: "Spellcasting", description: "The acolyte is a 1st-level spellcaster. Its spellcasting ability is Wisdom (spell save DC 12, +4 to hit with spell attacks). The acolyte has following cleric spells prepared:\n\n• Cantrips (at will): light, sacred flame, thaumaturgy\n• 1st level (3 slots): bless, cure wounds, sanctuary")
 
         var sut = ParseableCreatureFeature(input: feature)
         sut.parseIfNeeded()
@@ -53,7 +53,7 @@ class ParseableCreatureFeatureTest: XCTestCase {
     }
 
     func testInnateSpellcasting() {
-        let feature = CreatureFeature(name: "Innate Spellcasting", description: "The giant's innate spellcasting ability is Charisma. It can innately cast the following spells, requiring no material components:\n\nAt will: detect magic, fog cloud, light\n3/day each: feather fall, fly, misty step, telekinesis\n1/day each: control weather, gaseous form")
+        let feature = CreatureFeature(id: UUID(), name: "Innate Spellcasting", description: "The giant's innate spellcasting ability is Charisma. It can innately cast the following spells, requiring no material components:\n\nAt will: detect magic, fog cloud, light\n3/day each: feather fall, fly, misty step, telekinesis\n1/day each: control weather, gaseous form")
 
         var sut = ParseableCreatureFeature(input: feature)
         sut.parseIfNeeded()

@@ -497,9 +497,9 @@ extension StatBlock {
 
             challengeRating: cr,
 
-            features: parseTraits(M.trait(nil), CreatureFeature.init),
-            actions: parseTraits(M.action(nil), CreatureAction.init),
-            reactions: parseTraits(M.reaction(nil), CreatureAction.init),
+            features: parseTraits(M.trait(nil), { CreatureFeature(id: UUID(), name: $0, description: $1) }),
+            actions: parseTraits(M.action(nil), { CreatureAction(id: UUID(), name: $0, description: $1) }),
+            reactions: parseTraits(M.reaction(nil), { CreatureAction(id: UUID(), name: $0, description: $1) }),
             legendary: with(c[any: M.legendary(nil)]) { legendaryElements in
                 let description: String?
                 if let first = legendaryElements.first,
@@ -511,7 +511,7 @@ extension StatBlock {
                     description = nil
                 }
 
-                let actions = parseTraits(M.legendary(nil), CreatureAction.init) // this will skip the description element because it doesn't have a name
+                let actions = parseTraits(M.legendary(nil), { CreatureAction(id: UUID(), name: $0, description: $1) }) // this will skip the description element because it doesn't have a name
 
                 guard description != nil || !actions.isEmpty else { return nil }
 
