@@ -43,11 +43,7 @@ public extension Character {
     var localizedSummary: String {
         var components: [String] = []
         if let level = self.level {
-            if let type = self.stats.type {
-                components.append("Level \(level) \(type)")
-            } else {
-                components.append("Level \(level)")
-            }
+            components.append("Level \(level)")
         }
 
         if let type = self.stats.type {
