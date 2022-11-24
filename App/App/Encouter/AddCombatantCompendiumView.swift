@@ -25,7 +25,7 @@ struct AddCombatantCompendiumView: View {
             store: store.scope(state: { $0.compendiumState }, action: { .compendiumState($0) }),
             viewProvider: compendiumIndexViewProvider,
             bottomBarButtons: {
-                RoundedButton(action: {
+                Button(action: {
                     self.viewStore.send(.quickCreate)
                 }) {
                     Label("Quick create", systemImage: "plus.circle")

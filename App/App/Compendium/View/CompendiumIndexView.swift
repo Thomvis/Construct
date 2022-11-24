@@ -52,7 +52,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         Group {
             contentView
         }
-        .scrollDismissesKeyboard(.interactively)
+        .scrollDismissesKeyboard(.immediately)
         .searchable(
             text: localViewStore.binding(get: { $0.searchText.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
             tokens: localViewStore.binding(get: { $0.itemTypeFilter ?? [] }, send: { .onQueryTypeFilterDidChange($0.nonEmptyArray, debounce: false) }),
@@ -66,13 +66,13 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             }
         }
         .safeAreaInset(edge: .bottom) {
-            HStack {
+            RoundedButtonToolbar {
                 bottomBarButtons()
 
                 if localViewStore.state.showAddButton {
                     let addableTypes = localViewStore.state.addableItemTypes
                     if let type = addableTypes.single {
-                        RoundedButton(action: {
+                        Button(action: {
                             self.localViewStore.send(.onAddButtonTap(type))
                         }) {
                             Label("Add \(type.localizedDisplayName)", systemImage: "plus.circle")
@@ -95,15 +95,13 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                                 }
                             }
                         } label: {
-                            RoundedButton(action: {
+                            Button(action: {
 
                             }) {
                                 Label("Add", systemImage: "plus.circle")
                             }
                         }
                     }
-
-                    Spacer()
                 }
 
                 WithViewStore(store.scope(state: { $0.results.input })) { viewStore in
@@ -448,10 +446,18 @@ struct FilterButton: View {
                 Text("More...")
             }
         } label: {
-            RoundedButton(action: {
+            let label: String = {
+                if viewStore.state.filters == nil || viewStore.state.filters == .init() {
+                    return "Filter"
+                } else {
+                    return "Filters active"
+                }
+            }()
+
+            Button(action: {
 
             }) {
-                Label("Filter", systemImage: "slider.horizontal.3")
+                Label(label, systemImage: "slider.horizontal.3")
             }
         } primaryAction: {
             presentFilterSheet()
