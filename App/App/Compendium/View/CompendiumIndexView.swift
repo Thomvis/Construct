@@ -308,13 +308,14 @@ fileprivate struct CompendiumItemList: View, Equatable {
     var body: some View {
         let listHash = AnyHashable((viewStore.state.entries + (viewStore.state.suggestions ?? [])).map { $0.key })
 
+        let state = viewStore.state
         return ScrollViewReader { scrollView in
             return List {
-                if let suggestions = viewStore.state.suggestions {
+                if let suggestions = state.suggestions {
                     section(header: Text("Suggestions"), entries: suggestions)
-                    section(header: Text("All"), entries: viewStore.state.entries)
+                    section(header: Text("All"), entries: state.entries)
                 } else {
-                    section(entries: viewStore.state.entries)
+                    section(entries: state.entries)
                 }
             }
             .listStyle(.plain)
