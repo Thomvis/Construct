@@ -10,9 +10,15 @@ import Foundation
 import ComposableArchitecture
 
 @propertyWrapper
-public struct Parseable<Input, Result> where Result: DomainModel {
+public struct Parseable<Input, Result> where Input: Equatable, Result: DomainModel {
 
-    public var input: Input
+    public var input: Input {
+        didSet {
+            if oldValue != input {
+                result = nil
+            }
+        }
+    }
     public var result: ParserResult?
 
     public var wrappedValue: Input {
