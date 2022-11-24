@@ -237,7 +237,10 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         result = result.sorted(by: order.descriptor.pullback(\.item))
 
                         return result
-                    }.eraseToAnyPublisher()
+                    }
+                    .subscribe(on: DispatchQueue.global(qos: .userInitiated))
+                    .receive(on: env.mainQueue)
+                    .eraseToAnyPublisher()
                 }
             }.pullback(state: \.results, action: /CompendiumIndexAction.results),
             Reducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex),
