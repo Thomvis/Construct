@@ -52,12 +52,12 @@ extension Monster {
 }
 
 public enum MonsterType: String, CaseIterable, Codable, Hashable {
-    case aberation, beast, celestial, construct, dragon, elemental, fey
+    case aberration, beast, celestial, construct, dragon, elemental, fey
     case fiend, giant, humanoid, monstrosity, ooze, plant, undead
 
     public var localizedDisplayName: String {
         switch self {
-        case .aberation: return NSLocalizedString("Aberation", comment: "Monster type aberation")
+        case .aberration: return NSLocalizedString("Aberration", comment: "Monster type aberration")
         case .beast: return NSLocalizedString("Beast", comment: "Monster type beast")
         case .celestial: return NSLocalizedString("Celestial", comment: "Monster type celestial")
         case .construct: return NSLocalizedString("Construct", comment: "Monster type construct")
