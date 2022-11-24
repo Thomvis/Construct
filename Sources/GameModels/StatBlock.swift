@@ -336,10 +336,14 @@ public extension StatBlock {
             case (.action, let newActions as [ParseableCreatureAction]): actions = newActions.identified
             case (.reaction, let newActions as [ParseableCreatureAction]): reactions = newActions.identified
             case (.legendaryAction, let newActions as [ParseableCreatureAction]):
-                if legendary != nil {
-                    legendary?.actions = newActions.identified
+                if let newActions = newActions.nonEmptyArray {
+                    if legendary != nil {
+                        legendary?.actions = newActions.identified
+                    } else {
+                        legendary = Legendary(actions: newActions)
+                    }
                 } else {
-                    legendary = Legendary(actions: newActions)
+                    legendary = nil
                 }
             default:
                 assertionFailure("Failed setting a StatBlock's itemsOfType due to a type mismatch")
