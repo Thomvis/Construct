@@ -27,7 +27,7 @@ struct CompendiumContainerView: View {
 let compendiumRootReducer: Reducer<CompendiumIndexState, CompendiumIndexAction, Environment> = Reducer.combine(
     Reducer { state, action, env in
         if let monster = action.onSaveMonsterAsNPCButtonMonster {
-            return Effect.future { callback in
+            return Effect.run(operation: { callback in
                 var stats = monster.stats
                 stats.name = "\(stats.name) NPC"
                 let character = Character(id: UUID().tagged(), realm: .homebrew, level: nil, stats: stats, player: nil)
@@ -37,20 +37,13 @@ let compendiumRootReducer: Reducer<CompendiumIndexState, CompendiumIndexAction, 
                     let entry = CompendiumEntry(character)
                     try env.compendium.put(entry)
 
-                    // workaround: programmatic navigation doesn't work (FB8784916) so we instruct the user
-                    // where to find the newly created NPC
-                    callback(.success(.alert(AlertState<CompendiumIndexAction>(title: TextState("Monster saved as NPC"), message: TextState("A character named “\(stats.name)” was added to the compendium."), dismissButton: .default(TextState("OK"))))))
-
-//                    // navigate to detail view of character
-//                    callback(.success(.setNextScreen(.compendiumIndex(CompendiumIndexState(
-//                        title: "Characters",
-//                        properties: .secondary,
-//                        results: .initial(type: .character),
-//                        presentedScreens: [.nextInStack: .itemDetail(CompendiumEntryDetailViewState(entry: entry))]
-//                    )))))
+                    // configure view to display the character
+                    await callback(.query(.onFiltersDidChange(.init(types: [.character])), debounce: false))
+                    await callback(.query(.onTextDidChange(nil), debounce: false))
+                    await callback(.scrollTo(entry.key))
+                    await callback(.setNextScreen(nil))
                 } catch { }
-                callback(.success(nil))
-            }.compactMap { $0 }.eraseToEffect()
+            }).eraseToEffect()
         }
         return .none
     },
