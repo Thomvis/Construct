@@ -15,9 +15,10 @@ import Compendium
 
 class XMLCompendiumDataSourceReaderTest: XCTestCase {
 
+    @MainActor
     func test() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "compendium", ofType: "xml")!)
-        let sut = XMLCompendiumDataSourceReader(dataSource: dataSource)
+        let sut = XMLCompendiumDataSourceReader(dataSource: dataSource, generateUUID: UUID.fakeGenerator())
         let job = sut.makeJob()
 
 
@@ -27,7 +28,7 @@ class XMLCompendiumDataSourceReaderTest: XCTestCase {
 
     func testIncorrectFormat() async throws{
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ii_mm", ofType: "json")!)
-        let sut = XMLCompendiumDataSourceReader(dataSource: dataSource)
+        let sut = XMLCompendiumDataSourceReader(dataSource: dataSource, generateUUID: UUID.fakeGenerator())
         let job = sut.makeJob()
 
         do {

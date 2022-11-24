@@ -35,6 +35,7 @@ class Environment: ObservableObject {
     var generateUUID: () -> UUID
     var rng: AnyRandomNumberGenerator
     var mainQueue: AnySchedulerOf<DispatchQueue>
+    var backgroundQueue: AnySchedulerOf<DispatchQueue>
 
     var dismissKeyboard: () -> Void
 
@@ -54,6 +55,7 @@ class Environment: ObservableObject {
         generateUUID: @escaping () -> UUID,
         rng: AnyRandomNumberGenerator,
         mainQueue: AnySchedulerOf<DispatchQueue>,
+        backgroundQueue: AnySchedulerOf<DispatchQueue>,
         dismissKeyboard: @escaping () -> Void,
         diceLog: DiceLogPublisher,
         crashReporter: CrashReporter
@@ -69,6 +71,7 @@ class Environment: ObservableObject {
         self.generateUUID = generateUUID
         self.rng = rng
         self.mainQueue = mainQueue
+        self.backgroundQueue = backgroundQueue
         self.dismissKeyboard = dismissKeyboard
         self.diceLog = diceLog
         self.crashReporter = crashReporter
@@ -86,7 +89,11 @@ class Environment: ObservableObject {
 
 extension Environment {
     @MainActor
-    static func live(database db: Database? = nil) async throws -> Environment {
+    static func live(
+        database db: Database? = nil,
+        mainQueue: AnySchedulerOf<DispatchQueue>? = nil,
+        backgroundQueue: AnySchedulerOf<DispatchQueue>? = nil
+    ) async throws -> Environment {
         let database: Database
         if let db {
             database = db
@@ -138,7 +145,8 @@ extension Environment {
             }),
             generateUUID: UUID.init,
             rng: AnyRandomNumberGenerator(wrapped: SystemRandomNumberGenerator()),
-            mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
+            mainQueue: mainQueue ?? DispatchQueue.main.eraseToAnyScheduler(),
+            backgroundQueue: backgroundQueue ?? DispatchQueue.global(qos: .userInitiated).eraseToAnyScheduler(),
             dismissKeyboard: {
                 keyWindow()?.endEditing(true)
             },

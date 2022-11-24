@@ -140,7 +140,7 @@ struct CompendiumImportView: View {
         }
 
         let importer = CompendiumImporter(compendium: env.compendium)
-        let task = CompendiumImportTask(reader: reader.create(dataSource), overwriteExisting: true)
+        let task = CompendiumImportTask(reader: reader.create(dataSource, env.generateUUID), overwriteExisting: true)
 
         let t = Task {
             do {
@@ -159,7 +159,7 @@ struct CompendiumImportView: View {
         let name: String
         let description: String?
 
-        let create: (CompendiumDataSource) -> CompendiumDataSourceReader
+        let create: (CompendiumDataSource, @escaping () -> UUID) -> CompendiumDataSourceReader
         let prepareUrl: ((URL) -> URL)?
     }
 
@@ -173,7 +173,7 @@ struct CompendiumImportView: View {
         Reader(
             name: "Improved Initiative JSON",
             description: "Only creature entries are supported",
-            create: ImprovedInitiativeDataSourceReader.init,
+            create:  { ds, _ in ImprovedInitiativeDataSourceReader(dataSource: ds) },
             prepareUrl: nil
         ),
 //        Reader(

@@ -15,17 +15,20 @@ public class XMLCompendiumDataSourceReader: CompendiumDataSourceReader {
     public static let name = "XMLMonsterDataSourceReader"
 
     public var dataSource: CompendiumDataSource
+    let generateUUID: () -> UUID
 
-    public init(dataSource: CompendiumDataSource) {
+    public init(dataSource: CompendiumDataSource, generateUUID: @escaping () -> UUID) {
         self.dataSource = dataSource
+        self.generateUUID = generateUUID
     }
 
     public func makeJob() -> CompendiumDataSourceReaderJob {
-        return Job(source: dataSource)
+        return Job(source: dataSource, generateUUID: generateUUID)
     }
 
     struct Job: CompendiumDataSourceReaderJob {
         let source: CompendiumDataSource
+        let generateUUID: () -> UUID
 
         var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
             get async throws {
@@ -38,7 +41,7 @@ public class XMLCompendiumDataSourceReader: CompendiumDataSourceReader {
                     .map { (element, content) -> CompendiumDataSourceReaderOutput in
                         switch (element) {
                         case .compendium(.monster(nil)):
-                            if let monster = Monster(elementContent: content, realm: .core) {
+                            if let monster = Monster(elementContent: content, realm: .core, generateUUID: generateUUID) {
                                 return .item(monster)
                             }
                         case .compendium(.spell(nil)):
@@ -355,8 +358,8 @@ fileprivate typealias M = XMLCompendiumParser.DocumentElement.CompendiumElement.
 
 extension Monster {
 
-    init?(elementContent c: XMLCompendiumParser.State.ElementContent, realm: CompendiumItemKey.Realm) {
-        guard let stats = StatBlock(elementContent: c),
+    init?(elementContent c: XMLCompendiumParser.State.ElementContent, realm: CompendiumItemKey.Realm, generateUUID: () -> UUID) {
+        guard let stats = StatBlock(elementContent: c, generateUUID: generateUUID),
               let cr = stats.challengeRating
         else {
             return nil
@@ -410,7 +413,7 @@ extension Spell {
 }
 
 extension StatBlock {
-    init?(elementContent c: XMLCompendiumParser.State.ElementContent) {
+    init?(elementContent c: XMLCompendiumParser.State.ElementContent, generateUUID: () -> UUID) {
         guard let name = c[first: M.name]?.stringValue?.nonEmptyString,
               let type = c[first: M.type]?.stringValue,
               let ac = c[first: M.ac]?.stringValue,
@@ -497,9 +500,9 @@ extension StatBlock {
 
             challengeRating: cr,
 
-            features: parseTraits(M.trait(nil), { CreatureFeature(id: UUID(), name: $0, description: $1) }),
-            actions: parseTraits(M.action(nil), { CreatureAction(id: UUID(), name: $0, description: $1) }),
-            reactions: parseTraits(M.reaction(nil), { CreatureAction(id: UUID(), name: $0, description: $1) }),
+            features: parseTraits(M.trait(nil), { CreatureFeature(id: generateUUID(), name: $0, description: $1) }),
+            actions: parseTraits(M.action(nil), { CreatureAction(id: generateUUID(), name: $0, description: $1) }),
+            reactions: parseTraits(M.reaction(nil), { CreatureAction(id: generateUUID(), name: $0, description: $1) }),
             legendary: with(c[any: M.legendary(nil)]) { legendaryElements in
                 let description: String?
                 if let first = legendaryElements.first,
@@ -511,7 +514,7 @@ extension StatBlock {
                     description = nil
                 }
 
-                let actions = parseTraits(M.legendary(nil), { CreatureAction(id: UUID(), name: $0, description: $1) }) // this will skip the description element because it doesn't have a name
+                let actions = parseTraits(M.legendary(nil), { CreatureAction(id: generateUUID(), name: $0, description: $1) }) // this will skip the description element because it doesn't have a name
 
                 guard description != nil || !actions.isEmpty else { return nil }
 

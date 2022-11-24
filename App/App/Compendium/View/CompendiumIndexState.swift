@@ -238,7 +238,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                         return result
                     }
-                    .subscribe(on: DispatchQueue.global(qos: .userInitiated))
+                    .subscribe(on: env.backgroundQueue)
                     .receive(on: env.mainQueue)
                     .eraseToAnyPublisher()
                 }

@@ -65,6 +65,11 @@
                BlueprintName = "UnitTests"
                ReferencedContainer = "container:Construct.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "DatabaseTest">
+               </Test>
+            </SkippedTests>
          </TestableReference>
          <TestableReference
             skipped = "NO">
