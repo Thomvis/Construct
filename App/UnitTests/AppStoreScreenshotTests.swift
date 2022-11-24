@@ -886,8 +886,8 @@ struct FakeDeviceScreenView<Content>: View where Content: View {
             .foregroundColor(self.colorScheme == .dark ? .white : .black)
             .padding(
                 isPad
-                    ? EdgeInsets(top: 4, leading: 12, bottom: 0, trailing: 12)
-                    : EdgeInsets(top: 8, leading: 16, bottom: 0, trailing: 16)
+                    ? EdgeInsets(top: 16, leading: 24, bottom: 0, trailing: 24)
+                    : EdgeInsets(top: 18, leading: 25, bottom: 0, trailing: 22)
             )
             .ignoresSafeArea()
         }
@@ -1034,7 +1034,7 @@ func prepareView(
         fatalError("'drawHierarchyInKeyWindow' not supported")
     } else {
         window = Window(
-            config: .init(safeArea: config.safeArea, size: config.size ?? size, traits: traits),
+            config: .init(safeArea: .zero, size: config.size ?? size, traits: traits),
             viewController: viewController
         )
     }

@@ -12,7 +12,7 @@
             ▿ both: (2 elements)
               - .0: Moral.chaotic
               - .1: Ethic.evil
-      ▿ _reactions: Wrapper<EmptyList<Array<Parseable<CreatureAction, ParsedCreatureAction>>>>
+      ▿ _reactions: Wrapper<EmptyList<IdentifiedArray<UUID, Parseable<CreatureAction, ParsedCreatureAction>>>>
         - wrappedValue: 0 elements
       ▿ abilityScores: Optional<AbilityScores>
         ▿ some: AbilityScores
@@ -31,31 +31,49 @@
       ▿ actions: 6 elements
         ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-200000000000
+                - uuid: "00000000-0000-0000-0000-200000000000"
             - description: "The dragon can use its Frightful Presence. It then makes three attacks: one with its bite and two with its claws."
             - name: "Multiattack"
           - result: Optional<ParserResult>.none
         ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-300000000000
+                - uuid: "00000000-0000-0000-0000-300000000000"
             - description: "Melee Weapon Attack: +11 to hit, reach 10 ft., one target. Hit: 17 (2d10 + 6) piercing damage plus 4 (1d8) cold damage."
             - name: "Bite"
           - result: Optional<ParserResult>.none
         ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-400000000000
+                - uuid: "00000000-0000-0000-0000-400000000000"
             - description: "Melee Weapon Attack: +11 to hit, reach 5 ft., one target. Hit: 13 (2d6 + 6) slashing damage."
             - name: "Claw"
           - result: Optional<ParserResult>.none
         ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-500000000000
+                - uuid: "00000000-0000-0000-0000-500000000000"
             - description: "Melee Weapon Attack: +11 to hit, reach 15 ft., one target. Hit: 15 (2d8 + 6) bludgeoning damage."
             - name: "Tail"
           - result: Optional<ParserResult>.none
         ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-600000000000
+                - uuid: "00000000-0000-0000-0000-600000000000"
             - description: "Each creature of the dragon\'s choice that is within 120 ft. of the dragon and aware of it must succeed on a DC 14 Wisdom saving throw or become frightened for 1 minute. A creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. If a creature\'s saving throw is successful or the effect ends for it, the creature is immune to the dragon\'s Frightful Presence for the next 24 hours."
             - name: "Frightful Presence"
           - result: Optional<ParserResult>.none
         ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-700000000000
+                - uuid: "00000000-0000-0000-0000-700000000000"
             - description: "The dragon exhales an icy blast in a 60-foot cone. Each creature in that area must make a DC 19 Constitution saving throw, taking 54 (12d8) cold damage on a failed save, or half as much damage on a successful one."
             - name: "Cold Breath (Recharge 5-6)"
           - result: Optional<ParserResult>.none
@@ -84,11 +102,17 @@
       ▿ features: 2 elements
         ▿ Parseable<CreatureFeature, ParsedCreatureFeature>
           ▿ input: CreatureFeature
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-000000000000
+                - uuid: "00000000-0000-0000-0000-000000000000"
             - description: "The dragon can move across and climb icy surfaces without needing to make an ability check. Additionally, difficult terrain composed of ice or snow doesn\'t cost it extra moment."
             - name: "Ice Walk"
           - result: Optional<ParserResult>.none
         ▿ Parseable<CreatureFeature, ParsedCreatureFeature>
           ▿ input: CreatureFeature
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-100000000000
+                - uuid: "00000000-0000-0000-0000-100000000000"
             - description: "If the dragon fails a saving throw, it can choose to succeed instead."
             - name: "Legendary Resistance (3/Day)"
           - result: Optional<ParserResult>.none
@@ -114,20 +138,30 @@
           ▿ actions: 3 elements
             ▿ Parseable<CreatureAction, ParsedCreatureAction>
               ▿ input: CreatureAction
+                ▿ _id: Wrapper<UUID>
+                  ▿ wrappedValue: 00000000-0000-0000-0000-800000000000
+                    - uuid: "00000000-0000-0000-0000-800000000000"
                 - description: "The dragon makes a Wisdom (Perception) check."
                 - name: "Detect"
               - result: Optional<ParserResult>.none
             ▿ Parseable<CreatureAction, ParsedCreatureAction>
               ▿ input: CreatureAction
+                ▿ _id: Wrapper<UUID>
+                  ▿ wrappedValue: 00000000-0000-0000-0000-900000000000
+                    - uuid: "00000000-0000-0000-0000-900000000000"
                 - description: "The dragon makes a tail attack."
                 - name: "Tail Attack"
               - result: Optional<ParserResult>.none
             ▿ Parseable<CreatureAction, ParsedCreatureAction>
               ▿ input: CreatureAction
+                ▿ _id: Wrapper<UUID>
+                  ▿ wrappedValue: 00000000-0000-0000-0000-100000000000
+                    - uuid: "00000000-0000-0000-0000-100000000000"
                 - description: "The dragon beats its wings. Each creature within 10 ft. of the dragon must succeed on a DC 19 Dexterity saving throw or take 13 (2d6 + 6) bludgeoning damage and be knocked prone. The dragon can then fly up to half its flying speed."
                 - name: "Wing Attack (Costs 2 Actions)"
               - result: Optional<ParserResult>.none
           - description: Optional<String>.none
+      - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
         ▿ some: 4 key/value pairs
           ▿ (2 elements)
@@ -146,20 +180,24 @@
       ▿ savingThrows: 4 key/value pairs
         ▿ (2 elements)
           - key: Ability.charisma
-          ▿ value: Modifier
-            - modifier: 6
+          ▿ value: Proficiency
+            ▿ custom: Modifier
+              - modifier: 6
         ▿ (2 elements)
           - key: Ability.constitution
-          ▿ value: Modifier
-            - modifier: 11
+          ▿ value: Proficiency
+            ▿ custom: Modifier
+              - modifier: 11
         ▿ (2 elements)
           - key: Ability.dexterity
-          ▿ value: Modifier
-            - modifier: 5
+          ▿ value: Proficiency
+            ▿ custom: Modifier
+              - modifier: 5
         ▿ (2 elements)
           - key: Ability.wisdom
-          ▿ value: Modifier
-            - modifier: 6
+          ▿ value: Proficiency
+            ▿ custom: Modifier
+              - modifier: 6
       ▿ senses: Optional<String>
         - some: "blindsight 60 ft., darkvision 120 ft."
       ▿ size: Optional<CreatureSize>
@@ -167,15 +205,19 @@
       ▿ skills: 2 key/value pairs
         ▿ (2 elements)
           - key: Skill.perception
-          ▿ value: Modifier
-            - modifier: 11
+          ▿ value: Proficiency
+            ▿ custom: Modifier
+              - modifier: 11
         ▿ (2 elements)
           - key: Skill.stealth
-          ▿ value: Modifier
-            - modifier: 5
+          ▿ value: Proficiency
+            ▿ custom: Modifier
+              - modifier: 5
       - subtype: Optional<String>.none
-      ▿ type: Optional<String>
-        - some: "dragon"
+      ▿ type: Optional<Parseable<String, MonsterType>>
+        ▿ some: Parseable<String, MonsterType>
+          - input: "dragon"
+          - result: Optional<ParserResult>.none
   ▿ Monster
     ▿ challengeRating: Fraction
       - denominator: 1
@@ -189,7 +231,7 @@
             ▿ both: (2 elements)
               - .0: Moral.chaotic
               - .1: Ethic.evil
-      ▿ _reactions: Wrapper<EmptyList<Array<Parseable<CreatureAction, ParsedCreatureAction>>>>
+      ▿ _reactions: Wrapper<EmptyList<IdentifiedArray<UUID, Parseable<CreatureAction, ParsedCreatureAction>>>>
         - wrappedValue: 0 elements
       ▿ abilityScores: Optional<AbilityScores>
         ▿ some: AbilityScores
@@ -208,11 +250,17 @@
       ▿ actions: 2 elements
         ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-130000000000
+                - uuid: "00000000-0000-0000-0000-130000000000"
             - description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 11 (2d8 + 2) piercing damage."
             - name: "Morningstar"
           - result: Optional<ParserResult>.none
         ▿ Parseable<CreatureAction, ParsedCreatureAction>
           ▿ input: CreatureAction
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-140000000000
+                - uuid: "00000000-0000-0000-0000-140000000000"
             - description: "Melee or Ranged Weapon Attack: +4 to hit, reach 5 ft. or range 30/120 ft., one target. Hit: 9 (2d6 + 2) piercing damage in melee or 5 (1d6 + 2) piercing damage at range."
             - name: "Javelin"
           - result: Optional<ParserResult>.none
@@ -230,11 +278,17 @@
       ▿ features: 2 elements
         ▿ Parseable<CreatureFeature, ParsedCreatureFeature>
           ▿ input: CreatureFeature
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-110000000000
+                - uuid: "00000000-0000-0000-0000-110000000000"
             - description: "A melee weapon deals one extra die of its damage when the bugbear hits with it (included in the attack)."
             - name: "Brute"
           - result: Optional<ParserResult>.none
         ▿ Parseable<CreatureFeature, ParsedCreatureFeature>
           ▿ input: CreatureFeature
+            ▿ _id: Wrapper<UUID>
+              ▿ wrappedValue: 00000000-0000-0000-0000-120000000000
+                - uuid: "00000000-0000-0000-0000-120000000000"
             - description: "If the bugbear surprises a creature and hits it with an attack during the first round of combat, the target takes an extra 7 (2d6) damage from the attack."
             - name: "Surprise Attack"
           - result: Optional<ParserResult>.none
@@ -256,6 +310,7 @@
       ▿ languages: Optional<String>
         - some: "Common, Goblin"
       - legendary: Optional<Legendary>.none
+      - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
         ▿ some: 1 key/value pair
           ▿ (2 elements)
@@ -270,16 +325,20 @@
       ▿ skills: 2 key/value pairs
         ▿ (2 elements)
           - key: Skill.stealth
-          ▿ value: Modifier
-            - modifier: 6
+          ▿ value: Proficiency
+            ▿ custom: Modifier
+              - modifier: 6
         ▿ (2 elements)
           - key: Skill.survival
-          ▿ value: Modifier
-            - modifier: 2
+          ▿ value: Proficiency
+            ▿ custom: Modifier
+              - modifier: 2
       ▿ subtype: Optional<String>
         - some: "goblinoid"
-      ▿ type: Optional<String>
-        - some: "humanoid"
+      ▿ type: Optional<Parseable<String, MonsterType>>
+        ▿ some: Parseable<String, MonsterType>
+          - input: "humanoid"
+          - result: Optional<ParserResult>.none
   ▿ Spell
     - castingTime: "1 action"
     ▿ classes: 2 elements
