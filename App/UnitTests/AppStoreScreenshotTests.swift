@@ -1034,7 +1034,7 @@ func prepareView(
         fatalError("'drawHierarchyInKeyWindow' not supported")
     } else {
         window = Window(
-            config: .init(safeArea: .zero, size: config.size ?? size, traits: traits),
+            config: .init(safeArea: config.safeArea, size: config.size ?? size, traits: traits),
             viewController: viewController
         )
     }
