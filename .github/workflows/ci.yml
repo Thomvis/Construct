@@ -19,6 +19,7 @@ jobs:
         run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild -project "App/Construct.xcodeproj" -scheme "Construct" -destination "${{ matrix.destination }}" clean test | xcpretty
       - name: Archive test artifacts
         uses: actions/upload-artifact@v3
+        if: always()
         with:
           name: test-results
           path: |
