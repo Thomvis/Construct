@@ -140,8 +140,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     @ViewBuilder
     var contentView: some View {
         switch localViewStore.state.results {
-        case .loading:
-            Text("Loading...").frame(maxWidth: .infinity, maxHeight: .infinity)
         case .succeededWithoutResults:
             WithViewStore(store.scope(state: { $0.presentedNextSafariView })) { safariViewStore in
                 VStack(spacing: 18) {
@@ -162,8 +160,17 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                     }
                 )
             }
-        case .succeededWithResults:
-            CompendiumItemList(store: store, viewProvider: viewProvider)
+        case .succeededWithResults, .loadingInitialContent:
+            ZStack {
+                CompendiumItemList(store: store, viewProvider: viewProvider)
+
+                if localViewStore.state.isLoadingResults {
+                    Label("Loading…", systemImage: "sparkle.magnifyingglass")
+                        .padding()
+                        .background(Material.regular, in: RoundedRectangle(cornerRadius: 8))
+                        .transition(.opacity.animation(.default))
+                }
+            }
         case .failedWithError:
             Text("Loading failed").frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -207,7 +214,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 
     struct LocalState: Equatable {
         let results: ResultsStatus
-        let resultsIsFirstTimeLoading: Bool
+        let isLoadingResults: Bool
 
         let itemTypeRestriction: [CompendiumItemType]?
         let itemTypeFilter: [CompendiumItemType]?
@@ -228,10 +235,9 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             } else if state.results.error != nil {
                 self.results = .failedWithError
             } else {
-                self.results = .loading
+                self.results = .loadingInitialContent
             }
-
-            resultsIsFirstTimeLoading = state.results.value == nil && state.results.result.isLoading
+            self.isLoadingResults = state.results.result.isLoading == true
 
             itemTypeRestriction = state.properties.typeRestriction
             if Set(state.results.input.filters?.types ?? []) == Set(state.properties.typeRestriction ?? CompendiumItemType.allCases) {
@@ -260,7 +266,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         }
 
         enum ResultsStatus: Hashable {
-            case loading
+            case loadingInitialContent
             case succeededWithResults
             case succeededWithoutResults
             case failedWithError
