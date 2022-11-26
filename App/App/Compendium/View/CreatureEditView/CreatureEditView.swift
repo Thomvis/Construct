@@ -21,6 +21,9 @@ struct CreatureEditView: View {
     var store: Store<CreatureEditViewState, CreatureEditViewAction>
     @ObservedObject var viewStore: ViewStore<CreatureEditViewState, CreatureEditViewAction>
 
+    @ScaledMetric(relativeTo: .body)
+    var bodyMetric: CGFloat = 14
+
     init(store: Store<CreatureEditViewState, CreatureEditViewAction>) {
         self.store = store
         self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
@@ -437,8 +440,8 @@ extension CreatureEditView {
         removeProficiency: @escaping (inout StatBlockFormModel, Stat) -> Void,
         removeAllProficiencies: @escaping (inout StatBlockFormModel) -> Void
     ) -> some View where Stat: RawRepresentable, Stat.RawValue: Hashable {
-        VStack(alignment: .leading) {
-
+        VStack(alignment: .leading, spacing: 0) {
+            let overlap = 2*bodyMetric
             HStack {
                 Menu {
                     if !proficiencies.isEmpty {
@@ -474,15 +477,18 @@ extension CreatureEditView {
                         }
                     }
                 } label: {
-                    Text(fieldName)
-                        .foregroundColor(proficiencies.isEmpty ? Color.secondary : Color.primary)
-                        .bold(!proficiencies.isEmpty)
-                        .font(proficiencies.isEmpty ? .body : .footnote)
+                    HStack {
+                        Text(fieldName)
+                            .foregroundColor(proficiencies.isEmpty ? Color.secondary : Color.primary)
+                            .bold(!proficiencies.isEmpty)
+                            .font(proficiencies.isEmpty ? .body : .footnote)
 
-                    Spacer()
+                        Spacer()
 
-                    Image(systemName: "chevron.down.square.fill")
-                        .foregroundColor(Color.secondary)
+                        Image(systemName: "chevron.down.square.fill")
+                            .foregroundColor(Color.secondary)
+                    }
+                    .padding(.bottom, proficiencies.isEmpty ? 0 : 8 + overlap)
                 }
             }
 
@@ -557,6 +563,7 @@ extension CreatureEditView {
                     }
                 }
                 .padding(.trailing, -10) // make layout a bit tighter, increase chance of showing multiple items on a line
+                .padding(.top, -overlap)
             }
         }
     }
