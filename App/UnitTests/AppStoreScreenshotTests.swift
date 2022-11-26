@@ -117,7 +117,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     matching: FakeDeviceScreenView(imageConfig: device, content: view)
                         .environment(\.colorScheme, colorScheme)
                         .environmentObject(environment),
-                    as: .imageAfterDelay(precision: 0.99, layout: .device(config: device), traits: device.traits),
+                    as: .imageAfterDelay(perceptualPrecision: 0.96, layout: .device(config: device), traits: device.traits),
                     named: name,
                     file: file,
                     testName: testName,
@@ -927,7 +927,7 @@ extension ViewImageConfig {
 extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
     static func imageAfterDelay(
         drawHierarchyInKeyWindow: Bool = false,
-        precision: Float = 1,
+        perceptualPrecision: Float = 1,
         layout: SwiftUISnapshotLayout = .sizeThatFits,
         traits: UITraitCollection = .init()
     )
@@ -946,7 +946,7 @@ extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
             config = .init(safeArea: .zero, size: size, traits: traits)
         }
 
-        return SimplySnapshotting.image(precision: precision, scale: traits.displayScale).asyncPullback { view in
+        return SimplySnapshotting.image(perceptualPrecision: perceptualPrecision, scale: traits.displayScale).asyncPullback { view in
             var config = config
 
             let controller: UIViewController
