@@ -45,9 +45,10 @@ struct CombatantTagsView: View {
                                             self.viewStore.send(.removeTag(CombatantTagsViewState.TagId(group.tag), section), animation: .default)
                                         }) {
                                             Image(systemName: "minus.circle").font(Font.title.weight(.light))
-                                                .foregroundColor(Color(UIColor.systemRed))
+                                                .foregroundColor(Color.white)
                                         }
                                     }
+                                    .foregroundColor(Color.white)
                                 }
                             }.onDelete { indices in
                                 for idx in indices {
@@ -55,6 +56,8 @@ struct CombatantTagsView: View {
                                 }
                             }
                         }
+                        .listRowBackground(Color(UIColor.systemPurple))
+                        .listRowSeparatorTint(Color.white.opacity(0.33))
                     }
                 }
 
@@ -108,7 +111,6 @@ struct CombatantTagsView: View {
                     }
                 }
             }
-            .listStyle(.plain)
         }
         .stateDrivenNavigationLink(store: store, state: CasePath.`self`, action: CasePath.`self`, destination: CombatantTagEditView.init)
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
