@@ -20,7 +20,7 @@ struct ReferenceItemView: View {
     var body: some View {
         // TODO: not all content should be presented in a NavigationView
         WithViewStore(store, removeDuplicates: { $0.content.typeHash == $1.content.typeHash }) { viewStore in
-            NavigationView {
+            NavigationStack {
                 ZStack {
                     IfLetStore(store.scope(state: { $0.content.compendiumState?.compendium }, action: { .contentCompendium(.compendium($0)) })) { store in
                         CompendiumIndexView(store: store)
@@ -39,7 +39,6 @@ struct ReferenceItemView: View {
                 }
                 .navigationBarTitleDisplayMode(.inline)
             }
-            .navigationViewStyle(StackNavigationViewStyle())
             // Work-around for a blank tab when the iPad app is running on a mac
             // Usually, macOS would convert the attempt to show a SFSafariViewController
             // to a link open in Safari. This works on the Settings/About screen, but not here

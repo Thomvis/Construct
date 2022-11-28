@@ -25,7 +25,7 @@ struct CombatantDetailContainerView: View {
     let store: Store<CombatantDetailViewState, CombatantDetailViewAction>
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             CombatantDetailView(store: store)
                 .navigationBarItems(trailing: Group {
                     Button(action: {
@@ -35,8 +35,6 @@ struct CombatantDetailContainerView: View {
                     }
                 })
         }
-        .navigationViewStyle(StackNavigationViewStyle())
-        .edgesIgnoringSafeArea(.all)
     }
 }
 
@@ -130,23 +128,18 @@ struct CombatantDetailView: View {
 
                     SectionContainer(
                         title: "Tags",
-                        accessory: StateDrivenNavigationLink(
-                            store: store,
-                            state: /CombatantDetailViewState.NextScreen.combatantTagsView,
-                            action: /CombatantDetailViewAction.NextScreenAction.combatantTagsView,
-                            isActive: { _ in true },
-                            initialState: {
-                                CombatantTagsViewState(combatants: [self.combatant], effectContext: self.viewStore.state.runningEncounter.map {
-                                    EffectContext(
-                                        source: nil,
-                                        targets: [self.viewStore.state.combatant],
-                                        running: $0
-                                    )
-                                })
-                            },
-                            destination: CombatantTagsView.init) {
+                        accessory: Button(action: {
+                            let state = CombatantTagsViewState(combatants: [self.combatant], effectContext: self.viewStore.state.runningEncounter.map {
+                                EffectContext(
+                                    source: nil,
+                                    targets: [self.viewStore.state.combatant],
+                                    running: $0
+                                )
+                            })
+                            viewStore.send(.setNextScreen(.combatantTagsView(state)))
+                        }, label: {
                             Text("Manage")
-                         }
+                        })
                     ) {
                         InlineCombatantTagsView(store: store, viewStore: viewStore)
                     }
@@ -154,17 +147,12 @@ struct CombatantDetailView: View {
                     if !combatant.resources.isEmpty {
                         SectionContainer(
                             title: "Limited resources",
-                            accessory: StateDrivenNavigationLink(
-                                store: store,
-                                state: /CombatantDetailViewState.NextScreen.combatantResourcesView,
-                                action: /CombatantDetailViewAction.NextScreenAction.combatantResourcesView,
-                                isActive: { _ in true },
-                                initialState: {
-                                    CombatantResourcesViewState(combatant: self.combatant)
-                                },
-                                destination: CombatantResourcesView.init) {
+                            accessory: Button(action: {
+                                let state = CombatantResourcesViewState(combatant: self.combatant)
+                                viewStore.send(.setNextScreen(.combatantResourcesView(state)))
+                            }, label: {
                                 Text("Manage")
-                             }
+                            })
                         ) {
                             SimpleList(data: combatant.resources, id: \.id) { resource in
                                 IfLetStore(self.store.scope(state: { $0.combatant.resources.first { $0.id == resource.id } }, action: { .combatant(.resource(resource.id, $0)) })) { store in
@@ -229,17 +217,13 @@ struct CombatantDetailView: View {
 
                                 Divider()
 
-                                StateDrivenNavigationLink(
-                                    store: store,
-                                    state: /CombatantDetailViewState.NextScreen.creatureEditView,
-                                    action: /CombatantDetailViewAction.NextScreenAction.creatureEditView,
-                                    isActive: { _ in true },
-                                    initialState: {
+                                Button {
+                                    let state = {
                                         guard let def = self.combatant.definition as? AdHocCombatantDefinition else { return CreatureEditViewState(create: .monster) }
                                         return CreatureEditViewState(edit: def)
-                                    },
-                                    destination: CreatureEditView.init)
-                                {
+                                    }()
+                                    viewStore.send(.setNextScreen(.creatureEditView(state)))
+                                } label: {
                                     Text("Edit combatant")
                                 }
                             }
@@ -286,6 +270,30 @@ struct CombatantDetailView: View {
             action: /CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView,
             destination: CompendiumItemDetailView.init
         )
+        .stateDrivenNavigationLink(
+            store: store,
+            state: /CombatantDetailViewState.NextScreen.combatantTagsView,
+            action: /CombatantDetailViewAction.NextScreenAction.combatantTagsView,
+            destination: CombatantTagsView.init
+        )
+        .stateDrivenNavigationLink(
+            store: store,
+            state: /CombatantDetailViewState.NextScreen.combatantResourcesView,
+            action: /CombatantDetailViewAction.NextScreenAction.combatantResourcesView,
+            destination: CombatantResourcesView.init
+        )
+        .stateDrivenNavigationLink(
+            store: store,
+            state: /CombatantDetailViewState.NextScreen.creatureEditView,
+            action: /CombatantDetailViewAction.NextScreenAction.creatureEditView,
+            destination: CreatureEditView.init
+        )
+        .stateDrivenNavigationLink(
+            store: store,
+            state: /CombatantDetailViewState.NextScreen.runningEncounterLogView,
+            action: /CombatantDetailViewAction.NextScreenAction.runningEncounterLogView,
+            destination: RunningEncounterLogView.init
+        )
     }
 
     func contentView(for combatant: Combatant) -> some View {
@@ -315,16 +323,10 @@ struct CombatantDetailView: View {
         let log = running.log.filter { $0.involves(self.viewStore.state.combatant) }.reversed()
         return Group {
             if !log.isEmpty {
-                SectionContainer(title: "Latest", accessory: StateDrivenNavigationLink(
-                    store: store,
-                    state: /CombatantDetailViewState.NextScreen.runningEncounterLogView,
-                    action: /CombatantDetailViewAction.NextScreenAction.runningEncounterLogView,
-                    isActive: { _ in true },
-                    initialState: {
-                        RunningEncounterLogViewState(encounter: running, context: self.viewStore.state.combatant)
-                    },
-                    destination: RunningEncounterLogView.init
-                ) {
+                SectionContainer(title: "Latest", accessory: Button {
+                    let state = RunningEncounterLogViewState(encounter: running, context: self.viewStore.state.combatant)
+                    viewStore.send(.setNextScreen(.runningEncounterLogView(state)))
+                } label: {
                     Text("View all (\(log.count))")
                 }) {
                     VStack {

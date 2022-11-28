@@ -43,7 +43,7 @@ struct AddCombatantView: View {
                 if externalNavigation {
                     AddCombatantCompendiumView(store: store, viewStore: viewStore, onSelection: onSelection)
                 } else {
-                    NavigationView {
+                    NavigationStack {
                         AddCombatantCompendiumView(store: store, viewStore: viewStore, onSelection: onSelection)
                         .navigationBarItems(trailing: Button(action: {
                             self.presentationMode.wrappedValue.dismiss()

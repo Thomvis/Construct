@@ -17,7 +17,7 @@ struct SheetNavigationContainer<Content>: View where Content: View {
     let content: () -> Content
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             content()
         }
         .environment(\.sheetPresentationMode, SheetPresentationMode {

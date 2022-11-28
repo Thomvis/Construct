@@ -43,7 +43,7 @@ struct EncounterSettingsView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section(header: Text("Calculate Difficulty"), footer: Button(action: {
                     if self.party.wrappedValue.simplePartyEntries == nil {

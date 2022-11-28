@@ -17,7 +17,7 @@ struct SettingsContainerView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             SettingsView(presentationMode: presentationMode)
         }
         .edgesIgnoringSafeArea(.all)
