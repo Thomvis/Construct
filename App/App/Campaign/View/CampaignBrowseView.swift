@@ -27,32 +27,31 @@ struct CampaignBrowseView: View {
     }
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                if let movingNodesDescription = viewStore.state.movingNodesDescription {
-                    Button(action: {
-                        self.viewStore.send(.didTapConfirmMoveButton)
-                    }) {
-                        HStack {
-                            Image(systemName: "tray.and.arrow.down").frame(width: 30)
-                            Text("Move \(movingNodesDescription) here")
-                        }
-                    }
-                    .disabled(viewStore.state.isMoveOrigin)
-                    .font(.footnote)
-                    .padding(12)
-                    .frame(maxWidth: .infinity).background(Color(UIColor.secondarySystemBackground))
-                }
-
-                List {
-                    viewStore.state.sortedItems.map { items in
-                        ForEach(items, id: \.id) { item in
-                            self.itemView(item).disabled(viewStore.state.isItemDisabled(item))
-                        }.onDelete(perform:self.onDelete)
-                    }
-                }.listStyle(InsetGroupedListStyle())
+        List {
+            viewStore.state.sortedItems.map { items in
+                ForEach(items, id: \.id) { item in
+                    self.itemView(item).disabled(viewStore.state.isItemDisabled(item))
+                }.onDelete(perform:self.onDelete)
             }
-
+        }
+        .listStyle(InsetGroupedListStyle())
+        .safeAreaInset(edge: .top) {
+            if let movingNodesDescription = viewStore.state.movingNodesDescription {
+                Button(action: {
+                    self.viewStore.send(.didTapConfirmMoveButton)
+                }) {
+                    HStack {
+                        Image(systemName: "tray.and.arrow.down").frame(width: 30)
+                        Text("Move \(movingNodesDescription) here")
+                    }
+                }
+                .disabled(viewStore.state.isMoveOrigin)
+                .font(.footnote)
+                .padding(12)
+                .frame(maxWidth: .infinity).background(Color(UIColor.secondarySystemBackground))
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
             RoundedButtonToolbar {
                 Button(action: {
                     self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewState.NodeEditState(name: "", node: nil))))
@@ -68,8 +67,7 @@ struct CampaignBrowseView: View {
                     }
                 }
             }
-            .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
-            .ignoresSafeArea(.keyboard, edges: .all)
+            .padding(8)
         }
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, content: self.sheetView)
         .navigationBarTitle(viewStore.state.navigationBarTitle, displayMode: .inline)
@@ -90,6 +88,18 @@ struct CampaignBrowseView: View {
                     })
             }
         })
+        .stateDrivenNavigationLink(
+            store: store,
+            state: /CampaignBrowseViewState.NextScreen.campaignBrowse,
+            action: /CampaignBrowseViewAction.NextScreenAction.campaignBrowse,
+            destination: CampaignBrowseView.init
+        )
+        .stateDrivenNavigationLink(
+            store: store,
+            state: /CampaignBrowseViewState.NextScreen.encounter,
+            action: /CampaignBrowseViewAction.NextScreenAction.encounterDetail,
+            destination: EncounterDetailView.init
+        )
         .onAppear {
             self.viewStore.send(.items(.startLoading))
         }
@@ -152,42 +162,33 @@ struct CampaignBrowseView: View {
     }
 
     func navigationLink<Label>(for item: CampaignNode, @ViewBuilder label: @escaping () -> Label) -> some View where Label: View {
-        guard let contents = item.contents else { // group
-            return StateDrivenNavigationLink(
-                store: store,
-                state: /CampaignBrowseViewState.NextScreen.campaignBrowse,
-                action: /CampaignBrowseViewAction.NextScreenAction.campaignBrowse,
-                isActive: { $0.node == item },
-                initialState: CampaignBrowseViewState(node: item, mode: self.viewStore.state.mode, items: .initial, showSettingsButton: false),
-                destination: CampaignBrowseView.init,
-                label: label
-            ).eraseToAnyView
-        }
-
-        switch contents.type {
-        case .encounter:
-            return StateDrivenNavigationLink(
-                store: store,
-                state: /CampaignBrowseViewState.NextScreen.encounter,
-                action: /CampaignBrowseViewAction.NextScreenAction.encounterDetail,
-                navDest: .nextInStack,
-                isActive: { $0.encounter.key == contents.key },
-                initialState: {
+        NavigationRowButton {
+            let nextScreen: CampaignBrowseViewState.NextScreen
+            if let contents = item.contents {
+                switch contents.type {
+                case .encounter:
                     if let encounter: Encounter = try? self.env.database.keyValueStore.get(
                         contents.key,
                         crashReporter: self.env.crashReporter
                     ) {
                         let runningEncounter: RunningEncounter? = encounter.runningEncounterKey
                             .flatMap { try? self.env.database.keyValueStore.get($0, crashReporter: self.env.crashReporter) }
-                        return EncounterDetailViewState(building: encounter, running: runningEncounter)
+                        nextScreen = .encounter(EncounterDetailViewState(building: encounter, running: runningEncounter))
                     } else {
-                        return EncounterDetailViewState(building: Encounter(name: "", combatants: []))
+                        nextScreen = .encounter(EncounterDetailViewState.nullInstance)
                     }
-                },
-                destination: EncounterDetailView.init,
-                label: label
-            ).eraseToAnyView
-        case .other: return label().eraseToAnyView
+                case .other:
+                    assertionFailure("Other item type is not supported")
+                    nextScreen = .encounter(EncounterDetailViewState.nullInstance)
+                }
+            } else {
+                // group
+                nextScreen = .campaignBrowse(CampaignBrowseViewState(node: item, mode: self.viewStore.state.mode, items: .initial, showSettingsButton: false))
+            }
+
+            viewStore.send(.setNextScreen(nextScreen))
+        } label: {
+            label()
         }
     }
 
