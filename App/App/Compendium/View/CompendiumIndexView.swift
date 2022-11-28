@@ -52,19 +52,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         Group {
             contentView
         }
-        .scrollDismissesKeyboard(.immediately)
-        .searchable(
-            text: localViewStore.binding(get: { $0.searchText.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
-            tokens: localViewStore.binding(get: { $0.itemTypeFilter ?? [] }, send: { .onQueryTypeFilterDidChange($0.nonEmptyArray, debounce: false) }),
-            token: { type in
-                Text(type.localizedScreenDisplayName)
-            }
-        )
-        .searchSuggestions {
-            ForEach(searchSuggestions, id: \.rawValue) { type in
-                Text("\(type.localizedScreenDisplayName)").searchCompletion(type)
-            }
-        }
         .safeAreaInset(edge: .bottom) {
             RoundedButtonToolbar {
                 bottomBarButtons()
@@ -79,14 +66,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                         }
                     } else {
                         Menu {
-                            Button {
-                                localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
-                            } label: {
-                                Text("Import...")
-                            }
-
-                            Divider()
-
                             ForEach(addableTypes, id: \.rawValue) { type in
                                 Button {
                                     self.localViewStore.send(.onAddButtonTap(type))
@@ -100,6 +79,8 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                             }) {
                                 Label("Add", systemImage: "plus.circle")
                             }
+                            // bug: ignoresSafeArea() is needed to prevent a layout glitch when the keyboard is presented
+                            .ignoresSafeArea()
                         }
                     }
                 }
@@ -113,7 +94,24 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             }
             .padding([.leading, .trailing, .bottom], 8)
         }
+        .scrollDismissesKeyboard(.immediately)
+        .searchable(
+            text: localViewStore.binding(get: { $0.searchText.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
+            tokens: localViewStore.binding(get: { $0.itemTypeFilter ?? [] }, send: { .onQueryTypeFilterDidChange($0.nonEmptyArray, debounce: false) }),
+            token: { type in
+                Text(type.localizedScreenDisplayName)
+            }
+        )
         .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
+                } label: {
+                    Text("Import...")
+                }
+            }
+        }
         .onAppear {
             loadResultsIfNeeded()
         }
@@ -123,14 +121,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             store: store,
             state: /CompendiumIndexState.NextScreen.compendiumImport,
             action: /CompendiumIndexAction.NextScreenAction.import,
-            navDest: .nextInStack,
-            destination: { _ in CompendiumImportView() }
-        )
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CompendiumIndexState.NextScreen.compendiumImport,
-            action: /CompendiumIndexAction.NextScreenAction.import,
-            navDest: .detail,
             destination: { _ in CompendiumImportView() }
         )
         .alert(store.scope(state: \.alert), dismiss: .alert(nil))
@@ -176,17 +166,9 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         }
     }
 
-    /// Returns allowed item types (as per type restriction), but only if the user has not
-    /// added a query or changed the type filter. If that's the case, an empty array is returned.
-    var searchSuggestions: [CompendiumItemType] {
-        localViewStore.state.searchText?.nonEmptyString == nil && localViewStore.state.itemTypeFilter == nil
-            ? localViewStore.state.allAllowedItemTypes
-            : []
-    }
-
     private func loadResultsIfNeeded() {
         if !localViewStore.state.results.isSuccess {
-            localViewStore.send(.query(.onTextDidChange(ViewStore(store).state.results.input.text), debounce: false)) // kick-start search, fixme?
+            localViewStore.send(.results(.reload)) // kick-start search, fixme?
         }
     }
 
@@ -314,9 +296,16 @@ fileprivate struct CompendiumItemList: View, Equatable {
 
         let state = viewStore.state
         return ScrollViewReader { scrollView in
-            return List {
-                if let suggestions = state.suggestions {
-                    section(header: Text("Suggestions"), entries: suggestions)
+            List {
+                if state.useNamedSections {
+                    if let suggestions = state.suggestions {
+                        section(header: Text("Suggestions"), entries: suggestions)
+                    }
+
+                    if let typeFilters = state.typeFilters {
+                        typeFilterSection(typeFilters: typeFilters)
+                    }
+
                     section(header: Text("All"), entries: state.entries)
                 } else {
                     section(entries: state.entries)
@@ -335,7 +324,6 @@ fileprivate struct CompendiumItemList: View, Equatable {
                 store: store,
                 state: /CompendiumIndexState.NextScreen.itemDetail,
                 action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
-                navDest: .nextInStack,
                 destination: { viewProvider.detail($0) }
             )
             .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _ in
@@ -369,10 +357,30 @@ fileprivate struct CompendiumItemList: View, Equatable {
         section(header: EmptyView(), entries: entries)
     }
 
+    func typeFilterSection(typeFilters: [CompendiumItemType]) -> some View {
+        Section(header: Text("Filter")) {
+            ForEach(typeFilters, id: \.self) { t in
+                Button {
+                    viewStore.send(.onQueryTypeFilterDidChange([t], debounce: false))
+                } label: {
+                    HStack {
+                        Text("\(t.localizedScreenDisplayName)").bold()
+                        Spacer()
+                        Image(systemName: "slider.horizontal.3")
+                            .foregroundColor(Color(UIColor.systemGray3))
+                    }
+                }
+                .foregroundColor(Color.primary)
+                .buttonStyle(.borderless)
+            }
+        }
+    }
+
     struct LocalState: Equatable {
         let title: String
         let entries: [CompendiumEntry]
         let suggestions: [CompendiumEntry]?
+        let typeFilters: [CompendiumItemType]?
         // not used by the view (store is used directly) but here to ensure the view is re-evaluated
         let presentedItemDetail: String?
 
@@ -382,16 +390,33 @@ fileprivate struct CompendiumItemList: View, Equatable {
             self.title = state.title
             self.entries = state.results.value ?? []
 
-            if state.results.input.text?.nonEmptyString == nil && Set(state.results.input.filters?.types ?? []) == Set(state.properties.typeRestriction ?? []) {
+            let input = state.results.inputForValue
+            if input?.text?.nonEmptyString == nil && Set(input?.filters?.types ?? []) == Set(state.properties.typeRestriction ?? []) {
                 self.suggestions = state.suggestions?.nonEmptyArray
             } else {
                 self.suggestions = nil
             }
 
+            let itemTypeFilter: [CompendiumItemType]?
+            if Set(input?.filters?.types ?? []) == Set(state.properties.typeRestriction ?? CompendiumItemType.allCases) {
+                itemTypeFilter = nil
+            } else {
+                itemTypeFilter = input?.filters?.types
+            }
+            /// Returns allowed item types (as per type restriction), but only if the user has not
+            /// added a query or changed the type filter. If that's the case, an empty array is returned.
+            typeFilters = input?.text?.nonEmptyString == nil && itemTypeFilter == nil
+                    ? (state.properties.typeRestriction ?? CompendiumItemType.allCases)
+                    : nil
+
             self.presentedItemDetail = state.presentedNextItemDetail?.navigationStackItemStateId
                 ?? state.presentedDetailItemDetail?.navigationStackItemStateId
 
             self.scrollTo = state.scrollTo
+        }
+
+        var useNamedSections: Bool {
+            suggestions != nil || typeFilters != nil
         }
     }
 
@@ -431,42 +456,18 @@ struct FilterButton: View {
     @State var sheet: CompendiumFilterSheet?
 
     var body: some View {
-        Menu {
-            Picker(
-                "Type",
-                selection: viewStore.binding(
-                    get: { $0.filters?.types?.single },
-                    send: { .onQueryTypeFilterDidChange($0.optionalArray, debounce: false)}
-                )
-            ) {
-                ForEach(allAllowedItemTypes, id: \.rawValue) { type in
-                    Text("\(type.localizedScreenDisplayName)").tag(Optional.some(type))
-                }
+        let label: String = {
+            if viewStore.state.filters == nil || viewStore.state.filters == .init() {
+                return "Filter"
+            } else {
+                return "Filters active"
             }
+        }()
 
-            Divider()
-
-            Button {
-                presentFilterSheet()
-            } label: {
-                Text("More...")
-            }
-        } label: {
-            let label: String = {
-                if viewStore.state.filters == nil || viewStore.state.filters == .init() {
-                    return "Filter"
-                } else {
-                    return "Filters active"
-                }
-            }()
-
-            Button(action: {
-
-            }) {
-                Label(label, systemImage: "slider.horizontal.3")
-            }
-        } primaryAction: {
+        return Button(action: {
             presentFilterSheet()
+        }) {
+            Label(label, systemImage: "slider.horizontal.3")
         }
         .menuOrder(.fixed)
         .sheet(item: $sheet) { popover in
