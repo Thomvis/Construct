@@ -26,7 +26,8 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
         .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.3.0"),
         .package(url: "https://github.com/Thomvis/GRDB.swift.git", from: "5.0.0"),
-        .package(url: "https://github.com/apple/swift-async-algorithms", exact: "0.0.1") // pinned to 0.0.1 because versions after that require the Swift Standard Library version 5.7, which was not part of the macOS SDK in Xcode 14
+        .package(url: "https://github.com/apple/swift-async-algorithms", exact: "0.0.1"), // pinned to 0.0.1 because versions after that require the Swift Standard Library version 5.7, which was not part of the macOS SDK in Xcode 14
+        .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2")
     ],
     targets: [
         .target(
@@ -84,7 +85,8 @@ let package = Package(
             name: "Helpers",
             dependencies: [
                 .product(name: "Tagged", package: "swift-tagged"),
-                .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                .product(name: "SwiftUINavigation", package: "swiftui-navigation")
             ]
         ),
         .target(
