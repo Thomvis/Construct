@@ -29,22 +29,22 @@ extension CompendiumIndexState {
                 case maxMonsterCR
             }
 
+            /// If a specific filter cannot be tested against an item (because the item is of the wrong type),
+            /// the item passes that part of the test.
             var test: ((CompendiumItem) -> Bool)? {
                 guard minMonsterChallengeRating != nil || maxMonsterChallengeRating != nil else { return nil }
 
                 return { item in
                     if let minCr = self.minMonsterChallengeRating {
-                        if let monster = item as? Monster, let cr = monster.stats.challengeRating, cr >= minCr {
-                            // continue
-                        } else {
+                        if let monster = item as? Monster, (monster.stats.challengeRating ?? 99) < minCr {
+                            // if it's a monster and it has a CR that's smaller than the min
                             return false
                         }
                     }
 
                     if let maxCr = self.maxMonsterChallengeRating {
-                        if let monster = item as? Monster, let cr = monster.stats.challengeRating, cr <= maxCr {
-                            // continue
-                        } else {
+                        if let monster = item as? Monster, (monster.stats.challengeRating ?? -1) > maxCr {
+                            // if it's a monster and it has a CR that's larger than the max
                             return false
                         }
                     }
