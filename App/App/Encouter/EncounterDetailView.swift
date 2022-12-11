@@ -42,7 +42,7 @@ struct EncounterDetailView: View {
                     }) {
                         if let difficulty = EncounterDifficulty(
                             party: encounter.partyWithEntriesForDifficulty.1,
-                            monsters: encounter.combatants.compactMap { $0.definition.stats?.challengeRating }
+                            monsters: encounter.combatants.compactMap { $0.definition.stats.challengeRating }
                         ) {
                             EncounterDifficultyView(difficulty: difficulty)
                         } else {

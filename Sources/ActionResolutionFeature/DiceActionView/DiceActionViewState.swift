@@ -19,19 +19,19 @@ struct DiceActionViewState: Hashable {
     var rollingSteps: [UUID] = []
 }
 
-enum DiceActionViewAction: Hashable {
+public enum DiceActionViewAction: Hashable {
     case rollAll
     case stepAction(UUID, DiceActionStepAction)
 }
 
-enum DiceActionStepAction: Hashable {
+public enum DiceActionStepAction: Hashable {
     case value(ValueAction)
     case rollDetails(DiceCalculatorAction)
 
-    enum ValueAction: Hashable {
+    public enum ValueAction: Hashable {
         case roll(RollAction)
 
-        enum RollAction: Hashable {
+        public enum RollAction: Hashable {
             case roll
             case type(DiceAction.Step.Value.RollValue.RollType)
             case first(AnimatedRollAction)
@@ -44,7 +44,7 @@ enum DiceActionStepAction: Hashable {
 // Reducers
 
 extension DiceActionViewState {
-    static var reducer: Reducer<Self, DiceActionViewAction, Environment> = Reducer.combine(
+    static var reducer: Reducer<Self, DiceActionViewAction, ActionResolutionEnvironment> = Reducer.combine(
         DiceAction.Step.reducer.forEach(state: \.action.steps, action: /DiceActionViewAction.stepAction, environment: { $0 }),
         Reducer { state, action, env in
             switch action {
@@ -115,7 +115,7 @@ extension DiceActionViewState {
 }
 
 extension DiceAction.Step {
-    static var reducer: Reducer<Self, DiceActionStepAction, Environment> = Reducer.combine(
+    static var reducer: Reducer<Self, DiceActionStepAction, ActionResolutionEnvironment> = Reducer.combine(
         Reducer.combine(
             AnimatedRollState.reducer
                 .pullback(state: \DiceAction.Step.Value.RollValue.first, action: /DiceActionStepAction.ValueAction.RollAction.first),

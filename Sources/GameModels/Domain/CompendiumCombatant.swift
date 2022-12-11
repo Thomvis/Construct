@@ -26,12 +26,10 @@ public struct CompendiumCombatantDefinition: CombatantDefinition, Codable, Equat
     public var initiativeModifier: Int? { item.stats.effectiveInitiativeModifier }
     public var initiativeGroupingHint: String { return item.key.keyString }
 
-    public var stats: StatBlock? {
+    public var stats: StatBlock {
         get { item.stats }
         set {
-            if let newValue {
-                item.stats = newValue
-            }
+            item.stats = newValue
         }
     }
 

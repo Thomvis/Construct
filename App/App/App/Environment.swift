@@ -18,6 +18,7 @@ import Helpers
 import Persistence
 import Compendium
 import GameModels
+import MechMuse
 
 class Environment: ObservableObject {
 
@@ -40,8 +41,8 @@ class Environment: ObservableObject {
     var dismissKeyboard: () -> Void
 
     var diceLog: DiceLogPublisher
-
     var crashReporter: CrashReporter
+    var mechMuse: MechMuse
 
     internal init(
         modifierFormatter: NumberFormatter,
@@ -58,7 +59,8 @@ class Environment: ObservableObject {
         backgroundQueue: AnySchedulerOf<DispatchQueue>,
         dismissKeyboard: @escaping () -> Void,
         diceLog: DiceLogPublisher,
-        crashReporter: CrashReporter
+        crashReporter: CrashReporter,
+        mechMuse: MechMuse
     ) {
         self.modifierFormatter = modifierFormatter
         self.ordinalFormatter = ordinalFormatter
@@ -75,6 +77,7 @@ class Environment: ObservableObject {
         self.dismissKeyboard = dismissKeyboard
         self.diceLog = diceLog
         self.crashReporter = crashReporter
+        self.mechMuse = mechMuse
     }
 
     var compendium: Compendium {
@@ -111,7 +114,7 @@ extension Environment {
         }
 
         return Environment(
-            modifierFormatter: Construct.modifierFormatter,
+            modifierFormatter: Helpers.modifierFormatter,
             ordinalFormatter: apply(NumberFormatter()) { f in
                 f.numberStyle = .ordinal
             },
@@ -151,7 +154,8 @@ extension Environment {
                 keyWindow()?.endEditing(true)
             },
             diceLog: DiceLogPublisher(),
-            crashReporter: CrashReporter.appCenter
+            crashReporter: CrashReporter.appCenter,
+            mechMuse: .live(db: database)
         )
     }
 
@@ -197,10 +201,6 @@ extension Environment {
     }
 }
 
-extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog {
+extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse {
 
-}
-
-public let modifierFormatter: NumberFormatter = apply(NumberFormatter()) { f in
-    f.positivePrefix = f.plusSign
 }

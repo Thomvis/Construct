@@ -49,7 +49,7 @@ public struct StatBlock: Codable, Hashable {
     @DecodableDefault.EmptyList public var reactions: IdentifiedArrayOf<ParseableCreatureAction>
     public var legendary: Legendary?
 
-    public init(name: String, size: CreatureSize? = nil, type: String? = nil, subtype: String? = nil, alignment: Alignment? = nil, armorClass: Int? = nil, armor: [Armor], hitPointDice: DiceExpression? = nil, hitPoints: Int? = nil, movement: [MovementMode : Int]? = nil, abilityScores: AbilityScores? = nil, savingThrows: [Ability : Modifier], skills: [Skill : Modifier], initiative: Initiative? = nil, damageVulnerabilities: String? = nil, damageResistances: String? = nil, damageImmunities: String? = nil, conditionImmunities: String? = nil, senses: String? = nil, languages: String? = nil, challengeRating: Fraction? = nil, features: [CreatureFeature], actions: [CreatureAction], reactions: [CreatureAction], legendary: Legendary? = nil) {
+    public init(name: String, size: CreatureSize? = nil, type: String? = nil, subtype: String? = nil, alignment: Alignment? = nil, armorClass: Int? = nil, armor: [Armor] = [], hitPointDice: DiceExpression? = nil, hitPoints: Int? = nil, movement: [MovementMode : Int]? = nil, abilityScores: AbilityScores? = nil, savingThrows: [Ability : Modifier] = [:], skills: [Skill : Modifier] = [:], initiative: Initiative? = nil, damageVulnerabilities: String? = nil, damageResistances: String? = nil, damageImmunities: String? = nil, conditionImmunities: String? = nil, senses: String? = nil, languages: String? = nil, challengeRating: Fraction? = nil, features: [CreatureFeature] = [], actions: [CreatureAction] = [], reactions: [CreatureAction] = [], legendary: Legendary? = nil) {
         self.name = name
         self.size = size
         self.type = type.map(ParseableMonsterType.init(input:))
@@ -107,6 +107,17 @@ public struct StatBlock: Codable, Hashable {
             return levelToProficiencyBonusMapping[level] ?? 0
         }
         return 0
+    }
+
+    public var subheading: String {
+        let type = [
+            size?.localizedDisplayName.capitalized,
+            self.type?.localizedDisplayName.nonEmptyString,
+            (subtype?.capitalized.nonEmptyString).map { "(\($0))"}
+        ].compactMap { $0 }.joined(separator: " ").nonEmptyString
+
+        let alignment = self.alignment?.localizedDisplayName.capitalized
+        return [type, alignment].compactMap { $0 }.joined(separator: ", ")
     }
 
     public struct Legendary: Codable, Hashable {

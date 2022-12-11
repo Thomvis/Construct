@@ -19,28 +19,15 @@ struct DiceActionView: View {
     var body: some View {
         WithViewStore(store) { viewStore in
             VStack {
-                HStack {
-                    VStack {
-                        Text(viewStore.state.action.title).bold()
-                        Text(viewStore.state.action.subtitle).italic()
-                    }
-                }
-                Divider()
-    //            SimpleList(data: viewStore.state.action.steps, id: \.id) { step in
-    //                StepView(step: step).equalSize()
-    //            }.equalSizes(horizontal: false, vertical: true)
+
                 VStack {
                     ForEachStore(store.scope(state: { $0.action.steps }, action: { .stepAction($0, $1) })) { store in
                         StepView(store: store)
                     }
                 }
+
                 HStack {
-//                    Label("BETA", systemImage: "bubble.left.and.bubble.right")
-                    Text("BETA")
-                        .font(.footnote)
-                        .foregroundColor(Color.white)
-                        .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-                        .background(Color(UIColor.systemGray).cornerRadius(4))
+                    BetaLabel()
 
                     Spacer()
                     Button(action: {
@@ -51,7 +38,9 @@ struct DiceActionView: View {
                 }
             }
             .onAppear {
-                viewStore.send(.rollAll)
+                if viewStore.action.steps.allSatisfy({ $0.rollValue?.result == nil }) {
+                    viewStore.send(.rollAll)
+                }
             }
         }
     }
@@ -92,7 +81,7 @@ struct DiceActionView: View {
             var body: some View {
                 WithViewStore(store) { viewStore in
                     HStack {
-                        if viewStore.state.isAbilityCheck {
+                        if viewStore.state.isToHit {
                             Menu(content: {
                                 Button(action: {
                                     viewStore.send(.type(.advantage), animation: .default)
@@ -188,7 +177,7 @@ struct DiceActionView: View {
 
 #if DEBUG
 struct DiceActionViewDebugHost: View {
-    @EnvironmentObject var env: Environment
+    var env: ActionResolutionEnvironment
 
     var body: some View {
         DiceActionView(store: Store(
@@ -196,8 +185,7 @@ struct DiceActionViewDebugHost: View {
                 creatureName: "",
                 action: DiceAction(
                     title: "Scimitar",
-                    parsedAction: CreatureActionParser.parse("Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.")!,
-                    env: env
+                    parsedAction: CreatureActionParser.parse("Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.")!
                 )!
             ),
             reducer: DiceActionViewState.reducer,

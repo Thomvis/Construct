@@ -436,3 +436,15 @@ public extension Sequence where Element: Identifiable {
         IdentifiedArrayOf(uniqueElements: self)
     }
 }
+
+public extension Optional where Wrapped == String {
+    func wrap(prefix: String = "", suffix: String = "") -> String {
+        map { "\(prefix)\($0)\(suffix)"} ?? ""
+    }
+}
+
+public extension String {
+    func with(_ str: String?, suffix: String = "") -> String {
+        str.wrap(prefix: self, suffix: suffix)
+    }
+}

@@ -328,9 +328,9 @@ extension Database {
             for var r in encounterRecords {
                 var encounter = try KeyValueStore.decoder.decode(Encounter.self, from: r.value)
                 for cid in encounter.combatants.ids {
-                    encounter.combatants[id: cid]?.definition.stats?.makeSkillAndSaveProficienciesRelative()
+                    encounter.combatants[id: cid]?.definition.stats.makeSkillAndSaveProficienciesRelative()
                     let level = encounter.combatants[id: cid]?.definition.level
-                    encounter.combatants[id: cid]?.definition.stats?.level = level
+                    encounter.combatants[id: cid]?.definition.stats.level = level
                 }
                 r.value = try KeyValueStore.encoder.encode(encounter)
                 try r.save(db)
@@ -342,15 +342,15 @@ extension Database {
                 var runningEncounter = try KeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
 
                 for cid in runningEncounter.base.combatants.ids {
-                    runningEncounter.base.combatants[id: cid]?.definition.stats?.makeSkillAndSaveProficienciesRelative()
+                    runningEncounter.base.combatants[id: cid]?.definition.stats.makeSkillAndSaveProficienciesRelative()
                     let level = runningEncounter.base.combatants[id: cid]?.definition.level
-                    runningEncounter.base.combatants[id: cid]?.definition.stats?.level = level
+                    runningEncounter.base.combatants[id: cid]?.definition.stats.level = level
                 }
 
                 for cid in runningEncounter.current.combatants.ids {
-                    runningEncounter.current.combatants[id: cid]?.definition.stats?.makeSkillAndSaveProficienciesRelative()
+                    runningEncounter.current.combatants[id: cid]?.definition.stats.makeSkillAndSaveProficienciesRelative()
                     let level = runningEncounter.current.combatants[id: cid]?.definition.level
-                    runningEncounter.current.combatants[id: cid]?.definition.stats?.level = level
+                    runningEncounter.current.combatants[id: cid]?.definition.stats.level = level
                 }
 
                 r.value = try KeyValueStore.encoder.encode(runningEncounter)

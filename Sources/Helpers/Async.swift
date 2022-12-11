@@ -124,12 +124,21 @@ public struct ResultSet<Input, Success, Failure> where Input: Equatable, Failure
         result.error
     }
 
+    public mutating func setValue(_ value: Success, for input: Input) {
+        self.input = input
+        result.result = .success(value)
+        result.isLoading = false
+
+        lastResult = .init(input: input, value: value)
+    }
+
     public struct LastResult {
         public var input: Input
         public var value: Success
     }
 
     public enum Action<InputAction> {
+        case setInput(Input, debounce: Bool)
         case input(InputAction, debounce: Bool)
         case result(Async<Success, Failure>.Action)
         case reset
@@ -156,31 +165,12 @@ public struct ResultSet<Input, Success, Failure> where Input: Equatable, Failure
     public static func reducer<InputAction, Environment>(_ input: Reducer<Input, InputAction, Environment>, _ fetch: @escaping (Input) -> ((Environment) -> AnyPublisher<Success, Failure>)?) -> Reducer<Self, Action<InputAction>, Environment> {
         var asyncReducer: Reducer<Async<Success, Failure>, Async<Success, Failure>.Action, Environment>?
         return Reducer.combine(
-            input
-                .pullback(state: \.input, action: CasePath(embed: { .input($0, debounce: true) }, extract: { $0.input }))
-                    .onChange(of: { $0.input }, perform: { input, state, action, env in
-                    let debounce: Bool
-                    if case .input(_, debounce: let db) = action {
-                        debounce = db
-                    } else {
-                        debounce = false
-                    }
-
-                    if let fetch = fetch(state.input) {
-                        if state.lastResult == nil && !debounce {
-                            asyncReducer = Async<Success, Failure>.reducer(fetch)
-                        } else {
-                            asyncReducer = Async<Success, Failure>.reducer { env in
-                                fetch(env).delaySubscription(for: 0.5, scheduler: RunLoop.main)
-                            }
-                        }
-                        return Effect(value: .result(.startLoading))
-                    } else {
-                        return Effect(value: .reset)
-                    }
-                }),
+            input.pullback(state: \.input, action: CasePath(embed: { .input($0, debounce: true) }, extract: { $0.input })),
             Reducer.init { state, action, env in
                 switch action {
+                case .setInput(let input, debounce: _):
+                    state.input = input
+                    return .none
                 case .input: return .none // handled below in .onChange
                 case .reset:
                     asyncReducer = Async<Success, Failure>.reducer { _ in Empty().eraseToAnyPublisher() }
@@ -206,6 +196,29 @@ public struct ResultSet<Input, Success, Failure> where Input: Equatable, Failure
                 }
             }
         )
+        .onChange(of: { $0.input }, perform: { input, state, action, env in
+            let debounce: Bool
+            if case .input(_, debounce: let db) = action {
+                debounce = db
+            } else if case .setInput(_, debounce: let db) = action {
+                debounce = db
+            } else {
+                debounce = false
+            }
+
+            if let fetch = fetch(state.input) {
+                if state.lastResult == nil && !debounce {
+                    asyncReducer = Async<Success, Failure>.reducer(fetch)
+                } else {
+                    asyncReducer = Async<Success, Failure>.reducer { env in
+                        fetch(env).delaySubscription(for: 0.5, scheduler: RunLoop.main)
+                    }
+                }
+                return Effect(value: .result(.startLoading))
+            } else {
+                return Effect(value: .reset)
+            }
+        })
     }
 }
 

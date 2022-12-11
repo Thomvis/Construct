@@ -10,12 +10,15 @@ let package = Package(
         .macOS(.v12)
     ],
     products: [
+        .library(name: "ActionResolutionFeature", targets: ["ActionResolutionFeature"]),
         .library(name: "Compendium", targets: ["Compendium"]),
         .library(name: "DiceRollerFeature", targets: ["DiceRollerFeature"]),
         .library(name: "DiceRollerInvocation", targets: ["DiceRollerInvocation"]),
         .library(name: "Dice", targets: ["Dice"]),
         .library(name: "GameModels", targets: ["GameModels"]),
         .library(name: "Helpers", targets: ["Helpers"]),
+        .library(name: "MechMuse", targets: ["MechMuse"]),
+        .library(name: "OpenAIClient", targets: ["OpenAIClient"]),
         .library(name: "Persistence", targets: ["Persistence"]),
         .library(name: "PersistenceTestSupport", targets: ["PersistenceTestSupport"]),
         .library(name: "SharedViews", targets: ["Helpers"]),
@@ -27,9 +30,21 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.3.0"),
         .package(url: "https://github.com/Thomvis/GRDB.swift.git", from: "5.0.0"),
         .package(url: "https://github.com/apple/swift-async-algorithms", exact: "0.0.1"), // pinned to 0.0.1 because versions after that require the Swift Standard Library version 5.7, which was not part of the macOS SDK in Xcode 14
-        .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2")
+        .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2"),
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.6.1")
     ],
     targets: [
+        .target(
+            name: "ActionResolutionFeature",
+            dependencies: [
+                "Dice",
+                "DiceRollerFeature",
+                "GameModels",
+                "MechMuse",
+
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+            ]
+        ),
         .target(
             name: "Compendium",
             dependencies: [
@@ -87,6 +102,34 @@ let package = Package(
                 .product(name: "Tagged", package: "swift-tagged"),
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 .product(name: "SwiftUINavigation", package: "swiftui-navigation")
+            ]
+        ),
+        .target(
+            name: "MechMuse",
+            dependencies: [
+                "GameModels",
+                "Helpers",
+                "OpenAIClient",
+                "Persistence"
+            ]
+        ),
+        .testTarget(
+            name: "MechMuseTests",
+            dependencies: [
+                "MechMuse"
+            ]
+        ),
+        .target(
+            name: "OpenAIClient",
+            dependencies: [
+                "Helpers",
+                .product(name: "CustomDump", package: "swift-custom-dump")
+            ]
+        ),
+        .testTarget(
+            name: "OpenAIClientTests",
+            dependencies: [
+                "OpenAIClient"
             ]
         ),
         .target(
