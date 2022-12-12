@@ -104,11 +104,13 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         )
         .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
-                } label: {
-                    Text("Import...")
+            if localViewStore.state.showImportButton {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
+                    } label: {
+                        Text("Import...")
+                    }
                 }
             }
         }
