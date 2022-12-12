@@ -111,10 +111,10 @@ struct AppLoadingView: View {
 }
 
 struct ConstructView: View {
-    @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.horizontalSizeClass) var horizontalSizeClass
     @SwiftUI.Environment(\.scenePhase) var scenePhase
 
+    let env: Environment
     let store: Store<AppState, AppState.Action>
 
     init(env: Environment) {
@@ -122,6 +122,7 @@ struct ConstructView: View {
             navigation: nil
         )
 
+        self.env = env
         self.store = Store(
             initialState: state,
             reducer: env.database.keyValueStore.entityChangeObserver(initialState: state, reducer: AppState.reducer),
@@ -129,10 +130,6 @@ struct ConstructView: View {
         )
 
         setUpCrashesUserConfirmationHandler()
-    }
-
-    init(store: Store<AppState, AppState.Action>) {
-        self.store = store
     }
 
     var body: some View {
