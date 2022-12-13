@@ -16,7 +16,7 @@ public struct ActionDescriptionViewState: Equatable {
     public typealias AsyncDescription = ResultSet<RequestInput?, String, Error>
 
     @BindableState var context: Context
-    @BindableState var settings: Settings = .init(toneOfVoice: .gritty, outcome: .hit)
+    @BindableState var settings: Settings = .init(toneOfVoice: .gritty, outcome: .hit, impact: .average)
 
     private var description: AsyncDescription = .init(input: nil)
     private var cache: [RequestInput: String] = [:]
@@ -27,6 +27,15 @@ public struct ActionDescriptionViewState: Equatable {
 
     var descriptionString: String? {
         description.value
+    }
+
+    var descriptionErrorString: AttributedString? {
+        guard let error = description.error else { return nil }
+        switch error {
+        case MechMuseError.unconfigured: return try? AttributedString(markdown: "Add your OpenAI API key in the About screen to generate descriptions.")
+        case MechMuseError.quotaExceeded: return try? AttributedString(markdown: "You have exceeded your OpenAI usage limits. Update your OpenAI [account settings](https://beta.openai.com/account/billing/limits) on their website.")
+        default: return AttributedString("Could not generate description due to an unforseen error.")
+        }
     }
 
     var isLoadingDescription: Bool {
@@ -40,13 +49,28 @@ public struct ActionDescriptionViewState: Equatable {
             return .hit(.init(
                 isCritical: action.isCriticalHit,
                 damageDescription: action.damageDescription,
-                attackImpact: .average // fixme
+                attackImpact: settings.impact
             ))
         case .miss:
             guard let action = context.diceAction else { return .miss }
             return .miss(action.isCriticalMiss)
-        case .override(let o):
-            return o
+        }
+    }
+
+    var hitOrMissString: String {
+        switch effectiveOutcome {
+        case .hit(let h) where h.isCritical == true: return "Critical Hit"
+        case .hit: return "Hit"
+        case .miss(true): return "Critical Miss"
+        case .miss(false): return "Miss"
+        }
+    }
+
+    var impactString: String {
+        switch settings.impact {
+        case .minimal: return "Minimal"
+        case .average: return "Average"
+        case .devastating: return "Devastating"
         }
     }
 
@@ -60,24 +84,12 @@ public struct ActionDescriptionViewState: Equatable {
     // configurable in this view
     struct Settings: Equatable {
         var toneOfVoice: ToneOfVoice
-        var outcome: OutcomeSetting // can be used to override the outcome from the dice action
+        var outcome: OutcomeSetting
+        var impact: CreatureActionDescriptionRequest.Impact
 
         enum OutcomeSetting: Hashable {
             case hit
             case miss
-            case override(CreatureActionDescriptionRequest.Outcome)
-        }
-
-        var outcomeOverride: CreatureActionDescriptionRequest.Outcome? {
-            get {
-                guard case .override(let o) = outcome else { return nil }
-                return o
-            }
-            set {
-                if let newValue {
-                    outcome = .override(newValue)
-                }
-            }
         }
     }
 
@@ -111,6 +123,13 @@ extension ActionDescriptionViewState {
             case .onAppear: break
             case .didRollDiceAction(let a):
                 state.context.diceAction = a
+                if a.isCriticalHit {
+                    // 20 always hits
+                    state.settings.outcome = .hit
+                } else if a.isCriticalMiss {
+                    // 1 always misses
+                    state.settings.outcome = .miss
+                }
             case .description: break // handled by child reducer
             case .binding: break // handled by wrapper reducer
             }
@@ -139,6 +158,11 @@ extension ActionDescriptionViewState {
         .pullback(state: \.description, action: /ActionDescriptionViewAction.description)
     )
     .binding()
+    // clear cache if the context changes, because any change in settings won't ever result in a cache hit
+    .onChange(of: \.context, perform: { _, state, _, _ in
+        state.cache.removeAll()
+        return .none
+    })
     .onChange(of: \.input, perform: { input, state, action, env in
         if let cacheHit = state.cache[input] {
             // cache hit
@@ -150,15 +174,10 @@ extension ActionDescriptionViewState {
         }
     })
     // add results to the cache
-    .onChange(of: { $0.description.result.value }, perform: { v, state, _, _ in
+    .onChange(of: \.description.result.value, perform: { v, state, _, _ in
         if let value = v, let input = state.description.input {
             state.cache[input] = v
         }
-        return .none
-    })
-    // clear cache if the context changes, because any change in settings won't ever result in a cache hit
-    .onChange(of: \.context, perform: { _, state, _, _ in
-        state.cache.removeAll()
         return .none
     })
 }
@@ -169,7 +188,7 @@ extension ActionDescriptionViewState {
             request: CreatureActionDescriptionRequest(
                 creatureName: context.creature.name,
                 isUniqueCreature: false, // todo
-                creatureDescription: context.creature.subheading.nonEmptyString,
+                creatureDescription: CreatureActionDescriptionRequest.creatureDescription(from: context.creature),
                 creatureCondition: nil,
                 encounter: context.encounter.map {
                     .init(name: $0.name, actionSetUp: nil)
@@ -187,7 +206,7 @@ enum ActionDescriptionViewStateError: Swift.Error {
     case missingInput
 }
 
-fileprivate extension DiceAction {
+extension DiceAction {
     var isCriticalHit: Bool {
         steps.first { s in
             s.rollValue?.isToHit == true

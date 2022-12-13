@@ -24,9 +24,13 @@ struct ActionDescriptionView: View {
                     ZStack {
                         if let description = viewStore.state.descriptionString {
                             Text("“\(description)”")
-                                .padding(6)
+                                .padding(10)
                                 .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
                                 .opacity(isLoading ? 0.15 : 1.0)
+                        } else if let error = viewStore.state.descriptionErrorString {
+                            Text(error)
+                                .multilineTextAlignment(.center)
+                                .padding(6)
                         }
                     }
                     .padding()
@@ -47,17 +51,20 @@ struct ActionDescriptionView: View {
                     Spacer()
 
                     HStack {
-                        if viewStore.state.descriptionString != nil {
-                            Button {
-                                viewStore.send(.description(.reload))
-                            } label: {
-                                Image(systemName: "arrow.clockwise.circle.fill")
-                            }
-                            .padding(2)
-                        }
+                        hitButton(viewStore)
 
-                        configButton(viewStore)
+                        impactButton(viewStore)
+
+                        Button {
+                            viewStore.send(.description(.reload))
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        .disabled(viewStore.state.descriptionString == nil)
                     }
+                    .font(.footnote)
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.capsule)
                     .disabled(isLoading)
                 }
             }
@@ -65,31 +72,53 @@ struct ActionDescriptionView: View {
     }
 
     @ViewBuilder
-    func configButton(
+    func hitButton(
         _ viewStore: ViewStore<ActionDescriptionViewState, ActionDescriptionViewAction>
     ) -> some View {
         Menu {
-            Picker("Tone of Voice", selection: viewStore.binding(\.$settings.toneOfVoice)) {
-                ForEach(ToneOfVoice.allCases, id: \.rawValue) { tov in
-                    Text(tov.rawValue.capitalized).tag(tov)
-                }
-            }
-
-            Divider()
-
             Picker("Outcome", selection: viewStore.binding(\.$settings.outcome)) {
                 Text("Hit").tag(ActionDescriptionViewState.Settings.OutcomeSetting.hit)
                 Text("Miss").tag(ActionDescriptionViewState.Settings.OutcomeSetting.miss)
             }
-            .disabled(viewStore.context.diceAction == nil)
-
+            .disabled(viewStore.state.context.diceAction == nil)
         } label: {
-            Button {
+            Text(viewStore.state.hitOrMissString)
+        }
+        .tint(viewStore.state.hitOrMissTint)
+    }
 
-            } label: {
-                Image(systemName: "gearshape.fill")
-                    .padding(1)
+    @ViewBuilder
+    func impactButton(
+        _ viewStore: ViewStore<ActionDescriptionViewState, ActionDescriptionViewAction>
+    ) -> some View {
+        Menu {
+            Picker("Outcome", selection: viewStore.binding(\.$settings.impact)) {
+                Text("Minimal").tag(CreatureActionDescriptionRequest.Impact.minimal)
+                Text("Average").tag(CreatureActionDescriptionRequest.Impact.average)
+                Text("Devastating").tag(CreatureActionDescriptionRequest.Impact.devastating)
             }
+        } label: {
+            Text(viewStore.state.impactString)
+        }
+        .tint(viewStore.state.impactTint)
+        .disabled(!viewStore.state.effectiveOutcome.isHit)
+    }
+}
+
+extension ActionDescriptionViewState {
+    var hitOrMissTint: Color? {
+        if effectiveOutcome.isHit {
+            return Color(UIColor.systemRed)
+        } else {
+            return nil
+        }
+    }
+
+    var impactTint: Color? {
+        switch settings.impact {
+        case .minimal: return nil
+        case .average: return Color(UIColor.systemBlue)
+        case .devastating: return Color(UIColor.systemPurple)
         }
     }
 }

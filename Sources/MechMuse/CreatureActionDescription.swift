@@ -9,17 +9,17 @@ import Foundation
 import GameModels
 
 public struct CreatureActionDescriptionRequest: Hashable {
-    let creatureName: String // e.g. "Goblin"
-    let isUniqueCreature: Bool // true for named foes (e.g. Acererak)
-    let creatureDescription: String? // e.g. "small humanoid (goblinoid), neutral evil."
-    let creatureCondition: String? // e.g. "hidden, looking rough"
+    public let creatureName: String // e.g. "Goblin"
+    public let isUniqueCreature: Bool // true for named foes (e.g. Acererak)
+    public let creatureDescription: String? // e.g. "small humanoid"
+    public let creatureCondition: String? // e.g. "hidden, looking rough"
 
-    let encounter: Encounter?
+    public let encounter: Encounter?
 
-    let actionName: String // e.g. "Shortbow"
-    let actionDescription: String // e.g. "Ranged Weapon Attack: +4 to hit, range 80/320 ft., " etc
+    public let actionName: String // e.g. "Shortbow"
+    public let actionDescription: String // e.g. "Ranged Weapon Attack: +4 to hit, range 80/320 ft., " etc
 
-    var outcome: Outcome
+    public var outcome: Outcome
 
     public init(
         creatureName: String,
@@ -61,6 +61,11 @@ public struct CreatureActionDescriptionRequest: Hashable {
         case miss(Bool) // true if critical
         case hit(Hit)
 
+        public var isHit: Bool {
+            guard case .hit = self else { return false }
+            return true
+        }
+
         public struct Hit: Hashable {
             public var isCritical: Bool
             public var damageDescription: String // e.g. "10 piercing"
@@ -76,12 +81,12 @@ public struct CreatureActionDescriptionRequest: Hashable {
 }
 
 public extension CreatureActionDescriptionRequest.Outcome {
-    static let averageHitDamageDescription = "a fair amount of damage"
+    static let averageHitDamageDescription = "average amount of damage"
 
     static let criticalMiss: Self = .miss(true)
     static let miss: Self = .miss(false)
     static let averageHit: Self = .hit(Hit(isCritical: false, damageDescription: averageHitDamageDescription, attackImpact: .average))
-    static let criticalHit: Self = .hit(Hit(isCritical: true, damageDescription: "a lot of damage", attackImpact: .devastating))
+    static let criticalHit: Self = .hit(Hit(isCritical: true, damageDescription: "large amount of damage", attackImpact: .devastating))
 }
 
 extension CreatureActionDescriptionRequest: PromptConvertible {
@@ -100,7 +105,7 @@ extension CreatureActionDescriptionRequest: PromptConvertible {
         }
 
         result += """
-        Attacking \(enemyNoun): \(creatureName)\(", ".with(creatureDescription))\(", ".with(creatureCondition)).
+        Attacking \(enemyNoun): \(creatureName)\(creatureDescription.wrap(prefix: " (", suffix: ")"))\(", ".with(creatureCondition)).
         """
 
         result += """
@@ -113,18 +118,19 @@ extension CreatureActionDescriptionRequest: PromptConvertible {
         case .miss(false):
             result += "The attack misses. "
         case .hit(let hit):
-            result += """
-            The attack\(hit.isCritical ? " critically" : "") hits the player for \(hit.damageDescription).
-            """
-
+            let impactString: String
             switch hit.attackImpact {
             case .minimal:
-                result += "It's just a scratch to the player. "
+                impactString = "an ineffective"
             case .average:
-                break
+                impactString = "an average"
             case .devastating:
-                result += "This puts the player in big trouble. "
+                impactString = "a devastating"
             }
+
+            result += """
+            The attack\(hit.isCritical ? " critically" : "") hits the player for \(impactString) \(hit.damageDescription).
+            """
         }
 
         result += """
@@ -143,7 +149,7 @@ extension CreatureActionDescriptionRequest {
     public init(creature: CompendiumCombatant, action: CreatureAction) {
         self.creatureName = creature.stats.name
         self.isUniqueCreature = creature.isUnique
-        self.creatureDescription = creature.stats.subheading.nonEmptyString
+        self.creatureDescription = Self.creatureDescription(from: creature.stats)
         self.creatureCondition = nil
 
         self.encounter = nil
@@ -156,5 +162,12 @@ extension CreatureActionDescriptionRequest {
             damageDescription: "6 points of bludgeoning damage", // todo
             attackImpact: .average
         ))
+    }
+
+    public static func creatureDescription(from stats: StatBlock) -> String {
+        return [
+            stats.size?.localizedDisplayName,
+            stats.type?.localizedDisplayName
+        ].compactMap { $0 }.joined(separator: " ")
     }
 }
