@@ -7,12 +7,14 @@
 
 import Foundation
 import Compendium
+import Tagged
 
+/// DefaultContentVersions is a singleton entity
 extension DefaultContentVersions: KeyValueStoreEntity {
-    public static let keyPrefix: KeyPrefix = .defaultContentVersions
-    public static let key = keyPrefix.rawValue
+    public static let keyPrefix: String = "Construct::DefaultContentVersions"
+    public static let key: Key = Key(id: "")
 
-    public var key: String {
+    public var key: Key {
         Self.key
     }
 }

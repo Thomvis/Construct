@@ -84,7 +84,7 @@ extension Database {
                 guard var encounter = try JSONSerialization.jsonObject(with: e.value, options: []) as? [String: Any] else { continue }
 
                 if encounter["ensureStableDiscriminators"] == nil {
-                    if e.key == Encounter.key(Encounter.scratchPadEncounterId) {
+                    if e.key == Encounter.key(Encounter.scratchPadEncounterId).rawValue {
                         encounter["ensureStableDiscriminators"] = false
                     } else {
                         encounter["ensureStableDiscriminators"] = true
@@ -169,13 +169,13 @@ extension Database {
 
             let characterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .character))%")).fetchAll(db)
 
-            var updates: [String:String] = [:] // fromKey -> toKey
+            var updates: [String:CompendiumEntry.Key] = [:] // fromKey -> toKey
             for r in characterRecords {
                 guard let lastKeyComponent = r.key.components(separatedBy: CompendiumEntry.keySeparator).last else { continue }
                 guard UUID(uuidString: lastKeyComponent) == nil else { continue }
 
                 let entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
-                let newRecord = KeyValueStore.Record(key: entry.key, modifiedAt: r.modifiedAt, value: r.value)
+                let newRecord = KeyValueStore.Record(key: entry.key.rawValue, modifiedAt: r.modifiedAt, value: r.value)
 
                 if try !newRecord.exists(db) {
                     try DatabaseCompendium.put(entry, in: db)
@@ -199,7 +199,7 @@ extension Database {
                     members: group.members.map {
                         CompendiumItemReference(
                             itemTitle: $0.itemTitle,
-                            itemKey: updates[CompendiumEntry.key(for: $0.itemKey)].flatMap(CompendiumItemKey.init(compendiumEntryKey:)) ?? $0.itemKey
+                            itemKey: updates[CompendiumEntry.key(for: $0.itemKey).rawValue].flatMap { .init(compendiumEntryKey: $0.rawValue) } ?? $0.itemKey
                         )
                     }
                 )
@@ -207,7 +207,7 @@ extension Database {
                 if newGroup != group {
                     entry.item = newGroup
                     let encodedEntry = try KeyValueStore.encoder.encode(entry)
-                    let newRecord = KeyValueStore.Record(key: entry.key, modifiedAt: r.modifiedAt, value: encodedEntry)
+                    let newRecord = KeyValueStore.Record(key: entry.key.rawValue, modifiedAt: r.modifiedAt, value: encodedEntry)
                     try newRecord.save(db)
                 }
             }
@@ -219,9 +219,9 @@ extension Database {
                 // AdHocCombatant.original
                 newEncounter.combatants = IdentifiedArray(uniqueElements: newEncounter.combatants.map { c in
                     if let adHoc = c.definition as? AdHocCombatantDefinition {
-                        if let original = adHoc.original, let newKey = updates[CompendiumEntry.key(for: original.itemKey)] {
+                        if let original = adHoc.original, let newKey = updates[CompendiumEntry.key(for: original.itemKey).rawValue] {
                             var newDefinition = adHoc
-                            newDefinition.original = CompendiumItemReference(itemTitle: original.itemTitle, itemKey: CompendiumItemKey(compendiumEntryKey: newKey) ?? original.itemKey)
+                            newDefinition.original = CompendiumItemReference(itemTitle: original.itemTitle, itemKey: CompendiumItemKey(compendiumEntryKey: newKey.rawValue) ?? original.itemKey)
                         }
                     }
                     return c
@@ -250,7 +250,7 @@ extension Database {
 
                 if newEncounter != encounter {
                     let encodedEncounter = try KeyValueStore.encoder.encode(newEncounter)
-                    let newRecord = KeyValueStore.Record(key: newEncounter.key, modifiedAt: r.modifiedAt, value: encodedEncounter)
+                    let newRecord = KeyValueStore.Record(key: newEncounter.key.rawValue, modifiedAt: r.modifiedAt, value: encodedEncounter)
                     try newRecord.save(db)
                 }
             }
@@ -273,7 +273,7 @@ extension Database {
 
                     if newRe != re {
                         let encodedRe = try KeyValueStore.encoder.encode(newRe)
-                        let newRecord = KeyValueStore.Record(key: newRe.key, modifiedAt: r.modifiedAt, value: encodedRe)
+                        let newRecord = KeyValueStore.Record(key: newRe.key.rawValue, modifiedAt: r.modifiedAt, value: encodedRe)
                         try newRecord.save(db)
                     }
                 }
@@ -292,7 +292,7 @@ extension Database {
                 do {
                     let re = try KeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
 
-                    let newRecord = KeyValueStore.Record(key: re.key, modifiedAt: r.modifiedAt, value: r.value)
+                    let newRecord = KeyValueStore.Record(key: re.key.rawValue, modifiedAt: r.modifiedAt, value: r.value)
                     try newRecord.save(db)
                 } catch {
                     print("Warning: Migration \"v11-runningEncounterKeyFix\" failed for RunningEncounter with key \(r.key), last modified: \(r.modifiedAt). Underlying decoding error: \(error)")

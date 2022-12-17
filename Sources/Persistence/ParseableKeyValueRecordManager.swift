@@ -30,7 +30,7 @@ public class ParseableKeyValueRecordManager {
             }
 
             do {
-                if var record, var entity = try record.decodeEntity(decoder) as? (ParseableVisitable & KeyValueStoreEntity) {
+                if var record, var entity = try record.decodeEntity(decoder) as? (any ParseableVisitable & KeyValueStoreEntity) {
                     let effect = entity.visitParseable()
 
                     let actions = await Array(effect.values).filter { $0 == .didParse }
@@ -41,6 +41,8 @@ public class ParseableKeyValueRecordManager {
                             try record.save(db)
                         }
                     }
+                } else {
+                    print("Visiting of record \(key) skipped")
                 }
             } catch {
                 print("Visiting of record \(key) failed with error \(error)")

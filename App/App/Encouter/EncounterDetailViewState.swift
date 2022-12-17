@@ -316,7 +316,7 @@ extension EncounterDetailViewState {
                     let runningEncounterPrefix = RunningEncounter.keyPrefix(for: state.building)
                     return Effect.future { callback in
                         // remove all runs
-                        _ = try? env.database.keyValueStore.removeAll(runningEncounterPrefix)
+                        _ = try? env.database.keyValueStore.removeAll(runningEncounterPrefix.rawValue)
                         callback(.success(.resumableRunningEncounters(.startLoading)))
                     }
                 case .editMode(let mode):
@@ -376,7 +376,7 @@ extension EncounterDetailViewState {
             Reducer.withState({ $0.building.id }) { state in
                 ResumableRunningEncounters.reducer { env in
                     do {
-                        let nodes = try env.database.keyValueStore.fetchAllRaw(RunningEncounter.keyPrefix(for: state.building))
+                        let nodes = try env.database.keyValueStore.fetchAllRaw(RunningEncounter.keyPrefix(for: state.building).rawValue)
                         return Just(nodes).setFailureType(to: Error.self).eraseToAnyPublisher()
                     } catch {
                         return Fail(error: error).eraseToAnyPublisher()
@@ -390,7 +390,7 @@ extension EncounterDetailViewState {
 }
 
 extension EncounterDetailViewState: NavigationStackItemState {
-    var navigationStackItemStateId: String { encounter.key }
+    var navigationStackItemStateId: String { encounter.rawKey }
 
     var navigationTitle: String { encounter.name }
     var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }

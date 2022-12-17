@@ -1,0 +1,10 @@
+import Foundation
+import GameModels
+import Compendium
+
+let keyValueStoreEntities: [any KeyValueStoreEntity.Type] = [
+    {% for type in types.implementing.KeyValueStoreEntity %}
+    {{ type.name }}.self,
+    {% endfor %}
+]
+

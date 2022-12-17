@@ -211,7 +211,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                 case .sheet(.creatureEdit(CreatureEditViewAction.onRemoveTap)):
                     let entryKey = state.entry.key
                     return Effect.run { subscriber in
-                        _ = try? env.database.keyValueStore.remove(entryKey)
+                        _ = try? env.database.keyValueStore.remove(entryKey.rawValue)
                         subscriber.send(.setSheet(nil))
                         DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
                             subscriber.send(.didRemoveItem)

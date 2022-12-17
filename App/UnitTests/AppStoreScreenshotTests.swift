@@ -142,7 +142,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 id: UUID().tagged(),
                                 title: "",
                                 contents: CampaignNode.Contents(
-                                    key: encounterDetailViewState.encounter.key,
+                                    key: encounterDetailViewState.encounter.key.rawValue,
                                     type: .encounter
                                 ),
                                 special: nil,
@@ -289,7 +289,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 id: UUID().tagged(),
                                 title: "",
                                 contents: CampaignNode.Contents(
-                                    key: encounterDetailViewState.encounter.key,
+                                    key: encounterDetailViewState.encounter.key.rawValue,
                                     type: .encounter
                                 ),
                                 special: nil,
@@ -465,7 +465,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 id: UUID().tagged(),
                                 title: "",
                                 contents: CampaignNode.Contents(
-                                    key: encounter.key,
+                                    key: encounter.key.rawValue,
                                     type: .encounter
                                 ),
                                 special: nil,

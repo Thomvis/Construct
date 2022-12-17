@@ -386,7 +386,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
         // not used by the view (store is used directly) but here to ensure the view is re-evaluated
         let presentedItemDetail: String?
 
-        let scrollTo: String?
+        let scrollTo: CompendiumEntry.Key?
 
         init(_ state: CompendiumIndexState) {
             self.title = state.title

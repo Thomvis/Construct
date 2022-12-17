@@ -10,55 +10,82 @@ import Foundation
 import GRDB
 import GameModels
 import Compendium
+import Tagged
+import Helpers
 
 // Conforming types can be easily stored in the KV store
 public protocol KeyValueStoreEntity: Codable {
-    typealias KeyPrefix = KeyValueStoreEntityKeyPrefix
+    typealias Key = KeyValueStoreEntityKey<Self>
 
-    static var keyPrefix: KeyPrefix { get }
-    var key: String { get }
+    static var keyPrefix: String { get }
+    var key: Key { get }
 }
 
-/**
- All entities need to have a corresponding case in this enum.
- This lowers the chance of a key collision and makes it easier
- to reason about keys
- */
-public enum KeyValueStoreEntityKeyPrefix: String, CaseIterable {
-    case encounter = "encounter"
-    case runningEncounter = "running"
-    case compendiumEntry = "compendium"
-    case campaignNode = "cn_"
-    case preferences = "Construct::Preferences"
-    case defaultContentVersions = "Construct::DefaultContentVersions"
+public extension KeyValueStoreEntity {
+    /// Needed because `key` cannot be invoked on `any KeyValueStoreEntity`
+    var rawKey: String {
+        key.rawValue
+    }
+}
 
-    case any
+public struct KeyValueStoreEntityKey<E>: Hashable where E: KeyValueStoreEntity {
+    public let rawValue: String
+
+    public init?(rawKey: String) {
+        guard rawKey.hasPrefix(E.keyPrefix) else {
+            return nil
+        }
+        self.rawValue = rawKey
+    }
+
+    /// Creates a Key by joining the prefix with the id
+    public init(id: String, separator: String = "") {
+        self.rawValue = E.keyPrefix + separator + id
+    }
+
+    public static func +(lhs: Self, rhs: String) -> Self {
+        Self(rawKey: lhs.rawValue + rhs)!
+    }
 }
 
 public extension KeyValueStore {
-    func put<V>(_ entity: V, fts: FTSDocument? = nil, in db: GRDB.Database? = nil) throws where V: KeyValueStoreEntity {
-        try put(entity, at: entity.key, fts: fts, in: db)
+    func get<E>(_ key: E.Key) throws -> E? where E: KeyValueStoreEntity {
+        try get(key.rawValue)
     }
 
-    static func put<V>(_ entity: V, fts: FTSDocument? = nil, in db: GRDB.Database) throws where V: KeyValueStoreEntity {
-        try put(entity, at: entity.key, fts: fts, in: db)
+    func get<E>(_ key: E.Key, crashReporter: CrashReporter) throws -> E? where E: KeyValueStoreEntity {
+        try get(key.rawValue, crashReporter: crashReporter)
+    }
+
+    func put<E>(_ value: E, fts: FTSDocument? = nil, in db: GRDB.Database? = nil) throws where E: KeyValueStoreEntity {
+        try put(value, at: value.key.rawValue, fts: fts, in: db)
+    }
+
+    static func put<E>(_ value: E, fts: FTSDocument? = nil, in db: GRDB.Database) throws where E: KeyValueStoreEntity {
+        try put(value, at: value.key.rawValue, fts: fts, in: db)
+    }
+
+    func contains<E>(_ key: E.Key, in db: GRDB.Database? = nil) throws -> Bool where E: KeyValueStoreEntity {
+        try contains(key.rawValue, in: db)
+    }
+
+    @discardableResult
+    func remove<E>(_ key: E.Key) throws -> Bool where E: KeyValueStoreEntity {
+        try remove(key.rawValue)
+    }
+}
+
+public extension String {
+    /// Checks if the string begins with the entity's key prefix
+    func toCheckedKey<E>() -> E.Key? where E: KeyValueStoreEntity {
+        return E.Key(rawKey: self)
     }
 }
 
 extension KeyValueStore.Record {
-    func decodeEntity(_ decoder: JSONDecoder) throws -> KeyValueStoreEntity? {
-        guard let prefix = KeyValueStoreEntityKeyPrefix.allCases
-            .first(where: { key.hasPrefix($0.rawValue )}) else { return nil}
-
-        switch prefix {
-        case .encounter: return try decoder.decode(Encounter.self, from: value)
-        case .runningEncounter: return try decoder.decode(RunningEncounter.self, from: value)
-        case .compendiumEntry: return try decoder.decode(CompendiumEntry.self, from: value)
-        case .campaignNode: return try decoder.decode(CampaignNode.self, from: value)
-        case .preferences: return try decoder.decode(Preferences.self, from: value)
-        case .defaultContentVersions: return try decoder.decode(DefaultContentVersions.self, from: value)
-        case .any: return try decoder.decode(AnyKeyValueStoreEntity.self, from: value)
-        }
+    func decodeEntity(_ decoder: JSONDecoder) throws -> (any KeyValueStoreEntity)? {
+        guard let type = keyValueStoreEntities.first(where: { key.hasPrefix($0.keyPrefix) }) else { return nil }
+        return try decoder.decode(type, from: value)
     }
 }
 

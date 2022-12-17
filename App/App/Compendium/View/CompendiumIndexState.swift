@@ -25,7 +25,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     var results: RS
     var suggestions: [CompendiumEntry]?
     
-    var scrollTo: String? // the key of the entry to scroll to
+    var scrollTo: CompendiumEntry.Key? // the key of the entry to scroll to
 
     var presentedScreens: [NavigationDestination: NextScreen]
     var alert: AlertState<CompendiumIndexAction>?
@@ -273,7 +273,7 @@ extension CompendiumIndexState: NavigationStackItemState {
 enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 
     case results(CompendiumIndexState.RS.Action<CompendiumIndexQueryAction>)
-    case scrollTo(String?)
+    case scrollTo(CompendiumEntry.Key?)
     case onQueryTypeFilterDidChange([CompendiumItemType]?, debounce: Bool)
     case onAddButtonTap(CompendiumItemType)
     case onSearchOnWebButtonTap
