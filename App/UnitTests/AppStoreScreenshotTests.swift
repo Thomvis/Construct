@@ -160,7 +160,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ConstructView(store: store)
+        return ConstructView(env: environment, store: store)
     }
 
     var tabNavigationDiceRoller: ConstructView {
@@ -179,7 +179,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ConstructView(store: store)
+        return ConstructView(env: environment, store: store)
     }
 
     var tabNavigationCombatantDetail: some View {
@@ -216,7 +216,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ConstructView(store: store)
+        return ConstructView(env: environment, store: store)
     }
 
     var tabNavigationCampaignBrowseView: ConstructView {
@@ -243,7 +243,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ConstructView(store: store)
+        return ConstructView(env: environment, store: store)
     }
 
     var tabNavigationCombatantDetailMage: some View {
@@ -325,7 +325,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ConstructView(store: store)
+        return ConstructView(env: environment, store: store)
     }
 
     var encounterDetailRunningEncounterDetailState: EncounterDetailViewState {
@@ -526,7 +526,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ConstructView(store: store)
+        return ConstructView(env: environment, store: store)
     }
 
     var columnNavigationCampaignBrowseView: ConstructView {
@@ -576,7 +576,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ConstructView(store: store)
+        return ConstructView(env: environment, store: store)
     }
 
     var campaignBrowseViewState: CampaignBrowseViewState {
@@ -683,7 +683,7 @@ class AppStoreScreenshotTests: XCTestCase {
         )
 
         let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
-        return ConstructView(store: store)
+        return ConstructView(env: environment, store: store)
     }
 
     var columnNavigationCreatureEdit: some View {
@@ -724,7 +724,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
         let backgroundStore = Store<AppState, AppState.Action>(initialState: backgroundState, reducer: Reducer.empty, environment: ())
-        let backgroundView = ConstructView(store: backgroundStore)
+        let backgroundView = ConstructView(env: environment, store: backgroundStore)
 
         let sheetView = SheetNavigationContainer {
             CreatureEditView(

@@ -132,6 +132,13 @@ struct ConstructView: View {
         setUpCrashesUserConfirmationHandler()
     }
 
+    init(env: Environment, store: Store<AppState, AppState.Action>) {
+        self.env = env
+        self.store = store
+
+        setUpCrashesUserConfirmationHandler()
+    }
+
     var body: some View {
         WithViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication }) { viewStore in
             ZStack {
