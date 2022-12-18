@@ -10,7 +10,7 @@ import GameModels
 import Tagged
 
 extension RunningEncounter: KeyValueStoreEntity {
-    public static var keyPrefix: String = "running"
+    public static var keyPrefix: String = "runningEncounter"
 
     public var key: Key {
         return Self.keyPrefix(for: base) + id.uuidString
