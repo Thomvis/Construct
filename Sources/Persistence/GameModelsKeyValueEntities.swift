@@ -47,7 +47,7 @@ extension CampaignNode: KeyValueStoreEntity {
         if let parent = parentKeyPrefix.flatMap(Key.init(rawKey:)) {
             return parent + "/." + id.uuidString
         }
-        return Key(id: id.uuidString, separator: ".")
+        return Key(id: "/." + id.uuidString)
     }
 
     public var keyPrefixForChildren: Key {

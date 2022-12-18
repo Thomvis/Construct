@@ -62,7 +62,7 @@ class KeyValueStoreEntityTest: XCTestCase {
 
     func testCampaignNodeKey() {
         let rootNode = CampaignNode(id: Self.id1.tagged(), title: "", contents: nil, special: nil)
-        XCTAssertEqual(rootNode.key.rawValue, "campaignNode.\(Self.id1)") // this is unexpected (should start with cn_)
+        XCTAssertEqual(rootNode.key.rawValue, "cn_/.\(Self.id1)")
 
         let topLevelNode = CampaignNode(id: Self.id1.tagged(), title: "", contents: nil, special: nil, parentKeyPrefix: CampaignNode.root.keyPrefixForChildren.rawValue)
         XCTAssertEqual(topLevelNode.key.rawValue, "cn_\(CampaignNode.root.id.rawValue)/.\(Self.id1)")
