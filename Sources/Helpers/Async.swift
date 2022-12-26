@@ -11,7 +11,7 @@ import Combine
 import ComposableArchitecture
 
 // Storage of an async result
-public struct Async<Success, Failure> where Failure: Error {
+public struct Async<Success, Failure> where Failure: Swift.Error {
     var identifier: AnyHashable
     public var isLoading: Bool
     public var result: Result<Success, Failure>?

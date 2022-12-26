@@ -19,11 +19,12 @@ struct ActionDescriptionView: View {
         WithViewStore(store) { viewStore in
             VStack {
                 let isLoading = viewStore.state.isLoadingDescription
+                let didFailLoading = viewStore.state.didFailLoading
 
                 ScrollView {
                     ZStack {
                         if let description = viewStore.state.descriptionString {
-                            Text("“\(description)”")
+                            (Text("Mechanical Muse says:\n\n") + Text("“\(description)”"))
                                 .padding(10)
                                 .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
                                 .opacity(isLoading ? 0.15 : 1.0)
@@ -65,7 +66,7 @@ struct ActionDescriptionView: View {
                     .font(.footnote)
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.capsule)
-                    .disabled(isLoading)
+                    .disabled(isLoading || didFailLoading)
                 }
             }
         }

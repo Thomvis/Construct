@@ -32,14 +32,19 @@ public struct ActionDescriptionViewState: Equatable {
     var descriptionErrorString: AttributedString? {
         guard let error = description.error else { return nil }
         switch error {
-        case MechMuseError.unconfigured: return try? AttributedString(markdown: "Add your OpenAI API key in the About screen to generate descriptions.")
-        case MechMuseError.quotaExceeded: return try? AttributedString(markdown: "You have exceeded your OpenAI usage limits. Update your OpenAI [account settings](https://beta.openai.com/account/billing/limits) on their website.")
+        case MechMuseError.unconfigured: return try? AttributedString(markdown: "Mechanical Muse can provide you with a description of this attack to inspire your DM'ing. Configure Mechanical Muse in the settings screen.")
+        case MechMuseError.insufficientQuota: return try? AttributedString(markdown: "You have exceeded your OpenAI usage limits. Please update your OpenAI [account settings](https://beta.openai.com/account/billing/limits).")
+        case MechMuseError.invalidAPIKey: return AttributedString("Invalid OpenAI API Key. Please check the Mechanical Muse configuration in the settings screen.")
         default: return AttributedString("Could not generate description due to an unforseen error.")
         }
     }
 
     var isLoadingDescription: Bool {
         description.result.isLoading
+    }
+
+    var didFailLoading: Bool {
+        description.error != nil
     }
 
     var effectiveOutcome: CreatureActionDescriptionRequest.Outcome {

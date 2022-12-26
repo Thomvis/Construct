@@ -81,6 +81,7 @@ public extension DecodableDefault {
     typealias EmptyList<T: List> = Wrapper<Sources.EmptyList<T>>
     typealias EmptyMap<T: Map> = Wrapper<Sources.EmptyMap<T>>
     typealias UUID = Wrapper<Sources.UUID>
+    typealias TypeDefault<T: Source> = Wrapper<T>
 }
 
 extension DecodableDefault.Wrapper: Equatable where Value: Equatable {}

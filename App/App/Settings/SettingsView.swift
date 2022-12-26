@@ -11,6 +11,9 @@ import SwiftUI
 import Parma
 import GameModels
 import Compendium
+import Helpers
+import MechMuse
+import Introspect
 
 struct SettingsContainerView: View {
 
@@ -31,6 +34,8 @@ struct SettingsView: View {
 
     @State var initialPreferences: Preferences?
     @State var preferences = Preferences()
+
+    @State var mechMuseVerificationResult: Async<Void, MechMuseError> = .initial
 
     var body: some View {
         List {
@@ -53,6 +58,52 @@ struct SettingsView: View {
                     env.rateInAppStore()
                 }) {
                     Text("Please rate Construct").foregroundColor(Color.primary)
+                }
+            }
+
+            Section(
+                footer: Group {
+                    if preferences.mechMuse.enabled {
+                        Text(try! AttributedString(markdown: "Construct uses [OpenAI](https://openai.com) to generate situational prompts that inspire your DM'ing."))
+                    } else {
+                        Text(try! AttributedString(markdown: "Let Construct generate situational prompts that inspire your DM'ing."))
+                    }
+                }
+            ) {
+                Toggle("Mechanical Muse", isOn: $preferences.mechMuse.enabled.animation())
+
+                if preferences.mechMuse.enabled {
+                    TextField("OpenAI API key", text: $preferences.mechMuse.apiKey.nonNilString)
+                        .introspectTextField { field in
+                            field.clearButtonMode = .whileEditing
+                        }
+
+                    VStack {
+                        LabeledContent {
+                            if mechMuseVerificationResult.isLoading {
+                                ProgressView()
+                            } else if mechMuseVerificationResult.value != nil {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(Color(UIColor.systemGreen))
+                            } else if mechMuseVerificationResult.error != nil {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .foregroundColor(Color(UIColor.systemRed))
+                            }
+                        } label: {
+                            Text("OpenAI integration status")
+                        }
+                        .padding(.trailing, 5) // 5 is the magic number to align with the API key textfield
+
+                        if let errorMessage = mechMuseVerificationResult.error?.errorDescription {
+                            Text(errorMessage)
+                                .font(.footnote)
+                                .multilineTextAlignment(.leading)
+                                .foregroundColor(Color(UIColor.systemRed))
+                                .padding(8)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(UIColor.systemRed).opacity(0.33).cornerRadius(4))
+                        }
+                    }
                 }
             }
 
@@ -101,7 +152,7 @@ struct SettingsView: View {
         }
         .listStyle(InsetGroupedListStyle())
         .sheet(item: sheetDest, content: sheetView)
-        .navigationBarTitle("About", displayMode: .inline)
+        .navigationBarTitle("Settings", displayMode: .inline)
         .navigationBarItems(trailing: Button(action: {
             self.presentationMode.dismiss()
         }) {
@@ -117,6 +168,28 @@ struct SettingsView: View {
             if p != initialPreferences && p != Preferences() {
                 try? env.database.keyValueStore.put(p)
             }
+        }
+        .task(id: ["\(preferences.mechMuse.enabled)", preferences.mechMuse.apiKey]) { [mm=preferences.mechMuse] in
+            guard mm.enabled, let key = mm.apiKey else {
+                self.mechMuseVerificationResult = .initial
+                return
+            }
+            self.mechMuseVerificationResult = .initial
+            self.mechMuseVerificationResult.isLoading = true
+
+            do {
+                // debounce
+                try await Task.sleep(for: .milliseconds(100))
+
+                // verify API key
+                try await env.mechMuse.verifyAPIKey(key)
+                self.mechMuseVerificationResult.result = .success(())
+            } catch let error as MechMuseError {
+                self.mechMuseVerificationResult.result = .failure(error)
+            } catch {
+                self.mechMuseVerificationResult.result = .failure(.unspecified)
+            }
+            self.mechMuseVerificationResult.isLoading = false
         }
     }
 

@@ -312,7 +312,8 @@ struct CombatantDetailView: View {
                     creatureStats: apply(combatant.definition.stats) {
                         $0.name = combatant.discriminatedName
                     },
-                    action: action
+                    action: action,
+                    preferences: env.preferences()
                 )
                 self.viewStore.send(.popover(.diceAction(state)))
             case .rollCheck(let e):

@@ -16,7 +16,9 @@ public final class KeyValueStore {
 
     private let queue: DatabaseQueue
 
-    public static let encoder = JSONEncoder()
+    public static let encoder = apply(JSONEncoder()) {
+        $0.outputFormatting = [.sortedKeys]
+    }
     public static let decoder = JSONDecoder()
 
     public init(_ queue: DatabaseQueue) {
@@ -27,6 +29,18 @@ public final class KeyValueStore {
         return try getRaw(key).map {
             return try Self.decoder.decode(V.self, from: $0.value)
         }
+    }
+
+    public func observe<V>(_ key: String) -> AsyncThrowingStream<V?, any Error> where V: Codable & Equatable {
+        let observation = ValueObservation.trackingConstantRegion { db in
+            try Record.fetchOne(db, key: key)
+        }
+
+        return observation.values(in: queue)
+            .removeDuplicates()
+            .map { record in
+                return try record.map { try Self.decoder.decode(V.self, from: $0.value) }
+            }.stream
     }
 
     public func put<V>(_ value: V, at key: String, fts: FTSDocument? = nil, in db: GRDB.Database? = nil) throws where V: Codable {

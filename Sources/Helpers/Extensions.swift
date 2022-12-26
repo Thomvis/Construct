@@ -67,7 +67,8 @@ public extension String {
 
 extension Optional where Wrapped == String {
     public var nonNilString: String {
-        self ?? ""
+        get { self ?? "" }
+        set { self = newValue.nonEmptyString }
     }
 }
 

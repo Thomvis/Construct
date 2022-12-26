@@ -11,16 +11,20 @@ import DiceRollerFeature
 import ComposableArchitecture
 import GameModels
 import MechMuse
+import Persistence
 
 public struct ActionResolutionViewState: Equatable {
     let action: ParseableCreatureAction
+    private let preferences: Preferences
 
     @BindableState var mode: Mode = .diceAction
     var diceAction: DiceActionViewState?
     var muse: ActionDescriptionViewState
 
-    public init(creatureStats: StatBlock, action: ParseableCreatureAction) {
+    public init(creatureStats: StatBlock, action: ParseableCreatureAction, preferences: Preferences) {
         self.action = action
+        self.preferences = preferences
+
         self.diceAction = (action.result?.value?.action).flatMap {
             DiceAction(title: action.name, parsedAction: $0)
         }.map {
@@ -38,6 +42,10 @@ public struct ActionResolutionViewState: Equatable {
 
     var subheading: String? {
         diceAction?.action.subtitle
+    }
+
+    var isMuseEnabled: Bool {
+        preferences.mechMuse.enabled
     }
 
     enum Mode: Equatable {
@@ -76,8 +84,8 @@ public extension ActionResolutionViewState {
     )
     .binding()
     .onChange(of: \.mode) { mode, state, _, _ in
-        if mode == .muse, let action = state.diceAction?.action {
-            return .task { .muse(.didRollDiceAction(action))}
+        if mode == .muse, state.isMuseEnabled, let action = state.diceAction?.action {
+            return .task { .muse(.didRollDiceAction(action)) }
         }
         return .none
     }
@@ -86,6 +94,7 @@ public extension ActionResolutionViewState {
 public extension ActionResolutionViewState {
     static let nullInstance = ActionResolutionViewState(
         creatureStats: StatBlock.default,
-        action: ParseableCreatureAction(input: CreatureAction(id: UUID(), name: "", description: ""))
+        action: ParseableCreatureAction(input: CreatureAction(id: UUID(), name: "", description: "")),
+        preferences: Preferences()
     )
 }

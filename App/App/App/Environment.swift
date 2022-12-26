@@ -189,7 +189,7 @@ struct AnyRandomNumberGenerator: RandomNumberGenerator {
     }
 }
 
-extension Environment {
+extension EnvironmentWithDatabase {
     func preferences() -> Preferences {
         (try? database.keyValueStore.get(Preferences.key)) ?? Preferences()
     }
@@ -201,6 +201,6 @@ extension Environment {
     }
 }
 
-extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse {
+extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse, EnvironmentWithDatabase {
 
 }

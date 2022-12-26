@@ -57,6 +57,10 @@ public extension KeyValueStore {
         try get(key.rawValue, crashReporter: crashReporter)
     }
 
+    func observe<E>(_ key: E.Key) -> AsyncThrowingStream<E?, any Error> where E: KeyValueStoreEntity & Equatable {
+        observe(key.rawValue)
+    }
+
     func put<E>(_ value: E, fts: FTSDocument? = nil, in db: GRDB.Database? = nil) throws where E: KeyValueStoreEntity {
         try put(value, at: value.key.rawValue, fts: fts, in: db)
     }

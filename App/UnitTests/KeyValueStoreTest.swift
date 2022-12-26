@@ -55,4 +55,18 @@ class KeyValueStoreTest: XCTestCase {
         XCTAssertEqual(try! sut.match("Gamma"), [10])
     }
 
+    @MainActor
+    func testObserve() async throws {
+        Task {
+            try sut.put(1, at: "1")
+            try sut.put(1, at: "1")
+            try sut.put(2, at: "1")
+            try sut.put(3, at: "1")
+            try sut.remove("1")
+        }
+
+        let values: [Int?] = try await Array(sut.observe("1").prefix(5))
+        XCTAssertEqual(values, [nil, 1, 2, 3, nil])
+    }
+
 }

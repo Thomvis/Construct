@@ -77,7 +77,7 @@ struct CampaignBrowseView: View {
                     .navigationBarItems(leading: Button(action: {
                         self.viewStore.send(.sheet(.settings))
                     }) {
-                        Text("About")
+                        Text("Settings")
                     })
             } else if viewStore.state.isMoveMode {
                 EmptyView()

@@ -13,6 +13,8 @@ import DiceRollerFeature
 import GameModels
 import CombineSchedulers
 import MechMuse
+import OpenAIClient
+import Persistence
 
 public struct ActionResolutionView: View {
     public let store: Store<ActionResolutionViewState, ActionResolutionViewAction>
@@ -36,10 +38,12 @@ public struct ActionResolutionView: View {
 
                     Spacer()
 
-                    Button {
-                        viewStore.send(.binding(.set(\.$mode, viewStore.state.mode.toggled)), animation: .default)
-                    } label: {
-                        Image(systemName: viewStore.state.mode.isMuse ? "quote.bubble.fill" : "quote.bubble")
+                    if viewStore.state.isMuseEnabled {
+                        Button {
+                            viewStore.send(.binding(.set(\.$mode, viewStore.state.mode.toggled)), animation: .default)
+                        } label: {
+                            Image(systemName: viewStore.state.mode.isMuse ? "quote.bubble.fill" : "quote.bubble")
+                        }
                     }
                 }
                 Divider()
@@ -83,7 +87,8 @@ struct ActionResolutionView_Preview: PreviewProvider {
                         description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage."
                     ))) {
                         _ = $0.parseIfNeeded()
-                    }
+                    },
+                    preferences: Preferences()
                 ),
                 reducer: ActionResolutionViewState.reducer,
                 environment: StandaloneActionResolutionEnvironment()
@@ -100,9 +105,15 @@ struct StandaloneActionResolutionEnvironment: ActionResolutionEnvironment {
     var modifierFormatter = Helpers.modifierFormatter
     var mainQueue: AnySchedulerOf<DispatchQueue> = DispatchQueue.immediate.eraseToAnyScheduler()
     var diceLog = DiceLogPublisher()
-    var mechMuse = MechMuse { client, request, tov in
-        try await Task.sleep(for: .seconds(1))
-        return "Here's a description for prompt: \(request.prompt(toneOfVoice: tov))"
-    }
+    var mechMuse = MechMuse(
+        clientProvider: AsyncThrowingStream([OpenAIClient(apiKey: "")].async),
+        describeAction: { client, request, tov in
+            try await Task.sleep(for: .seconds(1))
+            return "Here's a description for prompt: \(request.prompt(toneOfVoice: tov))"
+        },
+        verifyAPIKey: { client in
+            try await Task.sleep(for: .seconds(1))
+        }
+    )
 }
 #endif
