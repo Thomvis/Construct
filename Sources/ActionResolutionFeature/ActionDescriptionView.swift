@@ -12,6 +12,7 @@ import MechMuse
 
 struct ActionDescriptionView: View {
     @ScaledMetric(relativeTo: .body) var descriptionHeight = 300
+    @ScaledMetric(relativeTo: .largeTitle) var speechBalloonOffset = 8
 
     let store: Store<ActionDescriptionViewState, ActionDescriptionViewAction>
 
@@ -21,20 +22,26 @@ struct ActionDescriptionView: View {
                 let isLoading = viewStore.state.isLoadingDescription
                 let didFailLoading = viewStore.state.didFailLoading
 
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     ZStack {
                         if let description = viewStore.state.descriptionString {
-                            (Text("Mechanical Muse says:\n\n") + Text("“\(description)”"))
-                                .padding(10)
-                                .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
-                                .opacity(isLoading ? 0.15 : 1.0)
+                            VStack(alignment: .trailing, spacing: 10) {
+                                Text(description)
+                                    .padding(22)
+                                    .background(BoxedTextBackground())
+
+                                Text("Mechanical Muse")
+                                    .foregroundColor(Color.secondary)
+                                    .font(.footnote)
+                                    .padding(EdgeInsets(top: -10, leading: 0, bottom: 0, trailing: 15))
+                            }
                         } else if let error = viewStore.state.descriptionErrorString {
                             Text(error)
                                 .multilineTextAlignment(.center)
                                 .padding(6)
                         }
                     }
-                    .padding()
+                    .opacity(isLoading ? 0.15 : 1.0)
                     .frame(minHeight: descriptionHeight)
                 }
                 .overlay {
@@ -88,6 +95,7 @@ struct ActionDescriptionView: View {
             Text(viewStore.state.hitOrMissString)
         }
         .tint(viewStore.state.hitOrMissTint)
+        .fixedSize(horizontal: true, vertical: false)
     }
 
     @ViewBuilder
@@ -105,6 +113,7 @@ struct ActionDescriptionView: View {
         }
         .tint(viewStore.state.impactTint)
         .disabled(!viewStore.state.effectiveOutcome.isHit)
+        .fixedSize(horizontal: true, vertical: false)
     }
 }
 
@@ -124,4 +133,73 @@ extension ActionDescriptionViewState {
         case .devastating: return Color(UIColor.systemPurple)
         }
     }
+}
+
+func BoxedTextBackground() -> some View {
+    Canvas(renderer: { ctx, size in
+        let fillColor = Color(UIColor(red: 0.39, green: 0, blue: 0, alpha: 1.0))
+        let bgColor = Color(UIColor(red: 0.98, green: 0.97, blue: 0.93, alpha: 1.0))
+        let csize = CGSize(width: 10, height: 10)
+
+        // background
+        ctx.fill(
+            Path(CGRect(
+                x: csize.width/2,
+                y: csize.height/2,
+                width: size.width - csize.width,
+                height: size.height - csize.height
+            )),
+            with: .color(bgColor)
+        )
+
+        // borders left and right
+        ctx.fill(
+            Path(CGRect(
+                x: csize.width/2-0.5,
+                y: csize.height/2,
+                width: 1,
+                height: size.height-csize.height
+            )),
+            with: .color(fillColor.opacity(0.66))
+        )
+
+        ctx.fill(
+            Path(CGRect(
+                x: size.width-csize.width/2-0.5,
+                y: csize.height/2,
+                width: 1,
+                height: size.height-csize.height
+            )),
+            with: .color(fillColor.opacity(0.66))
+        )
+
+        // circles at each of the four corners
+        ctx.fill(
+            Path(ellipseIn: CGRect(
+                origin: .zero,
+                size: csize)),
+            with: .color(fillColor)
+        )
+
+        ctx.fill(
+            Path(ellipseIn: CGRect(
+                origin: CGPoint(x: size.width-csize.width, y: 0),
+                size: csize)),
+            with: .color(fillColor)
+        )
+
+        ctx.fill(
+            Path(ellipseIn: CGRect(
+                origin: CGPoint(x: 0, y: size.height-csize.height),
+                size: csize)),
+            with: .color(fillColor)
+        )
+
+        ctx.fill(
+            Path(ellipseIn: CGRect(
+                origin: CGPoint(x: size.width-csize.width, y: size.height-csize.height),
+                size: csize)),
+            with: .color(fillColor)
+        )
+    })
 }

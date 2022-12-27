@@ -34,6 +34,7 @@ public struct ActionResolutionView: View {
                     VStack {
                         Text(viewStore.state.heading).bold()
                         viewStore.state.subheading.map(Text.init)?.italic()
+                            .multilineTextAlignment(.center)
                     }
 
                     Spacer()
