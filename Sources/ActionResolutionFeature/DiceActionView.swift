@@ -27,7 +27,9 @@ struct DiceActionView: View {
                 }
 
                 HStack {
-                    BetaLabel()
+                    FeedbackButton {
+                        viewStore.send(.onFeedbackButtonTap)
+                    }
 
                     Spacer()
                     Button(action: {

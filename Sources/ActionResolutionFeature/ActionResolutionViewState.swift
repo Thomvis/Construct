@@ -12,6 +12,7 @@ import ComposableArchitecture
 import GameModels
 import MechMuse
 import Persistence
+import SwiftUI
 
 public struct ActionResolutionViewState: Equatable {
     let action: ParseableCreatureAction
@@ -74,13 +75,43 @@ public enum ActionResolutionViewAction: Equatable, BindableAction {
     case binding(BindingAction<ActionResolutionViewState>)
 }
 
-public typealias ActionResolutionEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithMechMuse
+public typealias ActionResolutionEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithMechMuse & EnvironmentWithSendMail
 
 public extension ActionResolutionViewState {
     static var reducer: Reducer<Self, ActionResolutionViewAction, ActionResolutionEnvironment> = Reducer.combine(
         DiceActionViewState.reducer.optional()
             .pullback(state: \.diceAction, action: /ActionResolutionViewAction.diceAction),
-        ActionDescriptionViewState.reducer.pullback(state: \.muse, action: /ActionResolutionViewAction.muse, environment: { $0 })
+        ActionDescriptionViewState.reducer.pullback(state: \.muse, action: /ActionResolutionViewAction.muse, environment: { $0 }),
+        Reducer { state, action, env in
+            switch action {
+            case .diceAction(.onFeedbackButtonTap), .muse(.onFeedbackButtonTap):
+                guard env.canSendMail() else { break }
+
+                let currentState = state
+                return Effect.run(operation: { @MainActor send in
+                    let renderer = ImageRenderer(
+                        content: ActionResolutionView(store: Store(
+                            initialState: currentState,
+                            reducer: .empty,
+                            environment: env
+                        ))
+                    )
+
+                    env.sendMail(.init(
+                        subject: "Action Resolution Feedback",
+                        attachment: Array(builder: {
+                            FeedbackMailContents.Attachment(customDump: currentState)
+
+                            if let imageData = renderer.uiImage?.pngData() {
+                                FeedbackMailContents.Attachment(data: imageData, mimeType: "image/png", fileName: "view.png")
+                            }
+                        })
+                    ))
+                })
+            default: break
+            }
+            return .none
+        }
     )
     .binding()
     .onChange(of: \.mode) { mode, state, _, _ in

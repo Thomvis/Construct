@@ -47,7 +47,9 @@ struct ActionDescriptionView: View {
                 Divider()
 
                 HStack {
-                    BetaLabel()
+                    FeedbackButton {
+                        viewStore.send(.onFeedbackButtonTap)
+                    }
 
                     Spacer()
 

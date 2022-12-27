@@ -46,7 +46,7 @@ struct SettingsView: View {
 
                 if self.env.canSendMail() {
                     NavigationRowButton(action: {
-                        self.env.sendMail()
+                        self.env.sendMail(.init())
                     }) {
                         VStack(alignment: .leading) {
                             Text("Send feedback").foregroundColor(Color.primary)

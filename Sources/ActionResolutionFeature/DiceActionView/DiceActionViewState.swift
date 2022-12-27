@@ -21,6 +21,7 @@ struct DiceActionViewState: Hashable {
 
 public enum DiceActionViewAction: Hashable {
     case rollAll
+    case onFeedbackButtonTap
     case stepAction(UUID, DiceActionStepAction)
 }
 
@@ -55,6 +56,7 @@ extension DiceActionViewState {
                     }
                     return nil
                 }.publisher.eraseToEffect()
+            case .onFeedbackButtonTap: break // handled by the parent
             case .stepAction(let id, .value(.roll(.details(_?)))):
                 return state.action.steps.filter { $0.id != id && $0.rollDetails != nil }.map {
                     .stepAction($0.id, .value(.roll(.details(nil))))

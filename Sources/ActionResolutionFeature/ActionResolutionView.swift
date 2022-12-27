@@ -62,13 +62,14 @@ public struct ActionResolutionView: View {
     }
 }
 
-struct BetaLabel: View {
+struct FeedbackButton: View {
+    let action: () -> Void
+
     var body: some View {
-        Text("BETA")
-            .font(.footnote)
-            .foregroundColor(Color.white)
-            .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-            .background(Color(UIColor.systemGray).cornerRadius(4))
+        Button(action: action) {
+            Text("Feedback?").font(.footnote)
+        }
+        .buttonStyle(.bordered)
     }
 }
 
@@ -108,12 +109,14 @@ struct StandaloneActionResolutionEnvironment: ActionResolutionEnvironment {
     var mechMuse = MechMuse(
         clientProvider: AsyncThrowingStream([OpenAIClient(apiKey: "")].async),
         describeAction: { client, request, tov in
-            try await Task.sleep(for: .seconds(1))
+            try await Task.sleep(for: .seconds(0.5))
             return "Here's a description for prompt: \(request.prompt(toneOfVoice: tov))"
         },
         verifyAPIKey: { client in
             try await Task.sleep(for: .seconds(1))
         }
     )
+    var canSendMail: () -> Bool  = { true }
+    var sendMail: (FeedbackMailContents) -> Void = { _ in }
 }
 #endif

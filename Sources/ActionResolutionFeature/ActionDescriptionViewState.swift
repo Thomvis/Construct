@@ -106,6 +106,7 @@ public struct ActionDescriptionViewState: Equatable {
 
 public enum ActionDescriptionViewAction: Equatable, BindableAction {
     case onAppear
+    case onFeedbackButtonTap
     case didRollDiceAction(DiceAction)
     case description(ActionDescriptionViewState.AsyncDescription.Action<ActionDescriptionViewInputAction>)
     case binding(BindingAction<ActionDescriptionViewState>)
@@ -126,6 +127,7 @@ extension ActionDescriptionViewState {
         Reducer { state, action, env in
             switch action {
             case .onAppear: break
+            case .onFeedbackButtonTap: break // handled by the parent
             case .didRollDiceAction(let a):
                 state.context.diceAction = a
                 if a.isCriticalHit {

@@ -27,7 +27,7 @@ class Environment: ObservableObject {
     var database: Database
 
     var canSendMail: () -> Bool
-    var sendMail: () -> Void
+    var sendMail: (FeedbackMailContents) -> Void
     var rateInAppStore: () -> Void
     var requestAppStoreReview: () -> Void
 
@@ -49,7 +49,7 @@ class Environment: ObservableObject {
         ordinalFormatter: NumberFormatter,
         database: Database,
         canSendMail: @escaping () -> Bool,
-        sendMail: @escaping () -> Void,
+        sendMail: @escaping (FeedbackMailContents) -> Void,
         rateInAppStore: @escaping () -> Void,
         requestAppStoreReview: @escaping () -> Void,
         isIdleTimerDisabled: Binding<Bool>,
@@ -120,13 +120,21 @@ extension Environment {
             },
             database: database,
             canSendMail: { MFMailComposeViewController.canSendMail() },
-            sendMail: {
+            sendMail: { contents in
                 let composeVC = MFMailComposeViewController()
                 composeVC.mailComposeDelegate = mailComposeDelegate
 
                 // Configure the fields of the interface.
                 composeVC.setToRecipients(["hello@construct5e.app"])
-                composeVC.setSubject("Construct feedback")
+                composeVC.setSubject(contents.subject)
+
+                for attachment in contents.attachments {
+                    composeVC.addAttachmentData(
+                        attachment.data,
+                        mimeType: attachment.mimeType,
+                        fileName: attachment.fileName
+                    )
+                }
 
                 // Present the view controller modally.
                 keyWindow()?.rootViewController?.deepestPresentedViewController.present(composeVC, animated: true, completion:nil)
@@ -177,7 +185,7 @@ extension Database {
 
 extension UIViewController {
     var deepestPresentedViewController: UIViewController {
-        presentedViewController ?? self
+        presentedViewController?.deepestPresentedViewController ?? self
     }
 }
 
@@ -201,6 +209,6 @@ extension EnvironmentWithDatabase {
     }
 }
 
-extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse, EnvironmentWithDatabase {
+extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse, EnvironmentWithDatabase, EnvironmentWithSendMail {
 
 }
