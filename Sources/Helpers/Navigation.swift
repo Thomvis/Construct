@@ -93,29 +93,6 @@ extension View {
 
                     IfLetStore(destinationStore, then: destination)
                 }
-//            self.navigationDestination(
-//                isPresented: Binding(get: {
-//                    if let nextScreen = viewStore.state, state.extract(from: nextScreen) != nil {
-//                        return true
-//                    } else {
-//                        return false
-//                    }
-//                }, set: { active, transaction in
-//                    if active {
-//                        assertionFailure("This navigationDestination cannot be triggered by the framework")
-//                    } else if !active, let nextScreen = viewStore.state, state.extract(from: nextScreen) != nil {
-//                        viewStore.send(.presentScreen(.nextInStack, nil))
-//                    }
-//                }),
-//                destination: {
-//                    let destinationStore = store.scope(
-//                        state: replayNonNil({ $0.presentedScreens[.nextInStack].flatMap(state.extract) }),
-//                        action: { .presentedScreen(.nextInStack, action.embed($0)) }
-//                    )
-//
-//                    IfLetStore(destinationStore, then: destination)
-//                }
-//            )
         }
     }
 }

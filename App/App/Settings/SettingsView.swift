@@ -14,6 +14,7 @@ import Compendium
 import Helpers
 import MechMuse
 import Introspect
+import Persistence
 
 struct SettingsContainerView: View {
 
@@ -21,7 +22,16 @@ struct SettingsContainerView: View {
 
     var body: some View {
         NavigationStack {
-            SettingsView(presentationMode: presentationMode)
+            SettingsView()
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: {
+                            self.presentationMode.wrappedValue.dismiss()
+                        }) {
+                            Text("Done").bold()
+                        }
+                    }
+                }
         }
         .edgesIgnoringSafeArea(.all)
     }
@@ -29,13 +39,13 @@ struct SettingsContainerView: View {
 
 struct SettingsView: View {
     @EnvironmentObject var env: Environment
-    @Binding var presentationMode: PresentationMode
     @State var destination: Destination?
 
     @State var initialPreferences: Preferences?
     @State var preferences = Preferences()
 
-    @State var mechMuseVerificationResult: Async<Void, MechMuseError> = .initial
+    // the value is the api key
+    @State var mechMuseVerificationResult: Async<String, MechMuseError> = .initial
 
     var body: some View {
         List {
@@ -88,6 +98,8 @@ struct SettingsView: View {
                             } else if mechMuseVerificationResult.error != nil {
                                 Image(systemName: "exclamationmark.circle.fill")
                                     .foregroundColor(Color(UIColor.systemRed))
+                            } else {
+                                Text("-").foregroundColor(Color.secondary)
                             }
                         } label: {
                             Text("OpenAI integration status")
@@ -120,10 +132,9 @@ struct SettingsView: View {
                 }
 
                 NavigationRowButton(action: {
-//                    try? self.env.database.queue.write { db in
-//                        try Compendium(self.env.database).importDefaultContent(db)
-//                    }
-                    #warning("fix here")
+                    Task {
+                        try await DatabaseCompendium(database: env.database).importDefaultContent()
+                    }
                 }) {
                     Text("Import default content").foregroundColor(Color.primary)
                 }
@@ -151,13 +162,9 @@ struct SettingsView: View {
             }
         }
         .listStyle(InsetGroupedListStyle())
-        .sheet(item: sheetDest, content: sheetView)
+        .sheet(item: sheetDestination, content: sheetView)
+        .navigationDestination(unwrapping: pushDestination, destination: pushView)
         .navigationBarTitle("Settings", displayMode: .inline)
-        .navigationBarItems(trailing: Button(action: {
-            self.presentationMode.dismiss()
-        }) {
-            Text("Done").bold()
-        })
         .onAppear {
             if let preferences: Preferences = try? env.database.keyValueStore.get(Preferences.key) {
                 self.initialPreferences = preferences
@@ -174,6 +181,9 @@ struct SettingsView: View {
                 self.mechMuseVerificationResult = .initial
                 return
             }
+
+            guard key != mechMuseVerificationResult.value else { return }
+
             self.mechMuseVerificationResult = .initial
             self.mechMuseVerificationResult.isLoading = true
 
@@ -183,7 +193,7 @@ struct SettingsView: View {
 
                 // verify API key
                 try await env.mechMuse.verifyAPIKey(key)
-                self.mechMuseVerificationResult.result = .success(())
+                self.mechMuseVerificationResult.result = .success(key)
             } catch let error as MechMuseError {
                 self.mechMuseVerificationResult.result = .failure(error)
             } catch {
@@ -204,45 +214,14 @@ struct SettingsView: View {
 
     @ViewBuilder
     func navigationLink<Label>(destination: Destination, @ViewBuilder label: () -> Label) -> some View where Label: View {
-        if let view = dest(destination: destination) {
-            NavigationLink(
-                destination: view,
-                isActive: Binding(
-                    get: { self.destination == destination },
-                    set: {
-                        if $0 {
-                            self.destination = destination
-                        } else if self.destination == destination {
-                            self.destination = nil
-                        }
-                    }
-                ),
-                label: label
-            )
-        } else {
-            NavigationRowButton(action: {
-                self.destination = destination
-            }, label: {
-                label().foregroundColor(Color.primary)
-            })
-        }
+        NavigationRowButton(action: {
+            self.destination = destination
+        }, label: {
+            label().foregroundColor(Color.primary)
+        })
     }
 
-    func dest(destination: Destination) -> AnyView? {
-        switch destination {
-        case .safariView: return nil
-        case .ogl:
-            return ScrollView {
-                try? Parma(fromResource: "ogl", ofType: "md")
-            }.eraseToAnyView
-        case .acknowledgements:
-            return ScrollView {
-                try? Parma(fromResource: "software_licenses", ofType: "md")
-            }.eraseToAnyView
-        }
-    }
-
-    var sheetDest: Binding<Destination?> {
+    var sheetDestination: Binding<Destination?> {
         Binding(get: {
             if case .safariView(let url) = self.destination {
                 return .safariView(url)
@@ -253,12 +232,36 @@ struct SettingsView: View {
         })
     }
 
-    func sheetView(destination: Destination?) -> AnyView {
-        switch destination {
-        case .safariView(let url):
-            return SafariView(url: URL(string: url)!).edgesIgnoringSafeArea(.all).eraseToAnyView
-        default:
-            return EmptyView().eraseToAnyView
+    var pushDestination: Binding<Destination?> {
+        Binding(get: {
+            switch self.destination {
+            case .ogl, .acknowledgements: return self.destination
+            default: return nil
+            }
+        }, set: {
+            self.destination = $0
+        })
+    }
+
+    @ViewBuilder
+    func sheetView(destination: Destination?) -> some View {
+        if case .safariView(let url) = destination {
+            SafariView(url: URL(string: url)!).edgesIgnoringSafeArea(.all)
+        }
+    }
+
+    @ViewBuilder
+    func pushView(destination: Binding<Destination>) -> some View {
+        switch destination.wrappedValue {
+        case .ogl:
+            ScrollView {
+                try? Parma(fromResource: "ogl", ofType: "md")
+            }
+        case .acknowledgements:
+            ScrollView {
+                try? Parma(fromResource: "software_licenses", ofType: "md")
+            }
+        default: EmptyView()
         }
     }
 
