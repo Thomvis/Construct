@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 import MechMuse
+import SharedViews
 
 struct ActionDescriptionView: View {
     @ScaledMetric(relativeTo: .body) var descriptionHeight = 300
@@ -34,6 +35,29 @@ struct ActionDescriptionView: View {
                                     .foregroundColor(Color.secondary)
                                     .font(.footnote)
                                     .padding(EdgeInsets(top: -10, leading: 0, bottom: 0, trailing: 15))
+                            }
+                        } else if viewStore.state.isMissingOutcomeSetting {
+                            VStack {
+                                Text("Did the attack hit or miss?")
+
+                                EqualWidthLayout(spacing: 20) {
+                                    Button {
+                                        viewStore.send(ActionDescriptionViewAction.binding(.set(\.$settings.outcome, .hit)))
+                                    } label: {
+                                        Text("Hit").frame(maxWidth: .infinity)
+                                    }
+                                    .tint(hitOrMissTintHit)
+
+                                    Button {
+                                        viewStore.send(ActionDescriptionViewAction.binding(.set(\.$settings.outcome, .miss)))
+                                    } label: {
+                                        Text("Miss").frame(maxWidth: .infinity)
+                                    }
+                                    .tint(hitOrMissTintMiss)
+                                }
+                                .controlSize(.large)
+                                .buttonStyle(.bordered)
+                                .buttonBorderShape(.capsule)
                             }
                         } else if let error = viewStore.state.descriptionErrorString {
                             Text(error)
@@ -85,17 +109,19 @@ struct ActionDescriptionView: View {
     func hitButton(
         _ viewStore: ViewStore<ActionDescriptionViewState, ActionDescriptionViewAction>
     ) -> some View {
-        Menu {
-            Picker("Outcome", selection: viewStore.binding(\.$settings.outcome)) {
-                Text("Hit").tag(ActionDescriptionViewState.Settings.OutcomeSetting.hit)
-                Text("Miss").tag(ActionDescriptionViewState.Settings.OutcomeSetting.miss)
+        if viewStore.settings.outcome != nil {
+            Menu {
+                Picker("Outcome", selection: viewStore.binding(\.$settings.outcome)) {
+                    Text("Hit").tag(Optional<ActionDescriptionViewState.Settings.OutcomeSetting>.some(.hit))
+                    Text("Miss").tag(Optional<ActionDescriptionViewState.Settings.OutcomeSetting>.some(.miss))
+                }
+                .disabled(viewStore.state.context.diceAction == nil)
+            } label: {
+                Text(viewStore.state.hitOrMissString ?? "-")
             }
-            .disabled(viewStore.state.context.diceAction == nil)
-        } label: {
-            Text(viewStore.state.hitOrMissString)
+            .tint(viewStore.state.hitOrMissTint)
+            .fixedSize(horizontal: true, vertical: false)
         }
-        .tint(viewStore.state.hitOrMissTint)
-        .fixedSize(horizontal: true, vertical: false)
     }
 
     @ViewBuilder
@@ -112,17 +138,20 @@ struct ActionDescriptionView: View {
             Text(viewStore.state.impactString)
         }
         .tint(viewStore.state.impactTint)
-        .disabled(!viewStore.state.effectiveOutcome.isHit)
+        .disabled(!(viewStore.state.effectiveOutcome?.isHit == true))
         .fixedSize(horizontal: true, vertical: false)
     }
 }
 
+let hitOrMissTintHit: Color? = Color(UIColor.systemRed)
+let hitOrMissTintMiss: Color? = nil
+
 extension ActionDescriptionViewState {
     var hitOrMissTint: Color? {
-        if effectiveOutcome.isHit {
-            return Color(UIColor.systemRed)
+        if effectiveOutcome?.isHit == true {
+            return hitOrMissTintHit
         } else {
-            return nil
+            return hitOrMissTintMiss
         }
     }
 
@@ -138,7 +167,7 @@ extension ActionDescriptionViewState {
 func BoxedTextBackground() -> some View {
     Canvas(renderer: { ctx, size in
         let fillColor = Color(UIColor(red: 0.39, green: 0, blue: 0, alpha: 1.0))
-        let bgColor = Color(UIColor(red: 0.98, green: 0.97, blue: 0.93, alpha: 1.0))
+        let bgColor = Color(UIColor(red: 0.95, green: 0.94, blue: 0.88, alpha: 1.0))
         let csize = CGSize(width: 10, height: 10)
 
         // background

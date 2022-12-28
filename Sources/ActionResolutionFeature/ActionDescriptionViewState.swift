@@ -16,7 +16,7 @@ public struct ActionDescriptionViewState: Equatable {
     public typealias AsyncDescription = ResultSet<RequestInput?, String, Error>
 
     @BindableState var context: Context
-    @BindableState var settings: Settings = .init(toneOfVoice: .gritty, outcome: .hit, impact: .average)
+    @BindableState var settings: Settings = .init(toneOfVoice: .gritty, outcome: nil, impact: .average)
 
     private var description: AsyncDescription = .init(input: nil)
     private var cache: [RequestInput: String] = [:]
@@ -47,8 +47,13 @@ public struct ActionDescriptionViewState: Equatable {
         description.error != nil
     }
 
-    var effectiveOutcome: CreatureActionDescriptionRequest.Outcome {
-        switch settings.outcome {
+    var isMissingOutcomeSetting: Bool {
+        settings.outcome == nil
+    }
+
+    var effectiveOutcome: CreatureActionDescriptionRequest.Outcome? {
+        guard let outcome = settings.outcome else { return nil }
+        switch outcome {
         case .hit:
             guard let action = context.diceAction else { return .averageHit }
             return .hit(.init(
@@ -62,7 +67,9 @@ public struct ActionDescriptionViewState: Equatable {
         }
     }
 
-    var hitOrMissString: String {
+    var hitOrMissString: String? {
+        guard let effectiveOutcome else { return nil }
+
         switch effectiveOutcome {
         case .hit(let h) where h.isCritical == true: return "Critical Hit"
         case .hit: return "Hit"
@@ -89,7 +96,7 @@ public struct ActionDescriptionViewState: Equatable {
     // configurable in this view
     struct Settings: Equatable {
         var toneOfVoice: ToneOfVoice
-        var outcome: OutcomeSetting
+        var outcome: OutcomeSetting?
         var impact: CreatureActionDescriptionRequest.Impact
 
         enum OutcomeSetting: Hashable {
@@ -171,7 +178,7 @@ extension ActionDescriptionViewState {
         return .none
     })
     .onChange(of: \.input, perform: { input, state, action, env in
-        if let cacheHit = state.cache[input] {
+        if let input, let cacheHit = state.cache[input] {
             // cache hit
             state.description.setValue(cacheHit, for: input)
             return .none
@@ -190,22 +197,24 @@ extension ActionDescriptionViewState {
 }
 
 extension ActionDescriptionViewState {
-    fileprivate var input: RequestInput {
-        return RequestInput(
-            request: CreatureActionDescriptionRequest(
-                creatureName: context.creature.name,
-                isUniqueCreature: false, // todo
-                creatureDescription: CreatureActionDescriptionRequest.creatureDescription(from: context.creature),
-                creatureCondition: nil,
-                encounter: context.encounter.map {
-                    .init(name: $0.name, actionSetUp: nil)
-                },
-                actionName: context.action.name,
-                actionDescription: context.action.description,
-                outcome: effectiveOutcome
-            ),
-            toneOfVoice: settings.toneOfVoice
-        )
+    fileprivate var input: RequestInput? {
+        return effectiveOutcome.map { outcome in
+            RequestInput(
+                request: CreatureActionDescriptionRequest(
+                    creatureName: context.creature.name,
+                    isUniqueCreature: false, // todo
+                    creatureDescription: CreatureActionDescriptionRequest.creatureDescription(from: context.creature),
+                    creatureCondition: nil,
+                    encounter: context.encounter.map {
+                        .init(name: $0.name, actionSetUp: nil)
+                    },
+                    actionName: context.action.name,
+                    actionDescription: context.action.description,
+                    outcome: outcome
+                ),
+                toneOfVoice: settings.toneOfVoice
+            )
+        }
     }
 }
 
