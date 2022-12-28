@@ -255,11 +255,11 @@ struct SettingsView: View {
         switch destination.wrappedValue {
         case .ogl:
             ScrollView {
-                try? Parma(fromResource: "ogl", ofType: "md")
+                try? Parma(fromResource: "ogl", ofType: "md")?.padding()
             }
         case .acknowledgements:
             ScrollView {
-                try? Parma(fromResource: "software_licenses", ofType: "md")
+                try? Parma(fromResource: "software_licenses", ofType: "md")?.padding()
             }
         default: EmptyView()
         }
