@@ -96,7 +96,7 @@ struct ActionResolutionView_Preview: PreviewProvider {
                 environment: StandaloneActionResolutionEnvironment()
             ))
             .padding(12)
-            .background(Color.white.cornerRadius(8))
+            .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
         }
         .frame(maxHeight: .infinity)
         .background(Color.black)

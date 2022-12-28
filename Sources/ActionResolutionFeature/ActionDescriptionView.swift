@@ -166,9 +166,23 @@ extension ActionDescriptionViewState {
 
 func BoxedTextBackground() -> some View {
     Canvas(renderer: { ctx, size in
-        let fillColor = Color(UIColor(red: 0.39, green: 0, blue: 0, alpha: 1.0))
-        let bgColor = Color(UIColor(red: 0.95, green: 0.94, blue: 0.88, alpha: 1.0))
+        let fillColor = Color(UIColor { tc in
+            if tc.userInterfaceStyle == .dark {
+                return UIColor(red: 0.39, green: 0, blue: 0, alpha: 1.0)
+            } else {
+                return UIColor(red: 0.39, green: 0, blue: 0, alpha: 1.0)
+            }
+        })
+        let bgColor = Color(UIColor { tc in
+            if tc.userInterfaceStyle == .dark {
+                return UIColor(red: 0.085, green: 0.084, blue: 0.078, alpha: 1.0)
+            } else {
+                return UIColor(red: 0.95, green: 0.94, blue: 0.88, alpha: 1.0)
+            }
+        })
         let csize = CGSize(width: 10, height: 10)
+
+
 
         // background
         ctx.fill(
