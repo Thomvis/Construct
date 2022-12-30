@@ -16,7 +16,9 @@ public final class KeyValueStore {
 
     private let queue: DatabaseQueue
 
-    public static let encoder = JSONEncoder()
+    public static let encoder = apply(JSONEncoder()) {
+        $0.outputFormatting = [.sortedKeys]
+    }
     public static let decoder = JSONDecoder()
 
     public init(_ queue: DatabaseQueue) {
@@ -27,6 +29,18 @@ public final class KeyValueStore {
         return try getRaw(key).map {
             return try Self.decoder.decode(V.self, from: $0.value)
         }
+    }
+
+    public func observe<V>(_ key: String) -> AsyncThrowingStream<V?, any Error> where V: Codable & Equatable {
+        let observation = ValueObservation.trackingConstantRegion { db in
+            try Record.fetchOne(db, key: key)
+        }
+
+        return observation.values(in: queue)
+            .removeDuplicates()
+            .map { record in
+                return try record.map { try Self.decoder.decode(V.self, from: $0.value) }
+            }.stream
     }
 
     public func put<V>(_ value: V, at key: String, fts: FTSDocument? = nil, in db: GRDB.Database? = nil) throws where V: Codable {
@@ -251,18 +265,6 @@ extension KeyValueStore.FTSRecord {
     }
 }
 
-extension KeyValueStoreEntity {
-    static func get(_ db: GRDB.Database, _ decoder: JSONDecoder, key: String) throws -> Self? {
-        return try getRaw(db, key: key).map {
-            return try decoder.decode(Self.self, from: $0.value)
-        }
-    }
-
-    static func getRaw(_ db: GRDB.Database, key: String) throws -> KeyValueStore.Record? {
-        try KeyValueStore.Record.fetchOne(db, key: key)
-    }
-}
-
 public extension KeyValueStore {
     func get<V>(_ key: String, crashReporter: CrashReporter) throws -> V? where V: Codable {
         do {
@@ -288,20 +290,5 @@ public extension KeyValueStore {
         } catch {
             throw error
         }
-    }
-
-    func get(_ itemKey: CompendiumItemKey, crashReporter: CrashReporter) throws -> CompendiumEntry? {
-        try get(CompendiumEntry.key(for: itemKey), crashReporter: crashReporter)
-    }
-}
-
-public extension KeyValueStore {
-    func get(_ itemKey: CompendiumItemKey) throws -> CompendiumEntry? {
-        return try get(CompendiumEntry.key(for: itemKey))
-    }
-
-    @discardableResult
-    func remove(_ itemKey: CompendiumItemKey) throws -> Bool {
-        try remove(CompendiumEntry.key(for: itemKey))
     }
 }

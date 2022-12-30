@@ -12,7 +12,7 @@ import SafariServices
 import ComposableArchitecture
 import Helpers
 
-final class SafariView: UIViewControllerRepresentable {
+struct SafariView: UIViewControllerRepresentable {
     let url: URL
 
     init(url: URL) {
@@ -24,7 +24,7 @@ final class SafariView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: UIViewControllerRepresentableContext<SafariView>) {
-
+        
     }
 }
 
@@ -47,7 +47,7 @@ extension SafariViewState: NavigationStackItemState {
 }
 
 extension SafariView {
-    convenience init(store: Store<SafariViewState, Void>) {
+    init(store: Store<SafariViewState, Void>) {
         self.init(url: ViewStore(store).url)
     }
 }

@@ -248,7 +248,7 @@ struct StatBlockView: View {
     enum TapTarget: Codable {
         case ability(Ability)
         case skill(Skill)
-        case action(CreatureAction, CreatureActionParser.Action)
+        case action(ParseableCreatureAction)
         case rollCheck(DiceExpression)
         case compendiumItemReferenceTextAnnotation(CompendiumItemReferenceTextAnnotation)
     }
@@ -291,16 +291,6 @@ private struct AbilityScoresView: View {
 }
 
 private extension StatBlock {
-    var subheading: String {
-        let type = [
-            size?.localizedDisplayName.capitalized,
-            self.type?.localizedDisplayName.nonEmptyString,
-            (subtype?.capitalized.nonEmptyString).map { "(\($0))"}
-        ].compactMap { $0 }.joined(separator: " ").nonEmptyString
-
-        let alignment = self.alignment?.localizedDisplayName.capitalized
-        return [type, alignment].compactMap { $0 }.joined(separator: ", ")
-    }
 
     var hitPointsSummary: String? {
         return [
@@ -404,9 +394,9 @@ private struct CreatureActionView: View {
         var title = action.attributedName
         StatBlockView.process(attributedString: &title)
 
-        if let parsedAction = action.result?.value?.action {
+        if action.result?.value?.action != nil {
             if let r = title.runs.first?.range {
-                title[r].underlinedLink = StatBlockView.link(for: .action(action.input, parsedAction))
+                title[r].underlinedLink = StatBlockView.link(for: .action(action))
             }
 
             return Text("\(Image(systemName: "bolt.fill")) \(title). ").bold().italic().foregroundColor(Color.accentColor) + Text(description)

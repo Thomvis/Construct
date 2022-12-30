@@ -75,6 +75,7 @@ class CreatureActionParserTest: XCTestCase {
         XCTAssertNoDifference(action, .weaponAttack(.init(type: .melee, range: .reach(5), hitModifier: Modifier(modifier: 5), effects: [])))
     }
 
+    @MainActor
     func testAllMonsterActions() async throws {
         let sut = Open5eMonsterDataSourceReader(
             dataSource: FileDataSource(path: defaultMonstersPath),

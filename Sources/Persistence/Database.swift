@@ -59,6 +59,10 @@ public class Database {
         self.keyValueStore = KeyValueStore(queue)
         self.parseableManager = ParseableKeyValueRecordManager(queue)
 
+        #if DEBUG
+        print("Opened db at path: \(queue.path)")
+        #endif
+        
         try await prepareForUse()
     }
 

@@ -11,15 +11,15 @@ import Tagged
 
 public struct AdHocCombatantDefinition: Hashable, CombatantDefinition, Codable {
     public let id: Id
-    public var name: String { stats?.name ?? "" }
+    public var name: String { stats.name }
 
-    public var ac: Int? { stats?.armorClass }
-    public var hitPoints: Int? { stats?.hitPoints }
+    public var ac: Int? { stats.armorClass }
+    public var hitPoints: Int? { stats.hitPoints }
 
-    public var initiativeModifier: Int? { stats?.effectiveInitiativeModifier }
+    public var initiativeModifier: Int? { stats.effectiveInitiativeModifier }
     public var initiativeGroupingHint: String { id.rawValue.uuidString }
 
-    public var stats: StatBlock? = nil
+    public var stats: StatBlock
 
     public var player: Player?
     public var level: Int?
@@ -32,7 +32,7 @@ public struct AdHocCombatantDefinition: Hashable, CombatantDefinition, Codable {
         return id.rawValue.uuidString
     }
 
-    public init(id: Id, stats: StatBlock? = nil, player: Player? = nil, level: Int? = nil, original: CompendiumItemReference? = nil) {
+    public init(id: Id, stats: StatBlock, player: Player? = nil, level: Int? = nil, original: CompendiumItemReference? = nil) {
         self.id = id
         self.stats = stats
         self.player = player

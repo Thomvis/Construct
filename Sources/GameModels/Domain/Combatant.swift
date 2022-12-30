@@ -83,7 +83,7 @@ public protocol CombatantDefinition {
     var initiativeModifier: Int? { get }
     var initiativeGroupingHint: String { get }
 
-    var stats: StatBlock? { get set }
+    var stats: StatBlock { get set }
 
     var player: Player? { get }
     var level: Int? { get }
@@ -256,7 +256,7 @@ public extension StatBlock {
 }
 
 public extension Combatant {
-    static let nullInstance = Combatant(adHoc: AdHocCombatantDefinition(id: UUID().tagged()))
+    static let nullInstance = Combatant(adHoc: AdHocCombatantDefinition(id: UUID().tagged(), stats: StatBlock.default))
 }
 
 public extension CombatantResource {

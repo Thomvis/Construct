@@ -14,6 +14,7 @@ import CasePaths
 import Helpers
 import DiceRollerFeature
 import GameModels
+import ActionResolutionFeature
 
 struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 
@@ -77,7 +78,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         }
     }
 
-    var diceActionPopoverState: DiceActionViewState? {
+    var diceActionPopoverState: ActionResolutionViewState? {
         get {
             guard case .diceAction(let s) = popover else { return nil }
             return s
@@ -120,7 +121,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             case .healthAction: return .healthAction(HealthDialogState.nullInstance)
             case .initiative: return .initiative(NumberEntryViewState.nullInstance)
             case .rollCheck: return .rollCheck(DiceCalculatorState.nullInstance)
-            case .diceAction: return .diceAction(DiceActionViewState.nullInstance)
+            case .diceAction: return .diceAction(ActionResolutionViewState.nullInstance)
             case .tagDetails: return .tagDetails(CombatantTag.nullInstance)
             case .addLimitedResource: return .addLimitedResource(CombatantTrackerEditViewState.nullInstance)
             }
@@ -131,7 +132,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
     static let reducer: Reducer<Self, CombatantDetailViewAction, Environment> = Reducer.combine(
         CombatantTagEditViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagEditView),
         DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog, environment: { $0 }),
-        DiceActionViewState.reducer.optional().pullback(state: \.diceActionPopoverState, action: /CombatantDetailViewAction.diceActionPopover),
+        ActionResolutionViewState.reducer.optional().pullback(state: \.diceActionPopoverState, action: /CombatantDetailViewAction.diceActionPopover, environment: { $0 }),
         NumberEntryViewState.reducer.optional().pullback(state: \.initiativePopoverState, action: /CombatantDetailViewAction.initiativePopover, environment: { $0 }),
         CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView),
         Reducer { state, action, env in
@@ -171,13 +172,13 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                     )
                 }
             case .saveToCompendium:
-                guard let def = state.combatant.definition as? AdHocCombatantDefinition, let stats = def.stats else { return .none }
+                guard let def = state.combatant.definition as? AdHocCombatantDefinition else { return .none }
 
                 let item: CompendiumCombatant
                 if def.isUnique {
-                    item = Character(id: UUID().tagged(), realm: .homebrew, level: def.level, stats: def.stats ?? .default, player: def.player)
+                    item = Character(id: UUID().tagged(), realm: .homebrew, level: def.level, stats: def.stats, player: def.player)
                 } else {
-                    item = Monster(realm: .homebrew, stats: stats, challengeRating: Fraction(integer: 0))
+                    item = Monster(realm: .homebrew, stats: def.stats, challengeRating: Fraction(integer: 0))
                 }
 
                 try? env.compendium.put(CompendiumEntry(item))
@@ -246,7 +247,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         case healthAction(HealthDialogState)
         case initiative(NumberEntryViewState)
         case rollCheck(DiceCalculatorState)
-        case diceAction(DiceActionViewState)
+        case diceAction(ActionResolutionViewState)
         case tagDetails(CombatantTag)
         case addLimitedResource(CombatantTrackerEditViewState)
     }
@@ -260,7 +261,7 @@ enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
     case addLimitedResource(CombatantTrackerEditViewAction)
     case healthDialog(HealthDialogAction)
     case rollCheckDialog(DiceCalculatorAction)
-    case diceActionPopover(DiceActionViewAction)
+    case diceActionPopover(ActionResolutionViewAction)
     case initiativePopover(NumberEntryViewAction)
     case editCreatureConfirmingUnlinkIfNeeded
     case saveToCompendium

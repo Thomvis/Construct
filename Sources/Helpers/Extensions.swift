@@ -67,7 +67,8 @@ public extension String {
 
 extension Optional where Wrapped == String {
     public var nonNilString: String {
-        self ?? ""
+        get { self ?? "" }
+        set { self = newValue.nonEmptyString }
     }
 }
 
@@ -434,5 +435,17 @@ public extension AsyncSequence {
 public extension Sequence where Element: Identifiable {
     var identified: IdentifiedArrayOf<Element> {
         IdentifiedArrayOf(uniqueElements: self)
+    }
+}
+
+public extension Optional where Wrapped == String {
+    func wrap(prefix: String = "", suffix: String = "") -> String {
+        map { "\(prefix)\($0)\(suffix)"} ?? ""
+    }
+}
+
+public extension String {
+    func with(_ str: String?, suffix: String = "") -> String {
+        str.wrap(prefix: self, suffix: suffix)
     }
 }

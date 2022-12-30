@@ -60,8 +60,8 @@ public struct Encounter: Equatable, Codable {
                 } else if ia < ib {
                     return false
                 } else {
-                    let dsa = a.definition.stats?.abilityScores?.dexterity.score ?? 10
-                    let dsb = b.definition.stats?.abilityScores?.dexterity.score ?? 10
+                    let dsa = a.definition.stats.abilityScores?.dexterity.score ?? 10
+                    let dsb = b.definition.stats.abilityScores?.dexterity.score ?? 10
                     if dsa > dsb {
                         return true
                     } else if dsa < dsb {

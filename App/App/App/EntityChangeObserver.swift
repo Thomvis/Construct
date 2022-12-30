@@ -11,11 +11,11 @@ import ComposableArchitecture
 import Persistence
 
 protocol HavingEntities {
-    var entities: [AnyKeyValueStoreEntity] { get }
+    var entities: [any KeyValueStoreEntity] { get }
 }
 
 extension AppState: HavingEntities {
-    var entities: [AnyKeyValueStoreEntity] {
+    var entities: [any KeyValueStoreEntity] {
         return [
             navigation?.tabState?.entities,
             navigation?.columnState?.entities
@@ -24,25 +24,25 @@ extension AppState: HavingEntities {
 }
 
 extension TabNavigationViewState: HavingEntities {
-    var entities: [AnyKeyValueStoreEntity] {
+    var entities: [any KeyValueStoreEntity] {
         return campaignBrowser.entities
     }
 }
 
 extension ColumnNavigationViewState: HavingEntities {
-    var entities: [AnyKeyValueStoreEntity] {
+    var entities: [any KeyValueStoreEntity] {
         return (campaignBrowse.nextScreen?.entities ?? [])
     }
 }
 
 extension CampaignBrowseViewState: HavingEntities {
-    var entities: [AnyKeyValueStoreEntity] {
+    var entities: [any KeyValueStoreEntity] {
         return (nextScreen?.entities ?? []) + (detailScreen?.entities ?? [])
     }
 }
 
 extension CampaignBrowseViewState.NextScreen: HavingEntities {
-    var entities: [AnyKeyValueStoreEntity] {
+    var entities: [any KeyValueStoreEntity] {
         switch self {
         case .campaignBrowse(let state): return state.entities
         case .encounter(let state): return state.entities
@@ -51,8 +51,8 @@ extension CampaignBrowseViewState.NextScreen: HavingEntities {
 }
 
 extension EncounterDetailViewState: HavingEntities {
-    var entities: [AnyKeyValueStoreEntity] {
-        return [AnyKeyValueStoreEntity(building), AnyKeyValueStoreEntity(running)].compactMap { $0 }
+    var entities: [any KeyValueStoreEntity] {
+        return [building, running.map { $0 as any KeyValueStoreEntity }].compactMap { $0 }
     }
 }
 
@@ -63,11 +63,12 @@ extension KeyValueStore {
     // fixme: naive implementation, might become very slow
     func entityChangeObserver<Environment, State, Action>(initialState: State, reducer: Reducer<State, Action, Environment>) -> Reducer<State, Action, Environment> where State: HavingEntities {
 
+
         var cache: [String: Data] = [:]
 
         for e in initialState.entities {
             if let encoded = try? Self.encoder.encode(e) {
-                cache[e.key] = encoded
+                cache[e.rawKey] = encoded
             }
         }
 
@@ -76,13 +77,13 @@ extension KeyValueStore {
             let effects = reducer.callAsFunction(&state, action, environment)
 
             // fixme: use effects for saving?
-            state.entities.compactMap { e -> (AnyKeyValueStoreEntity, Data)? in
+            state.entities.compactMap { e -> (any KeyValueStoreEntity, Data)? in
                 guard let encoded = try? Self.encoder.encode(e) else { return nil }
 
-                if cache[e.key] == nil {
+                if cache[e.rawKey] == nil {
                     // new entity
                     return (e, encoded)
-                } else if let encoded = try? Self.encoder.encode(e), encoded != cache[e.key] {
+                } else if let encoded = try? Self.encoder.encode(e), encoded != cache[e.rawKey] {
                     // entity changed
                     return (e, encoded)
                 }
@@ -90,9 +91,9 @@ extension KeyValueStore {
             }.forEach { entityAndData in
                 do {
                     try self.put(entityAndData.0)
-                    cache[entityAndData.0.key] = entityAndData.1
+                    cache[entityAndData.0.rawKey] = entityAndData.1
                 } catch {
-                    print("Failed saving changed entity with key \(entityAndData.0.key). Error: \(error)")
+                    print("Failed saving changed entity with key \(entityAndData.0.rawKey). Error: \(error)")
                 }
             }
             return effects

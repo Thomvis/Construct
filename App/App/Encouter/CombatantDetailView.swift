@@ -16,6 +16,7 @@ import SharedViews
 import Helpers
 import DiceRollerFeature
 import GameModels
+import ActionResolutionFeature
 
 struct CombatantDetailContainerView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode
@@ -297,26 +298,30 @@ struct CombatantDetailView: View {
     }
 
     func contentView(for combatant: Combatant) -> some View {
-        combatant.definition.stats.map { stats in
-            StatBlockView(stats: stats, onTap: { target in
-                switch target {
-                case .ability(let a):
-                    let modifier: Int = stats.abilityScores?.score(for: a).modifier.modifier ?? 0
-                    self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, combatant: combatant, environment: self.env), rollOnAppear: true))))
-                case .skill(let s):
-                    let modifier: Int = stats.skillModifier(s).modifier
-                    self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, combatant: combatant, environment: self.env), rollOnAppear: true))))
-                case .action(let a, let p):
-                    if let action = DiceAction(title: a.name, parsedAction: p, env: env) {
-                        self.viewStore.send(.popover(.diceAction(DiceActionViewState(creatureName: combatant.discriminatedName, action: action))))
-                    }
-                case .rollCheck(let e):
-                    self.viewStore.send(.popover(.rollCheck(DiceCalculatorState.rollingExpression(e, rollOnAppear: true))))
-                case .compendiumItemReferenceTextAnnotation(let annotation):
-                    self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(annotation, appNavigation))
-                }
-            })
-        }
+        let stats = combatant.definition.stats
+        return StatBlockView(stats: stats, onTap: { target in
+            switch target {
+            case .ability(let a):
+                let modifier: Int = stats.abilityScores?.score(for: a).modifier.modifier ?? 0
+                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, combatant: combatant, environment: self.env), rollOnAppear: true))))
+            case .skill(let s):
+                let modifier: Int = stats.skillModifier(s).modifier
+                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, combatant: combatant, environment: self.env), rollOnAppear: true))))
+            case .action(let action):
+                let state = ActionResolutionViewState(
+                    creatureStats: apply(combatant.definition.stats) {
+                        $0.name = combatant.discriminatedName
+                    },
+                    action: action,
+                    preferences: env.preferences()
+                )
+                self.viewStore.send(.popover(.diceAction(state)))
+            case .rollCheck(let e):
+                self.viewStore.send(.popover(.rollCheck(DiceCalculatorState.rollingExpression(e, rollOnAppear: true))))
+            case .compendiumItemReferenceTextAnnotation(let annotation):
+                self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(annotation, appNavigation))
+            }
+        })
     }
 
     func latestEvents(_ running: RunningEncounter) -> some View {
@@ -361,7 +366,7 @@ struct CombatantDetailView: View {
                 }.eraseToAnyView
             case .diceAction:
                 return IfLetStore(store.scope(state: { $0.diceActionPopoverState }, action: { .diceActionPopover($0) })) { store in
-                    DiceActionView(store: store)
+                    ActionResolutionView(store: store)
                 }.eraseToAnyView
             case .tagDetails(let tag):
                 return CombatantTagPopover(running: self.viewStore.state.runningEncounter, combatant: self.combatant, tag: tag, onEditTap: {

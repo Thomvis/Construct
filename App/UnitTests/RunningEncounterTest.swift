@@ -133,15 +133,15 @@ class RunningEncounterTest: XCTestCase {
     var encounter1: RunningEncounter {
         let encounter = Encounter(name: "", combatants: [
             Combatant(
-                definition: AdHocCombatantDefinition(id: UUID().tagged()),
+                definition: AdHocCombatantDefinition(id: UUID().tagged(), stats: .default),
                 initiative: 20
             ),
             Combatant(
-                definition: AdHocCombatantDefinition(id: UUID().tagged()),
+                definition: AdHocCombatantDefinition(id: UUID().tagged(), stats: .default),
                 initiative: 15
             ),
             Combatant(
-                definition: AdHocCombatantDefinition(id: UUID().tagged()),
+                definition: AdHocCombatantDefinition(id: UUID().tagged(), stats: .default),
                 initiative: 10
             )
         ])

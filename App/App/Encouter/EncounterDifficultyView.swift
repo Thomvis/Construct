@@ -151,7 +151,7 @@ extension EncounterDifficultyView {
                 !encounter.combatants.isEmpty,
                 let difficulty = EncounterDifficulty(
                     party: encounter.partyWithEntriesForDifficulty.1,
-                    monsters: encounter.combatants.compactMap { $0.definition.stats?.challengeRating }
+                    monsters: encounter.combatants.compactMap { $0.definition.stats.challengeRating }
                 ) else {
                     return nil
                 }

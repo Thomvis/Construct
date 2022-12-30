@@ -85,3 +85,18 @@ extension DatabaseCompendium {
         try KeyValueStore.put(entry, fts: entry.ftsDocument, in: db)
     }
 }
+
+public extension KeyValueStore {
+    func get(_ itemKey: CompendiumItemKey) throws -> CompendiumEntry? {
+        return try get(CompendiumEntry.key(for: itemKey))
+    }
+
+    @discardableResult
+    func remove(_ itemKey: CompendiumItemKey) throws -> Bool {
+        try remove(CompendiumEntry.key(for: itemKey))
+    }
+
+    func get(_ itemKey: CompendiumItemKey, crashReporter: CrashReporter) throws -> CompendiumEntry? {
+        try get(CompendiumEntry.key(for: itemKey), crashReporter: crashReporter)
+    }
+}

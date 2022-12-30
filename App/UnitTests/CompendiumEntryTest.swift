@@ -16,6 +16,6 @@ class CompendiumEntryTest: XCTestCase {
     func testKey() {
         let itemKey = CompendiumItemKey(type: .character, realm: .core, identifier: "123")
         let entryKey = CompendiumEntry.key(for: itemKey)
-        XCTAssertEqual(itemKey, CompendiumItemKey(compendiumEntryKey: entryKey))
+        XCTAssertEqual(itemKey, CompendiumItemKey(compendiumEntryKey: entryKey.rawValue))
     }
 }

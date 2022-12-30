@@ -46,7 +46,7 @@ class CampaignBrowser {
 
     func move(_ node: CampaignNode, to destination: CampaignNode) throws {
         var newNode = node
-        newNode.parentKeyPrefix = destination.keyPrefixForChildren
+        newNode.parentKeyPrefix = destination.keyPrefixForChildren.rawValue
 
         try store.put(newNode)
         try store.remove(node.key)
@@ -54,6 +54,6 @@ class CampaignBrowser {
 
     /// Returns the total number of nodes
     func nodeCount() throws -> Int {
-        return try store.count(CampaignNode.keyPrefix.rawValue)
+        return try store.count(CampaignNode.keyPrefix)
     }
 }

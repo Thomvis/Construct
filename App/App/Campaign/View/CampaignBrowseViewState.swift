@@ -209,7 +209,7 @@ extension CampaignBrowseViewState {
 
     var isMoveOrigin: Bool {
         guard case .move(let nodes) = mode, let node = nodes.first else { return false }
-        return node.parentKeyPrefix == self.node.keyPrefixForChildren
+        return node.parentKeyPrefix == self.node.keyPrefixForChildren.rawValue
     }
 
     func isBeingMoved(_ node: CampaignNode) -> Bool {
@@ -292,7 +292,7 @@ extension CampaignBrowseViewState {
                                 env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                             }
 
-                            contents = CampaignNode.Contents(key: encounter.key, type: .encounter)
+                            contents = CampaignNode.Contents(key: encounter.key.rawValue, type: .encounter)
                         }
 
                         do {
@@ -301,7 +301,7 @@ extension CampaignBrowseViewState {
                                 title: title,
                                 contents: contents,
                                 special: nil,
-                                parentKeyPrefix: node.keyPrefixForChildren
+                                parentKeyPrefix: node.keyPrefixForChildren.rawValue
                             ))
                         } catch {
                             env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))

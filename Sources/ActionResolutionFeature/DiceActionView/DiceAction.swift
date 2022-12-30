@@ -11,21 +11,22 @@ import ComposableArchitecture
 import Dice
 import DiceRollerFeature
 import GameModels
+import Helpers
 
-struct DiceAction: Hashable {
+public struct DiceAction: Hashable {
     let title: String
     let subtitle: String
     var steps: IdentifiedArray<UUID, Step>
 
-    struct Step: Hashable, Identifiable {
-        let id = UUID()
+    public struct Step: Hashable, Identifiable {
+        public let id = UUID()
         let title: String
         var value: Value?
 
-        enum Value: Hashable {
+        public enum Value: Hashable {
             case roll(RollValue)
 
-            struct RollValue: Hashable {
+            public struct RollValue: Hashable {
                 let roll: Roll
                 var type: RollType = .normal
 
@@ -36,13 +37,32 @@ struct DiceAction: Hashable {
 
                 var expression: DiceExpression {
                     switch roll {
-                    case .abilityCheck(let m): return 1.d(20) + m
-                    case .other(let e): return e
+                    case .toHit(let m): return 1.d(20) + m.modifier
+                    case .damage(let d): return d.damageExpression ?? .number(d.staticDamage)
                     }
                 }
 
-                var isAbilityCheck: Bool {
-                    guard case .abilityCheck = roll else { return false }
+                var result: RolledDiceExpression? {
+                    guard let first = first.result else { return nil }
+                    guard let second = second?.result else { return first }
+
+                    switch type {
+                    case .disadvantage:
+                        if second.total < first.total {
+                            return second
+                        }
+                    case .advantage:
+                        if second.total > first.total {
+                            return second
+                        }
+                    default: break
+                    }
+
+                    return first
+                }
+
+                var isToHit: Bool {
+                    guard case .toHit = roll else { return false }
                     return true
                 }
 
@@ -62,18 +82,18 @@ struct DiceAction: Hashable {
                     }
                 }
 
-                enum Roll: Hashable {
-                    case abilityCheck(Int)
-                    case other(DiceExpression)
+                public enum Roll: Hashable {
+                    case toHit(Modifier)
+                    case damage(ParsedCreatureAction.Model.ActionEffect.Damage)
                 }
 
-                enum RollType: Hashable {
+                public enum RollType: Hashable {
                     case normal
                     case disadvantage
                     case advantage
                 }
 
-                enum Details: Hashable {
+                public enum Details: Hashable {
                     case firstRoll
                     case secondRoll
 
@@ -139,7 +159,7 @@ struct DiceAction: Hashable {
 }
 
 extension DiceAction {
-    init?(title: String, parsedAction: ParsedCreatureAction.Model, env: Environment) {
+    init?(title: String, parsedAction: ParsedCreatureAction.Model) {
         guard case .weaponAttack(let attack) = parsedAction else { return nil }
 
         self.init(
@@ -147,8 +167,8 @@ extension DiceAction {
             subtitle: "\(attack.type == .melee ? "Melee" : "Ranged") weapon attack",
             steps: IdentifiedArray(uniqueElements: [
                 Step(
-                    title: "\(env.modifierFormatter.stringWithFallback(for: attack.hitModifier.modifier)) to hit",
-                    value: .roll(Step.Value.RollValue(roll: .abilityCheck(attack.hitModifier.modifier)))
+                    title: "\(modifierFormatter.stringWithFallback(for: attack.hitModifier.modifier)) to hit",
+                    value: .roll(Step.Value.RollValue(roll: .toHit(attack.hitModifier)))
                 )
             ] + attack.effects.flatMap { effect -> [Step] in
                 switch effect {
@@ -172,7 +192,7 @@ extension DiceAction.Step {
     init(damage: ParsedCreatureAction.Model.ActionEffect.Damage) {
         self.init(
             title: "\(damage.staticDamage)" + (damage.damageExpression.map { " (\($0))" } ?? "") + " \(damage.type) damage",
-            value: .roll(Value.RollValue(roll: .other(damage.damageExpression ?? .number(damage.staticDamage))))
+            value: .roll(Value.RollValue(roll: .damage(damage)))
         )
     }
 }

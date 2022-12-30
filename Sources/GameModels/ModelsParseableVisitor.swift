@@ -48,7 +48,7 @@ extension Combatant: HasParseableVisitor {
 
 extension AdHocCombatantDefinition {
     static let parseableVisitor: ParseableVisitor<AdHocCombatantDefinition> = .combine(
-        StatBlock.parseableVisitor.ifSome().pullback(state: \.stats, action: CasePath.`self`)
+        StatBlock.parseableVisitor.pullback(state: \.stats, action: CasePath.`self`)
     )
 }
 

@@ -18,6 +18,7 @@ import Helpers
 import Persistence
 import Compendium
 import GameModels
+import MechMuse
 
 class Environment: ObservableObject {
 
@@ -26,7 +27,7 @@ class Environment: ObservableObject {
     var database: Database
 
     var canSendMail: () -> Bool
-    var sendMail: () -> Void
+    var sendMail: (FeedbackMailContents) -> Void
     var rateInAppStore: () -> Void
     var requestAppStoreReview: () -> Void
 
@@ -40,15 +41,15 @@ class Environment: ObservableObject {
     var dismissKeyboard: () -> Void
 
     var diceLog: DiceLogPublisher
-
     var crashReporter: CrashReporter
+    var mechMuse: MechMuse
 
     internal init(
         modifierFormatter: NumberFormatter,
         ordinalFormatter: NumberFormatter,
         database: Database,
         canSendMail: @escaping () -> Bool,
-        sendMail: @escaping () -> Void,
+        sendMail: @escaping (FeedbackMailContents) -> Void,
         rateInAppStore: @escaping () -> Void,
         requestAppStoreReview: @escaping () -> Void,
         isIdleTimerDisabled: Binding<Bool>,
@@ -58,7 +59,8 @@ class Environment: ObservableObject {
         backgroundQueue: AnySchedulerOf<DispatchQueue>,
         dismissKeyboard: @escaping () -> Void,
         diceLog: DiceLogPublisher,
-        crashReporter: CrashReporter
+        crashReporter: CrashReporter,
+        mechMuse: MechMuse
     ) {
         self.modifierFormatter = modifierFormatter
         self.ordinalFormatter = ordinalFormatter
@@ -75,6 +77,7 @@ class Environment: ObservableObject {
         self.dismissKeyboard = dismissKeyboard
         self.diceLog = diceLog
         self.crashReporter = crashReporter
+        self.mechMuse = mechMuse
     }
 
     var compendium: Compendium {
@@ -111,19 +114,27 @@ extension Environment {
         }
 
         return Environment(
-            modifierFormatter: Construct.modifierFormatter,
+            modifierFormatter: Helpers.modifierFormatter,
             ordinalFormatter: apply(NumberFormatter()) { f in
                 f.numberStyle = .ordinal
             },
             database: database,
             canSendMail: { MFMailComposeViewController.canSendMail() },
-            sendMail: {
+            sendMail: { contents in
                 let composeVC = MFMailComposeViewController()
                 composeVC.mailComposeDelegate = mailComposeDelegate
 
                 // Configure the fields of the interface.
                 composeVC.setToRecipients(["hello@construct5e.app"])
-                composeVC.setSubject("Construct feedback")
+                composeVC.setSubject(contents.subject)
+
+                for attachment in contents.attachments {
+                    composeVC.addAttachmentData(
+                        attachment.data,
+                        mimeType: attachment.mimeType,
+                        fileName: attachment.fileName
+                    )
+                }
 
                 // Present the view controller modally.
                 keyWindow()?.rootViewController?.deepestPresentedViewController.present(composeVC, animated: true, completion:nil)
@@ -151,7 +162,8 @@ extension Environment {
                 keyWindow()?.endEditing(true)
             },
             diceLog: DiceLogPublisher(),
-            crashReporter: CrashReporter.appCenter
+            crashReporter: CrashReporter.appCenter,
+            mechMuse: .live(db: database)
         )
     }
 
@@ -173,7 +185,7 @@ extension Database {
 
 extension UIViewController {
     var deepestPresentedViewController: UIViewController {
-        presentedViewController ?? self
+        presentedViewController?.deepestPresentedViewController ?? self
     }
 }
 
@@ -185,7 +197,7 @@ struct AnyRandomNumberGenerator: RandomNumberGenerator {
     }
 }
 
-extension Environment {
+extension EnvironmentWithDatabase {
     func preferences() -> Preferences {
         (try? database.keyValueStore.get(Preferences.key)) ?? Preferences()
     }
@@ -197,10 +209,6 @@ extension Environment {
     }
 }
 
-extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog {
+extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse, EnvironmentWithDatabase, EnvironmentWithSendMail {
 
-}
-
-public let modifierFormatter: NumberFormatter = apply(NumberFormatter()) { f in
-    f.positivePrefix = f.plusSign
 }
