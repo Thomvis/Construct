@@ -198,6 +198,8 @@ extension EncounterDetailViewState {
         case showAddCombatantReferenceItem
         case didDismissReferenceItem(TabbedDocumentViewContentItem.Id)
 
+        case onFeedbackButtonTap
+
         enum SelectionEncounterAction: Hashable {
             case duplicate
             case remove
@@ -368,6 +370,24 @@ extension EncounterDetailViewState {
                     } else if state.combatantDetailReferenceItemRequest?.id == id {
                         state.combatantDetailReferenceItemRequest = nil
                     }
+                case .onFeedbackButtonTap:
+                    guard env.canSendMail() else { break }
+
+                    let currentState = state
+                    return Effect.run(operation: { @MainActor send in
+                        try await Task.sleep(for: .seconds(0.1)) // delay for a bit so the menu has disappeared
+                        
+                        env.sendMail(.init(
+                            subject: "Encounter Feedback",
+                            attachment: Array(builder: {
+                                FeedbackMailContents.Attachment(customDump: currentState)
+
+                                if let imageData = env.screenshot()?.pngData() {
+                                    FeedbackMailContents.Attachment(data: imageData, mimeType: "image/png", fileName: "view.png")
+                                }
+                            })
+                        ))
+                    })
                 }
                 return .none
             },

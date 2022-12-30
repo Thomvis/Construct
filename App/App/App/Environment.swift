@@ -39,6 +39,7 @@ class Environment: ObservableObject {
     var backgroundQueue: AnySchedulerOf<DispatchQueue>
 
     var dismissKeyboard: () -> Void
+    var screenshot: () -> UIImage?
 
     var diceLog: DiceLogPublisher
     var crashReporter: CrashReporter
@@ -58,6 +59,7 @@ class Environment: ObservableObject {
         mainQueue: AnySchedulerOf<DispatchQueue>,
         backgroundQueue: AnySchedulerOf<DispatchQueue>,
         dismissKeyboard: @escaping () -> Void,
+        screenshot: @escaping () -> (UIImage?),
         diceLog: DiceLogPublisher,
         crashReporter: CrashReporter,
         mechMuse: MechMuse
@@ -75,6 +77,7 @@ class Environment: ObservableObject {
         self.mainQueue = mainQueue
         self.backgroundQueue = backgroundQueue
         self.dismissKeyboard = dismissKeyboard
+        self.screenshot = screenshot
         self.diceLog = diceLog
         self.crashReporter = crashReporter
         self.mechMuse = mechMuse
@@ -160,6 +163,15 @@ extension Environment {
             backgroundQueue: backgroundQueue ?? DispatchQueue.global(qos: .userInitiated).eraseToAnyScheduler(),
             dismissKeyboard: {
                 keyWindow()?.endEditing(true)
+            },
+            screenshot: { () -> UIImage? in
+                guard let window = keyWindow() else { return nil }
+
+                UIGraphicsBeginImageContextWithOptions(window.frame.size, true, 0.0)
+                defer { UIGraphicsEndImageContext() }
+
+                window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+                return UIGraphicsGetImageFromCurrentImageContext()
             },
             diceLog: DiceLogPublisher(),
             crashReporter: CrashReporter.appCenter,

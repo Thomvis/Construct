@@ -74,37 +74,19 @@ struct EncounterDetailView: View {
             }
         }
         .listStyle(GroupedListStyle())
-        .environment(\.defaultMinListRowHeight, 0) // this fixed the CombatantRow height
+        .environment(\.defaultMinListRowHeight, 0.0) // this fixed the CombatantRow height
         .environment(\.editMode, Binding(get: {
             self.viewStore.state.editMode
         }, set: {
             self.viewStore.send(.editMode($0))
         }))
         .safeAreaInset(edge: .bottom) {
-            Group {
-                if viewStore.state.running == nil {
-                    if viewStore.state.editMode == .active {
-                        buildingEditModeActionBar()
-                    } else {
-                        defaultActionBar()
-                    }
-                } else {
-                    if viewStore.state.editMode == .active {
-                        runningEditModeActionBar()
-                    } else {
-                        RunningEncounterActionBar(viewStore: viewStore)
-                    }
-                }
-            }
-            .ignoresSafeArea(.keyboard, edges: .all)
-            .padding(8)
+            actionBar()
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-        .navigationBarItems(trailing: Button(action: {
-            self.viewStore.send(.editMode(self.viewStore.state.editMode.isEditing ? .inactive : .active), animation: .default)
-        }) {
-            Text(self.viewStore.state.editMode.isEditing ? "Done" : "Edit")
-        })
+        .toolbar {
+            toolbar()
+        }
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, onDismiss: {
             self.viewStore.send(.sheet(nil))
         }, content: self.sheetView)
@@ -112,6 +94,27 @@ struct EncounterDetailView: View {
         .onAppear {
             self.viewStore.send(.onAppear)
         }
+    }
+
+    @ViewBuilder
+    func actionBar() -> some View {
+        Group {
+            if viewStore.state.running == nil {
+                if viewStore.state.editMode == .active {
+                    buildingEditModeActionBar()
+                } else {
+                    defaultActionBar()
+                }
+            } else {
+                if viewStore.state.editMode == .active {
+                    runningEditModeActionBar()
+                } else {
+                    RunningEncounterActionBar(viewStore: viewStore)
+                }
+            }
+        }
+        .ignoresSafeArea(.keyboard, edges: .all)
+        .padding(8)
     }
 
     func defaultActionBar() -> some View {
@@ -259,6 +262,33 @@ struct EncounterDetailView: View {
                 Label("Health...", systemImage: "suit.heart")
             }
             .disabled(viewStore.state.selection.isEmpty)
+        }
+    }
+
+    @ToolbarContentBuilder
+    func toolbar() -> some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+            Button(action: {
+                self.viewStore.send(.editMode(self.viewStore.state.editMode.isEditing ? .inactive : .active), animation: .default)
+            }) {
+                Text(self.viewStore.state.editMode.isEditing ? "Done" : "Edit")
+            }
+
+            Menu {
+                Button {
+                    viewStore.send(.sheet(.settings))
+                } label: {
+                    Label("Settings", systemImage: "gear")
+                }
+
+                Button {
+                    viewStore.send(.onFeedbackButtonTap)
+                } label: {
+                    Label("Feedback…", systemImage: "exclamationmark.bubble")
+                }
+            } label: {
+                Label("Actions", systemImage: "ellipsis.circle")
+            }
         }
     }
 
