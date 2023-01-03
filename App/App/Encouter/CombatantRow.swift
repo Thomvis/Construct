@@ -82,6 +82,10 @@ struct CombatantRow: View {
     var secondaryText: Text? {
         var components: [Text] = []
 
+        if let nickname = combatant.characteristics?.nickname {
+            components.append(Text("“\(nickname)”"))
+        }
+
         if !combatant.tags.isEmpty, let string = ListFormatter().string(from: combatant.tags.map { $0.title }) {
             components.append(Text(verbatim: string))
         }

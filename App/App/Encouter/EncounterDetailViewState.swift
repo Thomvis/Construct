@@ -14,6 +14,7 @@ import ComposableArchitecture
 import Helpers
 import Persistence
 import GameModels
+import MechMuse
 
 struct EncounterDetailViewState: Equatable {
     var building: Encounter {
@@ -198,6 +199,9 @@ extension EncounterDetailViewState {
         case showAddCombatantReferenceItem
         case didDismissReferenceItem(TabbedDocumentViewContentItem.Id)
 
+        case generateCombatantCharacteristics
+        case didGenerateCombatantCharacteristics(EncounterCombatantsDescription)
+
         case onFeedbackButtonTap
 
         enum SelectionEncounterAction: Hashable {
@@ -370,13 +374,34 @@ extension EncounterDetailViewState {
                     } else if state.combatantDetailReferenceItemRequest?.id == id {
                         state.combatantDetailReferenceItemRequest = nil
                     }
+                case .generateCombatantCharacteristics:
+                    return Effect.run(operation: { [state] send in
+                        let combatantNames = state.encounter.combatants.filter { c in
+                            !c.definition.isUnique && c.definition.player == nil
+                        }.map(\.discriminatedName)
+
+                        let request = EncounterCombatantsDescriptionRequest(combatantNames: combatantNames)
+                        let description = try await env.mechMuse.describe(combatants: request)
+                        await send(.didGenerateCombatantCharacteristics(description))
+                    })
+                case .didGenerateCombatantCharacteristics(let description):
+                    for c in state.encounter.combatants {
+                        if let d = description.descriptions[c.discriminatedName] {
+                            state.encounter.combatants[id: c.id]?.characteristics = .init(
+                                appearance: d.appearance,
+                                behavior: d.behavior,
+                                nickname: d.nickname,
+                                generatedByMechMuse: true
+                            )
+                        }
+                    }
                 case .onFeedbackButtonTap:
                     guard env.canSendMail() else { break }
 
                     let currentState = state
                     return Effect.run(operation: { @MainActor send in
                         try await Task.sleep(for: .seconds(0.1)) // delay for a bit so the menu has disappeared
-                        
+
                         env.sendMail(.init(
                             subject: "Encounter Feedback",
                             attachment: Array(builder: {

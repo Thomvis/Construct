@@ -18,11 +18,11 @@ final class CreatureActionDescriptionTest: XCTestCase {
                 stats: StatBlock(name: "Goblin"),
                 challengeRating: .oneEighth
             ),
-            action: .init(input: CreatureAction(
+            action: CreatureAction(
                 id: UUID(),
                 name: "Shortbow",
                 description: "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage."
-            ))
+            )
         )
 
         XCTAssertEqual(request.prompt(toneOfVoice: .gritty), """

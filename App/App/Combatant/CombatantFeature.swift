@@ -21,6 +21,7 @@ enum CombatantAction: Equatable {
     case removeTag(CombatantTag)
     case reset(hp: Bool, initiative: Bool, resources: Bool, tags: Bool)
     case setDefinition(Combatant.CodableCombatDefinition)
+    case removeCharacteristics
 
     var hp: Hp.Action? {
         get {
@@ -66,6 +67,8 @@ Reducer { state, action, _ in
             state.discriminator = nil
         }
         state.definition = def.definition
+    case .removeCharacteristics:
+        state.characteristics = nil
     }
     return .none
 },

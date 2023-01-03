@@ -208,12 +208,6 @@ struct EncounterDetailView: View {
     func buildingEditModeActionBar() -> some View {
         return RoundedButtonToolbar {
             Button(action: {
-                self.viewStore.send(.sheet(.settings))
-            }) {
-                Label("Settings", systemImage: "gear")
-            }
-
-            Button(action: {
                 self.viewStore.send(.selectionEncounterAction(.duplicate))
             }) {
                 Label("Duplicate", systemImage: "plus.square.on.square")
@@ -274,20 +268,28 @@ struct EncounterDetailView: View {
                 Text(self.viewStore.state.editMode.isEditing ? "Done" : "Edit")
             }
 
-            Menu {
-                Button {
-                    viewStore.send(.sheet(.settings))
-                } label: {
-                    Label("Settings", systemImage: "gear")
-                }
+            if viewStore.state.running == nil {
+                Menu {
+                    Button {
+                        viewStore.send(.generateCombatantCharacteristics)
+                    } label: {
+                        Label("Individualize Monsters", systemImage: "quote.bubble")
+                    }
 
-                Button {
-                    viewStore.send(.onFeedbackButtonTap)
+                    Button {
+                        viewStore.send(.sheet(.settings))
+                    } label: {
+                        Label("Settings", systemImage: "gear")
+                    }
+
+                    Divider()
+
+                    FeedbackMenuButton {
+                        viewStore.send(.onFeedbackButtonTap)
+                    }
                 } label: {
-                    Label("Feedback…", systemImage: "exclamationmark.bubble")
+                    Label("Actions", systemImage: "ellipsis.circle")
                 }
-            } label: {
-                Label("Actions", systemImage: "ellipsis.circle")
             }
         }
     }
@@ -478,6 +480,15 @@ struct CombatantSection: View {
         for i in indices {
             parent.viewStore.send(.encounter(.remove(combatants[i])))
         }
+    }
+}
+
+@ViewBuilder
+func FeedbackMenuButton(action: @escaping () -> Void) -> some View {
+    Button {
+        action()
+    } label: {
+        Label("Feedback…", systemImage: "exclamationmark.bubble")
     }
 }
 

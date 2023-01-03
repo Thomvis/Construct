@@ -15,14 +15,20 @@ import GameModels
 public struct ActionDescriptionViewState: Equatable {
     public typealias AsyncDescription = ResultSet<RequestInput?, String, Error>
 
+    let encounterContext: ActionResolutionViewState.EncounterContext?
     @BindableState var context: Context
     @BindableState var settings: Settings = .init(toneOfVoice: .gritty, outcome: nil, impact: .average)
 
     private var description: AsyncDescription = .init(input: nil)
     private var cache: [RequestInput: String] = [:]
 
-    public init(creature: StatBlock, action: CreatureAction) {
-        self.context = .init(creature: creature, action: action)
+    init(
+        encounterContext: ActionResolutionViewState.EncounterContext? = nil,
+        creature: StatBlock,
+        action: CreatureAction
+    ) {
+        self.encounterContext = encounterContext
+        self.context = Context(creature: creature, action: action)
     }
 
     var descriptionString: String? {
@@ -90,7 +96,6 @@ public struct ActionDescriptionViewState: Equatable {
         let creature: StatBlock
         let action: CreatureAction
         var diceAction: DiceAction? = nil
-        let encounter: Encounter? = nil
     }
 
     // configurable in this view
@@ -201,11 +206,11 @@ extension ActionDescriptionViewState {
         return effectiveOutcome.map { outcome in
             RequestInput(
                 request: CreatureActionDescriptionRequest(
-                    creatureName: context.creature.name,
+                    creatureName: encounterContext?.combatant.name ?? context.creature.name,
                     isUniqueCreature: false, // todo
-                    creatureDescription: CreatureActionDescriptionRequest.creatureDescription(from: context.creature),
+                    creatureDescription: encounterContext?.creatureDescription ?? CreatureActionDescriptionRequest.creatureDescription(from: context.creature),
                     creatureCondition: nil,
-                    encounter: context.encounter.map {
+                    encounter: (encounterContext?.encounter).map {
                         .init(name: $0.name, actionSetUp: nil)
                     },
                     actionName: context.action.name,
@@ -220,6 +225,19 @@ extension ActionDescriptionViewState {
 
 enum ActionDescriptionViewStateError: Swift.Error {
     case missingInput
+}
+
+extension ActionResolutionViewState.EncounterContext {
+    var creatureDescription: String? {
+        guard let c = combatant.characteristics else { return nil }
+
+        switch (c.appearance, c.behavior) {
+        case let (a?, b?): return "\(a), \(b)"
+        case let (a?, nil): return a
+        case let (nil, b?): return b
+        case (nil, nil): return nil
+        }
+    }
 }
 
 extension DiceAction {

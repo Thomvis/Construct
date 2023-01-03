@@ -15,6 +15,7 @@ import Persistence
 import SwiftUI
 
 public struct ActionResolutionViewState: Equatable {
+    let encounterContext: EncounterContext?
     let action: ParseableCreatureAction
     private let preferences: Preferences
 
@@ -22,7 +23,13 @@ public struct ActionResolutionViewState: Equatable {
     var diceAction: DiceActionViewState?
     var muse: ActionDescriptionViewState
 
-    public init(creatureStats: StatBlock, action: ParseableCreatureAction, preferences: Preferences) {
+    public init(
+        encounterContext: EncounterContext? = nil,
+        creatureStats: StatBlock,
+        action: ParseableCreatureAction,
+        preferences: Preferences
+    ) {
+        self.encounterContext = encounterContext
         self.action = action
         self.preferences = preferences
 
@@ -34,7 +41,7 @@ public struct ActionResolutionViewState: Equatable {
                 action: $0
             )
         }
-        self.muse = .init(creature: creatureStats, action: action.input)
+        self.muse = .init(encounterContext: encounterContext, creature: creatureStats, action: action.input)
     }
 
     var heading: String {
@@ -47,6 +54,16 @@ public struct ActionResolutionViewState: Equatable {
 
     var isMuseEnabled: Bool {
         preferences.mechMuse.enabled
+    }
+
+    public struct EncounterContext: Equatable {
+        let encounter: Encounter?
+        let combatant: Combatant
+
+        public init(encounter: Encounter?, combatant: Combatant) {
+            self.encounter = encounter
+            self.combatant = combatant
+        }
     }
 
     enum Mode: Equatable {

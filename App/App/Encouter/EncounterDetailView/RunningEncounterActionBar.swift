@@ -27,19 +27,17 @@ struct RunningEncounterActionBar: View {
                     Label("Previous turn", systemImage: "backward.frame")
                 }
 
-                if !(viewStore.state.running?.log ?? []).isEmpty {
-                    Button(action: {
-                        viewStore.send(.sheet(.runningEncounterLog(RunningEncounterLogViewState(encounter: viewStore.state.running!, context: nil))))
-                    }) {
-                        Label("Show log", systemImage: "doc.plaintext")
-                    }
+                Button(action: {
+                    viewStore.send(.sheet(.runningEncounterLog(RunningEncounterLogViewState(encounter: viewStore.state.running!, context: nil))))
+                }) {
+                    Label("Show log", systemImage: "doc.plaintext")
                 }
 
                 if !viewStore.state.encounter.initiativeOrder.isEmpty {
                     Button(action: {
                         viewStore.send(.popover(.encounterInitiative))
                     }) {
-                        Label("Re-roll initiative...", systemImage: "hare")
+                        Label("Re-roll initiative…", systemImage: "hare")
                     }
                 }
 
@@ -50,6 +48,10 @@ struct RunningEncounterActionBar: View {
                 }
 
                 Divider()
+
+                FeedbackMenuButton {
+                    viewStore.send(.onFeedbackButtonTap)
+                }
 
                 Button(action: {
                     viewStore.send(.stop, animation: .default)

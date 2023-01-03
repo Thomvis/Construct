@@ -127,6 +127,43 @@ struct CombatantDetailView: View {
                         .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
                     }.equalSizes(horizontal: false, vertical: true)
 
+                    if combatant.hasCharacteristics {
+                        SectionContainer(
+                            title: "Characteristics",
+                            accessory: Menu("Manage", content: {
+                                Button(role: .destructive) {
+                                    viewStore.send(.combatant(.removeCharacteristics), animation: .default)
+                                } label: {
+                                    Label("Remove", systemImage: "clear")
+                                }
+
+                                Text("Editing is not yet supported")
+                            }),
+                            footer: {
+                                if combatant.characteristics?.generatedByMechMuse == true {
+                                    HStack {
+                                        Spacer()
+                                        Text("Mechanical Muse").font(.footnote)
+                                    }
+                                }
+                            }
+                        ) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                if let appearance = combatant.characteristics?.appearance {
+                                    StatBlockView.line(title: "Appearance", text: appearance)
+                                }
+
+                                if let behavior = combatant.characteristics?.behavior {
+                                    StatBlockView.line(title: "Behavior", text: behavior)
+                                }
+
+                                if let nickname = combatant.characteristics?.nickname {
+                                    StatBlockView.line(title: "Nickname", text: nickname)
+                                }
+                            }
+                        }
+                    }
+
                     SectionContainer(
                         title: "Tags",
                         accessory: Button(action: {
@@ -169,11 +206,7 @@ struct CombatantDetailView: View {
                         accessory: Button {
                             viewStore.send(.editCreatureConfirmingUnlinkIfNeeded)
                         } label: {
-                            if combatant.definition is CompendiumCombatantDefinition {
-                                Text("Edit...")
-                            } else {
-                                Text("Edit")
-                            }
+                            Text("Edit")
                         }
                     ) {
                         contentView(for: combatant)
@@ -309,6 +342,10 @@ struct CombatantDetailView: View {
                 self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, combatant: combatant, environment: self.env), rollOnAppear: true))))
             case .action(let action):
                 let state = ActionResolutionViewState(
+                    encounterContext: .init(
+                        encounter: viewStore.state.runningEncounter?.current,
+                        combatant: combatant
+                    ),
                     creatureStats: apply(combatant.definition.stats) {
                         $0.name = combatant.discriminatedName
                     },

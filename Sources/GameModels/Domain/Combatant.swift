@@ -32,6 +32,8 @@ public struct Combatant: Equatable, Codable, Identifiable {
     public var initiative: Int?
     public var tags: [CombatantTag] = []
 
+    public var characteristics: Characteristics?
+
     public var party: CompendiumItemReference?
 
     public init(discriminator: Int? = nil, definition: CombatantDefinition, hp: Hp? = nil, resources: [CombatantResource] = [], initiative: Int? = nil, party: CompendiumItemReference? = nil) {
@@ -247,6 +249,27 @@ public extension CombatantResource {
         self.slots = Array(repeating: false, count: slotCount)
     }
     
+}
+
+extension Combatant {
+    /// Things that
+    public struct Characteristics: Codable, Equatable {
+        public var appearance: String?
+        public var behavior: String?
+        public var nickname: String?
+        public var generatedByMechMuse: Bool
+
+        public init(appearance: String?, behavior: String?, nickname: String?, generatedByMechMuse: Bool) {
+            self.appearance = appearance
+            self.behavior = behavior
+            self.nickname = nickname
+            self.generatedByMechMuse = generatedByMechMuse
+        }
+    }
+
+    public var hasCharacteristics: Bool {
+        characteristics?.appearance != nil || characteristics?.behavior != nil || characteristics?.nickname != nil
+    }
 }
 
 public extension StatBlock {
