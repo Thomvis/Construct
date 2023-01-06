@@ -218,9 +218,17 @@ extension AppState.Navigation {
         Reducer { state, action, env in
             switch (state, action) {
             case (.tab, .openEncounter(let e)):
-                return Effect(value: .tab(.campaignBrowser(.setNextScreen(.encounter(EncounterDetailViewState(building: e))))))
+                let detailState = EncounterDetailViewState(
+                    building: e,
+                    isMechMuseEnabled: env.preferences().mechMuse.enabled
+                )
+                return Effect(value: .tab(.campaignBrowser(.setNextScreen(.encounter(detailState)))))
             case (.column, .openEncounter(let e)):
-                return Effect(value: AppStateNavigationAction.column(.campaignBrowse(.setNextScreen(.encounter(EncounterDetailViewState(building: e))))))
+                let detailState = EncounterDetailViewState(
+                    building: e,
+                    isMechMuseEnabled: env.preferences().mechMuse.enabled
+                )
+                return Effect(value: AppStateNavigationAction.column(.campaignBrowse(.setNextScreen(.encounter(detailState)))))
             default:
                 break
             }

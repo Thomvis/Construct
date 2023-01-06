@@ -76,7 +76,10 @@ struct AddCombatantCompendiumView: View {
             HStack {
                 VStack(alignment: .leading) {
                     Text(combatant.title).foregroundColor(Color.primary)
-                    combatant.localizedSummary(in: compendiumIndexViewStore.state, env: parent.env).font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
+                    combatant.localizedSummary(in: compendiumIndexViewStore.state, env: parent.env)
+                        .font(.footnote)
+                        .multilineTextAlignment(.leading)
+                        .foregroundColor(Color(UIColor.secondaryLabel))
                 }
 
                 Spacer()

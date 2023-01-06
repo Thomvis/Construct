@@ -13,7 +13,7 @@ struct Checkbox: View {
     let selected: Bool
     var body: some View {
         Image(systemName: selected ? "checkmark.circle" : "circle")
-            .font(Font.title.weight(.light))
-            .foregroundColor(Color.accentColor)
+            .font(Font.title3.weight(.light))
+            .foregroundColor(selected ? Color.accentColor : Color(UIColor.systemGray2))
     }
 }

@@ -12,11 +12,19 @@ import GameModels
 
 public extension Combatant {
     func discriminatedNameText(discriminatorColor: Color = Color(UIColor.secondaryLabel)) -> Text {
+        Self.discriminatedNameText(name: name, discriminator: discriminator, discriminatorColor: discriminatorColor)
+    }
+
+    static func discriminatedNameText(
+        name: String,
+        discriminator: Int?,
+        discriminatorColor: Color = Color(UIColor.secondaryLabel)
+    ) -> Text {
         let n = Text(name)
         let d = discriminator.map {
             Text(" \($0)").foregroundColor(discriminatorColor)
         } ?? Text("")
 
-        return (n + d).strikethrough(isDead, color: Color(UIColor.systemRed))
+        return n + d
     }
 }

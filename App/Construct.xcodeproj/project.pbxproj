@@ -164,6 +164,8 @@
 		E9D266B62756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */; };
 		E9DEA084293E9359007166C1 /* MechMuse in Frameworks */ = {isa = PBXBuildFile; productRef = E9DEA083293E9359007166C1 /* MechMuse */; };
 		E9E3575128DC822D00484DFA /* CrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E3575028DC822D00484DFA /* CrashReporter.swift */; };
+		E9EDE6B529648D8600026643 /* GenerateCombatantTraitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9EDE6B429648D8600026643 /* GenerateCombatantTraitsView.swift */; };
+		E9EDE6B729648D9600026643 /* GenerateCombatantTraitsViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9EDE6B629648D9600026643 /* GenerateCombatantTraitsViewState.swift */; };
 		E9F1286D28E6D6130040C90C /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = E9F1286C28E6D6130040C90C /* Persistence */; };
 		E9F1286F28E6D8510040C90C /* EntityChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1286E28E6D8510040C90C /* EntityChangeObserver.swift */; };
 		E9F1287328E9B6B00040C90C /* DiceExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1287228E9B6B00040C90C /* DiceExtensions.swift */; };
@@ -344,6 +346,8 @@
 		E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DndBeyondExternalCompendiumTest.swift; sourceTree = "<group>"; };
 		E9DF660C2313A98E005D4FE5 /* InitiativeDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitiativeDialog.swift; sourceTree = "<group>"; };
 		E9E3575028DC822D00484DFA /* CrashReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporter.swift; sourceTree = "<group>"; };
+		E9EDE6B429648D8600026643 /* GenerateCombatantTraitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateCombatantTraitsView.swift; sourceTree = "<group>"; };
+		E9EDE6B629648D9600026643 /* GenerateCombatantTraitsViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateCombatantTraitsViewState.swift; sourceTree = "<group>"; };
 		E9F1286E28E6D8510040C90C /* EntityChangeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityChangeObserver.swift; sourceTree = "<group>"; };
 		E9F1287228E9B6B00040C90C /* DiceExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiceExtensions.swift; sourceTree = "<group>"; };
 		E9F1287428E9BA330040C90C /* EncounterFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterFeature.swift; sourceTree = "<group>"; };
@@ -548,6 +552,8 @@
 			isa = PBXGroup;
 			children = (
 				E97AEE66239786C800569E79 /* RunningEncounterActionBar.swift */,
+				E9EDE6B429648D8600026643 /* GenerateCombatantTraitsView.swift */,
+				E9EDE6B629648D9600026643 /* GenerateCombatantTraitsViewState.swift */,
 			);
 			path = EncounterDetailView;
 			sourceTree = "<group>";
@@ -1016,6 +1022,7 @@
 				E957C08725BEFC110042ECF6 /* AddCombatantCompendiumView.swift in Sources */,
 				E97651D1248AE0AC00C76865 /* CombatantRow.swift in Sources */,
 				E942E01C2480090000170FAC /* CombatantDetailViewState.swift in Sources */,
+				E9EDE6B529648D8600026643 /* GenerateCombatantTraitsView.swift in Sources */,
 				E9819BE324852498005B898E /* CampaignBrowserContainerView.swift in Sources */,
 				E957C08125BB30580042ECF6 /* ReferenceContext.swift in Sources */,
 				E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */,
@@ -1053,6 +1060,7 @@
 				E97651D5248AE2DA00C76865 /* InlineCombatantTagsView.swift in Sources */,
 				E9819BE12482E6AA005B898E /* CombatantResourcesViewState.swift in Sources */,
 				E991F89025449DA8006CE8E8 /* ReferenceViewState.swift in Sources */,
+				E9EDE6B729648D9600026643 /* GenerateCombatantTraitsViewState.swift in Sources */,
 				E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */,
 				E9F1286F28E6D8510040C90C /* EntityChangeObserver.swift in Sources */,
 				E97651D4248AE1CF00C76865 /* CombatantDetailView.swift in Sources */,

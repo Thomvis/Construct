@@ -87,6 +87,7 @@ struct SettingsView: View {
                         .introspectTextField { field in
                             field.clearButtonMode = .whileEditing
                         }
+                        .foregroundColor(Color.secondary)
 
                     VStack {
                         LabeledContent {

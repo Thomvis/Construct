@@ -32,7 +32,7 @@ public struct Combatant: Equatable, Codable, Identifiable {
     public var initiative: Int?
     public var tags: [CombatantTag] = []
 
-    public var characteristics: Characteristics?
+    public var traits: Traits?
 
     public var party: CompendiumItemReference?
 
@@ -63,15 +63,19 @@ public extension Combatant {
     }
 
     var discriminatedName: String {
-        if let discriminator = discriminator {
-            return "\(name) \(discriminator)"
-        }
-        return name
+        Self.discriminatedName(name, discriminator: discriminator)
     }
 
     var isDead: Bool {
         guard let hp = hp else { return false }
         return hp.effective <= 0
+    }
+
+    static func discriminatedName(_ name: String, discriminator: Int?) -> String {
+        if let discriminator = discriminator {
+            return "\(name) \(discriminator)"
+        }
+        return name
     }
 }
 
@@ -253,22 +257,22 @@ public extension CombatantResource {
 
 extension Combatant {
     /// Things that
-    public struct Characteristics: Codable, Equatable {
-        public var appearance: String?
-        public var behavior: String?
+    public struct Traits: Codable, Equatable {
+        public var physical: String?
+        public var personality: String?
         public var nickname: String?
         public var generatedByMechMuse: Bool
 
-        public init(appearance: String?, behavior: String?, nickname: String?, generatedByMechMuse: Bool) {
-            self.appearance = appearance
-            self.behavior = behavior
+        public init(physical: String?, personality: String?, nickname: String?, generatedByMechMuse: Bool) {
+            self.physical = physical
+            self.personality = personality
             self.nickname = nickname
             self.generatedByMechMuse = generatedByMechMuse
         }
     }
 
-    public var hasCharacteristics: Bool {
-        characteristics?.appearance != nil || characteristics?.behavior != nil || characteristics?.nickname != nil
+    public var hasTraits: Bool {
+        traits?.physical != nil || traits?.personality != nil || traits?.nickname != nil
     }
 }
 

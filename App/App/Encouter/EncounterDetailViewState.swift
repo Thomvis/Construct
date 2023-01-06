@@ -54,6 +54,8 @@ struct EncounterDetailViewState: Equatable {
     var editMode: EditMode = .inactive
     var selection = Set<Combatant.Id>()
 
+    var isMechMuseEnabled: Bool
+
     var encounter: Encounter {
         get { running?.current ?? building }
         set {
@@ -126,6 +128,18 @@ struct EncounterDetailViewState: Equatable {
         }
     }
 
+    var generateCombatantTraitsState: GenerateCombatantTraitsViewState? {
+        get {
+            guard case .generateCombatantTraits(let s) = sheet else { return nil }
+            return s
+        }
+        set {
+            if let newValue = newValue {
+                self.sheet = .generateCombatantTraits(newValue)
+            }
+        }
+    }
+
     var localStateForDeduplication: Self {
         var res = self
         res.sheet = sheet.map {
@@ -135,6 +149,7 @@ struct EncounterDetailViewState: Equatable {
             case .runningEncounterLog: return .runningEncounterLog(RunningEncounterLogViewState.nullInstance)
             case .selectedCombatantTags: return .selectedCombatantTags(CombatantTagsViewState.nullInstance)
             case .settings: return .settings
+            case .generateCombatantTraits: return .generateCombatantTraits(GenerateCombatantTraitsViewState.nullInstance)
             }
         }
 
@@ -155,6 +170,7 @@ struct EncounterDetailViewState: Equatable {
         case runningEncounterLog(RunningEncounterLogViewState)
         case selectedCombatantTags(CombatantTagsViewState)
         case settings
+        case generateCombatantTraits(GenerateCombatantTraitsViewState)
     }
 
     enum Popover: Equatable {
@@ -189,6 +205,7 @@ extension EncounterDetailViewState {
         case resetEncounter(Bool) // false = clear monsters, true = clear all
         case editMode(EditMode)
         case selection(Set<Combatant.Id>)
+        case generateCombatantTraits(GenerateCombatantTraitsViewAction)
 
         case selectionEncounterAction(SelectionEncounterAction)
         case selectionCombatantAction(CombatantAction)
@@ -199,9 +216,7 @@ extension EncounterDetailViewState {
         case showAddCombatantReferenceItem
         case didDismissReferenceItem(TabbedDocumentViewContentItem.Id)
 
-        case generateCombatantCharacteristics
-        case didGenerateCombatantCharacteristics(EncounterCombatantsDescription)
-
+        case onGenerateCombatantTraitsButtonTap
         case onFeedbackButtonTap
 
         enum SelectionEncounterAction: Hashable {
@@ -214,6 +229,7 @@ extension EncounterDetailViewState {
         return Reducer.combine(
             AddCombatantState.reducer.optional().pullback(state: \.addCombatantState, action: /Action.addCombatant),
             NumberEntryViewState.reducer.optional().pullback(state: \.combatantInitiativePopover, action: /Action.combatantInitiativePopover, environment: { $0 }),
+            GenerateCombatantTraitsViewState.reducer.optional().pullback(state: \.generateCombatantTraitsState, action: /Action.generateCombatantTraits, environment: { $0 }),
             Reducer { state, action, env in
                 switch action {
                 case .onAppear:
@@ -332,6 +348,16 @@ extension EncounterDetailViewState {
                     }
                 case .selection(let s):
                     state.selection = s
+                case .generateCombatantTraits(.onCancelButtonTap):
+                    state.sheet = nil
+                case .generateCombatantTraits(.onDoneButtonTap):
+                    guard let childState = state.generateCombatantTraitsState else { break }
+                    for (id, c) in childState.traits {
+                        state.encounter.combatants[id: id]?.traits = c
+                    }
+
+                    state.sheet = nil
+                case .generateCombatantTraits: break // handled above
                 case .selectionCombatantAction(let action):
                     return state.selection.map {
                         .encounter(.combatant($0, action))
@@ -374,27 +400,11 @@ extension EncounterDetailViewState {
                     } else if state.combatantDetailReferenceItemRequest?.id == id {
                         state.combatantDetailReferenceItemRequest = nil
                     }
-                case .generateCombatantCharacteristics:
-                    return Effect.run(operation: { [state] send in
-                        let combatantNames = state.encounter.combatants.filter { c in
-                            !c.definition.isUnique && c.definition.player == nil
-                        }.map(\.discriminatedName)
-
-                        let request = EncounterCombatantsDescriptionRequest(combatantNames: combatantNames)
-                        let description = try await env.mechMuse.describe(combatants: request)
-                        await send(.didGenerateCombatantCharacteristics(description))
-                    })
-                case .didGenerateCombatantCharacteristics(let description):
-                    for c in state.encounter.combatants {
-                        if let d = description.descriptions[c.discriminatedName] {
-                            state.encounter.combatants[id: c.id]?.characteristics = .init(
-                                appearance: d.appearance,
-                                behavior: d.behavior,
-                                nickname: d.nickname,
-                                generatedByMechMuse: true
-                            )
-                        }
-                    }
+                case .onGenerateCombatantTraitsButtonTap:
+                    state.sheet = .generateCombatantTraits(.init(
+                        encounter: state.encounter,
+                        isMechMuseConfigured: env.preferences().mechMuse.apiKey != nil
+                    ))
                 case .onFeedbackButtonTap:
                     guard env.canSendMail() else { break }
 
@@ -456,5 +466,5 @@ extension AddCombatantSheet {
 }
 
 extension EncounterDetailViewState {
-    static let nullInstance = EncounterDetailViewState(building: Encounter.nullInstance)
+    static let nullInstance = EncounterDetailViewState(building: Encounter.nullInstance, isMechMuseEnabled: false)
 }

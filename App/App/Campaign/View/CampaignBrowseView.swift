@@ -173,7 +173,12 @@ struct CampaignBrowseView: View {
                     ) {
                         let runningEncounter: RunningEncounter? = encounter.runningEncounterKey
                             .flatMap { try? self.env.database.keyValueStore.get($0, crashReporter: self.env.crashReporter) }
-                        nextScreen = .encounter(EncounterDetailViewState(building: encounter, running: runningEncounter))
+                        let detailState = EncounterDetailViewState(
+                            building: encounter,
+                            running: runningEncounter,
+                            isMechMuseEnabled: self.env.preferences().mechMuse.enabled
+                        )
+                        nextScreen = .encounter(detailState)
                     } else {
                         nextScreen = .encounter(EncounterDetailViewState.nullInstance)
                     }

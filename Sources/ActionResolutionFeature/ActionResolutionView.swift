@@ -115,7 +115,7 @@ struct StandaloneActionResolutionEnvironment: ActionResolutionEnvironment {
         },
         describeCombatants: { _, _ in
             try await Task.sleep(for: .seconds(0.5))
-            return .init(descriptions: [:])
+            return .init(traits: [:])
         },
         verifyAPIKey: { client in
             try await Task.sleep(for: .seconds(1))

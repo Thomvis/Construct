@@ -40,6 +40,7 @@ struct CombatantRow: View {
 
             VStack(alignment: .leading) {
                 combatant.discriminatedNameText()
+                    .strikethrough(combatant.isDead, color: Color(UIColor.systemRed))
                     .fontWeight(combatant.definition.player != nil ? .bold : .regular)
 
                 secondaryText
@@ -82,7 +83,7 @@ struct CombatantRow: View {
     var secondaryText: Text? {
         var components: [Text] = []
 
-        if let nickname = combatant.characteristics?.nickname {
+        if let nickname = combatant.traits?.nickname {
             components.append(Text("“\(nickname)”"))
         }
 

@@ -39,8 +39,7 @@ public struct ActionDescriptionViewState: Equatable {
         guard let error = description.error else { return nil }
         switch error {
         case MechMuseError.unconfigured: return try? AttributedString(markdown: "Mechanical Muse can provide you with a description of this attack to inspire your DM'ing. Configure Mechanical Muse in the settings screen.")
-        case MechMuseError.insufficientQuota: return try? AttributedString(markdown: "You have exceeded your OpenAI usage limits. Please update your OpenAI [account settings](https://beta.openai.com/account/billing/limits).")
-        case MechMuseError.invalidAPIKey: return AttributedString("Invalid OpenAI API Key. Please check the Mechanical Muse configuration in the settings screen.")
+        case let me as MechMuseError: return me.attributedDescription
         default: return AttributedString("Could not generate description due to an unforseen error.")
         }
     }
@@ -208,7 +207,7 @@ extension ActionDescriptionViewState {
                 request: CreatureActionDescriptionRequest(
                     creatureName: encounterContext?.combatant.name ?? context.creature.name,
                     isUniqueCreature: false, // todo
-                    creatureDescription: encounterContext?.creatureDescription ?? CreatureActionDescriptionRequest.creatureDescription(from: context.creature),
+                    creatureDescription: encounterContext?.creatureTraits ?? CreatureActionDescriptionRequest.creatureDescription(from: context.creature),
                     creatureCondition: nil,
                     encounter: (encounterContext?.encounter).map {
                         .init(name: $0.name, actionSetUp: nil)
@@ -228,10 +227,10 @@ enum ActionDescriptionViewStateError: Swift.Error {
 }
 
 extension ActionResolutionViewState.EncounterContext {
-    var creatureDescription: String? {
-        guard let c = combatant.characteristics else { return nil }
+    var creatureTraits: String? {
+        guard let c = combatant.traits else { return nil }
 
-        switch (c.appearance, c.behavior) {
+        switch (c.physical, c.personality) {
         case let (a?, b?): return "\(a), \(b)"
         case let (a?, nil): return a
         case let (nil, b?): return b

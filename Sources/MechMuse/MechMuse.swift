@@ -16,13 +16,13 @@ import Parsing
 public struct MechMuse {
     private var client: CurrentValue<OpenAIClient?>
     private let describeAction: (OpenAIClient, CreatureActionDescriptionRequest, ToneOfVoice) async throws -> String
-    private let describeCombatants: (OpenAIClient, EncounterCombatantsDescriptionRequest) async throws -> EncounterCombatantsDescription
+    private let describeCombatants: (OpenAIClient, GenerateCombatantTraitsRequest) async throws -> GeneratedCombatantTraits
     private let verifyAPIKey: (OpenAIClient) async throws -> Void
 
     public init(
         clientProvider: AsyncThrowingStream<OpenAIClient?, any Error>,
         describeAction: @escaping (OpenAIClient, CreatureActionDescriptionRequest, ToneOfVoice) async throws -> String,
-        describeCombatants: @escaping (OpenAIClient, EncounterCombatantsDescriptionRequest) async throws -> EncounterCombatantsDescription,
+        describeCombatants: @escaping (OpenAIClient, GenerateCombatantTraitsRequest) async throws -> GeneratedCombatantTraits,
         verifyAPIKey: @escaping (OpenAIClient) async throws -> Void
     ) {
         self.client = CurrentValue(initialValue: nil, updates: clientProvider)
@@ -40,7 +40,7 @@ public extension MechMuse {
         return try await describeAction(openAIClient, action, toneOfVoice)
     }
 
-    func describe(combatants request: EncounterCombatantsDescriptionRequest) async throws -> EncounterCombatantsDescription {
+    func describe(combatants request: GenerateCombatantTraitsRequest) async throws -> GeneratedCombatantTraits {
         guard let openAIClient = try? client.value else {
             throw MechMuseError.unconfigured
         }
@@ -72,7 +72,8 @@ public extension MechMuse {
                     let response = try await client.perform(request: CompletionRequest(
                         model: .Davinci3,
                         prompt: prompt,
-                        maxTokens: 350
+                        maxTokens: 350,
+                        temperature: 0.9
                     ))
                     return response.choices.first?.text
                         .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
@@ -89,11 +90,12 @@ public extension MechMuse {
                     let response = try await client.perform(request: CompletionRequest(
                         model: .Davinci3,
                         prompt: prompt,
-                        maxTokens: 350
+                        maxTokens: 150 * request.combatantNames.count,
+                        temperature: 0.9
                     ))
                     return try (response.choices.first?.text).map {
-                        try EncounterCombatantsDescription.parser.parse($0)
-                    } ?? EncounterCombatantsDescription(descriptions: [:])
+                        try GeneratedCombatantTraits.parser.parse($0)
+                    } ?? GeneratedCombatantTraits(traits: [:])
                 } catch let error as OpenAIError {
                     throw MechMuseError(from: error)
                 } catch let error as CustomDebugStringConvertible {
@@ -114,7 +116,7 @@ public extension MechMuse {
             ""
         },
         describeCombatants: { _, _ in
-            .init(descriptions: [:])
+            .init(traits: [:])
         },
         verifyAPIKey: { _ in
 
@@ -122,7 +124,7 @@ public extension MechMuse {
     )
 }
 
-public enum MechMuseError: Error {
+public enum MechMuseError: Error, Equatable {
     case unconfigured
     case unspecified
     case unexpected(String)
@@ -140,6 +142,16 @@ public enum MechMuseError: Error {
             self = .unspecified
         case .unexpected:
             self = .unspecified
+        }
+    }
+
+    public var attributedDescription: AttributedString {
+        switch self {
+        case .unconfigured: return try! AttributedString(markdown: "This feature is powered by Mechanical Muse: an Artificial Intelligence made to inspire your DM'ing. Set up Mechanical Muse in the settings screen.")
+        case .unspecified: return AttributedString("The operation failed due to an unknown error.")
+        case .unexpected(let s): return AttributedString(s)
+        case .insufficientQuota: return try! AttributedString(markdown: "You have exceeded your OpenAI usage limits. Please update your OpenAI [account settings](https://beta.openai.com/account/billing/limits).")
+        case .invalidAPIKey: return AttributedString("Invalid OpenAI API Key. Please check the Mechanical Muse configuration in the settings screen.")
         }
     }
 }

@@ -207,11 +207,11 @@ struct StatBlockView: View {
         }
     }
 
-    static func line(title: String, content: Text) -> some View {
+    static func line(title: String, content: Text) -> Text {
         return Text("\(title) ").bold() + content
     }
 
-    static func line(title: String, text: String) -> some View {
+    static func line(title: String, text: String) -> Text {
         return line(title: title, content: Text(text))
     }
 

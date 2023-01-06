@@ -26,7 +26,7 @@ final class CreatureActionDescriptionTest: XCTestCase {
         )
 
         XCTAssertEqual(request.prompt(toneOfVoice: .gritty), """
-        You are a D&D DM. Give a gritty description to a player of a monster attacking them.Attacking monster: Goblin.The monster attacks using "Shortbow": Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage.The attack hits the player for 6 points of bludgeoning damage.
+        During a D&D combat encounter, a player is attacked by a monster.Attacking monster: Goblin ().The monster attacks using "Shortbow".The attack hits the player for an average 6 points of bludgeoning damage.What does the DM say to the attacked player? Describe the monster and the attack, using a gritty style.Mention the damage.
         """)
     }
 }

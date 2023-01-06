@@ -127,12 +127,12 @@ struct CombatantDetailView: View {
                         .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
                     }.equalSizes(horizontal: false, vertical: true)
 
-                    if combatant.hasCharacteristics {
+                    if combatant.hasTraits {
                         SectionContainer(
-                            title: "Characteristics",
+                            title: "Traits",
                             accessory: Menu("Manage", content: {
                                 Button(role: .destructive) {
-                                    viewStore.send(.combatant(.removeCharacteristics), animation: .default)
+                                    viewStore.send(.combatant(.removeTraits), animation: .default)
                                 } label: {
                                     Label("Remove", systemImage: "clear")
                                 }
@@ -140,24 +140,26 @@ struct CombatantDetailView: View {
                                 Text("Editing is not yet supported")
                             }),
                             footer: {
-                                if combatant.characteristics?.generatedByMechMuse == true {
+                                if combatant.traits?.generatedByMechMuse == true {
                                     HStack {
                                         Spacer()
-                                        Text("Mechanical Muse").font(.footnote)
+                                        Text("Powered by Mechanical Muse")
+                                            .font(.footnote)
+                                            .foregroundColor(.secondary)
                                     }
                                 }
                             }
                         ) {
                             VStack(alignment: .leading, spacing: 2) {
-                                if let appearance = combatant.characteristics?.appearance {
-                                    StatBlockView.line(title: "Appearance", text: appearance)
+                                if let appearance = combatant.traits?.physical {
+                                    StatBlockView.line(title: "Physical", text: appearance)
                                 }
 
-                                if let behavior = combatant.characteristics?.behavior {
-                                    StatBlockView.line(title: "Behavior", text: behavior)
+                                if let behavior = combatant.traits?.personality {
+                                    StatBlockView.line(title: "Personality", text: behavior)
                                 }
 
-                                if let nickname = combatant.characteristics?.nickname {
+                                if let nickname = combatant.traits?.nickname {
                                     StatBlockView.line(title: "Nickname", text: nickname)
                                 }
                             }

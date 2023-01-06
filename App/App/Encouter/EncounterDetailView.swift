@@ -270,10 +270,12 @@ struct EncounterDetailView: View {
 
             if viewStore.state.running == nil {
                 Menu {
-                    Button {
-                        viewStore.send(.generateCombatantCharacteristics)
-                    } label: {
-                        Label("Individualize Monsters", systemImage: "quote.bubble")
+                    if viewStore.state.isMechMuseEnabled {
+                        Button {
+                            viewStore.send(.onGenerateCombatantTraitsButtonTap)
+                        } label: {
+                            Label("Combatant Traits", systemImage: "quote.bubble")
+                        }
                     }
 
                     Button {
@@ -320,6 +322,13 @@ struct EncounterDetailView: View {
             }.eraseToAnyView
         case .settings:
             return EncounterSettingsView(store: self.store).environmentObject(self.environment).eraseToAnyView
+        case .generateCombatantTraits:
+            return IfLetStore(store.scope(state: replayNonNil(\.generateCombatantTraitsState), action: EncounterDetailViewState.Action.generateCombatantTraits)) { store in
+                SheetNavigationContainer {
+                    GenerateCombatantTraitsView(store: store)
+                }
+                .interactiveDismissDisabled()
+            }.eraseToAnyView
         }
     }
 
@@ -494,6 +503,7 @@ func FeedbackMenuButton(action: @escaping () -> Void) -> some View {
 
 extension EncounterDetailViewState.Sheet: Identifiable {
     static let settingsUUID = UUID()
+    static let combatantsTraitsUUID = UUID()
 
     var id: UUID {
         switch self {
@@ -502,6 +512,7 @@ extension EncounterDetailViewState.Sheet: Identifiable {
         case .runningEncounterLog(let s): return s.encounter.id.rawValue
         case .selectedCombatantTags: return UUID(uuidString: "FA34879F-C2AB-4B0C-A281-50404D56118C")!
         case .settings: return Self.settingsUUID
+        case .generateCombatantTraits: return Self.combatantsTraitsUUID
         }
     }
 }

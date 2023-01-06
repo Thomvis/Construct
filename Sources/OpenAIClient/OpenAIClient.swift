@@ -109,9 +109,9 @@ public struct CompletionRequest: Codable {
     public let model: Model
     public let prompt: String
     public let maxTokens: Int?
-    public let temperature: Int?
+    public let temperature: Float?
 
-    public init(model: Model, prompt: String, maxTokens: Int? = nil, temperature: Int? = nil) {
+    public init(model: Model, prompt: String, maxTokens: Int? = nil, temperature: Float? = nil) {
         self.model = model
         self.prompt = prompt
         self.maxTokens = maxTokens
