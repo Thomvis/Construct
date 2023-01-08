@@ -90,6 +90,6 @@ extension GeneratedCombatantTraits {
     }
 
     private static let trimmedString = Prefix { !$0.isNewline }.map {
-        $0.trimmingCharacters(in: CharacterSet(["\"", "'"]))
+        $0.trimmingCharacters(in: CharacterSet(["\"", "'", "."]))
     }
 }

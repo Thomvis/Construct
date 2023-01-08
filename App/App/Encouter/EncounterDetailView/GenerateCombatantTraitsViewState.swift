@@ -132,7 +132,8 @@ enum GenerateCombatantTraitsViewAction: BindableAction, Equatable {
     case onUndoAllChangesTap
     case onToggleCombatantSelection(Combatant.Id)
     case onRemoveCombatantTraitsTap(Combatant.Id)
-    case onUndoCombatantTraitsChanges(Combatant.Id)
+    case onUndoCombatantTraitsChangesTap(Combatant.Id)
+    case onRegenerateCombatantTraitsTap(Combatant.Id)
     case onGenerateTap
     case didGenerate(Result<GeneratedCombatantTraits, MechMuseError>)
     case binding(BindingAction<GenerateCombatantTraitsViewState>)
@@ -145,6 +146,24 @@ typealias GenerateCombatantTraitsViewEnvironment = EnvironmentWithMechMuse & Env
 
 extension GenerateCombatantTraitsViewState {
     static let reducer: Reducer<Self, GenerateCombatantTraitsViewAction, GenerateCombatantTraitsViewEnvironment> = Reducer { state, action, env in
+
+        func perform(
+            _ request: GenerateCombatantTraitsRequest,
+            _ state: inout Self
+        ) -> Effect<GenerateCombatantTraitsViewAction, Never> {
+            state.isLoading = true
+            state.error = nil
+            return Effect.run { send in
+                do {
+                    let descriptions = try await env.mechMuse.describe(combatants: request)
+                    await send(.didGenerate(.success(descriptions)), animation: .default)
+                } catch let error as MechMuseError {
+                    await send(.didGenerate(.failure(error)), animation: .default)
+                } catch {
+                    await send(.didGenerate(.failure(.unspecified)), animation: .default)
+                }
+            }
+        }
 
         switch action {
         case .onSmartSelectionGroupTap(let g):
@@ -178,22 +197,14 @@ extension GenerateCombatantTraitsViewState {
             }
         case .onRemoveCombatantTraitsTap(let id):
             state.traits[id] = .some(nil)
-        case .onUndoCombatantTraitsChanges(let id):
+        case .onUndoCombatantTraitsChangesTap(let id):
             state.traits.removeValue(forKey: id)
+        case .onRegenerateCombatantTraitsTap(let id):
+            guard let combatant = state.combatants.first(where: { $0.id == id }) else { break }
+            let request = GenerateCombatantTraitsRequest(combatantNames: [combatant.discriminatedName])
+            return perform(state.request, &state)
         case .onGenerateTap:
-            state.isLoading = true
-            state.error = nil
-            let request = state.request
-            return Effect.run { send in
-                do {
-                    let descriptions = try await env.mechMuse.describe(combatants: request)
-                    await send(.didGenerate(.success(descriptions)), animation: .default)
-                } catch let error as MechMuseError {
-                    await send(.didGenerate(.failure(error)), animation: .default)
-                } catch {
-                    await send(.didGenerate(.failure(.unspecified)), animation: .default)
-                }
-            }
+            return perform(state.request, &state)
         case .didGenerate(let result):
             switch result {
             case .success(let traits):

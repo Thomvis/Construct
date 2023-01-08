@@ -26,6 +26,42 @@ struct GenerateCombatantTraitsView: View {
                 .safeAreaInset(edge: .top) {
                     topMessage(viewStore)
                 }
+                .safeAreaInset(edge: .bottom) {
+                    Button {
+                        viewStore.send(.onGenerateTap, animation: .default)
+                    } label: {
+                        HStack(spacing: 0) {
+                            Spacer()
+
+                            if viewStore.state.isLoading {
+                                ProgressView()
+                                    .padding(.trailing, 10)
+                                    .controlSize(.regular)
+                            }
+                            Text("Generat")
+
+                            if viewStore.state.isLoading {
+                                Text("ing…")
+                                    .transition(.asymmetric(
+                                        insertion: .opacity.animation(.default.delay(0.15)),
+                                        removal: .opacity
+                                    ))
+                            } else {
+                                Text("e traits")
+                                    .transition(.asymmetric(
+                                        insertion: .opacity.animation(.default.delay(0.15)),
+                                        removal: .opacity
+                                    ))
+                            }
+
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(viewStore.state.disableInteractions || viewStore.state.selectedCombatants().isEmpty)
+                    .padding()
+                }
                 .environment(\.editMode, .constant(.active))
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
@@ -35,35 +71,6 @@ struct GenerateCombatantTraitsView: View {
                             Text("Done").bold()
                         }
                         .disabled(viewStore.state.disableInteractions)
-                    }
-
-                    ToolbarItem(placement: .bottomBar) {
-                        Button {
-                            viewStore.send(.onGenerateTap, animation: .default)
-                        } label: {
-                            HStack(spacing: 0) {
-                                if viewStore.state.isLoading {
-                                    ProgressView().padding(.trailing, 10)
-                                }
-                                Text("Generat")
-
-                                if viewStore.state.isLoading {
-                                    Text("ing…")
-                                        .transition(.asymmetric(
-                                            insertion: .opacity.animation(.default.delay(0.15)),
-                                            removal: .opacity
-                                        ))
-                                } else {
-                                    Text("e traits")
-                                        .transition(.asymmetric(
-                                            insertion: .opacity.animation(.default.delay(0.15)),
-                                            removal: .opacity
-                                        ))
-                                }
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(viewStore.state.disableInteractions || viewStore.state.selectedCombatants().isEmpty)
                     }
                 }
         }
@@ -153,7 +160,7 @@ struct GenerateCombatantTraitsView: View {
             if viewStore.state.showRemoveAllTraits || viewStore.state.showUndoAllChanges {
                 Menu {
                     if viewStore.state.showRemoveAllTraits {
-                        Button(role: .destructive) {
+                        Button {
                             viewStore.send(.onRemoveAllTraitsTap, animation: .default)
                         } label: {
                             Label("Remove all traits", systemImage: "clear")
@@ -213,16 +220,22 @@ struct GenerateCombatantTraitsView: View {
                 if combatant.traits != nil || viewStore.state.combatantHasChanges(combatant) {
                     Menu {
                         if combatant.traits != nil {
-                            Button(role: .destructive) {
+                            Button {
                                 viewStore.send(.onRemoveCombatantTraitsTap(combatant.id), animation: .default)
                             } label: {
                                 Label("Remove traits", systemImage: "clear")
+                            }
+
+                            Button {
+                                viewStore.send(.onRegenerateCombatantTraitsTap(combatant.id), animation: .default)
+                            } label: {
+                                Label("Regenerate traits", systemImage: "arrow.clockwise")
                             }
                         }
 
                         if viewStore.state.combatantHasChanges(combatant) {
                             Button {
-                                viewStore.send(.onUndoCombatantTraitsChanges(combatant.id), animation: .default)
+                                viewStore.send(.onUndoCombatantTraitsChangesTap(combatant.id), animation: .default)
                             } label: {
                                 Label("Undo changes", systemImage: "arrow.uturn.backward.square")
                             }
