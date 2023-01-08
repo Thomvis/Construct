@@ -15,7 +15,7 @@ import CustomDump
 final class MechMuseTest: XCTestCase {
 
     @MainActor
-    func testEncounterCombatantsTraits() async throws {
+    func testEncounterCombatantsTraitsSuccess() async throws {
         let response = CompletionResponse(id: "", object: "", created: 0, model: "", choices: [
             .init(text: """
 
@@ -60,6 +60,32 @@ final class MechMuseTest: XCTestCase {
                 nickname: "Charming Charly"
             )
         ]))
+    }
+
+    @MainActor
+    func testEncounterCombatantsTraitsParseError() async throws {
+        let response = CompletionResponse(id: "", object: "", created: 0, model: "", choices: [
+            .init(text: """
+            Thug 1 =
+            Physicala: Scruffy-looking, scarred face, wears leather armor
+            """, finishReason: "")
+        ])
+        let openAIClient = OpenAIClient.simpleMock(completionResponse: response)
+        let sut = MechMuse.live(clientProvider: AsyncThrowingStream([openAIClient].async))
+
+        do {
+            _ = try await sut.describe(combatants: .init(
+                combatantNames: ["Thug 1", "Thug 2", "Bandit Captain 1"]
+            ))
+            XCTFail("Expected an error")
+        } catch MechMuseError.interpretationFailed(_, let msg) {
+            XCTAssertEqual(msg, """
+            error: unexpected input
+             --> input:1:1
+            1 | Thug 1 =
+              | ^ expected end of input
+            """)
+        }
     }
 
 }

@@ -11,6 +11,7 @@ import GameModels
 import ComposableArchitecture
 import Helpers
 import MechMuse
+import CustomDump
 
 struct GenerateCombatantTraitsViewState: Equatable {
     private let encounter: Encounter
@@ -82,6 +83,14 @@ struct GenerateCombatantTraitsViewState: Equatable {
         return Set(combatants.filter(isSelected).map { $0.id })
     }
 
+    fileprivate var request: GenerateCombatantTraitsRequest {
+        GenerateCombatantTraitsRequest(
+            combatantNames: combatants
+                .filter(isSelected(combatant:))
+                .map(\.discriminatedName)
+        )
+    }
+
     struct CombatantModel: Equatable, Identifiable {
         let id: Combatant.Id
         let name: String
@@ -122,7 +131,7 @@ enum GenerateCombatantTraitsViewAction: BindableAction, Equatable {
     case onDoneButtonTap
 }
 
-typealias GenerateCombatantTraitsViewEnvironment = EnvironmentWithMechMuse
+typealias GenerateCombatantTraitsViewEnvironment = EnvironmentWithMechMuse & EnvironmentWithCrashReporter
 
 extension GenerateCombatantTraitsViewState {
     static let reducer: Reducer<Self, GenerateCombatantTraitsViewAction, GenerateCombatantTraitsViewEnvironment> = Reducer { state, action, env in
@@ -160,11 +169,7 @@ extension GenerateCombatantTraitsViewState {
         case .onGenerateTap:
             state.isLoading = true
             state.error = nil
-            let request = GenerateCombatantTraitsRequest(
-                combatantNames: state.combatants
-                    .filter(state.isSelected(combatant:))
-                    .map(\.discriminatedName)
-            )
+            let request = state.request
             return Effect.run { send in
                 do {
                     let descriptions = try await env.mechMuse.describe(combatants: request)
@@ -172,7 +177,7 @@ extension GenerateCombatantTraitsViewState {
                 } catch let error as MechMuseError {
                     await send(.didGenerate(.failure(error)), animation: .default)
                 } catch {
-                    await send(.didGenerate(.failure(.unexpected(error.localizedDescription))), animation: .default)
+                    await send(.didGenerate(.failure(.unspecified)), animation: .default)
                 }
             }
         case .didGenerate(let result):
@@ -190,6 +195,12 @@ extension GenerateCombatantTraitsViewState {
                 }
                 state.overwriteEnabled = false
             case .failure(let error):
+                var request = ""
+                customDump(state.request, to: &request)
+
+                env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [
+                    "request" : request
+                ]))
                 state.error = error
             }
 

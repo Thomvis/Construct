@@ -305,5 +305,7 @@ struct GenerateCombatantTraitsViewPreviewEnvironment: GenerateCombatantTraitsVie
             try await Task.sleep(for: .seconds(1))
         }
     )
+
+    var crashReporter = CrashReporter.init(registerUserPermission: { _ in }, trackError: { _ in })
 }
 #endif

@@ -166,6 +166,7 @@
 		E9E3575128DC822D00484DFA /* CrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E3575028DC822D00484DFA /* CrashReporter.swift */; };
 		E9EDE6B529648D8600026643 /* GenerateCombatantTraitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9EDE6B429648D8600026643 /* GenerateCombatantTraitsView.swift */; };
 		E9EDE6B729648D9600026643 /* GenerateCombatantTraitsViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9EDE6B629648D9600026643 /* GenerateCombatantTraitsViewState.swift */; };
+		E9EDE6B9296AEC1800026643 /* GenerateCombatantTraitsViewTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9EDE6B8296AEC1800026643 /* GenerateCombatantTraitsViewTest.swift */; };
 		E9F1286D28E6D6130040C90C /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = E9F1286C28E6D6130040C90C /* Persistence */; };
 		E9F1286F28E6D8510040C90C /* EntityChangeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1286E28E6D8510040C90C /* EntityChangeObserver.swift */; };
 		E9F1287328E9B6B00040C90C /* DiceExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1287228E9B6B00040C90C /* DiceExtensions.swift */; };
@@ -348,6 +349,7 @@
 		E9E3575028DC822D00484DFA /* CrashReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReporter.swift; sourceTree = "<group>"; };
 		E9EDE6B429648D8600026643 /* GenerateCombatantTraitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateCombatantTraitsView.swift; sourceTree = "<group>"; };
 		E9EDE6B629648D9600026643 /* GenerateCombatantTraitsViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateCombatantTraitsViewState.swift; sourceTree = "<group>"; };
+		E9EDE6B8296AEC1800026643 /* GenerateCombatantTraitsViewTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateCombatantTraitsViewTest.swift; sourceTree = "<group>"; };
 		E9F1286E28E6D8510040C90C /* EntityChangeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityChangeObserver.swift; sourceTree = "<group>"; };
 		E9F1287228E9B6B00040C90C /* DiceExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiceExtensions.swift; sourceTree = "<group>"; };
 		E9F1287428E9BA330040C90C /* EncounterFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterFeature.swift; sourceTree = "<group>"; };
@@ -795,6 +797,7 @@
 				E95246FD274C390B00262C15 /* ParseableCreatureActionTest.swift */,
 				E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */,
 				E959BB5628BBF1AE0063CB64 /* CompendiumEntryTest.swift */,
+				E9EDE6B8296AEC1800026643 /* GenerateCombatantTraitsViewTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1137,6 +1140,7 @@
 				E98A0EF7267BCDD600316EE4 /* CreatureEditViewStateTest.swift in Sources */,
 				E90EFF412623220300F5443E /* DataSourceReaderParsersTest.swift in Sources */,
 				E9323A332320169F00F0D0C6 /* DatabaseTest.swift in Sources */,
+				E9EDE6B9296AEC1800026643 /* GenerateCombatantTraitsViewTest.swift in Sources */,
 				E999FBD6235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift in Sources */,
 				E99F95A42428DCB100183B5B /* RunningEncounterTest.swift in Sources */,
 				E9323A3D23205E7700F0D0C6 /* FileDataSourceTest.swift in Sources */,

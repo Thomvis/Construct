@@ -86,22 +86,29 @@ public extension MechMuse {
             },
             describeCombatants: { client, request in
                 let prompt = request.prompt(toneOfVoice: .gritty)
+
+                let response: CompletionResponse
                 do {
-                    let response = try await client.perform(request: CompletionRequest(
+                    response = try await client.perform(request: CompletionRequest(
                         model: .Davinci3,
                         prompt: prompt,
                         maxTokens: 150 * request.combatantNames.count,
                         temperature: 0.9
                     ))
-                    return try (response.choices.first?.text).map {
-                        try GeneratedCombatantTraits.parser.parse($0)
-                    } ?? GeneratedCombatantTraits(traits: [:])
                 } catch let error as OpenAIError {
                     throw MechMuseError(from: error)
-                } catch let error as CustomDebugStringConvertible {
-                    throw MechMuseError.unexpected(error.debugDescription)
                 } catch {
                     throw MechMuseError.unspecified
+                }
+
+                guard let text = response.choices.first?.text else {
+                    return GeneratedCombatantTraits(traits: [:])
+                }
+
+                do {
+                    return try GeneratedCombatantTraits.parser.parse(text)
+                } catch {
+                    throw MechMuseError.interpretationFailed(text: text, error: String(describing: error))
                 }
             },
             verifyAPIKey: { client in
@@ -127,7 +134,7 @@ public extension MechMuse {
 public enum MechMuseError: Error, Equatable {
     case unconfigured
     case unspecified
-    case unexpected(String)
+    case interpretationFailed(text: String?, error: String)
     case insufficientQuota
     case invalidAPIKey
 
@@ -149,7 +156,7 @@ public enum MechMuseError: Error, Equatable {
         switch self {
         case .unconfigured: return try! AttributedString(markdown: "This feature is powered by Mechanical Muse: an Artificial Intelligence made to inspire your DM'ing. Set up Mechanical Muse in the settings screen.")
         case .unspecified: return AttributedString("The operation failed due to an unknown error.")
-        case .unexpected(let s): return AttributedString(s)
+        case .interpretationFailed(_, let s): return AttributedString(s)
         case .insufficientQuota: return try! AttributedString(markdown: "You have exceeded your OpenAI usage limits. Please update your OpenAI [account settings](https://beta.openai.com/account/billing/limits).")
         case .invalidAPIKey: return AttributedString("Invalid OpenAI API Key. Please check the Mechanical Muse configuration in the settings screen.")
         }
@@ -163,7 +170,7 @@ public protocol EnvironmentWithMechMuse {
 extension MechMuseError: LocalizedError {
     public var errorDescription: String? {
         switch self {
-        case .unexpected(let reason): return "MechMuseError.unexpected(\(reason))"
+        case .interpretationFailed(_, let reason): return "MechMuseError.interpretationFailed(\(reason))"
         default: return String(describing: self)
         }
     }

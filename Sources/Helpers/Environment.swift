@@ -26,6 +26,10 @@ public protocol EnvironmentWithSendMail {
     var sendMail: (FeedbackMailContents) -> Void { get }
 }
 
+public protocol EnvironmentWithCrashReporter {
+    var crashReporter: CrashReporter { get }
+}
+
 public struct FeedbackMailContents {
     public let subject: String
     public let attachments: [Attachment]

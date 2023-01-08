@@ -444,9 +444,7 @@ class AppStoreScreenshotTests: XCTestCase {
             sheet: nil,
             popover: nil,
             editMode: .inactive,
-            selection: Set(),
-            combatantDetailReferenceItemRequest: nil,
-            addCombatantReferenceItemRequest: nil
+            selection: Set()
         )
     }
 
@@ -481,9 +479,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 sheet: nil,
                                 popover: nil,
                                 editMode: .inactive,
-                                selection: Set(),
-                                combatantDetailReferenceItemRequest: nil,
-                                addCombatantReferenceItemRequest: nil
+                                selection: Set()
                             ))
                         ]
                     ),

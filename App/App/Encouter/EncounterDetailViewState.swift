@@ -56,6 +56,26 @@ struct EncounterDetailViewState: Equatable {
 
     var isMechMuseEnabled: Bool
 
+    public init(
+        building: Encounter,
+        running: RunningEncounter? = nil,
+        resumableRunningEncounters: ResumableRunningEncounters = .initial,
+        sheet: Sheet? = nil,
+        popover: Popover? = nil,
+        editMode: EditMode = .inactive,
+        selection: Set<Combatant.Id> = Set<Combatant.Id>(),
+        isMechMuseEnabled: Bool = true
+    ) {
+        self.building = building
+        self.running = running
+        self.resumableRunningEncounters = resumableRunningEncounters
+        self.sheet = sheet
+        self.popover = popover
+        self.editMode = editMode
+        self.selection = selection
+        self.isMechMuseEnabled = isMechMuseEnabled
+    }
+
     var encounter: Encounter {
         get { running?.current ?? building }
         set {
