@@ -143,7 +143,7 @@ struct CombatantDetailView: View {
                                 if combatant.traits?.generatedByMechMuse == true {
                                     HStack {
                                         Spacer()
-                                        Text("Powered by Mechanical Muse")
+                                        Text("Mechanical Muse")
                                             .font(.footnote)
                                             .foregroundColor(.secondary)
                                     }

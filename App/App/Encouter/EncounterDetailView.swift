@@ -327,7 +327,6 @@ struct EncounterDetailView: View {
                 SheetNavigationContainer {
                     GenerateCombatantTraitsView(store: store)
                 }
-                .interactiveDismissDisabled()
             }.eraseToAnyView
         }
     }

@@ -249,7 +249,16 @@ extension EncounterDetailViewState {
         return Reducer.combine(
             AddCombatantState.reducer.optional().pullback(state: \.addCombatantState, action: /Action.addCombatant),
             NumberEntryViewState.reducer.optional().pullback(state: \.combatantInitiativePopover, action: /Action.combatantInitiativePopover, environment: { $0 }),
-            GenerateCombatantTraitsViewState.reducer.optional().pullback(state: \.generateCombatantTraitsState, action: /Action.generateCombatantTraits, environment: { $0 }),
+            GenerateCombatantTraitsViewState.reducer.optional().pullback(state: \.generateCombatantTraitsState, action: /Action.generateCombatantTraits, environment: { $0 })
+                .onChange(of: \.generateCombatantTraitsState?.traits, perform: { traits, state, action, env in
+                    guard let combatants = state.generateCombatantTraitsState?.combatants else { return .none }
+
+                    // apply all changes from the "generate combatant traits" view
+                    for c in combatants {
+                        state.encounter.combatants[id: c.id]?.traits = c.traits
+                    }
+                    return .none
+                }),
             Reducer { state, action, env in
                 switch action {
                 case .onAppear:
@@ -368,14 +377,7 @@ extension EncounterDetailViewState {
                     }
                 case .selection(let s):
                     state.selection = s
-                case .generateCombatantTraits(.onCancelButtonTap):
-                    state.sheet = nil
                 case .generateCombatantTraits(.onDoneButtonTap):
-                    guard let childState = state.generateCombatantTraitsState else { break }
-                    for (id, c) in childState.traits {
-                        state.encounter.combatants[id: id]?.traits = c
-                    }
-
                     state.sheet = nil
                 case .generateCombatantTraits: break // handled above
                 case .selectionCombatantAction(let action):

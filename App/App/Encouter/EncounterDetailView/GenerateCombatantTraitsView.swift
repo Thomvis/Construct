@@ -28,12 +28,6 @@ struct GenerateCombatantTraitsView: View {
                 }
                 .environment(\.editMode, .constant(.active))
                 .toolbar {
-                    ToolbarItem(placement: .navigation) {
-                        Button("Cancel") {
-                            viewStore.send(.onCancelButtonTap)
-                        }
-                    }
-
                     ToolbarItem(placement: .primaryAction) {
                         Button {
                             viewStore.send(.onDoneButtonTap)
@@ -44,25 +38,32 @@ struct GenerateCombatantTraitsView: View {
                     }
 
                     ToolbarItem(placement: .bottomBar) {
-                        VStack {
-                            Button {
-                                viewStore.send(.onGenerateTap, animation: .default)
-                            } label: {
-                                ZStack {
-                                    if viewStore.state.isLoading {
-                                        ProgressView()
-                                    } else {
-                                        Text("Generate traits")
-                                    }
+                        Button {
+                            viewStore.send(.onGenerateTap, animation: .default)
+                        } label: {
+                            HStack(spacing: 0) {
+                                if viewStore.state.isLoading {
+                                    ProgressView().padding(.trailing, 10)
+                                }
+                                Text("Generat")
+
+                                if viewStore.state.isLoading {
+                                    Text("ing…")
+                                        .transition(.asymmetric(
+                                            insertion: .opacity.animation(.default.delay(0.15)),
+                                            removal: .opacity
+                                        ))
+                                } else {
+                                    Text("e traits")
+                                        .transition(.asymmetric(
+                                            insertion: .opacity.animation(.default.delay(0.15)),
+                                            removal: .opacity
+                                        ))
                                 }
                             }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(viewStore.state.disableInteractions || viewStore.state.selectedCombatants().isEmpty)
-
-                            Text("Powered by Mechanical Muse")
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
                         }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(viewStore.state.disableInteractions || viewStore.state.selectedCombatants().isEmpty)
                     }
                 }
         }
@@ -79,10 +80,10 @@ struct GenerateCombatantTraitsView: View {
 
             let image = viewStore.state.isMechMuseUnconfigured
                 ? Image("tabbar_d20")
-                : Image(systemName: "exclamationmark.square.fill")
+                : Image(systemName: "exclamationmark.circle.fill")
 
             VStack(spacing: 12) {
-                image
+                image.font(.title).symbolRenderingMode(.hierarchical)
 
                 Text(error.attributedDescription)
                     .multilineTextAlignment(.center)
@@ -112,6 +113,11 @@ struct GenerateCombatantTraitsView: View {
                 listHeader(viewStore)
             }
             .disabled(viewStore.state.disableInteractions)
+
+            VStack(spacing: 10) {
+                Text("Powered by Mechanical Muse").bold()
+                Text("For the best result, generate traits for all monsters at once.")
+            }
         }
     }
 
@@ -144,12 +150,22 @@ struct GenerateCombatantTraitsView: View {
             .tint(Color(viewStore.overwriteEnabled ? UIColor.systemRed : UIColor.systemGreen))
             .animation(nil, value: viewStore.overwriteEnabled)
 
-            if viewStore.state.showRemoveAllTraits {
+            if viewStore.state.showRemoveAllTraits || viewStore.state.showUndoAllChanges {
                 Menu {
-                    Button(role: .destructive) {
-                        viewStore.send(.onRemoveAllTraitsTap, animation: .default)
-                    } label: {
-                        Label("Remove all traits", systemImage: "clear")
+                    if viewStore.state.showRemoveAllTraits {
+                        Button(role: .destructive) {
+                            viewStore.send(.onRemoveAllTraitsTap, animation: .default)
+                        } label: {
+                            Label("Remove all traits", systemImage: "clear")
+                        }
+                    }
+
+                    if viewStore.state.showUndoAllChanges {
+                        Button(role: .destructive) {
+                            viewStore.send(.onUndoAllChangesTap, animation: .default)
+                        } label: {
+                            Label("Undo all changes", systemImage: "arrow.uturn.backward.square")
+                        }
                     }
                 } label: {
                     Button { } label: {
@@ -180,27 +196,40 @@ struct GenerateCombatantTraitsView: View {
                 .font(Font.title3)
                 .foregroundColor((isSelected && !viewStore.state.disableInteractions) ? Color(UIColor.systemBlue) : Color(UIColor.systemGray2))
 
-            Button {
-                viewStore.send(.onToggleCombatantSelection(combatant.id), animation: .default.speed(2))
-            } label: {
-                HStack {
-                    checkbox.opacity(viewStore.state.canSelect(combatant: combatant) ? 1.0 : 0.33)
-                    Combatant.discriminatedNameText(name: combatant.name, discriminator: combatant.discriminator)
-                        .foregroundColor(Color.primary)
+            HStack {
+                Button {
+                    viewStore.send(.onToggleCombatantSelection(combatant.id), animation: .default.speed(2))
+                } label: {
+                    HStack {
+                        checkbox.opacity(viewStore.state.canSelect(combatant: combatant) ? 1.0 : 0.33)
+                        Combatant.discriminatedNameText(name: combatant.name, discriminator: combatant.discriminator)
+                            .foregroundColor(Color.primary)
 
-                    Spacer()
+                        Spacer()
+                    }
+                }
+                .disabled(!viewStore.state.canSelect(combatant: combatant))
 
-                    if combatant.traits != nil {
-                        Menu {
+                if combatant.traits != nil || viewStore.state.combatantHasChanges(combatant) {
+                    Menu {
+                        if combatant.traits != nil {
                             Button(role: .destructive) {
                                 viewStore.send(.onRemoveCombatantTraitsTap(combatant.id), animation: .default)
                             } label: {
                                 Label("Remove traits", systemImage: "clear")
                             }
-                        } label: {
-                            Button { } label: {
-                                Image(systemName: "ellipsis.circle")
+                        }
+
+                        if viewStore.state.combatantHasChanges(combatant) {
+                            Button {
+                                viewStore.send(.onUndoCombatantTraitsChanges(combatant.id), animation: .default)
+                            } label: {
+                                Label("Undo changes", systemImage: "arrow.uturn.backward.square")
                             }
+                        }
+                    } label: {
+                        Button { } label: {
+                            Image(systemName: "ellipsis.circle")
                         }
                     }
                 }
@@ -234,51 +263,46 @@ struct GenerateCombatantTraitsView: View {
 #if DEBUG
 struct DiceRollerView_Preview: PreviewProvider {
     static var previews: some View {
-        ZStack(alignment: .bottom) {
-            Color.blue.ignoresSafeArea()
-
-            NavigationView {
-                GenerateCombatantTraitsView(store: Store(
-                    initialState: .init(
-                        encounter: Encounter(
-                            name: "Test",
-                            combatants: [
-                                Combatant(monster: Monster(
-                                    realm: .core,
-                                    stats: StatBlock(name: "Goblin"),
-                                    challengeRating: .half
-                                )),
-                                apply(Combatant(monster: Monster(
-                                    realm: .core,
-                                    stats: StatBlock(name: "Goblin"),
-                                    challengeRating: .half
-                                ))) {
-                                    $0.traits = .init(
-                                        physical: "Muddy",
-                                        personality: "Grumpy",
-                                        nickname: "Grumps",
-                                        generatedByMechMuse: false
-                                    )
-                                },
-                                Combatant(monster: Monster(
-                                    realm: .core,
-                                    stats: StatBlock(name: "Bugbear"),
-                                    challengeRating: .half
-                                )),
-                                Combatant(compendiumCombatant: Character(
-                                    id: UUID().tagged(),
-                                    realm: .homebrew,
-                                    stats: StatBlock(name: "Sarovin"),
-                                    player: .init(name: nil)
-                                ))
-                            ]
-                        )
-                    ),
-                    reducer: GenerateCombatantTraitsViewState.reducer,
-                    environment: GenerateCombatantTraitsViewPreviewEnvironment()
-                ))
-            }
-            .frame(height: 400)
+        NavigationView {
+            GenerateCombatantTraitsView(store: Store(
+                initialState: .init(
+                    encounter: Encounter(
+                        name: "Test",
+                        combatants: [
+                            Combatant(monster: Monster(
+                                realm: .core,
+                                stats: StatBlock(name: "Goblin"),
+                                challengeRating: .half
+                            )),
+                            apply(Combatant(monster: Monster(
+                                realm: .core,
+                                stats: StatBlock(name: "Goblin"),
+                                challengeRating: .half
+                            ))) {
+                                $0.traits = .init(
+                                    physical: "Muddy",
+                                    personality: "Grumpy",
+                                    nickname: "Grumps",
+                                    generatedByMechMuse: false
+                                )
+                            },
+                            Combatant(monster: Monster(
+                                realm: .core,
+                                stats: StatBlock(name: "Bugbear"),
+                                challengeRating: .half
+                            )),
+                            Combatant(compendiumCombatant: Character(
+                                id: UUID().tagged(),
+                                realm: .homebrew,
+                                stats: StatBlock(name: "Sarovin"),
+                                player: .init(name: nil)
+                            ))
+                        ]
+                    )
+                ),
+                reducer: GenerateCombatantTraitsViewState.reducer,
+                environment: GenerateCombatantTraitsViewPreviewEnvironment()
+            ))
         }
     }
 }

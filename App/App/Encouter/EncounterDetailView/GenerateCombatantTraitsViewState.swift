@@ -55,6 +55,10 @@ struct GenerateCombatantTraitsViewState: Equatable {
         combatants.first { $0.traits != nil } != nil
     }
 
+    var showUndoAllChanges: Bool {
+        combatants.first(where: combatantHasChanges) != nil
+    }
+
     func canSelect(combatant: CombatantModel) -> Bool {
         overwriteEnabled || combatant.traits == nil
     }
@@ -73,6 +77,11 @@ struct GenerateCombatantTraitsViewState: Equatable {
         case .monsters: return !combatant.isPlayerCharacter
         case .mobs: return combatant.discriminator != nil
         }
+    }
+
+    func combatantHasChanges(_ combatant: CombatantModel) -> Bool {
+        guard let changedTraits = traits[combatant.id] else { return false }
+        return encounter.combatants[id: combatant.id]?.traits != changedTraits
     }
 
     func selectedCombatants() -> Set<Combatant.Id> {
@@ -120,14 +129,15 @@ enum GenerateCombatantTraitsViewAction: BindableAction, Equatable {
     case onSmartSelectionGroupTap(State.Selection.Group)
     case onOverwriteButtonTap
     case onRemoveAllTraitsTap
+    case onUndoAllChangesTap
     case onToggleCombatantSelection(Combatant.Id)
     case onRemoveCombatantTraitsTap(Combatant.Id)
+    case onUndoCombatantTraitsChanges(Combatant.Id)
     case onGenerateTap
     case didGenerate(Result<GeneratedCombatantTraits, MechMuseError>)
     case binding(BindingAction<GenerateCombatantTraitsViewState>)
 
     // handled by the parent
-    case onCancelButtonTap
     case onDoneButtonTap
 }
 
@@ -157,15 +167,19 @@ extension GenerateCombatantTraitsViewState {
             for c in state.combatants {
                 state.traits[c.id] = .some(nil)
             }
+        case .onUndoAllChangesTap:
+            state.traits = [:]
         case .onToggleCombatantSelection(let id):
             let ids = state.selectedCombatants()
             if ids.contains(id) {
                 state.selection = .custom(ids.subtracting([id]))
-            } else {
+            } else if let combatant = state.combatants.first(where: { $0.id == id }), state.canSelect(combatant: combatant) {
                 state.selection = .custom(ids.union([id]))
             }
         case .onRemoveCombatantTraitsTap(let id):
             state.traits[id] = .some(nil)
+        case .onUndoCombatantTraitsChanges(let id):
+            state.traits.removeValue(forKey: id)
         case .onGenerateTap:
             state.isLoading = true
             state.error = nil
@@ -205,7 +219,7 @@ extension GenerateCombatantTraitsViewState {
             }
 
             state.isLoading = false
-        case .onCancelButtonTap, .onDoneButtonTap: break // handled by the parent
+        case .onDoneButtonTap: break // handled by the parent
         case .binding: break // handled by the higher-order reducer
         }
 
