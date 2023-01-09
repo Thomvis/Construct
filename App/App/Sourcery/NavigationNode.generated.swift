@@ -1,12 +1,6 @@
 // Generated using Sourcery 1.6.0 — https://github.com/krzysztofzablocki/Sourcery
 // DO NOT EDIT
-protocol NavigationNode {
-    var nodeId: String { get }
-
-    func topNavigationItems() -> [Any]
-    func navigationStackSize() -> Int
-    mutating func popLastNavigationStackItem()
-}
+import Helpers
 
 extension CombatantResourcesViewState: NavigationNode {
     var nodeId: String { 

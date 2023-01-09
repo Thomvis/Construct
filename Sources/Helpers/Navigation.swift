@@ -28,7 +28,7 @@ public extension NavigationStackItemState {
 }
 
 public protocol NavigationStackSourceState: NavigationStackItemState {
-    associatedtype NextScreenState
+    associatedtype NextScreenState: NavigationNode
 
     var presentedScreens: [NavigationDestination: NextScreenState] { get set }
 }
@@ -36,6 +36,14 @@ public protocol NavigationStackSourceState: NavigationStackItemState {
 public enum NavigationDestination: Int {
     case nextInStack
     case detail
+}
+
+public protocol NavigationNode {
+    var nodeId: String { get }
+
+    func topNavigationItems() -> [Any]
+    func navigationStackSize() -> Int
+    mutating func popLastNavigationStackItem()
 }
 
 public extension NavigationStackSourceState {
@@ -76,7 +84,11 @@ extension View {
                             DestinationState: NavigationStackItemState,
                             Destination: View
     {
-        WithViewStore(store, observe: { $0.presentedScreens[.nextInStack] }) { viewStore in
+        WithViewStore(
+            store,
+            observe: { $0.presentedScreens[.nextInStack] },
+            removeDuplicates: { $0?.nodeId == $1?.nodeId }
+        ) { viewStore in
             self.navigationDestination(
                 unwrapping: Binding(
                     get: {
