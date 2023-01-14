@@ -220,6 +220,12 @@ public extension Reducer {
             return self(&state!, action, environment)
         }
     }
+
+    func cancellable(id: AnyHashable) -> Reducer<State, Action, Environment> {
+        return Reducer { state, action, env in
+            self.run(&state, action, env).cancellable(id: id)
+        }
+    }
 }
 
 public extension CasePath {
