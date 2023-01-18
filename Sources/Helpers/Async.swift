@@ -43,8 +43,8 @@ public struct Async<Success, Failure> where Failure: Swift.Error {
         case reset
     }
 
-    public static func reducer<Environment>(_ fetch: @escaping (Environment) -> AnyPublisher<Success, Failure>) -> Reducer<Self, Action, Environment> {
-        return Reducer { state, action, environment in
+    public static func reducer<Environment>(_ fetch: @escaping (Environment) -> AnyPublisher<Success, Failure>) -> AnyReducer<Self, Action, Environment> {
+        return AnyReducer { state, action, environment in
             switch action {
             case .startLoading:
                 return fetch(environment)
@@ -162,11 +162,14 @@ public struct ResultSet<Input, Success, Failure> where Input: Equatable, Failure
         }
     }
 
-    public static func reducer<InputAction, Environment>(_ input: Reducer<Input, InputAction, Environment>, _ fetch: @escaping (Input) -> ((Environment) -> AnyPublisher<Success, Failure>)?) -> Reducer<Self, Action<InputAction>, Environment> {
-        var asyncReducer: Reducer<Async<Success, Failure>, Async<Success, Failure>.Action, Environment>?
-        return Reducer.combine(
+    public static func reducer<InputAction, Environment>(
+        _ input: AnyReducer<Input, InputAction, Environment>,
+        _ fetch: @escaping (Input) -> ((Environment) -> AnyPublisher<Success, Failure>)?
+    ) -> AnyReducer<Self, Action<InputAction>, Environment> {
+        var asyncReducer: AnyReducer<Async<Success, Failure>, Async<Success, Failure>.Action, Environment>?
+        return AnyReducer.combine(
             input.pullback(state: \.input, action: CasePath(embed: { .input($0, debounce: true) }, extract: { $0.input })),
-            Reducer.init { state, action, env in
+            AnyReducer.init { state, action, env in
                 switch action {
                 case .setInput(let input, debounce: _):
                     state.input = input

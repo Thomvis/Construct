@@ -58,8 +58,8 @@ public struct StandaloneDiceRollerEnvironment: DiceRollerEnvironment {
 }
 
 public extension DiceRollerViewState {
-    static let reducer: Reducer<Self, DiceRollerViewAction, DiceRollerEnvironment> = Reducer.combine(
-        Reducer { state, action, _ in
+    static let reducer: AnyReducer<Self, DiceRollerViewAction, DiceRollerEnvironment> = AnyReducer.combine(
+        AnyReducer { state, action, _ in
             switch action {
             case .calculatorState(.onExpressionEditRollButtonTap):
                 state.showOutcome = true

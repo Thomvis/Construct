@@ -65,10 +65,10 @@ struct AddCombatantState: Equatable {
         case onSelect([Combatant], dismiss: Bool)
     }
 
-    static var reducer: Reducer<AddCombatantState, AddCombatantState.Action, Environment> {
-        Reducer.combine(
+    static var reducer: AnyReducer<AddCombatantState, AddCombatantState.Action, Environment> {
+        AnyReducer.combine(
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditViewState, action: /Action.creatureEditView, environment: { $0 }),
-            Reducer { state, action, _ in
+            AnyReducer { state, action, _ in
                 switch action {
                 case .quickCreate:
                     state.creatureEditViewState = CreatureEditViewState(create: .adHocCombatant)

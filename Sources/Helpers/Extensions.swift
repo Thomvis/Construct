@@ -153,11 +153,11 @@ extension Optional: OptionalProtocol {
     public var optional: Optional<Wrapped> { self }
 }
 
-public extension Reducer {
-    static func withState(_ changed: @escaping (State, State) -> Bool, _ reducer: @escaping (State) -> Reducer<State, Action, Environment>) -> Reducer<State, Action, Environment> {
-        var innerReducer: Reducer<State, Action, Environment>?
+public extension AnyReducer {
+    static func withState(_ changed: @escaping (State, State) -> Bool, _ reducer: @escaping (State) -> AnyReducer<State, Action, Environment>) -> AnyReducer<State, Action, Environment> {
+        var innerReducer: AnyReducer<State, Action, Environment>?
         var innerReducerState: State?
-        return Reducer { state, action, environment in
+        return AnyReducer { state, action, environment in
             if let innerReducerState = innerReducerState, !changed(innerReducerState, state) {
                 return innerReducer?(&state, action, environment) ?? .none
             }
@@ -169,13 +169,13 @@ public extension Reducer {
         }
     }
 
-    static func withState<Key>(_ key: @escaping (State) -> Key, _ reducer: @escaping (State) -> Reducer<State, Action, Environment>) -> Reducer<State, Action, Environment> where Key: Equatable {
+    static func withState<Key>(_ key: @escaping (State) -> Key, _ reducer: @escaping (State) -> AnyReducer<State, Action, Environment>) -> AnyReducer<State, Action, Environment> where Key: Equatable {
         withState({ lhs, rhs in key(lhs) != key(rhs) }, reducer)
     }
 
-    static func lazy(_ reducer: @escaping @autoclosure () -> Self) -> Reducer<State, Action, Environment> {
-        var innerReducer: Reducer<State, Action, Environment>?
-        return Reducer { state, action, environment in
+    static func lazy(_ reducer: @escaping @autoclosure () -> Self) -> AnyReducer<State, Action, Environment> {
+        var innerReducer: AnyReducer<State, Action, Environment>?
+        return AnyReducer { state, action, environment in
             if let r = innerReducer {
                 return r(&state, action, environment)
             } else {
@@ -189,7 +189,7 @@ public extension Reducer {
     func pullback<GlobalState, GlobalAction>(
         state toLocalState: WritableKeyPath<GlobalState, State>,
         action toLocalAction: CasePath<GlobalAction, Action>
-    ) -> Reducer<GlobalState, GlobalAction, Environment> {
+    ) -> AnyReducer<GlobalState, GlobalAction, Environment> {
         pullback(state: toLocalState, action: toLocalAction, environment: { $0 })
     }
 
@@ -212,7 +212,7 @@ public extension Reducer {
     }
 
     /// Equivalent to TCA's `optional()` except that `ifSome()` silently does nothing if the state is nil
-    func ifSome() -> Reducer<State?, Action, Environment> {
+    func ifSome() -> AnyReducer<State?, Action, Environment> {
         .init { state, action, environment in
             guard state != nil else {
                 return .none

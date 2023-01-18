@@ -473,10 +473,10 @@ enum CreatureEditViewAction: Equatable {
 typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog
 
 extension CreatureEditViewState {
-    static let reducer: Reducer<Self, CreatureEditViewAction, CreatureEditViewEnvironment> = Reducer.combine(
+    static let reducer: AnyReducer<Self, CreatureEditViewAction, CreatureEditViewEnvironment> = AnyReducer.combine(
         NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CreatureEditViewAction.numberEntryPopover),
         NamedStatBlockContentItemEditViewState.reducer.optional().pullback(state: \.actionEditor, action: /CreatureEditViewAction.creatureActionEditSheet),
-        Reducer { state, action, _ in
+        AnyReducer { state, action, _ in
             switch action {
             case .model(let m): state.model = m
             case .popover(let p): state.popover = p

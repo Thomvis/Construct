@@ -25,11 +25,11 @@ let package = Package(
         .executable(name: "db-tool", targets: ["DatabaseInitTool"])
     ],
     dependencies: [
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.36.0"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.49.2"),
         .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
         .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.3.0"),
         .package(url: "https://github.com/Thomvis/GRDB.swift.git", from: "5.0.0"),
-        .package(url: "https://github.com/apple/swift-async-algorithms", exact: "0.0.1"), // pinned to 0.0.1 because versions after that require the Swift Standard Library version 5.7, which was not part of the macOS SDK in Xcode 14
+        .package(url: "https://github.com/apple/swift-async-algorithms", from: "0.0.4"),
         .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.6.1"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.11.0"),

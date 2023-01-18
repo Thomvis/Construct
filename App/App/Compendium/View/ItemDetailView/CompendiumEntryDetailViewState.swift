@@ -146,20 +146,20 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         case safariView(SafariViewState)
     }
 
-    static var reducer: Reducer<Self, CompendiumItemDetailViewAction, Environment> {
-        return Reducer.combine(
+    static var reducer: AnyReducer<Self, CompendiumItemDetailViewAction, Environment> {
+        return AnyReducer.combine(
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.creatureEdit, environment: { $0 }),
             CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.groupEdit),
             ActionResolutionViewState.reducer.optional().pullback(state: \.createActionPopover, action: /CompendiumItemDetailViewAction.creatureActionPopover, environment: { $0 }),
             DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckPopover, action: /CompendiumItemDetailViewAction.rollCheckPopover, environment: { $0 }),
-            Reducer.lazy(CompendiumEntryDetailViewState.reducer).optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.compendiumItemDetailView),
+            AnyReducer.lazy(CompendiumEntryDetailViewState.reducer).optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.compendiumItemDetailView),
             CompendiumItemReferenceTextAnnotation.handleTapReducer(
                 didTapAction: /CompendiumItemDetailViewAction.didTapCompendiumItemReferenceTextAnnotation,
                 requestItem: \.itemRequest,
                 internalAction: /CompendiumItemDetailViewAction.setNextScreen..Self.NextScreen.compendiumItemDetailView,
                 externalAction: /CompendiumItemDetailViewAction.setNextScreen..Self.NextScreen.safariView
             ),
-            Reducer { state, action, env in
+            AnyReducer { state, action, env in
                 switch action {
                 case .onAppear:
                     if var group = state.entry.item as? CompendiumItemGroup {

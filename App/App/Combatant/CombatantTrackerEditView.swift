@@ -77,7 +77,7 @@ struct CombatantTrackerEditViewState: NavigationStackItemState, Equatable {
         !resource.title.isEmpty
     }
 
-    static let reducer: Reducer<Self, CombatantTrackerEditViewAction, Environment> = Reducer { state, action, _ in
+    static let reducer: AnyReducer<Self, CombatantTrackerEditViewAction, Environment> = AnyReducer { state, action, _ in
         switch action {
         case .resource(.title(let t)):
             state.resource.title = t

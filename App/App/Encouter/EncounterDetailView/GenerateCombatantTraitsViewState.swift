@@ -145,7 +145,7 @@ enum GenerateCombatantTraitsViewAction: BindableAction, Equatable {
 typealias GenerateCombatantTraitsViewEnvironment = EnvironmentWithMechMuse & EnvironmentWithCrashReporter
 
 extension GenerateCombatantTraitsViewState {
-    static let reducer: Reducer<Self, GenerateCombatantTraitsViewAction, GenerateCombatantTraitsViewEnvironment> = Reducer { state, action, env in
+    static let reducer: AnyReducer<Self, GenerateCombatantTraitsViewAction, GenerateCombatantTraitsViewEnvironment> = AnyReducer { state, action, env in
 
         func perform(
             _ request: GenerateCombatantTraitsRequest,

@@ -175,8 +175,8 @@ enum CompendiumItemGroupEditAction: Equatable {
 }
 
 extension CompendiumItemGroupEditState {
-    static var reducer: Reducer<Self, CompendiumItemGroupEditAction, Environment> = Reducer.combine(
-        Reducer { state, action, environment in
+    static var reducer: AnyReducer<Self, CompendiumItemGroupEditAction, Environment> = AnyReducer.combine(
+        AnyReducer { state, action, environment in
             switch action {
             case .groupTitle(let s):
                 state.group.title = s

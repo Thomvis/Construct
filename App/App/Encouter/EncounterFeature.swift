@@ -23,8 +23,8 @@ extension Encounter {
         case refreshCompendiumItems
     }
 
-    static let reducer: Reducer<Encounter, Action, Environment> = Reducer.combine(
-        Reducer { state, action, env in
+    static let reducer: AnyReducer<Encounter, Action, Environment> = AnyReducer.combine(
+        AnyReducer { state, action, env in
             switch action {
             case .name(let n):
                 state.name = n
@@ -80,9 +80,9 @@ extension Encounter {
 
 extension RunningEncounter {
 
-    static let reducer: Reducer<RunningEncounter, Action, Environment> = Reducer.combine(
+    static let reducer: AnyReducer<RunningEncounter, Action, Environment> = AnyReducer.combine(
         logReducer,
-        Reducer { state, action, _ in
+        AnyReducer { state, action, _ in
             switch action {
             case .current(.remove(let c)):
                 if state.turn?.combatantId == c.id {
@@ -99,7 +99,7 @@ extension RunningEncounter {
             return .none
         },
         Encounter.reducer.pullback(state: \.current, action: /Action.current),
-        Reducer { state, action, _ in
+        AnyReducer { state, action, _ in
             switch action {
             case .current(.combatant(let uuid, .addTag(let tag))):
                 // annotate added tag with current turn
@@ -127,7 +127,7 @@ extension RunningEncounter {
         }
     )
 
-    private static let logReducer: Reducer<RunningEncounter, Action, Environment> = Reducer { state, action, _ in
+    private static let logReducer: AnyReducer<RunningEncounter, Action, Environment> = AnyReducer { state, action, _ in
         guard let turn = state.turn else { return .none }
 
         switch action {

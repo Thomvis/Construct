@@ -50,11 +50,11 @@ enum TabNavigationViewAction: Equatable {
 }
 
 extension TabNavigationViewState {
-    public static let reducer: Reducer<Self, TabNavigationViewAction, Environment> = Reducer.combine(
+    public static let reducer: AnyReducer<Self, TabNavigationViewAction, Environment> = AnyReducer.combine(
         CampaignBrowseViewState.reducer.pullback(state: \.campaignBrowser, action: /TabNavigationViewAction.campaignBrowser),
         compendiumRootReducer.pullback(state: \.compendium, action: /TabNavigationViewAction.compendium),
         DiceRollerViewState.reducer.pullback(state: \.diceRoller, action: /TabNavigationViewAction.diceRoller, environment: { $0 }),
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             switch action {
             case .selectedTab(let t):
                 state.selectedTab = t

@@ -34,7 +34,7 @@ struct AnimatedRollState: Hashable {
         result != nil && intermediaryResult == nil
     }
 
-    static var reducer: Reducer<Self, AnimatedRollAction, ActionResolutionEnvironment> = Reducer { state, action, env in
+    static var reducer: AnyReducer<Self, AnimatedRollAction, ActionResolutionEnvironment> = AnyReducer { state, action, env in
         switch action {
         case .roll(let expr):
             state.expression = expr

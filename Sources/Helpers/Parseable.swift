@@ -147,7 +147,7 @@ public enum ParseableVisitorAction {
     case didParse
 }
 
-public typealias ParseableVisitor<T> = Reducer<T, ParseableVisitorAction, Void>
+public typealias ParseableVisitor<T> = AnyReducer<T, ParseableVisitorAction, Void>
 
 extension ParseableVisitor where Action == ParseableVisitorAction, Environment == Void {
     public init(visit: @escaping (inout State) -> Bool) {

@@ -109,7 +109,7 @@ enum NumberPadViewAction: Equatable {
 }
 
 extension NumberPadViewState {
-    static var reducer: Reducer<Self, NumberPadViewAction, Void> = Reducer { state, action, _ in
+    static var reducer: AnyReducer<Self, NumberPadViewAction, Void> = AnyReducer { state, action, _ in
         switch action {
         case .numberButtonTap(let n):
             state.append(n)

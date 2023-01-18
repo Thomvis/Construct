@@ -45,9 +45,9 @@ public enum DiceActionStepAction: Hashable {
 // Reducers
 
 extension DiceActionViewState {
-    static var reducer: Reducer<Self, DiceActionViewAction, ActionResolutionEnvironment> = Reducer.combine(
+    static var reducer: AnyReducer<Self, DiceActionViewAction, ActionResolutionEnvironment> = AnyReducer.combine(
         DiceAction.Step.reducer.forEach(state: \.action.steps, action: /DiceActionViewAction.stepAction, environment: { $0 }),
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             switch action {
             case .rollAll:
                 return state.action.steps.compactMap { step in
@@ -117,8 +117,8 @@ extension DiceActionViewState {
 }
 
 extension DiceAction.Step {
-    static var reducer: Reducer<Self, DiceActionStepAction, ActionResolutionEnvironment> = Reducer.combine(
-        Reducer.combine(
+    static var reducer: AnyReducer<Self, DiceActionStepAction, ActionResolutionEnvironment> = AnyReducer.combine(
+        AnyReducer.combine(
             AnimatedRollState.reducer
                 .pullback(state: \DiceAction.Step.Value.RollValue.first, action: /DiceActionStepAction.ValueAction.RollAction.first),
             AnimatedRollState.reducer.optional()
@@ -127,7 +127,7 @@ extension DiceAction.Step {
         .optional()
         .pullback(state: \DiceAction.Step.rollValue, action: /DiceActionStepAction.value..DiceActionStepAction.ValueAction.roll),
         DiceCalculatorState.reducer.optional().pullback(state: \.rollDetails, action: /DiceActionStepAction.rollDetails, environment: { $0 }),
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             let cp: CasePath<DiceActionStepAction, DiceActionStepAction.ValueAction> = /DiceActionStepAction.value
             switch action {
             case .value(.roll(.roll)):

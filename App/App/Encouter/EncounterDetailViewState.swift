@@ -245,8 +245,8 @@ extension EncounterDetailViewState {
         }
     }
 
-    static var reducer: Reducer<EncounterDetailViewState, Action, Environment> {
-        return Reducer.combine(
+    static var reducer: AnyReducer<EncounterDetailViewState, Action, Environment> {
+        return AnyReducer.combine(
             AddCombatantState.reducer.optional().pullback(state: \.addCombatantState, action: /Action.addCombatant),
             NumberEntryViewState.reducer.optional().pullback(state: \.combatantInitiativePopover, action: /Action.combatantInitiativePopover, environment: { $0 }),
             GenerateCombatantTraitsViewState.reducer.optional().pullback(state: \.generateCombatantTraitsState, action: /Action.generateCombatantTraits, environment: { $0 })
@@ -259,7 +259,7 @@ extension EncounterDetailViewState {
                     }
                     return .none
                 }),
-            Reducer { state, action, env in
+            AnyReducer { state, action, env in
                 switch action {
                 case .onAppear:
                     var actions: [Action] = [.buildingEncounter(.refreshCompendiumItems)]
@@ -450,7 +450,7 @@ extension EncounterDetailViewState {
             },
             Encounter.reducer.pullback(state: \.building, action: /Action.buildingEncounter),
             RunningEncounter.reducer.optional().pullback(state: \.running, action: /Action.runningEncounter),
-            Reducer.withState({ $0.building.id }) { state in
+            AnyReducer.withState({ $0.building.id }) { state in
                 ResumableRunningEncounters.reducer { env in
                     do {
                         let nodes = try env.database.keyValueStore.fetchAllRaw(RunningEncounter.keyPrefix(for: state.building).rawValue)

@@ -128,9 +128,9 @@ struct ReferenceViewState: Equatable {
             self.state = state
         }
 
-        static let reducer: Reducer<Item, ReferenceItemViewAction, Environment> = Reducer.combine(
+        static let reducer: AnyReducer<Item, ReferenceItemViewAction, Environment> = AnyReducer.combine(
             ReferenceItemViewState.reducer.pullback(state: \.state, action: /ReferenceItemViewAction.self),
-            Reducer { state, action, env in
+            AnyReducer { state, action, env in
                 switch action {
                 case .contentCombatantDetail, .contentCompendium, .contentAddCombatant, .contentCompendiumItem, .contentSafari, .onBackTapped, .set:
                     if let title = state.state.content.tabItemTitle {
@@ -157,9 +157,9 @@ enum ReferenceViewAction: Equatable {
 }
 
 extension ReferenceViewState {
-    static let reducer: Reducer<Self, ReferenceViewAction, Environment> = Reducer.combine(
+    static let reducer: AnyReducer<Self, ReferenceViewAction, Environment> = AnyReducer.combine(
         ReferenceViewState.Item.reducer.forEach(state: \.items, action: /ReferenceViewAction.item, environment: { $0 }),
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             switch action {
             case .onBackTapped:
                 if let id = state.selectedItemId {
@@ -195,7 +195,7 @@ extension ReferenceViewState {
             }
             return .none
         },
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             switch action {
             // actions that can affect the open compendium entries
             case .item, .onBackTapped, .removeTab, .itemRequests:

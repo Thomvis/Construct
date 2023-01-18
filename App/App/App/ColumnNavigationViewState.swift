@@ -41,11 +41,11 @@ enum ColumnNavigationViewAction: Equatable {
 }
 
 extension ColumnNavigationViewState {
-    static let reducer: Reducer<Self, ColumnNavigationViewAction, Environment> = Reducer.combine(
+    static let reducer: AnyReducer<Self, ColumnNavigationViewAction, Environment> = AnyReducer.combine(
         FloatingDiceRollerViewState.reducer.pullback(state: \.diceCalculator, action: /ColumnNavigationViewAction.diceCalculator),
         CampaignBrowseViewState.reducer.pullback(state: \.campaignBrowse, action: /ColumnNavigationViewAction.campaignBrowse),
         ReferenceViewState.reducer.pullback(state: \.referenceView, action: /ColumnNavigationViewAction.referenceView),
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             switch action {
             case .campaignBrowse, .referenceView:
                 if state.diceCalculator.canCollapse {
@@ -58,7 +58,7 @@ extension ColumnNavigationViewState {
             return .none
         },
         // manages interactions between the left column and reference view
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             var actions: [ColumnNavigationViewAction] = []
 
             let encounterContext = state.campaignBrowse.referenceContext

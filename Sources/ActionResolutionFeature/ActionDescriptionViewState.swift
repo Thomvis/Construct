@@ -130,12 +130,12 @@ public enum ActionDescriptionViewInputAction: Equatable, BindableAction {
 }
 
 extension ActionDescriptionViewState.RequestInput {
-    static var reducer: Reducer<Self, ActionDescriptionViewInputAction, ActionDescriptionEnvironment> = Reducer.combine().binding()
+    static var reducer: AnyReducer<Self, ActionDescriptionViewInputAction, ActionDescriptionEnvironment> = AnyReducer.combine().binding()
 }
 
 extension ActionDescriptionViewState {
-    static var reducer: Reducer<Self, ActionDescriptionViewAction, ActionDescriptionEnvironment> = Reducer.combine(
-        Reducer { state, action, env in
+    static var reducer: AnyReducer<Self, ActionDescriptionViewAction, ActionDescriptionEnvironment> = AnyReducer.combine(
+        AnyReducer { state, action, env in
             switch action {
             case .onAppear: break
             case .onFeedbackButtonTap: break // handled by the parent

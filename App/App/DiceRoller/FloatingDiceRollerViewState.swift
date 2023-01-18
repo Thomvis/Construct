@@ -38,9 +38,9 @@ enum FloatingDiceRollerViewAction: Equatable {
 }
 
 extension FloatingDiceRollerViewState {
-    static let reducer: Reducer<Self, FloatingDiceRollerViewAction, Environment> = Reducer.combine(
+    static let reducer: AnyReducer<Self, FloatingDiceRollerViewAction, Environment> = AnyReducer.combine(
         DiceCalculatorState.reducer.pullback(state: \.diceCalculator, action: /FloatingDiceRollerViewAction.diceCalculator, environment: { $0 }),
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             switch action {
             case .diceCalculator: break // handled above
             case .hide:

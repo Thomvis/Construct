@@ -61,7 +61,7 @@ extension KeyValueStore {
 
     // Returns a middleware that saves changed entities to the db
     // fixme: naive implementation, might become very slow
-    func entityChangeObserver<Environment, State, Action>(initialState: State, reducer: Reducer<State, Action, Environment>) -> Reducer<State, Action, Environment> where State: HavingEntities {
+    func entityChangeObserver<Environment, State, Action>(initialState: State, reducer: AnyReducer<State, Action, Environment>) -> AnyReducer<State, Action, Environment> where State: HavingEntities {
 
 
         var cache: [String: Data] = [:]
@@ -72,7 +72,7 @@ extension KeyValueStore {
             }
         }
 
-        return Reducer { state, action, environment in
+        return AnyReducer { state, action, environment in
             // run the wrapped reducer
             let effects = reducer.callAsFunction(&state, action, environment)
 

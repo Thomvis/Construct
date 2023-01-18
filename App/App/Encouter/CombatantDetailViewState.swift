@@ -129,13 +129,13 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         return res
     }
 
-    static let reducer: Reducer<Self, CombatantDetailViewAction, Environment> = Reducer.combine(
+    static let reducer: AnyReducer<Self, CombatantDetailViewAction, Environment> = AnyReducer.combine(
         CombatantTagEditViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagEditView),
         DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog, environment: { $0 }),
         ActionResolutionViewState.reducer.optional().pullback(state: \.diceActionPopoverState, action: /CombatantDetailViewAction.diceActionPopover, environment: { $0 }),
         NumberEntryViewState.reducer.optional().pullback(state: \.initiativePopoverState, action: /CombatantDetailViewAction.initiativePopover, environment: { $0 }),
         CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView),
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             switch action {
             case .combatant: break // should be handled by parent
             case .popover(let p):
@@ -311,8 +311,8 @@ extension CompendiumItemReferenceTextAnnotation {
         requestItem: WritableKeyPath<State, ReferenceViewItemRequest?>,
         internalAction: CasePath<Action, CompendiumEntryDetailViewState>,
         externalAction: CasePath<Action, SafariViewState>
-    ) -> Reducer<State, Action, Environment> {
-        Reducer { state, action, env in
+    ) -> AnyReducer<State, Action, Environment> {
+        AnyReducer { state, action, env in
             if let (annotation, appNavigation) = didTapAction.extract(from: action) {
                 switch env.compendium.resolve(annotation: annotation) {
                 case .internal(let ref):

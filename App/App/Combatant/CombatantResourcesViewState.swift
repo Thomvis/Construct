@@ -21,9 +21,9 @@ struct CombatantResourcesViewState: NavigationStackItemState, Equatable {
 
     var navigationTitle: String { "Limited resources" }
 
-    static let reducer: Reducer<Self, CombatantResourcesViewAction, Environment> = Reducer.combine(
+    static let reducer: AnyReducer<Self, CombatantResourcesViewAction, Environment> = AnyReducer.combine(
         CombatantTrackerEditViewState.reducer.optional().pullback(state: \.editState, action: /CombatantResourcesViewAction.editState),
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             switch action {
             case .combatant: break // bubble-up
             case .setEditState(let s): state.editState = s

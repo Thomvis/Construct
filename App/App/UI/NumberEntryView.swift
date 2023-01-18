@@ -88,8 +88,8 @@ extension NumberEntryViewState {
         }
     }
 
-    static var reducer: Reducer<Self, NumberEntryViewAction, NumberEntryViewEnvironment> = Reducer.combine(
-        Reducer { state, action, _ in
+    static var reducer: AnyReducer<Self, NumberEntryViewAction, NumberEntryViewEnvironment> = AnyReducer.combine(
+        AnyReducer { state, action, _ in
             switch action {
             case .mode(let m):
                 state.mode = m

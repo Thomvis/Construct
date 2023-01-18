@@ -67,8 +67,8 @@ enum AppAction: Equatable, BindableAction {
     case binding(BindingAction<AppState>)
 }
 
-let appReducer: Reducer<AppState, AppAction, DiceRollerEnvironment> = .combine(
-    Reducer { state, action, env in
+let appReducer: AnyReducer<AppState, AppAction, DiceRollerEnvironment> = .combine(
+    AnyReducer { state, action, env in
         switch action {
         case .onLaunch:
             // Listen to dice rolls and forward them to the right place

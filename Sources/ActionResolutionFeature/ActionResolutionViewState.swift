@@ -95,11 +95,11 @@ public enum ActionResolutionViewAction: Equatable, BindableAction {
 public typealias ActionResolutionEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithMechMuse & EnvironmentWithSendMail
 
 public extension ActionResolutionViewState {
-    static var reducer: Reducer<Self, ActionResolutionViewAction, ActionResolutionEnvironment> = Reducer.combine(
+    static var reducer: AnyReducer<Self, ActionResolutionViewAction, ActionResolutionEnvironment> = AnyReducer.combine(
         DiceActionViewState.reducer.optional()
             .pullback(state: \.diceAction, action: /ActionResolutionViewAction.diceAction),
         ActionDescriptionViewState.reducer.pullback(state: \.muse, action: /ActionResolutionViewAction.muse, environment: { $0 }),
-        Reducer { state, action, env in
+        AnyReducer { state, action, env in
             switch action {
             case .diceAction(.onFeedbackButtonTap), .muse(.onFeedbackButtonTap):
                 guard env.canSendMail() else { break }

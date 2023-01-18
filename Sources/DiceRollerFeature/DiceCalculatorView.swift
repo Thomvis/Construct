@@ -137,7 +137,7 @@ public struct DiceCalculatorState: Hashable {
         return .rollingExpression((1.d(20)+modifier).normalized ?? 1.d(20), rollOnAppear: rollOnAppear, prefilledResult: prefilledResult)
     }
 
-    public static var reducer = Reducer<DiceCalculatorState, DiceCalculatorAction, DiceRollerEnvironment> { state, action, env in
+    public static var reducer = AnyReducer<DiceCalculatorState, DiceCalculatorAction, DiceRollerEnvironment> { state, action, env in
         switch action {
         case .mode(let m):
             state.mode = m

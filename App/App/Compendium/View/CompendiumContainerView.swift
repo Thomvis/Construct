@@ -22,8 +22,8 @@ struct CompendiumContainerView: View {
     }
 }
 
-let compendiumRootReducer: Reducer<CompendiumIndexState, CompendiumIndexAction, Environment> = Reducer.combine(
-    Reducer { state, action, env in
+let compendiumRootReducer: AnyReducer<CompendiumIndexState, CompendiumIndexAction, Environment> = AnyReducer.combine(
+    AnyReducer { state, action, env in
         if let monster = action.onSaveMonsterAsNPCButtonMonster {
             return Effect.run(operation: { callback in
                 var stats = monster.stats

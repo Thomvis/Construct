@@ -83,8 +83,8 @@ enum CreatureActionEditViewAction: Equatable, BindableAction {
 }
 
 extension NamedStatBlockContentItemEditViewState {
-    static let reducer: Reducer<NamedStatBlockContentItemEditViewState, CreatureActionEditViewAction, CreatureEditViewEnvironment> =
-        Reducer { state, action, env in
+    static let reducer: AnyReducer<NamedStatBlockContentItemEditViewState, CreatureActionEditViewAction, CreatureEditViewEnvironment> =
+        AnyReducer { state, action, env in
             return .none
         }
         .binding()

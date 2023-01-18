@@ -221,7 +221,7 @@ extension CompendiumFilterSheetState {
         initial != current
     }
 
-    static var reducer: Reducer<Self, CompendiumFilterSheetAction, Environment> = Reducer { state, action, _ in
+    static var reducer: AnyReducer<Self, CompendiumFilterSheetAction, Environment> = AnyReducer { state, action, _ in
         switch action {
         case .itemType(let type):
             state.current.itemType = type

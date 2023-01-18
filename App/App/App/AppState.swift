@@ -87,9 +87,9 @@ struct AppState: Equatable {
         case onProcessRollForDiceLog(DiceLogEntry.Result, RollDescription)
     }
 
-    static var reducer: Reducer<AppState, Action, Environment> {
-        return Reducer.combine(
-            Reducer { state, action, env in
+    static var reducer: AnyReducer<AppState, Action, Environment> {
+        return AnyReducer.combine(
+            AnyReducer { state, action, env in
                 switch action {
                 case .onLaunch:
                     // Listen to dice rolls and forward them to the right place
@@ -194,7 +194,7 @@ struct AppState: Equatable {
                 return .none
             },
             Navigation.reducer.optional().pullback(state: \.navigation, action: /AppState.Action.navigation),
-            Reducer { state, action, env in
+            AnyReducer { state, action, env in
                 if state.sceneIsActive, let edv = state.topNavigationItems.compactMap({ $0 as? EncounterDetailViewState }).first, edv.running != nil {
                     env.isIdleTimerDisabled.wrappedValue = true
                 } else {
@@ -214,8 +214,8 @@ enum AppStateNavigationAction: Equatable {
 }
 
 extension AppState.Navigation {
-    static let reducer: Reducer<Self, AppStateNavigationAction, Environment> = Reducer.combine(
-        Reducer { state, action, env in
+    static let reducer: AnyReducer<Self, AppStateNavigationAction, Environment> = AnyReducer.combine(
+        AnyReducer { state, action, env in
             switch (state, action) {
             case (.tab, .openEncounter(let e)):
                 let detailState = EncounterDetailViewState(

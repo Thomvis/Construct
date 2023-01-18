@@ -76,9 +76,9 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
         }
     }
 
-    static let reducer: Reducer<CombatantTagsViewState, CombatantTagsViewAction, Environment> = Reducer.combine(
+    static let reducer: AnyReducer<CombatantTagsViewState, CombatantTagsViewAction, Environment> = AnyReducer.combine(
         CombatantTagEditViewState.reducer.optional().pullback(state: \.nextCombatantTagEditViewState, action: CasePath(embed: { CombatantTagsViewAction.nextScreen($0) }, extract: { $0.nextCombatantTagEditViewAction })),
-        Reducer { state, action, _ in
+        AnyReducer { state, action, _ in
             switch action {
             case .addTag(let tag):
                 return state.combatants.map { c in

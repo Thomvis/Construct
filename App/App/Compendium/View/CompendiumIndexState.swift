@@ -116,11 +116,11 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         }
     }
 
-    static var reducer: Reducer<Self, CompendiumIndexAction, Environment> {
-        return Reducer.combine(
+    static var reducer: AnyReducer<Self, CompendiumIndexAction, Environment> {
+        return AnyReducer.combine(
             CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextItemDetail, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry),
             CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedDetailItemDetail, action: /CompendiumIndexAction.detailScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry),
-            Reducer { state, action, env in
+            AnyReducer { state, action, env in
                 switch action {
                 case .results: break
                 case .scrollTo(let id):
@@ -243,7 +243,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     .eraseToAnyPublisher()
                 }
             }.pullback(state: \.results, action: /CompendiumIndexAction.results),
-            Reducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex),
+            AnyReducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex),
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumIndexAction.creatureEditSheet, environment: { $0 }),
             CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet)
         )
@@ -333,8 +333,8 @@ enum CompendiumIndexQueryAction: Equatable {
 }
 
 extension CompendiumIndexState.Query {
-    fileprivate static var reducer: Reducer<Self, CompendiumIndexQueryAction, Environment> {
-        return Reducer { state, action, _ in
+    fileprivate static var reducer: AnyReducer<Self, CompendiumIndexQueryAction, Environment> {
+        return AnyReducer { state, action, _ in
             switch action {
             case .onTextDidChange(let t):
                 state.text = t
