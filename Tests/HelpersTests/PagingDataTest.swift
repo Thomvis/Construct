@@ -60,12 +60,49 @@ final class PagingDataTest: XCTestCase {
         await store.finish()
     }
 
+    @MainActor
+    func testReload() async {
+        let clock = TestClock()
+        let store = makeStore(clock: clock)
+
+        await store.send(.didShowElementAtIndex(0)) {
+            $0.loadingState = .loading
+        }
+
+        await clock.advance(by: .seconds(1))
+
+        await store.receive(.didLoadMore(.success(.init(elements: Array(0..<20), end: false)))) {
+            $0.elements = Array(0..<20)
+            $0.loadingState = .notLoading(didReachEnd: false)
+        }
+
+        // load because it's close (20) to the end
+        await store.send(.didShowElementAtIndex(1)) {
+            $0.loadingState = .loading
+        }
+
+        await clock.advance(by: .milliseconds(100))
+
+        // reload while loading more
+        await store.send(.reload) {
+            $0.elements = nil
+            $0.loadingState = .loading
+        }
+
+        await clock.advance(by: .seconds(1))
+
+        await store.receive(.didLoadMore(.success(.init(elements: Array(0..<20), end: false)))) {
+            $0.elements = Array(0..<20)
+            $0.loadingState = .notLoading(didReachEnd: false)
+        }
+    }
+
     private func makeStore(
         state: PagingData<Int> = .init(),
         clock: any Clock<Duration> = ContinuousClock(),
         pageSize: Int = 20,
         elements: [Int] = Array(0..<55)
-    ) -> TestStore<PagingData<Int>, PagingData<Int>, PagingDataAction<Int>, PagingDataAction<Int>, Void> {
+    ) -> TestStore<PagingData<Int>, PagingDataAction<Int>, PagingData<Int>, PagingDataAction<Int>, Void> {
         TestStore(
             initialState: state,
             reducer: PagingData<Int>.reducer { offset, env in

@@ -40,16 +40,20 @@ public class DatabaseCompendium: Compendium {
     }
 
     public func fetchAll(query: String?) throws -> [CompendiumEntry] {
-        try fetchAll(query: query, types: [])
+        try fetchAll(query: query, types: [], range: nil)
     }
 
     public func fetchAll(query: String?, types: [CompendiumItemType]?) throws -> [CompendiumEntry] {
+        try fetchAll(query: query, types: types, range: nil)
+    }
+
+    public func fetchAll(query: String?, types: [CompendiumItemType]?, range: Range<Int>?) throws -> [CompendiumEntry] {
         let entries: [CompendiumEntry]
         let typeKeyPrefixes = types.map { $0.map { CompendiumEntry.keyPrefix(for: $0) } } ?? [CompendiumEntry.keyPrefix(for: nil)]
         if let query = query {
-            entries = try self.database.keyValueStore.match("\(query)*", keyPrefixes: typeKeyPrefixes)
+            entries = try self.database.keyValueStore.match("\(query)*", keyPrefixes: typeKeyPrefixes, range: range)
         } else {
-            entries = try self.database.keyValueStore.fetchAll(typeKeyPrefixes)
+            entries = try self.database.keyValueStore.fetchAll(typeKeyPrefixes, range: range)
         }
         return entries
     }

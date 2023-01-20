@@ -10,6 +10,7 @@ import ComposableArchitecture
 
 @dynamicMemberLookup
 public struct RetainState<Wrapped, Value> where Value: Equatable {
+
     public var wrapped: Wrapped
     public var retained: Value?
 
@@ -30,9 +31,9 @@ public struct RetainState<Wrapped, Value> where Value: Equatable {
 
 public extension RetainState {
     static func reducer<Action, Environment>(
-        wrappedReducer: Reducer<Wrapped, Action, Environment>,
+        wrappedReducer: AnyReducer<Wrapped, Action, Environment>,
         valueToRetain: @escaping (Wrapped) -> Value?
-    ) -> Reducer<Self, Action, Environment> {
+    ) -> AnyReducer<Self, Action, Environment> {
         wrappedReducer
             .pullback(state: \.wrapped, action: CasePath.`self`)
             .onChange(of: { valueToRetain($0.wrapped) }) { value, state, action, env in
@@ -42,6 +43,12 @@ public extension RetainState {
                 return .none
             }
 
+    }
+}
+
+public extension AnyReducer {
+    func retaining<Value>(valueToRetain: @escaping (State) -> Value?) -> AnyReducer<RetainState<State, Value>, Action, Environment> {
+        RetainState<State, Value>.reducer(wrappedReducer: self, valueToRetain: valueToRetain)
     }
 }
 

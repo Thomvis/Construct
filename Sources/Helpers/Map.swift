@@ -26,20 +26,43 @@ public enum MapAction<InputAction, ResultAction> {
 public extension MapState {
     
     static func reducer<InputAction, ResultAction, Environment>(
-        inputReducer: Reducer<Input, InputAction, Environment>,
+        inputReducer: AnyReducer<Input, InputAction, Environment>,
         initialResultStateForInput resultState: @escaping (Input) -> Result,
         initialResultActionForInput resultAction: @escaping (Input) -> ResultAction?,
-        resultReducerForInput: @escaping (Input) -> Reducer<Result, ResultAction, Environment>
-    ) -> Reducer<Self, MapAction<InputAction, ResultAction>, Environment> {
+        resultReducerForInput: @escaping (Input) -> AnyReducer<Result, ResultAction, Environment>
+    ) -> AnyReducer<Self, MapAction<InputAction, ResultAction>, Environment> {
         var resultReducerCancellationId: UUID? = nil
-        var resultReducer: Reducer<Result, ResultAction, Environment>? = nil
-        return Reducer.combine(
-            inputReducer.pullback(state: \.input, action: /MapAction.input),
-            Reducer { state, action, env in
+        var resultReducer: AnyReducer<Result, ResultAction, Environment>? = nil
+
+        func updateReducer(state: inout Self) -> Effect<MapAction<InputAction, ResultAction>, Never> {
+            let cancellationId = UUID()
+
+            state.result = resultState(state.input)
+            resultReducer = resultReducerForInput(state.input)
+                                .cancellable(id: cancellationId)
+
+            let previousCancellationId = resultReducerCancellationId
+            resultReducerCancellationId = cancellationId            
+
+            return .concatenate([
+                previousCancellationId.map(Effect.cancel),
+                resultAction(state.input).map { Effect(value: .result($0)) }
+            ].compactMap { $0 })
+        }
+
+        return AnyReducer.combine(
+            inputReducer.pullback(state: \.input, action: /MapAction.input)
+                .onChange(of: \.input) { input, state, action, env in
+                    return updateReducer(state: &state)
+                },
+            AnyReducer { state, action, env in
                 switch action {
                 case .input: break // handled above
                 case .result(let a):
-                    assert(resultReducer != nil)
+                    if resultReducer == nil {
+                        _ = updateReducer(state: &state)
+                    }
+
                     if let reducer = resultReducer {
                         return reducer(&state.result, a, env).map(MapAction.result)
                     }
@@ -47,21 +70,6 @@ public extension MapState {
                 return .none
             }
         )
-        .onChange(of: \.input) { input, state, action, env in
-            let cancellationId = UUID()
-
-            state.result = resultState(input)
-            resultReducer = resultReducerForInput(input)
-                                .cancellable(id: cancellationId)
-
-            let previousCancellationId = resultReducerCancellationId
-            resultReducerCancellationId = cancellationId
-
-            return .merge([
-                previousCancellationId.map(Effect.cancel),
-                resultAction(input).map { Effect(value: .result($0)) }
-            ].compactMap { $0 })
-        }
     }
 }
 

@@ -221,8 +221,8 @@ public extension AnyReducer {
         }
     }
 
-    func cancellable(id: AnyHashable) -> Reducer<State, Action, Environment> {
-        return Reducer { state, action, env in
+    func cancellable(id: AnyHashable) -> AnyReducer<State, Action, Environment> {
+        return AnyReducer { state, action, env in
             self.run(&state, action, env).cancellable(id: id)
         }
     }

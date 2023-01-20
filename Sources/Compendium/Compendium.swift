@@ -15,6 +15,7 @@ public protocol Compendium {
     func get(_ key: CompendiumItemKey, crashReporter: CrashReporter) throws -> CompendiumEntry?
     func put(_ entry: CompendiumEntry) throws
     func contains(_ key: CompendiumItemKey) throws -> Bool
+    func fetchAll(query: String?, types: [CompendiumItemType]?, range: Range<Int>?) throws -> [CompendiumEntry]
     func fetchAll(query: String?, types: [CompendiumItemType]?) throws -> [CompendiumEntry]
     func fetchAll(query: String?) throws -> [CompendiumEntry]
     func resolve(annotation: CompendiumItemReferenceTextAnnotation) -> ReferenceResolveResult

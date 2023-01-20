@@ -17,7 +17,8 @@ import Compendium
 
 struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
-    typealias RS = ResultSet<Query, [CompendiumEntry], Error>
+    typealias MS = MapState<Query, PagingData<CompendiumEntry>>
+    typealias RS = RetainState<MS, LastResult>
 
     let title: String
     var properties: Properties
@@ -42,7 +43,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     var localStateForDeduplication: Self {
         var res = self
         res.results.input = Query.nullInstance
-        res.results.lastResult?.input = Query.nullInstance
+        res.results.retained?.input = Query.nullInstance
 
         res.presentedScreens = presentedScreens.mapValues {
             switch $0 {
@@ -125,14 +126,14 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 case .results: break
                 case .scrollTo(let id):
                     state.scrollTo = id
-                case .onQueryTypeFilterDidChange(let typeFilter, debounce: let debounce):
+                case .onQueryTypeFilterDidChange(let typeFilter):
                     if typeFilter == nil && state.properties.typeRestriction == nil {
-                        return Effect(value: .query(.onTypeFilterDidChange(nil), debounce: debounce))
+                        return Effect(value: .query(.onTypeFilterDidChange(nil)))
                     } else {
                         let restrictions = state.properties.typeRestriction ?? CompendiumItemType.allCases
                         let new = typeFilter ?? CompendiumItemType.allCases
                         let withinRestrictions = new.filter { restrictions.contains($0 )}
-                        return Effect(value: .query(.onTypeFilterDidChange(withinRestrictions), debounce: debounce))
+                        return Effect(value: .query(.onTypeFilterDidChange(withinRestrictions)))
                     }
                 case .onAddButtonTap(let type):
                     switch type {
@@ -168,7 +169,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                             _ = try? env.compendium.put(entry)
                             subscriber.send(.scrollTo(entry.key))
                         }
-                        subscriber.send(.results(.reload))
+                        subscriber.send(.results(.result(.reload)))
                         subscriber.send(.setSheet(nil))
                         subscriber.send(completion: .finished)
                         return AnyCancellable { }
@@ -178,7 +179,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         let entry = CompendiumEntry(group)
                         try? env.compendium.put(entry)
 
-                        subscriber.send(.results(.reload))
+                        subscriber.send(.results(.result(.reload)))
                         subscriber.send(.scrollTo(entry.key))
                         subscriber.send(.setSheet(nil))
                         subscriber.send(completion: .finished)
@@ -193,7 +194,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         // Work-around: without the delay, `.setNextScreen(nil)` is not picked up
                         // (probably because .reload makes the NavigationLink disappear)
                         DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
-                            subscriber.send(.results(.reload))
+                            subscriber.send(.results(.result(.reload)))
                             subscriber.send(completion: .finished)
                         }
 
@@ -201,10 +202,10 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     }
                 case .nextScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))),
                      .detailScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))):
-                    return Effect(value: .results(.reload))
+                    return Effect(value: .results(.result(.reload)))
                 case .nextScreen(.compendiumEntry(.entry)),
                      .detailScreen(.compendiumEntry(.entry)):
-                    return Effect(value: .results(.reload))
+                    return Effect(value: .results(.result(.reload)))
                 case .nextScreen, .detailScreen:
                     break
                 case .alert(let s):
@@ -215,17 +216,21 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 }
                 return .none
             },
-            RS.reducer(CompendiumIndexState.Query.reducer) { query in
-                return { env in
-                    return Deferred(catching: {
+            MS.reducer(
+                inputReducer: CompendiumIndexState.Query.reducer,
+                initialResultStateForInput: { _ in PagingData() },
+                initialResultActionForInput: { _ in .didShowElementAtIndex(0) },
+                resultReducerForInput: { query in
+                    PagingData.reducer { offset, env in
+                        let entries: [CompendiumEntry]
                         do {
-                            return try env.compendium.fetchAll(query: query.text?.nonEmptyString, types: query.filters?.types)
+                            entries = try env.compendium.fetchAll(query: query.text?.nonEmptyString, types: query.filters?.types, range: offset..<(offset+20))
                         } catch {
                             assertionFailure("compendium.fetchAll failed with error: \(error)")
                             env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
-                            throw error
+                            return .failure(PagingDataError(describing: error))
                         }
-                    }).map { entries in
+
                         var result = entries
                         // filter
                         if let filterTest = query.filters?.test {
@@ -236,13 +241,16 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         let order = query.order ?? .default(query.filters?.types ?? CompendiumItemType.allCases)
                         result = result.sorted(by: order.descriptor.pullback(\.item))
 
-                        return result
+                        return .success(.init(elements: result, end: result.count < 20))
                     }
-                    .subscribe(on: env.backgroundQueue)
-                    .receive(on: env.mainQueue)
-                    .eraseToAnyPublisher()
                 }
-            }.pullback(state: \.results, action: /CompendiumIndexAction.results),
+            ).retaining { mapState in
+                if let elements = mapState.result.elements {
+                    return CompendiumIndexState.LastResult(input: mapState.input, entries: elements)
+                }
+                return nil
+            }
+            .pullback(state: \.results, action: /CompendiumIndexAction.results),
             AnyReducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex),
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumIndexAction.creatureEditSheet, environment: { $0 }),
             CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet)
@@ -251,10 +259,10 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 }
 
 extension CompendiumIndexState.RS {
-    static let initial = CompendiumIndexState.RS(input: CompendiumIndexState.Query(text: nil, filters: nil))
+    static let initial = CompendiumIndexState.RS(wrapped: MapState(input: CompendiumIndexState.Query(text: nil, filters: nil), result: .init()))
 
     static func initial(types: [CompendiumItemType]) -> CompendiumIndexState.RS {
-        CompendiumIndexState.RS(input: CompendiumIndexState.Query(text: nil, filters: CompendiumIndexState.Query.Filters(types: types), order: nil))
+        CompendiumIndexState.RS(wrapped: MapState(input: CompendiumIndexState.Query(text: nil, filters: CompendiumIndexState.Query.Filters(types: types), order: nil), result: .init()))
     }
 
     static func initial(type: CompendiumItemType) -> CompendiumIndexState.RS {
@@ -272,9 +280,11 @@ extension CompendiumIndexState: NavigationStackItemState {
 
 enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 
-    case results(CompendiumIndexState.RS.Action<CompendiumIndexQueryAction>)
+    typealias ResultsAction = MapAction<CompendiumIndexQueryAction, PagingDataAction<CompendiumEntry>>
+
+    case results(ResultsAction)
     case scrollTo(CompendiumEntry.Key?)
-    case onQueryTypeFilterDidChange([CompendiumItemType]?, debounce: Bool)
+    case onQueryTypeFilterDidChange([CompendiumItemType]?)
     case onAddButtonTap(CompendiumItemType)
     case onSearchOnWebButtonTap
 
@@ -310,7 +320,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     }
 
     // Key-path support
-    var results: CompendiumIndexState.RS.Action<CompendiumIndexQueryAction>? {
+    var results: ResultsAction? {
         get {
             guard case .results(let a) = self else { return nil }
             return a
@@ -321,8 +331,8 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
         }
     }
 
-    static func query(_ a: CompendiumIndexQueryAction, debounce: Bool) -> CompendiumIndexAction {
-        return .results(.input(a, debounce: debounce))
+    static func query(_ a: CompendiumIndexQueryAction) -> CompendiumIndexAction {
+        return .results(.input(a))
     }
 }
 
@@ -361,4 +371,37 @@ extension CompendiumIndexState {
         results: .initial,
         presentedScreens: [:]
     )
+}
+
+extension CompendiumIndexState {
+    struct LastResult: Equatable {
+        var input: CompendiumIndexState.Query
+        var entries: [CompendiumEntry]
+    }
+}
+
+extension CompendiumIndexState.RS {
+    var entries: [CompendiumEntry]? {
+        wrapped.result.elements ?? retained?.entries
+    }
+
+    /// Returns the input beloning to the Success value returned from `value` (which might be outdated compared
+    /// to the current value for `input`.
+    var inputForEntries: CompendiumIndexState.Query? {
+        if wrapped.result.elements != nil {
+            return wrapped.input
+        }
+        return retained?.input
+    }
+
+    var isLoading: Bool {
+        wrapped.result.loadingState == .loading
+    }
+
+    var error: Swift.Error? {
+        if case .error(let e) = wrapped.result.loadingState {
+            return e
+        }
+        return nil
+    }
 }

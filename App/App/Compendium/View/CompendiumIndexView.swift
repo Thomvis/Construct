@@ -96,8 +96,8 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         }
         .scrollDismissesKeyboard(.immediately)
         .searchable(
-            text: localViewStore.binding(get: { $0.searchText.nonNilString }, send: { .query(.onTextDidChange($0), debounce: true) }),
-            tokens: localViewStore.binding(get: { $0.itemTypeFilter ?? [] }, send: { .onQueryTypeFilterDidChange($0.nonEmptyArray, debounce: false) }),
+            text: localViewStore.binding(get: { $0.searchText.nonNilString }, send: { .query(.onTextDidChange($0)) }),
+            tokens: localViewStore.binding(get: { $0.itemTypeFilter ?? [] }, send: { .onQueryTypeFilterDidChange($0.nonEmptyArray) }),
             token: { type in
                 Text(type.localizedScreenDisplayName)
             }
@@ -153,16 +153,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                 )
             }
         case .succeededWithResults, .loadingInitialContent:
-            ZStack {
-                CompendiumItemList(store: store, viewProvider: viewProvider)
-
-                if localViewStore.state.isLoadingResults {
-                    Label("Loading…", systemImage: "sparkle.magnifyingglass")
-                        .padding()
-                        .background(Material.regular, in: RoundedRectangle(cornerRadius: 8))
-                        .transition(.opacity.animation(.default))
-                }
-            }
+            CompendiumItemList(store: store, viewProvider: viewProvider)
         case .failedWithError:
             Text("Loading failed").frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -170,7 +161,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 
     private func loadResultsIfNeeded() {
         if !localViewStore.state.results.isSuccess {
-            localViewStore.send(.results(.reload)) // kick-start search, fixme?
+            localViewStore.send(.results(.result(.didShowElementAtIndex(0)))) // kick-start search, fixme?
         }
     }
 
@@ -198,7 +189,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 
     struct LocalState: Equatable {
         let results: ResultsStatus
-        let isLoadingResults: Bool
 
         let itemTypeRestriction: [CompendiumItemType]?
         let itemTypeFilter: [CompendiumItemType]?
@@ -214,14 +204,13 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         let searchText: String?
 
         init(_ state: CompendiumIndexState) {
-            if let resValues = state.results.value {
+            if let resValues = state.results.entries {
                 self.results = resValues.isEmpty ? .succeededWithoutResults : .succeededWithResults
             } else if state.results.error != nil {
                 self.results = .failedWithError
             } else {
                 self.results = .loadingInitialContent
             }
-            self.isLoadingResults = state.results.result.isLoading == true
 
             itemTypeRestriction = state.properties.typeRestriction
             if Set(state.results.input.filters?.types ?? []) == Set(state.properties.typeRestriction ?? CompendiumItemType.allCases) {
@@ -308,9 +297,26 @@ fileprivate struct CompendiumItemList: View, Equatable {
                         typeFilterSection(typeFilters: typeFilters)
                     }
 
-                    section(header: Text("All"), entries: state.entries)
+                    if !state.entries.isEmpty {
+                        section(header: Text("All"), entries: state.entries, reportVisibility: true)
+                    }
                 } else {
                     section(entries: state.entries)
+                }
+
+                if viewStore.state.isLoadingMoreEntries {
+                    VStack(spacing: 12) {
+                        // work-around: the regular ProgressView() does not show during subsequent loads, so we use our own
+                        AnimatingSymbol(systemName: "ellipsis")
+                            .font(.title)
+
+                        Text("Loading more entries…")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .padding()
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .listRowSeparator(.hidden)
                 }
             }
             .listStyle(.plain)
@@ -343,13 +349,25 @@ fileprivate struct CompendiumItemList: View, Equatable {
     }
 
     @ViewBuilder
-    func section<H>(header: H, entries: [CompendiumEntry]) -> some View where H: View  {
+    func section<H>(header: H, entries: [CompendiumEntry], reportVisibility: Bool = false) -> some View where H: View  {
+        let indexByKey = Dictionary(uniqueKeysWithValues: entries.enumerated().map { ($0.element.key, $0.offset) })
+
         Section(header: header) {
             ForEach(entries, id: \.key) { entry in
                 NavigationRowButton(action: {
                     viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
                 }) {
-                    viewProvider.row(self.store, entry)
+                    let itemView = viewProvider.row(self.store, entry)
+
+                    if reportVisibility {
+                        itemView.onAppear {
+                            if let idx = indexByKey[entry.key] {
+                                viewStore.send(.results(.result(.didShowElementAtIndex(idx))))
+                            }
+                        }
+                    } else {
+                        itemView
+                    }
                 }
             }
         }
@@ -363,7 +381,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
         Section(header: Text("Filter")) {
             ForEach(typeFilters, id: \.self) { t in
                 Button {
-                    viewStore.send(.onQueryTypeFilterDidChange([t], debounce: false))
+                    viewStore.send(.onQueryTypeFilterDidChange([t]))
                 } label: {
                     HStack {
                         Text("\(t.localizedScreenDisplayName)").bold()
@@ -385,14 +403,15 @@ fileprivate struct CompendiumItemList: View, Equatable {
         let typeFilters: [CompendiumItemType]?
         // not used by the view (store is used directly) but here to ensure the view is re-evaluated
         let presentedItemDetail: String?
+        let isLoadingMoreEntries: Bool
 
         let scrollTo: CompendiumEntry.Key?
 
         init(_ state: CompendiumIndexState) {
             self.title = state.title
-            self.entries = state.results.value ?? []
+            self.entries = state.results.entries ?? []
 
-            let input = state.results.inputForValue
+            let input = state.results.inputForEntries
             if input?.text?.nonEmptyString == nil && Set(input?.filters?.types ?? []) == Set(state.properties.typeRestriction ?? []) {
                 self.suggestions = state.suggestions?.nonEmptyArray
             } else {
@@ -413,6 +432,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
 
             self.presentedItemDetail = state.presentedNextItemDetail?.navigationStackItemStateId
                 ?? state.presentedDetailItemDetail?.navigationStackItemStateId
+            self.isLoadingMoreEntries = state.results.isLoading
 
             self.scrollTo = state.scrollTo
         }
@@ -494,7 +514,7 @@ struct FilterButton: View {
             filters.types = filterValues.itemType.optionalArray
             filters.minMonsterChallengeRating = filterValues.minMonsterCR
             filters.maxMonsterChallengeRating = filterValues.maxMonsterCR
-            self.viewStore.send(.query(.onFiltersDidChange(filters), debounce: false))
+            self.viewStore.send(.query(.onFiltersDidChange(filters)))
             self.sheet = nil
         }
     }

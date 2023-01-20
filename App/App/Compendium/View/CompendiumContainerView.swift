@@ -36,8 +36,8 @@ let compendiumRootReducer: AnyReducer<CompendiumIndexState, CompendiumIndexActio
                     try env.compendium.put(entry)
 
                     // configure view to display the character
-                    await callback(.query(.onFiltersDidChange(.init(types: [.character])), debounce: false))
-                    await callback(.query(.onTextDidChange(nil), debounce: false))
+                    await callback(.query(.onFiltersDidChange(.init(types: [.character]))))
+                    await callback(.query(.onTextDidChange(nil)))
                     await callback(.scrollTo(entry.key))
                     await callback(.setNextScreen(nil))
                 } catch { }

@@ -84,21 +84,21 @@ public final class KeyValueStore {
         }
     }
 
-    public func fetchAll<V>(_ keyPrefix: String) throws -> [V] where V: Codable {
-        try fetchAll([keyPrefix])
+    public func fetchAll<V>(_ keyPrefix: String, range: Range<Int>? = nil) throws -> [V] where V: Codable {
+        try fetchAll([keyPrefix], range: range)
     }
 
-    public func fetchAll<V>(_ keyPrefixes: [String]? = []) throws -> [V] where V: Codable {
-        return try fetchAllRaw(keyPrefixes).map {
+    public func fetchAll<V>(_ keyPrefixes: [String]? = [], range: Range<Int>? = nil) throws -> [V] where V: Codable {
+        return try fetchAllRaw(keyPrefixes, range: range).map {
             return try Self.decoder.decode(V.self, from: $0.value)
         }
     }
 
     public func match<V>(_ ftsQuery: String, keyPrefix: String? = nil) throws -> [V] where V: Codable {
-        try match(ftsQuery, keyPrefixes: keyPrefix.map { [$0] })
+        try match(ftsQuery, keyPrefixes: keyPrefix.map { [$0] }, range: nil)
     }
 
-    public func match<V>(_ ftsQuery: String, keyPrefixes: [String]?) throws -> [V] where V: Codable {
+    public func match<V>(_ ftsQuery: String, keyPrefixes: [String]?, range: Range<Int>? = nil) throws -> [V] where V: Codable {
         let records = try queue.read { db -> [Record] in
             var arguments: [Any] = []
             var sql = """
@@ -127,6 +127,13 @@ public final class KeyValueStore {
 
             ORDER BY rank
             """
+
+            if let range {
+                sql += """
+                
+                LIMIT \(range.startIndex), \(range.endIndex - range.startIndex)
+                """
+            }
 
             return try Record.fetchAll(db, sql: sql, arguments: StatementArguments(arguments) ?? StatementArguments())
         }
@@ -168,8 +175,8 @@ public final class KeyValueStore {
         }
     }
 
-    public func fetchAllRaw(_ keyPrefix: String) throws -> [Record] {
-        try fetchAllRaw([keyPrefix])
+    public func fetchAllRaw(_ keyPrefix: String, range: Range<Int>? = nil) throws -> [Record] {
+        try fetchAllRaw([keyPrefix], range: range)
     }
 
     /// Returns an array of all keys in the store, ordered by rowId
@@ -184,13 +191,26 @@ public final class KeyValueStore {
         }
     }
 
-    public func fetchAllRaw(_ keyPrefixes: [String]? = []) throws -> [Record] {
+    public func fetchAllRaw(_ keyPrefixes: [String]? = [], range: Range<Int>? = nil) throws -> [Record] {
         return try queue.read { db in
             if let keyPrefixes = keyPrefixes {
                 let filters = keyPrefixes.map { Column("key").like("\($0)%") }
-                return try Record.filter(filters.joined(operator: .or)).fetchAll(db)
+                var query = Record
+                    .order(Column.rowID.asc)
+                    .filter(filters.joined(operator: .or))
+
+                if let range {
+                    query = query.limit(range.upperBound - range.lowerBound, offset: range.lowerBound)
+                }
+
+                return try query.fetchAll(db)
+            } else if let range {
+                return try Record
+                    .order(Column.rowID.asc)
+                    .limit(range.upperBound - range.lowerBound, offset: range.lowerBound)
+                    .fetchAll(db)
             } else {
-                return try Record.fetchAll(db)
+                return try Record.order(Column.rowID.asc).fetchAll(db)
             }
         }
     }

@@ -8,12 +8,15 @@
 import Foundation
 import ComposableArchitecture
 
+private let assumedNumberOfItemsOnScreen = 20
+
 public struct PagingData<Element>: Equatable where Element: Equatable {
-    public var elements: [Element]
+    private let id = UUID()
+    public var elements: [Element]?
     public var loadingState: LoadingState
 
     public init() {
-        self.elements = []
+        self.elements = nil
         self.loadingState = .notLoading(didReachEnd: false)
     }
 
@@ -27,6 +30,7 @@ public struct PagingData<Element>: Equatable where Element: Equatable {
 public enum PagingDataAction<Element>: Equatable where Element: Equatable {
     case didShowElementAtIndex(Int)
     case didLoadMore(Result<FetchResult, PagingDataError>)
+    case reload
 
     public struct FetchResult: Equatable {
         let elements: [Element]
@@ -47,26 +51,43 @@ public struct PagingDataError: Swift.Error, Equatable {
     }
 }
 
+private enum LoadID { }
+
 public extension PagingData {
     static func reducer<Environment>(
         _ fetch: @escaping (Int, Environment) async -> Result<PagingDataAction<Element>.FetchResult, PagingDataError>
-    ) -> Reducer<Self, PagingDataAction<Element>, Environment> {
-        return Reducer { state, action, env in
+    ) -> AnyReducer<Self, PagingDataAction<Element>, Environment> {
+        return AnyReducer { state, action, env in
+
+            func loadIfNeeded(for idx: Int, state: inout Self) -> EffectTask<PagingDataAction<Element>> {
+                let elementCount = state.elements?.count ?? 0
+                guard idx > elementCount - assumedNumberOfItemsOnScreen else { return .none }
+                guard state.loadingState == .notLoading(didReachEnd: false) else { return .none }
+                state.loadingState = .loading
+                return .task {
+                    let result = await fetch(elementCount, env)
+                    return .didLoadMore(result)
+                }
+                // work-around for issue https://github.com/pointfreeco/swift-composable-architecture/issues/1848
+                // when used inside a MapState
+                .eraseToEffect()
+                .cancellable(id: LoadID.self)
+            }
+
             switch action {
             case .didShowElementAtIndex(let idx):
-                guard idx > state.elements.count - 20 || idx > Int(Double(state.elements.count)*0.8) else { break }
-                guard state.loadingState == .notLoading(didReachEnd: false) else { break }
-                state.loadingState = .loading
-                let offset = state.elements.count
-                return Effect.run(operation: { send in
-                    let result = await fetch(offset, env)
-                    await send(.didLoadMore(result))
-                })
+                return loadIfNeeded(for: idx, state: &state)
             case .didLoadMore(.success(let res)):
-                state.elements += res.elements
+                state.elements = (state.elements ?? []) + res.elements
                 state.loadingState = .notLoading(didReachEnd: res.end)
             case .didLoadMore(.failure(let e)):
                 state.loadingState = .error(e)
+            case .reload:
+                state.elements = nil
+                state.loadingState = .notLoading(didReachEnd: false)
+                return loadIfNeeded(for: 0, state: &state)
+                    .prepend(EffectTask.cancel(id: LoadID.self))
+                    .eraseToEffect()
             }
             return .none
         }
