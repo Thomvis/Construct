@@ -37,30 +37,43 @@ public final class KeyValueStore {
         }
 
         return observation.values(in: queue)
-            .removeDuplicates()
             .map { record in
                 return try record.map { try Self.decoder.decode(V.self, from: $0.value) }
-            }.stream
+            }
+            .removeDuplicates()
+            .stream
     }
 
-    public func put<V>(_ value: V, at key: String, fts: FTSDocument? = nil, in db: GRDB.Database? = nil) throws where V: Codable {
+    public func put<V>(
+        _ value: V,
+        at key: String,
+        fts: FTSDocument? = nil,
+        secondaryIndexValues indexValues: [Int: String]? = nil,
+        in db: GRDB.Database? = nil
+    ) throws where V: Codable {
         guard let db = db else {
             return try queue.write { db in
-                try Self.put(value, at: key, fts: fts, in: db)
+                try Self.put(value, at: key, fts: fts, secondaryIndexValues: indexValues, in: db)
             }
         }
 
-        return try Self.put(value, at: key, fts: fts, in: db)
+        return try Self.put(value, at: key, fts: fts, secondaryIndexValues: indexValues, in: db)
     }
 
-    public static func put<V>(_ value: V, at key: String, fts: FTSDocument? = nil, in db: GRDB.Database) throws where V: Codable {
+    public static func put<V>(
+        _ value: V,
+        at key: String,
+        fts: FTSDocument? = nil,
+        secondaryIndexValues: [Int: String]? = nil,
+        in db: GRDB.Database
+    ) throws where V: Codable {
         let previousLastInsertedRowId = db.lastInsertedRowID
 
         let encodedValue = try Self.encoder.encode(value)
         let record = Record(key: key, modifiedAt: Date(), value: encodedValue)
         try record.save(db)
 
-        if let fts = fts {
+        if let fts {
             var rowId: Int64?
             let lastInsertedRowID = db.lastInsertedRowID
 
@@ -82,75 +95,73 @@ public final class KeyValueStore {
             let ftsRecord = FTSRecord(id: id, title: fts.title, subtitle: fts.subtitle, body: fts.body)
             try ftsRecord.save(db)
         }
+
+        if let secondaryIndexValues {
+            for (index, value) in secondaryIndexValues {
+                let indexRecord = SecondaryIndexRecord(idx: index, value: value, recordKey: record.key)
+                try indexRecord.save(db)
+            }
+        }
     }
 
-    public func fetchAll<V>(_ keyPrefix: String, range: Range<Int>? = nil) throws -> [V] where V: Codable {
-        try fetchAll([keyPrefix], range: range)
+    public func fetchAll<V>(
+        _ keyPrefix: String,
+        orderBySecondaryIndex index: SecondaryIndexOrder? = nil,
+        range: Range<Int>? = nil
+    ) throws -> [V] where V: Codable {
+        try fetchAll([keyPrefix], orderBySecondaryIndex: index, range: range)
     }
 
-    public func fetchAll<V>(_ keyPrefixes: [String]? = [], range: Range<Int>? = nil) throws -> [V] where V: Codable {
-        return try fetchAllRaw(keyPrefixes, range: range).map {
+    public func fetchAll<V>(
+        _ keyPrefixes: [String]? = [],
+        search: String? = nil,
+        orderBySecondaryIndex index: SecondaryIndexOrder? = nil,
+        range: Range<Int>? = nil
+    ) throws -> [V] where V: Codable {
+        return try fetchAllRaw(keyPrefixes, search: search, orderBySecondaryIndex: index, range: range).map {
             return try Self.decoder.decode(V.self, from: $0.value)
         }
-    }
-
-    public func match<V>(_ ftsQuery: String, keyPrefix: String? = nil) throws -> [V] where V: Codable {
-        try match(ftsQuery, keyPrefixes: keyPrefix.map { [$0] }, range: nil)
-    }
-
-    public func match<V>(_ ftsQuery: String, keyPrefixes: [String]?, range: Range<Int>? = nil) throws -> [V] where V: Codable {
-        let records = try queue.read { db -> [Record] in
-            var arguments: [Any] = []
-            var sql = """
-            SELECT \(Record.databaseTableName).*
-            FROM \(Record.databaseTableName)
-            """
-
-            // FTS
-            sql += """
-
-            JOIN \(FTSRecord.databaseTableName)
-                ON \(FTSRecord.databaseTableName).rowid = \(Record.databaseTableName).rowid
-                AND \(FTSRecord.databaseTableName) MATCH ?
-            """
-            arguments.append(ftsQuery)
-
-            // Key
-            if let keyPrefixes = keyPrefixes, keyPrefixes.count > 0 {
-                let prefixSql = keyPrefixes.map { _ in "\(Record.databaseTableName).key LIKE ?" }.joined(separator: " OR ")
-
-                sql += "\n\nWHERE (\(prefixSql))"
-                arguments.append(contentsOf: keyPrefixes.map { "\($0)%" })
-            }
-
-            sql += """
-
-            ORDER BY rank
-            """
-
-            if let range {
-                sql += """
-                
-                LIMIT \(range.startIndex), \(range.endIndex - range.startIndex)
-                """
-            }
-
-            return try Record.fetchAll(db, sql: sql, arguments: StatementArguments(arguments) ?? StatementArguments())
-        }
-        return try records.map { try Self.decoder.decode(V.self, from: $0.value) }
     }
 
     @discardableResult
     public func remove(_ key: String) throws -> Bool {
         try queue.write { db in
-            try Record.deleteOne(db, key: key)
+            // remove FTS row
+            try db.execute(
+                sql: """
+                DELETE FROM \(FTSRecord.databaseTableName)
+                WHERE \(Column.rowID.name) IS (
+                  SELECT \(Column.rowID.name) FROM \(Record.databaseTableName) WHERE key = ?
+                )
+                """,
+                arguments: [key]
+            )
+
+
+            // secondary indexes are removed by a foreign key constraint
+
+            return try Record.deleteOne(db, key: key)
         }
     }
 
     @discardableResult
     public func removeAll(_ keyPrefix: String) throws -> Int {
         try queue.write { db in
-            try Record.filter(Column("key").like("\(keyPrefix)%")).deleteAll(db)
+            // remove FTS rows
+            try db.execute(
+                sql: """
+                DELETE FROM \(FTSRecord.databaseTableName)
+                WHERE \(Column.rowID.name) IN (
+                  SELECT \(Column.rowID.name) FROM \(Record.databaseTableName) WHERE key LIKE ?
+                )
+                """,
+                arguments: ["\(keyPrefix)%"]
+            )
+
+            // secondary indexes are removed by a foreign key constraint
+
+            // remove actual row
+            return try Record.filter(Column("key").like("\(keyPrefix)%")).deleteAll(db)
         }
     }
 
@@ -175,10 +186,6 @@ public final class KeyValueStore {
         }
     }
 
-    public func fetchAllRaw(_ keyPrefix: String, range: Range<Int>? = nil) throws -> [Record] {
-        try fetchAllRaw([keyPrefix], range: range)
-    }
-
     /// Returns an array of all keys in the store, ordered by rowId
     public func allKeys() throws -> [String] {
         try queue.read { db in
@@ -191,27 +198,115 @@ public final class KeyValueStore {
         }
     }
 
-    public func fetchAllRaw(_ keyPrefixes: [String]? = [], range: Range<Int>? = nil) throws -> [Record] {
-        return try queue.read { db in
-            if let keyPrefixes = keyPrefixes {
-                let filters = keyPrefixes.map { Column("key").like("\($0)%") }
-                var query = Record
-                    .order(Column.rowID.asc)
-                    .filter(filters.joined(operator: .or))
+    public func fetchAllRaw(
+        _ keyPrefix: String,
+        search: String? = nil,
+        orderBySecondaryIndex index: SecondaryIndexOrder? = nil,
+        range: Range<Int>? = nil
+    ) throws -> [Record] {
+        try fetchAllRaw([keyPrefix], search: search, orderBySecondaryIndex: index, range: range)
+    }
 
-                if let range {
-                    query = query.limit(range.upperBound - range.lowerBound, offset: range.lowerBound)
+    public func fetchAllRaw(
+        _ keyPrefixes: [String]? = [],
+        search: String? = nil,
+        orderBySecondaryIndex index: SecondaryIndexOrder? = nil,
+        range: Range<Int>? = nil
+    ) throws -> [Record] {
+
+        func keyPrefixSQL(keyColumnName: String) -> (String, [String])? {
+            guard let keyPrefixes = keyPrefixes, keyPrefixes.count > 0 else { return nil }
+
+            let prefixSql = keyPrefixes.map { _ in
+                "\(keyColumnName) LIKE ?"
+            }.joined(separator: " OR ")
+
+            return (prefixSql, keyPrefixes.map { "\($0)%" })
+        }
+
+        return try queue.read { db in
+            var arguments: [Any] = []
+            var sql: String
+            if let index {
+                // we use an inner join to exclude non-existing records
+                // (a left join would leave the row in with NULL values for the record columns, but that crashes)
+                sql = """
+                SELECT \(Record.databaseTableName).*
+                FROM \(SecondaryIndexRecord.databaseTableName)
+                INNER JOIN \(Record.databaseTableName)
+                  ON \(SecondaryIndexRecord.databaseTableName).\(SecondaryIndexRecord.Columns.recordKey.name) = \(Record.databaseTableName).\(Record.Columns.key.name)
+                """
+
+                if search != nil {
+                    sql += """
+
+                    INNER JOIN \(FTSRecord.databaseTableName)
+                        ON \(Record.databaseTableName).\(Column.rowID.name) = \(FTSRecord.databaseTableName).\(Column.rowID.name)
+                    """
                 }
 
-                return try query.fetchAll(db)
-            } else if let range {
-                return try Record
-                    .order(Column.rowID.asc)
-                    .limit(range.upperBound - range.lowerBound, offset: range.lowerBound)
-                    .fetchAll(db)
+                sql += """
+
+                WHERE \(SecondaryIndexRecord.databaseTableName).\(SecondaryIndexRecord.Columns.idx.name) == ?
+                """
+
+                arguments.append(index.index)
+
+                if let keyPrefixSql = keyPrefixSQL(
+                    keyColumnName: "\(SecondaryIndexRecord.databaseTableName).\(SecondaryIndexRecord.Columns.recordKey.name)"
+                ) {
+                    sql += "\n AND (\(keyPrefixSql.0))"
+                    arguments.append(contentsOf: keyPrefixSql.1)
+                }
+
+                if let search {
+                    sql += "\n AND \(FTSRecord.databaseTableName) MATCH ?"
+                    arguments.append("\(search)*")
+                }
+
+                let ascDesc = index.ascending ? "ASC" : "DESC"
+
+                // order
+                sql += "\nORDER BY \(SecondaryIndexRecord.databaseTableName).\(SecondaryIndexRecord.Columns.value) \(ascDesc)" // fixme: not hardcode asc
+                sql += ", \(SecondaryIndexRecord.databaseTableName).\(SecondaryIndexRecord.Columns.recordKey.name) ASC"
             } else {
-                return try Record.order(Column.rowID.asc).fetchAll(db)
+                sql = """
+                SELECT \(Record.databaseTableName).*
+                FROM \(Record.databaseTableName)
+                """
+
+                var conditions: [(String, [Any])] = []
+                if let search {
+                    sql += """
+
+                    INNER JOIN \(FTSRecord.databaseTableName)
+                        ON \(Record.databaseTableName).\(Column.rowID.name) = \(FTSRecord.databaseTableName).\(Column.rowID.name)
+                    """
+
+                    conditions.append(("\(FTSRecord.databaseTableName) MATCH ?", ["\(search)*"]))
+                }
+
+                if let keyPrefixSql = keyPrefixSQL(keyColumnName: "\(Record.databaseTableName).\(Record.Columns.key.name)") {
+                    conditions.append(keyPrefixSql)
+                }
+
+                if !conditions.isEmpty {
+                    sql += "\nWHERE " + conditions.map { "(\($0.0))" }.joined(separator: " AND ")
+                    arguments.append(contentsOf: conditions.flatMap(\.1))
+                }
+
+                if search != nil {
+                    sql += "\nORDER BY rank"
+                } else {
+                    sql += "\nORDER BY \(Column.rowID.name) ASC"
+                }
             }
+
+            if let range {
+                sql += "\nLIMIT \(range.startIndex), \(range.endIndex - range.startIndex)"
+            }
+
+            return try Record.fetchAll(db, sql: sql, arguments: StatementArguments(arguments) ?? .init())
         }
     }
 
@@ -235,6 +330,27 @@ public final class KeyValueStore {
         var title: String
         var subtitle: String?
         var body: String?
+    }
+
+    struct SecondaryIndexRecord: FetchableRecord, PersistableRecord, Codable {
+        static var databaseTableName = "key_value_secondary_indexes"
+        static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+        enum Columns: String, ColumnExpression { case idx, value, recordKey }
+
+        var idx: Int // identifies the index (e.g. compendium item title = X, compendium monster CR = Y)
+        var value: String // (e.g. "Aboleth" for compendium item title)
+        var recordKey: String // the key of the corresponding Record row
+    }
+
+    public struct SecondaryIndexOrder {
+        let index: Int
+        let ascending: Bool
+
+        enum Index: Int {
+            case compendiumEntryTitle = 0
+            case compendiumEntryMonsterChallengeRating = 1
+            case compendiumEntrySpellLevel = 2
+        }
     }
 }
 

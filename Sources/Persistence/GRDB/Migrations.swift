@@ -29,6 +29,7 @@ extension Database {
         case v10 = "v10-consistentCharacterKeys"
         case v11 = "v11-runningEncounterKeyFix"
         case v12 = "v12-statBlock-removeDefaultProficiencyOverrides"
+        case v13 = "v13-keyvaluestore-order"
     }
 
     static func migrator() throws -> DatabaseMigrator {
@@ -355,6 +356,30 @@ extension Database {
 
                 r.value = try KeyValueStore.encoder.encode(runningEncounter)
                 try r.save(db)
+            }
+        }
+
+        migrator.registerMigration(Migration.v13.rawValue) { db in
+            try db.create(table: KeyValueStore.SecondaryIndexRecord.databaseTableName) { t in
+                t.column(KeyValueStore.SecondaryIndexRecord.Columns.idx.name, .integer)
+                    .notNull()
+                    .indexed()
+                t.column(KeyValueStore.SecondaryIndexRecord.Columns.value.name, .text)
+                    .notNull()
+                    .indexed()
+                t.column(KeyValueStore.SecondaryIndexRecord.Columns.recordKey.name, .text)
+                    .notNull()
+                    .indexed()
+                    .references(
+                        KeyValueStore.Record.databaseTableName,
+                        column: KeyValueStore.Record.Columns.key.name,
+                        onDelete: .cascade
+                    )
+
+                t.primaryKey([
+                    KeyValueStore.SecondaryIndexRecord.Columns.idx.name,
+                    KeyValueStore.SecondaryIndexRecord.Columns.recordKey.name
+                ], onConflict: .replace)
             }
         }
 

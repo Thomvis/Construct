@@ -151,6 +151,13 @@ let package = Package(
                 .product(name: "GRDB", package: "GRDB.swift")
             ]
         ),
+        .testTarget(
+            name: "PersistenceTests",
+            dependencies: [
+                "Persistence",
+                "GameModels"
+            ]
+        ),
         .target(
             name: "PersistenceTestSupport",
             resources: [

@@ -28,8 +28,6 @@
 		E931CF8A25003077006CEE78 /* ParserCombinatorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931CF8925003076006CEE78 /* ParserCombinatorTest.swift */; };
 		E931E5442339525800C3FE9A /* DiceExpressionParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931E5432339525800C3FE9A /* DiceExpressionParserTest.swift */; };
 		E931E54B233971B300C3FE9A /* SearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = E931E54A233971B300C3FE9A /* SearchField.swift */; };
-		E9323A332320169F00F0D0C6 /* DatabaseTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A322320169F00F0D0C6 /* DatabaseTest.swift */; };
-		E9323A352320171000F0D0C6 /* KeyValueStoreTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A342320171000F0D0C6 /* KeyValueStoreTest.swift */; };
 		E9323A3D23205E7700F0D0C6 /* FileDataSourceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3C23205E7700F0D0C6 /* FileDataSourceTest.swift */; };
 		E9323A3F23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */; };
 		E93777EA233C05D500C9F41A /* ddb_riverine.json in Resources */ = {isa = PBXBuildFile; fileRef = E93777E9233C05D500C9F41A /* ddb_riverine.json */; };
@@ -91,7 +89,6 @@
 		E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93777F0233E4F5B00C9F41A /* EncounterSettingsView.swift */; };
 		E97651DD248BC1EF00C76865 /* CombatantTagPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */; };
 		E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861423BDF398003B2DA2 /* NumberEntryView.swift */; };
-		E97983DE2742F23300800D38 /* KeyValueStoreEntityTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */; };
 		E97A43AC2334004B00A8B032 /* CompendiumImporterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */; };
 		E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43AD233407D000A8B032 /* Fixtures.swift */; };
 		E97A4FAD23621FDA0044E424 /* EncounterDifficultyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A4FAC23621FDA0044E424 /* EncounterDifficultyTest.swift */; };
@@ -240,8 +237,6 @@
 		E931E5432339525800C3FE9A /* DiceExpressionParserTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExpressionParserTest.swift; sourceTree = "<group>"; };
 		E931E54723396D6B00C3FE9A /* AddCombatantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantView.swift; sourceTree = "<group>"; };
 		E931E54A233971B300C3FE9A /* SearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchField.swift; sourceTree = "<group>"; };
-		E9323A322320169F00F0D0C6 /* DatabaseTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseTest.swift; sourceTree = "<group>"; };
-		E9323A342320171000F0D0C6 /* KeyValueStoreTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueStoreTest.swift; sourceTree = "<group>"; };
 		E9323A3C23205E7700F0D0C6 /* FileDataSourceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDataSourceTest.swift; sourceTree = "<group>"; };
 		E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Open5eMonsterDataSourceReaderTest.swift; sourceTree = "<group>"; };
 		E93777E9233C05D500C9F41A /* ddb_riverine.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ddb_riverine.json; sourceTree = "<group>"; };
@@ -277,7 +272,6 @@
 		E978861B23BE8E5A003B2DA2 /* CompendiumFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumFilterSheet.swift; sourceTree = "<group>"; };
 		E978862123C20B90003B2DA2 /* CompendiumItemGroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupDetailView.swift; sourceTree = "<group>"; };
 		E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupEditView.swift; sourceTree = "<group>"; };
-		E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueStoreEntityTest.swift; sourceTree = "<group>"; };
 		E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporterTest.swift; sourceTree = "<group>"; };
 		E97A43AD233407D000A8B032 /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
 		E97A43B32338B5FC00A8B032 /* CompendiumItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemDetailView.swift; sourceTree = "<group>"; };
@@ -768,8 +762,6 @@
 				E9F9EB4C2319694200A70D11 /* Info.plist */,
 				E9F9EB522319696C00A70D11 /* RolledDiceExpressionTest.swift */,
 				E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */,
-				E9323A322320169F00F0D0C6 /* DatabaseTest.swift */,
-				E9323A342320171000F0D0C6 /* KeyValueStoreTest.swift */,
 				E9323A3C23205E7700F0D0C6 /* FileDataSourceTest.swift */,
 				E9323A3E23205FF500F0D0C6 /* Open5eMonsterDataSourceReaderTest.swift */,
 				E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */,
@@ -792,7 +784,6 @@
 				E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */,
 				E9C7F7852632C193000351AB /* NumberPadTest.swift */,
 				E98A0EF6267BCDD600316EE4 /* CreatureEditViewStateTest.swift */,
-				E97983DD2742F23300800D38 /* KeyValueStoreEntityTest.swift */,
 				E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */,
 				E95246FD274C390B00262C15 /* ParseableCreatureActionTest.swift */,
 				E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */,
@@ -1135,16 +1126,13 @@
 				E931CF8524FD17B8006CEE78 /* CreatureActionParserTest.swift in Sources */,
 				E97A4FAD23621FDA0044E424 /* EncounterDifficultyTest.swift in Sources */,
 				E959BB5728BBF1AE0063CB64 /* CompendiumEntryTest.swift in Sources */,
-				E9323A352320171000F0D0C6 /* KeyValueStoreTest.swift in Sources */,
 				E91E596F24477D3E00975453 /* AlignmentTest.swift in Sources */,
 				E98A0EF7267BCDD600316EE4 /* CreatureEditViewStateTest.swift in Sources */,
 				E90EFF412623220300F5443E /* DataSourceReaderParsersTest.swift in Sources */,
-				E9323A332320169F00F0D0C6 /* DatabaseTest.swift in Sources */,
 				E9EDE6B9296AEC1800026643 /* GenerateCombatantTraitsViewTest.swift in Sources */,
 				E999FBD6235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift in Sources */,
 				E99F95A42428DCB100183B5B /* RunningEncounterTest.swift in Sources */,
 				E9323A3D23205E7700F0D0C6 /* FileDataSourceTest.swift in Sources */,
-				E97983DE2742F23300800D38 /* KeyValueStoreEntityTest.swift in Sources */,
 				E999FBD2235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift in Sources */,
 				E9CFB30F2350515700CA0AF4 /* CampaignBrowserTest.swift in Sources */,
 				E9F9EB532319696C00A70D11 /* RolledDiceExpressionTest.swift in Sources */,

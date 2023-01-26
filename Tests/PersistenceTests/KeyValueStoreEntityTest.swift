@@ -8,7 +8,6 @@
 
 import Foundation
 import XCTest
-@testable import Construct
 @testable import Persistence
 import GameModels
 import Compendium
