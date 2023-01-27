@@ -19,7 +19,7 @@ final class OpenAIClientTest: XCTestCase {
         super.setUp()
 
         httpClient = MockHTTPClient()
-        sut = OpenAIClient(apiKey: "XXX", httpClient: httpClient)
+        sut = OpenAIClient.live(httpClient: httpClient, apiKey: "XXX")
     }
 
     func testCompletion() async throws {

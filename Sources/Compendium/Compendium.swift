@@ -15,10 +15,53 @@ public protocol Compendium {
     func get(_ key: CompendiumItemKey, crashReporter: CrashReporter) throws -> CompendiumEntry?
     func put(_ entry: CompendiumEntry) throws
     func contains(_ key: CompendiumItemKey) throws -> Bool
-    func fetchAll(query: String?, types: [CompendiumItemType]?, range: Range<Int>?) throws -> [CompendiumEntry]
-    func fetchAll(query: String?, types: [CompendiumItemType]?) throws -> [CompendiumEntry]
-    func fetchAll(query: String?) throws -> [CompendiumEntry]
+    func fetchAll(search: String?, filters: CompendiumFilters?, order: Order?, range: Range<Int>?) throws -> [CompendiumEntry]
     func resolve(annotation: CompendiumItemReferenceTextAnnotation) -> ReferenceResolveResult
+}
+
+public enum CompendiumItemField: Equatable {
+    case title
+    case monsterChallengeRating
+    case spellLevel
+}
+
+public struct Order: Equatable {
+    public let key: CompendiumItemField
+    public let ascending: Bool
+
+    public static let title = Order(key: .title, ascending: true)
+
+    public static func `default`(_ itemTypes: [CompendiumItemType]) -> Self {
+        if let single = itemTypes.single {
+            switch single {
+            case .monster: return .init(key: .monsterChallengeRating, ascending: true)
+            case .spell: return .init(key: .spellLevel, ascending: true)
+            case .character, .group: break
+            }
+        }
+
+        // multiple types & fallback
+        return .title
+    }
+}
+
+public struct CompendiumFilters: Equatable {
+    public var types: [CompendiumItemType]?
+
+    public var minMonsterChallengeRating: Fraction? = nil
+    public var maxMonsterChallengeRating: Fraction? = nil
+
+    public init(types: [CompendiumItemType]? = nil, minMonsterChallengeRating: Fraction? = nil, maxMonsterChallengeRating: Fraction? = nil) {
+        self.types = types
+        self.minMonsterChallengeRating = minMonsterChallengeRating
+        self.maxMonsterChallengeRating = maxMonsterChallengeRating
+    }
+
+    public enum Property: CaseIterable, Equatable {
+        case itemType
+        case minMonsterCR
+        case maxMonsterCR
+    }
 }
 
 public enum ReferenceResolveResult {

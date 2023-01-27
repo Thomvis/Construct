@@ -13,6 +13,7 @@ import BetterSafariView
 import GameModels
 import Helpers
 import SharedViews
+import Compendium
 
 struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View {
     @EnvironmentObject var env: Environment
@@ -301,7 +302,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
                         section(header: Text("All"), entries: state.entries, reportVisibility: true)
                     }
                 } else {
-                    section(entries: state.entries)
+                    section(header: EmptyView(), entries: state.entries, reportVisibility: true)
                 }
 
                 if viewStore.state.isLoadingMoreEntries {
@@ -500,7 +501,7 @@ struct FilterButton: View {
     }
 
     var filtersAreActive: Bool {
-        viewStore.state.filters?.test != nil
+        viewStore.state.filters?.maxMonsterChallengeRating != nil || viewStore.state.filters?.minMonsterChallengeRating != nil
     }
 
     private func presentFilterSheet() {
@@ -510,7 +511,7 @@ struct FilterButton: View {
         )
 
         self.sheet = CompendiumFilterSheet(store: Store(initialState: state, reducer: CompendiumFilterSheetState.reducer, environment: self.env)) { filterValues in
-            var filters = self.viewStore.state.filters ?? CompendiumIndexState.Query.Filters(types: nil)
+            var filters = self.viewStore.state.filters ?? .init()
             filters.types = filterValues.itemType.optionalArray
             filters.minMonsterChallengeRating = filterValues.minMonsterCR
             filters.maxMonsterChallengeRating = filterValues.maxMonsterCR
@@ -598,7 +599,7 @@ extension CompendiumItem {
 
 // Used for communicating with the filter popover
 fileprivate extension CompendiumFilterSheetState {
-    init(_ queryFilters: CompendiumIndexState.Query.Filters?, allAllowedItemTypes: [CompendiumItemType]) {
+    init(_ queryFilters: CompendiumFilters?, allAllowedItemTypes: [CompendiumItemType]) {
         let values = Values(
             itemType: queryFilters?.types?.single,
             minMonsterCR: queryFilters?.minMonsterChallengeRating,

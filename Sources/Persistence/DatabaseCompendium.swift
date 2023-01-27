@@ -32,34 +32,31 @@ public class DatabaseCompendium: Compendium {
     }
 
     public func put(_ entry: CompendiumEntry) throws {
-        try database.keyValueStore.put(entry, fts: entry.ftsDocument)
+        try database.keyValueStore.put(entry, fts: entry.ftsDocument, secondaryIndexValues: entry.secondaryIndexValues)
     }
 
     public func contains(_ key: GameModels.CompendiumItemKey) throws -> Bool {
         try database.keyValueStore.contains(CompendiumEntry.key(for: key))
     }
 
-    public func fetchAll(query: String?) throws -> [CompendiumEntry] {
-        try fetchAll(query: query, types: [], range: nil)
-    }
-
-    public func fetchAll(query: String?, types: [CompendiumItemType]?) throws -> [CompendiumEntry] {
-        try fetchAll(query: query, types: types, range: nil)
-    }
-
-    public func fetchAll(query: String?, types: [CompendiumItemType]?, range: Range<Int>?) throws -> [CompendiumEntry] {
-        let entries: [CompendiumEntry]
-        let typeKeyPrefixes = types.map { $0.map { CompendiumEntry.keyPrefix(for: $0) } } ?? [CompendiumEntry.keyPrefix(for: nil)]
-        if let query = query {
-            entries = try self.database.keyValueStore.match("\(query)*", keyPrefixes: typeKeyPrefixes, range: range)
-        } else {
-            entries = try self.database.keyValueStore.fetchAll(typeKeyPrefixes, range: range)
-        }
-        return entries
+    public func fetchAll(
+        search: String?,
+        filters: CompendiumFilters? = nil,
+        order: Order?,
+        range: Range<Int>?
+    ) throws -> [CompendiumEntry] {
+        let typeKeyPrefixes = filters?.types.map { $0.map { CompendiumEntry.keyPrefix(for: $0) } } ?? [CompendiumEntry.keyPrefix(for: nil)]
+        return try self.database.keyValueStore.fetchAll(
+            typeKeyPrefixes,
+            search: search,
+            filters: filters?.secondaryIndexFilters ?? [],
+            order: order.map(KeyValueStore.SecondaryIndexOrder.init).nonNilArray,
+            range: range
+        )
     }
 
     public func resolve(annotation: CompendiumItemReferenceTextAnnotation) -> ReferenceResolveResult {
-        let internalResults = try? fetchAll(query: annotation.text, types: annotation.type.map { [$0] })
+        let internalResults = try? fetchAll(search: annotation.text, filters: .init(types: annotation.type.map { [$0] }), order: .title, range: nil)
 
         if let exactMatch = internalResults?.first(where: { $0.item.title.caseInsensitiveCompare(annotation.text) == .orderedSame }) {
             return .internal(CompendiumItemReference(itemTitle: exactMatch.item.title, itemKey: exactMatch.item.key))
@@ -78,9 +75,35 @@ public class DatabaseCompendium: Compendium {
     }
 }
 
+public extension CompendiumItemField {
+    static func challengeRatingIndexValue(from fraction: Fraction) -> String {
+        fraction.double
+            .formatted(.number.precision(
+                .integerAndFractionLength(integerLimits: 3...3, fractionLimits: 0...3)
+            ))
+    }
+}
+
 extension CompendiumEntry {
     var ftsDocument: FTSDocument {
         Persistence.FTSDocument(title: item.title, subtitle: nil, body: nil)
+    }
+
+    var secondaryIndexValues: [Int: String] {
+        var values: [Int: String] = [KeyValueStore.SecondaryIndexes.compendiumEntryTitle: item.title]
+        if let monster = item as? Monster {
+            // format the CR so that it sorts correctly, examples:
+            // CR 1/4 = 000.25
+            // CR 1   = 001
+            // CR 10  = 010
+            let cr = CompendiumItemField.challengeRatingIndexValue(from: monster.challengeRating)
+            values[KeyValueStore.SecondaryIndexes.compendiumEntryMonsterChallengeRating] = cr
+        } else if let spell = item as? Spell {
+            let levelString = spell.level.map { "\($0)" } ?? "0"
+            values[KeyValueStore.SecondaryIndexes.compendiumEntrySpellLevel] = levelString
+            // use title as tie breaker?
+        }
+        return values
     }
 }
 
@@ -102,5 +125,36 @@ public extension KeyValueStore {
 
     func get(_ itemKey: CompendiumItemKey, crashReporter: CrashReporter) throws -> CompendiumEntry? {
         try get(CompendiumEntry.key(for: itemKey), crashReporter: crashReporter)
+    }
+}
+
+extension KeyValueStore.SecondaryIndexOrder {
+    init(_ order: Order) {
+        switch order.key {
+        case .title: self.index = KeyValueStore.SecondaryIndexes.compendiumEntryTitle
+        case .monsterChallengeRating: self.index = KeyValueStore.SecondaryIndexes.compendiumEntryMonsterChallengeRating
+        case .spellLevel: self.index = KeyValueStore.SecondaryIndexes.compendiumEntrySpellLevel
+        }
+        self.ascending = order.ascending
+    }
+}
+
+extension CompendiumFilters {
+    var secondaryIndexFilters: [KeyValueStore.SecondaryIndexFilter] {
+        Array(builder: {
+            if let minMonsterChallengeRating {
+                KeyValueStore.SecondaryIndexFilter(
+                    index: KeyValueStore.SecondaryIndexes.compendiumEntryMonsterChallengeRating,
+                    condition: .greaterThanOrEqualTo(CompendiumItemField.challengeRatingIndexValue(from: minMonsterChallengeRating))
+                )
+            }
+
+            if let maxMonsterChallengeRating {
+                KeyValueStore.SecondaryIndexFilter(
+                    index: KeyValueStore.SecondaryIndexes.compendiumEntryMonsterChallengeRating,
+                    condition: .lessThanOrEqualTo(CompendiumItemField.challengeRatingIndexValue(from: maxMonsterChallengeRating))
+                )
+            }
+        })
     }
 }

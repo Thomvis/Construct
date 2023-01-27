@@ -141,7 +141,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", secondaryIndexValues: [0: "three"])
         try sut.put(4, at: "4", secondaryIndexValues: [0: "four"])
 
-        let values: [Int] = try sut.fetchAll(orderBySecondaryIndex: .init(index: 0, ascending: true))
+        let values: [Int] = try sut.fetchAll(order: [.init(index: 0, ascending: true)])
         XCTAssertEqual(values, [4, 1, 3, 2])
     }
 
@@ -151,7 +151,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "odd_3", secondaryIndexValues: [0: "three"])
         try sut.put(4, at: "even_4", secondaryIndexValues: [0: "four"])
 
-        let values: [Int] = try sut.fetchAll("even_", orderBySecondaryIndex: .init(index: 0, ascending: true))
+        let values: [Int] = try sut.fetchAll("even_", order: [.init(index: 0, ascending: true)])
         XCTAssertEqual(values, [4, 2])
     }
 
@@ -161,7 +161,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", secondaryIndexValues: [0: "three"])
         try sut.put(4, at: "4", secondaryIndexValues: [0: "four"])
 
-        let values: [Int] = try sut.fetchAll(orderBySecondaryIndex: .init(index: 0, ascending: true), range: 1..<3)
+        let values: [Int] = try sut.fetchAll(order: [.init(index: 0, ascending: true)], range: 1..<3)
         XCTAssertEqual(values, [1, 3])
     }
 
@@ -171,7 +171,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", secondaryIndexValues: [0: "three"])
         try sut.put(4, at: "4", secondaryIndexValues: [0: "four"])
 
-        let values: [Int] = try sut.fetchAll(orderBySecondaryIndex: .init(index: 1, ascending: true))
+        let values: [Int] = try sut.fetchAll(order: [.init(index: 1, ascending: true)])
         XCTAssertEqual(values, [])
     }
 
@@ -184,8 +184,31 @@ class KeyValueStoreTest: XCTestCase {
         // update 2 to make it the first instead of last
         try sut.put(2, at: "2", secondaryIndexValues: [0: "aaa"])
 
-        let values: [Int] = try sut.fetchAll(orderBySecondaryIndex: .init(index: 0, ascending: true))
+        let values: [Int] = try sut.fetchAll(order: [.init(index: 0, ascending: true)])
         XCTAssertEqual(values, [2, 4, 1, 3])
+    }
+
+    func testFetchAllFilterSingle() throws {
+        try sut.put(4, at: "4", secondaryIndexValues: [0: "a"])
+        try sut.put(1, at: "1", secondaryIndexValues: [0: "a"])
+        try sut.put(3, at: "3", secondaryIndexValues: [0: "b"])
+        try sut.put(2, at: "2", secondaryIndexValues: [0: "c"])
+
+        let values: [Int] = try sut.fetchAll(filters: [.init(index: 0, condition: .greaterThanOrEqualTo("b"))])
+        XCTAssertEqual(values, [2, 3])
+    }
+
+    func testFetchAllFilterMultiple() throws {
+        try sut.put(4, at: "4", secondaryIndexValues: [0: "a", 1: "c"])
+        try sut.put(1, at: "1", secondaryIndexValues: [0: "a", 1: "d"])
+        try sut.put(3, at: "3", secondaryIndexValues: [0: "b", 1: "c"])
+        try sut.put(2, at: "2", secondaryIndexValues: [0: "b", 1: "d"])
+
+        let values: [Int] = try sut.fetchAll(filters: [
+            .init(index: 0, condition: .greaterThanOrEqualTo("b")),
+            .init(index: 1, condition: .lessThanOrEqualTo("c"))
+        ])
+        XCTAssertEqual(values, [3])
     }
 
     func testFetchAllSecondaryIndexKeyTieBreaker() throws {
@@ -194,7 +217,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", secondaryIndexValues: [0: "a"])
         try sut.put(2, at: "2", secondaryIndexValues: [0: "a"])
 
-        let values: [Int] = try sut.fetchAll(orderBySecondaryIndex: .init(index: 0, ascending: true))
+        let values: [Int] = try sut.fetchAll(order: [.init(index: 0, ascending: true)])
         XCTAssertEqual(values, [1, 2, 3, 4])
     }
 
@@ -207,7 +230,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.remove("2")
         try sut.remove("4")
 
-        let values: [Int] = try sut.fetchAll(orderBySecondaryIndex: .init(index: 0, ascending: true))
+        let values: [Int] = try sut.fetchAll(order: [.init(index: 0, ascending: true)])
         XCTAssertEqual(values, [1, 3])
     }
 
@@ -217,7 +240,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", fts: .init(title: "Odd Three"), secondaryIndexValues: [0: "three"])
         try sut.put(4, at: "4", fts: .init(title: "Even Four"), secondaryIndexValues: [0: "four"])
 
-        let values: [Int] = try sut.fetchAll(search: "Ev", orderBySecondaryIndex: .init(index: 0, ascending: true))
+        let values: [Int] = try sut.fetchAll(search: "Ev", order: [.init(index: 0, ascending: true)])
         XCTAssertEqual(values, [4, 2])
     }
 

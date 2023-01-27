@@ -191,7 +191,7 @@ extension CompendiumItemGroupEditState {
         },
         Async<[Character], Error>.reducer { env in
             Deferred(catching: {
-                try env.compendium.fetchAll(query: nil, types: [.character])
+                try env.compendium.fetchAll(search: nil, filters: .init(types: [.character]), order: .title, range: nil)
             }).map { entries in
                 entries.compactMap { $0.item as? Character }
             }.eraseToAnyPublisher()

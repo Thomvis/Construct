@@ -221,27 +221,22 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 initialResultStateForInput: { _ in PagingData() },
                 initialResultActionForInput: { _ in .didShowElementAtIndex(0) },
                 resultReducerForInput: { query in
-                    PagingData.reducer { offset, env in
+                    PagingData.reducer { request, env in
                         let entries: [CompendiumEntry]
                         do {
-                            entries = try env.compendium.fetchAll(query: query.text?.nonEmptyString, types: query.filters?.types, range: offset..<(offset+20))
+                            entries = try env.compendium.fetchAll(
+                                search: query.text?.nonEmptyString,
+                                filters: query.filters,
+                                order: query.order,
+                                range: request.range
+                            )
                         } catch {
                             assertionFailure("compendium.fetchAll failed with error: \(error)")
                             env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                             return .failure(PagingDataError(describing: error))
                         }
 
-                        var result = entries
-                        // filter
-                        if let filterTest = query.filters?.test {
-                            result = result.filter { filterTest($0.item) }
-                        }
-
-                        // sort
-                        let order = query.order ?? .default(query.filters?.types ?? CompendiumItemType.allCases)
-                        result = result.sorted(by: order.descriptor.pullback(\.item))
-
-                        return .success(.init(elements: result, end: result.count < 20))
+                        return .success(.init(elements: entries, end: entries.count < request.count))
                     }
                 }
             ).retaining { mapState in
@@ -259,10 +254,10 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 }
 
 extension CompendiumIndexState.RS {
-    static let initial = CompendiumIndexState.RS(wrapped: MapState(input: CompendiumIndexState.Query(text: nil, filters: nil), result: .init()))
+    static let initial = CompendiumIndexState.RS(wrapped: MapState(input: CompendiumIndexState.Query(text: nil, filters: nil, order: .title), result: .init()))
 
     static func initial(types: [CompendiumItemType]) -> CompendiumIndexState.RS {
-        CompendiumIndexState.RS(wrapped: MapState(input: CompendiumIndexState.Query(text: nil, filters: CompendiumIndexState.Query.Filters(types: types), order: nil), result: .init()))
+        CompendiumIndexState.RS(wrapped: MapState(input: CompendiumIndexState.Query(text: nil, filters: CompendiumFilters(types: types), order: .title), result: .init()))
     }
 
     static func initial(type: CompendiumItemType) -> CompendiumIndexState.RS {
@@ -339,7 +334,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 enum CompendiumIndexQueryAction: Equatable {
     case onTextDidChange(String?)
     case onTypeFilterDidChange([CompendiumItemType]?)
-    case onFiltersDidChange(CompendiumIndexState.Query.Filters)
+    case onFiltersDidChange(CompendiumFilters)
 }
 
 extension CompendiumIndexState.Query {
@@ -352,8 +347,9 @@ extension CompendiumIndexState.Query {
                 if state.filters != nil {
                     state.filters?.types = types
                 } else {
-                    state.filters = Filters(types: types)
+                    state.filters = CompendiumFilters(types: types) //todo: if state.filters is nil it should remain nil here
                 }
+                state.order = .default(types ?? CompendiumItemType.allCases)
             case .onFiltersDidChange(let f):
                 state.filters = f
             }
@@ -361,7 +357,7 @@ extension CompendiumIndexState.Query {
         }
     }
 
-    static let nullInstance = CompendiumIndexState.Query(text: nil, filters: nil, order: nil)
+    static let nullInstance = CompendiumIndexState.Query(text: nil, filters: nil, order: .title)
 }
 
 extension CompendiumIndexState {

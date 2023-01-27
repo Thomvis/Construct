@@ -17,20 +17,16 @@ public struct ArrayBuilder<Element> {
         first.map { [$0] } ?? []
     }
 
+    public static func buildPartialBlock(first: [Element]) -> [Element] {
+        first
+    }
+
     public static func buildPartialBlock(accumulated: [Element], next: Element) -> [Element] {
         accumulated + [next]
     }
 
     public static func buildPartialBlock(accumulated: [Element], next: [Element]) -> [Element] {
         accumulated + next
-    }
-
-    public static func buildPartialBlock(accumulated: [Element], next: Element?) -> [Element] {
-        if let next {
-            return accumulated + [next]
-        } else {
-            return accumulated
-        }
     }
 
     public static func buildIf(_ element: [Element]?) -> [Element] {

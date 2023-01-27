@@ -54,24 +54,37 @@ public struct PagingDataError: Swift.Error, Equatable {
 private enum LoadID { }
 
 public extension PagingData {
+    struct FetchRequest {
+        public let offset: Int
+        public let count: Int
+
+        public var range: Range<Int> {
+            offset..<(offset+count)
+        }
+    }
+    
     static func reducer<Environment>(
-        _ fetch: @escaping (Int, Environment) async -> Result<PagingDataAction<Element>.FetchResult, PagingDataError>
+        _ fetch: @escaping (FetchRequest, Environment) async -> Result<PagingDataAction<Element>.FetchResult, PagingDataError>
     ) -> AnyReducer<Self, PagingDataAction<Element>, Environment> {
         return AnyReducer { state, action, env in
 
-            func loadIfNeeded(for idx: Int, state: inout Self) -> EffectTask<PagingDataAction<Element>> {
-                let elementCount = state.elements?.count ?? 0
-                guard idx > elementCount - assumedNumberOfItemsOnScreen else { return .none }
-                guard state.loadingState == .notLoading(didReachEnd: false) else { return .none }
+            func load(_ request: FetchRequest, in state: inout Self) -> EffectTask<PagingDataAction<Element>> {
                 state.loadingState = .loading
                 return .task {
-                    let result = await fetch(elementCount, env)
+                    let result = await fetch(request, env)
                     return .didLoadMore(result)
                 }
                 // work-around for issue https://github.com/pointfreeco/swift-composable-architecture/issues/1848
                 // when used inside a MapState
                 .eraseToEffect()
                 .cancellable(id: LoadID.self)
+            }
+
+            func loadIfNeeded(for idx: Int, state: inout Self) -> EffectTask<PagingDataAction<Element>> {
+                let elementCount = state.elements?.count ?? 0
+                guard idx > elementCount - Int((Double(assumedNumberOfItemsOnScreen) * 1.5)) else { return .none }
+                guard state.loadingState == .notLoading(didReachEnd: false) else { return .none }
+                return load(FetchRequest(offset: elementCount, count: assumedNumberOfItemsOnScreen), in: &state)
             }
 
             switch action {
@@ -83,11 +96,20 @@ public extension PagingData {
             case .didLoadMore(.failure(let e)):
                 state.loadingState = .error(e)
             case .reload:
+                let count = state.elements?.count ?? 0
+
                 state.elements = nil
                 state.loadingState = .notLoading(didReachEnd: false)
-                return loadIfNeeded(for: 0, state: &state)
-                    .prepend(EffectTask.cancel(id: LoadID.self))
-                    .eraseToEffect()
+
+                if count > 0 {
+                    return load(FetchRequest(offset: 0, count: count), in: &state)
+                        .prepend(EffectTask.cancel(id: LoadID.self))
+                        .eraseToEffect()
+                } else {
+                    return loadIfNeeded(for: 0, state: &state)
+                        .prepend(EffectTask.cancel(id: LoadID.self))
+                        .eraseToEffect()
+                }
             }
             return .none
         }

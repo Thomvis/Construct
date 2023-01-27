@@ -12,6 +12,7 @@ import ComposableArchitecture
 import Helpers
 import SharedViews
 import GameModels
+import Compendium
 
 struct CompendiumFilterSheet: View {
     var store: Store<CompendiumFilterSheetState, CompendiumFilterSheetAction>
@@ -157,7 +158,7 @@ struct CompendiumFilterSheetState: Equatable {
         )
     }
 
-    typealias Filter = CompendiumIndexState.Query.Filters.Property
+    typealias Filter = CompendiumFilters.Property
 }
 
 enum CompendiumFilterSheetAction {

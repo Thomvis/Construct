@@ -106,19 +106,21 @@ public final class KeyValueStore {
 
     public func fetchAll<V>(
         _ keyPrefix: String,
-        orderBySecondaryIndex index: SecondaryIndexOrder? = nil,
+        filters: [SecondaryIndexFilter] = [],
+        order: [SecondaryIndexOrder] = [],
         range: Range<Int>? = nil
     ) throws -> [V] where V: Codable {
-        try fetchAll([keyPrefix], orderBySecondaryIndex: index, range: range)
+        try fetchAll([keyPrefix], filters: filters, order: order, range: range)
     }
 
     public func fetchAll<V>(
         _ keyPrefixes: [String]? = [],
         search: String? = nil,
-        orderBySecondaryIndex index: SecondaryIndexOrder? = nil,
+        filters: [SecondaryIndexFilter] = [],
+        order: [SecondaryIndexOrder] = [],
         range: Range<Int>? = nil
     ) throws -> [V] where V: Codable {
-        return try fetchAllRaw(keyPrefixes, search: search, orderBySecondaryIndex: index, range: range).map {
+        return try fetchAllRaw(keyPrefixes, search: search, filters: filters, order: order, range: range).map {
             return try Self.decoder.decode(V.self, from: $0.value)
         }
     }
@@ -201,16 +203,18 @@ public final class KeyValueStore {
     public func fetchAllRaw(
         _ keyPrefix: String,
         search: String? = nil,
-        orderBySecondaryIndex index: SecondaryIndexOrder? = nil,
+        filters: [SecondaryIndexFilter] = [],
+        order: [SecondaryIndexOrder] = [],
         range: Range<Int>? = nil
     ) throws -> [Record] {
-        try fetchAllRaw([keyPrefix], search: search, orderBySecondaryIndex: index, range: range)
+        try fetchAllRaw([keyPrefix], search: search, filters: filters, order: order, range: range)
     }
 
     public func fetchAllRaw(
         _ keyPrefixes: [String]? = [],
         search: String? = nil,
-        orderBySecondaryIndex index: SecondaryIndexOrder? = nil,
+        filters: [SecondaryIndexFilter] = [],
+        order: [SecondaryIndexOrder] = [],
         range: Range<Int>? = nil
     ) throws -> [Record] {
 
@@ -227,80 +231,63 @@ public final class KeyValueStore {
         return try queue.read { db in
             var arguments: [Any] = []
             var sql: String
-            if let index {
-                // we use an inner join to exclude non-existing records
-                // (a left join would leave the row in with NULL values for the record columns, but that crashes)
-                sql = """
-                SELECT \(Record.databaseTableName).*
-                FROM \(SecondaryIndexRecord.databaseTableName)
-                INNER JOIN \(Record.databaseTableName)
-                  ON \(SecondaryIndexRecord.databaseTableName).\(SecondaryIndexRecord.Columns.recordKey.name) = \(Record.databaseTableName).\(Record.Columns.key.name)
-                """
 
-                if search != nil {
-                    sql += """
+            let secondaryIndexes: Set<Int> = Set(filters.map(\.index) + order.map(\.index))
 
-                    INNER JOIN \(FTSRecord.databaseTableName)
-                        ON \(Record.databaseTableName).\(Column.rowID.name) = \(FTSRecord.databaseTableName).\(Column.rowID.name)
-                    """
-                }
+            sql = """
+            SELECT r.*
+            FROM \(Record.databaseTableName) AS r
+            """
 
+            var conditions: [(String, [Any])] = []
+            for index in secondaryIndexes {
                 sql += """
 
-                WHERE \(SecondaryIndexRecord.databaseTableName).\(SecondaryIndexRecord.Columns.idx.name) == ?
+                INNER JOIN \(SecondaryIndexRecord.databaseTableName) AS si_\(index)
+                    ON si_\(index).\(SecondaryIndexRecord.Columns.recordKey.name) = r.\(Record.Columns.key.name)
                 """
 
-                arguments.append(index.index)
+                conditions.append(("si_\(index).\(SecondaryIndexRecord.Columns.idx.name) = ?", [index]))
+            }
 
-                if let keyPrefixSql = keyPrefixSQL(
-                    keyColumnName: "\(SecondaryIndexRecord.databaseTableName).\(SecondaryIndexRecord.Columns.recordKey.name)"
-                ) {
-                    sql += "\n AND (\(keyPrefixSql.0))"
-                    arguments.append(contentsOf: keyPrefixSql.1)
-                }
 
-                if let search {
-                    sql += "\n AND \(FTSRecord.databaseTableName) MATCH ?"
-                    arguments.append("\(search)*")
-                }
+            if let search {
+                sql += """
 
-                let ascDesc = index.ascending ? "ASC" : "DESC"
-
-                // order
-                sql += "\nORDER BY \(SecondaryIndexRecord.databaseTableName).\(SecondaryIndexRecord.Columns.value) \(ascDesc)" // fixme: not hardcode asc
-                sql += ", \(SecondaryIndexRecord.databaseTableName).\(SecondaryIndexRecord.Columns.recordKey.name) ASC"
-            } else {
-                sql = """
-                SELECT \(Record.databaseTableName).*
-                FROM \(Record.databaseTableName)
+                INNER JOIN \(FTSRecord.databaseTableName)
+                    ON r.\(Column.rowID.name) = \(FTSRecord.databaseTableName).\(Column.rowID.name)
                 """
 
-                var conditions: [(String, [Any])] = []
-                if let search {
-                    sql += """
+                conditions.append(("\(FTSRecord.databaseTableName) MATCH ?", ["\(search)*"]))
+            }
 
-                    INNER JOIN \(FTSRecord.databaseTableName)
-                        ON \(Record.databaseTableName).\(Column.rowID.name) = \(FTSRecord.databaseTableName).\(Column.rowID.name)
-                    """
-
-                    conditions.append(("\(FTSRecord.databaseTableName) MATCH ?", ["\(search)*"]))
-                }
-
-                if let keyPrefixSql = keyPrefixSQL(keyColumnName: "\(Record.databaseTableName).\(Record.Columns.key.name)") {
-                    conditions.append(keyPrefixSql)
-                }
-
-                if !conditions.isEmpty {
-                    sql += "\nWHERE " + conditions.map { "(\($0.0))" }.joined(separator: " AND ")
-                    arguments.append(contentsOf: conditions.flatMap(\.1))
-                }
-
-                if search != nil {
-                    sql += "\nORDER BY rank"
-                } else {
-                    sql += "\nORDER BY \(Column.rowID.name) ASC"
+            for filter in filters {
+                switch filter.condition {
+                case .greaterThanOrEqualTo(let s):
+                    conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) >= ?", [s]))
+                case .lessThanOrEqualTo(let s):
+                    conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) <= ?", [s]))
                 }
             }
+
+            if let keyPrefixSql = keyPrefixSQL(keyColumnName: "r.\(Record.Columns.key.name)") {
+                conditions.append(keyPrefixSql)
+            }
+
+            if !conditions.isEmpty {
+                sql += "\nWHERE " + conditions.map { "(\($0.0))" }.joined(separator: " AND ")
+                arguments.append(contentsOf: conditions.flatMap(\.1))
+            }
+
+            let fallbackSort = ["r.\(Record.Columns.key.name) ASC"]
+            let orderFields = order
+                .map { "si_\($0.index).\(SecondaryIndexRecord.Columns.value.name) \($0.ascDesc)" }
+                .nonEmptyArray
+                .map { $0 + fallbackSort }
+                ?? search.map { _ in ["rank"]}
+                ?? fallbackSort
+
+            sql += "\nORDER BY " + orderFields.joined(separator: ", ")
 
             if let range {
                 sql += "\nLIMIT \(range.startIndex), \(range.endIndex - range.startIndex)"
@@ -342,14 +329,28 @@ public final class KeyValueStore {
         var recordKey: String // the key of the corresponding Record row
     }
 
+    public enum SecondaryIndexes {
+        public static let compendiumEntryTitle = 0
+        public static let compendiumEntryMonsterChallengeRating = 1
+        public static let compendiumEntrySpellLevel = 2
+    }
+
+    public struct SecondaryIndexFilter {
+        let index: Int
+        let condition: SecondaryIndexCondition
+    }
+
+    public enum SecondaryIndexCondition {
+        case greaterThanOrEqualTo(String)
+        case lessThanOrEqualTo(String)
+    }
+
     public struct SecondaryIndexOrder {
         let index: Int
         let ascending: Bool
 
-        enum Index: Int {
-            case compendiumEntryTitle = 0
-            case compendiumEntryMonsterChallengeRating = 1
-            case compendiumEntrySpellLevel = 2
+        var ascDesc: String {
+            ascending ? "ASC" : "DESC"
         }
     }
 }

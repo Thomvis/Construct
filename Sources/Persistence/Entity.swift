@@ -61,8 +61,8 @@ public extension KeyValueStore {
         observe(key.rawValue)
     }
 
-    func put<E>(_ value: E, fts: FTSDocument? = nil, in db: GRDB.Database? = nil) throws where E: KeyValueStoreEntity {
-        try put(value, at: value.key.rawValue, fts: fts, in: db)
+    func put<E>(_ value: E, fts: FTSDocument? = nil, secondaryIndexValues: [Int: String]? = nil, in db: GRDB.Database? = nil) throws where E: KeyValueStoreEntity {
+        try put(value, at: value.key.rawValue, fts: fts, secondaryIndexValues: secondaryIndexValues, in: db)
     }
 
     static func put<E>(_ value: E, fts: FTSDocument? = nil, in db: GRDB.Database) throws where E: KeyValueStoreEntity {
