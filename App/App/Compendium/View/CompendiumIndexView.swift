@@ -500,10 +500,6 @@ struct FilterButton: View {
         }
     }
 
-    var filtersAreActive: Bool {
-        viewStore.state.filters?.maxMonsterChallengeRating != nil || viewStore.state.filters?.minMonsterChallengeRating != nil
-    }
-
     private func presentFilterSheet() {
         let state = CompendiumFilterSheetState(
             self.viewStore.state.filters,
@@ -515,6 +511,7 @@ struct FilterButton: View {
             filters.types = filterValues.itemType.optionalArray
             filters.minMonsterChallengeRating = filterValues.minMonsterCR
             filters.maxMonsterChallengeRating = filterValues.maxMonsterCR
+            filters.monsterType = filterValues.monsterType
             self.viewStore.send(.query(.onFiltersDidChange(filters)))
             self.sheet = nil
         }
@@ -603,7 +600,8 @@ fileprivate extension CompendiumFilterSheetState {
         let values = Values(
             itemType: queryFilters?.types?.single,
             minMonsterCR: queryFilters?.minMonsterChallengeRating,
-            maxMonsterCR: queryFilters?.maxMonsterChallengeRating
+            maxMonsterCR: queryFilters?.maxMonsterChallengeRating,
+            monsterType: queryFilters?.monsterType
         )
         self.initial = values
         self.current = values

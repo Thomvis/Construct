@@ -50,17 +50,25 @@ public struct CompendiumFilters: Equatable {
 
     public var minMonsterChallengeRating: Fraction? = nil
     public var maxMonsterChallengeRating: Fraction? = nil
+    public var monsterType: MonsterType? = nil
 
-    public init(types: [CompendiumItemType]? = nil, minMonsterChallengeRating: Fraction? = nil, maxMonsterChallengeRating: Fraction? = nil) {
+    public init(
+        types: [CompendiumItemType]? = nil,
+        minMonsterChallengeRating: Fraction? = nil,
+        maxMonsterChallengeRating: Fraction? = nil,
+        monsterType: MonsterType? = nil
+    ) {
         self.types = types
         self.minMonsterChallengeRating = minMonsterChallengeRating
         self.maxMonsterChallengeRating = maxMonsterChallengeRating
+        self.monsterType = monsterType
     }
 
     public enum Property: CaseIterable, Equatable {
         case itemType
         case minMonsterCR
         case maxMonsterCR
+        case monsterType
     }
 }
 

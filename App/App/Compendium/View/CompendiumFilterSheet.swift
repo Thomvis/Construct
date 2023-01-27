@@ -45,6 +45,26 @@ struct CompendiumFilterSheet: View {
                     .bold()
                     .padding(8)
 
+                    if viewStore.state.compatibleFilters.contains(.monsterType) {
+                        SectionContainer {
+                            LabeledContent {
+                                Picker(
+                                    selection: viewStore.binding(get: \.monsterType, send: CompendiumFilterSheetAction.monsterType),
+                                    label: Text("Monster Type")
+                                ) {
+                                    Text("All").tag(Optional<MonsterType>.none)
+                                    Divider()
+                                    ForEach(MonsterType.allCases, id: \.rawValue) { type in
+                                        Text(type.localizedDisplayName).tag(Optional.some(type))
+                                    }
+                                }
+                            } label: {
+                                Text("Monster Type")
+                            }
+                        }
+                        .padding(8)
+                    }
+
                     with(Double(viewStore.state.challengeRatings.count-1)) { crRangeMax in
                         if viewStore.state.compatibleFilters.contains(.minMonsterCR) {
                             SectionContainer(title: "Minimum CR", accessory: clearButton(for: .minMonsterCR)) {
@@ -136,6 +156,7 @@ struct CompendiumFilterSheetState: Equatable {
         var itemType: CompendiumItemType?
         var minMonsterCR: Fraction?
         var maxMonsterCR: Fraction?
+        var monsterType: MonsterType?
     }
 
     var compatibleFilters: [Filter] {
@@ -144,6 +165,7 @@ struct CompendiumFilterSheetState: Equatable {
             // monster is included or there is no filter at all
             result.append(.minMonsterCR)
             result.append(.maxMonsterCR)
+            result.append(.monsterType)
         }
         return result
     }
@@ -154,7 +176,8 @@ struct CompendiumFilterSheetState: Equatable {
         return Values(
             itemType: current.itemType,
             minMonsterCR: filters.contains(.minMonsterCR) ? current.minMonsterCR : nil,
-            maxMonsterCR: filters.contains(.maxMonsterCR) ? current.maxMonsterCR : nil
+            maxMonsterCR: filters.contains(.maxMonsterCR) ? current.maxMonsterCR : nil,
+            monsterType: filters.contains(.monsterType) ? current.monsterType : nil
         )
     }
 
@@ -165,6 +188,7 @@ enum CompendiumFilterSheetAction {
     case itemType(CompendiumItemType?)
     case minMonsterCR(Double)
     case maxMonsterCR(Double)
+    case monsterType(MonsterType?)
     case editing(CompendiumFilterSheetState.Filter, Bool)
     case clear(CompendiumFilterSheetState.Filter)
     case clearAll
@@ -195,6 +219,15 @@ extension CompendiumFilterSheetState {
         }
     }
 
+    var monsterType: MonsterType? {
+        get {
+            current.monsterType
+        }
+        set {
+            current.monsterType = newValue
+        }
+    }
+
     var minMonsterCrString: String {
         current.minMonsterCR.map { $0.rawValue } ?? "--"
     }
@@ -211,6 +244,8 @@ extension CompendiumFilterSheetState {
             return current.minMonsterCR != nil
         case .maxMonsterCR:
             return current.maxMonsterCR != nil
+        case .monsterType:
+            return current.monsterType != nil
         }
     }
 
@@ -230,6 +265,8 @@ extension CompendiumFilterSheetState {
             state.minMonsterCrDouble = v
         case .maxMonsterCR(let v):
             state.maxMonsterCrDouble = v
+        case .monsterType(let t):
+            state.monsterType = t
         case .editing(.minMonsterCR, false):
             if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
                 state.current.maxMonsterCR = max(minCr, maxCr)
@@ -245,6 +282,8 @@ extension CompendiumFilterSheetState {
             state.current.minMonsterCR = nil
         case .clear(.maxMonsterCR):
             state.current.maxMonsterCR = nil
+        case .clear(.monsterType):
+            state.current.monsterType = nil
         case .clearAll:
             return Filter.allCases.publisher.map { f in
                 .clear(f)

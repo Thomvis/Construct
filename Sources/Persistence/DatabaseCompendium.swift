@@ -98,6 +98,10 @@ extension CompendiumEntry {
             // CR 10  = 010
             let cr = CompendiumItemField.challengeRatingIndexValue(from: monster.challengeRating)
             values[KeyValueStore.SecondaryIndexes.compendiumEntryMonsterChallengeRating] = cr
+
+            if let type = monster.stats.type?.result?.value?.rawValue {
+                values[KeyValueStore.SecondaryIndexes.compendiumEntryMonsterType] = type
+            }
         } else if let spell = item as? Spell {
             let levelString = spell.level.map { "\($0)" } ?? "0"
             values[KeyValueStore.SecondaryIndexes.compendiumEntrySpellLevel] = levelString
@@ -153,6 +157,13 @@ extension CompendiumFilters {
                 KeyValueStore.SecondaryIndexFilter(
                     index: KeyValueStore.SecondaryIndexes.compendiumEntryMonsterChallengeRating,
                     condition: .lessThanOrEqualTo(CompendiumItemField.challengeRatingIndexValue(from: maxMonsterChallengeRating))
+                )
+            }
+
+            if let monsterType {
+                KeyValueStore.SecondaryIndexFilter(
+                    index: KeyValueStore.SecondaryIndexes.compendiumEntryMonsterType,
+                    condition: .equals(monsterType.rawValue)
                 )
             }
         })

@@ -267,6 +267,8 @@ public final class KeyValueStore {
                     conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) >= ?", [s]))
                 case .lessThanOrEqualTo(let s):
                     conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) <= ?", [s]))
+                case .equals(let s):
+                    conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) IS ?", [s]))
                 }
             }
 
@@ -333,6 +335,7 @@ public final class KeyValueStore {
         public static let compendiumEntryTitle = 0
         public static let compendiumEntryMonsterChallengeRating = 1
         public static let compendiumEntrySpellLevel = 2
+        public static let compendiumEntryMonsterType = 3
     }
 
     public struct SecondaryIndexFilter {
@@ -343,6 +346,7 @@ public final class KeyValueStore {
     public enum SecondaryIndexCondition {
         case greaterThanOrEqualTo(String)
         case lessThanOrEqualTo(String)
+        case equals(String)
     }
 
     public struct SecondaryIndexOrder {
