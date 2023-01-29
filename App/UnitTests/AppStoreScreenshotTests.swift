@@ -19,6 +19,7 @@ import Dice
 import GameModels
 import Persistence
 import PersistenceTestSupport
+import Compendium
 
 /// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests
 @available(iOS 16.0, *)
@@ -159,7 +160,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
 
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
+        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return ConstructView(env: environment, store: store)
     }
 
@@ -178,7 +179,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
 
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
+        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return ConstructView(env: environment, store: store)
     }
 
@@ -188,7 +189,7 @@ class AppStoreScreenshotTests: XCTestCase {
             combatant: encounterDetailViewState.encounter.combatants[1]
         )
 
-        let store = Store<CombatantDetailViewState, CombatantDetailViewAction>(initialState: state, reducer: Reducer.empty, environment: ())
+        let store = Store<CombatantDetailViewState, CombatantDetailViewAction>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return FakeSheetView(
             background: Color(UIColor.secondarySystemBackground),
             sheet: CombatantDetailContainerView(store: store)
@@ -207,7 +208,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         results: .initial
                     )) { state in
                         let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
-                        ViewStore(store).send(.query(.onTextDidChange("Dragon"), debounce: false))
+                        ViewStore(store).send(.query(.onTextDidChange("Dragon")))
                         state = ViewStore(store).state
                     },
                     diceRoller: DiceRollerViewState.nullInstance
@@ -215,7 +216,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
 
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
+        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return ConstructView(env: environment, store: store)
     }
 
@@ -242,7 +243,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
 
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
+        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return ConstructView(env: environment, store: store)
     }
 
@@ -268,7 +269,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 mage.resources[position: 3].used = 1
             }
         )
-        let store = Store<CombatantDetailViewState, CombatantDetailViewAction>(initialState: state, reducer: Reducer.empty, environment: ())
+        let store = Store<CombatantDetailViewState, CombatantDetailViewAction>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return FakeSheetView(
             background: Color(UIColor.secondarySystemBackground),
             sheet: CombatantDetailContainerView(store: store)
@@ -324,7 +325,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
         )
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
+        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return ConstructView(env: environment, store: store)
     }
 
@@ -499,9 +500,9 @@ class AppStoreScreenshotTests: XCTestCase {
                                             )) { state in
                                                 state.results.input.order = .monsterChallengeRating
                                                 let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
-                                                let filters = CompendiumIndexState.Query.Filters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4), maxMonsterChallengeRating: nil)
-                                                ViewStore(store).send(.query(.onFiltersDidChange(filters), debounce: false))
-                                                let entry = ViewStore(store).state.results.value!.first!
+                                                let filters = CompendiumFilters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4))
+                                                ViewStore(store).send(.query(.onFiltersDidChange(filters)))
+                                                let entry = ViewStore(store).state.results.entries!.first!
                                                 ViewStore(store).send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
                                                 state = ViewStore(store).state
                                             },
@@ -544,7 +545,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     results: .initial
                                             )) { state in
                                                 let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
-                                                ViewStore(store).send(.query(.onTextDidChange("Dragon"), debounce: false))
+                                                ViewStore(store).send(.query(.onTextDidChange("Dragon")))
                                                 state = ViewStore(store).state
                                             }
                                         )
@@ -571,7 +572,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
         )
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
+        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return ConstructView(env: environment, store: store)
     }
 
@@ -641,10 +642,10 @@ class AppStoreScreenshotTests: XCTestCase {
                                             )) { state in
                                                 let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
 
-                                                ViewStore(store).send(.query(.onTextDidChange(""), debounce: false))
+                                                ViewStore(store).send(.query(.onTextDidChange("")))
                                                 state = ViewStore(store).state
 
-                                                let fireballSpell = state.results.value!.first(where: { $0.item.title == "Fireball" })!
+                                                let fireballSpell = state.results.entries!.first(where: { $0.item.title == "Fireball" })!
                                                 state.scrollTo = fireballSpell.key
                                                 state.nextScreen = .itemDetail(CompendiumEntryDetailViewState(entry: fireballSpell))
                                             }
@@ -678,7 +679,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
 
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: Reducer.empty, environment: ())
+        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return ConstructView(env: environment, store: store)
     }
 
@@ -703,7 +704,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     results: .initial
                                             )) { state in
                                                 let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
-                                                ViewStore(store).send(.query(.onTextDidChange("Dragon"), debounce: false))
+                                                ViewStore(store).send(.query(.onTextDidChange("Dragon")))
                                                 state = ViewStore(store).state
                                             }
                                         )
@@ -719,7 +720,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
         )
-        let backgroundStore = Store<AppState, AppState.Action>(initialState: backgroundState, reducer: Reducer.empty, environment: ())
+        let backgroundStore = Store<AppState, AppState.Action>(initialState: backgroundState, reducer: AnyReducer.empty, environment: ())
         let backgroundView = ConstructView(env: environment, store: backgroundStore)
 
         let sheetView = SheetNavigationContainer {
@@ -728,7 +729,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     initialState: CreatureEditViewState(
                         edit: encounter.combatants[3].definition as! AdHocCombatantDefinition
                     ),
-                    reducer: Reducer.empty,
+                    reducer: AnyReducer.empty,
                     environment: ()
                 )
             )

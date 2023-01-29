@@ -97,10 +97,14 @@ public final class KeyValueStore {
         }
 
         if let secondaryIndexValues {
-            for (index, value) in secondaryIndexValues {
-                let indexRecord = SecondaryIndexRecord(idx: index, value: value, recordKey: record.key)
-                try indexRecord.save(db)
-            }
+            try Self.saveSecondaryIndexValues(secondaryIndexValues, recordKey: record.key, in: db)
+        }
+    }
+
+    static func saveSecondaryIndexValues(_ secondaryIndexValues: [Int: String], recordKey: String, in db: GRDB.Database) throws {
+        for (index, value) in secondaryIndexValues {
+            let indexRecord = SecondaryIndexRecord(idx: index, value: value, recordKey: recordKey)
+            try indexRecord.save(db)
         }
     }
 

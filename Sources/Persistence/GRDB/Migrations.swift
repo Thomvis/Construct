@@ -29,7 +29,7 @@ extension Database {
         case v10 = "v10-consistentCharacterKeys"
         case v11 = "v11-runningEncounterKeyFix"
         case v12 = "v12-statBlock-removeDefaultProficiencyOverrides"
-        case v13 = "v13-keyvaluestore-order"
+        case v13 = "v13-keyvaluestore-indexes"
     }
 
     static func migrator() throws -> DatabaseMigrator {
@@ -380,6 +380,16 @@ extension Database {
                     KeyValueStore.SecondaryIndexRecord.Columns.idx.name,
                     KeyValueStore.SecondaryIndexRecord.Columns.recordKey.name
                 ], onConflict: .replace)
+            }
+
+            let records = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix)%")).fetchAll(db)
+            for r in records {
+                let entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+
+                let values = entry.secondaryIndexValues
+                if !values.isEmpty {
+                    try KeyValueStore.saveSecondaryIndexValues(values, recordKey: r.key, in: db)
+                }
             }
         }
 

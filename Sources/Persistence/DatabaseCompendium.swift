@@ -113,7 +113,7 @@ extension CompendiumEntry {
 
 extension DatabaseCompendium {
     public static func put(_ entry: CompendiumEntry, in db: GRDB.Database) throws {
-        try KeyValueStore.put(entry, fts: entry.ftsDocument, in: db)
+        try KeyValueStore.put(entry, fts: entry.ftsDocument, secondaryIndexValues: entry.secondaryIndexValues, in: db)
     }
 }
 

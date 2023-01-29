@@ -30,6 +30,7 @@ public struct Order: Equatable {
     public let ascending: Bool
 
     public static let title = Order(key: .title, ascending: true)
+    public static let monsterChallengeRating = Order(key: .monsterChallengeRating, ascending: true)
 
     public static func `default`(_ itemTypes: [CompendiumItemType]) -> Self {
         if let single = itemTypes.single {
