@@ -352,8 +352,8 @@ extension CompendiumIndexState.Query {
             case .onTypeFilterDidChange(let types):
                 if state.filters != nil {
                     state.filters?.types = types
-                } else {
-                    state.filters = CompendiumFilters(types: types) //todo: if state.filters is nil it should remain nil here
+                } else if types != nil {
+                    state.filters = CompendiumFilters(types: types)
                 }
                 state.order = .default(types ?? CompendiumItemType.allCases)
             case .onFiltersDidChange(let f):
