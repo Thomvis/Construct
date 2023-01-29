@@ -19,30 +19,13 @@ public struct DiceRollerView: View {
     @ObservedObject var viewStore: ViewStore<DiceRollerViewState, DiceRollerViewAction>
     @State var rot: Double = 0
 
-    let isVisible: Bool
-
-    public init(store: Store<DiceRollerViewState, DiceRollerViewAction>, isVisible: Bool) {
+    public init(store: Store<DiceRollerViewState, DiceRollerViewAction>) {
         self.store = store
         self.viewStore = ViewStore(store)
-        self.isVisible = isVisible
     }
 
     public var body: some View {
-
-        // workaround: giving focus to the search field in the compendium would
-        // cause onAppear to be called here, which would start the animation and
-        // cause 99% CPU load. isVisible prevents that, but requires additional evaluation
-        if self.rot == 0 && isVisible {
-            DispatchQueue.main.async {
-                if self.rot == 0 && isVisible {
-                    withAnimation(Animation.linear(duration: 90.0).repeatForever(autoreverses: false)) {
-                        self.rot = 1
-                    }
-                }
-            }
-        }
-
-        return VStack(spacing: 0) {
+        VStack(spacing: 0) {
             GeometryReader { proxy in
                 ZStack {
                     Image("icon")
@@ -108,13 +91,10 @@ public struct DiceRollerView: View {
                 .padding(12)
                 .background(Color(UIColor.systemBackground).opacity(0.9))
         }
+        .animation(Animation.linear(duration: 90.0).repeatForever(autoreverses: false), value: rot)
         .edgesIgnoringSafeArea(.top)
         .onAppear {
-            if self.rot == 0 && isVisible {
-                withAnimation(Animation.linear(duration: 90.0).repeatForever(autoreverses: false)) {
-                    self.rot = 1
-                }
-            }
+            rot = 1
         }
         .popover(outcomePopover)
     }
@@ -162,8 +142,7 @@ struct DiceRollerView_Preview: PreviewProvider {
                     diceLog: DiceLogPublisher(),
                     modifierFormatter: NumberFormatter()
                 )
-            ),
-            isVisible: true
+            )
         )
     }
 }

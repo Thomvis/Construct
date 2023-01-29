@@ -37,7 +37,7 @@ struct TabNavigationView: View {
                     }
                     .tag(TabNavigationViewState.Tabs.compendium)
 
-                DiceRollerView(store: self.store.scope(state: { $0.diceRoller }, action: { .diceRoller($0) }), isVisible: viewStore.selectedTab == .diceRoller)
+                DiceRollerView(store: self.store.scope(state: { $0.diceRoller }, action: { .diceRoller($0) }))
                     .tabItem {
                         Image("tabbar_d20")
                         Text("Dice")

@@ -14,6 +14,6 @@ struct ContentView: View {
     let store: Store<DiceRollerViewState, DiceRollerViewAction>
     
     var body: some View {
-        DiceRollerView(store: store, isVisible: true)
+        DiceRollerView(store: store)
     }
 }
