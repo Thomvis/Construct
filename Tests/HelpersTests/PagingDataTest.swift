@@ -84,7 +84,7 @@ final class PagingDataTest: XCTestCase {
         await clock.advance(by: .milliseconds(100))
 
         // reload while loading more
-        await store.send(.reload) {
+        await store.send(.reload(.initial)) {
             $0.elements = nil
             $0.loadingState = .loading
         }
@@ -100,18 +100,17 @@ final class PagingDataTest: XCTestCase {
     private func makeStore(
         state: PagingData<Int> = .init(),
         clock: any Clock<Duration> = ContinuousClock(),
-        pageSize: Int = 20,
         elements: [Int] = Array(0..<55)
     ) -> TestStore<PagingData<Int>, PagingDataAction<Int>, PagingData<Int>, PagingDataAction<Int>, Void> {
         TestStore(
             initialState: state,
-            reducer: PagingData<Int>.reducer { offset, env in
+            reducer: PagingData<Int>.reducer { request, env in
                 do {
                     try await clock.sleep(for: .seconds(1))
-                    let offsetted = elements.dropFirst(offset)
+                    let offsetted = elements.dropFirst(request.offset)
                     return .success(.init(
-                        elements: Array(offsetted.prefix(pageSize)),
-                        end: offsetted.count <= pageSize
+                        elements: request.count.map { Array(offsetted.prefix($0)) } ?? Array(offsetted),
+                        end: request.count.map { offsetted.count < $0 } ?? true
                     ))
                 } catch {
                     return .failure(.init(describing: error))

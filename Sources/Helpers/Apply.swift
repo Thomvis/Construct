@@ -19,3 +19,15 @@ public func apply<T>(_ thing: inout T, _ f: (inout T) throws -> Void) rethrows -
     try f(&thing)
     return thing
 }
+
+public func apply<T>(_ thing: T, _ f: (inout T) async throws -> Void) async rethrows -> T {
+    var res = thing
+    try await f(&res)
+    return res
+}
+
+@discardableResult
+public func apply<T>(_ thing: inout T, _ f: (inout T) async throws -> Void) async rethrows -> T {
+    try await f(&thing)
+    return thing
+}
