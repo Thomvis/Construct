@@ -92,12 +92,16 @@ struct AppState: Equatable {
             AnyReducer { state, action, env in
                 switch action {
                 case .onLaunch:
-                    // Listen to dice rolls and forward them to the right place
-                    return env.diceLog.rolls.map { (result, roll) in
-                            .onProcessRollForDiceLog(result, roll)
-                    }
-                    .eraseToEffect()
-                    .cancellable(id: "diceLog", cancelInFlight: true)
+                    return .merge(
+                        // Listen to dice rolls and forward them to the right place
+                        env.diceLog.rolls.map { (result, roll) in
+                                .onProcessRollForDiceLog(result, roll)
+                        }
+                        .eraseToEffect()
+                        .cancellable(id: "diceLog", cancelInFlight: true),
+                        // kickstart compendium loading to prevent flicker on tab switch (not needed on iPad)
+                        .init(value: .navigation(.tab(.compendium(.results(.result(.didShowElementAtIndex(0)))))))
+                    )
                 case .navigation: break // handled below
                 case .onHorizontalSizeClassChange(let sizeClass):
                     switch (state.navigation, sizeClass) {
