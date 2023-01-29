@@ -19,13 +19,10 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     @EnvironmentObject var env: Environment
 
     let store: Store<CompendiumIndexState, CompendiumIndexAction>
-    @ObservedObject var localViewStore: ViewStore<LocalState, CompendiumIndexAction>
 
     let viewProvider: CompendiumIndexViewProvider
 
     let bottomBarButtons: () -> BottomBarButtons
-
-    @State var didFocusOnSearch = false
 
     init(
         store: Store<CompendiumIndexState, CompendiumIndexAction>,
@@ -33,7 +30,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         @ViewBuilder bottomBarButtons: @escaping () -> BottomBarButtons
     ) {
         self.store = store
-        self.localViewStore = ViewStore(store.scope(state: { LocalState($0) }))
         self.viewProvider = viewProvider
         self.bottomBarButtons = bottomBarButtons
     }
@@ -44,80 +40,38 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         @ViewBuilder bottomBarButtons: @escaping () -> BottomBarButtons = { EmptyView() }
     ) where BottomBarButtons == EmptyView {
         self.store = store
-        self.localViewStore = ViewStore(store.scope(state: { LocalState($0) }))
         self.viewProvider = viewProvider
         self.bottomBarButtons = bottomBarButtons
     }
 
     var body: some View {
-        Group {
-            contentView
-        }
-        .safeAreaInset(edge: .bottom) {
-            RoundedButtonToolbar {
-                bottomBarButtons()
-
-                if localViewStore.state.showAddButton {
-                    let addableTypes = localViewStore.state.addableItemTypes
-                    if let type = addableTypes.single {
-                        Button(action: {
-                            self.localViewStore.send(.onAddButtonTap(type))
-                        }) {
-                            Label("Add \(type.localizedDisplayName)", systemImage: "plus.circle")
-                        }
-                    } else {
-                        Menu {
-                            ForEach(addableTypes, id: \.rawValue) { type in
-                                Button {
-                                    self.localViewStore.send(.onAddButtonTap(type))
-                                } label: {
-                                    Text("New \(type.localizedDisplayName)")
-                                }
-                            }
+        WithViewStore(store.scope(state: { LocalState($0) })) { localViewStore in
+            Group {
+                contentView(localViewStore)
+            }
+            .safeAreaInset(edge: .bottom) {
+                roundedButtonToolbar(localViewStore)
+            }
+            .scrollDismissesKeyboard(.immediately)
+            .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
+            .toolbar {
+                if localViewStore.state.showImportButton {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
                         } label: {
-                            Button(action: {
-
-                            }) {
-                                Label("Add", systemImage: "plus.circle")
-                            }
-                            // bug: ignoresSafeArea() is needed to prevent a layout glitch when the keyboard is presented
-                            .ignoresSafeArea()
+                            Text("Import...")
                         }
                     }
                 }
-
-                WithViewStore(store.scope(state: { $0.results.input })) { viewStore in
-                    FilterButton(
-                        viewStore: viewStore,
-                        allAllowedItemTypes: localViewStore.state.allAllowedItemTypes
-                    )
-                }
             }
-            .padding([.leading, .trailing, .bottom], 8)
-        }
-        .scrollDismissesKeyboard(.immediately)
-        .searchable(
-            text: localViewStore.binding(get: { $0.searchText.nonNilString }, send: { .query(.onTextDidChange($0)) }),
-            tokens: localViewStore.binding(get: { $0.itemTypeFilter ?? [] }, send: { .onQueryTypeFilterDidChange($0.nonEmptyArray) }),
-            token: { type in
-                Text(type.localizedScreenDisplayName)
+            .onAppear {
+                loadResultsIfNeeded(localViewStore)
             }
-        )
-        .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
-        .toolbar {
-            if localViewStore.state.showImportButton {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
-                    } label: {
-                        Text("Import...")
-                    }
-                }
-            }
+            .sheet(item: localViewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
         }
-        .onAppear {
-            loadResultsIfNeeded()
-        }
+        .modifier(CompendiumSearchableModifier(store: store))
+        .alert(store.scope(state: \.alert), dismiss: .alert(nil))
         // workaround: an inline NavigationLink inside navigationBarItems would be set to inactive
         // when the document picker of the import view is dismissed
         .stateDrivenNavigationLink(
@@ -126,12 +80,10 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             action: /CompendiumIndexAction.NextScreenAction.import,
             destination: { _ in CompendiumImportView() }
         )
-        .alert(store.scope(state: \.alert), dismiss: .alert(nil))
-        .sheet(item: localViewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
     }
 
     @ViewBuilder
-    var contentView: some View {
+    func contentView(_ localViewStore: ViewStore<LocalState, CompendiumIndexAction>) -> some View {
         switch localViewStore.state.results {
         case .succeededWithoutResults:
             WithViewStore(store.scope(state: { $0.presentedNextSafariView })) { safariViewStore in
@@ -160,7 +112,51 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         }
     }
 
-    private func loadResultsIfNeeded() {
+    @ViewBuilder
+    private func roundedButtonToolbar(_ localViewStore: ViewStore<LocalState, CompendiumIndexAction>) -> some View {
+        RoundedButtonToolbar {
+            bottomBarButtons()
+
+            if localViewStore.state.showAddButton {
+                let addableTypes = localViewStore.state.addableItemTypes
+                if let type = addableTypes.single {
+                    Button(action: {
+                        localViewStore.send(.onAddButtonTap(type))
+                    }) {
+                        Label("Add \(type.localizedDisplayName)", systemImage: "plus.circle")
+                    }
+                } else {
+                    Menu {
+                        ForEach(addableTypes, id: \.rawValue) { type in
+                            Button {
+                                localViewStore.send(.onAddButtonTap(type))
+                            } label: {
+                                Text("New \(type.localizedDisplayName)")
+                            }
+                        }
+                    } label: {
+                        Button(action: {
+
+                        }) {
+                            Label("Add", systemImage: "plus.circle")
+                        }
+                        // bug: ignoresSafeArea() is needed to prevent a layout glitch when the keyboard is presented
+                        .ignoresSafeArea()
+                    }
+                }
+            }
+
+            WithViewStore(store.scope(state: { $0.results.input })) { viewStore in
+                FilterButton(
+                    viewStore: viewStore,
+                    allAllowedItemTypes: localViewStore.state.allAllowedItemTypes
+                )
+            }
+        }
+        .padding([.leading, .trailing, .bottom], 8)
+    }
+
+    private func loadResultsIfNeeded(_ localViewStore: ViewStore<LocalState, CompendiumIndexAction>) {
         if !localViewStore.state.results.isSuccess {
             localViewStore.send(.results(.result(.didShowElementAtIndex(0)))) // kick-start search, fixme?
         }
@@ -202,8 +198,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         @EqKey({ $0?.id })
         var sheet: CompendiumIndexState.Sheet?
 
-        let searchText: String?
-
         init(_ state: CompendiumIndexState) {
             if let resValues = state.results.entries {
                 self.results = resValues.isEmpty ? .succeededWithoutResults : .succeededWithResults
@@ -214,19 +208,13 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             }
 
             itemTypeRestriction = state.properties.typeRestriction
-            if Set(state.results.input.filters?.types ?? []) == Set(state.properties.typeRestriction ?? CompendiumItemType.allCases) {
-                itemTypeFilter = nil
-            } else {
-                itemTypeFilter = state.results.input.filters?.types
-            }
+            itemTypeFilter = CompendiumIndexState.itemTypeFilter(input: state.results.input, properties: state.properties)
             showAddButton = state.properties.showAdd
 
             title = state.title
             showImportButton = state.properties.showImport
 
             isShowingImport = state.presentedNextCompendiumImport != nil || state.presentedDetailCompendiumImport != nil
-
-            searchText = state.results.input.text
 
             sheet = state.sheet
         }
@@ -268,6 +256,65 @@ struct CompendiumIndexViewProvider {
         },
         state: { 0 }
     )
+}
+
+/// This modifier applies the searchable modifier to the view it is applied to
+/// This is done in a convoluted way to work around a glitch in the searchable modifier:
+/// When the searchable modifier is inside a WithViewStore, fast text entry can cause the
+/// cursor to not remain at the end of the text. Example: fast entry of "Goblin" can result
+/// in "Gobin|l" (where | is the position of the cursor after text entry)
+///
+/// Using searchable with `tokens` makes the issue more apparent.
+fileprivate struct CompendiumSearchableModifier: ViewModifier {
+    let store: Store<CompendiumIndexState, CompendiumIndexAction>
+
+    @State var text: String = ""
+    @State var tokens: [CompendiumItemType] = []
+
+    func body(content: Content) -> some View {
+        content.searchable(
+            text: $text,
+            tokens: $tokens,
+            token: { type in
+                Text(type.localizedScreenDisplayName)
+            }
+        )
+        .onChange(of: text, perform: { t in
+            ViewStore(store).send(.query(.onTextDidChange(t.nonEmptyString)))
+        })
+        .onChange(of: tokens) { tokens in
+            ViewStore(store).send(.onQueryTypeFilterDidChange(tokens.nonEmptyArray))
+        }
+        .background {
+            WithViewStore(store, observe: LocalState.init) { localViewStore in
+                Color.clear
+                    .onChange(of: localViewStore.state.searchText) { t in
+                        if t.nonNilString != text {
+                            text = t.nonNilString
+                        }
+                    }
+                    .onChange(of: localViewStore.state.itemTypeFilter) { filter in
+                        if filter != tokens {
+                            tokens = filter
+                        }
+                    }
+                    .onAppear {
+                        text = localViewStore.state.searchText.nonNilString
+                        tokens = localViewStore.state.itemTypeFilter
+                    }
+            }
+        }
+    }
+
+    struct LocalState: Equatable {
+        let searchText: String?
+        let itemTypeFilter: [CompendiumItemType]
+
+        init(_ parentState: CompendiumIndexState) {
+            self.searchText = parentState.results.input.text
+            self.itemTypeFilter = CompendiumIndexState.itemTypeFilter(input: parentState.results.input, properties: parentState.properties) ?? []
+        }
+    }
 }
 
 fileprivate struct CompendiumItemList: View, Equatable {
@@ -419,12 +466,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
                 self.suggestions = nil
             }
 
-            let itemTypeFilter: [CompendiumItemType]?
-            if Set(input?.filters?.types ?? []) == Set(state.properties.typeRestriction ?? CompendiumItemType.allCases) {
-                itemTypeFilter = nil
-            } else {
-                itemTypeFilter = input?.filters?.types
-            }
+            let itemTypeFilter = CompendiumIndexState.itemTypeFilter(input: input, properties: state.properties)
             /// Returns allowed item types (as per type restriction), but only if the user has not
             /// added a query or changed the type filter. If that's the case, an empty array is returned.
             typeFilters = input?.text?.nonEmptyString == nil && itemTypeFilter == nil
@@ -607,5 +649,15 @@ fileprivate extension CompendiumFilterSheetState {
         self.current = values
 
         self.allAllowedItemTypes = allAllowedItemTypes
+    }
+}
+
+fileprivate extension CompendiumIndexState {
+    static func itemTypeFilter(input: Query?, properties: Properties) -> [CompendiumItemType]? {
+        if Set(input?.filters?.types ?? []) == Set(properties.typeRestriction ?? CompendiumItemType.allCases) {
+            return nil
+        } else {
+            return input?.filters?.types
+        }
     }
 }

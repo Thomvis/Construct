@@ -16,7 +16,7 @@ import GameModels
 struct AddCombatantCompendiumView: View {
     @EnvironmentObject var env: Environment
     var store: Store<AddCombatantState, AddCombatantState.Action>
-    @ObservedObject var viewStore: ViewStore<AddCombatantState, AddCombatantState.Action>
+    var viewStore: ViewStore<AddCombatantState, AddCombatantState.Action>
 
     let onSelection: (AddCombatantView.Action, _ dismiss: Bool) -> Void
 
