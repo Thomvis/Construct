@@ -163,23 +163,25 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 case .setDetailScreen(let s):
                     state.presentedScreens[.detail] = s
                 case .creatureEditSheet(CreatureEditViewAction.onAddTap(let editState)):
+                    // adding a new creature
                     return Effect.run { subscriber in
                         if let item = editState.compendiumItem {
                             let entry = CompendiumEntry(item)
                             _ = try? env.compendium.put(entry)
                             subscriber.send(.scrollTo(entry.key))
+                            subscriber.send(.results(.result(.reload(.all))))
                         }
-                        subscriber.send(.results(.result(.reload)))
                         subscriber.send(.setSheet(nil))
                         subscriber.send(completion: .finished)
                         return AnyCancellable { }
                     }
                 case .groupEditSheet(CompendiumItemGroupEditAction.onAddTap(let group)):
+                    // adding a group
                     return Effect.run { subscriber in
                         let entry = CompendiumEntry(group)
                         try? env.compendium.put(entry)
 
-                        subscriber.send(.results(.result(.reload)))
+                        subscriber.send(.results(.result(.reload(.all))))
                         subscriber.send(.scrollTo(entry.key))
                         subscriber.send(.setSheet(nil))
                         subscriber.send(completion: .finished)
@@ -188,13 +190,14 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     }
                 case .nextScreen(.compendiumEntry(.didRemoveItem)),
                      .detailScreen(.compendiumEntry(.didRemoveItem)):
+                    // creature removed
                     return Effect.run { subscriber in
                         subscriber.send(.setNextScreen(nil))
 
                         // Work-around: without the delay, `.setNextScreen(nil)` is not picked up
                         // (probably because .reload makes the NavigationLink disappear)
                         DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
-                            subscriber.send(.results(.result(.reload)))
+                            subscriber.send(.results(.result(.reload(.currentCount))))
                             subscriber.send(completion: .finished)
                         }
 
@@ -202,10 +205,12 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     }
                 case .nextScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))),
                      .detailScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))):
-                    return Effect(value: .results(.result(.reload)))
+                    // done editing an existing creature
+                    return Effect(value: .results(.result(.reload(.currentCount))))
                 case .nextScreen(.compendiumEntry(.entry)),
                      .detailScreen(.compendiumEntry(.entry)):
-                    return Effect(value: .results(.result(.reload)))
+                    // creature on the detail screen changed
+                    return Effect(value: .results(.result(.reload(.currentCount))))
                 case .nextScreen, .detailScreen:
                     break
                 case .alert(let s):
@@ -236,7 +241,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                             return .failure(PagingDataError(describing: error))
                         }
 
-                        return .success(.init(elements: entries, end: entries.count < request.count))
+                        let didReachEnd = request.count.map { entries.count < $0 } ?? true
+                        return .success(.init(elements: entries, end: didReachEnd))
                     }
                 }
             ).retaining { mapState in

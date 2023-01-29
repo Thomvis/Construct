@@ -8,7 +8,7 @@
 import Foundation
 import ComposableArchitecture
 
-private let assumedNumberOfItemsOnScreen = 20
+private let assumedNumberOfItemsOnScreen = 40
 
 public struct PagingData<Element>: Equatable where Element: Equatable {
     private let id = UUID()
@@ -30,7 +30,7 @@ public struct PagingData<Element>: Equatable where Element: Equatable {
 public enum PagingDataAction<Element>: Equatable where Element: Equatable {
     case didShowElementAtIndex(Int)
     case didLoadMore(Result<FetchResult, PagingDataError>)
-    case reload
+    case reload(ReloadScope)
 
     public struct FetchResult: Equatable {
         let elements: [Element]
@@ -40,6 +40,12 @@ public enum PagingDataAction<Element>: Equatable where Element: Equatable {
             self.elements = elements
             self.end = end
         }
+    }
+
+    public enum ReloadScope: Equatable {
+        case initial // loads the initial batch
+        case currentCount // loads the same amount of items it currently has, but at least initial
+        case all // loads all elements at once
     }
 }
 
@@ -56,10 +62,10 @@ private enum LoadID { }
 public extension PagingData {
     struct FetchRequest {
         public let offset: Int
-        public let count: Int
+        public let count: Int?
 
-        public var range: Range<Int> {
-            offset..<(offset+count)
+        public var range: Range<Int>? {
+            count.map { count in offset..<(offset+count) }
         }
     }
     
@@ -95,9 +101,15 @@ public extension PagingData {
                 state.loadingState = .notLoading(didReachEnd: res.end)
             case .didLoadMore(.failure(let e)):
                 state.loadingState = .error(e)
-            case .reload:
-                let count = state.elements?.count ?? 0
+            case .reload(.initial):
+                state.elements = nil
+                state.loadingState = .notLoading(didReachEnd: false)
 
+                return loadIfNeeded(for: 0, state: &state)
+                    .prepend(EffectTask.cancel(id: LoadID.self))
+                    .eraseToEffect()
+            case .reload(.currentCount):
+                let count = state.elements?.count ?? 0
                 state.elements = nil
                 state.loadingState = .notLoading(didReachEnd: false)
 
@@ -110,6 +122,13 @@ public extension PagingData {
                         .prepend(EffectTask.cancel(id: LoadID.self))
                         .eraseToEffect()
                 }
+            case .reload(.all):
+                state.elements = nil
+                state.loadingState = .notLoading(didReachEnd: false)
+
+                return load(FetchRequest(offset: 0, count: nil), in: &state)
+                    .prepend(EffectTask.cancel(id: LoadID.self))
+                    .eraseToEffect()
             }
             return .none
         }
