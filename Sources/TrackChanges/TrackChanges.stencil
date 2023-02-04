@@ -1,0 +1,40 @@
+import TrackChanges
+
+/// Generated `Diffable` implementations
+{% for type in types.implementing.Diffable where not type|annotated:"skipDiffable" %}
+{% for import in type.imports %}
+import {{ import }}
+{% endfor %}
+extension {{ type.name}} {
+	{{ type.accessLevel }} static var diffableKeys = [{% for variable in type.storedVariables where not variable|annotated:"skipDiffable" %}"{{ variable.name }}", {% endfor %}]
+
+	{{ type.accessLevel }} func value(forDiffableKey key: String) throws -> Any {
+		switch key {
+		{% for variable in type.storedVariables where not variable|annotated:"skipDiffable" %}
+		case "{{ variable.name }}": return {{ variable.name }} as Any
+		{% endfor %}
+		default: throw DiffableError()
+		}
+	}
+}
+
+{% endfor %}
+
+/// Generated `Patchable` implementations
+
+{% for type in types.implementing.Patchable where not type|annotated:"skipPatchable" %}
+{% for import in type.imports %}
+import {{ import }}
+{% endfor %}
+extension {{ type.name}} {
+	{{ type.accessLevel }} mutating func setValue(_ value: Any, forDiffableKey key: String) throws {
+		switch (key, value) {
+		{% for variable in type.storedVariables where not variable|annotated:"skipPatchable" %}
+		case ("{{ variable.name}}", let v as {{ variable.typeName }}): {{ variable.name}} = v
+		{% endfor %}
+		default: throw PatchableError()
+		}
+	}
+}
+
+{% endfor %}

@@ -6,8 +6,9 @@
 //
 import Foundation
 import XCTest
-import Helpers
+import TrackChanges
 import CustomDump
+import Helpers
 
 final class DiffableTest: XCTestCase {
 
@@ -16,8 +17,8 @@ final class DiffableTest: XCTestCase {
         let b = User(name: "Bob", age: 22)
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["name"], action: .set(from: "Alex")),
-            Difference(path: ["age"], action: .set(from: 11))
+            Change(path: ["name"], action: .set(from: "Alex")),
+            Change(path: ["age"], action: .set(from: 11))
         ])
     }
 
@@ -26,8 +27,8 @@ final class DiffableTest: XCTestCase {
         let b = User(name: "Alex", age: 11, company: nil, address: User.Address(street: "Main Street", houseNumber: 11))
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["company"], action: .set(from: User.Company(name: "Corp"))),
-            Difference(path: ["address"], action: .set(from: Optional<User.Address>.none)),
+            Change(path: ["company"], action: .set(from: User.Company(name: "Corp"))),
+            Change(path: ["address"], action: .set(from: Optional<User.Address>.none)),
         ])
     }
 
@@ -36,7 +37,7 @@ final class DiffableTest: XCTestCase {
         let b = apply(a) { $0.company?.name = "Corp Inc." }
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["company", "name"], action: .set(from: "Corp"))
+            Change(path: ["company", "name"], action: .set(from: "Corp"))
         ])
     }
 
@@ -52,7 +53,7 @@ final class DiffableTest: XCTestCase {
         let b = User(name: "Alex", age: 11, numbers: [0, 1, 2, 3])
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["numbers"], action: .insert(offset: 0))
+            Change(path: ["numbers"], action: .insert(offset: 0))
         ])
     }
 
@@ -61,7 +62,7 @@ final class DiffableTest: XCTestCase {
         let b = User(name: "Alex", age: 11, numbers: [1, 2, 3, 0])
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["numbers"], action: .insert(offset: 3))
+            Change(path: ["numbers"], action: .insert(offset: 3))
         ])
     }
 
@@ -70,7 +71,7 @@ final class DiffableTest: XCTestCase {
         let b = User(name: "Alex", age: 11, numbers: [2, 3])
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["numbers"], action: .remove(offset: 0, value: 1))
+            Change(path: ["numbers"], action: .remove(offset: 0, value: 1))
         ])
     }
 
@@ -79,7 +80,7 @@ final class DiffableTest: XCTestCase {
         let b = User(name: "Alex", age: 11, numbers: [1, 2])
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["numbers"], action: .remove(offset: 2, value: 3))
+            Change(path: ["numbers"], action: .remove(offset: 2, value: 3))
         ])
     }
 
@@ -88,12 +89,12 @@ final class DiffableTest: XCTestCase {
         let b = User(name: "Alex", age: 11, numbers: [4, 5, 6])
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["numbers"], action: .remove(offset: 0, value: 1)),
-            Difference(path: ["numbers"], action: .insert(offset: 0)),
-            Difference(path: ["numbers"], action: .remove(offset: 1, value: 2)),
-            Difference(path: ["numbers"], action: .insert(offset: 1)),
-            Difference(path: ["numbers"], action: .remove(offset: 2, value: 3)),
-            Difference(path: ["numbers"], action: .insert(offset: 2))
+            Change(path: ["numbers"], action: .remove(offset: 0, value: 1)),
+            Change(path: ["numbers"], action: .insert(offset: 0)),
+            Change(path: ["numbers"], action: .remove(offset: 1, value: 2)),
+            Change(path: ["numbers"], action: .insert(offset: 1)),
+            Change(path: ["numbers"], action: .remove(offset: 2, value: 3)),
+            Change(path: ["numbers"], action: .insert(offset: 2))
         ])
     }
 
@@ -102,11 +103,11 @@ final class DiffableTest: XCTestCase {
         let b = User(name: "Alex", age: 11, numbers: [0, 2, 2, 4])
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["numbers"], action: .remove(offset: 0, value: 1)),
-            Difference(path: ["numbers"], action: .insert(offset: 0)),
-            Difference(path: ["numbers"], action: .remove(offset: 2, value: 3)),
-            Difference(path: ["numbers"], action: .insert(offset: 2)),
-            Difference(path: ["numbers"], action: .insert(offset: 3))
+            Change(path: ["numbers"], action: .remove(offset: 0, value: 1)),
+            Change(path: ["numbers"], action: .insert(offset: 0)),
+            Change(path: ["numbers"], action: .remove(offset: 2, value: 3)),
+            Change(path: ["numbers"], action: .insert(offset: 2)),
+            Change(path: ["numbers"], action: .insert(offset: 3))
         ])
     }
 
@@ -118,7 +119,7 @@ final class DiffableTest: XCTestCase {
         let b = apply(a) { $0.friends[0].age = 12 }
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["friends", "0", "age"], action: .set(from: 11))
+            Change(path: ["friends", "0", "age"], action: .set(from: 11))
         ])
     }
 
@@ -132,8 +133,8 @@ final class DiffableTest: XCTestCase {
         }
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["friends"], action: .insert(offset: 0)),
-            Difference(path: ["friends", "1", "age"], action: .set(from: 11))
+            Change(path: ["friends"], action: .insert(offset: 0)),
+            Change(path: ["friends", "1", "age"], action: .set(from: 11))
         ])
     }
 
@@ -148,8 +149,8 @@ final class DiffableTest: XCTestCase {
         }
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["friends"], action: .remove(offset: 0, value: User(name: "Frank", age: 11))),
-            Difference(path: ["friends", "0", "age"], action: .set(from: 13))
+            Change(path: ["friends"], action: .remove(offset: 0, value: User(name: "Frank", age: 11))),
+            Change(path: ["friends", "0", "age"], action: .set(from: 13))
         ])
     }
 
@@ -162,15 +163,15 @@ final class DiffableTest: XCTestCase {
         }
 
         XCTAssertNoDifference(try b.difference(from: a), [
-            Difference(path: ["custom", "a"], action: .set(from: "aa")),
-            Difference(path: ["custom", "c"], action: .set(from: "cc")),
-            Difference(path: ["custom", "d"], action: .set(from: Optional<String>.none)),
+            Change(path: ["custom", "a"], action: .set(from: "aa")),
+            Change(path: ["custom", "c"], action: .set(from: "cc")),
+            Change(path: ["custom", "d"], action: .set(from: Optional<String>.none)),
         ])
     }
 
 }
 
-struct User: Codable, Equatable {
+struct User: Codable, Equatable, Diffable {
     var name: String
     var age: Int
     var company: Company?
@@ -179,42 +180,42 @@ struct User: Codable, Equatable {
     var friends: [User] = []
     var custom: [String: String] = [:]
 
-    struct Company: Equatable, Codable {
+    struct Company: Equatable, Codable, Diffable {
         var name: String
     }
 
-    struct Address: Equatable, Codable {
+    struct Address: Equatable, Codable { // not diffable on purpose
         var street: String
         var houseNumber: Int
     }
 }
 
-extension User: Diffable {
-    static var diffableKeys = ["name", "age", "company", "address", "numbers", "friends", "custom"]
-
-    func value(forDiffableKey key: String) throws -> Any {
-        switch key {
-        case "name": return name
-        case "age": return age
-        case "company": return company as Any
-        case "address": return address as Any
-        case "numbers": return numbers
-        case "friends": return friends
-        case "custom": return custom
-        default: throw DiffableError()
-        }
-    }
-}
-
-extension User.Company: Diffable {
-    static var diffableKeys = ["name"]
-    func value(forDiffableKey key: String) throws -> Any {
-        switch key {
-        case "name": return name
-        default: throw DiffableError()
-        }
-    }
-}
+//extension User: Diffable {
+//    static var diffableKeys = ["name", "age", "company", "address", "numbers", "friends", "custom"]
+//
+//    func value(forDiffableKey key: String) throws -> Any {
+//        switch key {
+//        case "name": return name
+//        case "age": return age
+//        case "company": return company as Any
+//        case "address": return address as Any
+//        case "numbers": return numbers
+//        case "friends": return friends
+//        case "custom": return custom
+//        default: throw DiffableError()
+//        }
+//    }
+//}
+//
+//extension User.Company: Diffable {
+//    static var diffableKeys = ["name"]
+//    func value(forDiffableKey key: String) throws -> Any {
+//        switch key {
+//        case "name": return name
+//        default: throw DiffableError()
+//        }
+//    }
+//}
 
 extension User: Identifiable {
     var id: String { name }

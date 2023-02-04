@@ -5,3 +5,6 @@ sourcery --sources Sources/Compendium --exclude-sources Sources/Compendium/Sourc
 sourcery --sources Sources/GameModels --sources Sources/Helpers --exclude-sources Sources/GameModels/SourceryOutput --templates SourceryTemplates/ParseableGameModels.stencil --output Sources/GameModels/SourceryOutput
 
 sourcery --sources Sources/Persistence --exclude-sources Sources/Persistence/SourceryOutput --templates SourceryTemplates/KeyValueStoreEntityDecoding.stencil --output Sources/Persistence/SourceryOutput
+
+sourcery --sources Sources/GameModels --sources Sources/TrackChanges --exclude-sources Sources/GameModels/SourceryOutput --templates Sources/TrackChanges/TrackChanges.stencil --output Sources/GameModels/SourceryOutput
+sourcery --sources Tests/TrackChangesTests --sources Sources/TrackChanges --exclude-sources Tests/TrackChangesTests/SourceryOutput --templates Sources/TrackChanges/TrackChanges.stencil --output Tests/TrackChangesTests/SourceryOutput

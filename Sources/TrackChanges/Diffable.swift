@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Helpers
 
 public protocol Diffable {
     static var diffableKeys: [String] { get }
@@ -13,7 +14,7 @@ public protocol Diffable {
     func value(forDiffableKey: String) throws -> Any
 }
 
-public struct Difference: Equatable {
+public struct Change: Equatable {
     let path: [String]
     let action: Action
 
@@ -29,7 +30,7 @@ public struct Difference: Equatable {
     }
 
     func pullback(pathPrefix: String) -> Self {
-        Difference(path: [pathPrefix] + path, action: action)
+        Change(path: [pathPrefix] + path, action: action)
     }
 }
 
@@ -38,8 +39,8 @@ public struct DiffableError: Swift.Error {
 }
 
 public extension Diffable {
-    func difference(from other: Self) throws -> [Difference] {
-        var result: [Difference] = []
+    func difference(from other: Self) throws -> [Change] {
+        var result: [Change] = []
         for key in Self.diffableKeys {
             let lhs = try value(forDiffableKey: key)
             let rhs = try other.value(forDiffableKey: key)
@@ -53,7 +54,7 @@ public extension Diffable {
 
 public typealias DiffableValue = Equatable & Codable
 
-private func diffAny<A>(lhs: A, rhs: Any) throws -> [Difference] {
+private func diffAny<A>(lhs: A, rhs: Any) throws -> [Change] {
     if let lhsDiffable = lhs as? Diffable, let rhsDiffable = rhs as? Diffable {
         return try diff(lhs: lhsDiffable, rhs: rhsDiffable)
     } else if !(lhs is String), let lhsCollection = lhs as? any BidirectionalCollection, let rhsCollection = rhs as? any BidirectionalCollection {
@@ -62,7 +63,7 @@ private func diffAny<A>(lhs: A, rhs: Any) throws -> [Difference] {
         return try diff(lhs: lhsD, rhs: rhsD)
     } else if let lhsValue = lhs as? any DiffableValue, let rhsValue = rhs as? any DiffableValue {
         return try diff(lhs: lhsValue, rhs: rhsValue).map {
-            [Difference(path: [], action: $0)]
+            [Change(path: [], action: $0)]
         } ?? []
     } else if let lhsOptional = lhs as? any OptionalProtocol, let rhsOptional = rhs as? any OptionalProtocol {
         return try diff(lhs: lhsOptional, rhs: rhsOptional)
@@ -71,12 +72,12 @@ private func diffAny<A>(lhs: A, rhs: Any) throws -> [Difference] {
     }
 }
 
-private func diff<D: Diffable>(lhs: D, rhs: any Diffable) throws -> [Difference] {
+private func diff<D: Diffable>(lhs: D, rhs: any Diffable) throws -> [Change] {
     guard let rhs = rhs as? D else { throw DiffableError() }
     return try lhs.difference(from: rhs)
 }
 
-private func diff<C: BidirectionalCollection>(lhs: C, rhs: any BidirectionalCollection) throws -> [Difference] {
+private func diff<C: BidirectionalCollection>(lhs: C, rhs: any BidirectionalCollection) throws -> [Change] {
     guard let rhs = rhs as? C else { throw DiffableError() }
 
     let differences = lhs.difference(from: rhs) { lhsE, rhsE in
@@ -92,7 +93,7 @@ private func diff<C: BidirectionalCollection>(lhs: C, rhs: any BidirectionalColl
     var lhsOffset = 0
     var rhsOffset = 0
 
-    var result: [Difference] = []
+    var result: [Change] = []
     while lhsOffset < lhs.count || rhsOffset < rhs.count {
         let isInsertion = differences.insertions.contains { $0.offset == lhsOffset }
         let isRemoval = differences.removals.contains { $0.offset == rhsOffset }
@@ -111,8 +112,8 @@ private func diff<C: BidirectionalCollection>(lhs: C, rhs: any BidirectionalColl
             rhsOffset += 1
         case (true, true):
             if let removed = rhs[rhs.index(rhs.startIndex, offsetBy: rhsOffset)] as? any DiffableValue {
-                result.append(Difference(path: [], action: .remove(offset: rhsOffset, value: removed)))
-                result.append(Difference(path: [], action: .insert(offset: lhsOffset)))
+                result.append(Change(path: [], action: .remove(offset: rhsOffset, value: removed)))
+                result.append(Change(path: [], action: .insert(offset: lhsOffset)))
             } else {
                 throw DiffableError()
             }
@@ -121,30 +122,30 @@ private func diff<C: BidirectionalCollection>(lhs: C, rhs: any BidirectionalColl
             rhsOffset += 1
         case (false, true):
             if let removed = rhs[rhs.index(rhs.startIndex, offsetBy: rhsOffset)] as? any DiffableValue {
-                result.append(Difference(path: [], action: .remove(offset: rhsOffset, value: removed)))
+                result.append(Change(path: [], action: .remove(offset: rhsOffset, value: removed)))
             } else {
                 throw DiffableError()
             }
             rhsOffset += 1
         case (true, false):
-            result.append(Difference(path: [], action: .insert(offset: lhsOffset)))
+            result.append(Change(path: [], action: .insert(offset: lhsOffset)))
             lhsOffset += 1
         }
     }
     return result
 }
 
-private func diff<D: DynamicDiffable>(lhs: D, rhs: any DynamicDiffable) throws -> [Difference] {
+private func diff<D: DynamicDiffable>(lhs: D, rhs: any DynamicDiffable) throws -> [Change] {
     guard let rhs = rhs as? D else { throw DiffableError() }
 
-    var result: [Difference] = []
+    var result: [Change] = []
 
     let newKeys = lhs.diffableKeys
     // removals
     for key in rhs.diffableKeys {
-        guard lhs.value(forDiffableKey: key) == nil else { continue }
-        if let oldValue = rhs.value(forDiffableKey: key) as? any DiffableValue {
-            result.append(Difference(path: [key.description], action: .set(from: oldValue))) // using set for removing/nilling is weird
+        guard try lhs.value(forDiffableKey: key) == nil else { continue }
+        if let oldValue = try rhs.value(forDiffableKey: key) as? any DiffableValue {
+            result.append(Change(path: [key.description], action: .set(from: oldValue))) // using set for removing/nilling is weird
         } else {
             throw DiffableError()
         }
@@ -152,12 +153,12 @@ private func diff<D: DynamicDiffable>(lhs: D, rhs: any DynamicDiffable) throws -
 
     // insertions and changes
     for key in newKeys {
-        if let newValue = lhs.value(forDiffableKey: key), let oldValue = rhs.value(forDiffableKey: key) {
+        if let newValue = try lhs.value(forDiffableKey: key), let oldValue = try rhs.value(forDiffableKey: key) {
             // changes
             result.append(contentsOf: try diffAny(lhs: newValue, rhs: oldValue).map { $0.pullback(pathPrefix: key.description)})
         } else {
             // insert
-            result.append(Difference(path: [key.description], action: .set(from: Optional<String>.none))) // using Optional<String> here is wrong
+            result.append(Change(path: [key.description], action: .set(from: Optional<String>.none))) // using Optional<String> here is wrong
         }
     }
     return result.sorted { (a, b) in a.path.joined() < b.path.joined() }
@@ -182,14 +183,14 @@ private func elementsAreEqual<E: Equatable>(lhs: E, rhs: any Equatable) -> Bool 
     return lhs == rhs
 }
 
-private func diff<D: DiffableValue>(lhs: D, rhs: any DiffableValue) throws -> Difference.Action? {
+private func diff<D: DiffableValue>(lhs: D, rhs: any DiffableValue) throws -> Change.Action? {
     guard let rhs = rhs as? D else { throw DiffableError() }
 
     guard rhs != lhs else { return nil }
     return .set(from: rhs)
 }
 
-private func diff<O: OptionalProtocol>(lhs: O, rhs: any OptionalProtocol) throws -> [Difference] {
+private func diff<O: OptionalProtocol>(lhs: O, rhs: any OptionalProtocol) throws -> [Change] {
     guard let rhs = rhs as? O else { throw DiffableError() }
 
     if let lhs = lhs.optional, let rhs = rhs.optional {
@@ -197,14 +198,14 @@ private func diff<O: OptionalProtocol>(lhs: O, rhs: any OptionalProtocol) throws
     } else if lhs.optional == nil && rhs.optional == nil {
         return []
     } else if let rhs = rhs as? any DiffableValue {
-        return [Difference(path: [], action: .set(from: rhs))]
+        return [Change(path: [], action: .set(from: rhs))]
     } else {
         throw DiffableError()
     }
 }
 
-public extension Difference.Action {
-    static func == (lhs: Difference.Action, rhs: Difference.Action) -> Bool {
+public extension Change.Action {
+    static func == (lhs: Change.Action, rhs: Change.Action) -> Bool {
         func compareValue<V: DiffableValue>(lhs: V, rhs: any DiffableValue) -> Bool {
             guard let rhs = rhs as? V else { return false }
             return lhs == rhs
@@ -219,21 +220,28 @@ public extension Difference.Action {
     }
 }
 
-protocol DynamicDiffable {
-    associatedtype DiffableKey: Hashable & CustomStringConvertible
+public protocol DynamicDiffable {
+    var diffableKeys: [String] { get }
 
-    var diffableKeys: [DiffableKey] { get }
-
-    func value(forDiffableKey: DiffableKey) -> Any?
+    func value(forDiffableKey: String) throws -> Any?
 }
 
-extension Dictionary: DynamicDiffable where Key: CustomStringConvertible {
+public extension DynamicDiffable where Self: Diffable {
+    var diffableKeys: [String] { Self.diffableKeys }
 
-    var diffableKeys: [Key] {
+    func value(forDiffableKey key: String) throws -> Any? {
+        let res: Any = try value(forDiffableKey: key)
+        return res
+    }
+}
+
+extension Dictionary: DynamicDiffable where Key == String {
+
+    public var diffableKeys: [String] {
         Array(keys) // todo: sort
     }
 
-    func value(forDiffableKey key: Key) -> Any? {
+    public func value(forDiffableKey key: String) -> Any? {
         self[key]
     }
 

@@ -22,6 +22,7 @@ let package = Package(
         .library(name: "Persistence", targets: ["Persistence"]),
         .library(name: "PersistenceTestSupport", targets: ["PersistenceTestSupport"]),
         .library(name: "SharedViews", targets: ["Helpers"]),
+        .library(name: "TrackChanges", targets: ["TrackChanges"]),
         .executable(name: "db-tool", targets: ["DatabaseInitTool"])
     ],
     dependencies: [
@@ -33,7 +34,8 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.6.1"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.11.0"),
-        .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0")
+        .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
+        .package(url: "https://github.com/yaslab/ULID.swift.git", from: "1.2.0")
     ],
     targets: [
         .target(
@@ -89,7 +91,8 @@ let package = Package(
             name: "GameModels",
             dependencies: [
                 "Dice",
-                "Helpers"
+                "Helpers",
+                "TrackChanges"
             ]
         ),
         .testTarget(
@@ -172,6 +175,19 @@ let package = Package(
             name: "DatabaseInitTool",
             dependencies: [
                 "Persistence"
+            ]
+        ),
+        .target(
+            name: "TrackChanges",
+            dependencies: [
+                "Helpers",
+                .product(name: "ULID", package: "ulid.swift")
+            ]
+        ),
+        .testTarget(
+            name: "TrackChangesTests",
+            dependencies: [
+                "TrackChanges"
             ]
         )
     ]
