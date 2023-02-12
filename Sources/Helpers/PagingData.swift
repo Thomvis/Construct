@@ -8,9 +8,10 @@
 import Foundation
 import ComposableArchitecture
 
-private let assumedNumberOfItemsOnScreen = 40
+public let PagingDataBatchSize = 40
 
 public struct PagingData<Element>: Equatable where Element: Equatable {
+
     private let id = UUID()
     public var elements: [Element]?
     public var loadingState: LoadingState
@@ -88,9 +89,9 @@ public extension PagingData {
 
             func loadIfNeeded(for idx: Int, state: inout Self) -> EffectTask<PagingDataAction<Element>> {
                 let elementCount = state.elements?.count ?? 0
-                guard idx > elementCount - Int((Double(assumedNumberOfItemsOnScreen) * 1.5)) else { return .none }
+                guard idx > elementCount - Int((Double(PagingDataBatchSize) * 1.5)) else { return .none }
                 guard state.loadingState == .notLoading(didReachEnd: false) else { return .none }
-                return load(FetchRequest(offset: elementCount, count: assumedNumberOfItemsOnScreen), in: &state)
+                return load(FetchRequest(offset: elementCount, count: PagingDataBatchSize), in: &state)
             }
 
             switch action {

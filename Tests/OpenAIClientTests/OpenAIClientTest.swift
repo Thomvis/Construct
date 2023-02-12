@@ -27,7 +27,7 @@ final class OpenAIClientTest: XCTestCase {
         let responseData = """
         {"id":"cmpl-6JmBNcxha3k89zV2L6XzBXZdt5gb0","object":"text_completion","created":1670171465,"model":"text-davinci-003","choices":[{"text":"\\n\\nThis is indeed a test.","index":0,"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":5,"completion_tokens":8,"total_tokens":13}}
         """.data(using: .utf8)!
-        httpClient.response = (responseData, URLResponse())
+        httpClient.response = (responseData, HTTPURLResponse())
 
         let response = try await sut.perform(request: CompletionRequest(
             model: .Davinci3,
@@ -36,9 +36,9 @@ final class OpenAIClientTest: XCTestCase {
 
         // Assert serialized request
         let requestString = """
-        {"model":"text-davinci-003","prompt":"Say this is a test"}
+        {"model":"text-davinci-003","stream":false,"prompt":"Say this is a test"}
         """
-        XCTAssertEqual((httpClient.requests.last?.httpBody).map { String(data: $0, encoding: .utf8)}, requestString)
+        XCTAssertNoDifference((httpClient.requests.last?.httpBody).map { String(data: $0, encoding: .utf8)}, requestString)
 
         // Assert parsed response
         XCTAssertNoDifference(response, CompletionResponse(

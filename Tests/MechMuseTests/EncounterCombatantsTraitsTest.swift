@@ -15,9 +15,9 @@ final class EncounterCombatantsTraitsTest: XCTestCase {
     func testPrompt() {
         let request = GenerateCombatantTraitsRequest(combatantNames: ["Goblin 1", "Goblin 2", "Bugbear 1"])
         XCTAssertEqual(request.prompt(toneOfVoice: .gritty), """
-        A Dungeons & Dragons encounter has the following monsters: Goblin 1, Goblin 2, Bugbear 1. Come up with physical and personality traits and a fitting nickname, without interfering with its stats.
+        A Dungeons & Dragons encounter has the following monsters: Goblin 1, Goblin 2, Bugbear 1. Come up with gritty physical and personality traits and a fitting unique nickname, without interfering with its stats. Limit each value to a single sentence.
 
-        Format your answer as correct YAML dictionary, using fields Physical, Personality, Nickname.
+        Format your answer as a correct YAML dictionary with an entry for each monster. Each entry has fields physical, personality, nickname.
         """)
     }
 
