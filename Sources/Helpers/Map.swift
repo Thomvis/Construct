@@ -18,9 +18,10 @@ public struct MapState<Input, Result> where Input: Equatable {
     }
 }
 
-public enum MapAction<InputAction, ResultAction> {
+public enum MapAction<Input, InputAction, Result, ResultAction> {
     case input(InputAction)
     case result(ResultAction)
+    case set(Input, Result?)
 }
 
 public extension MapState {
@@ -30,11 +31,11 @@ public extension MapState {
         initialResultStateForInput resultState: @escaping (Input) -> Result,
         initialResultActionForInput resultAction: @escaping (Input) -> ResultAction?,
         resultReducerForInput: @escaping (Input) -> AnyReducer<Result, ResultAction, Environment>
-    ) -> AnyReducer<Self, MapAction<InputAction, ResultAction>, Environment> {
+    ) -> AnyReducer<Self, MapAction<Input, InputAction, Result, ResultAction>, Environment> {
         var resultReducerCancellationId: UUID? = nil
         var resultReducer: AnyReducer<Result, ResultAction, Environment>? = nil
 
-        func updateReducer(state: inout Self) -> Effect<MapAction<InputAction, ResultAction>, Never> {
+        func updateReducer(state: inout Self) -> Effect<MapAction<Input, InputAction, Result, ResultAction>, Never> {
             let cancellationId = UUID()
 
             state.result = resultState(state.input)
@@ -66,6 +67,25 @@ public extension MapState {
                     if let reducer = resultReducer {
                         return reducer(&state.result, a, env).map(MapAction.result)
                     }
+                case .set(let input, nil):
+                    state.input = input
+                    return updateReducer(state: &state)
+                case .set(let input, let result?):
+                    state.input = input
+                    state.result = result
+
+                    // like updateReducer but without setting the result & emitting the initial action
+                    let cancellationId = UUID()
+
+                    resultReducer = resultReducerForInput(state.input)
+                                        .cancellable(id: cancellationId)
+
+                    let previousCancellationId = resultReducerCancellationId
+                    resultReducerCancellationId = cancellationId
+
+                    return .concatenate([
+                        previousCancellationId.map(Effect.cancel),
+                    ].compactMap { $0 })
                 }
                 return .none
             }
@@ -75,4 +95,4 @@ public extension MapState {
 
 extension MapState: Equatable where Result: Equatable { }
 
-extension MapAction: Equatable where InputAction: Equatable, ResultAction: Equatable { }
+extension MapAction: Equatable where Input: Equatable, InputAction: Equatable, Result: Equatable, ResultAction: Equatable { }

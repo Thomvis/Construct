@@ -110,8 +110,12 @@ struct StandaloneActionResolutionEnvironment: ActionResolutionEnvironment {
     var mechMuse = MechMuse(
         clientProvider: AsyncThrowingStream([OpenAIClient.live(apiKey: "")].async),
         describeAction: { client, request, tov in
-            try await Task.sleep(for: .seconds(0.5))
-            return "Here's a description for prompt: \(request.prompt(toneOfVoice: tov))"
+            return AsyncThrowingStream { continuation in
+                Task {
+                    try await Task.sleep(for: .seconds(0.5))
+                    continuation.yield("Here's a description for prompt: \(request.prompt(toneOfVoice: tov))")
+                }
+            }
         },
         describeCombatants: { _, _ in
             try await Task.sleep(for: .seconds(0.5))

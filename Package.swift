@@ -33,7 +33,8 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.6.1"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.11.0"),
-        .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0")
+        .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
+        .package(url: "https://github.com/LaunchDarkly/swift-eventsource.git", from: "3.0.0")
     ],
     targets: [
         .target(
@@ -110,7 +111,8 @@ let package = Package(
             name: "HelpersTests",
             dependencies: [
                 "Helpers",
-                .product(name: "Clocks", package: "swift-clocks")
+                .product(name: "Clocks", package: "swift-clocks"),
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
             ]
         ),
         .target(
@@ -134,6 +136,8 @@ let package = Package(
             name: "OpenAIClient",
             dependencies: [
                 "Helpers",
+
+                .product(name: "LDSwiftEventSource", package: "swift-eventsource"),
                 .product(name: "CustomDump", package: "swift-custom-dump")
             ]
         ),

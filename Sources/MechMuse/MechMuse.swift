@@ -15,13 +15,13 @@ import Parsing
 /// Errors must be of type MechMuseError
 public struct MechMuse {
     private var client: CurrentValue<OpenAIClient?>
-    private let describeAction: (OpenAIClient, CreatureActionDescriptionRequest, ToneOfVoice) async throws -> String
+    private let describeAction: (OpenAIClient, CreatureActionDescriptionRequest, ToneOfVoice) throws -> AsyncThrowingStream<String, Error>
     private let describeCombatants: (OpenAIClient, GenerateCombatantTraitsRequest) async throws -> GeneratedCombatantTraits
     private let verifyAPIKey: (OpenAIClient) async throws -> Void
 
     public init(
         clientProvider: AsyncThrowingStream<OpenAIClient?, any Error>,
-        describeAction: @escaping (OpenAIClient, CreatureActionDescriptionRequest, ToneOfVoice) async throws -> String,
+        describeAction: @escaping (OpenAIClient, CreatureActionDescriptionRequest, ToneOfVoice) throws -> AsyncThrowingStream<String, Error>,
         describeCombatants: @escaping (OpenAIClient, GenerateCombatantTraitsRequest) async throws -> GeneratedCombatantTraits,
         verifyAPIKey: @escaping (OpenAIClient) async throws -> Void
     ) {
@@ -33,11 +33,11 @@ public struct MechMuse {
 }
 
 public extension MechMuse {
-    func describe(action: CreatureActionDescriptionRequest, toneOfVoice: ToneOfVoice) async throws -> String {
+    func describe(action: CreatureActionDescriptionRequest, toneOfVoice: ToneOfVoice) throws -> AsyncThrowingStream<String, Error> {
         guard let openAIClient = try? client.value else {
             throw MechMuseError.unconfigured
         }
-        return try await describeAction(openAIClient, action, toneOfVoice)
+        return try describeAction(openAIClient, action, toneOfVoice)
     }
 
     func describe(combatants request: GenerateCombatantTraitsRequest) async throws -> GeneratedCombatantTraits {
@@ -69,15 +69,12 @@ public extension MechMuse {
                 let prompt = request.prompt(toneOfVoice: toneOfVoice)
 
                 do {
-                    let response = try await client.perform(request: CompletionRequest(
+                    return try client.stream(request: CompletionRequest(
                         model: .Davinci3,
                         prompt: prompt,
                         maxTokens: 350,
                         temperature: 0.9
                     ))
-                    return response.choices.first?.text
-                        .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-                    ?? ""
                 } catch let error as OpenAIError {
                     throw MechMuseError(from: error)
                 } catch {
@@ -120,7 +117,7 @@ public extension MechMuse {
     static let unconfigured: Self = MechMuse(
         clientProvider: AsyncThrowingStream { nil },
         describeAction: { _ ,_ , _ in
-            ""
+            [].async.stream
         },
         describeCombatants: { _, _ in
             .init(traits: [:])

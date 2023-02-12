@@ -281,7 +281,7 @@ extension CompendiumIndexState: NavigationStackItemState {
 
 enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 
-    typealias ResultsAction = MapAction<CompendiumIndexQueryAction, PagingDataAction<CompendiumEntry>>
+    typealias ResultsAction = MapAction<CompendiumIndexState.Query, CompendiumIndexQueryAction, PagingData<CompendiumEntry>, PagingDataAction<CompendiumEntry>>
 
     case results(ResultsAction)
     case scrollTo(CompendiumEntry.Key?)

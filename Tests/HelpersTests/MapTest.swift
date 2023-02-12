@@ -102,7 +102,7 @@ final class MapTest: XCTestCase {
 
     private func makeStore(
         clock: any Clock<Duration>
-    ) -> TestStore<MapState<Input, Result>, MapAction<InputAction, ResultAction>, MapState<Input, Result>, MapAction<InputAction, ResultAction>, Environment> {
+    ) -> TestStore<MapState<Input, Result>, MapAction<Input, InputAction, Result, ResultAction>, MapState<Input, Result>, MapAction<Input, InputAction, Result, ResultAction>, Environment> {
         TestStore(
             initialState: MapState(
                 input: Input(string: ""),
@@ -159,7 +159,7 @@ final class MapTest: XCTestCase {
 
     enum ContainerAction: Equatable {
         case triggerTwoInputChanges
-        case counter(MapAction<InputAction, ResultAction>)
+        case counter(MapAction<Input, InputAction, Result, ResultAction>)
     }
 
     struct Input: Equatable {

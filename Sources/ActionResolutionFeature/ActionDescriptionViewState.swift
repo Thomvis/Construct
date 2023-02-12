@@ -13,14 +13,16 @@ import ComposableArchitecture
 import GameModels
 
 public struct ActionDescriptionViewState: Equatable {
-    public typealias AsyncDescription = ResultSet<RequestInput?, String, Error>
+    public typealias AsyncDescriptionReduceState = AsyncReduceState<String, MechMuseError>
+    public typealias AsyncDescriptionMapState = MapState<RequestInput?, AsyncDescriptionReduceState>
+    public typealias AsyncDescription = RetainState<AsyncDescriptionMapState, AsyncDescriptionReduceState>
 
     let encounterContext: ActionResolutionViewState.EncounterContext?
     @BindableState var context: Context
     @BindableState var settings: Settings = .init(toneOfVoice: .gritty, outcome: nil, impact: .average)
 
-    private var description: AsyncDescription = .init(input: nil)
-    private var cache: [RequestInput: String] = [:]
+    private var description: AsyncDescription = .init(wrapped: .init(input: nil, result: .init(value: "")))
+    private var cache: [RequestInput: AsyncReduceState<String, MechMuseError>] = [:]
 
     init(
         encounterContext: ActionResolutionViewState.EncounterContext? = nil,
@@ -32,24 +34,24 @@ public struct ActionDescriptionViewState: Equatable {
     }
 
     var descriptionString: String? {
-        description.value
+        let res = description.retained?.value ?? description.wrapped.result.value
+        return res.nonEmptyString
     }
 
     var descriptionErrorString: AttributedString? {
-        guard let error = description.error else { return nil }
+        guard let error = description.wrapped.result.error else { return nil }
         switch error {
         case MechMuseError.unconfigured: return try? AttributedString(markdown: "Mechanical Muse can provide you with a description of this attack to inspire your DM'ing. Configure Mechanical Muse in the settings screen.")
-        case let me as MechMuseError: return me.attributedDescription
-        default: return AttributedString("Could not generate description due to an unforseen error.")
+        default: return error.attributedDescription
         }
     }
 
     var isLoadingDescription: Bool {
-        description.result.isLoading
+        description.result.isReducing
     }
 
     var didFailLoading: Bool {
-        description.error != nil
+        description.wrapped.result.error != nil
     }
 
     var isMissingOutcomeSetting: Bool {
@@ -118,8 +120,9 @@ public struct ActionDescriptionViewState: Equatable {
 public enum ActionDescriptionViewAction: Equatable, BindableAction {
     case onAppear
     case onFeedbackButtonTap
+    case onReloadButtonTap
     case didRollDiceAction(DiceAction)
-    case description(ActionDescriptionViewState.AsyncDescription.Action<ActionDescriptionViewInputAction>)
+    case description(MapAction<ActionDescriptionViewState.RequestInput?, ActionDescriptionViewInputAction, AsyncReduceState<String, MechMuseError>, AsyncReduceAction<String, MechMuseError, String>>)
     case binding(BindingAction<ActionDescriptionViewState>)
 }
 
@@ -139,6 +142,8 @@ extension ActionDescriptionViewState {
             switch action {
             case .onAppear: break
             case .onFeedbackButtonTap: break // handled by the parent
+            case .onReloadButtonTap:
+                return Effect(value: .description(.set(state.input, nil)))
             case .didRollDiceAction(let a):
                 state.context.diceAction = a
                 if a.isCriticalHit {
@@ -153,25 +158,27 @@ extension ActionDescriptionViewState {
             }
             return .none
         },
-        ResultSet<RequestInput?, String, Error>.reducer(ActionDescriptionViewState.RequestInput.reducer.binding().optional()) { input in
-            return { env in
-                return Future { promise in
-                    Task {
-                        guard let input else { promise(.failure(ActionDescriptionViewStateError.missingInput)); return }
-                        do {
-                            let description = try await env.mechMuse.describe(
-                                action: input.request,
-                                toneOfVoice: input.toneOfVoice
-                            )
-                            promise(.success(description))
-                        } catch {
-                            promise(.failure(error))
-                        }
-                    }
-                }
-                .receive(on: env.mainQueue)
-                .eraseToAnyPublisher()
+        AsyncDescriptionMapState.reducer(
+            inputReducer: ActionDescriptionViewState.RequestInput.reducer.binding().optional(),
+            initialResultStateForInput: { _ in AsyncReduceState(value: "") },
+            initialResultActionForInput: { _ in .start("") },
+            resultReducerForInput: { input in
+                AsyncDescriptionReduceState.reducer({ env in
+                    guard let input else { throw ActionDescriptionViewStateError.missingInput }
+                    return try env.mechMuse.describe(
+                        action: input.request,
+                        toneOfVoice: input.toneOfVoice
+                    )
+                }, reduce: { res, elem in
+                    // append tokens as they come in
+                    res += elem
+                }, mapError: {
+                    ($0 as? MechMuseError) ?? MechMuseError.unspecified
+                })
             }
+        )
+        .retaining {
+            $0.result
         }
         .pullback(state: \.description, action: /ActionDescriptionViewAction.description)
     )
@@ -182,18 +189,18 @@ extension ActionDescriptionViewState {
         return .none
     })
     .onChange(of: \.input, perform: { input, state, action, env in
-        if let input, let cacheHit = state.cache[input] {
+        guard let input else { return .none }
+        if let cacheHit = state.cache[input] {
             // cache hit
-            state.description.setValue(cacheHit, for: input)
-            return .none
+            return EffectTask(value: .description(.set(input, cacheHit)))
         } else {
             // trigger fetch
-            return .task { .description(.setInput(input, debounce: false)) }
+            return .task { .description(.set(input, nil)) }
         }
     })
     // add results to the cache
-    .onChange(of: \.description.result.value, perform: { v, state, _, _ in
-        if let value = v, let input = state.description.input {
+    .onChange(of: \.description.result, perform: { v, state, _, _ in
+        if let input = state.description.input {
             state.cache[input] = v
         }
         return .none

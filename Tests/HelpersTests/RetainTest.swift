@@ -49,7 +49,7 @@ final class RetainTest: XCTestCase {
             return nil
         }
 
-        static let reducer = Reducer<Self, AsyncAction, Void> { state, action, _ in
+        static let reducer = AnyReducer<Self, AsyncAction, Void> { state, action, _ in
             switch action {
             case .startLoading:
                 state = .loading

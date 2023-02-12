@@ -7,24 +7,32 @@
 
 import Foundation
 import Helpers
+import LDSwiftEventSource
 
 /// Errors thrown by public functions are always of type `OpenAIError`
 public struct OpenAIClient {
     private let performCompletionRequest: (CompletionRequest) async throws -> CompletionResponse
+    private let streamCompletionRequest: (CompletionRequest) throws -> AsyncThrowingStream<String, Error>
     public let performModelsRequest: () async throws -> ModelsResponse
 
     public init(
         performCompletionRequest: @escaping (CompletionRequest) async throws -> CompletionResponse,
+        streamCompletionRequest: @escaping (CompletionRequest) throws -> AsyncThrowingStream<String, Error>,
         performModelsRequest: @escaping () async throws -> ModelsResponse
     ) {
         self.performCompletionRequest = performCompletionRequest
+        self.streamCompletionRequest = streamCompletionRequest
         self.performModelsRequest = performModelsRequest
     }
 }
 
 public extension OpenAIClient {
-     func perform(request payload: CompletionRequest) async throws -> CompletionResponse {
+    func perform(request payload: CompletionRequest) async throws -> CompletionResponse {
         try await performCompletionRequest(payload)
+    }
+
+    func stream(request payload: CompletionRequest) throws -> AsyncThrowingStream<String, Error> {
+        try streamCompletionRequest(payload)
     }
 }
 
@@ -72,15 +80,15 @@ public extension OpenAIClient {
 
         return OpenAIClient(
             performCompletionRequest: { payload in
-                let request = try apply(URLRequest(url: URL(string: "https://api.openai.com/v1/completions")!)) { request in
-                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                    request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-                    request.httpMethod = "POST"
-                    request.httpBody = try encoder.encode(payload)
-                }
-
+                let request = try request(endpoint: "/v1/completions", method: "POST", body: payload)
                 let result = try await httpClient.data(for: request)
                 return try parseResponse(result.1, data: result.0, CompletionResponse.self)
+            },
+            streamCompletionRequest: { payload in
+                CompletionEventSource(
+                    request: try request(endpoint: "/v1/completions", method: "POST", body: payload.streamed()),
+                    decoder: decoder
+                ).tokens()
             },
             performModelsRequest: {
                 let result = try await httpClient.data(for: request(endpoint: "/v1/models"))
@@ -110,12 +118,19 @@ public struct CompletionRequest: Codable {
     public let prompt: String
     public let maxTokens: Int?
     public let temperature: Float?
+    var stream: Bool = false
 
     public init(model: Model, prompt: String, maxTokens: Int? = nil, temperature: Float? = nil) {
         self.model = model
         self.prompt = prompt
         self.maxTokens = maxTokens
         self.temperature = temperature
+    }
+
+    func streamed() -> Self {
+        var res = self
+        res.stream = true
+        return res
     }
 }
 
@@ -128,9 +143,9 @@ public struct CompletionResponse: Codable, Equatable {
 
     public struct Choice: Codable, Equatable {
         public let text: String
-        public let finishReason: String
+        public let finishReason: String?
 
-        public init(text: String, finishReason: String) {
+        public init(text: String, finishReason: String?) {
             self.text = text
             self.finishReason = finishReason
         }

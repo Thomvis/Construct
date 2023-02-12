@@ -36,7 +36,10 @@ final class MechMuseTest: XCTestCase {
             Nickname: "Charming Charly"
             """, finishReason: "")
         ])
-        let openAIClient = OpenAIClient.simpleMock(completionResponse: response)
+        let openAIClient = OpenAIClient.simpleMock(
+            performCompletionResponse: response,
+            streamCompletionResponse: [response.choices[0].text].async.stream
+        )
         let sut = MechMuse.live(clientProvider: AsyncThrowingStream([openAIClient].async))
 
         let result = try await sut.describe(combatants: .init(
@@ -70,7 +73,10 @@ final class MechMuseTest: XCTestCase {
             Physicala: Scruffy-looking, scarred face, wears leather armor
             """, finishReason: "")
         ])
-        let openAIClient = OpenAIClient.simpleMock(completionResponse: response)
+        let openAIClient = OpenAIClient.simpleMock(
+            performCompletionResponse: response,
+            streamCompletionResponse: [response.choices[0].text].async.stream
+        )
         let sut = MechMuse.live(clientProvider: AsyncThrowingStream([openAIClient].async))
 
         do {
@@ -92,11 +98,13 @@ final class MechMuseTest: XCTestCase {
 
 extension OpenAIClient {
     static func simpleMock(
-        completionResponse: CompletionResponse,
+        performCompletionResponse: CompletionResponse,
+        streamCompletionResponse: AsyncThrowingStream<String, Error>,
         modelsResponse: ModelsResponse = ModelsResponse()
     ) -> Self {
         return OpenAIClient(
-            performCompletionRequest: { _ in completionResponse },
+            performCompletionRequest: { _ in performCompletionResponse },
+            streamCompletionRequest: { _ in streamCompletionResponse },
             performModelsRequest: { modelsResponse }
         )
     }

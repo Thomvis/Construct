@@ -27,9 +27,17 @@ struct ActionDescriptionView: View {
                     ZStack {
                         if let description = viewStore.state.descriptionString {
                             VStack(alignment: .trailing, spacing: 10) {
-                                Text(description)
-                                    .padding(22)
-                                    .background(BoxedTextBackground())
+                                VStack {
+                                    Text(description)
+
+                                    if isLoading {
+                                        AnimatingSymbol(systemName: "ellipsis")
+                                            .padding(.top, 12)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(22)
+                                .background(BoxedTextBackground())
 
                                 Text("Mechanical Muse")
                                     .foregroundColor(Color.secondary)
@@ -65,13 +73,7 @@ struct ActionDescriptionView: View {
                                 .padding(6)
                         }
                     }
-                    .opacity(isLoading ? 0.15 : 1.0)
                     .frame(minHeight: descriptionHeight)
-                }
-                .overlay {
-                    if isLoading {
-                        ProgressView()
-                    }
                 }
                 .frame(height: descriptionHeight)
 
@@ -90,7 +92,7 @@ struct ActionDescriptionView: View {
                         impactButton(viewStore)
 
                         Button {
-                            viewStore.send(.description(.reload))
+                            viewStore.send(.onReloadButtonTap)
                         } label: {
                             Image(systemName: "arrow.clockwise")
                         }
