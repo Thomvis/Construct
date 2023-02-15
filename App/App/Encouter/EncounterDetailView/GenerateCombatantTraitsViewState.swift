@@ -135,7 +135,9 @@ enum GenerateCombatantTraitsViewAction: BindableAction, Equatable {
     case onUndoCombatantTraitsChangesTap(Combatant.Id)
     case onRegenerateCombatantTraitsTap(Combatant.Id)
     case onGenerateTap
-    case didGenerate(Result<GeneratedCombatantTraits, MechMuseError>)
+    case onTraitGenerationDidReceiveTraits(GenerateCombatantTraitsResponse.Traits)
+    case onTraitGenerationDidFinish
+    case onTraitGenerationDidFail(MechMuseError)
     case binding(BindingAction<GenerateCombatantTraitsViewState>)
 
     // handled by the parent
@@ -143,6 +145,8 @@ enum GenerateCombatantTraitsViewAction: BindableAction, Equatable {
 }
 
 typealias GenerateCombatantTraitsViewEnvironment = EnvironmentWithMechMuse & EnvironmentWithCrashReporter
+
+private enum GenerateID { }
 
 extension GenerateCombatantTraitsViewState {
     static let reducer: AnyReducer<Self, GenerateCombatantTraitsViewAction, GenerateCombatantTraitsViewEnvironment> = AnyReducer { state, action, env in
@@ -153,16 +157,20 @@ extension GenerateCombatantTraitsViewState {
         ) -> Effect<GenerateCombatantTraitsViewAction, Never> {
             state.isLoading = true
             state.error = nil
-            return Effect.run { send in
+            return .run { send in
                 do {
-                    let descriptions = try await env.mechMuse.describe(combatants: request)
-                    await send(.didGenerate(.success(descriptions)), animation: .default)
+                    let response = try env.mechMuse.describe(combatants: request)
+                    for try await traits in response {
+                        await send(.onTraitGenerationDidReceiveTraits(traits))
+                    }
+                    await send(.onTraitGenerationDidFinish)
                 } catch let error as MechMuseError {
-                    await send(.didGenerate(.failure(error)), animation: .default)
+                    await send(.onTraitGenerationDidFail(error), animation: .default)
                 } catch {
-                    await send(.didGenerate(.failure(.unspecified)), animation: .default)
+                    await send(.onTraitGenerationDidFail(.unspecified), animation: .default)
                 }
             }
+            .cancellable(id: GenerateID.self)
         }
 
         switch action {
@@ -202,35 +210,38 @@ extension GenerateCombatantTraitsViewState {
         case .onRegenerateCombatantTraitsTap(let id):
             guard let combatant = state.combatants.first(where: { $0.id == id }) else { break }
             let request = GenerateCombatantTraitsRequest(combatantNames: [combatant.discriminatedName])
-            return perform(state.request, &state)
+            return perform(request, &state)
         case .onGenerateTap:
             return perform(state.request, &state)
-        case .didGenerate(let result):
-            switch result {
-            case .success(let traits):
-                for c in state.encounter.combatants {
-                    if let d = traits.traits[c.discriminatedName] {
-                        state.traits[c.id] = .init(
-                            physical: d.physical,
-                            personality: d.personality,
-                            nickname: d.nickname,
-                            generatedByMechMuse: true
-                        )
-                    }
-                }
-                state.overwriteEnabled = false
-            case .failure(let error):
-                var request = ""
-                customDump(state.request, to: &request)
-
-                env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [
-                    "request" : request
-                ]))
-                state.error = error
+        case .onTraitGenerationDidReceiveTraits(let traits):
+            let l = Locale(identifier: "en_US")
+            let lowercasedName = traits.name.lowercased(with: l)
+            guard let combatant = state.encounter.combatants.first(where: {
+                $0.discriminatedName.lowercased(with: l) == lowercasedName
+            }) else {
+                break
             }
 
+            state.traits[combatant.id] = .init(
+                physical: traits.physical,
+                personality: traits.personality,
+                nickname: traits.nickname,
+                generatedByMechMuse: true
+            )
+        case .onTraitGenerationDidFinish:
+            state.overwriteEnabled = false
             state.isLoading = false
-        case .onDoneButtonTap: break // handled by the parent
+        case .onTraitGenerationDidFail(let error):
+            var request = ""
+            customDump(state.request, to: &request)
+
+            env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [
+                "request" : request
+            ]))
+            state.error = error
+            state.isLoading = false
+        case .onDoneButtonTap: // handled by the parent
+            return .cancel(id: GenerateID.self)
         case .binding: break // handled by the higher-order reducer
         }
 

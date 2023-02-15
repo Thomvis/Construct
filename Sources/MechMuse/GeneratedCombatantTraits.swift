@@ -16,26 +16,6 @@ public struct GenerateCombatantTraitsRequest {
     }
 }
 
-public struct GeneratedCombatantTraits: Equatable {
-    public var traits: [String: Traits]
-
-    public init(traits: [String : Traits]) {
-        self.traits = traits
-    }
-
-    public struct Traits: Equatable {
-        public let physical: String
-        public let personality: String
-        public let nickname: String
-
-        public init(physical: String, personality: String, nickname: String) {
-            self.physical = physical
-            self.personality = personality
-            self.nickname = nickname
-        }
-    }
-}
-
 extension GenerateCombatantTraitsRequest: PromptConvertible {
     public func prompt(toneOfVoice: ToneOfVoice) -> String {
         let namesList = combatantNames.map { "\($0)" }.joined(separator: ", ")
@@ -53,27 +33,26 @@ extension GenerateCombatantTraitsRequest: PromptConvertible {
     }
 }
 
-extension GeneratedCombatantTraits {
+public enum GenerateCombatantTraitsResponse {
     static let parser = Parse {
         Skip {
             Prefix<Substring> { !$0.isLetter }
         }
 
-        Many(into: [String: GeneratedCombatantTraits.Traits]()) { acc, elem in
-            acc[elem.0] = elem.1
+        Many(into: [Traits]()) { acc, elem in
+            acc.append(elem)
         } element: {
-            Prefix { $0 != ":" }.map(.string)
-            ":"
-            Whitespace()
             singleParser
         } separator: {
             Whitespace()
-        }.map {
-            GeneratedCombatantTraits(traits: $0)
         }
     }
 
-    private static let singleParser = Parse(GeneratedCombatantTraits.Traits.init(physical:personality:nickname:)) {
+    private static let singleParser = Parse(Traits.init(name: physical:personality:nickname:)) {
+        Prefix { $0 != ":" }.map(.string)
+        ":"
+        Whitespace()
+
         StartsWith("Physical:", by: { $0.lowercased() == $1.lowercased() })
         Whitespace()
         trimmedString
@@ -91,5 +70,19 @@ extension GeneratedCombatantTraits {
 
     private static let trimmedString = Prefix { !$0.isNewline }.map {
         $0.trimmingCharacters(in: CharacterSet(["\"", "'", ".", " "]))
+    }
+
+    public struct Traits: Equatable, Hashable {
+        public let name: String
+        public let physical: String
+        public let personality: String
+        public let nickname: String
+
+        public init(name: String, physical: String, personality: String, nickname: String) {
+            self.name = name
+            self.physical = physical
+            self.personality = personality
+            self.nickname = nickname
+        }
     }
 }

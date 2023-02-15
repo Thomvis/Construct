@@ -11,18 +11,19 @@ import Persistence
 import Helpers
 import GameModels
 import Parsing
+import AsyncAlgorithms
 
 /// Errors must be of type MechMuseError
 public struct MechMuse {
     private var client: CurrentValue<OpenAIClient?>
     private let describeAction: (OpenAIClient, CreatureActionDescriptionRequest, ToneOfVoice) throws -> AsyncThrowingStream<String, Error>
-    private let describeCombatants: (OpenAIClient, GenerateCombatantTraitsRequest) async throws -> GeneratedCombatantTraits
+    private let describeCombatants: (OpenAIClient, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream<GenerateCombatantTraitsResponse.Traits, Error>
     private let verifyAPIKey: (OpenAIClient) async throws -> Void
 
     public init(
         clientProvider: AsyncThrowingStream<OpenAIClient?, any Error>,
         describeAction: @escaping (OpenAIClient, CreatureActionDescriptionRequest, ToneOfVoice) throws -> AsyncThrowingStream<String, Error>,
-        describeCombatants: @escaping (OpenAIClient, GenerateCombatantTraitsRequest) async throws -> GeneratedCombatantTraits,
+        describeCombatants: @escaping (OpenAIClient, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream< GenerateCombatantTraitsResponse.Traits, Error>,
         verifyAPIKey: @escaping (OpenAIClient) async throws -> Void
     ) {
         self.client = CurrentValue(initialValue: nil, updates: clientProvider)
@@ -33,6 +34,8 @@ public struct MechMuse {
 }
 
 public extension MechMuse {
+    /// The returned AsyncThrowingStream emits tokens as they come in from the API. To get the full response,
+    /// these tokens need to be concatenated.
     func describe(action: CreatureActionDescriptionRequest, toneOfVoice: ToneOfVoice) throws -> AsyncThrowingStream<String, Error> {
         guard let openAIClient = try? client.value else {
             throw MechMuseError.unconfigured
@@ -40,11 +43,12 @@ public extension MechMuse {
         return try describeAction(openAIClient, action, toneOfVoice)
     }
 
-    func describe(combatants request: GenerateCombatantTraitsRequest) async throws -> GeneratedCombatantTraits {
+    /// The returned AsyncThrowingStream emits traits per combatant as they are parsed from the API response
+    func describe(combatants request: GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream< GenerateCombatantTraitsResponse.Traits, Error> {
         guard let openAIClient = try? client.value else {
             throw MechMuseError.unconfigured
         }
-        return try await describeCombatants(openAIClient, request)
+        return try describeCombatants(openAIClient, request)
     }
 
     func verifyAPIKey(_ key: String) async throws {
@@ -82,30 +86,65 @@ public extension MechMuse {
                 }
             },
             describeCombatants: { client, request in
+                assert(!request.combatantNames.isEmpty)
                 let prompt = request.prompt(toneOfVoice: .gritty)
 
-                let response: CompletionResponse
+                typealias TraitsArray = [GenerateCombatantTraitsResponse.Traits]
+                let endToken = "[Construct::END]"
                 do {
-                    response = try await client.perform(request: CompletionRequest(
+                    return try chain(client.stream(request: CompletionRequest(
                         model: .Davinci3,
                         prompt: prompt,
-                        maxTokens: 150 * request.combatantNames.count,
+                        maxTokens: 150 * max(request.combatantNames.count, 1),
                         temperature: 0.9
-                    ))
+                    )), [endToken].async)
+                    // reduce the tokens into a growing (partial) response
+                    .reductions(into: "", { acc, elem in
+                        acc += elem
+                    })
+                    // parse every (partial) response
+                    .map { acc -> TraitsArray in
+                        if acc.hasSuffix(endToken) {
+
+                            do {
+                                let traits = try GenerateCombatantTraitsResponse.parser.parse(acc.dropLast(endToken.count))
+
+                                if traits.isEmpty {
+                                    throw MechMuseError.unspecified // is upgraded to .interpretationFailed below
+                                }
+
+                                // we're at the end of the response, add a dummy Traits that is removed in the next operator
+                                return traits + [.init(name: "", physical: "", personality: "", nickname: "")]
+                            } catch {
+                                throw MechMuseError.interpretationFailed(
+                                    text: String(acc.dropLast(endToken.count)),
+                                    error: String(describing: error)
+                                )
+                            }
+                        } else {
+                            do {
+                                return try GenerateCombatantTraitsResponse.parser.parse(acc)
+                            } catch {
+                                return []
+                            }
+                        }
+                    }
+                    // remember all seen traits
+                    .reductions(into: (TraitsArray(), TraitsArray()), { traits, parsed in
+                        // drop the last because it might be incomplete
+                        let new = parsed.dropLast(1).filter { t in
+                            !traits.0.contains(t)
+                        }
+                        traits = (traits.0 + new, new)
+                    })
+                    // emit just the new traits
+                    .flatMap { (all, new) in
+                        return new.async
+                    }.stream
                 } catch let error as OpenAIError {
                     throw MechMuseError(from: error)
                 } catch {
                     throw MechMuseError.unspecified
-                }
-
-                guard let text = response.choices.first?.text else {
-                    return GeneratedCombatantTraits(traits: [:])
-                }
-
-                do {
-                    return try GeneratedCombatantTraits.parser.parse(text)
-                } catch {
-                    throw MechMuseError.interpretationFailed(text: text, error: String(describing: error))
                 }
             },
             verifyAPIKey: { client in
@@ -120,7 +159,7 @@ public extension MechMuse {
             [].async.stream
         },
         describeCombatants: { _, _ in
-            .init(traits: [:])
+            [].async.stream
         },
         verifyAPIKey: { _ in
 

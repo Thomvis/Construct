@@ -70,7 +70,6 @@ struct GenerateCombatantTraitsView: View {
                         } label: {
                             Text("Done").bold()
                         }
-                        .disabled(viewStore.state.disableInteractions)
                     }
                 }
         }
@@ -334,8 +333,12 @@ struct GenerateCombatantTraitsViewPreviewEnvironment: GenerateCombatantTraitsVie
             }
         },
         describeCombatants: { _, request in
-            try await Task.sleep(for: .seconds(2))
-            throw MechMuseError.insufficientQuota
+            AsyncThrowingStream { continuation in
+                Task {
+                    try await Task.sleep(for: .seconds(2))
+                    continuation.finish(throwing: MechMuseError.insufficientQuota)
+                }
+            }
 //            return .init(descriptions: Dictionary(
 //                uniqueKeysWithValues: request.combatantNames.map { name -> (String, EncounterCombatantsDescription.Description) in
 //                    (name, .init(appearance: "Lots 'o scars", behavior: "Many 'o laughs", nickname: "The Real \(name)"))
