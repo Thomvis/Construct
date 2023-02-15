@@ -19,7 +19,7 @@ public struct AnimatingSymbol: View {
     public var body: some View {
         Color.clear
             .modifier(Modifier(systemName: systemName, variableValue: value))
-            .animation(.linear.repeatForever(autoreverses: false).speed(0.3), value: value)
+            .animation(.linear.repeatForever(autoreverses: false).speed(0.2), value: value)
             .onAppear {
                 self.value = 1.0
             }

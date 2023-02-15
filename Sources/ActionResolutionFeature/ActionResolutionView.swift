@@ -112,14 +112,24 @@ struct StandaloneActionResolutionEnvironment: ActionResolutionEnvironment {
         describeAction: { client, request, tov in
             return AsyncThrowingStream { continuation in
                 Task {
-                    try await Task.sleep(for: .seconds(0.5))
-                    continuation.yield("Here's a description for prompt: \(request.prompt(toneOfVoice: tov))")
+                    let tokens = "Here's a description for prompt: \(request.prompt(toneOfVoice: tov))".split(separator: " ").map { "\($0) "}
+
+                    try await Task.sleep(for: .seconds(0.3))
+                    for t in tokens {
+                        try await Task.sleep(for: .seconds(Double.random(in: 0..<0.3)))
+                        continuation.yield(t)
+                    }
+                    continuation.finish()
                 }
             }
         },
         describeCombatants: { _, _ in
-            try await Task.sleep(for: .seconds(0.5))
-            return .init(traits: [:])
+            AsyncThrowingStream { continuation in
+                Task {
+                    try await Task.sleep(for: .seconds(0.5))
+                    continuation.finish()
+                }
+            }
         },
         verifyAPIKey: { client in
             try await Task.sleep(for: .seconds(1))

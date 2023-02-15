@@ -35,7 +35,7 @@ public struct ActionDescriptionViewState: Equatable {
 
     var descriptionString: String? {
         let res = description.retained?.value ?? description.wrapped.result.value
-        return res.nonEmptyString
+        return res.trimmingCharacters(in: .whitespacesAndNewlines).nonEmptyString
     }
 
     var descriptionErrorString: AttributedString? {
@@ -120,8 +120,10 @@ public struct ActionDescriptionViewState: Equatable {
 public enum ActionDescriptionViewAction: Equatable, BindableAction {
     case onAppear
     case onFeedbackButtonTap
-    case onReloadButtonTap
+    case onReloadOrCancelButtonTap
     case didRollDiceAction(DiceAction)
+    case onDisappear
+
     case description(MapAction<ActionDescriptionViewState.RequestInput?, ActionDescriptionViewInputAction, AsyncReduceState<String, MechMuseError>, AsyncReduceAction<String, MechMuseError, String>>)
     case binding(BindingAction<ActionDescriptionViewState>)
 }
@@ -142,8 +144,12 @@ extension ActionDescriptionViewState {
             switch action {
             case .onAppear: break
             case .onFeedbackButtonTap: break // handled by the parent
-            case .onReloadButtonTap:
-                return Effect(value: .description(.set(state.input, nil)))
+            case .onReloadOrCancelButtonTap:
+                if state.description.result.isReducing {
+                    return Effect(value: .description(.result(.stop)))
+                } else {
+                    return Effect(value: .description(.set(state.input, nil)))
+                }
             case .didRollDiceAction(let a):
                 state.context.diceAction = a
                 if a.isCriticalHit {
@@ -153,6 +159,8 @@ extension ActionDescriptionViewState {
                     // 1 always misses
                     state.settings.outcome = .miss
                 }
+            case .onDisappear:
+                return .task { return .description(.result(.stop)) }
             case .description: break // handled by child reducer
             case .binding: break // handled by wrapper reducer
             }
@@ -200,7 +208,7 @@ extension ActionDescriptionViewState {
     })
     // add results to the cache
     .onChange(of: \.description.result, perform: { v, state, _, _ in
-        if let input = state.description.input {
+        if let input = state.description.input, v.isFinished {
             state.cache[input] = v
         }
         return .none

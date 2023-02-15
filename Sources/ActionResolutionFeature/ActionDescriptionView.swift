@@ -14,6 +14,7 @@ import SharedViews
 struct ActionDescriptionView: View {
     @ScaledMetric(relativeTo: .body) var descriptionHeight = 300
     @ScaledMetric(relativeTo: .largeTitle) var speechBalloonOffset = 8
+    @ScaledMetric(relativeTo: .footnote) var bottomButtonHeight = 16
 
     let store: Store<ActionDescriptionViewState, ActionDescriptionViewAction>
 
@@ -21,29 +22,37 @@ struct ActionDescriptionView: View {
         WithViewStore(store) { viewStore in
             VStack {
                 let isLoading = viewStore.state.isLoadingDescription
-                let didFailLoading = viewStore.state.didFailLoading
 
                 ScrollView(showsIndicators: false) {
                     ZStack {
-                        if let description = viewStore.state.descriptionString {
+                        if isLoading || viewStore.state.descriptionString != nil {
                             VStack(alignment: .trailing, spacing: 10) {
-                                VStack {
-                                    Text(description)
-
-                                    if isLoading {
-                                        AnimatingSymbol(systemName: "ellipsis")
-                                            .padding(.top, 12)
+                                let description = viewStore.state.descriptionString
+                                Text(description ?? "Generating attack description…")
+                                    .foregroundColor(description == nil ? Color.secondary : Color.primary)
+                                    .animation(nil, value: viewStore.state.descriptionString)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(12)
+                                    .overlay(alignment: .bottom) {
+                                        if isLoading {
+                                            AnimatingSymbol(systemName: "ellipsis")
+                                                .transition(.opacity.animation(.default.speed(1.0)))
+                                        }
                                     }
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(22)
-                                .background(BoxedTextBackground())
+                                    .padding(12)
+                                    .background(BoxedTextBackground())
 
                                 Text("Mechanical Muse")
                                     .foregroundColor(Color.secondary)
                                     .font(.footnote)
                                     .padding(EdgeInsets(top: -10, leading: 0, bottom: 0, trailing: 15))
                             }
+                            .transition(.opacity)
+                        } else if let error = viewStore.state.descriptionErrorString {
+                            Text(error)
+                                .multilineTextAlignment(.center)
+                                .padding(6)
+                                .frame(minHeight: descriptionHeight)
                         } else if viewStore.state.isMissingOutcomeSetting {
                             VStack {
                                 Text("Did the attack hit or miss?")
@@ -67,13 +76,9 @@ struct ActionDescriptionView: View {
                                 .buttonStyle(.bordered)
                                 .buttonBorderShape(.capsule)
                             }
-                        } else if let error = viewStore.state.descriptionErrorString {
-                            Text(error)
-                                .multilineTextAlignment(.center)
-                                .padding(6)
+                            .frame(minHeight: descriptionHeight)
                         }
                     }
-                    .frame(minHeight: descriptionHeight)
                 }
                 .frame(height: descriptionHeight)
 
@@ -87,22 +92,33 @@ struct ActionDescriptionView: View {
                     Spacer()
 
                     HStack {
-                        hitButton(viewStore)
+                        Group {
+                            hitButton(viewStore)
 
-                        impactButton(viewStore)
+                            impactButton(viewStore)
+                        }
+                        .disabled(isLoading)
 
                         Button {
-                            viewStore.send(.onReloadButtonTap)
+                            viewStore.send(.onReloadOrCancelButtonTap)
                         } label: {
-                            Image(systemName: "arrow.clockwise")
+                            if isLoading {
+                                Image(systemName: "xmark")
+                                    .frame(height: bottomButtonHeight)
+                            } else {
+                                Image(systemName: "arrow.clockwise")
+                                    .frame(height: bottomButtonHeight)
+                            }
                         }
-                        .disabled(viewStore.state.descriptionString == nil)
+                        .disabled(viewStore.state.descriptionString == nil && !isLoading)
                     }
                     .font(.footnote)
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.capsule)
-                    .disabled(isLoading || didFailLoading)
                 }
+            }
+            .onDisappear {
+                viewStore.send(.onDisappear)
             }
         }
     }

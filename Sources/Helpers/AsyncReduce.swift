@@ -22,6 +22,7 @@ public struct AsyncReduceState<Result, Failure> where Failure: Error {
         case reducing
         case failed(Failure)
         case finished
+        case stopped
     }
 }
 
@@ -65,7 +66,7 @@ public extension AsyncReduceState {
                 state.state = .finished
             case .stop:
                 if case .reducing = state.state {
-                    state.state = .failed(mapError(CancellationError()))
+                    state.state = .stopped
                 }
                 return .cancel(id: state.id)
             }
@@ -90,6 +91,13 @@ extension AsyncReduceState {
 
     public var isReducing: Bool {
         if case .reducing = state {
+            return true
+        }
+        return false
+    }
+
+    public var isFinished: Bool {
+        if case .finished = state {
             return true
         }
         return false
