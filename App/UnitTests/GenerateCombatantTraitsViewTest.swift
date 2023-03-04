@@ -75,7 +75,7 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
         init() {
             _mechMuse = MechMuse(
                 client: .constant(OpenAIClient.live(apiKey: "")),
-                describeAction: { _, _, _ in fatalError() },
+                describeAction: { _, _ in fatalError() },
                 describeCombatants: { client, requests in
                     self.describeCombatantsCallCount += 1
                     return self.describeCombatantsResult
