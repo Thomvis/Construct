@@ -15,7 +15,7 @@
 
 default_platform(:ios)
 
-ENV["FL_XCODE_VERSION"] = "14.1.0"
+ENV["FL_XCODE_VERSION"] = "14.2.0"
 
 platform :ios do
   desc "Push a new beta build to TestFlight"
