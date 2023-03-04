@@ -39,12 +39,12 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
         )
 
         let error = MechMuseError.interpretationFailed(text: "A", error: "B")
-        env.describeCombatantsResult = .failure(error)
+        env.describeCombatantsResult = AsyncThrowingStream { throw error }
 
         await store.send(.onGenerateTap) {
             $0.isLoading = true
         }
-        await store.receive(.didGenerate(.failure(error))) {
+        await store.receive(.onTraitGenerationDidFail(error)) {
             $0.isLoading = false
             $0.error = error
         }
@@ -69,16 +69,16 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
         var _crashReporter: CrashReporter!
 
         var describeCombatantsCallCount: Int = 0
-        var describeCombatantsResult: Result<GeneratedCombatantTraits, MechMuseError> = .success(.init(traits: [:]))
+        var describeCombatantsResult: AsyncThrowingStream< GenerateCombatantTraitsResponse.Traits, Error> = [].async.stream
         var trackedErrors: [CrashReporter.ErrorReport] = []
 
         init() {
             _mechMuse = MechMuse(
-                clientProvider: AsyncThrowingStream([OpenAIClient.live(apiKey: "")].async),
+                client: .constant(OpenAIClient.live(apiKey: "")),
                 describeAction: { _, _, _ in fatalError() },
                 describeCombatants: { client, requests in
                     self.describeCombatantsCallCount += 1
-                    return try self.describeCombatantsResult.get()
+                    return self.describeCombatantsResult
                 },
                 verifyAPIKey: { _ in fatalError() }
             )

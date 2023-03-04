@@ -16,17 +16,17 @@ import AsyncAlgorithms
 /// Errors must be of type MechMuseError
 public struct MechMuse {
     private var client: CurrentValue<OpenAIClient?>
-    private let describeAction: (OpenAIClient, CreatureActionDescriptionRequest, ToneOfVoice) throws -> AsyncThrowingStream<String, Error>
+    private let describeAction: (OpenAIClient, CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error>
     private let describeCombatants: (OpenAIClient, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream<GenerateCombatantTraitsResponse.Traits, Error>
     private let verifyAPIKey: (OpenAIClient) async throws -> Void
 
     public init(
-        clientProvider: AsyncThrowingStream<OpenAIClient?, any Error>,
-        describeAction: @escaping (OpenAIClient, CreatureActionDescriptionRequest, ToneOfVoice) throws -> AsyncThrowingStream<String, Error>,
+        client: CurrentValue<OpenAIClient?>,
+        describeAction: @escaping (OpenAIClient, CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error>,
         describeCombatants: @escaping (OpenAIClient, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream< GenerateCombatantTraitsResponse.Traits, Error>,
         verifyAPIKey: @escaping (OpenAIClient) async throws -> Void
     ) {
-        self.client = CurrentValue(initialValue: nil, updates: clientProvider)
+        self.client = client
         self.describeAction = describeAction
         self.describeCombatants = describeCombatants
         self.verifyAPIKey = verifyAPIKey
@@ -36,11 +36,11 @@ public struct MechMuse {
 public extension MechMuse {
     /// The returned AsyncThrowingStream emits tokens as they come in from the API. To get the full response,
     /// these tokens need to be concatenated.
-    func describe(action: CreatureActionDescriptionRequest, toneOfVoice: ToneOfVoice) throws -> AsyncThrowingStream<String, Error> {
+    func describe(action: CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error> {
         guard let openAIClient = try? client.value else {
             throw MechMuseError.unconfigured
         }
-        return try describeAction(openAIClient, action, toneOfVoice)
+        return try describeAction(openAIClient, action)
     }
 
     /// The returned AsyncThrowingStream emits traits per combatant as they are parsed from the API response
@@ -59,23 +59,23 @@ public extension MechMuse {
 public extension MechMuse {
     static func live(db: Database) -> Self {
         live(
-            clientProvider: db.keyValueStore.observe(Preferences.key)
-            .map(\.?.mechMuse.apiKey).removeDuplicates()
-            .map { key in key.map { OpenAIClient.live(apiKey: $0) } }
-            .stream
+            client: db.keyValueStore.observe(Preferences.key)
+                .map(\.?.mechMuse.apiKey).removeDuplicates()
+                .map { key in key.map { OpenAIClient.live(apiKey: $0) } }
+                .stream
+                .currentValue(nil)
         )
     }
 
-    static func live(clientProvider: AsyncThrowingStream<OpenAIClient?, any Error>) -> Self {
+    static func live(client: CurrentValue<OpenAIClient?>) -> Self {
         MechMuse(
-            clientProvider: clientProvider,
-            describeAction: { client, request, toneOfVoice in
-                let prompt = request.prompt(toneOfVoice: toneOfVoice)
+            client: client,
+            describeAction: { client, request in
+                let prompt = request.prompt()
 
                 do {
-                    return try client.stream(request: CompletionRequest(
-                        model: .Davinci3,
-                        prompt: prompt,
+                    return try client.stream(request: ChatCompletionRequest(
+                        messages: prompt,
                         maxTokens: 350,
                         temperature: 0.9
                     ))
@@ -87,14 +87,13 @@ public extension MechMuse {
             },
             describeCombatants: { client, request in
                 assert(!request.combatantNames.isEmpty)
-                let prompt = request.prompt(toneOfVoice: .gritty)
+                let prompt = request.prompt()
 
                 typealias TraitsArray = [GenerateCombatantTraitsResponse.Traits]
                 let endToken = "[Construct::END]"
                 do {
-                    return try chain(client.stream(request: CompletionRequest(
-                        model: .Davinci3,
-                        prompt: prompt,
+                    return try chain(client.stream(request: ChatCompletionRequest(
+                        messages: prompt,
                         maxTokens: 150 * max(request.combatantNames.count, 1),
                         temperature: 0.9
                     )), [endToken].async)
@@ -107,7 +106,7 @@ public extension MechMuse {
                         if acc.hasSuffix(endToken) {
 
                             do {
-                                let traits = try GenerateCombatantTraitsResponse.parser.parse(acc.dropLast(endToken.count))
+                                let traits = try GenerateCombatantTraitsResponse.parser.parse(String(acc.dropLast(endToken.count)))
 
                                 if traits.isEmpty {
                                     throw MechMuseError.unspecified // is upgraded to .interpretationFailed below
@@ -154,8 +153,8 @@ public extension MechMuse {
     }
 
     static let unconfigured: Self = MechMuse(
-        clientProvider: AsyncThrowingStream { nil },
-        describeAction: { _ ,_ , _ in
+        client: .none,
+        describeAction: { _ ,_ in
             [].async.stream
         },
         describeCombatants: { _, _ in

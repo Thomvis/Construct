@@ -7,6 +7,7 @@
 
 import Foundation
 import Parsing
+import OpenAIClient
 
 public struct GenerateCombatantTraitsRequest {
     public let combatantNames: [String] // names with discriminator
@@ -17,40 +18,59 @@ public struct GenerateCombatantTraitsRequest {
 }
 
 extension GenerateCombatantTraitsRequest: PromptConvertible {
-    public func prompt(toneOfVoice: ToneOfVoice) -> String {
-        let namesList = combatantNames.map { "\($0)" }.joined(separator: ", ")
+    public func prompt() -> [ChatMessage] {
+        let namesList = combatantNames.map { "\"\($0)\"" }.joined(separator: ", ")
 
         // Prompt notes:
         // - Spelling out D&D because it yields slightly longer responses
         // - Without quotes around each combatant name, the discriminator could be omitted from the response
         // - Added "Limit each value to a single sentence" to subdue the tendency to give a bulleted list when only
         //   a single combatant was in the request.
-        return """
-        A Dungeons & Dragons encounter has the following monsters: \(namesList). Come up with \(toneOfVoice) physical and personality traits and a fitting unique nickname, without interfering with its stats. Limit each value to a single sentence.
+        return [
+            .init(role: .system, content: "You are helping a Dungeons & Dragons DM create awesome encounters."),
+            .init(role: .user, content: """
+                The encounter has \(combatantNames.count) monster(s): \(namesList). Come up with gritty physical and personality traits that don't interfere with its stats and unique nickname that fits its traits. One trait of each type for each monster, limit each trait to a single sentence.
 
-        Format your answer as a correct YAML dictionary with an entry for each monster. Each entry has fields physical, personality, nickname.
-        """
+                Format your answer as a correct YAML sequence of maps, with an entry for each monster. Each entry has fields name, physical, personality, nickname.
+                """
+            )
+        ]
     }
 }
 
 public enum GenerateCombatantTraitsResponse {
     static let parser = Parse {
-        Skip {
-            Prefix<Substring> { !$0.isLetter }
+        Whitespace()
+
+        OneOf {
+            Parse {
+                "```yaml"
+                Whitespace()
+                yamlParser
+                Whitespace()
+
+                Skip {
+                    Optionally { "```" }
+                }
+            }
+
+            yamlParser
         }
 
-        Many(into: [Traits]()) { acc, elem in
-            acc.append(elem)
-        } element: {
-            singleParser
-        } separator: {
-            Whitespace()
-        }
+        Whitespace()
     }
 
-    private static let singleParser = Parse(Traits.init(name: physical:personality:nickname:)) {
-        Prefix { $0 != ":" }.map(.string)
-        ":"
+    static let yamlParser = Many(into: [Traits]()) { acc, elem in
+        acc.append(elem)
+    } element: {
+        singleParser
+    } separator: {
+        Whitespace()
+    }
+
+    private static let singleParser = Parse(Traits.init(name:physical:personality:nickname:)) {
+        "- name: "
+        trimmedString
         Whitespace()
 
         StartsWith("Physical:", by: { $0.lowercased() == $1.lowercased() })

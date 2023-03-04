@@ -6,12 +6,8 @@
 //
 
 import Foundation
+import OpenAIClient
 
 public protocol PromptConvertible {
-    func prompt(toneOfVoice: ToneOfVoice) -> String
-}
-
-public enum ToneOfVoice: String, CaseIterable {
-    case comical
-    case gritty
+    func prompt() -> [ChatMessage]
 }

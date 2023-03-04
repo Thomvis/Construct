@@ -144,7 +144,9 @@ let package = Package(
         .testTarget(
             name: "OpenAIClientTests",
             dependencies: [
-                "OpenAIClient"
+                "OpenAIClient",
+
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
             ]
         ),
         .target(

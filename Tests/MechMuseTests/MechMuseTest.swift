@@ -16,73 +16,70 @@ final class MechMuseTest: XCTestCase {
 
     @MainActor
     func testEncounterCombatantsTraitsSuccess() async throws {
-        let response = CompletionResponse(id: "", object: "", created: 0, model: "", choices: [
-            .init(text: """
+        let response = """
+            ```yaml
+            - name: Goblin 1
+              physical: Covered in scars from past battles, one eye is missing and replaced by an eyepatch.
+              personality: Highly aggressive and enjoys taunting their enemies before attacking.
+              nickname: "Scarface"
 
+            - name: Goblin 2
+              physical: Unusually tall and lanky for a goblin, with long fingers and an unnerving grin.
+              personality: Extremely sneaky and enjoys setting traps for unsuspecting adventurers.
+              nickname: The Trickster
+            ```
+            """
 
-            Thug 1:
-            Physical: Scruffy-looking, scarred face, wears leather armor
-            Personality: Boastful, crude, rarely thinks ahead
-            Nickname: "Sneaky Slasher"
-
-            Thug 2:
-            Physical: Unkempt, unshaven, wears chainmail
-            Personality: Cautious, follows orders, prefers to attack from a distance
-            Nickname: Angry Toothpick
-
-            Bandit Captain 1:
-            Physical: Neatly dressed, scarred face, wears studded leather armor
-            Personality: Charismatic, calculating, commands respect
-            Nickname: "Charming Charly"
-            """, finishReason: "")
-        ])
         let openAIClient = OpenAIClient.simpleMock(
-            performCompletionResponse: response,
-            streamCompletionResponse: [response.choices[0].text].async.stream
+            performCompletionResponse: nil,
+            streamCompletionResponse: nil,
+            streamChatResponse: [response].async.stream
         )
-        let sut = MechMuse.live(clientProvider: AsyncThrowingStream([openAIClient].async))
+        let sut = MechMuse.live(client: .constant(openAIClient))
 
-        let result = try await sut.describe(combatants: .init(
-            combatantNames: ["Thug 1", "Thug 2", "Bandit Captain 1"]
+        let result = try sut.describe(combatants: .init(
+            combatantNames: ["Goblin 1", "Goblin 2"]
         ))
 
-        XCTAssertNoDifference(result, GeneratedCombatantTraits(traits: [
-            "Thug 1": .init(
-                physical: "Scruffy-looking, scarred face, wears leather armor",
-                personality: "Boastful, crude, rarely thinks ahead",
-                nickname: "Sneaky Slasher"
+        let traits = try await result.reduce(into: []) { array, t in
+            array.append(t)
+        }
+
+        XCTAssertNoDifference(traits, [
+            .init(
+                name: "Goblin 1",
+                physical: "Covered in scars from past battles, one eye is missing and replaced by an eyepatch",
+                personality: "Highly aggressive and enjoys taunting their enemies before attacking",
+                nickname: "Scarface"
             ),
-            "Thug 2": .init(
-                physical: "Unkempt, unshaven, wears chainmail",
-                personality: "Cautious, follows orders, prefers to attack from a distance",
-                nickname: "Angry Toothpick"
-            ),
-            "Bandit Captain 1": .init(
-                physical: "Neatly dressed, scarred face, wears studded leather armor",
-                personality: "Charismatic, calculating, commands respect",
-                nickname: "Charming Charly"
+            .init(
+                name: "Goblin 2",
+                physical: "Unusually tall and lanky for a goblin, with long fingers and an unnerving grin",
+                personality: "Extremely sneaky and enjoys setting traps for unsuspecting adventurers",
+                nickname: "The Trickster"
             )
-        ]))
+        ])
     }
 
     @MainActor
     func testEncounterCombatantsTraitsParseError() async throws {
-        let response = CompletionResponse(id: "", object: "", created: 0, model: "", choices: [
-            .init(text: """
+        let response = """
             Thug 1 =
             Physicala: Scruffy-looking, scarred face, wears leather armor
-            """, finishReason: "")
-        ])
+            """
         let openAIClient = OpenAIClient.simpleMock(
-            performCompletionResponse: response,
-            streamCompletionResponse: [response.choices[0].text].async.stream
+            performCompletionResponse: nil,
+            streamCompletionResponse: nil,
+            streamChatResponse: [response].async.stream
         )
-        let sut = MechMuse.live(clientProvider: AsyncThrowingStream([openAIClient].async))
+        let sut = MechMuse.live(client: .constant(openAIClient))
 
         do {
-            _ = try await sut.describe(combatants: .init(
+            let result = try sut.describe(combatants: .init(
                 combatantNames: ["Thug 1", "Thug 2", "Bandit Captain 1"]
             ))
+
+            for try await _ in result { }
             XCTFail("Expected an error")
         } catch MechMuseError.interpretationFailed(_, let msg) {
             XCTAssertEqual(msg, """
@@ -98,13 +95,15 @@ final class MechMuseTest: XCTestCase {
 
 extension OpenAIClient {
     static func simpleMock(
-        performCompletionResponse: CompletionResponse,
-        streamCompletionResponse: AsyncThrowingStream<String, Error>,
+        performCompletionResponse: CompletionResponse?,
+        streamCompletionResponse: AsyncThrowingStream<String, Error>?,
+        streamChatResponse: AsyncThrowingStream<String, Error>?,
         modelsResponse: ModelsResponse = ModelsResponse()
     ) -> Self {
         return OpenAIClient(
-            performCompletionRequest: { _ in performCompletionResponse },
-            streamCompletionRequest: { _ in streamCompletionResponse },
+            performCompletionRequest: { _ in performCompletionResponse! },
+            streamCompletionRequest: { _ in streamCompletionResponse! },
+            streamChatRequest: { _ in streamChatResponse! },
             performModelsRequest: { modelsResponse }
         )
     }

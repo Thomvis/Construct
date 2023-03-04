@@ -108,11 +108,11 @@ struct StandaloneActionResolutionEnvironment: ActionResolutionEnvironment {
     var mainQueue: AnySchedulerOf<DispatchQueue> = DispatchQueue.immediate.eraseToAnyScheduler()
     var diceLog = DiceLogPublisher()
     var mechMuse = MechMuse(
-        clientProvider: AsyncThrowingStream([OpenAIClient.live(apiKey: "")].async),
-        describeAction: { client, request, tov in
+        client: .constant(OpenAIClient.live(apiKey: "")),
+        describeAction: { client, request in
             return AsyncThrowingStream { continuation in
                 Task {
-                    let tokens = "Here's a description for prompt: \(request.prompt(toneOfVoice: tov))".split(separator: " ").map { "\($0) "}
+                    let tokens = "Here's a description for prompt: \(request.prompt())".split(separator: " ").map { "\($0) "}
 
                     try await Task.sleep(for: .seconds(0.3))
                     for t in tokens {

@@ -97,7 +97,7 @@ struct ActionDescriptionView: View {
 
                             impactButton(viewStore)
                         }
-                        .disabled(isLoading)
+                        .disabled(isLoading || viewStore.state.isMissingOutcomeSetting)
 
                         Button {
                             viewStore.send(.onReloadOrCancelButtonTap)
@@ -110,7 +110,7 @@ struct ActionDescriptionView: View {
                                     .frame(height: bottomButtonHeight)
                             }
                         }
-                        .disabled(viewStore.state.descriptionString == nil && !isLoading)
+                        .disabled(viewStore.state.isMissingOutcomeSetting)
                     }
                     .font(.footnote)
                     .buttonStyle(.bordered)

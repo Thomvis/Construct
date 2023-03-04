@@ -323,12 +323,12 @@ import OpenAIClient
 import MechMuse
 struct GenerateCombatantTraitsViewPreviewEnvironment: GenerateCombatantTraitsViewEnvironment {
     var mechMuse = MechMuse(
-        clientProvider: AsyncThrowingStream([OpenAIClient.live(apiKey: "")].async),
-        describeAction: { client, request, tov in
+        client: .constant(OpenAIClient.live(apiKey: "")),
+        describeAction: { client, request in
             return AsyncThrowingStream { continuation in
                 Task {
                     try await Task.sleep(for: .seconds(0.5))
-                    continuation.yield("Here's a description for prompt: \(request.prompt(toneOfVoice: tov))")
+                    continuation.yield("Here's a description for prompt: \(request.prompt())")
                 }
             }
         },
@@ -339,11 +339,6 @@ struct GenerateCombatantTraitsViewPreviewEnvironment: GenerateCombatantTraitsVie
                     continuation.finish(throwing: MechMuseError.insufficientQuota)
                 }
             }
-//            return .init(descriptions: Dictionary(
-//                uniqueKeysWithValues: request.combatantNames.map { name -> (String, EncounterCombatantsDescription.Description) in
-//                    (name, .init(appearance: "Lots 'o scars", behavior: "Many 'o laughs", nickname: "The Real \(name)"))
-//                }
-//            ))
         },
         verifyAPIKey: { client in
             try await Task.sleep(for: .seconds(1))

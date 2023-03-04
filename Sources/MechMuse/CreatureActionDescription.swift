@@ -7,6 +7,7 @@
 
 import Foundation
 import GameModels
+import OpenAIClient
 
 public struct CreatureActionDescriptionRequest: Hashable {
     public let creatureName: String // e.g. "Goblin"
@@ -90,12 +91,12 @@ public extension CreatureActionDescriptionRequest.Outcome {
 }
 
 extension CreatureActionDescriptionRequest: PromptConvertible {
-    public func prompt(toneOfVoice: ToneOfVoice) -> String {
+    public func prompt() -> [ChatMessage] {
         let enemyNoun = isUniqueCreature ? "NPC" : "monster"
 
         // init result with prelude
         var result = """
-        During a D&D combat encounter, a player is attacked by a \(enemyNoun).
+        During a combat encounter, a player is attacked by a \(enemyNoun).
         """
 
         if let encounter {
@@ -118,30 +119,32 @@ extension CreatureActionDescriptionRequest: PromptConvertible {
         case .miss(false):
             result += "The attack misses. "
         case .hit(let hit):
-            let impactString: String
+            result += """
+            The attack is a\(hit.isCritical ? " critical" : "") hit, dealing \(hit.damageDescription).
+            """
+
             switch hit.attackImpact {
             case .minimal:
-                impactString = "an ineffective"
+                result += " This is a glancing blow."
             case .average:
-                impactString = "an average"
+                break
             case .devastating:
-                impactString = "a devastating"
+                result += " This is a devastating blow."
             }
-
-            result += """
-            The attack\(hit.isCritical ? " critically" : "") hits the player for \(impactString) \(hit.damageDescription).
-            """
         }
 
         result += """
-        What does the DM say to the attacked player? Describe the \(enemyNoun) and the attack, using a \(toneOfVoice) style.
+        Narrate the attack to the player, focus on the \(enemyNoun) and the attack, using a gritty style, limit to one paragraph.
         """
 
         if case .hit = outcome {
             result += "Mention the damage."
         }
 
-        return result
+        return [
+            .init(role: .system, content: "You are a Dungeons & Dragons DM."),
+            .init(role: .user, content: result)
+        ]
     }
 }
 

@@ -13,15 +13,18 @@ import LDSwiftEventSource
 public struct OpenAIClient {
     private let performCompletionRequest: (CompletionRequest) async throws -> CompletionResponse
     private let streamCompletionRequest: (CompletionRequest) throws -> AsyncThrowingStream<String, Error>
+    private let streamChatRequest: (ChatCompletionRequest) throws -> AsyncThrowingStream<String, Error>
     public let performModelsRequest: () async throws -> ModelsResponse
 
     public init(
         performCompletionRequest: @escaping (CompletionRequest) async throws -> CompletionResponse,
         streamCompletionRequest: @escaping (CompletionRequest) throws -> AsyncThrowingStream<String, Error>,
+        streamChatRequest: @escaping (ChatCompletionRequest) throws -> AsyncThrowingStream<String, Error>,
         performModelsRequest: @escaping () async throws -> ModelsResponse
     ) {
         self.performCompletionRequest = performCompletionRequest
         self.streamCompletionRequest = streamCompletionRequest
+        self.streamChatRequest = streamChatRequest
         self.performModelsRequest = performModelsRequest
     }
 }
@@ -33,6 +36,10 @@ public extension OpenAIClient {
 
     func stream(request payload: CompletionRequest) throws -> AsyncThrowingStream<String, Error> {
         try streamCompletionRequest(payload)
+    }
+
+    func stream(request payload: ChatCompletionRequest) throws -> AsyncThrowingStream<String, Error> {
+        try streamChatRequest(payload)
     }
 }
 
@@ -85,10 +92,18 @@ public extension OpenAIClient {
                 return try parseResponse(result.1, data: result.0, CompletionResponse.self)
             },
             streamCompletionRequest: { payload in
-                CompletionEventSource(
-                    request: try request(endpoint: "/v1/completions", method: "POST", body: payload.streamed()),
+                let request = try request(endpoint: "/v1/chat/completions", method: "POST", body: payload.streamed())
+                return try httpClient.stream(for: request).map(MessageToTokenTransformer<CompletionResponse>(
+                    getToken: \.choices.first?.text,
                     decoder: decoder
-                ).tokens()
+                ).callAsFunction).stream
+            },
+            streamChatRequest: { payload in
+                let request = try request(endpoint: "/v1/chat/completions", method: "POST", body: payload.streamed())
+                return try httpClient.stream(for: request).map(MessageToTokenTransformer<ChatCompletionResponseMessage>(
+                    getToken: \.choices.first?.delta.content,
+                    decoder: decoder
+                ).callAsFunction).stream
             },
             performModelsRequest: {
                 let result = try await httpClient.data(for: request(endpoint: "/v1/models"))
@@ -100,6 +115,7 @@ public extension OpenAIClient {
 
 public protocol HTTPClient {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
+    func stream(for request: URLRequest) throws -> AsyncThrowingStream<String, Error>
 }
 
 extension URLSession: HTTPClient {
@@ -163,6 +179,61 @@ public struct CompletionResponse: Codable, Equatable {
 public struct ModelsResponse: Codable, Equatable {
     public init() {
 
+    }
+}
+
+public struct ChatMessage: Codable, Equatable {
+    public let role: Role
+    public let content: String
+
+    public init(role: Role, content: String) {
+        self.role = role
+        self.content = content
+    }
+
+    public enum Role: String, Codable {
+        case system
+        case user
+        case assistant
+    }
+}
+
+public struct ChatCompletionRequest: Codable, Equatable {
+    public let model: Model
+    public let messages: [ChatMessage]
+    public let maxTokens: Int?
+    public let temperature: Float?
+    var stream: Bool = false
+
+    public init(model: Model = .gpt35Turbo, messages: [ChatMessage], maxTokens: Int? = nil, temperature: Float? = nil) {
+        self.model = model
+        self.messages = messages
+        self.maxTokens = maxTokens
+        self.temperature = temperature
+    }
+
+    func streamed() -> Self {
+        var res = self
+        res.stream = true
+        return res
+    }
+}
+
+public struct ChatCompletionResponseMessage: Codable, Equatable {
+    public let id: String
+    public let object: String
+    public let created: Int
+    public let model: String
+    public let choices: [Choice]
+
+    public struct Choice: Codable, Equatable {
+        public let delta: Delta
+        public let finishReason: String?
+
+        public struct Delta: Codable, Equatable {
+            public let role: ChatMessage.Role?
+            public let content: String?
+        }
     }
 }
 

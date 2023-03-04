@@ -38,27 +38,42 @@ extension EventSource.Config {
 
  data: [DONE]
  */
-struct CompletionEventSource {
-    let request: URLRequest
+
+struct MessageToTokenTransformer<Message> where Message: Decodable {
+    let getToken: (Message) -> String?
     let decoder: JSONDecoder
 
-    func tokens() -> AsyncThrowingStream<String, Error> {
+    func callAsFunction(_ message: String) throws -> String {
+        guard let data = message.data(using: .utf8) else { throw OpenAIError.unexpected }
+
+        do {
+            let message = try decoder.decode(Message.self, from: data)
+            return getToken(message) ?? ""
+        } catch let error as DecodingError {
+            throw OpenAIError.decodingFailed(error)
+        } catch {
+            throw OpenAIError.unexpected
+        }
+    }
+}
+
+extension URLSession {
+    /// Known quirck: this method does actually not self, it creates a new URLSession instead
+    /// Returns a stream of message event strings
+    public func stream(for request: URLRequest) throws -> AsyncThrowingStream<String, Error> {
         return AsyncThrowingStream { continuation in
             let config = EventSource.Config(
                 handler: Handler(_onOpened: {
 
                 }, _onClosed: {
-
+                    continuation.finish()
                 }, _onMessage: { type, event in
-                    guard let data = event.data.data(using: .utf8) else { return }
-                    guard let response = try? decoder.decode(CompletionResponse.self, from: data) else { return }
-                    guard let choice = response.choices.first else { return }
-
-                    continuation.yield(choice.text)
-
-                    if choice.finishReason != nil {
+                    guard event.data != "[DONE]" else {
                         continuation.finish()
+                        return
                     }
+
+                    continuation.yield(event.data)
                 }, _onComment: { comment in
 
                 }, _onError: { error in

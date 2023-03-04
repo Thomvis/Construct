@@ -19,7 +19,7 @@ public struct ActionDescriptionViewState: Equatable {
 
     let encounterContext: ActionResolutionViewState.EncounterContext?
     @BindableState var context: Context
-    @BindableState var settings: Settings = .init(toneOfVoice: .gritty, outcome: nil, impact: .average)
+    @BindableState var settings: Settings = .init(outcome: nil, impact: .average)
 
     private var description: AsyncDescription = .init(wrapped: .init(input: nil, result: .init(value: "")))
     private var cache: [RequestInput: AsyncReduceState<String, MechMuseError>] = [:]
@@ -101,7 +101,6 @@ public struct ActionDescriptionViewState: Equatable {
 
     // configurable in this view
     struct Settings: Equatable {
-        var toneOfVoice: ToneOfVoice
         var outcome: OutcomeSetting?
         var impact: CreatureActionDescriptionRequest.Impact
 
@@ -113,7 +112,6 @@ public struct ActionDescriptionViewState: Equatable {
 
     public struct RequestInput: Hashable {
         var request: CreatureActionDescriptionRequest
-        var toneOfVoice: ToneOfVoice
     }
 }
 
@@ -174,8 +172,7 @@ extension ActionDescriptionViewState {
                 AsyncDescriptionReduceState.reducer({ env in
                     guard let input else { throw ActionDescriptionViewStateError.missingInput }
                     return try env.mechMuse.describe(
-                        action: input.request,
-                        toneOfVoice: input.toneOfVoice
+                        action: input.request
                     )
                 }, reduce: { res, elem in
                     // append tokens as they come in
@@ -230,8 +227,7 @@ extension ActionDescriptionViewState {
                     actionName: context.action.name,
                     actionDescription: context.action.description,
                     outcome: outcome
-                ),
-                toneOfVoice: settings.toneOfVoice
+                )
             )
         }
     }

@@ -9,9 +9,10 @@ import Foundation
 import XCTest
 import MechMuse
 import GameModels
+import CustomDump
 
 final class CreatureActionDescriptionTest: XCTestCase {
-    func testCompendium() {
+    func testPrompt() {
         let request = CreatureActionDescriptionRequest(
             creature: Monster(
                 realm: .core,
@@ -25,8 +26,12 @@ final class CreatureActionDescriptionTest: XCTestCase {
             )
         )
 
-        XCTAssertEqual(request.prompt(toneOfVoice: .gritty), """
-        During a D&D combat encounter, a player is attacked by a monster.Attacking monster: Goblin ().The monster attacks using "Shortbow".The attack hits the player for an average 6 points of bludgeoning damage.What does the DM say to the attacked player? Describe the monster and the attack, using a gritty style.Mention the damage.
-        """)
+        XCTAssertNoDifference(request.prompt(), [
+            .init(role: .system, content: "You are a Dungeons & Dragons DM."),
+            .init(role: .user, content: """
+                During a combat encounter, a player is attacked by a monster.Attacking monster: Goblin ().The monster attacks using "Shortbow".The attack is a hit, dealing 6 points of bludgeoning damage.Narrate the attack, focus on the monster and the attack, using a gritty style.Mention the damage.
+                """
+            )
+        ])
     }
 }

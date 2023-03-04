@@ -106,7 +106,7 @@ final class AsyncReduceTest: XCTestCase {
         await clock.advance(by: .seconds(0.5))
 
         await store.send(.stop) {
-            $0.state = .failed(TestError(description: "CancellationError()"))
+            $0.state = .stopped
         }
 
         await clock.advance(by: .seconds(10))
