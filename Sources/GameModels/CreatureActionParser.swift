@@ -14,105 +14,325 @@ public struct CreatureActionParser {
     public typealias Action = ParsedCreatureAction.Model
 
     public static func parse(_ string: String) -> Action? {
-        weaponAttackParser(string).run(string.lowercased()).map {
-            Action.weaponAttack($0)
-        }
+        Self.parseRaw(string)?.1
     }
 
-    static func weaponAttackParser(_ input: String) -> Parser<Action.WeaponAttack> {
+    public static func parseRaw(_ string: String) -> (Remainder, Action)? {
+        var remainder = Remainder(string.lowercased())
+        guard let action = weaponAttackParser().parse(&remainder) else {
+            return nil
+        }
+        return (remainder, Action.weaponAttack(action))
+    }
+
+    static func weaponAttackParser() -> Parser<Action.WeaponAttack> {
         return zip(
-            either(
-                string("melee").map { _ in Action.WeaponAttack.AttackType.melee },
-                string("ranged").map { _ in Action.WeaponAttack.AttackType.ranged }
-            ).log("type"),
-            string("weapon attack").skippingAnyBefore().log("wa"),
+            skip(until: string(":")),
+            whitespace(),
             zip(
                 either(
                     char("+").map { _ in 1 },
                     char("-").map { _ in -1 }
                 ),
                 int(),
-                string("to hit").skippingAnyBefore()
-            ).skippingAnyBefore().log("mod"),
-            either(
-                zip(
-                    string("reach"),
-                    int().skippingAnyBefore(),
-                    string(" ft").skippingAnyBefore()
-                ).skippingAnyBefore().map {
-                    Action.WeaponAttack.Range.reach($0.1)
-                }.log("reach"),
-                zip(
-                    string("range"),
-                    int().skippingAnyBefore(),
+                whitespace(),
+                string("to hit")
+            ).map { sign, mod, _, _ in
+                return Modifier(modifier: sign * mod)
+            },
+            zip(string(","), whitespace().optional()),
+            many(
+                element: either(
                     zip(
-                        char("/"),
-                        int()
-                    ).optional().skippingAnyBefore(),
-                    string(" ft").skippingAnyBefore()
-                ).skippingAnyBefore().map {
-                    Action.WeaponAttack.Range.range($0.1, $0.2?.1)
-                }.log("range")
+                        whitespace().optional(),
+                        string("reach "),
+                        int(),
+                        whitespace(),
+                        string("ft.")
+                    ).map { _, _, r, _, _ in
+                        Action.WeaponAttack.Range.reach(r)
+                    },
+
+                    zip(
+                        whitespace().optional(),
+                        string("range "),
+                        int(),
+                        zip(
+                            whitespace().optional(),
+                            char("/"),
+                            whitespace().optional(),
+                            int()
+                        ).map { _, _, _, r in r }.optional(),
+                        string(" ft"),
+                        string(".").optional()
+                    ).map { _, _, normal, long, _, _ in
+                        Action.WeaponAttack.Range.range(normal, long)
+                    }
+                ),
+                separator: oneOrMore(
+                    either(
+                        string(","),
+                        string("or")
+                    ).trimming(whitespace())
+                ),
+                terminator: .nothing
             ),
-            effectsParser()
-        ).map {
+            skip(until: zip(string("."), whitespace())), // skipping  "one target"
+            hitParser().optional()
+        ).map {  _, _, modifier, _, ranges, _, effects in
             Action.WeaponAttack(
-                type: $0.0,
-                range: $0.3,
-                hitModifier: Modifier(modifier: $0.2.0 * $0.2.1),
-                effects: $0.4
+                hitModifier: modifier,
+                ranges: ranges,
+                effects: effects ?? []
             )
         }
     }
 
-    static func effectsParser() -> Parser<[Action.ActionEffect]> {
-        any(actionEffectParser())
+    static func hitParser() -> Parser<[Action.AttackEffect]> {
+        zip(
+            string("hit:"),
+            whitespace(),
+            effectsParser()
+        ).map { _, _, effects in
+            effects
+        }
     }
 
-    static func actionEffectParser() -> Parser<Action.ActionEffect> {
+    static func effectsParser() -> Parser<[Action.AttackEffect]> {
+        many(
+            element: either(
+                // these must go before damageEffect even though they're
+                versatileWeaponGripConditionedDamageEffectParser(),
+                rangeConditionedDamageEffectParser(),
+
+                damageEffectParser(),
+                savingThrowConditionedEffectParser(),
+                otherConditionedEffectParser(),
+                otherEffectParser()
+
+            ),
+            separator: oneOrMore(
+                either(
+                    string(","),
+                    string("and"),
+                    string("plus"),
+                    string(".")
+                ).trimming(whitespace())
+            ),
+            terminator: .nothing
+        ).map { $0.flatMap { $0 } }
+    }
+
+    /// 9 (2d6 + 2) piercing damage in melee or 5 (1d6 + 2) piercing damage at range
+    static func rangeConditionedDamageEffectParser() -> Parser<[Action.AttackEffect]> {
+        zip(
+            damageParser(),
+            string("in melee or").trimming(whitespace()),
+            damageParser(),
+            string("at range").trimming(whitespace())
+        ).map { md, _, rd, _ in
+            [
+                .init(conditions: .init(type: .melee), damage: [md]),
+                .init(conditions: .init(type: .ranged), damage: [rd])
+            ]
+        }
+    }
+
+    static func savingThrowConditionedEffectParser() -> Parser<[Action.AttackEffect]> {
         either(
-            saveableDamageParser().map { Action.ActionEffect.saveableDamage($0) },
-            damageParser().map { Action.ActionEffect.damage($0) }
-        ).skippingAnyBefore()
-    }
-
-    static func damageParser() -> Parser<Action.ActionEffect.Damage> {
-        zip(
-            int().log("statdam"),
             zip(
-                char("(").skippingAnyBefore().log("parenopen"),
-                DiceExpressionParser.diceExpression().log("diceexpr"),
-                char(")").log("parenclose")
-            ).optional(),
-            word().flatMap { DamageType(rawValue: $0) }.skippingAnyBefore().log("dmg type"),
-            string("damage").skippingAnyBefore()
-        ).map {
-            Action.ActionEffect.Damage(
-                staticDamage: $0.0,
-                damageExpression: $0.1?.1,
-                type: $0.2
-            )
-        }.log("dmg")
+                string("the target must make a").trimming(whitespace()),
+                savingThrowParser(),
+                string(",").optional().trimming(whitespace()),
+                string("taking "),
+                damageEffectParser(),
+                string("on a failed save").trimming(whitespace()),
+                zip(
+                    string(",").optional(),
+                    whitespace(),
+                    string("or half as much damage on a successful one")
+                ).optional()
+            ).map { _, save, _, _, dmg, _, half in
+                dmg.map {
+                    apply($0) {
+                        $0.conditions.savingThrow = .init(
+                            ability: save.1,
+                            dc: save.0,
+                            saveEffect: half != nil ? .half : .none
+                        )
+                    }
+                }
+            },
+            zip(
+                string("the target").trimming(whitespace()),
+                mustSucceedSavingThrowEffectParser().map { [$0] }
+            ).map { $0.1 }
+        )
     }
 
-    static func saveableDamageParser() -> Parser<Action.ActionEffect.SaveableDamage> {
+    static func versatileWeaponGripConditionedDamageEffectParser() -> Parser<[Action.AttackEffect]> {
         zip(
-            string("dc ").log("dc"),
-            int().log("dc int"),
-            word().flatMap { Ability(rawValue: $0) }.skippingAnyBefore().log("ab"),
-            zip(horizontalWhitespace(), string("saving throw").log("st")).map { $0.1 },
-            damageParser().skippingAnyBefore().log("dmg"),
-            string("on a failed save").skippingAnyBefore().log("fail"),
-            skip(until: char(".")).flatMap {
-                string("half as much damage").skippingAnyBefore().run($0.0) != nil
-            }
-        ).map {
-            Action.ActionEffect.SaveableDamage(
-                ability: $0.2,
-                dc: $0.1,
-                damage: $0.4,
-                saveEffect: $0.6 ? .half : .none
+            damageParser(),
+            string(",").trimming(whitespace()).optional(),
+            string("or").trimming(whitespace()),
+            damageParser(),
+            string("if used with two hands").trimming(whitespace()),
+            either(
+                string("in melee"),
+                string("to make a melee attack")
+            ).trimming(whitespace()).optional()
+        ).map { ohd, _, _, thd, _, _ in
+            [
+                .init(conditions: .init(versatileWeaponGrip: .oneHanded), damage: [ohd]),
+                .init(conditions: .init(versatileWeaponGrip: .twoHanded), damage: [thd])
+            ]
+        }
+    }
+
+    // "If the target is a ..."
+    static func otherConditionedEffectParser() -> Parser<[Action.AttackEffect]> {
+        zip(
+            string("if the target is").trimming(whitespace()),
+            skip(until: string(",").trimming(whitespace())),
+            zip(
+                string("it").trimming(whitespace()),
+                either(
+                    mustSucceedSavingThrowEffectParser(),
+                    thenEffectParser()
+                )
+            ).map { $0.1 }
+        ).map { _, c, effect in
+            var res = effect
+            res.conditions.other = "the target is \(c.0)"
+            return [res]
+        }
+    }
+
+    /// Parses:
+    /// - 7 (1d10 + 2) piercing damage
+    /// - 7 (1d10 + 2) piercing damage plus 3 (1d6) poison damage
+    static func damageEffectParser() -> Parser<[Action.AttackEffect]> {
+        many(
+            element: damageParser(),
+            separator: oneOrMore(
+                either(
+                    string(","),
+                    string("and"),
+                    string("plus")
+                ).trimming(whitespace())
+            ),
+            terminator: .nothing
+        ).flatMap { dmgs in
+            guard dmgs.count > 0 else { return nil }
+            return [.init(damage: dmgs)]
+        }
+    }
+
+    /// Parses:
+    /// - the target is grappled
+    static func otherEffectParser() -> Parser<[Action.AttackEffect]> {
+        zip(
+            string("the target").trimming(whitespace()),
+            thenEffectParser()
+        ).map { _, effect in
+            [effect]
+        }
+    }
+
+    static func mustSucceedSavingThrowEffectParser() -> Parser<Action.AttackEffect> {
+        zip(
+            string("must succeed on a").trimming(whitespace()),
+            savingThrowParser(),
+            skip(until: string("or").trimming(whitespace())), // skip optional "against X",
+            either(
+                zip(
+                    string("take").trimming(whitespace()),
+                    damageParser()
+                ).map { _, dmg in
+                    Action.AttackEffect(damage: [dmg])
+                },
+                zip(
+                    string("become").trimming(whitespace()),
+                    word().flatMap {
+                        CreatureCondition(rawValue: $0)
+                    }
+                ).map { _, c in Action.AttackEffect(condition: c) },
+                string("be knocked prone").map { _ in
+                    Action.AttackEffect(condition: .prone)
+                },
+                skip(until: string(".").trimming(whitespace())).map {
+                    Action.AttackEffect(other: $0.0)
+                }
             )
-        }.log("Sdmg")
+        ).map { _, st, _, e in
+            apply(e) {
+                $0.conditions.savingThrow = .init(
+                    ability: st.1,
+                    dc: st.0,
+                    saveEffect: .none
+                )
+            }
+        }
+    }
+
+    static func thenEffectParser() -> Parser<Action.AttackEffect> {
+        either(
+            zip(
+                string("takes").trimming(whitespace()),
+                damageParser()
+            ).map { _, dmg in
+                Action.AttackEffect(damage: [dmg])
+            },
+            zip(
+                either(
+                    string("is"),
+                    string("becomes")
+                ).trimming(whitespace()),
+                word().flatMap {
+                    CreatureCondition(rawValue: $0)
+                }.trimming(whitespace()),
+                skip(until: string("."))
+            ).map { _, c, d in Action.AttackEffect(condition: c, other: d.0) },
+            skip(until: string(".").trimming(whitespace())).map {
+                Action.AttackEffect(other: $0.0)
+            }
+        )
+    }
+
+    /// Parses:
+    /// - dc 12 constitution saving throw
+    static func savingThrowParser() -> Parser<(Int, Ability)> {
+        zip(
+            string("dc "),
+            int(),
+            whitespace(),
+            word().flatMap { Ability(rawValue: $0) },
+            whitespace(),
+            string("saving throw")
+        ).map { _, dc, _, ab, _, _ in
+            (dc, ab)
+        }
+    }
+
+    static func damageParser() -> Parser<Action.AttackEffect.Damage> {
+        zip(
+            int(),
+            zip(
+                whitespace(),
+                char("("),
+                DiceExpressionParser.diceExpression(),
+                char(")")
+            ).map { _, _, expr, _ in expr }.optional(),
+            whitespace(),
+            word().flatMap { DamageType(rawValue: $0) },
+            whitespace(),
+            string("damage")
+        ).map { stat, expr, _, type, _, _ in
+            Action.AttackEffect.Damage(
+                staticDamage: stat,
+                damageExpression: expr,
+                type: type
+            )
+        }
     }
 }

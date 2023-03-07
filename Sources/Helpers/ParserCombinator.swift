@@ -263,6 +263,14 @@ public extension Parser {
         }
     }
 
+    static var never: Parser<Void> {
+        Parser<Void> { _ in nil }
+    }
+
+    static var nothing: Parser<Void> {
+        Parser<Void> { _ in () }
+    }
+
 //    func ignoring(_ cc: CharacterSet) -> Parser<A> {
 //        return Parser { input in
 //            var positionMap: [Int: Int] = [:]
@@ -311,7 +319,7 @@ public func int() -> Parser<Int> {
     return any(character(in: digits)).joined().toInt()
 }
 
-// Parses at least one letter followed by any number of whitespace
+// Parses any number of alphanumeric characters or quotes
 public func word() -> Parser<String> {
     return any(character { $0.isLetter || $0.isNumber || "'＇’".contains(String($0)) })
         .flatMap { $0.count > 0 ? $0 : nil }
@@ -328,6 +336,35 @@ public func horizontalWhitespace() -> Parser<String> {
 
 public func verticalWhitespace() -> Parser<String> {
     oneOrMore(character(in: ["\r", "\n"])).joined()
+}
+
+public func many<E, D, T>(
+    element: Parser<E>,
+    separator: Parser<D>,
+    terminator: Parser<T>
+) -> Parser<[E]> {
+    return Parser { remainder in
+        var result: [E] = []
+        var previous = remainder.position
+        while true {
+            if let elem = element.attempt().parse(&remainder) {
+                result.append(elem)
+            } else {
+                // undo parsing a dangling separator
+                remainder.position = previous
+                break
+            }
+            previous = remainder.position
+
+            if separator.attempt().parse(&remainder) == nil {
+                break
+            }
+        }
+        guard terminator.parse(&remainder) != nil else {
+            return nil
+        }
+        return result
+    }
 }
 
 public func either<A>(_ a: Parser<A>, _ b: Parser<A>) -> Parser<A> {

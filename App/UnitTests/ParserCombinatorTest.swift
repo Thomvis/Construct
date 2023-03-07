@@ -54,4 +54,28 @@ class ParserCombinatorTest: XCTestCase {
         XCTAssertEqual(text.string(), " world")
     }
 
+    func testMany() {
+        var text = Remainder("a, b, c,d-Hello")
+
+        let res = many(
+            element: word(),
+            separator: zip(string(","), whitespace().optional()),
+            terminator: .nothing
+        ).parse(&text)
+        XCTAssertEqual(res, ["a", "b", "c", "d"])
+        XCTAssertEqual(text.string(), "-Hello")
+    }
+
+    func testMany2() {
+        var text = Remainder("a, b, c,d,*")
+
+        let res = many(
+            element: word(),
+            separator: zip(string(","), whitespace().optional()),
+            terminator: .nothing
+        ).parse(&text)
+        XCTAssertEqual(res, ["a", "b", "c", "d"])
+        XCTAssertEqual(text.string(), ",*")
+    }
+
 }

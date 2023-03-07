@@ -84,7 +84,7 @@ public struct DiceAction: Hashable {
 
                 public enum Roll: Hashable {
                     case toHit(Modifier)
-                    case damage(ParsedCreatureAction.Model.ActionEffect.Damage)
+                    case damage(ParsedCreatureAction.Model.AttackEffect.Damage)
                 }
 
                 public enum RollType: Hashable {
@@ -161,37 +161,84 @@ public struct DiceAction: Hashable {
 extension DiceAction {
     init?(title: String, parsedAction: ParsedCreatureAction.Model) {
         guard case .weaponAttack(let attack) = parsedAction else { return nil }
-
         self.init(
             title: title,
-            subtitle: "\(attack.type == .melee ? "Melee" : "Ranged") weapon attack",
+            subtitle: {
+                if attack.ranges.allSatisfy(\.isReach) {
+                    return "Melee Weapon Attack"
+                } else if attack.ranges.allSatisfy(\.isRange) {
+                    return "Ranged Weapon Attack"
+                } else {
+                    return "Melee or Ranged Weapon Attack"
+                }
+            }(),
             steps: IdentifiedArray(uniqueElements: [
                 Step(
                     title: "\(modifierFormatter.stringWithFallback(for: attack.hitModifier.modifier)) to hit",
                     value: .roll(Step.Value.RollValue(roll: .toHit(attack.hitModifier)))
                 )
             ] + attack.effects.flatMap { effect -> [Step] in
-                switch effect {
-                case .damage(let dmg):
-                    return [Step(damage: dmg)]
-                case .saveableDamage(let save):
-                    return [
-                        Step(
-                            title: "DC \(save.dc) \(save.ability.localizedDisplayName) Saving Throw",
-                            value: nil
-                        ),
-                        Step(damage: save.damage)
-                    ]
+                var conditions: [String] = []
+
+                if let other = effect.conditions.other {
+                    conditions.append(other)
                 }
+
+                if let save = effect.conditions.savingThrow {
+                    conditions.append("DC \(save.dc) \(save.ability.localizedDisplayName) Saving Throw")
+                }
+
+                return Array(builder: {
+                    if !conditions.isEmpty {
+                        Step(title: conditions.joined(separator: ", ") + ":")
+                    }
+
+                    effect.damage.map { Step(damage: $0, conditions: effect.conditions) }
+
+                    if let other = effect.other {
+                        Step(title: other)
+                    }
+
+                    if let condition = effect.condition {
+                        Step(title: "Condition: \(condition)")
+                    }
+                })
             })
         )
     }
 }
 
 extension DiceAction.Step {
-    init(damage: ParsedCreatureAction.Model.ActionEffect.Damage) {
+    init(
+        damage: ParsedCreatureAction.Model.AttackEffect.Damage,
+        conditions: ParsedCreatureAction.Model.AttackEffect.Conditions
+    ) {
+        var conditionComponents: [String] = []
+
+        if conditions.type == .melee {
+            conditionComponents.append("melee")
+        } else if conditions.type == .ranged {
+            conditionComponents.append("ranged")
+        }
+
+        if conditions.savingThrow?.saveEffect == .some(.none) {
+            conditionComponents.append("on a failed save")
+        } else if conditions.savingThrow?.saveEffect == .half {
+            conditionComponents.append("on a failed save, or halved otherwise")
+        }
+
+        if conditions.versatileWeaponGrip == .oneHanded {
+            conditionComponents.append("one-handed")
+        } else if conditions.versatileWeaponGrip == .twoHanded {
+            conditionComponents.append("two-handed")
+        }
+
+        let conds = conditionComponents.nonEmptyArray?.joined(separator: ", ")
+
         self.init(
-            title: "\(damage.staticDamage)" + (damage.damageExpression.map { " (\($0))" } ?? "") + " \(damage.type) damage",
+            title: "\(damage.staticDamage)"
+                + (damage.damageExpression.map { " (\($0))" } ?? "") + " \(damage.type) damage"
+                + (conds.map { " (\($0))" } ?? ""),
             value: .roll(Value.RollValue(roll: .damage(damage)))
         )
     }

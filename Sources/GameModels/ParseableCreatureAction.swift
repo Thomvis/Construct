@@ -15,7 +15,7 @@ public typealias ParseableCreatureAction = Parseable<CreatureAction, ParsedCreat
 
 public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
 
-    public static let version: String = "1"
+    public static let version: String = "2"
 
     /**
      Parsed from `name`. Range is scoped to `name`.
@@ -56,32 +56,91 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
         case weaponAttack(WeaponAttack)
 
         public struct WeaponAttack: Hashable, Codable {
-            public let type: AttackType
-            public let range: Range
             public let hitModifier: Modifier
-            public let effects: [ActionEffect]
+            public let ranges: [Range]
+            public let effects: [AttackEffect]
 
-            public init(type: AttackType, range: Range, hitModifier: Modifier, effects: [ActionEffect]) {
-                self.type = type
-                self.range = range
+            public init(hitModifier: Modifier, ranges: [Range], effects: [AttackEffect]) {
                 self.hitModifier = hitModifier
+                self.ranges = ranges
                 self.effects = effects
-            }
-
-            public enum AttackType: Hashable, Codable {
-                case melee
-                case ranged
             }
 
             public enum Range: Hashable, Codable {
                 case reach(Int)
                 case range(Int, Int?)
+
+                public var isReach: Bool {
+                    if case .reach = self {
+                        return true
+                    }
+                    return false
+                }
+
+                public var isRange: Bool {
+                    !isReach
+                }
             }
         }
 
-        public enum ActionEffect: Hashable, Codable {
-            case damage(Damage)
-            case saveableDamage(SaveableDamage)
+        public enum AttackType: Hashable, Codable {
+            case melee
+            case ranged
+        }
+
+        public struct AttackEffect: Hashable, Codable {
+            public var conditions: Conditions
+            public let damage: [Damage]
+            public let condition: CreatureCondition? // restrained, prone, etc.
+            public let other: String?
+
+            public init(
+                conditions: Conditions = .init(),
+                damage: [Damage] = [],
+                condition: CreatureCondition? = nil,
+                other: String? = nil
+            ) {
+                self.conditions = conditions
+                self.damage = damage
+                self.condition = condition
+                self.other = other
+            }
+
+            public struct Conditions: Hashable, Codable {
+                public let type: AttackType?
+                public var savingThrow: SavingThrow?
+                public let versatileWeaponGrip: Grip?
+                public var other: String?
+
+                public init(type: AttackType? = nil, savingThrow: SavingThrow? = nil, versatileWeaponGrip: Grip? = nil, other: String? = nil) {
+                    self.type = type
+                    self.savingThrow = savingThrow
+                    self.versatileWeaponGrip = versatileWeaponGrip
+                    self.other = other
+                }
+
+                public struct SavingThrow: Hashable, Codable {
+                    public let ability: Ability
+                    public let dc: Int
+                    public let saveEffect: SaveEffect
+
+                    public init(ability: Ability, dc: Int, saveEffect: SaveEffect) {
+                        self.ability = ability
+                        self.dc = dc
+                        self.saveEffect = saveEffect
+                    }
+
+                    public enum SaveEffect: Hashable, Codable {
+                        case none
+                        case half
+                    }
+                }
+
+                public enum Grip: Hashable, Codable {
+                    case oneHanded
+                    case twoHanded
+                }
+            }
 
             public struct Damage: Hashable, Codable {
                 public let staticDamage: Int
@@ -93,25 +152,6 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
                     self.damageExpression = damageExpression
                     self.type = type
                 }
-            }
-
-            public struct SaveableDamage: Hashable, Codable {
-                public let ability: Ability
-                public let dc: Int
-                public let damage: Damage
-                public let saveEffect: SaveEffect
-
-                public init(ability: Ability, dc: Int, damage: Damage, saveEffect: SaveEffect) {
-                    self.ability = ability
-                    self.dc = dc
-                    self.damage = damage
-                    self.saveEffect = saveEffect
-                }
-            }
-
-            public enum SaveEffect: Hashable, Codable {
-                case none
-                case half
             }
         }
     }
