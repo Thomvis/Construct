@@ -200,7 +200,7 @@ public struct ChatMessage: Codable, Equatable {
 
 public struct ChatCompletionRequest: Codable, Equatable {
     public let model: Model
-    public let messages: [ChatMessage]
+    public var messages: [ChatMessage]
     public let maxTokens: Int?
     public let temperature: Float?
     var stream: Bool = false
