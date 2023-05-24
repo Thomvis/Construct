@@ -32,6 +32,14 @@ public struct ArrayBuilder<Element> {
     public static func buildIf(_ element: [Element]?) -> [Element] {
         element ?? []
     }
+
+    public static func buildEither(first component: [Element]) -> [Element] {
+        component
+    }
+
+    public static func buildEither(second component: [Element]) -> [Element] {
+        component
+    }
 }
 
 public extension Array {

@@ -10,6 +10,7 @@ import Foundation
 import Tagged
 import Combine
 import Dice
+import Helpers
 
 public struct DiceLogPublisher {
     private let subject: PassthroughSubject<(DiceLogEntry.Result, RollDescription), Never> = .init()

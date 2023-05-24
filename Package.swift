@@ -27,12 +27,12 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.49.2"),
         .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
-        .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.3.0"),
+        .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.5.0"),
         .package(url: "https://github.com/Thomvis/GRDB.swift.git", from: "5.0.0"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "0.0.4"),
         .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.6.1"),
-        .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.11.0"),
+        .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.12.0"),
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
         .package(url: "https://github.com/LaunchDarkly/swift-eventsource.git", from: "3.0.0")
     ],

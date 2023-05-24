@@ -188,21 +188,20 @@ extension DiceAction {
                     conditions.append("DC \(save.dc) \(save.ability.localizedDisplayName) Saving Throw")
                 }
 
-                return Array(builder: {
+                return Array<Step>(builder: {
                     if !conditions.isEmpty {
                         Step(title: conditions.joined(separator: ", ") + ":")
                     }
 
                     effect.damage.map { Step(damage: $0, conditions: effect.conditions) }
 
-                    if let other = effect.other {
+                    if let condition = effect.condition {
+                        Step(title: "Condition: \(condition)\(effect.other.map {" (\($0))"} ?? "")")
+                    } else if let other = effect.other {
                         Step(title: other)
                     }
-
-                    if let condition = effect.condition {
-                        Step(title: "Condition: \(condition)")
-                    }
                 })
+
             })
         )
     }

@@ -12,6 +12,7 @@ import URLRouting
 import Parsing
 import Helpers
 import Dice
+import CasePaths
 
 public enum DiceRollerInvocation {
     case unspecified

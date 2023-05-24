@@ -39,11 +39,11 @@ extension GenerateCombatantTraitsRequest: PromptConvertible {
 }
 
 public enum GenerateCombatantTraitsResponse {
-    static let parser = Parse {
+    static let parser = Parse(input: Substring.self) {
         Whitespace()
 
         OneOf {
-            Parse {
+            Parse(input: Substring.self) {
                 "```yaml"
                 Whitespace()
                 yamlParser
@@ -88,7 +88,7 @@ public enum GenerateCombatantTraitsResponse {
         trimmedString
     }
 
-    private static let trimmedString = Prefix { !$0.isNewline }.map {
+    private static let trimmedString = Prefix<Substring> { !$0.isNewline }.map {
         $0.trimmingCharacters(in: CharacterSet(["\"", "'", ".", " "]))
     }
 

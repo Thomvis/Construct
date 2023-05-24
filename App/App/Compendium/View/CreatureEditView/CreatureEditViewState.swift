@@ -714,7 +714,7 @@ extension CreatureEditFormModel {
     }
 
     init(combatant: AdHocCombatantDefinition) {
-        self.statBlock = StatBlockFormModel(statBlock: combatant.stats ?? .default)
+        self.statBlock = StatBlockFormModel(statBlock: combatant.stats)
         self.level = combatant.level
         self.player = combatant.player
         self.originalItemForAdHocCombatant = combatant.original

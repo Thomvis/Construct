@@ -165,19 +165,17 @@ struct StatBlockView: View {
     func rollButtonMenu() -> some View {
         Menu(content: {
             ForEach(Ability.allCases, id: \.self) { a in
-                if let modifier = stats.savingThrowModifier(a) {
-                    Button(action: {
-                        onTap?(.rollCheck(1.d(20)+modifier.modifier))
-                    }) {
-                        Label(
-                            "\(a.localizedDisplayName) save: \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))",
-                            systemImage: stats.savingThrows[a] != nil
-                                ? "circlebadge.fill"
-                                : "circlebadge"
-                        )
-                    }
-                } else {
-                    Text(a.localizedDisplayName)
+                let modifier = stats.savingThrowModifier(a)
+
+                Button(action: {
+                    onTap?(.rollCheck(1.d(20)+modifier.modifier))
+                }) {
+                    Label(
+                        "\(a.localizedDisplayName) save: \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))",
+                        systemImage: stats.savingThrows[a] != nil
+                            ? "circlebadge.fill"
+                            : "circlebadge"
+                    )
                 }
             }
         }) {
@@ -188,21 +186,19 @@ struct StatBlockView: View {
 
         ForEach(Skill.allCases, id: \.rawValue) { s in
             let title = "\(s.localizedDisplayName) (\(s.ability.localizedAbbreviation.uppercased()))"
-            if let modifier = stats.skillModifier(s) {
-                Button(action: {
-                    onTap?(.skill(s))
-                }) {
-                    Label(title: {
-                        Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
-                    }, icon: {
-                        Image(systemName: stats.skills[s] != nil
-                                ? "circlebadge.fill"
-                                : "circlebadge"
-                        )
-                    })
-                }
-            } else {
-                Text("\(title)")
+            let modifier = stats.skillModifier(s)
+
+            Button(action: {
+                onTap?(.skill(s))
+            }) {
+                Label(title: {
+                    Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
+                }, icon: {
+                    Image(systemName: stats.skills[s] != nil
+                            ? "circlebadge.fill"
+                            : "circlebadge"
+                    )
+                })
             }
         }
     }

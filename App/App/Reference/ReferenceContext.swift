@@ -117,7 +117,7 @@ extension ReferenceItemViewState {
     var referenceItemRequests: [ReferenceViewItemRequest] {
         switch content {
         case .compendium(let s):
-            return s.compendium.referenceItemRequests ?? []
+            return s.compendium.referenceItemRequests
         case .combatantDetail(let s):
             return s.detailState.itemRequest.nonNilArray
         case .addCombatant: return []
