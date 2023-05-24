@@ -91,13 +91,13 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
         public struct AttackEffect: Hashable, Codable {
             public var conditions: Conditions
             public let damage: [Damage]
-            public let condition: CreatureCondition? // restrained, prone, etc.
+            public let condition: CreatureConditionEffect? // restrained, prone, etc.
             public let other: String?
 
             public init(
                 conditions: Conditions = .init(),
                 damage: [Damage] = [],
-                condition: CreatureCondition? = nil,
+                condition: CreatureConditionEffect? = nil,
                 other: String? = nil
             ) {
                 self.conditions = conditions
@@ -151,6 +151,16 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
                     self.staticDamage = staticDamage
                     self.damageExpression = damageExpression
                     self.type = type
+                }
+            }
+
+            public struct CreatureConditionEffect: Hashable, Codable {
+                public let condition: CreatureCondition
+                public let comment: String?
+
+                public init(condition: CreatureCondition, comment: String? = nil) {
+                    self.condition = condition
+                    self.comment = comment
                 }
             }
         }

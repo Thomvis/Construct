@@ -256,9 +256,9 @@ public struct CreatureActionParser {
                     word().flatMap {
                         CreatureCondition(rawValue: $0)
                     }
-                ).map { _, c in Action.AttackEffect(condition: c) },
+                ).map { _, c in Action.AttackEffect(condition: .init(condition: c, comment: nil)) },
                 string("be knocked prone").map { _ in
-                    Action.AttackEffect(condition: .prone)
+                    Action.AttackEffect(condition: .init(condition: .prone, comment: nil))
                 },
                 skip(until: string(".").trimming(whitespace())).map {
                     Action.AttackEffect(other: $0.0)
@@ -292,7 +292,7 @@ public struct CreatureActionParser {
                     CreatureCondition(rawValue: $0)
                 }.trimming(whitespace()),
                 skip(until: string("."))
-            ).map { _, c, d in Action.AttackEffect(condition: c, other: d.0) },
+            ).map { _, c, d in Action.AttackEffect(condition: .init(condition: c, comment: d.0.nonEmptyString)) },
             skip(until: string(".").trimming(whitespace())).map {
                 Action.AttackEffect(other: $0.0)
             }

@@ -121,8 +121,7 @@ class CreatureActionParserTest: XCTestCase {
                     )
                 ]),
                 .init(
-                    condition: .grappled,
-                    other: "(escape dc 14)"
+                    condition: .init(condition: .grappled, comment: "(escape dc 14)")
                 )
             ]
         )))
@@ -249,8 +248,7 @@ class CreatureActionParserTest: XCTestCase {
                     conditions: .init(
                         other: "the target is a large or smaller creature"
                     ),
-                    condition: .grappled,
-                    other: "(escape dc 13)"
+                    condition: .init(condition: .grappled, comment: "(escape dc 13)")
                 )
             ]
         )))
@@ -376,6 +374,28 @@ class CreatureActionParserTest: XCTestCase {
             }
 
         assertSnapshot(matching: actions, as: .dump, record: false)
+    }
+
+    @MainActor
+    func testParsePerformance() async throws {
+        let sut = Open5eMonsterDataSourceReader(
+            dataSource: FileDataSource(path: defaultMonstersPath),
+            generateUUID: UUID.fakeGenerator()
+        )
+
+        let job = sut.makeJob()
+        let items = try await Array(job.output.compactMap { $0.item })
+
+        measure {
+            for item in items {
+                guard let monster = item as? Monster else { continue }
+                for action in monster.stats.actions {
+                    guard action.description.contains(Regex<Substring>(verbatim: "weapon attack").ignoresCase()) else { continue }
+                    _ = CreatureActionParser.parseRaw(action.description)
+                }
+            }
+        }
+
     }
 
 }
