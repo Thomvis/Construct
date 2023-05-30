@@ -70,6 +70,7 @@ struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: V
 
     struct PopoverWrapper: View {
         @Binding var popover: Popover?
+        @State var offset: CGSize = .zero
 
         var body: some View {
             ZStack {
@@ -89,6 +90,16 @@ struct PopoverPresenter<Popover>: UIViewControllerRepresentable where Popover: V
                             .cornerRadius(8)
                             .shadow(radius: 5)
                     )
+                    .offset(offset)
+                    .gesture(DragGesture().onChanged({ value in
+                        withAnimation(.interactiveSpring()) {
+                            offset = value.translation
+                        }
+                    }).onEnded({ _ in
+                        withAnimation(.spring()) {
+                            offset = .zero
+                        }
+                    }))
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
