@@ -129,7 +129,7 @@ struct MonsterTypeDomainParser: DomainParser {
 }
 
 struct CreatureActionDomainParser: DomainParser {
-    static let version: String = "1"
+    static let version: String = "2"
 
     static func parse(input: CreatureAction) -> ParsedCreatureAction? {
         return ParsedCreatureAction(

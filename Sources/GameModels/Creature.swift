@@ -269,7 +269,7 @@ public enum MovementMode: String, Codable, CaseIterable, Equatable {
 }
 
 public enum DamageType: String, Codable {
-    case acid, bludgeoning, cold, fire, force, lightning, necrotic, piercing, poison, phsychic, radiant, slashing, thunder
+    case acid, bludgeoning, cold, fire, force, lightning, necrotic, piercing, poison, psychic, radiant, slashing, thunder
 }
 
 public enum CreatureCondition: String, Codable {

@@ -90,8 +90,8 @@ public struct CreatureActionParser {
 
     static func hitParser() -> Parser<[Action.AttackEffect]> {
         zip(
-            string("hit:"),
-            whitespace(),
+            string("hit:").optional(),
+            whitespace().optional(),
             effectsParser()
         ).map { _, _, effects in
             effects

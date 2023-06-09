@@ -47,6 +47,23 @@ class CreatureActionParserTest: XCTestCase {
         )))
     }
 
+    func testMeleeAttackWithoutHitKeyword() {
+        let action = CreatureActionParser.parse("Melee Weapon Attack: +3 to hit, reach 5 ft., one target. 2 (1d4) bludgeoning damage")
+        XCTAssertNoDifference(action, .weaponAttack(.init(
+            hitModifier: 3,
+            ranges: [.reach(5)],
+            effects: [
+                .init(damage: [
+                    .init(
+                        staticDamage: 2,
+                        damageExpression: 1.d(4),
+                        type: .bludgeoning
+                    )
+                ])
+            ]
+        )))
+    }
+
     func testMeleeAttackStaticDamage() {
         let action = CreatureActionParser.parse("Melee Weapon Attack: +2 to hit, reach 5 ft., one target. Hit: 1 piercing damage.")
 
