@@ -57,8 +57,16 @@ struct DiceActionView: View {
                         SimpleButton(action: {
                             viewStore.send(.value(.roll(.details(.firstRoll))), animation: .default)
                         }) {
-                            Text(viewStore.state.title)
-                                .padding([.top, .bottom], 12)
+                            VStack(alignment: .leading) {
+                                Text(viewStore.state.title)
+
+                                if let subtitle = viewStore.state.subtitle {
+                                    Text(subtitle.localizedFirstLetterCapitalized)
+                                        .font(.footnote)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .frame(minHeight: 50)
                         }
                         Spacer()
 

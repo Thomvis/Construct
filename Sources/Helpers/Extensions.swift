@@ -455,3 +455,9 @@ public extension String {
         str.wrap(prefix: self, suffix: suffix)
     }
 }
+
+public extension String {
+    var localizedFirstLetterCapitalized: String {
+        prefix(1).localizedCapitalized + dropFirst()
+    }
+}

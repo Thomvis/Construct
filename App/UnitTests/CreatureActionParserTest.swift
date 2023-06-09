@@ -121,7 +121,7 @@ class CreatureActionParserTest: XCTestCase {
                     )
                 ]),
                 .init(
-                    condition: .init(condition: .grappled, comment: "(escape dc 14)")
+                    condition: .init(condition: .grappled, comment: "escape dc 14")
                 )
             ]
         )))
@@ -248,7 +248,7 @@ class CreatureActionParserTest: XCTestCase {
                     conditions: .init(
                         other: "the target is a large or smaller creature"
                     ),
-                    condition: .init(condition: .grappled, comment: "(escape dc 13)")
+                    condition: .init(condition: .grappled, comment: "escape dc 13")
                 )
             ]
         )))

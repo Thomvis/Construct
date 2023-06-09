@@ -291,8 +291,17 @@ public struct CreatureActionParser {
                 word().flatMap {
                     CreatureCondition(rawValue: $0)
                 }.trimming(whitespace()),
-                skip(until: string("."))
-            ).map { _, c, d in Action.AttackEffect(condition: .init(condition: c, comment: d.0.nonEmptyString)) },
+                either(
+                    zip(
+                        string("("),
+                        skip(until: string(")")),
+                        skip(until: string("."))
+                    ).map { $0.1.0 },
+                    skip(until: string(".")).map { $0.0 }
+                )
+            ).map { _, c, d in
+                Action.AttackEffect(condition: .init(condition: c, comment: d.nonEmptyString))
+            },
             skip(until: string(".").trimming(whitespace())).map {
                 Action.AttackEffect(other: $0.0)
             }

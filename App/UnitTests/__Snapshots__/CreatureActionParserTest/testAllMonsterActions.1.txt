@@ -2729,7 +2729,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 13)"
+                    - some: "escape dc 13"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 ▿ other: Optional<String>
@@ -3894,7 +3894,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 16) if the behir isn\'t already constricting a creature, and the target is restrained until this grapple ends"
+                    - some: "escape dc 16"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -4915,7 +4915,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 14) if the devil isn\'t already grappling a creature"
+                    - some: "escape dc 14"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -5084,7 +5084,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 14) if it is a large or smaller creature and the chuul doesn\'t have two other creatures grappled"
+                    - some: "escape dc 14"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -5475,7 +5475,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 14)"
+                    - some: "escape dc 14"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -5619,7 +5619,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 15)"
+                    - some: "escape dc 15"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -5699,7 +5699,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 12)"
+                    - some: "escape dc 12"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -7427,7 +7427,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 12)"
+                    - some: "escape dc 12"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -8560,7 +8560,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 16)"
+                    - some: "escape dc 16"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -8612,7 +8612,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 11)"
+                    - some: "escape dc 11"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -8664,7 +8664,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 16)"
+                    - some: "escape dc 16"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -8967,7 +8967,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 11)"
+                    - some: "escape dc 11"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -9136,7 +9136,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 16)"
+                    - some: "escape dc 16"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 ▿ other: Optional<String>
@@ -9383,7 +9383,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 12)"
+                    - some: "escape dc 12"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -9678,7 +9678,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 13)"
+                    - some: "escape dc 13"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -10033,7 +10033,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 15)"
+                    - some: "escape dc 15"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 ▿ other: Optional<String>
@@ -12732,7 +12732,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 18)"
+                    - some: "escape dc 18"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -13538,7 +13538,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 19)"
+                    - some: "escape dc 19"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 ▿ other: Optional<String>
@@ -14634,7 +14634,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 10)"
+                    - some: "escape dc 10"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -15033,7 +15033,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 13) and restrained until the grapple ends"
+                    - some: "escape dc 13"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 ▿ other: Optional<String>
@@ -16342,7 +16342,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 17)"
+                    - some: "escape dc 17"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 ▿ other: Optional<String>
@@ -16512,7 +16512,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 19)"
+                    - some: "escape dc 19"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -16579,7 +16579,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 15)"
+                    - some: "escape dc 15"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -17010,7 +17010,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 14)"
+                    - some: "escape dc 14"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 - other: Optional<String>.none
@@ -18663,7 +18663,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 20)"
+                    - some: "escape dc 20"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 ▿ other: Optional<String>
@@ -19311,7 +19311,7 @@
               ▿ condition: Optional<CreatureConditionEffect>
                 ▿ some: CreatureConditionEffect
                   ▿ comment: Optional<String>
-                    - some: "(escape dc 17)"
+                    - some: "escape dc 17"
                   - condition: CreatureCondition.grappled
               ▿ conditions: Conditions
                 ▿ other: Optional<String>

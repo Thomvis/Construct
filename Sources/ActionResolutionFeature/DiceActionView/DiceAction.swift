@@ -21,6 +21,7 @@ public struct DiceAction: Hashable {
     public struct Step: Hashable, Identifiable {
         public let id = UUID()
         let title: String
+        let subtitle: String?
         var value: Value?
 
         public enum Value: Hashable {
@@ -175,33 +176,50 @@ extension DiceAction {
             steps: IdentifiedArray(uniqueElements: [
                 Step(
                     title: "\(modifierFormatter.stringWithFallback(for: attack.hitModifier.modifier)) to hit",
+                    subtitle: nil,
                     value: .roll(Step.Value.RollValue(roll: .toHit(attack.hitModifier)))
                 )
             ] + attack.effects.flatMap { effect -> [Step] in
-                var conditions: [String] = []
+                var conditionComponents: [String] = []
 
-                if let other = effect.conditions.other {
-                    conditions.append(other)
+                if effect.conditions.type == .melee {
+                    conditionComponents.append("melee")
+                } else if effect.conditions.type == .ranged {
+                    conditionComponents.append("ranged")
                 }
 
                 if let save = effect.conditions.savingThrow {
-                    conditions.append("DC \(save.dc) \(save.ability.localizedDisplayName) Saving Throw")
+                    let saveDescription = "DC \(save.dc) \(save.ability.localizedDisplayName)"
+                    if effect.conditions.savingThrow?.saveEffect == .some(.none) {
+                        conditionComponents.append("on a failed save (\(saveDescription))")
+                    } else if effect.conditions.savingThrow?.saveEffect == .half {
+                        conditionComponents.append("on a failed save (\(saveDescription)), or halved otherwise")
+                    }
                 }
 
+                if effect.conditions.versatileWeaponGrip == .oneHanded {
+                    conditionComponents.append("one-handed")
+                } else if effect.conditions.versatileWeaponGrip == .twoHanded {
+                    conditionComponents.append("two-handed")
+                }
+
+                let conds = conditionComponents.nonEmptyArray?.joined(separator: ", ")
+
                 return Array<Step>(builder: {
-                    if !conditions.isEmpty {
-                        Step(title: conditions.joined(separator: ", ") + ":")
+                    effect.damage.map { Step(damage: $0, subtitle: conds) }
+
+                    if let creatureCondition = effect.condition {
+                        let title = "The target is \(creatureCondition.condition.localizedDisplayName)"
+                        let condsAndComment = [
+                            conds, creatureCondition.comment
+                        ].compactMap { $0 }.nonEmptyArray?.joined(separator: ", ")
+                        Step(title: title, subtitle: condsAndComment)
                     }
 
-                    effect.damage.map { Step(damage: $0, conditions: effect.conditions) }
-
-                    if let condition = effect.condition {
-                        Step(title: "Condition: \(condition.condition)\(condition.comment.map {" \($0)"} ?? "")")
-                    } else if let other = effect.other {
-                        Step(title: other)
+                    if let otherEffect = effect.other {
+                        Step(title: otherEffect, subtitle: conds)
                     }
                 })
-
             })
         )
     }
@@ -210,34 +228,12 @@ extension DiceAction {
 extension DiceAction.Step {
     init(
         damage: ParsedCreatureAction.Model.AttackEffect.Damage,
-        conditions: ParsedCreatureAction.Model.AttackEffect.Conditions
+        subtitle: String?
     ) {
-        var conditionComponents: [String] = []
-
-        if conditions.type == .melee {
-            conditionComponents.append("melee")
-        } else if conditions.type == .ranged {
-            conditionComponents.append("ranged")
-        }
-
-        if conditions.savingThrow?.saveEffect == .some(.none) {
-            conditionComponents.append("on a failed save")
-        } else if conditions.savingThrow?.saveEffect == .half {
-            conditionComponents.append("on a failed save, or halved otherwise")
-        }
-
-        if conditions.versatileWeaponGrip == .oneHanded {
-            conditionComponents.append("one-handed")
-        } else if conditions.versatileWeaponGrip == .twoHanded {
-            conditionComponents.append("two-handed")
-        }
-
-        let conds = conditionComponents.nonEmptyArray?.joined(separator: ", ")
-
         self.init(
             title: "\(damage.staticDamage)"
-                + (damage.damageExpression.map { " (\($0))" } ?? "") + " \(damage.type) damage"
-                + (conds.map { " (\($0))" } ?? ""),
+                + (damage.damageExpression.map { " (\($0))" } ?? "") + " \(damage.type) damage",
+            subtitle: subtitle,
             value: .roll(Value.RollValue(roll: .damage(damage)))
         )
     }

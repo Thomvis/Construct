@@ -515,3 +515,25 @@ extension Alignment: Codable {
         case unrecognizedAlignment
     }
 }
+
+public extension CreatureCondition {
+    var localizedDisplayName: String {
+        switch self {
+        case .blinded: return NSLocalizedString("blinded", comment: "Creature condition blinded")
+        case .charmed: return NSLocalizedString("charmed", comment: "Creature condition charmed")
+        case .deafened: return NSLocalizedString("deafened", comment: "Creature condition deafened")
+        case .fatigued: return NSLocalizedString("fatigued", comment: "Creature condition fatigued")
+        case .frightened: return NSLocalizedString("frightened", comment: "Creature condition frightened")
+        case .grappled: return NSLocalizedString("grappled", comment: "Creature condition grappled")
+        case .incapacitated: return NSLocalizedString("incapacitated", comment: "Creature condition incapacitated")
+        case .invisible: return NSLocalizedString("invisible", comment: "Creature condition invisible")
+        case .paralyzed: return NSLocalizedString("paralyzed", comment: "Creature condition paralyzed")
+        case .petrified: return NSLocalizedString("petrified", comment: "Creature condition petrified")
+        case .poisioned: return NSLocalizedString("poisioned", comment: "Creature condition poisioned")
+        case .prone: return NSLocalizedString("prone", comment: "Creature condition prone")
+        case .restrained: return NSLocalizedString("restrained", comment: "Creature condition restrained")
+        case .stunned: return NSLocalizedString("stunned", comment: "Creature condition stunned")
+        case .unconcious: return NSLocalizedString("unconcious", comment: "Creature condition unconcious")
+        }
+    }
+}
