@@ -24,7 +24,7 @@ struct NumberEntryPopover: Popover, View {
     }
 
     var body: some View {
-        WithViewStore(store.scope(state: State.init)) { viewStore in
+        WithViewStore(store, observe: State.init) { viewStore in
             VStack {
                 NumberEntryView(store: self.store)
                 Divider()

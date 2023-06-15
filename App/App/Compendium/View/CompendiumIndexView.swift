@@ -45,7 +45,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     }
 
     var body: some View {
-        WithViewStore(store.scope(state: { LocalState($0) })) { localViewStore in
+        WithViewStore(store, observe:LocalState.init) { localViewStore in
             Group {
                 contentView(localViewStore)
             }
@@ -71,7 +71,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             .sheet(item: localViewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
         }
         .modifier(CompendiumSearchableModifier(store: store))
-        .alert(store.scope(state: \.alert), dismiss: .alert(nil))
+        .alert(store.scope(state: \.alert, action: { $0 }), dismiss: .alert(nil))
         // workaround: an inline NavigationLink inside navigationBarItems would be set to inactive
         // when the document picker of the import view is dismissed
         .stateDrivenNavigationLink(
@@ -86,7 +86,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     func contentView(_ localViewStore: ViewStore<LocalState, CompendiumIndexAction>) -> some View {
         switch localViewStore.state.results {
         case .succeededWithoutResults:
-            WithViewStore(store.scope(state: { $0.presentedNextSafariView })) { safariViewStore in
+            WithViewStore(store, observe: \.presentedNextSafariView) { safariViewStore in
                 VStack(spacing: 18) {
                     Text("No results").font(.title)
 
@@ -146,7 +146,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                 }
             }
 
-            WithViewStore(store.scope(state: { $0.results.input })) { viewStore in
+            WithViewStore(store, observe: \.results.input) { viewStore in
                 FilterButton(
                     viewStore: viewStore,
                     allAllowedItemTypes: localViewStore.state.allAllowedItemTypes
@@ -326,7 +326,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
 
     init(store: Store<CompendiumIndexState, CompendiumIndexAction>, viewProvider: CompendiumIndexViewProvider) {
         self.store = store
-        self.viewStore = ViewStore(store.scope(state: { LocalState($0) }))
+        self.viewStore = ViewStore(store, observe: LocalState.init)
         self.viewProvider = viewProvider
     }
 

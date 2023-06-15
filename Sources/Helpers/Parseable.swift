@@ -153,7 +153,7 @@ extension ParseableVisitor where Action == ParseableVisitorAction, Environment =
     public init(visit: @escaping (inout State) -> Bool) {
         self.init { state, action, env in
             assert(action == .visit)
-            return visit(&state) ? Effect(value: .didParse) : .none
+            return visit(&state) ? .send(.didParse) : .none
         }
     }
 
@@ -175,7 +175,7 @@ extension ParseableVisitor where Action == ParseableVisitorAction, Environment =
 }
 
 public protocol ParseableVisitable {
-    mutating func visitParseable() -> Effect<ParseableVisitorAction, Never>
+    mutating func visitParseable() -> EffectTask<ParseableVisitorAction>
 }
 
 public protocol HasParseableVisitor: ParseableVisitable {
@@ -183,7 +183,7 @@ public protocol HasParseableVisitor: ParseableVisitable {
 }
 
 extension ParseableVisitable where Self: HasParseableVisitor {
-    public mutating func visitParseable() -> Effect<ParseableVisitorAction, Never> {
+    public mutating func visitParseable() -> EffectTask<ParseableVisitorAction> {
         return Self.parseableVisitor.run(&self, .visit, ())
     }
 }

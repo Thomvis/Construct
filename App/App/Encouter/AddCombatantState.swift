@@ -75,7 +75,7 @@ struct AddCombatantState: Equatable {
                 case .creatureEditView(.onAddTap(let s)):
                     state.creatureEditViewState = nil
                     if let combatant = s.adHocCombatant {
-                        return Effect(value: .onSelect([Combatant(adHoc: combatant)], dismiss: true))
+                        return .send(.onSelect([Combatant(adHoc: combatant)], dismiss: true))
                     }
                 case .creatureEditView: break // handled below
                 case .onCreatureEditViewDismiss:

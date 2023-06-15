@@ -128,12 +128,12 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     state.scrollTo = id
                 case .onQueryTypeFilterDidChange(let typeFilter):
                     if typeFilter == nil && state.properties.typeRestriction == nil {
-                        return Effect(value: .query(.onTypeFilterDidChange(nil)))
+                        return .send(.query(.onTypeFilterDidChange(nil)))
                     } else {
                         let restrictions = state.properties.typeRestriction ?? CompendiumItemType.allCases
                         let new = typeFilter ?? CompendiumItemType.allCases
                         let withinRestrictions = new.filter { restrictions.contains($0 )}
-                        return Effect(value: .query(.onTypeFilterDidChange(withinRestrictions)))
+                        return .send(.query(.onTypeFilterDidChange(withinRestrictions)))
                     }
                 case .onAddButtonTap(let type):
                     switch type {
@@ -164,53 +164,44 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     state.presentedScreens[.detail] = s
                 case .creatureEditSheet(CreatureEditViewAction.onAddTap(let editState)):
                     // adding a new creature
-                    return Effect.run { subscriber in
+                    return .run { send in
                         if let item = editState.compendiumItem {
                             let entry = CompendiumEntry(item)
                             _ = try? env.compendium.put(entry)
-                            subscriber.send(.scrollTo(entry.key))
-                            subscriber.send(.results(.result(.reload(.all))))
+                            await send(.scrollTo(entry.key))
+                            await send(.results(.result(.reload(.all))))
                         }
-                        subscriber.send(.setSheet(nil))
-                        subscriber.send(completion: .finished)
-                        return AnyCancellable { }
+                        await send(.setSheet(nil))
                     }
                 case .groupEditSheet(CompendiumItemGroupEditAction.onAddTap(let group)):
                     // adding a group
-                    return Effect.run { subscriber in
+                    return .run { send in
                         let entry = CompendiumEntry(group)
                         try? env.compendium.put(entry)
 
-                        subscriber.send(.results(.result(.reload(.all))))
-                        subscriber.send(.scrollTo(entry.key))
-                        subscriber.send(.setSheet(nil))
-                        subscriber.send(completion: .finished)
-
-                        return AnyCancellable { }
+                        await send(.results(.result(.reload(.all))))
+                        await send(.scrollTo(entry.key))
+                        await send(.setSheet(nil))
                     }
                 case .nextScreen(.compendiumEntry(.didRemoveItem)),
                      .detailScreen(.compendiumEntry(.didRemoveItem)):
                     // creature removed
-                    return Effect.run { subscriber in
-                        subscriber.send(.setNextScreen(nil))
+                    return .run { send in
+                        await send(.setNextScreen(nil))
 
                         // Work-around: without the delay, `.setNextScreen(nil)` is not picked up
                         // (probably because .reload makes the NavigationLink disappear)
-                        DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
-                            subscriber.send(.results(.result(.reload(.currentCount))))
-                            subscriber.send(completion: .finished)
-                        }
-
-                        return AnyCancellable { }
+                        try await Task.sleep(for: .seconds(0.1))
+                        await send(.results(.result(.reload(.currentCount))))
                     }
                 case .nextScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))),
                      .detailScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))):
                     // done editing an existing creature
-                    return Effect(value: .results(.result(.reload(.currentCount))))
+                    return .send(.results(.result(.reload(.currentCount))))
                 case .nextScreen(.compendiumEntry(.entry)),
                      .detailScreen(.compendiumEntry(.entry)):
                     // creature on the detail screen changed
-                    return Effect(value: .results(.result(.reload(.currentCount))))
+                    return .send(.results(.result(.reload(.currentCount))))
                 case .nextScreen, .detailScreen:
                     break
                 case .alert(let s):

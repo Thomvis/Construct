@@ -177,7 +177,7 @@ extension ReferenceViewState {
                 state.items.removeAll(where: { $0.id == id })
 
                 if state.items.isEmpty {
-                    return Effect(value: .onNewTabTapped)
+                    return .send(.onNewTabTapped)
                 }
             case .moveTab(let from, let to):
                 state.items.move(fromOffsets: IndexSet(integer: from), toOffset: to)
@@ -190,7 +190,7 @@ extension ReferenceViewState {
                     state.selectedItemId = state.items.first?.id
                 }
             case .item(let id, .close):
-                return Effect(value: .removeTab(id))
+                return .send(.removeTab(id))
             case .item: break // handled above
             }
             return .none

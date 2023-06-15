@@ -39,7 +39,7 @@ struct AnimatedRollState: Hashable {
         case .roll(let expr):
             state.expression = expr
             state.result = expr.roll
-            return Effect(value: .rollIntermediary(expr, 5))
+            return .send(.rollIntermediary(expr, 5))
         case .rollIntermediary(let expr, let remaining):
             guard expr == state.expression && remaining > 0 else {
                 state.intermediaryResult = nil
@@ -48,7 +48,7 @@ struct AnimatedRollState: Hashable {
 
             state.intermediaryResult = expr.roll
 
-            return Effect(value: .rollIntermediary(expr, remaining-1))
+            return .send(.rollIntermediary(expr, remaining-1))
                 .delay(for: 0.08, scheduler: env.mainQueue.animation())
                 .eraseToEffect()
         }

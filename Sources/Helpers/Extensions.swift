@@ -196,9 +196,7 @@ public extension AnyReducer {
     // From https://github.com/pointfreeco/isowords/blob/244925184babddd477d637bdc216fb34d1d8f88d/Sources/TcaHelpers/OnChange.swift#L4
     func onChange<LocalState>(
         of toLocalState: @escaping (State) -> LocalState,
-        perform additionalEffects: @escaping (LocalState, inout State, Action, Environment) -> Effect<
-        Action, Never
-        >
+        perform additionalEffects: @escaping (LocalState, inout State, Action, Environment) -> EffectTask<Action>
     ) -> Self where LocalState: Equatable {
         .init { state, action, environment in
             let previousLocalState = toLocalState(state)

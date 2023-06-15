@@ -58,7 +58,7 @@ public struct PagingDataError: Swift.Error, Equatable {
     }
 }
 
-private enum LoadID { }
+private enum CancelID { case load }
 
 public extension PagingData {
     struct FetchRequest {
@@ -84,7 +84,7 @@ public extension PagingData {
                 // work-around for issue https://github.com/pointfreeco/swift-composable-architecture/issues/1848
                 // when used inside a MapState
                 .eraseToEffect()
-                .cancellable(id: LoadID.self)
+                .cancellable(id: CancelID.load)
             }
 
             func loadIfNeeded(for idx: Int, state: inout Self) -> EffectTask<PagingDataAction<Element>> {
@@ -107,7 +107,7 @@ public extension PagingData {
                 state.loadingState = .notLoading(didReachEnd: false)
 
                 return loadIfNeeded(for: 0, state: &state)
-                    .prepend(EffectTask.cancel(id: LoadID.self))
+                    .prepend(EffectTask.cancel(id: CancelID.load))
                     .eraseToEffect()
             case .reload(.currentCount):
                 let count = state.elements?.count ?? 0
@@ -116,11 +116,11 @@ public extension PagingData {
 
                 if count > 0 {
                     return load(FetchRequest(offset: 0, count: count), in: &state)
-                        .prepend(EffectTask.cancel(id: LoadID.self))
+                        .prepend(EffectTask.cancel(id: CancelID.load))
                         .eraseToEffect()
                 } else {
                     return loadIfNeeded(for: 0, state: &state)
-                        .prepend(EffectTask.cancel(id: LoadID.self))
+                        .prepend(EffectTask.cancel(id: CancelID.load))
                         .eraseToEffect()
                 }
             case .reload(.all):
@@ -128,7 +128,7 @@ public extension PagingData {
                 state.loadingState = .notLoading(didReachEnd: false)
 
                 return load(FetchRequest(offset: 0, count: nil), in: &state)
-                    .prepend(EffectTask.cancel(id: LoadID.self))
+                    .prepend(EffectTask.cancel(id: CancelID.load))
                     .eraseToEffect()
             }
             return .none

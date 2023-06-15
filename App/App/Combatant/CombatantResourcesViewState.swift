@@ -31,7 +31,7 @@ struct CombatantResourcesViewState: NavigationStackItemState, Equatable {
                 guard let res = state.editState?.resource else { return .none }
                 state.editState = nil
 
-                return Effect(value: .combatant(.addResource(res)))
+                return .send(.combatant(.addResource(res)))
             case .editState: break // handled below
             }
             return .none

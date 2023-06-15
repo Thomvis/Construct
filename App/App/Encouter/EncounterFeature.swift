@@ -34,7 +34,7 @@ extension Encounter {
             case .add(let combatant):
                 state.combatants.append(combatant)
             case .addByKey(let key, let party):
-                return Effect<Action?, Never>.future { callback in
+                return .run { send in
                     do {
                         if let entry = try env.compendium.get(key, crashReporter: env.crashReporter),
                             let combatant = entry.item as? CompendiumCombatant
@@ -43,12 +43,9 @@ extension Encounter {
                                 compendiumCombatant: combatant,
                                 party: party.map { CompendiumItemReference(itemTitle: $0.title, itemKey: $0.key) }
                             )
-                            callback(.success(.add(combatant)))
-                            return
+                            await send (.add(combatant))
                         }
                     } catch { }
-
-                    callback(.success(nil))
                 }.compactMap { $0 }.eraseToEffect()
             case .remove(let combatant):
                 if let idx = state.combatants.firstIndex(where: { $0.id == combatant.id }) {

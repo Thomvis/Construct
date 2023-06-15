@@ -302,14 +302,14 @@ extension ReferenceItemViewState {
             case .set(let s): state = s
             // lift actions that need to be executed in the EncounterReferenceContext to .inContext
             case .contentAddCombatant(.addCombatant(.onSelect(let combatants, dismiss: _))):
-                return Effect(value: .inEncounterDetailContext(.addCombatant(.add(combatants))))
+                return .send(.inEncounterDetailContext(.addCombatant(.add(combatants))))
             case .contentAddCombatant(.onSelection(let a)):
-                return Effect(value: .inEncounterDetailContext(.addCombatant(a)))
+                return .send(.inEncounterDetailContext(.addCombatant(a)))
             case .contentCombatantDetail(.detail(.combatant(let a))):
                 guard let combatant = state.content.combatantDetailState?.detailState.combatant else {
                     return .none
                 }
-                return Effect(value: .inEncounterDetailContext(.combatantAction(combatant.id, a)))
+                return .send(.inEncounterDetailContext(.combatantAction(combatant.id, a)))
             case .contentCombatantDetail, .contentCompendium, .contentAddCombatant, .contentCompendiumItem: break // handled above
             case .contentSafari: break // does not occur
             case .inEncounterDetailContext: break // handled by parent

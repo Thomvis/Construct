@@ -146,7 +146,7 @@ final class MapTest: XCTestCase {
             AnyReducer<Self, ContainerAction, Environment> { state, action, env in
                 switch action {
                 case .triggerTwoInputChanges:
-                    return Effect.run { send in
+                    return .run { send in
                         await send(ContainerAction.counter(.input(.string("Construct"))))
                         await send(ContainerAction.counter(.input(.string("5e"))))
                     }
@@ -182,7 +182,7 @@ final class MapTest: XCTestCase {
                 switch action {
                 case .add:
                     let res = state.count + count
-                    return Effect.run { send in
+                    return .run { send in
                         try await env.clock.sleep(for: .seconds(1))
                         await send(.count(res))
                     }
@@ -190,7 +190,7 @@ final class MapTest: XCTestCase {
                     .eraseToEffect()
                 case .remove:
                     let res = state.count - count
-                    return Effect.run { send in
+                    return .run { send in
                         try await env.clock.sleep(for: .seconds(1))
                         await send(.count(res))
                     }

@@ -7,14 +7,13 @@
 //
 
 import Foundation
-import ComposableArchitecture
 import GameModels
 import Helpers
 
 enum SampleEncounter {
 
     // Creates a sample encounter and sets it as the scratch pad
-    static func create(with env: Environment) -> Effect<AppState.Action, Never> {
+    static func create(with env: Environment) {
         // create sample encounter and save to scratch pad
         let spe: Encounter? = try? env.database.keyValueStore.get(
             Encounter.key(Encounter.scratchPadEncounterId),
@@ -23,8 +22,6 @@ enum SampleEncounter {
 
         let encounter = createEncounter(with: env, existing: spe)
         try? env.database.keyValueStore.put(encounter)
-
-        return .none
     }
 
     static func createEncounter(with env: Environment, existing spe: Encounter? = nil) -> Encounter {

@@ -13,10 +13,10 @@ import SwiftUI
 
 struct NamedStatBlockContentItemEditViewState: Equatable {
     let intent: Intent
-    @BindableState var mode: Mode = .edit
-    @BindableState var fields = Fields(name: "", description: "")
+    @BindingState var mode: Mode = .edit
+    @BindingState var fields = Fields(name: "", description: "")
 
-    @BindableState private var preview: NamedStatBlockContentItem?
+    @BindingState private var preview: NamedStatBlockContentItem?
 
     init(editing item: NamedStatBlockContentItem) {
         self.intent = .edit(item)
@@ -90,7 +90,7 @@ extension NamedStatBlockContentItemEditViewState {
         .binding()
         .onChange(of: { $0.mode }) { mode, state, _, _ in
             if mode == .preview, state.preview?.name != state.fields.name || state.preview?.description != state.fields.description {
-                return Effect.run { [state] send in
+                return .run { [state] send in
                     var preview = state.makeItem()
                     preview.parseIfNeeded()
                     await send(.binding(.set(\.$preview, preview)), animation: .easeInOut)

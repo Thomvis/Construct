@@ -49,7 +49,7 @@ extension ColumnNavigationViewState {
             switch action {
             case .campaignBrowse, .referenceView:
                 if state.diceCalculator.canCollapse {
-                    return Effect(value: .diceCalculator(.collapse))
+                    return .send(.diceCalculator(.collapse))
                         .receive(on: env.mainQueue.animation())
                         .eraseToEffect()
                 }

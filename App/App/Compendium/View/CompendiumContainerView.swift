@@ -25,7 +25,7 @@ struct CompendiumContainerView: View {
 let compendiumRootReducer: AnyReducer<CompendiumIndexState, CompendiumIndexAction, Environment> = AnyReducer.combine(
     AnyReducer { state, action, env in
         if let monster = action.onSaveMonsterAsNPCButtonMonster {
-            return Effect.run(operation: { callback in
+            return .run { send in
                 var stats = monster.stats
                 stats.name = "\(stats.name) NPC"
                 let character = Character(id: UUID().tagged(), realm: .homebrew, level: nil, stats: stats, player: nil)
@@ -36,13 +36,13 @@ let compendiumRootReducer: AnyReducer<CompendiumIndexState, CompendiumIndexActio
                     try env.compendium.put(entry)
 
                     // configure view to display the character
-                    await callback(.query(.onFiltersDidChange(.init(types: [.character]))))
-                    await callback(.query(.onTextDidChange(nil)))
-                    await callback(.results(.result(.reload(.all))))
-                    await callback(.scrollTo(entry.key))
-                    await callback(.setNextScreen(nil))
+                    await send(.query(.onFiltersDidChange(.init(types: [.character]))))
+                    await send(.query(.onTextDidChange(nil)))
+                    await send(.results(.result(.reload(.all))))
+                    await send(.scrollTo(entry.key))
+                    await send(.setNextScreen(nil))
                 } catch { }
-            }).eraseToEffect()
+            }
         }
         return .none
     },

@@ -149,7 +149,7 @@ extension DiceAction.Step {
                     if state.rollValue?.second == nil {
                         state.rollValue?.second = AnimatedRollState(expression: rollValue.expression, result: nil, intermediaryResult: nil)
                         if rollValue.first.result != nil {
-                            return Effect(value: .value(.roll(.second(.roll(rollValue.expression)))))
+                            return .send(.value(.roll(.second(.roll(rollValue.expression)))))
                         }
                     }
                 } else {

@@ -162,7 +162,7 @@ struct ConstructView: View {
                     }
                 }
             }
-            .alert(store.scope(state: { $0.crashReportingPermissionAlert }), dismiss: .dismissPresentation(.crashReportingPermissionAlert))
+            .alert(store.scope(state: { $0.crashReportingPermissionAlert }, action: { $0 }), dismiss: .dismissPresentation(.crashReportingPermissionAlert))
             .task {
                 await viewStore.send(.onLaunch).finish()
             }

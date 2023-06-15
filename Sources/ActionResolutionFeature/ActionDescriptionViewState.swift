@@ -18,8 +18,8 @@ public struct ActionDescriptionViewState: Equatable {
     public typealias AsyncDescription = RetainState<AsyncDescriptionMapState, AsyncDescriptionReduceState>
 
     let encounterContext: ActionResolutionViewState.EncounterContext?
-    @BindableState var context: Context
-    @BindableState var settings: Settings = .init(outcome: nil, impact: .average)
+    @BindingState var context: Context
+    @BindingState var settings: Settings = .init(outcome: nil, impact: .average)
 
     private var description: AsyncDescription = .init(wrapped: .init(input: nil, result: .init(value: "")))
     private var cache: [RequestInput: AsyncReduceState<String, MechMuseError>] = [:]
@@ -144,9 +144,9 @@ extension ActionDescriptionViewState {
             case .onFeedbackButtonTap: break // handled by the parent
             case .onReloadOrCancelButtonTap:
                 if state.description.result.isReducing {
-                    return Effect(value: .description(.result(.stop)))
+                    return .send(.description(.result(.stop)))
                 } else {
-                    return Effect(value: .description(.set(state.input, nil)))
+                    return .send(.description(.set(state.input, nil)))
                 }
             case .didRollDiceAction(let a):
                 state.context.diceAction = a

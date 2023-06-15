@@ -48,19 +48,16 @@ let combatantReducer: AnyReducer<Combatant, CombatantAction, Environment> = AnyR
         if initiative { state.initiative = nil }
         if tags { state.tags.removeAll() }
 
-        return Effect.run { [state] subscriber in
+        return .run { [state] send in
             if resources {
                 for r in state.resources {
-                    subscriber.send(CombatantAction.resource(r.id, .reset))
+                    await send(CombatantAction.resource(r.id, .reset))
                 }
             }
 
             if hp {
-                subscriber.send(.hp(.reset))
+                await send(.hp(.reset))
             }
-
-            subscriber.send(completion: .finished)
-            return AnyCancellable { }
         }
     case .setDefinition(let def):
         if state.definition.definitionID != def.definition.definitionID {

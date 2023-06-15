@@ -262,29 +262,28 @@ extension EncounterDetailViewState {
             AnyReducer { state, action, env in
                 switch action {
                 case .onAppear:
-                    var actions: [Action] = [.buildingEncounter(.refreshCompendiumItems)]
-                    if state.resumableRunningEncounters.result == nil {
-                        actions.insert(.resumableRunningEncounters(.startLoading), at: 0)
-                    }
+                    return EffectTask.run { [state] send in
+                        if state.resumableRunningEncounters.result == nil {
+                            await send(.resumableRunningEncounters(.startLoading))
+                        }
 
-                    return actions.publisher.eraseToEffect()
+                        await send(.buildingEncounter(.refreshCompendiumItems))
+                    }
                 case .onResumeRunningEncounterTap(let resumableKey):
-                    return Effect.future { callback in
+                    return .run { send in
                         do {
                             if let runningEncounter: RunningEncounter = try env.database.keyValueStore.get(
                                 resumableKey,
                                 crashReporter: env.crashReporter
                             ) {
-                                callback(.success(.run(runningEncounter)))
+                                await send(.run(runningEncounter))
                             } else {
                                 assertionFailure("Could not resume run: \(resumableKey) not found")
-                                callback(.success(nil))
                             }
                         } catch {
                             assertionFailure("Could not resume run: \(error)")
-                            callback(.success(nil))
                         }
-                    }.compactMap { $0 }.receive(on: env.mainQueue.animation()).eraseToEffect()
+                    }.animation()
                 case .run(let runningEncounter):
                     let base = apply(state.building) {
                         $0.ensureStableDiscriminators = true
@@ -297,20 +296,20 @@ extension EncounterDetailViewState {
                 case .stop:
                     state.running = nil
                     state.encounter.runningEncounterKey = nil
-                    return Effect(value: .resumableRunningEncounters(.startLoading))
+                    return .send(.resumableRunningEncounters(.startLoading))
                 case .encounter(let a): // forward to the effective encounter
                     if state.running != nil {
-                        return Effect(value: .runningEncounter(.current(a)))
+                        return .send(.runningEncounter(.current(a)))
                     } else {
-                        return Effect(value: .buildingEncounter(a))
+                        return .send(.buildingEncounter(a))
                     }
                 case .buildingEncounter: break
                 case .runningEncounter: break
                 case .resumableRunningEncounters: break // handled below
                 case .removeResumableRunningEncounter(let key):
-                    return Effect.future { callback in
+                    return .run { send in
                         _ = try? env.database.keyValueStore.remove(key)
-                        callback(.success(.resumableRunningEncounters(.startLoading)))
+                        await send(.resumableRunningEncounters(.startLoading))
                     }
                 case .sheet(let s):
                     state.sheet = s
@@ -326,31 +325,29 @@ extension EncounterDetailViewState {
                 case .addCombatant: break // handled by AddCombatantState.reducer
                 case .addCombatantAction(let action, let dismiss):
                     let state = state
-                    return Effect.run { subscriber in
+                    return .run { send in
                         switch action {
                         case .add(let combatants):
                             for c in combatants {
-                                subscriber.send(.encounter(.add(c)))
+                                await send(.encounter(.add(c)))
                             }
                         case .addByKey(let keys, let party):
                             for key in keys {
-                                subscriber.send(.encounter(.addByKey(key, party)))
+                                await send(.encounter(.addByKey(key, party)))
                             }
                         case .remove(let definitionID, let quantity):
                             for c in state.encounter.combatants(with: definitionID).reversed().prefix(quantity) {
-                                subscriber.send(.encounter(.remove(c)))
+                                await send(.encounter(.remove(c)))
                             }
                         }
 
                         if dismiss {
-                            subscriber.send(.sheet(nil))
+                            await send(.sheet(nil))
                         }
-                        subscriber.send(completion: .finished)
-                        return AnyCancellable { }
                     }
                 case .combatantDetail(.combatant(let a)):
                     if let combatantDetailState = state.combatantDetailState {
-                        return Effect(value: .encounter(.combatant(combatantDetailState.combatant.id, a)))
+                        return .send(.encounter(.combatant(combatantDetailState.combatant.id, a)))
                     }
                 case .combatantDetail: break // handled by CombatantDetailViewState.reducer
                 case .popover(let p):
@@ -365,10 +362,10 @@ extension EncounterDetailViewState {
                     }
 
                     let runningEncounterPrefix = RunningEncounter.keyPrefix(for: state.building)
-                    return Effect.future { callback in
+                    return .run { send in
                         // remove all runs
                         _ = try? env.database.keyValueStore.removeAll(runningEncounterPrefix.rawValue)
-                        callback(.success(.resumableRunningEncounters(.startLoading)))
+                        await send(.resumableRunningEncounters(.startLoading))
                     }
                 case .editMode(let mode):
                     state.editMode = mode
@@ -396,7 +393,7 @@ extension EncounterDetailViewState {
                         }
                     }.publisher.eraseToEffect()
                 case .selectedCombatantTags(.combatant(let c, let a)):
-                    return Effect(value: .encounter(.combatant(c.id, a)))
+                    return .send(.encounter(.combatant(c.id, a)))
                 case .selectedCombatantTags: break // handled below
                 case .showCombatantDetailReferenceItem(let combatant):
                     let detailState = ReferenceItemViewState.Content.CombatantDetail(
@@ -431,20 +428,24 @@ extension EncounterDetailViewState {
                     guard env.canSendMail() else { break }
 
                     let currentState = state
-                    return Effect.run(operation: { @MainActor send in
+                    return .run { send in
                         try await Task.sleep(for: .seconds(0.1)) // delay for a bit so the menu has disappeared
+
+                        let imageData = await MainActor.run {
+                            env.screenshot()?.pngData()
+                        }
 
                         env.sendMail(.init(
                             subject: "Encounter Feedback",
                             attachment: Array(builder: {
                                 FeedbackMailContents.Attachment(customDump: currentState)
 
-                                if let imageData = env.screenshot()?.pngData() {
+                                if let imageData {
                                     FeedbackMailContents.Attachment(data: imageData, mimeType: "image/png", fileName: "view.png")
                                 }
                             })
                         ))
-                    })
+                    }
                 }
                 return .none
             },

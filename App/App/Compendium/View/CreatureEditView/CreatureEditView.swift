@@ -159,7 +159,7 @@ struct CreatureEditView: View {
         }
         .popover(popoverBinding)
         .sheet(item: viewStore.binding(get: { $0.sheet }, send: { .sheet($0) })) { item in
-            IfLetStore(store.scope(state: replayNonNil({ $0.sheet }))) { store in
+            IfLetStore(store.scope(state: replayNonNil({ $0.sheet }), action: { $0 })) { store in
                 SwitchStore(store) {
                     CaseLet(state: /CreatureEditViewState.Sheet.actionEditor, action: CreatureEditViewAction.creatureActionEditSheet) { store in
                         AutoSizingSheetContainer {

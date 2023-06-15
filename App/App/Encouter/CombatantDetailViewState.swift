@@ -144,9 +144,11 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 state.alert = a
             case .addLimitedResource(.onDoneTap):
                 guard case .addLimitedResource(let s) = state.popover else { return .none }
-                return Effect.fireAndForget {
+                return .run { send in
                     env.dismissKeyboard()
-                }.append([.popover(nil), .combatant(.addResource(s.resource))]).eraseToEffect()
+                    await send(.popover(nil))
+                    await send(.combatant(.addResource(s.resource)))
+                }
             case .addLimitedResource: break // handled below
             case .healthDialog: break // handled below
             case .rollCheckDialog: break // handled above
@@ -154,7 +156,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             case .initiativePopover: break // handled above
             case .editCreatureConfirmingUnlinkIfNeeded:
                 if let def = state.combatant.definition as? AdHocCombatantDefinition {
-                    return Effect(value: .setNextScreen(.creatureEditView(CreatureEditViewState(edit: def))))
+                    return EffectTask(value: .setNextScreen(.creatureEditView(CreatureEditViewState(edit: def))))
                 }
 
                 if state.combatant.definition is CompendiumCombatantDefinition {
@@ -166,8 +168,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                             action: .send(.unlinkAndEditCreature)
                         ),
                         secondaryButton: .cancel(
-                            TextState("Cancel"),
-                            action: nil
+                            TextState("Cancel")
                         )
                     )
                 }
@@ -182,15 +183,15 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 }
 
                 try? env.compendium.put(CompendiumEntry(item))
-                return Effect(value: .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: CompendiumCombatantDefinition(item: item, persistent: false)))))
+                return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: CompendiumCombatantDefinition(item: item, persistent: false)))))
             case .unlinkFromCompendium:
                 let currentDefinition = state.combatant.definition
 
                 let original = (currentDefinition as? CompendiumCombatantDefinition).map { CompendiumItemReference(itemTitle: $0.name, itemKey: $0.item.key) }
                 let def = AdHocCombatantDefinition(id: UUID().tagged(), stats: currentDefinition.stats, player: currentDefinition.player, level: currentDefinition.level, original: original)
-                return Effect(value: .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def))))
+                return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def))))
             case .unlinkAndEditCreature:
-                return Effect(value: .editCreatureConfirmingUnlinkIfNeeded)
+                return .send(.editCreatureConfirmingUnlinkIfNeeded)
                     .delay(for: 0, scheduler: env.mainQueue)
                     .prepend(.unlinkFromCompendium)
                     .eraseToEffect()
@@ -202,16 +203,16 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             case .nextScreen(.combatantTagsView(.combatant(let c, let a))):
                 guard c.id == state.combatant.id else { return .none }
                 // bubble-up action
-                return Effect(value: .combatant(a))
+                return .send(.combatant(a))
             case .nextScreen(.combatantResourcesView(.combatant(let a))):
                 // bubble-up action
-                return Effect(value: .combatant(a))
+                return .send(.combatant(a))
             case .nextScreen(.combatantTagEditView(.onDoneTap)):
                 let tag = state.presentedNextCombatantTagEditView?.tag
                 state.nextScreen = nil
 
                 if let tag = tag {
-                    return Effect(value: .combatant(.addTag(tag)))
+                    return .send(.combatant(.addTag(tag)))
                 }
             case .nextScreen(.creatureEditView(.onDoneTap(let state))):
                 guard let def = state.adHocCombatant else { return .none }
@@ -325,7 +326,7 @@ extension CompendiumItemReferenceTextAnnotation {
                                 state: ReferenceItemViewState(content: .compendiumItem(detailState)),
                                 oneOff: true
                             )
-                        case .tab: return Effect(value: internalAction.embed(detailState))
+                        case .tab: return .send(internalAction.embed(detailState))
                         }
                     }
                 case .external(let url):
@@ -337,7 +338,7 @@ extension CompendiumItemReferenceTextAnnotation {
                             state: ReferenceItemViewState(content: .safari(externalState)),
                             oneOff: true
                         )
-                    case .tab: return Effect(value: externalAction.embed(externalState))
+                    case .tab: return .send(externalAction.embed(externalState))
                     }
                 case .notFound: break
                 }

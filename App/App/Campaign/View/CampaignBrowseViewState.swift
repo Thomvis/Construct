@@ -231,12 +231,12 @@ extension CampaignBrowseViewState {
                     let s = state
 
                     if case .move(let nodes) = s.mode {
-                        return Effect(value: .performMove(nodes, s.node))
+                        return .send(.performMove(nodes, s.node))
                     }
                 case .performMove: // will bubble up below
                     break
                 case .moveSheet(.performMove(let items, let destination)):
-                    return Effect.fireAndForget {
+                    return .run { send in
                         // perform move
                         for item in items {
                             do {
@@ -245,7 +245,10 @@ extension CampaignBrowseViewState {
                                 env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                             }
                         }
-                    }.append([.sheet(nil), .items(.startLoading)]).eraseToEffect()
+
+                        await send(.sheet(nil))
+                        await send(.items(.startLoading))
+                    }
                 case .moveSheet:
                     break
                 case .sheet(let s):
@@ -256,12 +259,12 @@ extension CampaignBrowseViewState {
                     state.presentedScreens[.detail] = s
                 case .nextScreen(.campaignBrowse(.performMove(let items, let destination))):
                     // bubble-up
-                    return Effect(value: .performMove(items, destination))
+                    return .send(.performMove(items, destination))
                 case .nextScreen, .detailScreen:
                     break
-                case .didTapNodeEditDone(_, var node?, let title):
+                case .didTapNodeEditDone(_, let node?, let title):
                     // edit
-                    return Effect.result {
+                    return .run { [node] send in
                         // rename content
                         if node.contents?.type == .encounter, let key = node.contents?.key {
                             do {
@@ -272,17 +275,18 @@ extension CampaignBrowseViewState {
                             } catch { assertionFailure("Could not rename encounter") }
                         }
 
-                        node.title = title
+                        var newNode = node
+                        newNode.title = title
                         do {
-                            try env.campaignBrowser.put(node)
+                            try env.campaignBrowser.put(newNode)
                         } catch {
                             env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                         }
-                        return .success(.items(.startLoading))
+                        await send(.items(.startLoading))
                     }
                 case .didTapNodeEditDone(let state, nil, let title):
                     // new
-                    return Effect.result {
+                    return .run { send in
                         var contents: CampaignNode.Contents? = nil
                         if state.contentType == .encounter {
                             let encounter = Encounter(name: title, combatants: [])
@@ -306,16 +310,18 @@ extension CampaignBrowseViewState {
                         } catch {
                             env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                         }
-                        return .success(.items(.startLoading))
+                        await send(.items(.startLoading))
                     }
                 case .remove(let n):
-                    return Effect.fireAndForget {
+                    return .run { send in
                         do {
                             try env.campaignBrowser.remove(n)
                         } catch {
                             env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                         }
-                    }.append(.items(.startLoading)).eraseToEffect()
+
+                        await send(.items(.startLoading))
+                    }
                 case .items: break // handled below
                 }
                 return .none

@@ -55,7 +55,7 @@ struct DiceRollerAppClipApp: App {
 struct AppState: Equatable {
     var diceRoller = DiceRollerViewState()
 
-    @BindableState var showAppStoreOverlay: Bool = false
+    @BindingState var showAppStoreOverlay: Bool = false
     var didShowAppStoreOverlay: Bool = false
 }
 

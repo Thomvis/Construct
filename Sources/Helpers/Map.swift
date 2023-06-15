@@ -35,7 +35,7 @@ public extension MapState {
         var resultReducerCancellationId: UUID? = nil
         var resultReducer: AnyReducer<Result, ResultAction, Environment>? = nil
 
-        func updateReducer(state: inout Self) -> Effect<MapAction<Input, InputAction, Result, ResultAction>, Never> {
+        func updateReducer(state: inout Self) -> EffectTask<MapAction<Input, InputAction, Result, ResultAction>> {
             let cancellationId = UUID()
 
             state.result = resultState(state.input)
@@ -46,8 +46,8 @@ public extension MapState {
             resultReducerCancellationId = cancellationId            
 
             return .concatenate([
-                previousCancellationId.map(Effect.cancel),
-                resultAction(state.input).map { Effect(value: .result($0)) }
+                previousCancellationId.map { .cancel(id: $0) },
+                resultAction(state.input).map { .send(.result($0)) }
             ].compactMap { $0 })
         }
 
@@ -84,7 +84,7 @@ public extension MapState {
                     resultReducerCancellationId = cancellationId
 
                     return .concatenate([
-                        previousCancellationId.map(Effect.cancel),
+                        previousCancellationId.map { .cancel(id: $0) },
                     ].compactMap { $0 })
                 }
                 return .none

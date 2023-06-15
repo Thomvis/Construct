@@ -146,7 +146,7 @@ enum GenerateCombatantTraitsViewAction: BindableAction, Equatable {
 
 typealias GenerateCombatantTraitsViewEnvironment = EnvironmentWithMechMuse & EnvironmentWithCrashReporter
 
-private enum GenerateID { }
+private enum CancelID { case generateID }
 
 extension GenerateCombatantTraitsViewState {
     static let reducer: AnyReducer<Self, GenerateCombatantTraitsViewAction, GenerateCombatantTraitsViewEnvironment> = AnyReducer { state, action, env in
@@ -154,7 +154,7 @@ extension GenerateCombatantTraitsViewState {
         func perform(
             _ request: GenerateCombatantTraitsRequest,
             _ state: inout Self
-        ) -> Effect<GenerateCombatantTraitsViewAction, Never> {
+        ) -> EffectTask<GenerateCombatantTraitsViewAction> {
             state.isLoading = true
             state.error = nil
             return .run { send in
@@ -170,7 +170,7 @@ extension GenerateCombatantTraitsViewState {
                     await send(.onTraitGenerationDidFail(.unspecified), animation: .default)
                 }
             }
-            .cancellable(id: GenerateID.self)
+            .cancellable(id: CancelID.generateID)
         }
 
         switch action {
@@ -241,7 +241,7 @@ extension GenerateCombatantTraitsViewState {
             state.error = error
             state.isLoading = false
         case .onDoneButtonTap: // handled by the parent
-            return .cancel(id: GenerateID.self)
+            return .cancel(id: CancelID.generateID)
         case .binding: break // handled by the higher-order reducer
         }
 

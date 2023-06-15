@@ -118,11 +118,11 @@ struct DiceActionView: View {
                         SimpleButton(action: {
                             viewStore.send(.details(viewStore.state.details.toggled(.firstRoll)), animation: .default)
                         }) {
-                            rollView(ViewStore(store.scope(state: { $0.first })), step, viewStore.state, .firstRoll)
+                            rollView(ViewStore(store, observe: { $0.first }), step, viewStore.state, .firstRoll)
                                 .opacity(viewStore.state.details == .secondRoll ? 0.33 : 1.0)
                         }
 
-                        IfLetStore(store.scope(state: { $0.second })) { store in
+                        IfLetStore(store.scope(state: { $0.second }, action: { $0 })) { store in
                             WithViewStore(store) { secondViewStore in
                                 SimpleButton(action: {
                                     viewStore.send(.details(viewStore.state.details.toggled(.secondRoll)), animation: .default)

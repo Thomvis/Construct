@@ -162,10 +162,10 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
             AnyReducer { state, action, env in
                 switch action {
                 case .onAppear:
-                    if var group = state.entry.item as? CompendiumItemGroup {
-                        var entry = state.entry
+                    if let group = state.entry.item as? CompendiumItemGroup {
+                        let entry = state.entry
                         // refresh group members
-                        return Effect.future { callback in
+                        return .run { [group, entry] send in
                             do {
                                 let characters = try group.members.compactMap { member -> Character? in
                                     let item = try env.database.keyValueStore.get(
@@ -175,10 +175,12 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                                     return item as? Character
                                 }
 
-                                if group.updateMemberReferences(with: characters) {
-                                    entry.item = group
-                                    try env.database.keyValueStore.put(entry)
-                                    callback(.success(.entry(entry)))
+                                var newGroup = group
+                                if newGroup.updateMemberReferences(with: characters) {
+                                    var newEntry = entry
+                                    newEntry.item = newGroup
+                                    try env.database.keyValueStore.put(newEntry)
+                                    await send(.entry(newEntry))
                                 }
                             } catch {
                                 // failed
@@ -193,7 +195,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                 case .rollCheckPopover: break // handled by a reducer above
                 case .setSheet(let s): state.sheet = s
                 case .sheet(.creatureEdit(CreatureEditViewAction.onDoneTap(let state))):
-                    return Effect.run { subscriber in
+                    return .run { send in
                         let item = state.compendiumItem
                         if let orig = state.originalItem, orig.key != item?.key {
                             _ = try? env.database.keyValueStore.remove(orig.key)
@@ -201,42 +203,33 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                         if let item = item {
                             let entry = CompendiumEntry(item)
                             try? env.compendium.put(entry)
-                            subscriber.send(.entry(entry))
+                            await send(.entry(entry))
                         }
-                        subscriber.send(.setSheet(nil))
-                        subscriber.send(completion: .finished)
-
-                        return AnyCancellable { }
+                        await send(.setSheet(nil))
                     }
                 case .sheet(.creatureEdit(CreatureEditViewAction.onRemoveTap)):
                     let entryKey = state.entry.key
-                    return Effect.run { subscriber in
+                    return .run { send in
                         _ = try? env.database.keyValueStore.remove(entryKey.rawValue)
-                        subscriber.send(.setSheet(nil))
-                        DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
-                            subscriber.send(.didRemoveItem)
-                            subscriber.send(completion: .finished)
-                        }
+                        await send(.setSheet(nil))
 
-                        return AnyCancellable { }
+                        try await Task.sleep(for: .seconds(0.1))
+                        await send(.didRemoveItem)
                     }
                 case .sheet(.groupEdit(CompendiumItemGroupEditAction.onDoneTap(let group))):
                     let entry = CompendiumEntry(group)
                     state.entry = entry
-                    return Effect.future { callback in
+                    return .run { send in
                         try? env.compendium.put(entry)
-                        callback(.success(.setSheet(nil)))
+                        await send(.setSheet(nil))
                     }
                 case .sheet(.groupEdit(CompendiumItemGroupEditAction.onRemoveTap(let group))):
-                    return Effect.run { subscriber in
+                    return .run { send in
                         _ = try? env.database.keyValueStore.remove(group.key)
-                        subscriber.send(.setSheet(nil))
-                        DispatchQueue.main.asyncAfter(deadline: .now()+0.1) {
-                            subscriber.send(.didRemoveItem)
-                            subscriber.send(completion: .finished)
-                        }
+                        await send(.setSheet(nil))
 
-                        return AnyCancellable { }
+                        try await Task.sleep(for: .seconds(0.1))
+                        await send(.didRemoveItem)
                     }
                 case .sheet: break // handled by the reducers above
                 case .didRemoveItem: break // handled by the compendium index reducer

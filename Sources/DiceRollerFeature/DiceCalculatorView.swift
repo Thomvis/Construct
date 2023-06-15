@@ -143,12 +143,12 @@ public struct DiceCalculatorState: Hashable {
             state.mode = m
         case .onRerollButtonTap:
             if state.expression.diceCount == 0 {
-                return Effect(value: .mode(.editingExpression))
+                return .send(.mode(.editingExpression))
                     .receive(on: env.mainQueue.animation())
                     .eraseToEffect()
             } else {
                 state.result = state.expression.roll
-                return Effect(value: .startGeneratingIntermediaryResults(state.expression))
+                return .send(.startGeneratingIntermediaryResults(state.expression))
             }
         case .onShowDiceButtonTap:
             state.showDice.toggle()
@@ -167,7 +167,7 @@ public struct DiceCalculatorState: Hashable {
                     state.mode = .rollingExpression
                 }
 
-                return Effect(value: .startGeneratingIntermediaryResults(state.expression))
+                return .send(.startGeneratingIntermediaryResults(state.expression))
             }
         case .onResultDieTap(let idx):
             state.result?.rerollDice(idx)
@@ -185,7 +185,7 @@ public struct DiceCalculatorState: Hashable {
         case .clearExpression:
             state.reset()
         case .startGeneratingIntermediaryResults(let expression):
-            return Effect(value: .intermediaryResultsStep(expression, state.intermediaryResultStepCount))
+            return .send(.intermediaryResultsStep(expression, state.intermediaryResultStepCount))
         case .intermediaryResultsStep(let expression, let remaining):
             guard expression == state.expression else {
                 state.intermediaryResult = nil
@@ -207,7 +207,7 @@ public struct DiceCalculatorState: Hashable {
 
             state.intermediaryResult = expression.roll
 
-            return Effect(value: .intermediaryResultsStep(expression, remaining-1))
+            return .send(.intermediaryResultsStep(expression, remaining-1))
                 .delay(for: state.intermediaryResultStepDelay, scheduler: env.mainQueue.animation())
                 .eraseToEffect()
         }
@@ -327,7 +327,7 @@ struct OutcomeView: View {
         WithViewStore(store) { viewStore in
             ZStack {
                 if viewStore.state.showDice && viewStore.state.showDiceSummary {
-                    IfLetStore(store.scope(state: { $0.result(includingIntermediary: true) })) { store in
+                    IfLetStore(store.scope(state: { $0.result(includingIntermediary: true) }, action: { $0 })) { store in
                         ResultDetailView(store: store)
                     }
                 } else {

@@ -19,7 +19,7 @@ public struct ActionResolutionViewState: Equatable {
     let action: ParseableCreatureAction
     private let preferences: Preferences
 
-    @BindableState var mode: Mode = .diceAction
+    @BindingState var mode: Mode = .diceAction
     var diceAction: DiceActionViewState?
     var muse: ActionDescriptionViewState
 
@@ -105,26 +105,30 @@ public extension ActionResolutionViewState {
                 guard env.canSendMail() else { break }
 
                 let currentState = state
-                return Effect.run(operation: { @MainActor send in
-                    let renderer = ImageRenderer(
-                        content: ActionResolutionView(store: Store(
-                            initialState: currentState,
-                            reducer: .empty,
-                            environment: env
-                        ))
-                    )
+                return .run { send in
+                    let imageData = await MainActor.run {
+                        let renderer = ImageRenderer(
+                            content: ActionResolutionView(store: Store(
+                                initialState: currentState,
+                                reducer: .empty,
+                                environment: env
+                            ))
+                        )
+
+                        return renderer.uiImage?.pngData()
+                    }
 
                     env.sendMail(.init(
                         subject: "Action Resolution Feedback",
                         attachment: Array(builder: {
                             FeedbackMailContents.Attachment(customDump: currentState)
 
-                            if let imageData = renderer.uiImage?.pngData() {
+                            if let imageData {
                                 FeedbackMailContents.Attachment(data: imageData, mimeType: "image/png", fileName: "view.png")
                             }
                         })
                     ))
-                })
+                }
             default: break
             }
             return .none

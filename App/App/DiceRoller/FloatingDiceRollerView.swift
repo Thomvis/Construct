@@ -129,7 +129,7 @@ struct FloatingDiceRollerContainerView: View {
             switch viewStore.state.content {
             case .calculator: DiceCalculatorView(store: store.scope(state: { $0.diceCalculator }, action: { .diceCalculator($0) }))
             case .log:
-                WithViewStore(store.scope(state: { $0.diceLog })) { viewStore in
+                WithViewStore(store, observe: \.diceLog) { viewStore in
                     DiceLogFeedView(entries: viewStore.state.entries)
                         .frame(height: 300)
                 }

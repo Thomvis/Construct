@@ -143,18 +143,18 @@ struct AppState: Equatable {
                 case .onReceiveCrashReportingUserPermission(let permission):
                     env.crashReporter.registerUserPermission(permission)
                 case .welcomeSheetSampleEncounterTapped:
-                    return SampleEncounter.create(with: env)
-                        .append(Effect.result { () -> Result<Action?, Never> in
-                            // navigate to scratch pad
-                            if let encounter: Encounter = try? env.database.keyValueStore.get(
-                                Encounter.key(Encounter.scratchPadEncounterId),
-                                crashReporter: env.crashReporter
-                            ) {
-                                return .success(.navigation(.openEncounter(encounter)))
-                            } else {
-                                return .success(nil)
-                            }
-                        }.compactMap { $0 }.append(.dismissPresentation(.welcomeSheet))).eraseToEffect()
+                    return .run { send in
+                        SampleEncounter.create(with: env)
+
+                        if let encounter: Encounter = try? env.database.keyValueStore.get(
+                            Encounter.key(Encounter.scratchPadEncounterId),
+                            crashReporter: env.crashReporter
+                        ) {
+                            await send(.navigation(.openEncounter(encounter)))
+                        }
+
+                        await send(.dismissPresentation(.welcomeSheet))
+                    }
                 case .onAppear:
                     if !env.preferences().didShowWelcomeSheet {
                         return .init(value: .requestPresentation(.welcomeSheet))
@@ -183,9 +183,9 @@ struct AppState: Equatable {
                     }
                 case .onProcessRollForDiceLog(let result, let roll):
                     if state.navigation?.tabState != nil {
-                        return Effect(value: .navigation(.tab(.diceRoller(.onProcessRollForDiceLog(result, roll)))))
+                        return .send(.navigation(.tab(.diceRoller(.onProcessRollForDiceLog(result, roll)))))
                     } else {
-                        return Effect(value: .navigation(.column(.diceCalculator(.onProcessRollForDiceLog(result, roll)))))
+                        return .send(.navigation(.column(.diceCalculator(.onProcessRollForDiceLog(result, roll)))))
                     }
                 }
                 return .none
@@ -226,13 +226,13 @@ extension AppState.Navigation {
                     building: e,
                     isMechMuseEnabled: env.preferences().mechMuse.enabled
                 )
-                return Effect(value: .tab(.campaignBrowser(.setNextScreen(.encounter(detailState)))))
+                return .send(.tab(.campaignBrowser(.setNextScreen(.encounter(detailState)))))
             case (.column, .openEncounter(let e)):
                 let detailState = EncounterDetailViewState(
                     building: e,
                     isMechMuseEnabled: env.preferences().mechMuse.enabled
                 )
-                return Effect(value: AppStateNavigationAction.column(.campaignBrowse(.setNextScreen(.encounter(detailState)))))
+                return .send(AppStateNavigationAction.column(.campaignBrowse(.setNextScreen(.encounter(detailState)))))
             default:
                 break
             }

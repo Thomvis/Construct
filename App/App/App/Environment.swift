@@ -39,7 +39,7 @@ class Environment: ObservableObject {
     var backgroundQueue: AnySchedulerOf<DispatchQueue>
 
     var dismissKeyboard: () -> Void
-    var screenshot: () -> UIImage?
+    var screenshot: @MainActor () -> UIImage?
 
     var diceLog: DiceLogPublisher
     var crashReporter: CrashReporter
