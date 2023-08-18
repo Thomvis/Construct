@@ -600,7 +600,7 @@ struct CreatureEditView_Preview: PreviewProvider {
         CreatureEditView(
             store: Store(
                 initialState: CreatureEditViewState(edit: Monster(
-                    realm: .homebrew,
+                    realm: .init(CompendiumRealm.homebrew.id),
                     stats: StatBlock(
                         name: "Goblin",
                         armor: [],

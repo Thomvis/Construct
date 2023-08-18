@@ -12,7 +12,7 @@ public struct CompendiumItemKey: Codable, Hashable {
     public static let keySeparator = "::"
 
     public let type: CompendiumItemType
-    public let realm: Realm
+    public let realm: Realm // note: this could have been a CompendiumRealm.Id directly, but would require a complex migration
     public let identifier: String // unique per type
 
     public init(type: CompendiumItemType, realm: Realm, identifier: String) {
@@ -30,7 +30,7 @@ public struct CompendiumItemKey: Codable, Hashable {
         // we don't care about the first component, it's `CompendiumEntry.keyPrefix`
         guard components.count == 4, let type = CompendiumItemType(rawValue: components[1]) else { return nil }
 
-        self.init(type: type, realm: Realm(components[2]), identifier: components[3])
+        self.init(type: type, realm: Realm(.init(rawValue: components[2])), identifier: components[3])
     }
 
     /// monster::core::Aboleth
@@ -38,20 +38,13 @@ public struct CompendiumItemKey: Codable, Hashable {
         [type.rawValue, realm.description, identifier].joined(separator: Self.keySeparator)
     }
 
-    public struct Realm: ExpressibleByStringLiteral, CustomStringConvertible, Codable, Hashable {
-        let value: String
+    public struct Realm: CustomStringConvertible, Codable, Hashable {
+        let value: CompendiumRealm.Id
 
-        public init(_ value: String) {
-            self.value = value
+        public init(_ id: CompendiumRealm.Id) {
+            self.value = id
         }
 
-        public init(stringLiteral value: String) {
-            self.value = value
-        }
-
-        public var description: String { value }
-
-        public static let core = Realm("core")
-        public static let homebrew = Realm("homebrew")
+        public var description: String { value.rawValue }
     }
 }

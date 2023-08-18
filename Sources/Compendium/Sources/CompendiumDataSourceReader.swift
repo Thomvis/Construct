@@ -11,15 +11,13 @@ import Combine
 import GameModels
 
 public protocol CompendiumDataSourceReader {
+    associatedtype Input
+
     static var name: String { get }
 
-    var dataSource: CompendiumDataSource { get }
+    var dataSource: any CompendiumDataSource<Input> { get }
 
-    func makeJob() -> CompendiumDataSourceReaderJob
-}
-
-public protocol CompendiumDataSourceReaderJob {
-    var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> { get async throws }
+    func items(realmId: CompendiumRealm.Id) throws -> AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error>
 }
 
 public enum CompendiumDataSourceReaderOutput {

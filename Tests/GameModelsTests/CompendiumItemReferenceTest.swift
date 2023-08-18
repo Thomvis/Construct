@@ -21,7 +21,7 @@ final class CompendiumItemReferenceTest: XCTestCase {
     }
 
     func testMigrationFromV1() throws {
-        let orig = CompendiumItemReference_V1(itemTitle: "abc", itemKey: CompendiumItemKey(type: .monster, realm: .core, identifier: "abc"))
+        let orig = CompendiumItemReference_V1(itemTitle: "abc", itemKey: CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "abc"))
         let data = try JSONEncoder().encode(orig)
         let sut = try JSONDecoder().decode(CompendiumItemReference.self, from: data)
 

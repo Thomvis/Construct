@@ -257,7 +257,7 @@ class AppStoreScreenshotTests: XCTestCase {
 
     var tabNavigationCombatantDetailMage: some View {
         let entry = try! environment.database.keyValueStore.get(
-            CompendiumItemKey(type: .monster, realm: .core, identifier: "Mage")
+            CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "Mage")
         )
 
         let state = CombatantDetailViewState(

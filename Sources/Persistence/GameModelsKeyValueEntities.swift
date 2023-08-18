@@ -95,3 +95,24 @@ extension CompendiumEntry: KeyValueStoreEntity {
         )
     }
 }
+
+extension CompendiumSourceDocument: KeyValueStoreEntity {
+    public static var keyPrefix: String = "sourceDoc"
+    public var key: Key {
+        Key(id: realm.rawValue + id.rawValue)
+    }
+}
+
+extension CompendiumRealm: KeyValueStoreEntity {
+    public static var keyPrefix: String = "realm"
+    public var key: Key {
+        Key(id: id.rawValue)
+    }
+}
+
+extension CompendiumImportJob: KeyValueStoreEntity {
+    public static var keyPrefix: String = "importjob"
+    public var key: Key {
+        Key(id: id.rawValue)
+    }
+}

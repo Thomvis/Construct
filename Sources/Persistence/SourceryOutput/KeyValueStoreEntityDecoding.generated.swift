@@ -7,6 +7,9 @@ import Compendium
 let keyValueStoreEntities: [any KeyValueStoreEntity.Type] = [
     CampaignNode.self,
     CompendiumEntry.self,
+    CompendiumImportJob.self,
+    CompendiumRealm.self,
+    CompendiumSourceDocument.self,
     DefaultContentVersions.self,
     Encounter.self,
     Preferences.self,

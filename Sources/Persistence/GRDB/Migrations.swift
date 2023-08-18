@@ -30,6 +30,7 @@ extension Database {
         case v11 = "v11-runningEncounterKeyFix"
         case v12 = "v12-statBlock-removeDefaultProficiencyOverrides"
         case v13 = "v13-keyvaluestore-indexes"
+        case v14 = "v14-compendium-sources"
     }
 
     static func migrator() throws -> DatabaseMigrator {
@@ -393,6 +394,76 @@ extension Database {
             }
         }
 
+        migrator.registerMigration(Migration.v14.rawValue) { db in
+            let encoder = JSONEncoder()
+            let decoder = JSONDecoder()
+            let fixtures: [any KeyValueStoreEntity] = [
+                CompendiumRealm.core,
+                CompendiumRealm.homebrew,
+                CompendiumSourceDocument.srd5_1,
+                CompendiumSourceDocument.unknownCore,
+                CompendiumSourceDocument.homebrew
+            ]
+            
+            for fixture in fixtures {
+                try KeyValueStore.put(fixture, at: fixture.rawKey, in: db)
+            }
+
+            // update the compendium
+            let entryRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix())%")).fetchAll(db)
+            for var r in entryRecords {
+                // Read legacy source
+                guard var entryJSON = try? JSONSerialization.jsonObject(with: r.value, options: []) as? [String: Any] else {
+                    assertionFailure("Could not migrate \(r.key): failed to read entry")
+                    continue
+                }
+
+                // Migrate source
+                let newSource: CompendiumEntry.Source
+                let newDocument: CompendiumEntry.CompendiumSourceDocumentReference
+                if let legacySourceValue = entryJSON[CompendiumEntry.CodingKeys.source.stringValue] {
+                    guard let legacySourceData = try? JSONSerialization.data(withJSONObject: legacySourceValue),
+                          let legacySource = try? decoder.decode(LegacyModels.CompendiumEntry_Source.self, from: legacySourceData) else {
+                        assertionFailure("Could not migrate \(r.key): failed to read leagacy Source")
+                        continue
+                    }
+
+                    let (source, document) = CompendiumEntry.migrate(source: legacySource)
+                    newSource = source
+                    newDocument = document
+                } else {
+                    newSource = .created(nil)
+                    newDocument = .init(CompendiumSourceDocument.homebrew)
+                }
+
+                // Write new source & document to entry
+                guard let newSourceData = try? encoder.encode(newSource),
+                      let newSourceJSON = try? JSONSerialization.jsonObject(with: newSourceData) as? [String: Any],
+                      let newDocumentData = try? encoder.encode(newDocument),
+                      let newDocumentJSON = try? JSONSerialization.jsonObject(with: newDocumentData) as? [String: Any] else {
+                    assertionFailure("Could not migrate \(r.key): failed to convert new source & document to JSON")
+                    continue
+                }
+
+                entryJSON[CompendiumEntry.CodingKeys.source.stringValue] = newSourceJSON
+                entryJSON[CompendiumEntry.CodingKeys.document.stringValue] = newDocumentJSON
+
+                guard let entryData = try? JSONSerialization.data(withJSONObject: entryJSON) else {
+                    assertionFailure("Could not migrate \(r.key): failed to write new source & document JSON to the entry")
+                    continue
+                }
+
+                r.value = entryData
+
+                do {
+                    try r.save(db)
+                } catch {
+                    assertionFailure("Could not migrate \(r.key): failed to save updated record to the db")
+                    continue
+                }
+            }
+        }
+
         return migrator
     }
 }
@@ -406,5 +477,37 @@ extension DatabaseMigrator {
         migrate: @escaping (GRDB.Database) throws -> Void
     ) {
         registerMigration(identifier.rawValue, foreignKeyChecks: foreignKeyChecks, migrate: migrate)
+    }
+}
+
+extension CompendiumEntry {
+
+    static func migrate(source: LegacyModels.CompendiumEntry_Source) -> (CompendiumEntry.Source, CompendiumEntry.CompendiumSourceDocumentReference) {
+        if source.displayName == CompendiumSourceDocument.srd5_1.displayName {
+            return (.imported(nil), .init(CompendiumSourceDocument.srd5_1))
+        } else if source.bookmark != nil {
+            return (.imported(nil), .init(CompendiumSourceDocument.unknownCore))
+        } else {
+            return (.created(nil), .init(CompendiumSourceDocument.homebrew))
+        }
+    }
+
+}
+
+extension LegacyModels {
+    public struct CompendiumEntry_Source: Codable, Equatable {
+        public var readerName: String
+
+        public var sourceName: String
+        public var bookmark: Data?
+
+        public var displayName: String?
+
+        public init(readerName: String, sourceName: String, bookmark: Data? = nil, displayName: String? = nil) {
+            self.readerName = readerName
+            self.sourceName = sourceName
+            self.bookmark = bookmark
+            self.displayName = displayName
+        }
     }
 }

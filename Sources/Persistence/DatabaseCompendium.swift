@@ -17,10 +17,12 @@ public class DatabaseCompendium: Compendium {
 
     public let database: Database
     public let fallback: ExternalCompendium
+    public let metadata: CompendiumMetadata
 
     public init(database: Database, fallback: ExternalCompendium = .empty) {
         self.database = database
         self.fallback = fallback
+        self.metadata = CompendiumMetadata.live(database)
     }
 
     public func get(_ key: CompendiumItemKey) throws -> CompendiumEntry? {
@@ -168,4 +170,22 @@ extension CompendiumFilters {
             }
         })
     }
+}
+
+public extension CompendiumMetadata {
+
+    static func live(_ database: Database) -> Self {
+        CompendiumMetadata {
+            try database.keyValueStore.fetchAll(CompendiumSourceDocument.keyPrefix)
+        } realms: {
+            try database.keyValueStore.fetchAll(CompendiumRealm.keyPrefix)
+        } putRealm: { realm in
+            try database.keyValueStore.put(realm)
+        } putDocument: { doc in
+            try database.keyValueStore.put(doc)
+        } putJob: { job in
+            try database.keyValueStore.put(job)
+        }
+    }
+
 }

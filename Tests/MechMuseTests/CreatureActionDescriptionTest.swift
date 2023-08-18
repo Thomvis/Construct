@@ -15,7 +15,7 @@ final class CreatureActionDescriptionTest: XCTestCase {
     func testPrompt() {
         let request = CreatureActionDescriptionRequest(
             creature: Monster(
-                realm: .core,
+                realm: .init(CompendiumRealm.core.id),
                 stats: StatBlock(name: "Goblin"),
                 challengeRating: .oneEighth
             ),

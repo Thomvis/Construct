@@ -177,12 +177,16 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 
                 let item: CompendiumCombatant
                 if def.isUnique {
-                    item = Character(id: UUID().tagged(), realm: .homebrew, level: def.level, stats: def.stats, player: def.player)
+                    item = Character(id: UUID().tagged(), realm: .init(CompendiumRealm.homebrew.id), level: def.level, stats: def.stats, player: def.player)
                 } else {
-                    item = Monster(realm: .homebrew, stats: def.stats, challengeRating: Fraction(integer: 0))
+                    item = Monster(realm: .init(CompendiumRealm.homebrew.id), stats: def.stats, challengeRating: Fraction(integer: 0))
                 }
 
-                try? env.compendium.put(CompendiumEntry(item))
+                try? env.compendium.put(CompendiumEntry(
+                    item,
+                    source: .created(def.original),
+                    document: .init(CompendiumSourceDocument.homebrew)
+                ))
                 return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: CompendiumCombatantDefinition(item: item, persistent: false)))))
             case .unlinkFromCompendium:
                 let currentDefinition = state.combatant.definition

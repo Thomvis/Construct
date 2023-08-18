@@ -19,9 +19,8 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
     func testSarovin() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_sarovin", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.makeJob()
 
-        let item = try await job.output.compactMap { $0.item }.first
+        let item = try await sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item }.first
 
         let char = item as! Character
         XCTAssertEqual(char.level, 3)
@@ -44,9 +43,8 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
     func testRiverine() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_riverine", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.makeJob()
 
-        let item = try await job.output.compactMap { $0.item }.first
+        let item = try await sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item }.first
         let char = item as! Character
         XCTAssertEqual(char.level, 3)
 
@@ -68,9 +66,8 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
     func testMisty() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_misty", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.makeJob()
 
-        let item = try await job.output.compactMap { $0.item }.first
+        let item = try await sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item }.first
         let char = item as! Character
         XCTAssertEqual(char.level, 4)
 
@@ -92,9 +89,8 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
     func testIshmadon() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_ishmadon", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.makeJob()
 
-        let item = try await job.output.compactMap { $0.item }.first
+        let item = try await sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item }.first
         let char = item as! Character
         XCTAssertEqual(char.level, 4)
 
@@ -116,9 +112,8 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
     func testThrall() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_thrall", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.makeJob()
 
-        let item = try await job.output.compactMap { $0.item }.first
+        let item = try await sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item }.first
         let char = item as! Character
         XCTAssertEqual(char.level, 3)
 
@@ -140,9 +135,8 @@ class DndBeyondCharacterDataSourceReaderTest: XCTestCase {
     func testBass() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ddb_bass", ofType: "json")!)
         let sut = DDBCharacterDataSourceReader(dataSource: dataSource)
-        let job = sut.makeJob()
 
-        let item = try await job.output.compactMap { $0.item }.first
+        let item = try await sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item }.first
         let char = item as! Character
         XCTAssertEqual(char.level, 3)
 

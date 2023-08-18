@@ -14,47 +14,37 @@ import Helpers
 public class XMLCompendiumDataSourceReader: CompendiumDataSourceReader {
     public static let name = "XMLMonsterDataSourceReader"
 
-    public var dataSource: CompendiumDataSource
+    public var dataSource: any CompendiumDataSource<Data>
     let generateUUID: () -> UUID
 
-    public init(dataSource: CompendiumDataSource, generateUUID: @escaping () -> UUID) {
+    public init(dataSource: any CompendiumDataSource<Data>, generateUUID: @escaping () -> UUID) {
         self.dataSource = dataSource
         self.generateUUID = generateUUID
     }
 
-    public func makeJob() -> CompendiumDataSourceReaderJob {
-        return Job(source: dataSource, generateUUID: generateUUID)
-    }
+    public func items(realmId: CompendiumRealm.Id) throws -> AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
+        try dataSource.read().flatMap { data in
+            let items = XMLCompendiumParser.parse(data: data, elements: [.compendium(.monster(nil)), .compendium(.spell(nil))]).values
 
-    struct Job: CompendiumDataSourceReaderJob {
-        let source: CompendiumDataSource
-        let generateUUID: () -> UUID
-
-        var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
-            get async throws {
-                let items = try XMLCompendiumParser.parse(data: await source.read(), elements: [.compendium(.monster(nil)), .compendium(.spell(nil))]).values
-
-                return items
-                    .mapError { error in
-                        CompendiumDataSourceReaderError.incompatibleDataSource
-                    }
-                    .map { (element, content) -> CompendiumDataSourceReaderOutput in
-                        switch (element) {
-                        case .compendium(.monster(nil)):
-                            if let monster = Monster(elementContent: content, realm: .core, generateUUID: generateUUID) {
-                                return .item(monster)
-                            }
-                        case .compendium(.spell(nil)):
-                            if let spell = Spell(elementContent: content, realm: .core) {
-                                return .item(spell)
-                            }
-                        default: break
+            return items
+                .mapError { error in
+                    CompendiumDataSourceReaderError.incompatibleDataSource
+                }
+                .map { (element, content) -> CompendiumDataSourceReaderOutput in
+                    switch (element) {
+                    case .compendium(.monster(nil)):
+                        if let monster = Monster(elementContent: content, realm: .init(realmId), generateUUID: self.generateUUID) {
+                            return .item(monster)
                         }
-                        return .invalidItem(String(describing: element))
+                    case .compendium(.spell(nil)):
+                        if let spell = Spell(elementContent: content, realm: .init(realmId)) {
+                            return .item(spell)
+                        }
+                    default: break
                     }
-                    .stream
-            }
-        }
+                    return .invalidItem(String(describing: element))
+                }
+        }.stream
     }
 }
 

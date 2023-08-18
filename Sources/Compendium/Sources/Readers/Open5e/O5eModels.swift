@@ -7,22 +7,24 @@
 //
 
 import Foundation
+import Helpers
 
-enum O5e {
+public enum O5e {
     // This file was generated from JSON Schema using quicktype, do not modify it directly.
     // To parse the JSON, add this file to your project and do:
     //
     //   let monsters = try? newJSONDecoder().decode(Monsters.self, from: jsonData)
 
     // MARK: - Monster
-    struct Monster: Codable {
+    public struct Monster: Decodable {
         let name: String
-        let size: Size
-        let type: TypeEnum
+        let size: String
+        let type: String
         let subtype: String
-        let alignment: Alignment
+        let alignment: String
         let armorClass, hitPoints: Int
-        let hitDice, speed: String
+        let hitDice: String
+        let speed: Either<String, SpeedJSON>
         let strength, dexterity, constitution, intelligence: Int
         let wisdom, charisma: Int
         let constitutionSave, intelligenceSave, wisdomSave, history: Int?
@@ -30,17 +32,17 @@ enum O5e {
         let damageVulnerabilities: String
         let damageResistances, damageImmunities, conditionImmunities, senses: String
         let languages, challengeRating: String
-        let specialAbilities, actions: [Action]?
+        let specialAbilities, actions: Either<[Action], String>?
         let legendaryDesc: String?
-        let legendaryActions: [Action]?
-        let speedJSON: SpeedJSON
+        let legendaryActions: Either<[Action], String>?
+        let speedJSON: SpeedJSON?
         let armorDesc: String?
         let medicine, religion, dexteritySave, charismaSave: Int?
         let stealth: Int?
         let group: String?
         let persuasion, insight, deception, arcana: Int?
         let athletics, acrobatics, strengthSave: Int?
-        let reactions: [Action]?
+        let reactions: Either<[Action], String>?
         let survival, investigation, nature, intimidation: Int?
         let performance, animalHandling, sleightOfHand: Int?
 
@@ -80,7 +82,7 @@ enum O5e {
     // MARK: - Action
     struct Action: Codable {
         let name, desc: String
-        let attackBonus: Int
+        let attackBonus: Int?
         let damageDice: String?
         let damageBonus: Int?
 
@@ -146,7 +148,7 @@ enum O5e {
         case undead = "undead"
     }
 
-    struct Spell: Codable {
+    public struct Spell: Codable {
         let name, desc: String
         let higherLevel: String?
         let page, range, components: String

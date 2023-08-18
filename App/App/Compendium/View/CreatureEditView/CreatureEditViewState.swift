@@ -652,12 +652,12 @@ extension CreatureEditViewState {
 
     var monster: Monster? {
         guard let cr = model.challengeRating else { return nil }
-        return Monster(realm: mode.originalItem?.realm ?? .homebrew, stats: statBlock, challengeRating: cr)
+        return Monster(realm: mode.originalItem?.realm ?? .init(CompendiumRealm.homebrew.id), stats: statBlock, challengeRating: cr)
     }
 
     var character: Character? {
         let player = sections.contains(.player) ? model.player : nil
-        return Character(id: mode.originalCharacter?.id ?? UUID().tagged(), realm: mode.originalItem?.realm ?? .homebrew, level: model.level, stats: statBlock, player: player)
+        return Character(id: mode.originalCharacter?.id ?? UUID().tagged(), realm: mode.originalItem?.realm ?? .init(CompendiumRealm.homebrew.id), level: model.level, stats: statBlock, player: player)
     }
 
     var adHocCombatant: AdHocCombatantDefinition? {

@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import GameModels
+import Tagged
 
 public struct DefaultContentVersions: Codable, Hashable {
     public let monsters: String
@@ -21,3 +23,8 @@ public extension DefaultContentVersions {
 
 public let defaultMonstersPath = Bundle.module.path(forResource: "monsters", ofType: "json")!
 public let defaultSpellsPath = Bundle.module.path(forResource: "spells", ofType: "json")!
+
+public extension CompendiumImportSourceId {
+    static let defaultMonsters: Self = .init(type: "defaultContent", bookmark: "monsters")
+    static let defaultSpells: Self = .init(type: "defaultContent", bookmark: "spells")
+}

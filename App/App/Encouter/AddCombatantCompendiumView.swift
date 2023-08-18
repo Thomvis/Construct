@@ -38,7 +38,7 @@ struct AddCombatantCompendiumView: View {
         CompendiumIndexViewProvider(
             row: { store, entry in
                 (entry.item as? CompendiumCombatant).map { combatant in
-                    CombatantRowView(parent: self, compendiumIndexStore: store, combatant: combatant)
+                    CombatantRowView(parent: self, compendiumIndexStore: store, entry: entry, combatant: combatant)
                 }.replaceNilWith {
                     (entry.item as? CompendiumItemGroup).map { group in
                         GroupRowView(parent: self, compendiumIndexStore: store, entry: entry, group: group)
@@ -63,19 +63,22 @@ struct AddCombatantCompendiumView: View {
         var parent: AddCombatantCompendiumView
         var compendiumIndexStore: Store<CompendiumIndexState, CompendiumIndexAction>
         @ObservedObject var compendiumIndexViewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
+        let entry: CompendiumEntry
         let combatant: CompendiumCombatant
 
-        init(parent: AddCombatantCompendiumView, compendiumIndexStore: Store<CompendiumIndexState, CompendiumIndexAction>, combatant: CompendiumCombatant) {
+        init(parent: AddCombatantCompendiumView, compendiumIndexStore: Store<CompendiumIndexState, CompendiumIndexAction>, entry: CompendiumEntry, combatant: CompendiumCombatant) {
             self.parent = parent
             self.compendiumIndexStore = compendiumIndexStore
             self.compendiumIndexViewStore = ViewStore(compendiumIndexStore)
+            self.entry = entry
             self.combatant = combatant
         }
 
         var body: some View {
             HStack {
                 VStack(alignment: .leading) {
-                    Text(combatant.title).foregroundColor(Color.primary)
+                    Text(combatant.title).foregroundColor(Color.primary).lineLimit(1)
+
                     combatant.localizedSummary(in: compendiumIndexViewStore.state, env: parent.env)
                         .font(.footnote)
                         .multilineTextAlignment(.leading)
@@ -83,6 +86,14 @@ struct AddCombatantCompendiumView: View {
                 }
 
                 Spacer()
+
+                if ViewStore(compendiumIndexStore).properties.showSourceDocumentBadges {
+                    Text(entry.document.id.rawValue.uppercased())
+                        .font(.caption)
+                        .foregroundStyle(Color(UIColor.systemBackground))
+                        .padding([.leading, .trailing], 2)
+                        .background(Color(UIColor.systemFill).clipShape(RoundedRectangle(cornerRadius: 4)))
+                }
 
                 HStack(spacing: 6) {
                     with(parent.viewStore.state.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: combatant)]) { def in

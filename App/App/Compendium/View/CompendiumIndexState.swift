@@ -49,7 +49,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             switch $0 {
             case .compendiumIndex: return .compendiumIndex(CompendiumIndexState.nullInstance)
             case .itemDetail: return .itemDetail(CompendiumEntryDetailViewState.nullInstance)
-            case .compendiumImport: return .compendiumImport(CompendiumImportViewState())
+            case .compendiumImport: return .compendiumImport(CompendiumImportFeature.State())
             case .safariView: return .safariView(.nullInstance)
             }
         }
@@ -95,12 +95,14 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         let showImport: Bool
         let showAdd: Bool
         let typeRestriction: [CompendiumItemType]?
+
+        var showSourceDocumentBadges = false
     }
 
     enum NextScreen: Equatable {
         indirect case compendiumIndex(CompendiumIndexState)
         case itemDetail(CompendiumEntryDetailViewState)
-        case compendiumImport(CompendiumImportViewState)
+        case compendiumImport(CompendiumImportFeature.State)
         case safariView(SafariViewState)
     }
 
@@ -166,7 +168,11 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     // adding a new creature
                     return .run { send in
                         if let item = editState.compendiumItem {
-                            let entry = CompendiumEntry(item)
+                            let entry = CompendiumEntry(
+                                item,
+                                source: .created(nil),
+                                document: .init(CompendiumSourceDocument.homebrew)
+                            )
                             _ = try? env.compendium.put(entry)
                             await send(.scrollTo(entry.key))
                             await send(.results(.result(.reload(.all))))
@@ -176,7 +182,11 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 case .groupEditSheet(CompendiumItemGroupEditAction.onAddTap(let group)):
                     // adding a group
                     return .run { send in
-                        let entry = CompendiumEntry(group)
+                        let entry = CompendiumEntry(
+                            group,
+                            source: .created(nil),
+                            document: .init(CompendiumSourceDocument.homebrew)
+                        )
                         try? env.compendium.put(entry)
 
                         await send(.results(.result(.reload(.all))))
@@ -201,6 +211,10 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 case .nextScreen(.compendiumEntry(.entry)),
                      .detailScreen(.compendiumEntry(.entry)):
                     // creature on the detail screen changed
+                    return .send(.results(.result(.reload(.currentCount))))
+                case .nextScreen(.import(.importDidFinish(.some))),
+                     .detailScreen(.import(.importDidFinish(.some))):
+                    // import finished
                     return .send(.results(.result(.reload(.currentCount))))
                 case .nextScreen, .detailScreen:
                     break
@@ -242,10 +256,26 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 }
                 return nil
             }
-            .pullback(state: \.results, action: /CompendiumIndexAction.results),
+            .pullback(state: \.results, action: /CompendiumIndexAction.results)
+            .onChange(of: { $0.results.entries }, perform: { entries, state, _, env in
+                // If the list contains entries from multiple sources, we want to display the document badges
+                if !state.properties.showSourceDocumentBadges, let entries, let first = entries.first {
+                    if entries.dropFirst().first(where: { $0.document.id != first.document.id }) != nil {
+                        state.properties.showSourceDocumentBadges = true
+                    }
+                }
+
+                return .none
+            }),
             AnyReducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex),
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumIndexAction.creatureEditSheet, environment: { $0 }),
-            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet)
+            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet),
+            AnyReducer { env in
+                CompendiumImportFeature()
+                    .dependency(\.database, env.database)
+                    .dependency(\.uuid, UUIDGenerator(env.generateUUID))
+            }
+            .optional().pullback(state: \.presentedNextCompendiumImport, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.import)
         )
     }
 }
@@ -308,7 +338,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     enum NextScreenAction: Equatable {
         case compendiumIndex(CompendiumIndexAction)
         case compendiumEntry(CompendiumItemDetailViewAction)
-        case `import`
+        case `import`(CompendiumImportFeature.Action)
     }
 
     // Key-path support
@@ -397,4 +427,16 @@ extension CompendiumIndexState.RS {
         }
         return nil
     }
+}
+
+extension CompendiumImportFeature.State: NavigationStackItemState {
+    var navigationStackItemStateId: String {
+        return "CompendiumImportFeature.State"
+    }
+
+    var navigationTitle: String {
+        return "Import"
+    }
+
+
 }

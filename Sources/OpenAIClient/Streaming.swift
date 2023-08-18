@@ -7,6 +7,7 @@
 
 import Foundation
 import LDSwiftEventSource
+import Helpers
 
 extension EventSource.Config {
     init?(handler: EventHandler, request: URLRequest) {
@@ -57,7 +58,7 @@ struct MessageToTokenTransformer<Message> where Message: Decodable {
     }
 }
 
-extension URLSession {
+extension URLSession: StreamingHTTPClient {
     /// Known quirck: this method does actually not self, it creates a new URLSession instead
     /// Returns a stream of message event strings
     public func stream(for request: URLRequest) throws -> AsyncThrowingStream<String, Error> {

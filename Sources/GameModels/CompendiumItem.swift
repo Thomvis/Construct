@@ -35,9 +35,3 @@ public extension CompendiumItemType {
         }
     }
 }
-
-extension CompendiumItem {
-    public func encode<K>(in container: inout KeyedEncodingContainer<K>, key: K) throws where K: CodingKey {
-        try container.encode(self, forKey: key)
-    }
-}

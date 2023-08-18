@@ -15,62 +15,61 @@ import Dice
 public class ImprovedInitiativeDataSourceReader: CompendiumDataSourceReader {
     public static let name = "ImprovedInitiativeDataSourceReader"
 
-    public var dataSource: CompendiumDataSource
+    public var dataSource: any CompendiumDataSource<Data>
+    let generateUUID: () -> UUID
 
-    public init(dataSource: CompendiumDataSource) {
+    public init(dataSource: any CompendiumDataSource<Data>, generateUUID: @escaping () -> UUID) {
         self.dataSource = dataSource
+        self.generateUUID = generateUUID
     }
 
-    public func makeJob() -> CompendiumDataSourceReaderJob {
-        return Job(source: dataSource)
-    }
-
-    struct Job: CompendiumDataSourceReaderJob {
-        let source: CompendiumDataSource
-
-        var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
-            get async throws {
-                let data = try await source.read()
-
-                let file: [String:String]
-                do {
-                    file = try JSONDecoder().decode([String: String].self, from: data)
-                } catch {
-                    throw CompendiumDataSourceReaderError.incompatibleDataSource
-                }
-
-                guard let creatureListJson = file["ImprovedInitiative.Creatures"] else {
-                    throw CompendiumDataSourceReaderError.incompatibleDataSource
-                }
-
-                let creatureList = try JSONDecoder().decode([String].self, from: creatureListJson.data(using: .utf8)!)
-
-                return creatureList
-                    .lazy
-                    .compactMap { file["ImprovedInitiative.Creatures.\($0)"]?.data(using:. utf8) }
-                    .compactMap { try? JSONDecoder().decode(ImprovedInitiative.Creature.self, from: $0) }
-                    .map { creature -> CompendiumDataSourceReaderOutput in
-                        guard let monster = Monster(improvedInitiativeCreature: creature, realm: .core) else {
-                            return .invalidItem(String(describing: creature))
-                        }
-                        return .item(monster)
-                    }
-                    .async
-                    .stream
+    public func items(realmId: CompendiumRealm.Id) throws -> AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
+        try dataSource.read().flatMap { data in
+            let file: [String:String]
+            do {
+                file = try JSONDecoder().decode([String: String].self, from: data)
+            } catch {
+                throw CompendiumDataSourceReaderError.incompatibleDataSource
             }
-        }
+
+            guard let creatureListJson = file["ImprovedInitiative.Creatures"] else {
+                throw CompendiumDataSourceReaderError.incompatibleDataSource
+            }
+
+            let creatureList = try JSONDecoder().decode([String].self, from: creatureListJson.data(using: .utf8)!)
+
+            return creatureList
+                .lazy
+                .compactMap { file["ImprovedInitiative.Creatures.\($0)"]?.data(using:. utf8) }
+                .compactMap { try? JSONDecoder().decode(ImprovedInitiative.Creature.self, from: $0) }
+                .map { creature -> CompendiumDataSourceReaderOutput in
+                    guard let monster = Monster(improvedInitiativeCreature: creature, realm: .init(realmId), generateUUID: self.generateUUID) else {
+                        return .invalidItem(String(describing: creature))
+                    }
+                    return .item(monster)
+                }
+                .async
+        }.stream
     }
+
 }
 
 extension Monster {
-    init?(improvedInitiativeCreature c: ImprovedInitiative.Creature, realm: CompendiumItemKey.Realm) {
-        guard let stats = StatBlock(improvedInitiativeCreature: c), let cr = Fraction(rawValue: c.Challenge) else { return nil }
+    init?(
+        improvedInitiativeCreature c: ImprovedInitiative.Creature,
+        realm: CompendiumItemKey.Realm,
+        generateUUID: () -> UUID
+    ) {
+        guard let stats = StatBlock(improvedInitiativeCreature: c, generateUUID: generateUUID),
+                let cr = Fraction(rawValue: c.Challenge)
+        else { return nil }
+
         self.init(realm: realm, stats: stats, challengeRating: cr)
     }
 }
 
 extension StatBlock {
-    init?(improvedInitiativeCreature c: ImprovedInitiative.Creature) {
+    init?(improvedInitiativeCreature c: ImprovedInitiative.Creature, generateUUID: () -> UUID) {
         let abilities = AbilityScores(improvedInitiativeCreature: c.Abilities)
         
         let parsedType = DataSourceReaderParsers.typeParser.run(c.Type)
@@ -119,13 +118,13 @@ extension StatBlock {
             challengeRating: Fraction(rawValue: c.Challenge)!,
 
             features: c.Traits.map { t in
-                CreatureFeature(id: UUID(), name: t.Name, description: t.Content)
+                CreatureFeature(id: generateUUID(), name: t.Name, description: t.Content)
             },
             actions: c.Actions.map { a in
-                CreatureAction(id: UUID(), name: a.Name, description: a.Content)
+                CreatureAction(id: generateUUID(), name: a.Name, description: a.Content)
             },
             reactions: c.Reactions.map { r in
-                CreatureAction(id: UUID(), name: r.Name, description: r.Content)
+                CreatureAction(id: generateUUID(), name: r.Name, description: r.Content)
             },
             legendary: with(c.LegendaryActions) { actions in
                 let isDescriptionAction: (ImprovedInitiative.Creature.TraitOrAction) -> Bool = { $0.Name == "" || $0.Name == "Legendary Actions" }
@@ -135,7 +134,7 @@ extension StatBlock {
                 return Legendary(
                     description: description,
                     actions: actions.filter { !isDescriptionAction($0) }.map { a in
-                        ParseableCreatureAction(input: CreatureAction(id: UUID(), name: a.Name, description: a.Content))
+                        ParseableCreatureAction(input: CreatureAction(id: generateUUID(), name: a.Name, description: a.Content))
                     }
                 )
             }

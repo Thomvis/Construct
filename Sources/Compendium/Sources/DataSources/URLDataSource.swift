@@ -8,10 +8,11 @@
 
 import Foundation
 import Combine
+import Tagged
 
-public class URLDataSource: CompendiumDataSource {
+public final class URLDataSource: CompendiumDataSource {
     public static let name = "URLDataSource"
-    public var bookmark: Data? { url.data(using: .utf8) }
+    public var bookmark: String { url }
 
     let url: String
     let urlSession: URLSession
@@ -21,11 +22,20 @@ public class URLDataSource: CompendiumDataSource {
         self.urlSession = urlSession
     }
 
-    public func read() async throws -> Data {
-        do {
-            return try await urlSession.data(from: URL(string: url)!).0
-        } catch {
-            throw CompendiumDataSourceError.other(error)
+    public func read() throws -> AsyncThrowingStream<Data, Error> {
+        AsyncThrowingStream { continuation in
+            // do I really need a task here?
+            let t = Task {
+                do {
+                    continuation.yield(try await urlSession.data(from: URL(string: url)!).0)
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: CompendiumDataSourceError.other(error))
+                }
+            }
+            continuation.onTermination = { _ in
+                t.cancel()
+            }
         }
     }
 

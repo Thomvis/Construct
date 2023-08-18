@@ -41,7 +41,14 @@ struct AddCombatantState: Equatable {
         }.compactMap { definition -> CompendiumEntry? in
             if !definition.isUnique {
                 // FIXME: we don't have all the info here to properly create the entry
-                return CompendiumEntry(definition.item)
+                return CompendiumEntry(
+                    definition.item,
+                    source: .created(.init(definition.item)),
+                    document: .init(
+                        id: CompendiumSourceDocument.unknownCore.id,
+                        displayName: CompendiumSourceDocument.unknownCore.displayName
+                    )
+                )
             }
             return nil
         }.filter { c in !(compendiumState.suggestions?.contains(where: { $0.key == c.key }) ?? false) }

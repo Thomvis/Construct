@@ -21,6 +21,7 @@
 		E91CCC872615D21B00CB0527 /* AppStoreScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91CCC862615D21B00CB0527 /* AppStoreScreenshotTests.swift */; };
 		E91E596F24477D3E00975453 /* AlignmentTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E596E24477D3E00975453 /* AlignmentTest.swift */; };
 		E91EB0B423EE08CB00F40E46 /* roll.ahap in Resources */ = {isa = PBXBuildFile; fileRef = E91EB0B323EE08CA00F40E46 /* roll.ahap */; };
+		E9297CE92A3F285B00EFD8FC /* CompendiumImportFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9297CE82A3F285B00EFD8FC /* CompendiumImportFeature.swift */; };
 		E929AD202745A2E400A39CAD /* ParseableCreatureFeatureTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */; };
 		E92A41E4240D2F0C009AF440 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E3240D2F0C009AF440 /* WelcomeView.swift */; };
 		E92B8FD823C904D70040E6C5 /* ActivityButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92B8FD723C904D70040E6C5 /* ActivityButton.swift */; };
@@ -62,13 +63,13 @@
 		E95FA115231C58A30098BD83 /* DiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */; };
 		E95FD42F249BFA280023F363 /* EncounterDetailTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */; };
 		E963CCF7247AE5CD009863D7 /* CompendiumContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E46FC231D9390005D1E6F /* CompendiumContainerView.swift */; };
-		E963CCFA247BDEA6009863D7 /* CompendiumImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E999FBFC235E28AD000CCC8B /* CompendiumImportView.swift */; };
 		E96FC16923D3A5BE00A12F1E /* ogl.md in Resources */ = {isa = PBXBuildFile; fileRef = E96FC16823D3A5BE00A12F1E /* ogl.md */; };
 		E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96FC16A23D3A64800A12F1E /* WebView.swift */; };
 		E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */; };
 		E972BAA524793EFC00F313D7 /* NumberPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861723BDF4E5003B2DA2 /* NumberPadView.swift */; };
 		E974888F28B522B9004A5CFD /* AppInvocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E974888E28B522B9004A5CFD /* AppInvocation.swift */; };
 		E974889128B5231D004A5CFD /* DiceRollerInvocation in Frameworks */ = {isa = PBXBuildFile; productRef = E974889028B5231D004A5CFD /* DiceRollerInvocation */; };
+		E975753C2A5606EA008E8B60 /* Open5eAPI in Frameworks */ = {isa = PBXBuildFile; productRef = E975753B2A5606EA008E8B60 /* Open5eAPI */; };
 		E97651CA248AD9AA00C76865 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96FC16523D3976800A12F1E /* SettingsView.swift */; };
 		E97651CC248ADA0100C76865 /* EncounterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9846F6822A9A10E00A0836A /* EncounterDetailView.swift */; };
 		E97651CD248ADC1E00C76865 /* RunningEncounterActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97AEE66239786C800569E79 /* RunningEncounterActionBar.swift */; };
@@ -226,6 +227,7 @@
 		E91EB0B323EE08CA00F40E46 /* roll.ahap */ = {isa = PBXFileReference; lastKnownFileType = text; path = roll.ahap; sourceTree = "<group>"; };
 		E9238C3023871C8A0023DFC3 /* CreatureEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureEditView.swift; sourceTree = "<group>"; };
 		E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureEditViewState.swift; sourceTree = "<group>"; };
+		E9297CE82A3F285B00EFD8FC /* CompendiumImportFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImportFeature.swift; sourceTree = "<group>"; };
 		E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseableCreatureFeatureTest.swift; sourceTree = "<group>"; };
 		E92A41E3240D2F0C009AF440 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleEncounter.swift; sourceTree = "<group>"; };
@@ -312,7 +314,6 @@
 		E999FBD1235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImprovedInitiativeDataSourceReaderTest.swift; sourceTree = "<group>"; };
 		E999FBD5235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatBlockCombatantResourcesTest.swift; sourceTree = "<group>"; };
 		E999FBD8235DC688000CCC8B /* CombatantTagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagsView.swift; sourceTree = "<group>"; };
-		E999FBFC235E28AD000CCC8B /* CompendiumImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImportView.swift; sourceTree = "<group>"; };
 		E999FBFE235E2F29000CCC8B /* DocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPicker.swift; sourceTree = "<group>"; };
 		E99BAB1623CE57300086D42E /* RunningEncounterLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunningEncounterLogView.swift; sourceTree = "<group>"; };
 		E99C931528B1542800018518 /* DiceRollerAppClip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DiceRollerAppClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -368,6 +369,7 @@
 				E91CCC832614C4D200CB0527 /* Tagged in Frameworks */,
 				E991F89D2545A791006CE8E8 /* Introspect in Frameworks */,
 				E9869F7D2520A64B0098A166 /* GRDB in Frameworks */,
+				E975753C2A5606EA008E8B60 /* Open5eAPI in Frameworks */,
 				E9A46A49294291490082EED4 /* ActionResolutionFeature in Frameworks */,
 				E99C930A28B0189D00018518 /* GameModels in Frameworks */,
 				E9F1286D28E6D6130040C90C /* Persistence in Frameworks */,
@@ -418,6 +420,7 @@
 			isa = PBXGroup;
 			children = (
 				E91E46FB231D937F005D1E6F /* View */,
+				E9297CE82A3F285B00EFD8FC /* CompendiumImportFeature.swift */,
 			);
 			path = Compendium;
 			sourceTree = "<group>";
@@ -430,7 +433,6 @@
 				E91E46FC231D9390005D1E6F /* CompendiumContainerView.swift */,
 				E91E4700231D95A9005D1E6F /* CompendiumIndexView.swift */,
 				E97A43B32338B5FC00A8B032 /* CompendiumItemDetailView.swift */,
-				E999FBFC235E28AD000CCC8B /* CompendiumImportView.swift */,
 				E978861B23BE8E5A003B2DA2 /* CompendiumFilterSheet.swift */,
 				E9F1287828EA0BF40040C90C /* CompendiumQuery.swift */,
 				E972BA902477E56300F313D7 /* CompendiumIndexState.swift */,
@@ -830,6 +832,7 @@
 				E9F1286C28E6D6130040C90C /* Persistence */,
 				E9DEA083293E9359007166C1 /* MechMuse */,
 				E9A46A48294291490082EED4 /* ActionResolutionFeature */,
+				E975753B2A5606EA008E8B60 /* Open5eAPI */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -999,6 +1002,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9297CE92A3F285B00EFD8FC /* CompendiumImportFeature.swift in Sources */,
 				E942E013247EABA900170FAC /* StatBlockView.swift in Sources */,
 				E91C167D2405C5BB004B5C85 /* SafariView.swift in Sources */,
 				E9121E2925FA75D50048BE32 /* FloatingDiceRollerViewState.swift in Sources */,
@@ -1078,7 +1082,6 @@
 				E946B02F247E62CD008A407C /* NumberEntryPopover.swift in Sources */,
 				E9F1287328E9B6B00040C90C /* DiceExtensions.swift in Sources */,
 				E999896822A6B4F20067BA25 /* ConstructApp.swift in Sources */,
-				E963CCFA247BDEA6009863D7 /* CompendiumImportView.swift in Sources */,
 				E946B02A247DBB2F008A407C /* CompendiumFilterSheet.swift in Sources */,
 				E93CCC4D29153E03001E35BA /* NamedStatBlockContentItemEditView.swift in Sources */,
 				E991F88C25449D86006CE8E8 /* ReferenceView.swift in Sources */,
@@ -1577,6 +1580,10 @@
 		E974889028B5231D004A5CFD /* DiceRollerInvocation */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DiceRollerInvocation;
+		};
+		E975753B2A5606EA008E8B60 /* Open5eAPI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Open5eAPI;
 		};
 		E9869F732520A17A0098A166 /* AppCenterAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;

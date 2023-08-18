@@ -282,12 +282,12 @@ struct DiceRollerView_Preview: PreviewProvider {
                         name: "Test",
                         combatants: [
                             Combatant(monster: Monster(
-                                realm: .core,
+                                realm: .init(CompendiumRealm.core.id),
                                 stats: StatBlock(name: "Goblin"),
                                 challengeRating: .half
                             )),
                             apply(Combatant(monster: Monster(
-                                realm: .core,
+                                realm: .init(CompendiumRealm.core.id),
                                 stats: StatBlock(name: "Goblin"),
                                 challengeRating: .half
                             ))) {
@@ -299,13 +299,13 @@ struct DiceRollerView_Preview: PreviewProvider {
                                 )
                             },
                             Combatant(monster: Monster(
-                                realm: .core,
+                                realm: .init(CompendiumRealm.core.id),
                                 stats: StatBlock(name: "Bugbear"),
                                 challengeRating: .half
                             )),
                             Combatant(compendiumCombatant: Character(
                                 id: UUID().tagged(),
-                                realm: .homebrew,
+                                realm: .init(CompendiumRealm.core.id),
                                 stats: StatBlock(name: "Sarovin"),
                                 player: .init(name: nil)
                             ))

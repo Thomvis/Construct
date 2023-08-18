@@ -58,7 +58,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                 if localViewStore.state.showImportButton {
                     ToolbarItem(placement: .primaryAction) {
                         Button {
-                            localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportViewState())))
+                            localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportFeature.State())))
                         } label: {
                             Text("Import...")
                         }
@@ -78,7 +78,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             store: store,
             state: /CompendiumIndexState.NextScreen.compendiumImport,
             action: /CompendiumIndexAction.NextScreenAction.import,
-            destination: { _ in CompendiumImportView() }
+            destination: { store in CompendiumImportView(store: store) }
         )
     }
 
@@ -249,7 +249,7 @@ struct CompendiumIndexViewProvider {
 
     static let `default` = CompendiumIndexViewProvider(
         row: { store, entry in
-            CompendiumItemRow(store: store, item: entry.item).eraseToAnyView
+            CompendiumEntryRow(store: store, entry: entry).eraseToAnyView
         },
         detail: { store in
             CompendiumItemDetailView(store: store).eraseToAnyView
@@ -452,6 +452,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
         // not used by the view (store is used directly) but here to ensure the view is re-evaluated
         let presentedItemDetail: String?
         let isLoadingMoreEntries: Bool
+        let showSourceDocumentBadges: Bool
 
         let scrollTo: CompendiumEntry.Key?
 
@@ -478,6 +479,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
             self.isLoadingMoreEntries = state.results.isLoading
 
             self.scrollTo = state.scrollTo
+            self.showSourceDocumentBadges = state.properties.showSourceDocumentBadges
         }
 
         var useNamedSections: Bool {
@@ -494,20 +496,34 @@ fileprivate struct CompendiumItemList: View, Equatable {
     }
 }
 
-fileprivate struct CompendiumItemRow: View {
+fileprivate struct CompendiumEntryRow: View {
     @EnvironmentObject var env: Environment
 
     fileprivate var store: Store<CompendiumIndexState, CompendiumIndexAction>
 
-    let item: CompendiumItem
+    let entry: CompendiumEntry
 
     var body: some View {
-        VStack(alignment: .leading) {
-            Text(item.title)
-            item.localizedSummary(in: ViewStore(store).state, env: env)
-                .font(.footnote)
-                .foregroundColor(Color(UIColor.secondaryLabel))
-                .multilineTextAlignment(.leading)
+        HStack {
+            VStack(alignment: .leading) {
+                Text(entry.item.title).lineLimit(1)
+
+                entry.item.localizedSummary(in: ViewStore(store).state, env: env)
+                    .font(.footnote)
+                    .foregroundColor(Color(UIColor.secondaryLabel))
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(1)
+            }
+
+            if ViewStore(store).properties.showSourceDocumentBadges {
+                Spacer()
+
+                Text(entry.document.id.rawValue.uppercased())
+                    .font(.caption)
+                    .foregroundStyle(Color(UIColor.systemBackground))
+                    .padding([.leading, .trailing], 2)
+                    .background(Color(UIColor.systemFill).clipShape(RoundedRectangle(cornerRadius: 4)))
+            }
         }
     }
 }

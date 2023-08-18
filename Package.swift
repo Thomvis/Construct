@@ -19,6 +19,7 @@ let package = Package(
         .library(name: "Helpers", targets: ["Helpers"]),
         .library(name: "MechMuse", targets: ["MechMuse"]),
         .library(name: "OpenAIClient", targets: ["OpenAIClient"]),
+        .library(name: "Open5eAPI", targets: ["Open5eAPI"]),
         .library(name: "Persistence", targets: ["Persistence"]),
         .library(name: "PersistenceTestSupport", targets: ["PersistenceTestSupport"]),
         .library(name: "SharedViews", targets: ["Helpers"]),
@@ -58,6 +59,12 @@ let package = Package(
             resources: [
                 .copy("Fixtures/monsters.json"),
                 .copy("Fixtures/spells.json")
+            ]
+        ),
+        .testTarget(
+            name: "CompendiumTests",
+            dependencies: [
+                "Compendium"
             ]
         ),
         .target(
@@ -147,6 +154,12 @@ let package = Package(
                 "OpenAIClient",
 
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
+            ]
+        ),
+        .target(
+            name: "Open5eAPI",
+            dependencies: [
+                "Helpers"
             ]
         ),
         .target(

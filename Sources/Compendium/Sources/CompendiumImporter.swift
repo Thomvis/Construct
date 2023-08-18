@@ -20,11 +20,24 @@ public class CompendiumImporter {
 
     public func run(_ task: CompendiumImportTask) async throws -> Result {
         var result = Result()
-        let job = task.reader.makeJob()
-        for try await read in try await job.output {
+
+        let job = CompendiumImportJob(
+            sourceId: task.sourceId,
+            sourceVersion: task.sourceVersion,
+            documentId: task.document.id,
+            timestamp: Date()
+        )
+
+        try compendium.metadata.putJob(job)
+
+        for try await read in try task.reader.items(realmId: CompendiumRealm.core.id) {
             switch read {
             case .item(let item):
-                let entry = apply(CompendiumEntry(item, source: task.source)) {
+                let entry = apply(CompendiumEntry(
+                    item,
+                    source: .imported(job.id),
+                    document: .init(task.document)
+                )) {
                     // post-processing
 
                     _ = $0.visitParseable()
@@ -89,19 +102,26 @@ public enum CompendiumImporterError: LocalizedError {
 }
 
 public struct CompendiumImportTask {
-    public let reader: CompendiumDataSourceReader
+    public let sourceId: CompendiumImportSourceId
+    public let sourceVersion: String?
+
+    public let reader: any CompendiumDataSourceReader
+
+    public var document: CompendiumSourceDocument
 
     public let overwriteExisting: Bool
-    public var source: CompendiumEntry.Source
 
-    public init(reader: CompendiumDataSourceReader, overwriteExisting: Bool = false) {
+    public init(
+        sourceId: CompendiumImportSourceId,
+        sourceVersion: String?,
+        reader: any CompendiumDataSourceReader,
+        document: CompendiumSourceDocument,
+        overwriteExisting: Bool
+    ) {
+        self.sourceId = sourceId
+        self.sourceVersion = sourceVersion
         self.reader = reader
+        self.document = document
         self.overwriteExisting = overwriteExisting
-        self.source = CompendiumEntry.Source(
-            readerName: type(of: reader).name,
-            sourceName: type(of: reader.dataSource).name,
-            bookmark: reader.dataSource.bookmark,
-            displayName: nil
-        )
     }
 }

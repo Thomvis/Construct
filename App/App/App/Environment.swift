@@ -33,7 +33,7 @@ class Environment: ObservableObject {
 
     var isIdleTimerDisabled: Binding<Bool>
 
-    var generateUUID: () -> UUID
+    var generateUUID: @Sendable () -> UUID
     var rng: AnyRandomNumberGenerator
     var mainQueue: AnySchedulerOf<DispatchQueue>
     var backgroundQueue: AnySchedulerOf<DispatchQueue>
@@ -54,7 +54,7 @@ class Environment: ObservableObject {
         rateInAppStore: @escaping () -> Void,
         requestAppStoreReview: @escaping () -> Void,
         isIdleTimerDisabled: Binding<Bool>,
-        generateUUID: @escaping () -> UUID,
+        generateUUID: @Sendable @escaping () -> UUID,
         rng: AnyRandomNumberGenerator,
         mainQueue: AnySchedulerOf<DispatchQueue>,
         backgroundQueue: AnySchedulerOf<DispatchQueue>,
@@ -157,7 +157,7 @@ extension Environment {
             }, set: {
                 UIApplication.shared.isIdleTimerDisabled = $0
             }),
-            generateUUID: UUID.init,
+            generateUUID: { UUID() },
             rng: AnyRandomNumberGenerator(wrapped: SystemRandomNumberGenerator()),
             mainQueue: mainQueue ?? DispatchQueue.main.eraseToAnyScheduler(),
             backgroundQueue: backgroundQueue ?? DispatchQueue.global(qos: .userInitiated).eraseToAnyScheduler(),

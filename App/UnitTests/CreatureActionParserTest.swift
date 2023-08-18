@@ -354,13 +354,12 @@ class CreatureActionParserTest: XCTestCase {
 
     @MainActor
     func testAllMonsterActions() async throws {
-        let sut = Open5eMonsterDataSourceReader(
-            dataSource: FileDataSource(path: defaultMonstersPath),
+        let sut = Open5eDataSourceReader(
+            dataSource: FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
             generateUUID: UUID.fakeGenerator()
         )
-        let job = sut.makeJob()
 
-        let items = try await Array(job.output.compactMap { $0.item })
+        let items = try await Array(sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item })
 
         struct ParseResult {
             let creatureName: String
@@ -395,13 +394,12 @@ class CreatureActionParserTest: XCTestCase {
 
     @MainActor
     func testParsePerformance() async throws {
-        let sut = Open5eMonsterDataSourceReader(
-            dataSource: FileDataSource(path: defaultMonstersPath),
+        let sut = Open5eDataSourceReader(
+            dataSource: FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
             generateUUID: UUID.fakeGenerator()
         )
 
-        let job = sut.makeJob()
-        let items = try await Array(job.output.compactMap { $0.item })
+        let items = try await Array(sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item })
 
         measure {
             for item in items {

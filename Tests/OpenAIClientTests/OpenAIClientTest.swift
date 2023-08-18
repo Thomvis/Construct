@@ -10,6 +10,7 @@ import XCTest
 import OpenAIClient
 import CustomDump
 import AsyncAlgorithms
+import Helpers
 
 final class OpenAIClientTest: XCTestCase {
 
@@ -86,7 +87,7 @@ final class OpenAIClientTest: XCTestCase {
         XCTAssertNoDifference(string, "As the")
     }
 
-    class MockHTTPClient: HTTPClient {
+    class MockHTTPClient: StreamingHTTPClient {
         var dataResponse: (Data, URLResponse)?
         var dataRequests: [URLRequest] = []
 

@@ -16,17 +16,16 @@ import Compendium
 
 class ImprovedInitiativeDataSourceReaderTest: XCTestCase {
 
-    var dataSource: CompendiumDataSource!
+    var dataSource: (any CompendiumDataSource<Data>)!
 
     override func setUp() {
         dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ii_mm", ofType: "json")!)
     }
 
     func test() async throws {
-        let sut = ImprovedInitiativeDataSourceReader(dataSource: dataSource)
-        let job = sut.makeJob()
+        let sut = ImprovedInitiativeDataSourceReader(dataSource: dataSource, generateUUID: UUID.init)
 
-        let items = try await Array(job.output.compactMap { $0.item })
+        let items = try await Array(sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item })
 
         XCTAssertEqual(items.count, 1)
 
@@ -56,11 +55,10 @@ class ImprovedInitiativeDataSourceReaderTest: XCTestCase {
 
     func testIncorrectFormat() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "compendium", ofType: "xml")!)
-        let sut = ImprovedInitiativeDataSourceReader(dataSource: dataSource)
-        let job = sut.makeJob()
+        let sut = ImprovedInitiativeDataSourceReader(dataSource: dataSource, generateUUID: UUID.init)
 
         do {
-            _ = try await Array(job.output)
+            _ = try await Array(sut.items(realmId: CompendiumRealm.core.id))
             XCTFail("Expected job to fail")
         } catch CompendiumDataSourceReaderError.incompatibleDataSource {
             // expected

@@ -14,15 +14,19 @@ public protocol MigrationTarget {
     init(migrateFrom source: Source) throws
 }
 
+/// Implement this protocol to support migrating from an optional to a non-optional
+public protocol MigrationTargetDefault: MigrationTarget {
+    static var defaultValue: Self { get }
+}
+
 public protocol MigratedWrapper {
-    associatedtype OldValue
-    associatedtype Value: MigrationTarget where Value.Source == OldValue
+    associatedtype Value: MigrationTarget
 
     init(_ wrappedValue: Value)
 }
 
 @propertyWrapper
-public struct Migrated<OldValue, Value>: MigratedWrapper, Codable where Value: Codable, OldValue: Codable, Value: MigrationTarget, Value.Source == OldValue {
+public struct Migrated<Value>: MigratedWrapper, Codable where Value: Codable, Value.Source: Codable, Value: MigrationTarget {
     public var wrappedValue: Value
 
     public init(_ wrappedValue: Value) {
@@ -37,9 +41,9 @@ public struct Migrated<OldValue, Value>: MigratedWrapper, Codable where Value: C
             return
         } catch let newError {
             // if that fails, we try to decode a value of the old type and migrate
-            let old: OldValue
+            let old: Value.Source
             do {
-                old = try OldValue(from: decoder)
+                old = try Value.Source(from: decoder)
             } catch let oldError {
                 // try to decode the new value without it being inside a unkeyed container
                 // this is the case when the @Migrated wrapper was added later
@@ -77,8 +81,14 @@ public struct Migrated<OldValue, Value>: MigratedWrapper, Codable where Value: C
 // from https://forums.swift.org/t/using-property-wrappers-with-codable/29804/12
 extension KeyedDecodingContainer {
     // This is used to override the default decoding behavior for OptionalCodingWrapper to allow a value to avoid a missing key Error
-    func decode<T>(_ type: T.Type, forKey key: KeyedDecodingContainer<K>.Key) throws -> T where T: Decodable, T: MigratedWrapper, T.OldValue: OptionalProtocol {
-        return try decodeIfPresent(T.self, forKey: key) ?? T(T.Value(migrateFrom: T.OldValue.emptyOptional()))
+    // This happens if an optional property is migrated to a new property that's also optional (e.g. Migrated<Int?>). In that case the Int
+    // is optional, but the Migrated wrapper isn't.
+    func decode<T>(_ type: T.Type, forKey key: KeyedDecodingContainer<K>.Key) throws -> T where T: Decodable, T: MigratedWrapper, T.Value.Source: OptionalProtocol {
+        return try decodeIfPresent(T.self, forKey: key) ?? T(T.Value(migrateFrom: T.Value.Source.emptyOptional()))
+    }
+
+    func decode<T>(_ type: T.Type, forKey key: KeyedDecodingContainer<K>.Key) throws -> T where T: Decodable, T: MigratedWrapper, T.Value: MigrationTargetDefault {
+        return try decodeIfPresent(T.self, forKey: key) ?? T(T.Value.defaultValue)
     }
 }
 

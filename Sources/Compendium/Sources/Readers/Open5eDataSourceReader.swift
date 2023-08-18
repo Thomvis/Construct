@@ -1,57 +1,42 @@
 //
-//  Open5eMonsterDataSourceReader.swift
-//  Construct
+//  Open5eDataSourceReader.swift
+//  
 //
-//  Created by Thomas Visser on 04/09/2019.
-//  Copyright © 2019 Thomas Visser. All rights reserved.
+//  Created by Thomas Visser on 16/06/2023.
 //
 
+import AsyncAlgorithms
+import Dice
 import Foundation
-import Combine
 import GameModels
 import Helpers
-import Dice
-import AsyncAlgorithms
 
-public class Open5eMonsterDataSourceReader: CompendiumDataSourceReader {
+public final class Open5eDataSourceReader: CompendiumDataSourceReader {
     public static let name = "Open5eMonsterDataSourceReader"
 
-    public let dataSource: CompendiumDataSource
+    public let dataSource: any CompendiumDataSource<[Open5eAPIResult]>
     let generateUUID: () -> UUID
 
-    public init(dataSource: CompendiumDataSource, generateUUID: @escaping () -> UUID) {
+    public init(dataSource: any CompendiumDataSource<[Open5eAPIResult]>, generateUUID: @escaping () -> UUID) {
         self.dataSource = dataSource
         self.generateUUID = generateUUID
     }
 
-    public func makeJob() -> CompendiumDataSourceReaderJob {
-        return Job(source: dataSource, generateUUID: generateUUID)
-    }
-
-    struct Job: CompendiumDataSourceReaderJob {
-        let source: CompendiumDataSource
-        let generateUUID: () -> UUID
-
-        var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
-            get async throws {
-                let data = try await source.read()
-
-                let monsters: [O5e.Monster]
-                do {
-                    monsters = try JSONDecoder().decode([O5e.Monster].self, from: data)
-                } catch {
-                    throw CompendiumDataSourceReaderError.incompatibleDataSource
-                }
-
-                return monsters.async.map { m in
-                    let monster = Monster(open5eMonster: m, realm: .core, generateUUID: generateUUID)
-                    guard let monster else { return .invalidItem(String(describing: m)) }
+    public func items(realmId: CompendiumRealm.Id) throws -> AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
+        try dataSource.read().flatMap { items in
+            return items.async.map { item in
+                switch item {
+                case .left(let m):
+                    let monster = Monster(open5eMonster: m, realm: .init(realmId), generateUUID: self.generateUUID)
+                    guard let monster else { return CompendiumDataSourceReaderOutput.invalidItem(String(describing: m)) }
                     return .item(monster)
-                }.stream
+                case .right(let s):
+                    guard let spell = Spell(open5eSpell: s, realm: .init(realmId)) else { return CompendiumDataSourceReaderOutput.invalidItem(String(describing: s)) }
+                    return .item(spell)
+                }
             }
-        }
+        }.stream
     }
-    
 }
 
 private extension Monster {
@@ -91,21 +76,23 @@ private extension StatBlock {
 
         self.init(
             name: m.name,
-            size: CreatureSize(englishName: m.size.rawValue)!,
-            type: m.type.rawValue,
+            size: CreatureSize(englishName: m.size),
+            type: m.type,
             subtype: m.subtype.nonEmptyString,
-            alignment: Alignment(englishName: m.alignment.rawValue),
+            alignment: Alignment(englishName: m.alignment),
 
             armorClass: m.armorClass,
             armor: (m.armorDesc?.nonEmptyString).map { [Armor(name: $0, armorClass: m.armorClass)] } ?? [],
             hitPointDice: hitPointDice,
             hitPoints: m.hitPoints,
-            movement: [
-                .walk: m.speedJSON.walk,
-                .fly: m.speedJSON.fly,
-                .swim: m.speedJSON.swim,
-                .climb: m.speedJSON.climb
-            ].compactMapValues { $0 },
+            movement: (m.speedJSON ?? m.speed.rightValue).map { speeds in
+                [
+                    MovementMode.walk: speeds.walk,
+                    MovementMode.fly: speeds.fly,
+                    MovementMode.swim: speeds.swim,
+                    MovementMode.climb: speeds.climb,
+                ].compactMapValues { $0 }
+            },
 
             abilityScores: AbilityScores(open5eMonster: m),
 
@@ -129,18 +116,18 @@ private extension StatBlock {
             senses: m.senses.nonEmptyString,
             languages: m.languages.nonEmptyString,
 
-            challengeRating: Fraction(rawValue: m.challengeRating)!,
+            challengeRating: Fraction(rawValue: m.challengeRating),
 
-            features: m.specialAbilities?.map { a in
+            features: m.specialAbilities?.leftValue?.map { a in
                 CreatureFeature(id: generateUUID(), name: a.name, description: a.desc)
             } ?? [],
-            actions: m.actions?.map { a in
+            actions: m.actions?.leftValue?.map { a in
                 CreatureAction(id: generateUUID(), name: a.name, description: a.desc)
             } ?? [],
-            reactions: m.reactions?.map { r in
+            reactions: m.reactions?.leftValue?.map { r in
                 CreatureAction(id: generateUUID(), name: r.name, description: r.desc)
             } ?? [],
-            legendary: m.legendaryActions.map { actions in
+            legendary: m.legendaryActions?.leftValue.map { actions in
                 Legendary(
                     description: m.legendaryDesc,
                     actions: actions.map { a in
@@ -163,4 +150,44 @@ private extension AbilityScores {
             charisma: AbilityScore(m.charisma)
         )
     }
+}
+
+private extension Spell {
+    init?(open5eSpell s: O5e.Spell, realm: CompendiumItemKey.Realm) {
+        self.init(
+            realm: realm,
+            name: s.name,
+            level: s.levelInt == 0 ? nil : s.levelInt,
+            castingTime: s.castingTime,
+            range: s.range,
+            components: s.components.components(separatedBy: ",").compactMap {
+                switch $0.trimmingCharacters(in: CharacterSet.whitespaces) {
+                case "V": return .verbal
+                case "S": return .somatic
+                case "M": return .material
+                default: return nil
+                }
+            },
+            ritual: s.ritual == "yes",
+            duration: s.duration,
+            school: s.school,
+            concentration: s.concentration == "yes",
+            description: ParseableSpellDescription(input: s.desc),
+            higherLevelDescription: s.higherLevel,
+            classes: s.spellClass.components(separatedBy: ",").map { $0.trimmingCharacters(in: CharacterSet.whitespaces) },
+            material: s.material
+        )
+    }
+}
+
+public extension CompendiumDataSource {
+
+    func toOpen5eAPIResults() -> some CompendiumDataSource<[Open5eAPIResult]> where Output == [O5e.Monster] {
+        MapCompendiumDataSource(source: self) { monsters in monsters.map { .left($0) } }
+    }
+
+    func toOpen5eAPIResults() -> some CompendiumDataSource<[Open5eAPIResult]> where Output == [O5e.Spell] {
+        MapCompendiumDataSource(source: self) { spells in spells.map { .right($0) } }
+    }
+
 }

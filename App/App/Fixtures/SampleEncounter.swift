@@ -27,7 +27,7 @@ enum SampleEncounter {
     static func createEncounter(with env: Environment, existing spe: Encounter? = nil) -> Encounter {
         var combatants: [Combatant] = []
         if let entry = try? env.database.keyValueStore.get(
-            CompendiumItemKey(type: .monster, realm: .core, identifier: "Mummy"),
+            CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "Mummy"),
             crashReporter: env.crashReporter
         ),
             let mummy = entry.item as? Monster
@@ -36,7 +36,7 @@ enum SampleEncounter {
         }
 
         if let entry = try? env.database.keyValueStore.get(
-            CompendiumItemKey(type: .monster, realm: .core, identifier: "Giant Spider"),
+            CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "Giant Spider"),
             crashReporter: env.crashReporter
         ),
             let spider = entry.item as? Monster

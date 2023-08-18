@@ -21,13 +21,18 @@ public class Database {
     public let keyValueStore: KeyValueStore
     public let parseableManager: ParseableKeyValueRecordManager
 
+    public static var uninitialized: Database {
+        try! Database(queue: DatabaseQueue(), importDefaultContent: false)
+    }
+
     // If path is nil, an in-memory database is created
     public convenience init(
         path: String?,
         importDefaultContent: Bool = true
     ) async throws {
         let queue = try path.map { try DatabaseQueue(path: $0) } ?? DatabaseQueue()
-        try await self.init(queue: queue, importDefaultContent: importDefaultContent)
+        try self.init(queue: queue, importDefaultContent: importDefaultContent)
+        try await prepareForUse()
     }
 
     /// Copies all content from `source` into this database
@@ -49,10 +54,11 @@ public class Database {
             }
         }
 
-        try await self.init(queue: queue, importDefaultContent: false)
+        try self.init(queue: queue, importDefaultContent: false)
+        try await prepareForUse()
     }
 
-    private init(queue: DatabaseQueue, importDefaultContent: Bool) async throws {
+    private init(queue: DatabaseQueue, importDefaultContent: Bool) throws {
         self.queue = queue
         self.migrator = try Self.migrator()
         self.importDefaultContent = importDefaultContent
@@ -62,8 +68,6 @@ public class Database {
         #if DEBUG
         print("Opened db at path: \(queue.path)")
         #endif
-        
-        try await prepareForUse()
     }
 
     public var needsPrepareForUse: Bool {

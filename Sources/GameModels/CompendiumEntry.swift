@@ -15,51 +15,76 @@ public struct CompendiumEntry: Equatable {
     @EqCompare public var item: CompendiumItem
     public let itemType: CompendiumItemType
 
-    public let source: Source?
+    public var source: Source
+    public var document: CompendiumSourceDocumentReference
 
-    public init(_ item: CompendiumItem, source: Source? = nil) {
+    public init(_ item: CompendiumItem, source: Source, document: CompendiumSourceDocumentReference) {
         _item = EqCompare(wrappedValue: item, compare: { $0.isEqual(to: $1) })
         self.itemType = item.key.type
         self.source = source
+        self.document = document
     }
 
-    public struct Source: Codable, Equatable {
-        public var readerName: String
+    public enum Source: Equatable, Codable {
+        case created(CompendiumItemReference?)
+        case imported(CompendiumImportJob.Id?)
+    }
 
-        public var sourceName: String
-        public var bookmark: Data?
+    public struct CompendiumSourceDocumentReference: Equatable, Codable {
+        public let id: CompendiumSourceDocument.Id
+        public let displayName: String
 
-        public var displayName: String?
-
-        public init(readerName: String, sourceName: String, bookmark: Data? = nil, displayName: String? = nil) {
-            self.readerName = readerName
-            self.sourceName = sourceName
-            self.bookmark = bookmark
+        public init(id: CompendiumSourceDocument.Id, displayName: String) {
+            self.id = id
             self.displayName = displayName
         }
+
+        public init(_ document: CompendiumSourceDocument) {
+            self.init(id: document.id, displayName: document.displayName)
+        }
     }
+
 }
 
 extension CompendiumEntry: Codable {
-    enum CodingKeys: CodingKey {
-        case item, itemType, source
+    public enum CodingKeys: CodingKey {
+        case item, itemType, source, document
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let itemType = try container.decode(CompendiumItemType.self, forKey: .itemType)
 
-        self.init(try itemType.decodeItem(from: container, key: .item), source: try container.decode(Source?.self, forKey: .source))
+        self.init(
+            try itemType.decodeItem(from: container, key: .item),
+            source: try container.decode(Source.self, forKey: .source),
+            document: try container.decode(CompendiumSourceDocumentReference.self, forKey: .document)
+        )
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try item.encode(in: &container, key: .item)
+        try container.encode(item, forKey: .item)
         try container.encode(itemType, forKey: .itemType)
         try container.encode(source, forKey: .source)
+        try container.encode(document, forKey: .document)
     }
 }
 
 extension CompendiumEntry {
-    public static let nullInstance = CompendiumEntry(Monster(realm: .core, stats: StatBlock.default, challengeRating: .init(integer: 1)))
+    public static let nullInstance = CompendiumEntry(
+        Monster(realm: .init(CompendiumRealm.core.id), stats: StatBlock.default, challengeRating: .init(integer: 1)),
+        source: .created(nil),
+        document: CompendiumSourceDocumentReference(id: CompendiumSourceDocument.Id(rawValue: ""), displayName: "")
+    )
+}
+
+extension CompendiumEntry {
+    public var attribution: String? {
+        if case .created(let ref?) = source {
+            return "Based on “\(ref.itemTitle)”"
+        }
+
+        return document.displayName
+    }
 }

@@ -44,8 +44,8 @@ struct CompendiumItemDetailView: View {
             VStack {
                 contentView()
 
-                if let sourceDisplayName = viewStore.state.entry.source?.displayName {
-                    Text(sourceDisplayName)
+                if let attribution = viewStore.state.entry.attribution {
+                    Text(attribution)
                         .font(.footnote).italic()
                         .foregroundColor(Color(UIColor.secondaryLabel))
                         .frame(maxWidth: .infinity, alignment: .trailing)

@@ -29,7 +29,13 @@ class CompendiumImporterTest: XCTestCase {
     func test() async throws {
         let sut = CompendiumImporter(compendium: compendium)
         let item = Fixtures.monster
-        let task = CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]))
+        let task = CompendiumImportTask(
+            sourceId: .defaultMonsters,
+            sourceVersion: nil,
+            reader: DummyCompendiumDataSourceReader(items: [item]),
+            document: CompendiumSourceDocument.unknownCore,
+            overwriteExisting: false
+        )
 
         let result = try await sut.run(task)
         XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 1, overwrittenItemCount: 0, invalidItemCount: 0))
@@ -42,11 +48,19 @@ class CompendiumImporterTest: XCTestCase {
         let sut = CompendiumImporter(compendium: compendium)
         var item = Fixtures.monster
 
-        _ = try await sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting:  false))
+        let task = CompendiumImportTask(
+            sourceId: .defaultMonsters,
+            sourceVersion: nil,
+            reader: DummyCompendiumDataSourceReader(items: [item]),
+            document: CompendiumSourceDocument.unknownCore,
+            overwriteExisting: false
+        )
+
+        _ = try await sut.run(task)
 
         // change the item and import it again
         item.stats.hitPoints = 1000
-        let result = try await sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting:  false))
+        let result = try await sut.run(task)
         XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 0, overwrittenItemCount: 0, invalidItemCount: 0))
 
         let entry = try! compendium.database.keyValueStore.get(item.key)
@@ -57,11 +71,19 @@ class CompendiumImporterTest: XCTestCase {
         let sut = CompendiumImporter(compendium: compendium)
         var item = Fixtures.monster
 
-        _ = try await sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting: true))
+        let task = CompendiumImportTask(
+            sourceId: .defaultMonsters,
+            sourceVersion: nil,
+            reader: DummyCompendiumDataSourceReader(items: [item]),
+            document: CompendiumSourceDocument.unknownCore,
+            overwriteExisting: true
+        )
+
+        _ = try await sut.run(task)
 
         // change the item and import it again
         item.stats.hitPoints = 1000
-        let result = try await sut.run(CompendiumImportTask(reader: DummyCompendiumDataSourceReader(items: [item]), overwriteExisting: true))
+        let result = try await sut.run(task)
         XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 0, overwrittenItemCount: 1, invalidItemCount: 0))
 
         let entry = try! compendium.database.keyValueStore.get(item.key)
@@ -72,23 +94,19 @@ class CompendiumImporterTest: XCTestCase {
 struct DummyCompendiumDataSourceReader: CompendiumDataSourceReader {
     static var name = "DummyCompendiumDataSourceReader"
 
-    let dataSource: CompendiumDataSource = DummyCompendiumDataSource()
+    let dataSource: any CompendiumDataSource<Data> = DummyCompendiumDataSource()
     let items: [CompendiumItem]
 
-    func makeJob() -> CompendiumDataSourceReaderJob {
-        return Job(output: AsyncThrowingStream(items.map {CompendiumDataSourceReaderOutput.item($0) }.async))
-    }
-
-    struct Job: CompendiumDataSourceReaderJob {
-        var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error>
+    func items(realmId: CompendiumRealm.Id) throws -> AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
+        items.map {CompendiumDataSourceReaderOutput.item($0) }.async.stream
     }
 }
 
 struct DummyCompendiumDataSource: CompendiumDataSource {
     static var name = "DummyCompendiumDataSource"
-    var bookmark: Data? = nil
+    var bookmark: String = "dummy"
 
-    func read() -> Data {
-        return Data()
+    func read() throws -> AsyncThrowingStream<Data, Error> {
+        [Data()].async.stream
     }
 }

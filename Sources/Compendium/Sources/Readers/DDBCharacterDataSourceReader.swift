@@ -14,36 +14,27 @@ import Dice
 public class DDBCharacterDataSourceReader: CompendiumDataSourceReader {
     public static let name = "DDBCharacterDataSourceReader"
     
-    public var dataSource: CompendiumDataSource
+    public var dataSource: any CompendiumDataSource<Data>
 
-    public init(dataSource: CompendiumDataSource) {
+    public init(dataSource: any CompendiumDataSource<Data>) {
         self.dataSource = dataSource
     }
 
-    public func makeJob() -> CompendiumDataSourceReaderJob {
-        return Job(source: dataSource)
-    }
-
-    struct Job: CompendiumDataSourceReaderJob {
-        let source: CompendiumDataSource
-
-        var output: AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
-            get async throws {
-                let data = try await source.read()
-                let characterSheet: DDB.CharacterSheet
-                do {
-                    characterSheet = try JSONDecoder().decode(DDB.CharacterSheet.self, from: data)
-                } catch {
-                    throw CompendiumDataSourceReaderError.incompatibleDataSource
-                }
-
-                guard let character = Character(characterSheet: characterSheet, realm: .homebrew) else {
-                    throw CompendiumDataSourceReaderError.incompatibleDataSource
-                }
-
-                return [.item(character)].async.stream
+    public func items(realmId: CompendiumRealm.Id) throws -> AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
+        try dataSource.read().flatMap { data in
+            let characterSheet: DDB.CharacterSheet
+            do {
+                characterSheet = try JSONDecoder().decode(DDB.CharacterSheet.self, from: data)
+            } catch {
+                throw CompendiumDataSourceReaderError.incompatibleDataSource
             }
-        }
+
+            guard let character = Character(characterSheet: characterSheet, realm: .init(realmId)) else {
+                throw CompendiumDataSourceReaderError.incompatibleDataSource
+            }
+
+            return [CompendiumDataSourceReaderOutput.item(character)].async
+        }.stream
     }
 }
 

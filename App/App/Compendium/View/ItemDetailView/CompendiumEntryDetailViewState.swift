@@ -194,14 +194,15 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                 case .creatureActionPopover: break // handled by a reducer above
                 case .rollCheckPopover: break // handled by a reducer above
                 case .setSheet(let s): state.sheet = s
-                case .sheet(.creatureEdit(CreatureEditViewAction.onDoneTap(let state))):
+                case .sheet(.creatureEdit(CreatureEditViewAction.onDoneTap(let editState))):
+                    let originalEntry = state.entry
                     return .run { send in
-                        let item = state.compendiumItem
-                        if let orig = state.originalItem, orig.key != item?.key {
+                        let item = editState.compendiumItem
+                        if let orig = editState.originalItem, orig.key != item?.key {
                             _ = try? env.database.keyValueStore.remove(orig.key)
                         }
                         if let item = item {
-                            let entry = CompendiumEntry(item)
+                            let entry = CompendiumEntry(item, source: originalEntry.source, document: originalEntry.document)
                             try? env.compendium.put(entry)
                             await send(.entry(entry))
                         }
@@ -217,7 +218,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                         await send(.didRemoveItem)
                     }
                 case .sheet(.groupEdit(CompendiumItemGroupEditAction.onDoneTap(let group))):
-                    let entry = CompendiumEntry(group)
+                    let entry = CompendiumEntry(group, source: state.entry.source, document: state.entry.document)
                     state.entry = entry
                     return .run { send in
                         try? env.compendium.put(entry)

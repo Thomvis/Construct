@@ -12,6 +12,7 @@ import XCTest
 import Combine
 import SnapshotTesting
 import Compendium
+import GameModels
 
 class XMLCompendiumDataSourceReaderTest: XCTestCase {
 
@@ -19,20 +20,18 @@ class XMLCompendiumDataSourceReaderTest: XCTestCase {
     func test() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "compendium", ofType: "xml")!)
         let sut = XMLCompendiumDataSourceReader(dataSource: dataSource, generateUUID: UUID.fakeGenerator())
-        let job = sut.makeJob()
 
 
-        let items = try await Array(job.output.compactMap { $0.item })
+        let items = try await Array(sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item })
         assertSnapshot(matching: items, as: .dump)
     }
 
     func testIncorrectFormat() async throws{
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ii_mm", ofType: "json")!)
         let sut = XMLCompendiumDataSourceReader(dataSource: dataSource, generateUUID: UUID.fakeGenerator())
-        let job = sut.makeJob()
 
         do {
-            _ = try await Array(job.output)
+            _ = try await Array(sut.items(realmId: CompendiumRealm.core.id))
             XCTFail("Expected job to fail")
         } catch CompendiumDataSourceReaderError.incompatibleDataSource {
             // expected

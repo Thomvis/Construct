@@ -49,6 +49,9 @@ extension Fraction: RawRepresentable {
         } else if let parsed = Int(fraction) {
             self.numenator = parsed
             self.denominator = 1
+        } else if let parsed = Float(fraction), parsed < 1 {
+            self.numenator = 1
+            self.denominator = Int(round(1.0 / parsed))
         } else {
             return nil
         }

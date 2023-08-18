@@ -16,6 +16,10 @@ public struct CompendiumItemReference: Codable, Hashable {
         self.itemTitle = itemTitle
         self._itemKey = Migrated(itemKey)
     }
+
+    public init(_ item: CompendiumItem) {
+        self.init(itemTitle: item.title, itemKey: item.key)
+    }
 }
 
 extension CompendiumItemKey: MigrationTarget {

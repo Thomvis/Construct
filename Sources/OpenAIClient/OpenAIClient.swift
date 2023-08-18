@@ -45,7 +45,7 @@ public extension OpenAIClient {
 
 public extension OpenAIClient {
     static func live(
-        httpClient: HTTPClient = URLSession.shared,
+        httpClient: StreamingHTTPClient = URLSession.shared,
         apiKey: String
     ) -> Self {
         let baseURL = URL(string: "https://api.openai.com/")!
@@ -113,13 +113,8 @@ public extension OpenAIClient {
     }
 }
 
-public protocol HTTPClient {
-    func data(for request: URLRequest) async throws -> (Data, URLResponse)
+public protocol StreamingHTTPClient: HTTPClient {
     func stream(for request: URLRequest) throws -> AsyncThrowingStream<String, Error>
-}
-
-extension URLSession: HTTPClient {
-
 }
 
 public enum OpenAIError: Swift.Error {

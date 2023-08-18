@@ -44,7 +44,7 @@ public struct CompendiumItemGroup: CompendiumItem, Equatable {
         return didChange
     }
 
-    public var realm: CompendiumItemKey.Realm { .homebrew }
+    public var realm: CompendiumItemKey.Realm { .init(CompendiumRealm.homebrew.id) }
     public var key: CompendiumItemKey {
         CompendiumItemKey(type: .group, realm: realm, identifier: id.rawValue.uuidString)
     }

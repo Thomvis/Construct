@@ -53,7 +53,7 @@ extension CombatantTrackerEditViewState: NavigationNode {
         // no-op
     }
 }
-extension CompendiumImportViewState: NavigationNode {
+extension CompendiumImportFeature.State: NavigationNode {
     var nodeId: String { 
         navigationStackItemStateId
     }
@@ -308,7 +308,7 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
             switch newValue {
             case let v as CompendiumIndexState: self = .compendiumIndex(v)
             case let v as CompendiumEntryDetailViewState: self = .itemDetail(v)
-            case let v as CompendiumImportViewState: self = .compendiumImport(v)
+            case let v as CompendiumImportFeature.State: self = .compendiumImport(v)
             case let v as SafariViewState: self = .safariView(v)
             default: break
             }
@@ -859,7 +859,7 @@ extension CompendiumIndexState: NavigationNode {
             }
         }
     }
-    var presentedNextCompendiumImport: CompendiumImportViewState? {
+    var presentedNextCompendiumImport: CompendiumImportFeature.State? {
         get { 
             if case .compendiumImport(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -873,7 +873,7 @@ extension CompendiumIndexState: NavigationNode {
         }
     }
 
-    var presentedDetailCompendiumImport: CompendiumImportViewState? {
+    var presentedDetailCompendiumImport: CompendiumImportFeature.State? {
         get { 
             if case .compendiumImport(let s) = presentedScreens[.detail] {
                 return s

@@ -421,6 +421,16 @@ public extension Binding {
             self.transaction(transaction).wrappedValue = Value(value)
         })
     }
+
+    func optional() -> Binding<Value?> {
+        Binding<Value?>(get: {
+            wrappedValue
+        }, set: { value, transaction in
+            if let value {
+                self.transaction(transaction).wrappedValue = value
+            }
+        })
+    }
 }
 
 public extension AsyncSequence {
@@ -457,5 +467,11 @@ public extension String {
 public extension String {
     var localizedFirstLetterCapitalized: String {
         prefix(1).localizedCapitalized + dropFirst()
+    }
+}
+
+public extension Optional where Wrapped == Bool {
+    var orFalse: Bool {
+        self ?? false
     }
 }

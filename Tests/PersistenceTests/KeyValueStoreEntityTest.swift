@@ -45,17 +45,17 @@ class KeyValueStoreEntityTest: XCTestCase {
 
     func testCompendiumEntryKey() {
         let monster = CompendiumEntry(Monster(
-            realm: .core,
+            realm: .init(CompendiumRealm.core.id),
             stats: apply(.default) { $0.name = "ABC" },
             challengeRating: .half
-        ))
+        ), source: .created(nil), document: .init(CompendiumSourceDocument.srd5_1))
         XCTAssertEqual(monster.key.rawValue, "compendium::monster::core::ABC")
 
         let character = CompendiumEntry(Character(
             id: Self.id1.tagged(),
-            realm: .homebrew,
+            realm: .init(CompendiumRealm.homebrew.id),
             stats: .default
-        ))
+        ), source: .created(nil), document: .init(CompendiumSourceDocument.srd5_1))
         XCTAssertEqual(character.key.rawValue, "compendium::character::homebrew::\(Self.id1)")
     }
 

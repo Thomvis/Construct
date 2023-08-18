@@ -26,6 +26,15 @@ public enum CompendiumItemType: String, CaseIterable, Codable, Identifiable {
         }
     }
 
+    public var localizedDisplayNamePlural: String {
+        switch self {
+        case .monster: return NSLocalizedString("monsters", comment: "Compendium item type monster")
+        case .character: return NSLocalizedString("characters", comment: "Compendium item type character")
+        case .spell: return NSLocalizedString("spells", comment: "Compendium item type spell")
+        case .group: return NSLocalizedString("adventuring parties", comment: "Compendium item type group")
+        }
+    }
+
     public var localizedScreenDisplayName: String {
         switch self {
         case .monster: return NSLocalizedString("Monsters", comment: "Compendium item type monster")

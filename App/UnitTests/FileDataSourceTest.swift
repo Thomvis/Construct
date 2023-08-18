@@ -15,7 +15,7 @@ class FileDataSourceTest: XCTestCase {
     func test() async throws {
         let sut = FileDataSource(path: defaultMonstersPath)
 
-        let data = try await sut.read()
+        let data = try await sut.read().first
         XCTAssertNotNil(data)
     }
 }

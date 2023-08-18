@@ -11,6 +11,8 @@ import Helpers
 import Combine
 
 public protocol Compendium {
+    var metadata: CompendiumMetadata { get }
+
     func get(_ key: CompendiumItemKey) throws -> CompendiumEntry?
     func get(_ key: CompendiumItemKey, crashReporter: CrashReporter) throws -> CompendiumEntry?
     func put(_ entry: CompendiumEntry) throws
@@ -83,22 +85,32 @@ public extension Compendium {
     func importDefaultContent(monsters: Bool = true, spells: Bool = true) async throws {
         // Monsters
         if monsters {
-            var task = CompendiumImportTask(
-                reader: Open5eMonsterDataSourceReader(
-                    dataSource: FileDataSource(path: defaultMonstersPath),
+            let task = CompendiumImportTask(
+                sourceId: CompendiumImportSourceId.defaultMonsters,
+                sourceVersion: DefaultContentVersions.current.monsters,
+                reader: Open5eDataSourceReader(
+                    dataSource: FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
                     generateUUID: { UUID() }
                 ),
+                document: CompendiumSourceDocument.srd5_1,
                 overwriteExisting: true
             )
-            task.source.displayName = "Open Game Content (SRD 5.1)"
 
             _ = try await CompendiumImporter(compendium: self).run(task)
         }
 
         // Spells
         if spells {
-            var task = CompendiumImportTask(reader: Open5eSpellDataSourceReader(dataSource: FileDataSource(path: defaultSpellsPath)), overwriteExisting: true)
-            task.source.displayName = "Open Game Content (SRD 5.1)"
+            let task = CompendiumImportTask(
+                sourceId: CompendiumImportSourceId.defaultSpells,
+                sourceVersion: DefaultContentVersions.current.spells,
+                reader: Open5eDataSourceReader(
+                    dataSource: FileDataSource(path: defaultSpellsPath).decode(type: [O5e.Spell].self).toOpen5eAPIResults(),
+                    generateUUID: { UUID() }
+                ),
+                document: CompendiumSourceDocument.srd5_1,
+                overwriteExisting: true
+            )
 
             _ = try await CompendiumImporter(compendium: self).run(task)
         }
