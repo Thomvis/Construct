@@ -130,7 +130,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     state.scrollTo = id
                 case .onQueryTypeFilterDidChange(let typeFilter):
                     if typeFilter == nil && state.properties.typeRestriction == nil {
-                        return .send(.query(.onTypeFilterDidChange(nil)))
+                        return .send(.query(.onFiltersDidChange(CompendiumFilters())))
                     } else {
                         let restrictions = state.properties.typeRestriction ?? CompendiumItemType.allCases
                         let new = typeFilter ?? CompendiumItemType.allCases
