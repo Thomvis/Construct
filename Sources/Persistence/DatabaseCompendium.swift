@@ -92,7 +92,10 @@ extension CompendiumEntry {
     }
 
     var secondaryIndexValues: [Int: String] {
-        var values: [Int: String] = [KeyValueStore.SecondaryIndexes.compendiumEntryTitle: item.title]
+        var values: [Int: String] = [
+            KeyValueStore.SecondaryIndexes.compendiumEntryTitle: item.title,
+            KeyValueStore.SecondaryIndexes.compendiumEntrySourceDocumentId: document.id.rawValue
+        ]
         if let monster = item as? Monster {
             // format the CR so that it sorts correctly, examples:
             // CR 1/4 = 000.25

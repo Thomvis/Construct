@@ -461,6 +461,9 @@ extension Database {
 
                     // update secondary index values (now containing the document id)
                     let entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+
+                    let values = entry.secondaryIndexValues
+                    try KeyValueStore.saveSecondaryIndexValues(values, recordKey: r.key, in: db)
                 } catch {
                     assertionFailure("Could not migrate \(r.key): failed to save updated record to the db")
                     continue
