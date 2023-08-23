@@ -170,7 +170,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         if let item = editState.compendiumItem {
                             let entry = CompendiumEntry(
                                 item,
-                                source: .created(nil),
+                                origin: .created(nil),
                                 document: .init(CompendiumSourceDocument.homebrew)
                             )
                             _ = try? env.compendium.put(entry)
@@ -184,7 +184,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     return .run { send in
                         let entry = CompendiumEntry(
                             group,
-                            source: .created(nil),
+                            origin: .created(nil),
                             document: .init(CompendiumSourceDocument.homebrew)
                         )
                         try? env.compendium.put(entry)
