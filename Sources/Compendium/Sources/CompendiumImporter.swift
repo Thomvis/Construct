@@ -35,7 +35,7 @@ public class CompendiumImporter {
             case .item(let item):
                 let entry = apply(CompendiumEntry(
                     item,
-                    source: .imported(job.id),
+                    origin: .imported(job.id),
                     document: .init(task.document)
                 )) {
                     // post-processing

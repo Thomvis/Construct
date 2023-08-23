@@ -202,7 +202,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                             _ = try? env.database.keyValueStore.remove(orig.key)
                         }
                         if let item = item {
-                            let entry = CompendiumEntry(item, source: originalEntry.source, document: originalEntry.document)
+                            let entry = CompendiumEntry(item, origin: originalEntry.origin, document: originalEntry.document)
                             try? env.compendium.put(entry)
                             await send(.entry(entry))
                         }
@@ -218,7 +218,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                         await send(.didRemoveItem)
                     }
                 case .sheet(.groupEdit(CompendiumItemGroupEditAction.onDoneTap(let group))):
-                    let entry = CompendiumEntry(group, source: state.entry.source, document: state.entry.document)
+                    let entry = CompendiumEntry(group, origin: state.entry.origin, document: state.entry.document)
                     state.entry = entry
                     return .run { send in
                         try? env.compendium.put(entry)

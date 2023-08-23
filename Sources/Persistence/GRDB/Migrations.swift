@@ -419,9 +419,9 @@ extension Database {
                 }
 
                 // Migrate source
-                let newSource: CompendiumEntry.Source
+                let origin: CompendiumEntry.Origin
                 let newDocument: CompendiumEntry.CompendiumSourceDocumentReference
-                if let legacySourceValue = entryJSON[CompendiumEntry.CodingKeys.source.stringValue] {
+                if let legacySourceValue = entryJSON["source"] {
                     guard let legacySourceData = try? JSONSerialization.data(withJSONObject: legacySourceValue),
                           let legacySource = try? decoder.decode(LegacyModels.CompendiumEntry_Source.self, from: legacySourceData) else {
                         assertionFailure("Could not migrate \(r.key): failed to read leagacy Source")
@@ -429,34 +429,38 @@ extension Database {
                     }
 
                     let (source, document) = CompendiumEntry.migrate(source: legacySource)
-                    newSource = source
+                    origin = source
                     newDocument = document
                 } else {
-                    newSource = .created(nil)
+                    origin = .created(nil)
                     newDocument = .init(CompendiumSourceDocument.homebrew)
                 }
 
                 // Write new source & document to entry
-                guard let newSourceData = try? encoder.encode(newSource),
-                      let newSourceJSON = try? JSONSerialization.jsonObject(with: newSourceData) as? [String: Any],
-                      let newDocumentData = try? encoder.encode(newDocument),
-                      let newDocumentJSON = try? JSONSerialization.jsonObject(with: newDocumentData) as? [String: Any] else {
-                    assertionFailure("Could not migrate \(r.key): failed to convert new source & document to JSON")
+                guard let originData = try? encoder.encode(origin),
+                      let originJSON = try? JSONSerialization.jsonObject(with: originData) as? [String: Any],
+                      let documentData = try? encoder.encode(newDocument),
+                      let documentJSON = try? JSONSerialization.jsonObject(with: documentData) as? [String: Any] else {
+                    assertionFailure("Could not migrate \(r.key): failed to convert new origin & document to JSON")
                     continue
                 }
 
-                entryJSON[CompendiumEntry.CodingKeys.source.stringValue] = newSourceJSON
-                entryJSON[CompendiumEntry.CodingKeys.document.stringValue] = newDocumentJSON
+                entryJSON[CompendiumEntry.CodingKeys.origin.stringValue] = originJSON
+                entryJSON[CompendiumEntry.CodingKeys.document.stringValue] = documentJSON
 
                 guard let entryData = try? JSONSerialization.data(withJSONObject: entryJSON) else {
-                    assertionFailure("Could not migrate \(r.key): failed to write new source & document JSON to the entry")
+                    assertionFailure("Could not migrate \(r.key): failed to write new origin & document JSON to the entry")
                     continue
                 }
 
                 r.value = entryData
 
                 do {
+                    // save migrated record
                     try r.save(db)
+
+                    // update secondary index values (now containing the document id)
+                    let entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
                 } catch {
                     assertionFailure("Could not migrate \(r.key): failed to save updated record to the db")
                     continue
@@ -481,8 +485,7 @@ extension DatabaseMigrator {
 }
 
 extension CompendiumEntry {
-
-    static func migrate(source: LegacyModels.CompendiumEntry_Source) -> (CompendiumEntry.Source, CompendiumEntry.CompendiumSourceDocumentReference) {
+    static func migrate(source: LegacyModels.CompendiumEntry_Source) -> (CompendiumEntry.Origin, CompendiumEntry.CompendiumSourceDocumentReference) {
         if source.displayName == CompendiumSourceDocument.srd5_1.displayName {
             return (.imported(nil), .init(CompendiumSourceDocument.srd5_1))
         } else if source.bookmark != nil {

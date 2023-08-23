@@ -239,7 +239,7 @@ struct CompendiumImportFeature: ReducerProtocol {
                 return CompendiumSourceDocument(
                     id: .init(slug),
                     displayName: displayName,
-                    realm: realm.id
+                    realmId: realm.id
                 )
             }
 
@@ -288,7 +288,7 @@ struct CompendiumImportFeature: ReducerProtocol {
             var realmForExistingDocument: CompendiumRealm? {
                 guard case let .existing(documentId) = document,
                       let doc = documents.value?.first(where: { $0.id == documentId }),
-                      let realm = realms.value?.first(where: { $0.id == doc.realm })
+                      let realm = realms.value?.first(where: { $0.id == doc.realmId })
                 else {
                     return nil
                 }
@@ -1309,7 +1309,7 @@ enum CompendiumMetadataKey: DependencyKey {
     public static var previewValue: CompendiumMetadata {
         CompendiumMetadata {
             [
-                .init(id: Tagged("tob1"), displayName: "Tome of Beasts 1", realm: Tagged("kp"))
+                .init(id: Tagged("tob1"), displayName: "Tome of Beasts 1", realmId: Tagged("kp"))
             ]
         } realms: {
             [

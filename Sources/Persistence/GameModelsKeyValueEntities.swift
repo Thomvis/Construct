@@ -99,7 +99,7 @@ extension CompendiumEntry: KeyValueStoreEntity {
 extension CompendiumSourceDocument: KeyValueStoreEntity {
     public static var keyPrefix: String = "sourceDoc"
     public var key: Key {
-        Key(id: realm.rawValue + id.rawValue)
+        Key(id: realmId.rawValue + id.rawValue)
     }
 }
 

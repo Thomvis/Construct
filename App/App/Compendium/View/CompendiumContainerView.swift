@@ -34,7 +34,7 @@ let compendiumRootReducer: AnyReducer<CompendiumIndexState, CompendiumIndexActio
                     // save character
                     let entry = CompendiumEntry(
                         character,
-                        source: .created(CompendiumItemReference(monster)),
+                        origin: .created(CompendiumItemReference(monster)),
                         document: .init(
                             id: CompendiumSourceDocument.homebrew.id,
                             displayName: CompendiumSourceDocument.homebrew.displayName

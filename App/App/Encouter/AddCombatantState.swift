@@ -43,7 +43,7 @@ struct AddCombatantState: Equatable {
                 // FIXME: we don't have all the info here to properly create the entry
                 return CompendiumEntry(
                     definition.item,
-                    source: .created(.init(definition.item)),
+                    origin: .created(.init(definition.item)),
                     document: .init(
                         id: CompendiumSourceDocument.unknownCore.id,
                         displayName: CompendiumSourceDocument.unknownCore.displayName

@@ -184,7 +184,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 
                 try? env.compendium.put(CompendiumEntry(
                     item,
-                    source: .created(def.original),
+                    origin: .created(def.original),
                     document: .init(CompendiumSourceDocument.homebrew)
                 ))
                 return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: CompendiumCombatantDefinition(item: item, persistent: false)))))
