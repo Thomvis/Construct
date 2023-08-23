@@ -13,6 +13,8 @@ import Helpers
 import SharedViews
 import GameModels
 import Compendium
+import Combine
+import Tagged
 
 struct CompendiumFilterSheet: View {
     var store: Store<CompendiumFilterSheetState, CompendiumFilterSheetAction>
@@ -30,6 +32,80 @@ struct CompendiumFilterSheet: View {
         NavigationStack {
             ScrollView {
                 VStack {
+                    SectionContainer {
+                        LabeledContent {
+                            Menu {
+                                if let realmsWithDocuments = viewStore.state.realmsWithDocuments.value {
+                                    let selection = viewStore.state.current.selectedSource
+
+                                    Button(action: {
+                                        viewStore.send(.selectedSource(nil))
+                                    }, label: {
+                                        Label("All", systemImage: sourcesMenuIcon(selection, nil, nil))
+                                    })
+
+                                    ForEach(realmsWithDocuments) { realm in
+                                        Menu {
+                                            Button(action: {
+                                                viewStore.send(
+                                                    .selectedSource(
+                                                        CompendiumFilterSheetState.Values.SelectedSource(
+                                                            realmId: realm.realm.id,
+                                                            documentId: nil,
+                                                            displayName: realm.realm.displayName
+                                                        )
+                                                    )
+                                                )
+                                            }, label: {
+                                                Label("All", systemImage: sourcesMenuIcon(selection, realm.id, nil, true))
+                                            })
+
+                                            Divider()
+
+                                            ForEach(realm.documents) { document in
+                                                Button(action: {
+                                                    viewStore.send(
+                                                        .selectedSource(
+                                                            CompendiumFilterSheetState.Values.SelectedSource(
+                                                                realmId: realm.id,
+                                                                documentId: document.id,
+                                                                displayName: document.displayName
+                                                            )
+                                                        )
+                                                    )
+                                                }, label: {
+                                                    Label(document.displayName, systemImage: sourcesMenuIcon(selection, realm.id, document.id))
+                                                })
+                                            }
+                                        } label: {
+                                            Label(realm.realm.displayName, systemImage: sourcesMenuIcon(selection, realm.id, nil))
+                                        }
+                                    }
+                                } else {
+                                    Text("Loading...")
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    if let selectedSource = viewStore.state.current.selectedSource {
+                                        Text(selectedSource.displayName)
+                                    } else {
+                                        Text("All")
+                                    }
+
+                                    Image(systemName: "chevron.up.chevron.down")
+                                        .font(.footnote)
+                                }
+                                .fontWeight(.regular)
+                                .padding(.trailing, 12)
+                            }
+                            .frame(minHeight: 35)
+                        } label: {
+                            Text("Sources")
+                        }
+                    }
+                    .bold()
+                    .padding(8)
+
                     SectionContainer {
                         LabeledContent {
                             Picker("Type", selection: viewStore.binding(get: \.current.itemType, send: CompendiumFilterSheetAction.itemType).animation()) {
@@ -114,6 +190,9 @@ struct CompendiumFilterSheet: View {
                 }
             }
         }
+        .onAppear {
+            viewStore.send(.realmsWithDocuments(.startLoading))
+        }
     }
 
     func onEditingChanged(_ filter: CompendiumFilterSheetState.Filter) -> (Bool) -> Void {
@@ -137,14 +216,42 @@ struct CompendiumFilterSheet: View {
     func makeBody() -> AnyView {
         AnyView(self.eraseToAnyView)
     }
+
+    func sourcesMenuIcon(
+        _ selection: CompendiumFilterSheetState.Values.SelectedSource?,
+        _ realmId: CompendiumRealm.Id?,
+        _ documentId: CompendiumSourceDocument.Id?,
+        _ allInRealmItem: Bool = false
+    ) -> String {
+        let fullMatch = "checkmark.square"
+        let partialMatch = "minus.square"
+        let noMatch = "square"
+
+        guard let selection else {
+            return realmId == nil && documentId == nil ? fullMatch : noMatch
+        }
+
+        if selection.realmId == realmId {
+            if documentId == nil && selection.documentId != nil {
+                return allInRealmItem ? noMatch : partialMatch
+            }
+            return selection.documentId == documentId ? fullMatch : noMatch
+        }
+
+        return noMatch
+    }
 }
 
 struct CompendiumFilterSheetState: Equatable {
+    typealias AsyncRealmsWithDocuments = Async<[RealmWithDocuments], Error>
+
     let challengeRatings = crToXpMapping.keys.sorted()
     let allAllowedItemTypes: [CompendiumItemType]
 
     let initial: Values
     var current: Values
+
+    var realmsWithDocuments: AsyncRealmsWithDocuments = .initial
 
     init() {
         self.allAllowedItemTypes = CompendiumItemType.allCases
@@ -153,10 +260,18 @@ struct CompendiumFilterSheetState: Equatable {
     }
 
     struct Values: Equatable {
+        var selectedSource: SelectedSource?
         var itemType: CompendiumItemType?
         var minMonsterCR: Fraction?
         var maxMonsterCR: Fraction?
         var monsterType: MonsterType?
+
+        struct SelectedSource: Equatable {
+            var realmId: CompendiumRealm.Id
+            var documentId: CompendiumSourceDocument.Id?
+
+            var displayName: String
+        }
     }
 
     var compatibleFilters: [Filter] {
@@ -182,9 +297,19 @@ struct CompendiumFilterSheetState: Equatable {
     }
 
     typealias Filter = CompendiumFilters.Property
+
+    struct RealmWithDocuments: Equatable, Identifiable {
+        let realm: CompendiumRealm
+        let documents: [CompendiumSourceDocument]
+
+        var id: CompendiumRealm.Id { realm.id }
+    }
 }
 
+extension CompendiumSourceDocument: Identifiable { }
+
 enum CompendiumFilterSheetAction {
+    case selectedSource(CompendiumFilterSheetState.Values.SelectedSource?)
     case itemType(CompendiumItemType?)
     case minMonsterCR(Double)
     case maxMonsterCR(Double)
@@ -192,7 +317,11 @@ enum CompendiumFilterSheetAction {
     case editing(CompendiumFilterSheetState.Filter, Bool)
     case clear(CompendiumFilterSheetState.Filter)
     case clearAll
+
+    case realmsWithDocuments(CompendiumFilterSheetState.AsyncRealmsWithDocuments.Action)
 }
+
+typealias CompendiumFilterSheetEnvironment = EnvironmentWithCompendiumMetadata
 
 extension CompendiumFilterSheetState {
     var minMonsterCrDouble: Double {
@@ -257,38 +386,78 @@ extension CompendiumFilterSheetState {
         initial != current
     }
 
-    static var reducer: AnyReducer<Self, CompendiumFilterSheetAction, Environment> = AnyReducer { state, action, _ in
-        switch action {
-        case .itemType(let type):
-            state.current.itemType = type
-        case .minMonsterCR(let v):
-            state.minMonsterCrDouble = v
-        case .maxMonsterCR(let v):
-            state.maxMonsterCrDouble = v
-        case .monsterType(let t):
-            state.monsterType = t
-        case .editing(.minMonsterCR, false):
-            if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
-                state.current.maxMonsterCR = max(minCr, maxCr)
+    static var reducer: AnyReducer<Self, CompendiumFilterSheetAction, CompendiumFilterSheetEnvironment> = AnyReducer.combine(
+            AnyReducer { state, action, _ in
+            switch action {
+            case .itemType(let type):
+                state.current.itemType = type
+            case .minMonsterCR(let v):
+                state.minMonsterCrDouble = v
+            case .maxMonsterCR(let v):
+                state.maxMonsterCrDouble = v
+            case .selectedSource(let s):
+                state.current.selectedSource = s
+            case .monsterType(let t):
+                state.monsterType = t
+            case .editing(.minMonsterCR, false):
+                if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
+                    state.current.maxMonsterCR = max(minCr, maxCr)
+                }
+            case .editing(.maxMonsterCR, false):
+                if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
+                    state.current.minMonsterCR = min(minCr, maxCr)
+                }
+            case .editing: break
+            case .clear(.itemType):
+                state.current.itemType = nil
+            case .clear(.minMonsterCR):
+                state.current.minMonsterCR = nil
+            case .clear(.maxMonsterCR):
+                state.current.maxMonsterCR = nil
+            case .clear(.monsterType):
+                state.current.monsterType = nil
+            case .clearAll:
+                return Filter.allCases.publisher.map { f in
+                    .clear(f)
+                }.eraseToEffect()
+            case .realmsWithDocuments: break // handled below
             }
-        case .editing(.maxMonsterCR, false):
-            if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
-                state.current.minMonsterCR = min(minCr, maxCr)
+            return .none
+        },
+        AsyncRealmsWithDocuments.reducer { (env: EnvironmentWithCompendiumMetadata) in
+            do {
+                let realms = try env.compendiumMetadata.realms()
+                let documents = try env.compendiumMetadata.sourceDocuments()
+                let realmsWithDocuments = realms.map { realm in
+                    RealmWithDocuments(
+                        realm: realm,
+                        documents: documents.filter { $0.realmId == realm.id }
+                    )
+                }
+                return Just(realmsWithDocuments).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
+            } catch {
+                return Fail(error: error).eraseToAnyPublisher()
             }
-        case .editing: break
-        case .clear(.itemType):
-            state.current.itemType = nil
-        case .clear(.minMonsterCR):
-            state.current.minMonsterCR = nil
-        case .clear(.maxMonsterCR):
-            state.current.maxMonsterCR = nil
-        case .clear(.monsterType):
-            state.current.monsterType = nil
-        case .clearAll:
-            return Filter.allCases.publisher.map { f in
-                .clear(f)
-            }.eraseToEffect()
+        }.pullback(state: \.realmsWithDocuments, action: /CompendiumFilterSheetAction.realmsWithDocuments, environment: { $0 })
+    )
+}
+
+#if DEBUG
+struct CompendiumFilterSheetPreview: PreviewProvider {
+    static var previews: some View {
+        CompendiumFilterSheet(store: Store(
+            initialState: CompendiumFilterSheetState(),
+            reducer: CompendiumFilterSheetState.reducer,
+            environment: StandaloneActionResolutionEnvironment(
+                compendiumMetadata: CompendiumMetadataKey.previewValue
+            )
+        )) { _ in
+
         }
-        return .none
     }
 }
+
+struct StandaloneActionResolutionEnvironment: CompendiumFilterSheetEnvironment {
+    var compendiumMetadata: CompendiumMetadata
+}
+#endif

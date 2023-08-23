@@ -221,6 +221,8 @@ extension EnvironmentWithDatabase {
     }
 }
 
-extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse, EnvironmentWithDatabase, EnvironmentWithSendMail, EnvironmentWithCrashReporter {
+extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse, EnvironmentWithDatabase, EnvironmentWithSendMail, EnvironmentWithCrashReporter, EnvironmentWithCompendium, EnvironmentWithCompendiumMetadata {
+
+    var compendiumMetadata: CompendiumMetadata { compendium.metadata }
 
 }
