@@ -45,8 +45,8 @@ struct AddCombatantState: Equatable {
                     definition.item,
                     origin: .created(.init(definition.item)),
                     document: .init(
-                        id: CompendiumSourceDocument.unknownCore.id,
-                        displayName: CompendiumSourceDocument.unknownCore.displayName
+                        id: CompendiumSourceDocument.unspecifiedCore.id,
+                        displayName: CompendiumSourceDocument.unspecifiedCore.displayName
                     )
                 )
             }

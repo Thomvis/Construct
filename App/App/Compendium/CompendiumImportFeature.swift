@@ -1309,10 +1309,15 @@ enum CompendiumMetadataKey: DependencyKey {
     public static var previewValue: CompendiumMetadata {
         CompendiumMetadata {
             [
+                CompendiumSourceDocument.srd5_1,
+                CompendiumSourceDocument.unspecifiedCore,
+                CompendiumSourceDocument.homebrew,
                 .init(id: Tagged("tob1"), displayName: "Tome of Beasts 1", realmId: Tagged("kp"))
             ]
         } realms: {
             [
+                CompendiumRealm.core,
+                CompendiumRealm.homebrew,
                 .init(id: Tagged("kp"), displayName: "Kobold Press")
             ]
         } putRealm: { _ in

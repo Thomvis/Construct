@@ -8,7 +8,7 @@
 import Foundation
 import Tagged
 
-public struct CompendiumSourceDocument: Hashable, Codable {
+public struct CompendiumSourceDocument: Hashable, Codable, Identifiable {
     public typealias Id = Tagged<Self, String>
 
     public let id: Id
@@ -26,13 +26,13 @@ public struct CompendiumSourceDocument: Hashable, Codable {
 public extension CompendiumSourceDocument {
     static let srd5_1 = CompendiumSourceDocument(
         id: "srd",
-        displayName: "Open Game Content (SRD 5.1)",
+        displayName: "SRD 5.1",
         realmId: CompendiumRealm.core.id
     )
 
-    static let unknownCore = CompendiumSourceDocument(
+    static let unspecifiedCore = CompendiumSourceDocument(
         id: "core",
-        displayName: "Core",
+        displayName: "Unspecified",
         realmId: CompendiumRealm.core.id
     )
 

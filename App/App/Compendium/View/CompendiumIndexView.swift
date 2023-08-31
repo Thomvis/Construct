@@ -569,6 +569,7 @@ struct FilterButton: View {
 
         self.sheet = CompendiumFilterSheet(store: Store(initialState: state, reducer: CompendiumFilterSheetState.reducer, environment: self.env)) { filterValues in
             var filters = self.viewStore.state.filters ?? .init()
+            filters.source = filterValues.source
             filters.types = filterValues.itemType.optionalArray
             filters.minMonsterChallengeRating = filterValues.minMonsterCR
             filters.maxMonsterChallengeRating = filterValues.maxMonsterCR
@@ -659,6 +660,7 @@ extension CompendiumItem {
 fileprivate extension CompendiumFilterSheetState {
     init(_ queryFilters: CompendiumFilters?, allAllowedItemTypes: [CompendiumItemType]) {
         let values = Values(
+            source: queryFilters?.source,
             itemType: queryFilters?.types?.single,
             minMonsterCR: queryFilters?.minMonsterChallengeRating,
             maxMonsterCR: queryFilters?.maxMonsterChallengeRating,

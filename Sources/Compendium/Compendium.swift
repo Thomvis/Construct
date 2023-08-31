@@ -49,6 +49,7 @@ public struct Order: Equatable {
 }
 
 public struct CompendiumFilters: Equatable {
+    public var source: Source?
     public var types: [CompendiumItemType]?
 
     public var minMonsterChallengeRating: Fraction? = nil
@@ -56,11 +57,13 @@ public struct CompendiumFilters: Equatable {
     public var monsterType: MonsterType? = nil
 
     public init(
+        source: Source? = nil,
         types: [CompendiumItemType]? = nil,
         minMonsterChallengeRating: Fraction? = nil,
         maxMonsterChallengeRating: Fraction? = nil,
         monsterType: MonsterType? = nil
     ) {
+        self.source = source
         self.types = types
         self.minMonsterChallengeRating = minMonsterChallengeRating
         self.maxMonsterChallengeRating = maxMonsterChallengeRating
@@ -72,6 +75,16 @@ public struct CompendiumFilters: Equatable {
         case minMonsterCR
         case maxMonsterCR
         case monsterType
+    }
+
+    public struct Source: Hashable {
+        public var realm: CompendiumRealm
+        public var document: CompendiumSourceDocument
+
+        public init(realm: CompendiumRealm, document: CompendiumSourceDocument) {
+            self.realm = realm
+            self.document = document
+        }
     }
 }
 

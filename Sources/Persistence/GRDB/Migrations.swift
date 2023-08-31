@@ -401,13 +401,15 @@ extension Database {
                 CompendiumRealm.core,
                 CompendiumRealm.homebrew,
                 CompendiumSourceDocument.srd5_1,
-                CompendiumSourceDocument.unknownCore,
                 CompendiumSourceDocument.homebrew
             ]
             
             for fixture in fixtures {
                 try KeyValueStore.put(fixture, at: fixture.rawKey, in: db)
             }
+
+            var jobs: [CompendiumImportSourceId: CompendiumImportJob] = [:]
+            var documents = IdentifiedArrayOf<CompendiumSourceDocument>()
 
             // update the compendium
             let entryRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix())%")).fetchAll(db)
@@ -420,20 +422,33 @@ extension Database {
 
                 // Migrate source
                 let origin: CompendiumEntry.Origin
-                let newDocument: CompendiumEntry.CompendiumSourceDocumentReference
-                if let legacySourceValue = entryJSON["source"] {
+                let newDocument: CompendiumSourceDocument
+                if let legacySourceValue = entryJSON["source"] as? [String: String] {
                     guard let legacySourceData = try? JSONSerialization.data(withJSONObject: legacySourceValue),
                           let legacySource = try? decoder.decode(LegacyModels.CompendiumEntry_Source.self, from: legacySourceData) else {
                         assertionFailure("Could not migrate \(r.key): failed to read leagacy Source")
                         continue
                     }
 
-                    let (source, document) = CompendiumEntry.migrate(source: legacySource)
+                    let (source, document, job) = CompendiumEntry.migrate(source: legacySource)
                     origin = source
+
+                    // add new documents
                     newDocument = document
+                    if fixtures.allSatisfy({ $0.rawKey != newDocument.rawKey }) && !documents.contains(newDocument) {
+                        documents.append(newDocument)
+                    }
+
+                    // add jobs
+                    if var job {
+                        if r.modifiedAt < job.timestamp {
+                            job.timestamp = r.modifiedAt
+                        }
+                        jobs[job.sourceId] = job
+                    }
                 } else {
                     origin = .created(nil)
-                    newDocument = .init(CompendiumSourceDocument.homebrew)
+                    newDocument = CompendiumSourceDocument.homebrew
                 }
 
                 // Write new source & document to entry
@@ -469,6 +484,22 @@ extension Database {
                     continue
                 }
             }
+
+            for doc in documents {
+                do {
+                    try KeyValueStore.put(doc, at: doc.key.rawValue, in: db)
+                } catch {
+                    assertionFailure("Could not save document \(doc.key)")
+                }
+            }
+
+            for job in jobs.values {
+                do {
+                    try KeyValueStore.put(job, at: job.key.rawValue, in: db)
+                } catch {
+                    assertionFailure("Could not save job \(job.key)")
+                }
+            }
         }
 
         return migrator
@@ -488,13 +519,48 @@ extension DatabaseMigrator {
 }
 
 extension CompendiumEntry {
-    static func migrate(source: LegacyModels.CompendiumEntry_Source) -> (CompendiumEntry.Origin, CompendiumEntry.CompendiumSourceDocumentReference) {
-        if source.displayName == CompendiumSourceDocument.srd5_1.displayName {
-            return (.imported(nil), .init(CompendiumSourceDocument.srd5_1))
-        } else if source.bookmark != nil {
-            return (.imported(nil), .init(CompendiumSourceDocument.unknownCore))
+    static func migrate(source: LegacyModels.CompendiumEntry_Source) -> (CompendiumEntry.Origin, CompendiumSourceDocument, CompendiumImportJob?) {
+        if source.displayName == "Open Game Content (SRD 5.1)" {
+            return (.imported(nil), CompendiumSourceDocument.srd5_1, nil)
+        } else if let bookmark = source.bookmark {
+            var sourceBookmark: String?
+            var documentName: String?
+            switch source.sourceName {
+            case "FileDataSource":
+                let values = NSURL.resourceValues(forKeys: [URLResourceKey.nameKey], fromBookmarkData: bookmark)
+                sourceBookmark = values?[.nameKey] as? String
+                documentName = sourceBookmark
+            default:
+                sourceBookmark = String(data: bookmark, encoding: .utf8)
+                if let sourceBookmark, let url = URLComponents(string: sourceBookmark) {
+                    documentName = (url.path as NSString).lastPathComponent
+                }
+            }
+
+            let id = CompendiumImportSourceId(
+                type: source.sourceName,
+                bookmark: sourceBookmark.map { "migrated/\($0)" } ?? "migration_failed"
+            )
+            let document = documentName
+                .map { $0 as NSString }
+                .map { $0.deletingPathExtension }
+                .map { String($0.prefix(20)) }
+                .map { name in
+                    CompendiumSourceDocument(
+                        id: .init(name),
+                        displayName: name,
+                        realmId: CompendiumRealm.core.id
+                    )
+                } ?? CompendiumSourceDocument.unspecifiedCore
+
+            let job = CompendiumImportJob(
+                sourceId: id,
+                sourceVersion: nil,
+                documentId: document.id
+            )
+            return (.imported(job.id), document, job)
         } else {
-            return (.created(nil), .init(CompendiumSourceDocument.homebrew))
+            return (.created(nil), CompendiumSourceDocument.homebrew, nil)
         }
     }
 

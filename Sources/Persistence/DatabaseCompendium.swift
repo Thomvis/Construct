@@ -151,6 +151,13 @@ extension KeyValueStore.SecondaryIndexOrder {
 extension CompendiumFilters {
     var secondaryIndexFilters: [KeyValueStore.SecondaryIndexFilter] {
         Array(builder: {
+            if let source {
+                KeyValueStore.SecondaryIndexFilter(
+                    index: KeyValueStore.SecondaryIndexes.compendiumEntrySourceDocumentId,
+                    condition: .equals(source.document.id.rawValue)
+                )
+            }
+
             if let minMonsterChallengeRating {
                 KeyValueStore.SecondaryIndexFilter(
                     index: KeyValueStore.SecondaryIndexes.compendiumEntryMonsterChallengeRating,
