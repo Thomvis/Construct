@@ -140,9 +140,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                         }) {
                             Label("Add", systemImage: "plus.circle")
                         }
-                        // bug: buttonStyle(.plain) is needed for the correct layout of this button, it does not make
-                        // the button look plain
-                        .buttonStyle(.plain)
                         // bug: ignoresSafeArea() is needed to prevent a layout glitch when the keyboard is presented
                         .ignoresSafeArea()
                     }

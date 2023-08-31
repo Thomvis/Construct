@@ -118,8 +118,6 @@ struct EncounterDetailView: View {
     }
 
     func defaultActionBar() -> some View {
-        // bug: buttonStyle(.plain) used below is needed for the correct layout of the buttons,
-        // it does not make the button look plain
         return RoundedButtonToolbar {
             if viewStore.state.building.isScratchPad {
                 Menu(content: {
@@ -139,7 +137,6 @@ struct EncounterDetailView: View {
                         Label("Reset…", systemImage: "xmark.circle")
                     }
                     .accessibilityHint(Text("Activate to clear the encounter."))
-                    .buttonStyle(.plain)
                 }
                 .disabled(self.viewStore.state.building.combatants.isEmpty)
             }
@@ -149,7 +146,6 @@ struct EncounterDetailView: View {
             }) {
                 Label("Add combatants", systemImage: "plus.circle")
             }
-            .buttonStyle(.plain)
             .menu(content: {
                 Button(action: {
                     self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter:
@@ -196,7 +192,6 @@ struct EncounterDetailView: View {
                         Label("Run encounter", systemImage: "play")
                     }
                     .disabled(self.viewStore.state.building.combatants.isEmpty)
-                    .buttonStyle(.plain)
                 }
             } else {
                 Button(action: {
