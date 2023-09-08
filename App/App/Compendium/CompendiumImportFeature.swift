@@ -998,22 +998,14 @@ public struct CompendiumImportView: View {
                                         Divider()
                                         
                                         VStack {
-                                            HStack {
-                                                TextField("Document name", text: viewStore.binding(\.$importSettings.newDocumentName))
-                                                    .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                    .frame(minHeight: 35)
-                                                    .layoutPriority(1)
-                                                
-                                                TextField("", text: Binding(
+                                            TextFieldWithSlug(
+                                                title: "Document name",
+                                                text: viewStore.binding(\.$importSettings.newDocumentName),
+                                                slug: Binding(
                                                     get: { viewStore.state.importSettings.effectiveNewDocumentSlug },
                                                     set: { viewStore.binding(\.$importSettings.newDocumentCustomSlug).wrappedValue = $0 }
-                                                ))
-                                                .textInputAutocapitalization(.never)
-                                                .autocorrectionDisabled(true)
-                                                .multilineTextAlignment(.trailing)
-                                                .foregroundStyle(Color(UIColor.tertiaryLabel))
-                                                .frame(minWidth: 50)
-                                            }
+                                                )
+                                            )
                                             .frame(minHeight: 35)
 
                                             if let match = viewStore.state.importSettings.existingDocumentMatchingNewSlug {
@@ -1055,22 +1047,14 @@ public struct CompendiumImportView: View {
                                             if viewStore.state.importSettings.realm == .new {
                                                 Divider()
                                                 
-                                                HStack {
-                                                    TextField("Realm name", text: viewStore.binding(\.$importSettings.newRealmName))
-                                                        .foregroundStyle(Color(UIColor.secondaryLabel))
-                                                        .frame(minHeight: 35)
-                                                        .layoutPriority(1)
-                                                    
-                                                    TextField("", text: Binding(
+                                                TextFieldWithSlug(
+                                                    title: "Realm name",
+                                                    text: viewStore.binding(\.$importSettings.newRealmName),
+                                                    slug: Binding(
                                                         get: { viewStore.state.importSettings.effectiveNewRealmSlug },
                                                         set: { viewStore.binding(\.$importSettings.newRealmCustomSlug).wrappedValue = $0 }
-                                                    ))
-                                                    .textInputAutocapitalization(.never)
-                                                    .autocorrectionDisabled(true)
-                                                    .multilineTextAlignment(.trailing)
-                                                    .foregroundStyle(Color(UIColor.tertiaryLabel))
-                                                    .frame(minWidth: 50)
-                                                }
+                                                    )
+                                                )
                                                 .frame(minHeight: 35)
                                                 
                                                 if let match = viewStore.state.importSettings.existingRealmMatchingNewSlug {
@@ -1163,29 +1147,6 @@ public struct CompendiumImportView: View {
         }
         .alert(store.scope(state: \.resultAlert, action: { $0 }), dismiss: .didDismissImportResultAlert)
         .navigationTitle(Text("Import"))
-    }
-}
-
-fileprivate struct MenuPickerField<Value, MenuBody>: View where Value: Hashable, MenuBody: View {
-    let title: String
-    let selection: Binding<Value?>
-    @ViewBuilder let menuBody: () -> MenuBody
-
-    var body: some View {
-        LabeledContent(title) {
-            Picker(title, selection: selection) {
-                if selection.wrappedValue == nil {
-                    Text("Select").tag(Optional<Value>.none)
-
-                    Divider()
-                }
-
-                menuBody()
-            }
-            .truncationMode(.middle)
-        }
-        .animation(nil, value: selection.wrappedValue)
-        .frame(minHeight: 35)
     }
 }
 

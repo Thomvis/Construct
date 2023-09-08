@@ -21,6 +21,7 @@
 		E91CCC872615D21B00CB0527 /* AppStoreScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91CCC862615D21B00CB0527 /* AppStoreScreenshotTests.swift */; };
 		E91E596F24477D3E00975453 /* AlignmentTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E596E24477D3E00975453 /* AlignmentTest.swift */; };
 		E91EB0B423EE08CB00F40E46 /* roll.ahap in Resources */ = {isa = PBXBuildFile; fileRef = E91EB0B323EE08CA00F40E46 /* roll.ahap */; };
+		E928AD152AA4A8E5006F074F /* CompendiumDocumentsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E928AD142AA4A8E5006F074F /* CompendiumDocumentsFeature.swift */; };
 		E9297CE92A3F285B00EFD8FC /* CompendiumImportFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9297CE82A3F285B00EFD8FC /* CompendiumImportFeature.swift */; };
 		E929AD202745A2E400A39CAD /* ParseableCreatureFeatureTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */; };
 		E92A41E4240D2F0C009AF440 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E3240D2F0C009AF440 /* WelcomeView.swift */; };
@@ -227,6 +228,7 @@
 		E91EB0B323EE08CA00F40E46 /* roll.ahap */ = {isa = PBXFileReference; lastKnownFileType = text; path = roll.ahap; sourceTree = "<group>"; };
 		E9238C3023871C8A0023DFC3 /* CreatureEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureEditView.swift; sourceTree = "<group>"; };
 		E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureEditViewState.swift; sourceTree = "<group>"; };
+		E928AD142AA4A8E5006F074F /* CompendiumDocumentsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumDocumentsFeature.swift; sourceTree = "<group>"; };
 		E9297CE82A3F285B00EFD8FC /* CompendiumImportFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImportFeature.swift; sourceTree = "<group>"; };
 		E929AD1F2745A2E400A39CAD /* ParseableCreatureFeatureTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParseableCreatureFeatureTest.swift; sourceTree = "<group>"; };
 		E92A41E3240D2F0C009AF440 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
@@ -421,6 +423,7 @@
 			children = (
 				E91E46FB231D937F005D1E6F /* View */,
 				E9297CE82A3F285B00EFD8FC /* CompendiumImportFeature.swift */,
+				E928AD142AA4A8E5006F074F /* CompendiumDocumentsFeature.swift */,
 			);
 			path = Compendium;
 			sourceTree = "<group>";
@@ -1062,6 +1065,7 @@
 				E978861523BDF398003B2DA2 /* NumberEntryView.swift in Sources */,
 				E9F1286F28E6D8510040C90C /* EntityChangeObserver.swift in Sources */,
 				E97651D4248AE1CF00C76865 /* CombatantDetailView.swift in Sources */,
+				E928AD152AA4A8E5006F074F /* CompendiumDocumentsFeature.swift in Sources */,
 				E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */,
 				E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */,
 				E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */,

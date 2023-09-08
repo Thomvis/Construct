@@ -21,6 +21,12 @@ public protocol Compendium {
     func resolve(annotation: CompendiumItemReferenceTextAnnotation) -> ReferenceResolveResult
 }
 
+struct CompendiumQuery {
+    let search: String?
+    let filters: CompendiumFilters?
+    let order: Order?
+}
+
 public enum CompendiumItemField: Equatable {
     case title
     case monsterChallengeRating
