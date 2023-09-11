@@ -95,14 +95,16 @@ final class MechMuseTest: XCTestCase {
 
 extension OpenAIClient {
     static func simpleMock(
-        performCompletionResponse: CompletionResponse?,
-        streamCompletionResponse: AsyncThrowingStream<String, Error>?,
-        streamChatResponse: AsyncThrowingStream<String, Error>?,
+        performCompletionResponse: CompletionResponse? = nil,
+        streamCompletionResponse: AsyncThrowingStream<String, Error>? = nil,
+        performChatResponse: ChatCompletionResponse? = nil,
+        streamChatResponse: AsyncThrowingStream<String, Error>? = nil,
         modelsResponse: ModelsResponse = ModelsResponse()
     ) -> Self {
         return OpenAIClient(
             performCompletionRequest: { _ in performCompletionResponse! },
             streamCompletionRequest: { _ in streamCompletionResponse! },
+            performChatCompletionRequest: { _ in performChatResponse! },
             streamChatRequest: { _ in streamChatResponse! },
             performModelsRequest: { modelsResponse }
         )

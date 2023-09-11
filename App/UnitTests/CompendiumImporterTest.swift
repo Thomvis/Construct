@@ -33,7 +33,7 @@ class CompendiumImporterTest: XCTestCase {
             sourceId: .defaultMonsters,
             sourceVersion: nil,
             reader: DummyCompendiumDataSourceReader(items: [item]),
-            document: CompendiumSourceDocument.unknownCore,
+            document: CompendiumSourceDocument.unspecifiedCore,
             overwriteExisting: false
         )
 
@@ -52,7 +52,7 @@ class CompendiumImporterTest: XCTestCase {
             sourceId: .defaultMonsters,
             sourceVersion: nil,
             reader: DummyCompendiumDataSourceReader(items: [item]),
-            document: CompendiumSourceDocument.unknownCore,
+            document: CompendiumSourceDocument.unspecifiedCore,
             overwriteExisting: false
         )
 
@@ -75,15 +75,23 @@ class CompendiumImporterTest: XCTestCase {
             sourceId: .defaultMonsters,
             sourceVersion: nil,
             reader: DummyCompendiumDataSourceReader(items: [item]),
-            document: CompendiumSourceDocument.unknownCore,
-            overwriteExisting: true
+            document: CompendiumSourceDocument.unspecifiedCore,
+            overwriteExisting: false
         )
 
         _ = try await sut.run(task)
 
         // change the item and import it again
         item.stats.hitPoints = 1000
-        let result = try await sut.run(task)
+        let task2 = CompendiumImportTask(
+            sourceId: .defaultMonsters,
+            sourceVersion: nil,
+            reader: DummyCompendiumDataSourceReader(items: [item]),
+            document: CompendiumSourceDocument.unspecifiedCore,
+            overwriteExisting: true
+        )
+
+        let result = try await sut.run(task2)
         XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 0, overwrittenItemCount: 1, invalidItemCount: 0))
 
         let entry = try! compendium.database.keyValueStore.get(item.key)

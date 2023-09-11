@@ -37,10 +37,10 @@ final class OpenAIClientTest: XCTestCase {
         ))
 
         // Assert serialized request
-        let requestString = """
+        let requestData = """
         {"model":"text-davinci-003","stream":false,"prompt":"Say this is a test"}
-        """
-        XCTAssertNoDifference((httpClient.dataRequests.last?.httpBody).map { String(data: $0, encoding: .utf8)}, requestString)
+        """.data(using: .utf8)!
+        try XCTAssertNoDifferenceJSONData(requestData, httpClient.dataRequests.last?.httpBody)
 
         // Assert parsed response
         XCTAssertNoDifference(response, CompletionResponse(
@@ -77,10 +77,10 @@ final class OpenAIClientTest: XCTestCase {
         ))
 
         // Assert serialized request
-        let requestString = """
+        let requestData = """
         {"model":"gpt-3.5-turbo","stream":true,"messages":[{"content":"You are a D&D DM","role":"system"},{"content":"Narrate the attack of a goblin","role":"user"}]}
-        """
-        XCTAssertNoDifference((httpClient.streamRequests.last?.httpBody).map { String(data: $0, encoding: .utf8)}, requestString)
+        """.data(using: .utf8)!
+        try XCTAssertNoDifferenceJSONData(requestData, httpClient.streamRequests.last?.httpBody)
 
         // Assert parsed response
         let string = try await response.reduce("", +)
@@ -105,6 +105,19 @@ final class OpenAIClientTest: XCTestCase {
             streamRequests.append(request)
             return streamResponse!
         }
+    }
+
+    func XCTAssertNoDifferenceJSONData(
+        _ expression1: @autoclosure () throws -> Data?,
+        _ expression2: @autoclosure () throws -> Data?,
+        _ message: @autoclosure () -> String = "",
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let json1 = try JSONSerialization.jsonObject(with: expression1() ?? Data()) as! AnyHashable
+        let json2 = try JSONSerialization.jsonObject(with: expression2() ?? Data()) as! AnyHashable
+
+        XCTAssertNoDifference(json1, json2, message(), file: file, line: line)
     }
 
 }

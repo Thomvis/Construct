@@ -29,7 +29,7 @@ final class CreatureActionDescriptionTest: XCTestCase {
         XCTAssertNoDifference(request.prompt(), [
             .init(role: .system, content: "You are a Dungeons & Dragons DM."),
             .init(role: .user, content: """
-                During a combat encounter, a player is attacked by a monster.Attacking monster: Goblin ().The monster attacks using "Shortbow".The attack is a hit, dealing 6 points of bludgeoning damage.Narrate the attack, focus on the monster and the attack, using a gritty style.Mention the damage.
+                During a combat encounter, a player is attacked by a monster.Attacking monster: Goblin ().The monster attacks using "Shortbow".The attack is a hit, dealing 6 points of bludgeoning damage.Narrate the attack to the player, focus on the monster and the attack, using a gritty style, limit to one paragraph.Mention the damage.
                 """
             )
         ])
