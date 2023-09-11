@@ -179,6 +179,8 @@ public enum MechMuseError: Error, Equatable {
             switch remoteError.code {
             case .invalidAPIKey: self = .invalidAPIKey
             case .insufficientQuota: self = .insufficientQuota
+            case .contextLengthExceeded: self = .unspecified // map to unspecified because the user can't help it anyway
+            case .none: self = .unspecified
             }
         case .decodingFailed:
             self = .unspecified
