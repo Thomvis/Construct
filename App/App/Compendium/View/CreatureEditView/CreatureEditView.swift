@@ -117,7 +117,7 @@ struct CreatureEditView: View {
                         self.model.statBlock.abilities.wrappedValue.score(for: ability).score
                     }, set: {
                         self.model.statBlock.abilities.wrappedValue.set(ability, to: $0)
-                    }), in: 1...20) {
+                    }), in: 1...viewStore.state.maximumAbilityScore) {
                         Text("\(ability.localizedDisplayName): ")
                             + Text("\(self.model.statBlock.abilities.wrappedValue.score(for: ability).score)")
                             + Text(" (\(modifierFormatter.stringWithFallback(for: self.model.statBlock.abilities.wrappedValue.score(for: ability).modifier.modifier)))").bold()
@@ -520,7 +520,7 @@ extension CreatureEditView {
                             }
 
                             Menu {
-                                ForEach(0...20) { i in
+                                ForEach(0...viewStore.state.maximumAbilityScore) { i in
                                     Button(modifierFormatter.stringWithFallback(for: i)) {
                                         var model = viewStore.model
                                         setProficiency(&model.statBlock, .custom(Modifier(modifier: i)), proficiency.stat)

@@ -64,6 +64,10 @@ struct CreatureEditViewState: Equatable {
         }
     }
 
+    var maximumAbilityScore: Int {
+        creatureType == .character ? 20 : 30
+    }
+
     var isValid: Bool {
         model.statBlock.name.nonEmptyString != nil && result != nil
     }
@@ -268,6 +272,7 @@ struct CreatureEditFormModel: Equatable {
 
         return "N/A"
     }
+
 }
 
 struct StatBlockFormModel: Equatable {
