@@ -35,6 +35,7 @@ enum FloatingDiceRollerViewAction: Equatable {
     case expand
 
     case onProcessRollForDiceLog(DiceLogEntry.Result, RollDescription)
+    case onClearDiceLog
 }
 
 extension FloatingDiceRollerViewState {
@@ -56,6 +57,8 @@ extension FloatingDiceRollerViewState {
                 state.diceCalculator.mode = .editingExpression
             case .onProcessRollForDiceLog(let result, let roll):
                 state.diceLog.receive(result, for: roll)
+            case .onClearDiceLog:
+                state.diceLog.clear()
             }
             return .none
         }

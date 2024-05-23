@@ -32,6 +32,7 @@ public enum DiceRollerViewAction: Equatable {
     case calculatorState(DiceCalculatorAction)
     case hideOutcome
     case onProcessRollForDiceLog(DiceLogEntry.Result, RollDescription)
+    case onClearDiceLog
 
     var calculatorState: DiceCalculatorAction? {
         guard case .calculatorState(let a) = self else { return nil }
@@ -68,6 +69,8 @@ public extension DiceRollerViewState {
                 state.showOutcome = false
             case .onProcessRollForDiceLog(let result, let roll):
                 state.diceLog.receive(result, for: roll)
+            case .onClearDiceLog:
+                state.diceLog.clear()
             }
             return .none
         },
