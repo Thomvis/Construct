@@ -138,6 +138,7 @@ struct EncounterDetailView: View {
                     }
                     .accessibilityHint(Text("Activate to clear the encounter."))
                 }
+                .menuStyle(.borderlessButton)
                 .disabled(self.viewStore.state.building.combatants.isEmpty)
             }
 
@@ -162,6 +163,7 @@ struct EncounterDetailView: View {
                     self.viewStore.send(.showAddCombatantReferenceItem)
                 }
             })
+            .menuStyle(.borderlessButton)
 
             if let resumables = viewStore.state.resumableRunningEncounters.value, resumables.count > 0 {
                 Menu(content: {
@@ -193,6 +195,7 @@ struct EncounterDetailView: View {
                     }
                     .disabled(self.viewStore.state.building.combatants.isEmpty)
                 }
+                .menuStyle(.borderlessButton)
             } else {
                 Button(action: {
                     viewStore.send(.run(nil), animation: .default)

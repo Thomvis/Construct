@@ -143,6 +143,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                         // bug: ignoresSafeArea() is needed to prevent a layout glitch when the keyboard is presented
                         .ignoresSafeArea()
                     }
+                    .menuStyle(.borderlessButton)
                 }
             }
 
