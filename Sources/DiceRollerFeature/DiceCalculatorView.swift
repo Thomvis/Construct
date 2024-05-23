@@ -300,6 +300,7 @@ fileprivate struct DiceExpressionView: View {
                     .onTapGesture {
                         viewStore.send(.onExpressionEditButtonTap, animation: .spring())
                     }
+                    .animation(nil, value: viewStore.state.expression)
 
                 Spacer()
                 if viewStore.state.showExpressionEditUndoButton {
