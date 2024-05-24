@@ -113,6 +113,37 @@ class KeyValueStoreTest: XCTestCase {
         XCTAssertEqual(values, [nil, 1, 2, 3, nil])
     }
 
+    @MainActor
+    func testObserveAll() async throws {
+
+        // three entries that should be returned in reverse and one with a key that doesn't match the prefix
+        try sut.put(1, at: "abc1", secondaryIndexValues: [0: "999"])
+        try sut.put(2, at: "abc2", secondaryIndexValues: [0: "998"])
+        try sut.put(3, at: "abc3", secondaryIndexValues: [0: "997"])
+        try sut.put(3, at: "xx3", secondaryIndexValues: [0: "1"])
+
+        Task {
+            try await Task.sleep(for: .milliseconds(10))
+            try sut.put(4, at: "abc4", secondaryIndexValues: [0: "996"])
+            try sut.remove("abc1")
+            try sut.remove("abc3")
+            try sut.remove("xx3") // no effect
+            try sut.put(2, at: "abc2", secondaryIndexValues: [0: "2"]) // change index
+        }
+
+        let values: [[Int]] = try await Array(sut.observeAll("abc", order: [.init(index: 0, ascending: true)]).prefix(5))
+        XCTAssertEqual(
+            values,
+            [
+                [3, 2, 1],
+                [4, 3, 2, 1],
+                [4, 3, 2],
+                [4, 2],
+                [2, 4],
+            ]
+        )
+    }
+
     func testFetchAll() throws {
         try sut.put(1, at: "1")
         try sut.put(2, at: "2")

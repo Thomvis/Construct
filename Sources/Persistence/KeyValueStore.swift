@@ -129,6 +129,34 @@ public final class KeyValueStore {
         }
     }
 
+    public func observeAll<V>(
+        _ keyPrefix: String,
+        filters: [SecondaryIndexFilter] = [],
+        order: [SecondaryIndexOrder] = [],
+        range: Range<Int>? = nil
+    ) -> AsyncThrowingStream<[V], any Error> where V: Codable & Equatable {
+        observeAll([keyPrefix], filters: filters, order: order, range: range)
+    }
+
+    public func observeAll<V>(
+        _ keyPrefixes: [String]? = [],
+        search: String? = nil,
+        filters: [SecondaryIndexFilter] = [],
+        order: [SecondaryIndexOrder] = [],
+        range: Range<Int>? = nil
+    ) -> AsyncThrowingStream<[V], any Error> where V: Codable & Equatable {
+        let observation = ValueObservation.trackingConstantRegion { db in
+            try Self.fetchAllRaw(keyPrefixes, search: search, filters: filters, order: order, range: range, database: db)
+        }
+
+        return observation.values(in: queue)
+            .map { records in
+                try records.map { try Self.decoder.decode(V.self, from: $0.value) }
+            }
+            .removeDuplicates()
+            .stream
+    }
+
     @discardableResult
     public func remove(_ key: String) throws -> Bool {
         try queue.write { db in
@@ -221,6 +249,19 @@ public final class KeyValueStore {
         order: [SecondaryIndexOrder] = [],
         range: Range<Int>? = nil
     ) throws -> [Record] {
+        return try queue.read { db in
+            try Self.fetchAllRaw(keyPrefixes, search: search, filters: filters, order: order, range: range, database: db)
+        }
+    }
+
+    private static func fetchAllRaw(
+        _ keyPrefixes: [String]? = [],
+        search: String? = nil,
+        filters: [SecondaryIndexFilter] = [],
+        order: [SecondaryIndexOrder] = [],
+        range: Range<Int>? = nil,
+        database: GRDB.Database
+    ) throws -> [Record] {
 
         func keyPrefixSQL(keyColumnName: String) -> (String, [String])? {
             guard let keyPrefixes = keyPrefixes, keyPrefixes.count > 0 else { return nil }
@@ -232,77 +273,75 @@ public final class KeyValueStore {
             return (prefixSql, keyPrefixes.map { "\($0)%" })
         }
 
-        return try queue.read { db in
-            var arguments: [Any] = []
-            var sql: String
+        var arguments: [Any] = []
+        var sql: String
 
-            let secondaryIndexes: Set<Int> = Set(filters.map(\.index) + order.map(\.index))
+        let secondaryIndexes: Set<Int> = Set(filters.map(\.index) + order.map(\.index))
 
-            sql = """
-            SELECT r.*
-            FROM \(Record.databaseTableName) AS r
+        sql = """
+        SELECT r.*
+        FROM \(Record.databaseTableName) AS r
+        """
+
+        var conditions: [(String, [Any])] = []
+        for index in secondaryIndexes {
+            sql += """
+
+            INNER JOIN \(SecondaryIndexRecord.databaseTableName) AS si_\(index)
+                ON si_\(index).\(SecondaryIndexRecord.Columns.recordKey.name) = r.\(Record.Columns.key.name)
             """
 
-            var conditions: [(String, [Any])] = []
-            for index in secondaryIndexes {
-                sql += """
-
-                INNER JOIN \(SecondaryIndexRecord.databaseTableName) AS si_\(index)
-                    ON si_\(index).\(SecondaryIndexRecord.Columns.recordKey.name) = r.\(Record.Columns.key.name)
-                """
-
-                conditions.append(("si_\(index).\(SecondaryIndexRecord.Columns.idx.name) = ?", [index]))
-            }
-
-
-            if let search {
-                sql += """
-
-                INNER JOIN \(FTSRecord.databaseTableName)
-                    ON r.\(Column.rowID.name) = \(FTSRecord.databaseTableName).\(Column.rowID.name)
-                """
-
-                conditions.append(("\(FTSRecord.databaseTableName) MATCH ?", [
-                    "\"\(search.replacingOccurrences(of: "\"", with: "\"\""))\"*"
-                ]))
-            }
-
-            for filter in filters {
-                switch filter.condition {
-                case .greaterThanOrEqualTo(let s):
-                    conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) >= ?", [s]))
-                case .lessThanOrEqualTo(let s):
-                    conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) <= ?", [s]))
-                case .equals(let s):
-                    conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) IS ?", [s]))
-                }
-            }
-
-            if let keyPrefixSql = keyPrefixSQL(keyColumnName: "r.\(Record.Columns.key.name)") {
-                conditions.append(keyPrefixSql)
-            }
-
-            if !conditions.isEmpty {
-                sql += "\nWHERE " + conditions.map { "(\($0.0))" }.joined(separator: " AND ")
-                arguments.append(contentsOf: conditions.flatMap(\.1))
-            }
-
-            let fallbackSort = ["r.\(Record.Columns.key.name) ASC"]
-            let orderFields = order
-                .map { "si_\($0.index).\(SecondaryIndexRecord.Columns.value.name) \($0.ascDesc)" }
-                .nonEmptyArray
-                .map { $0 + fallbackSort }
-                ?? search.map { _ in ["rank"]}
-                ?? fallbackSort
-
-            sql += "\nORDER BY " + orderFields.joined(separator: ", ")
-
-            if let range {
-                sql += "\nLIMIT \(range.startIndex), \(range.endIndex - range.startIndex)"
-            }
-
-            return try Record.fetchAll(db, sql: sql, arguments: StatementArguments(arguments) ?? .init())
+            conditions.append(("si_\(index).\(SecondaryIndexRecord.Columns.idx.name) = ?", [index]))
         }
+
+
+        if let search {
+            sql += """
+
+            INNER JOIN \(FTSRecord.databaseTableName)
+                ON r.\(Column.rowID.name) = \(FTSRecord.databaseTableName).\(Column.rowID.name)
+            """
+
+            conditions.append(("\(FTSRecord.databaseTableName) MATCH ?", [
+                "\"\(search.replacingOccurrences(of: "\"", with: "\"\""))\"*"
+            ]))
+        }
+
+        for filter in filters {
+            switch filter.condition {
+            case .greaterThanOrEqualTo(let s):
+                conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) >= ?", [s]))
+            case .lessThanOrEqualTo(let s):
+                conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) <= ?", [s]))
+            case .equals(let s):
+                conditions.append(("si_\(filter.index).\(SecondaryIndexRecord.Columns.value.name) IS ?", [s]))
+            }
+        }
+
+        if let keyPrefixSql = keyPrefixSQL(keyColumnName: "r.\(Record.Columns.key.name)") {
+            conditions.append(keyPrefixSql)
+        }
+
+        if !conditions.isEmpty {
+            sql += "\nWHERE " + conditions.map { "(\($0.0))" }.joined(separator: " AND ")
+            arguments.append(contentsOf: conditions.flatMap(\.1))
+        }
+
+        let fallbackSort = ["r.\(Record.Columns.key.name) ASC"]
+        let orderFields = order
+            .map { "si_\($0.index).\(SecondaryIndexRecord.Columns.value.name) \($0.ascDesc)" }
+            .nonEmptyArray
+            .map { $0 + fallbackSort }
+            ?? search.map { _ in ["rank"]}
+            ?? fallbackSort
+
+        sql += "\nORDER BY " + orderFields.joined(separator: ", ")
+
+        if let range {
+            sql += "\nLIMIT \(range.startIndex), \(range.endIndex - range.startIndex)"
+        }
+
+        return try Record.fetchAll(database, sql: sql, arguments: StatementArguments(arguments) ?? .init())
     }
 
     public struct Record: FetchableRecord, PersistableRecord, Codable, Hashable {
