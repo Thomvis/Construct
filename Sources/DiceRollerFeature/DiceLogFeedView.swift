@@ -12,67 +12,85 @@ import Dice
 
 public struct DiceLogFeedView: View {
     let entries: [DiceLogEntry]
+    let onClearButtonTap: () -> Void
 
-    public init(entries: [DiceLogEntry]) {
+    public init(entries: [DiceLogEntry], onClearButtonTap: @escaping () -> Void) {
         self.entries = entries
+        self.onClearButtonTap = onClearButtonTap
     }
 
     public var body: some View {
         GeometryReader { proxy in
             ScrollViewReader { p in
                 ScrollView(showsIndicators: false) {
-                    VStack(alignment: .trailing, spacing: 12) {
-                        Color.clear.frame(height: 80) // for the top safe area & gradient (FIXME)
+                    VStack(alignment: .trailing) {
+                        VStack(alignment: .trailing, spacing: 12) {
+                            Color.clear.frame(height: 80) // for the top safe area & gradient (FIXME)
 
-                        ForEach(entries.suffix(20), id: \.id) { entry in
-                            VStack(alignment: .trailing, spacing: 2) {
-                                Text(entry.roll.title).font(.footnote).bold()
-                                    .multilineTextAlignment(.trailing)
+                            ForEach(entries.suffix(20), id: \.id) { entry in
+                                VStack(alignment: .trailing, spacing: 2) {
+                                    Text(entry.roll.title).font(.footnote).bold()
+                                        .multilineTextAlignment(.trailing)
 
-                                VStack(alignment: .trailing, spacing: 8) {
-                                    ForEach(entry.results.suffix(20), id: \.id) { result in
-                                        VStack(alignment: .trailing, spacing: 2) {
-                                            if let singleRoll = result.singleRoll {
-                                                singleRollView(singleRoll)
-                                            } else if let (first, second) = result.doubleRoll {
-                                                HStack(spacing: -5) {
-                                                    doubleRollComponentView(first, isFirst: true)
-                                                    doubleRollComponentView(second, isFirst: false)
+                                    VStack(alignment: .trailing, spacing: 8) {
+                                        ForEach(entry.results.suffix(20), id: \.id) { result in
+                                            VStack(alignment: .trailing, spacing: 2) {
+                                                if let singleRoll = result.singleRoll {
+                                                    singleRollView(singleRoll)
+                                                } else if let (first, second) = result.doubleRoll {
+                                                    HStack(spacing: -5) {
+                                                        doubleRollComponentView(first, isFirst: true)
+                                                        doubleRollComponentView(second, isFirst: false)
+                                                    }
                                                 }
-                                            }
 
-                                            result.effectiveResult.text
-                                                .font(.caption2)
-                                                .foregroundColor(Color.secondary)
+                                                result.effectiveResult.text
+                                                    .font(.caption2)
+                                                    .foregroundColor(Color.secondary)
+                                            }
+                                            .transition(.move(edge: .leading).combined(with: .opacity).animation(.default.delay(0.1)))
                                         }
-                                        .transition(.move(edge: .leading).combined(with: .opacity).animation(.default.delay(0.1)))
+                                    }
+                                    .padding(.trailing, 12)
+                                    .background(alignment: .trailing) {
+                                        Color(UIColor.systemGray2)
+                                            .frame(maxWidth: 2)
+                                            .padding(.trailing, 1)
                                     }
                                 }
-                                .padding(.trailing, 12)
-                                .background(alignment: .trailing) {
-                                    Color(UIColor.systemGray2)
-                                        .frame(maxWidth: 2)
-                                        .padding(.trailing, 1)
-                                }
+                                .transition(.opacity)
                             }
-                            .transition(.opacity)
+
+                            Color.clear.frame(height: 5).id("break")
+                        }
+                        .frame(maxWidth: .infinity, minHeight: proxy.size.height, alignment: .bottomTrailing)
+
+                        if !entries.isEmpty {
+                            Button("Clear log", systemImage: "clear") {
+                                onClearButtonTap()
+                            }
+                            .font(.footnote)
                         }
 
                         Color.clear.frame(height: 15).id("bottom") // for the bottom gradient (FIXME)
                     }
-                    .frame(maxWidth: .infinity, minHeight: proxy.size.height, alignment: .bottomTrailing)
                 }
                 .onChange(of: entries.last) { _ in
                     DispatchQueue.main.async {
                         withAnimation(.spring()) {
-                            p.scrollTo("bottom", anchor: .bottom)
+                            if entries.last == nil {
+                                // entries is captured in this closure BEFORE the change
+                                p.scrollTo("bottom", anchor: .bottom)
+                            } else {
+                                p.scrollTo("break", anchor: .bottom)
+                            }
                         }
                     }
                 }
                 .onAppear {
                     DispatchQueue.main.async {
                         withAnimation(.spring()) {
-                            p.scrollTo("bottom", anchor: .bottom)
+                            p.scrollTo("break", anchor: .bottom)
                         }
                     }
                 }

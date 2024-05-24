@@ -54,7 +54,12 @@ public struct DiceRollerView: View {
                         Color(UIColor.systemBackground).opacity(0.9)
                     ]), startPoint: .top, endPoint: .bottom)
 
-                    DiceLogFeedView(entries: viewStore.state.diceLog.entries)
+                    DiceLogFeedView(
+                        entries: viewStore.state.diceLog.entries,
+                        onClearButtonTap: {
+                            viewStore.send(.onClearDiceLog, animation: .default)
+                        }
+                    )
                         .padding(.trailing, 12)
                         .mask(alignment: .top) {
                             VStack(spacing: 0) {

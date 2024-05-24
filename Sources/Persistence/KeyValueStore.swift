@@ -262,7 +262,9 @@ public final class KeyValueStore {
                     ON r.\(Column.rowID.name) = \(FTSRecord.databaseTableName).\(Column.rowID.name)
                 """
 
-                conditions.append(("\(FTSRecord.databaseTableName) MATCH ?", ["\(search)*"]))
+                conditions.append(("\(FTSRecord.databaseTableName) MATCH ?", [
+                    "\"\(search.replacingOccurrences(of: "\"", with: "\"\""))\"*"
+                ]))
             }
 
             for filter in filters {

@@ -59,6 +59,10 @@ public struct DiceLog: Hashable {
             ))
         }
     }
+
+    public mutating func clear() {
+        entries = []
+    }
 }
 
 public struct RollDescription: Hashable {
