@@ -120,7 +120,7 @@ struct EncounterDetailView: View {
     func defaultActionBar() -> some View {
         return RoundedButtonToolbar {
             if viewStore.state.building.isScratchPad {
-                Menu(content: {
+                Menu {
                     Button(action: {
                         viewStore.send(.resetEncounter(false))
                     }) {
@@ -132,7 +132,7 @@ struct EncounterDetailView: View {
                     }) {
                         Text("Clear all").foregroundColor(Color.red)
                     }
-                }) {
+                } label: {
                     Button(action: { }) {
                         Label("Reset…", systemImage: "xmark.circle")
                     }
@@ -142,12 +142,7 @@ struct EncounterDetailView: View {
                 .disabled(self.viewStore.state.building.combatants.isEmpty)
             }
 
-            Button(action: {
-
-            }) {
-                Label("Add combatants", systemImage: "plus.circle")
-            }
-            .menu(content: {
+            Menu {
                 Button(action: {
                     self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter:
                         self.viewStore.state.encounter)))))
@@ -156,17 +151,21 @@ struct EncounterDetailView: View {
                     Text("Quick create")
                     Image(systemName: "plus.circle")
                 }
-            }, primaryAction: {
+            } label: {
+                Button(action: { }) {
+                    Label("Add combatants", systemImage: "plus.circle")
+                }
+            } primaryAction: {
                 if appNavigation == .tab {
                     self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter: self.viewStore.state.encounter)))))
                 } else {
                     self.viewStore.send(.showAddCombatantReferenceItem)
                 }
-            })
+            }
             .menuStyle(.borderlessButton)
 
             if let resumables = viewStore.state.resumableRunningEncounters.value, resumables.count > 0 {
-                Menu(content: {
+                Menu {
                     Button(action: {
                         viewStore.send(.run(nil), animation: .default)
                     }) {
@@ -175,27 +174,25 @@ struct EncounterDetailView: View {
 
                     Divider()
 
-                    with(RelativeDateTimeFormatter()) { formatter in
-                        ForEach(resumables, id: \.key) { r in
-                            Button(action: {
-                                viewStore.send(.onResumeRunningEncounterTap(r.key), animation: .default)
-                            }) {
-                                Label(
-                                    "Resume run from \(formatter.localizedString(for: r.modifiedAt, relativeTo: Date()))",
-                                    systemImage: "play"
-                                )
-                            }
+                    ForEach(resumables, id: \.self) { r in
+                        Button(action: {
+                            viewStore.send(.onResumeRunningEncounterTap(r), animation: .default)
+                        }) {
+                            Label(
+                                "Resume run \(String(r.suffix(5)))",
+                                systemImage: "play"
+                            )
                         }
                     }
-                }) {
+                } label: {
                     Button(action: {
                         viewStore.send(.run(nil), animation: .default)
                     }) {
                         Label("Run encounter", systemImage: "play")
                     }
-                    .disabled(self.viewStore.state.building.combatants.isEmpty)
                 }
                 .menuStyle(.borderlessButton)
+                .disabled(self.viewStore.state.building.combatants.isEmpty)
             } else {
                 Button(action: {
                     viewStore.send(.run(nil), animation: .default)

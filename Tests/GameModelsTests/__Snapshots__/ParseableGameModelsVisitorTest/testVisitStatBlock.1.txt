@@ -1,0 +1,337 @@
+▿ StatBlock
+  ▿ _alignment: Migrated<Optional<Alignment>>
+    - wrappedValue: Optional<Alignment>.none
+  ▿ _reactions: Wrapper<EmptyList<IdentifiedArray<UUID, Parseable<CreatureAction, ParsedCreatureAction>>>>
+    ▿ wrappedValue: 1 element
+      ▿ Parseable<CreatureAction, ParsedCreatureAction>
+        ▿ input: CreatureAction
+          ▿ _id: Wrapper<UUID>
+            - wrappedValue: 00000000-0000-0000-0000-200000000000
+          - description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage."
+          - name: "Scimitar"
+        ▿ result: Optional<ParserResult>
+          ▿ some: ParserResult
+            ▿ _modelVersion: Wrapper<EmptyString>
+              - wrappedValue: "2"
+            ▿ _parserName: Wrapper<EmptyString>
+              - wrappedValue: "CreatureActionDomainParser"
+            ▿ value: Optional<ParsedCreatureAction>
+              ▿ some: ParsedCreatureAction
+                ▿ action: Optional<Model>
+                  ▿ some: Model
+                    ▿ weaponAttack: WeaponAttack
+                      ▿ effects: 1 element
+                        ▿ AttackEffect
+                          - condition: Optional<CreatureConditionEffect>.none
+                          ▿ conditions: Conditions
+                            - other: Optional<String>.none
+                            - savingThrow: Optional<SavingThrow>.none
+                            - type: Optional<AttackType>.none
+                            - versatileWeaponGrip: Optional<Grip>.none
+                          ▿ damage: 1 element
+                            ▿ Damage
+                              ▿ damageExpression: Optional<DiceExpression>
+                                ▿ some: 1d6 + 2
+                                  ▿ compound: (3 elements)
+                                    ▿ .0: 1d6
+                                      ▿ dice: (2 elements)
+                                        - count: 1
+                                        ▿ die: Die
+                                          - color: Optional<Color>.none
+                                          - sides: 6
+                                    - .1: Operator.add
+                                    ▿ .2: 2
+                                      - number: 2
+                              - staticDamage: 5
+                              - type: DamageType.slashing
+                          - other: Optional<String>.none
+                      ▿ hitModifier: Modifier
+                        - modifier: 4
+                      ▿ ranges: 1 element
+                        ▿ Range
+                          - reach: 5
+                - limitedUse: Optional<Located<LimitedUse>>.none
+                ▿ otherDescriptionAnnotations: Optional<Array<Located<TextAnnotation>>>
+                  ▿ some: 2 elements
+                    ▿ Located<TextAnnotation>
+                      ▿ range: 21..<23
+                        - lowerBound: 21
+                        - upperBound: 23
+                      ▿ value: TextAnnotation
+                        ▿ diceExpression: 1d20 + 4
+                          ▿ compound: (3 elements)
+                            ▿ .0: 1d20
+                              ▿ dice: (2 elements)
+                                - count: 1
+                                ▿ die: Die
+                                  - color: Optional<Color>.none
+                                  - sides: 20
+                            - .1: Operator.add
+                            ▿ .2: 4
+                              - number: 4
+                    ▿ Located<TextAnnotation>
+                      ▿ range: 65..<72
+                        - lowerBound: 65
+                        - upperBound: 72
+                      ▿ value: TextAnnotation
+                        ▿ diceExpression: 1d6 + 2
+                          ▿ compound: (3 elements)
+                            ▿ .0: 1d6
+                              ▿ dice: (2 elements)
+                                - count: 1
+                                ▿ die: Die
+                                  - color: Optional<Color>.none
+                                  - sides: 6
+                            - .1: Operator.add
+                            ▿ .2: 2
+                              - number: 2
+            - version: "2"
+  - abilityScores: Optional<AbilityScores>.none
+  ▿ actions: 1 element
+    ▿ Parseable<CreatureAction, ParsedCreatureAction>
+      ▿ input: CreatureAction
+        ▿ _id: Wrapper<UUID>
+          - wrappedValue: 00000000-0000-0000-0000-100000000000
+        - description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage."
+        - name: "Scimitar"
+      ▿ result: Optional<ParserResult>
+        ▿ some: ParserResult
+          ▿ _modelVersion: Wrapper<EmptyString>
+            - wrappedValue: "2"
+          ▿ _parserName: Wrapper<EmptyString>
+            - wrappedValue: "CreatureActionDomainParser"
+          ▿ value: Optional<ParsedCreatureAction>
+            ▿ some: ParsedCreatureAction
+              ▿ action: Optional<Model>
+                ▿ some: Model
+                  ▿ weaponAttack: WeaponAttack
+                    ▿ effects: 1 element
+                      ▿ AttackEffect
+                        - condition: Optional<CreatureConditionEffect>.none
+                        ▿ conditions: Conditions
+                          - other: Optional<String>.none
+                          - savingThrow: Optional<SavingThrow>.none
+                          - type: Optional<AttackType>.none
+                          - versatileWeaponGrip: Optional<Grip>.none
+                        ▿ damage: 1 element
+                          ▿ Damage
+                            ▿ damageExpression: Optional<DiceExpression>
+                              ▿ some: 1d6 + 2
+                                ▿ compound: (3 elements)
+                                  ▿ .0: 1d6
+                                    ▿ dice: (2 elements)
+                                      - count: 1
+                                      ▿ die: Die
+                                        - color: Optional<Color>.none
+                                        - sides: 6
+                                  - .1: Operator.add
+                                  ▿ .2: 2
+                                    - number: 2
+                            - staticDamage: 5
+                            - type: DamageType.slashing
+                        - other: Optional<String>.none
+                    ▿ hitModifier: Modifier
+                      - modifier: 4
+                    ▿ ranges: 1 element
+                      ▿ Range
+                        - reach: 5
+              - limitedUse: Optional<Located<LimitedUse>>.none
+              ▿ otherDescriptionAnnotations: Optional<Array<Located<TextAnnotation>>>
+                ▿ some: 2 elements
+                  ▿ Located<TextAnnotation>
+                    ▿ range: 21..<23
+                      - lowerBound: 21
+                      - upperBound: 23
+                    ▿ value: TextAnnotation
+                      ▿ diceExpression: 1d20 + 4
+                        ▿ compound: (3 elements)
+                          ▿ .0: 1d20
+                            ▿ dice: (2 elements)
+                              - count: 1
+                              ▿ die: Die
+                                - color: Optional<Color>.none
+                                - sides: 20
+                          - .1: Operator.add
+                          ▿ .2: 4
+                            - number: 4
+                  ▿ Located<TextAnnotation>
+                    ▿ range: 65..<72
+                      - lowerBound: 65
+                      - upperBound: 72
+                    ▿ value: TextAnnotation
+                      ▿ diceExpression: 1d6 + 2
+                        ▿ compound: (3 elements)
+                          ▿ .0: 1d6
+                            ▿ dice: (2 elements)
+                              - count: 1
+                              ▿ die: Die
+                                - color: Optional<Color>.none
+                                - sides: 6
+                          - .1: Operator.add
+                          ▿ .2: 2
+                            - number: 2
+          - version: "2"
+  - armor: 0 elements
+  - armorClass: Optional<Int>.none
+  - challengeRating: Optional<Fraction>.none
+  - conditionImmunities: Optional<String>.none
+  - damageImmunities: Optional<String>.none
+  - damageResistances: Optional<String>.none
+  - damageVulnerabilities: Optional<String>.none
+  ▿ features: 1 element
+    ▿ Parseable<CreatureFeature, ParsedCreatureFeature>
+      ▿ input: CreatureFeature
+        ▿ _id: Wrapper<UUID>
+          - wrappedValue: 00000000-0000-0000-0000-000000000000
+        - description: "The acolyte is a 1st-level spellcaster. Its spellcasting ability is Wisdom (spell save DC 12, +4 to hit with spell attacks). The acolyte has following cleric spells prepared:\n\n• Cantrips (at will): light, sacred flame, thaumaturgy\n• 1st level (3 slots): bless, cure wounds, sanctuary"
+        - name: "Spellcasting"
+      ▿ result: Optional<ParserResult>
+        ▿ some: ParserResult
+          ▿ _modelVersion: Wrapper<EmptyString>
+            - wrappedValue: "1"
+          ▿ _parserName: Wrapper<EmptyString>
+            - wrappedValue: "CreatureFeatureDomainParser"
+          ▿ value: Optional<ParsedCreatureFeature>
+            ▿ some: ParsedCreatureFeature
+              - limitedUse: Optional<Located<LimitedUse>>.none
+              ▿ otherDescriptionAnnotations: Optional<Array<Located<TextAnnotation>>>
+                ▿ some: 1 element
+                  ▿ Located<TextAnnotation>
+                    ▿ range: 94..<96
+                      - lowerBound: 94
+                      - upperBound: 96
+                    ▿ value: TextAnnotation
+                      ▿ diceExpression: 1d20 + 4
+                        ▿ compound: (3 elements)
+                          ▿ .0: 1d20
+                            ▿ dice: (2 elements)
+                              - count: 1
+                              ▿ die: Die
+                                - color: Optional<Color>.none
+                                - sides: 20
+                          - .1: Operator.add
+                          ▿ .2: 4
+                            - number: 4
+              ▿ spellcasting: Optional<Spellcasting>
+                ▿ some: Spellcasting
+                  ▿ ability: Optional<Ability>
+                    - some: Ability.wisdom
+                  - innate: false
+                  - limitedUseSpells: Optional<Array<LimitedUseSpellGroup>>.none
+                  ▿ slotsByLevel: Optional<Dictionary<Int, Int>>
+                    ▿ some: 1 key/value pair
+                      ▿ (2 elements)
+                        - key: 1
+                        - value: 3
+                  ▿ spellAttackHit: Optional<Modifier>
+                    ▿ some: Modifier
+                      - modifier: 4
+                  ▿ spellSaveDC: Optional<Int>
+                    - some: 12
+                  ▿ spellcasterLevel: Optional<Int>
+                    - some: 1
+                  ▿ spellsByLevel: Optional<Dictionary<Int, Array<Located<CompendiumItemReferenceTextAnnotation>>>>
+                    ▿ some: 2 key/value pairs
+                      ▿ (2 elements)
+                        - key: 0
+                        ▿ value: 3 elements
+                          ▿ Located<CompendiumItemReferenceTextAnnotation>
+                            ▿ range: 198..<203
+                              - lowerBound: 198
+                              - upperBound: 203
+                            ▿ value: CompendiumItemReferenceTextAnnotation
+                              - resolvedTo: Optional<CompendiumItemReference>.none
+                              - text: "light"
+                              ▿ type: Optional<CompendiumItemType>
+                                - some: CompendiumItemType.spell
+                          ▿ Located<CompendiumItemReferenceTextAnnotation>
+                            ▿ range: 205..<217
+                              - lowerBound: 205
+                              - upperBound: 217
+                            ▿ value: CompendiumItemReferenceTextAnnotation
+                              - resolvedTo: Optional<CompendiumItemReference>.none
+                              - text: "sacred flame"
+                              ▿ type: Optional<CompendiumItemType>
+                                - some: CompendiumItemType.spell
+                          ▿ Located<CompendiumItemReferenceTextAnnotation>
+                            ▿ range: 219..<230
+                              - lowerBound: 219
+                              - upperBound: 230
+                            ▿ value: CompendiumItemReferenceTextAnnotation
+                              - resolvedTo: Optional<CompendiumItemReference>.none
+                              - text: "thaumaturgy"
+                              ▿ type: Optional<CompendiumItemType>
+                                - some: CompendiumItemType.spell
+                      ▿ (2 elements)
+                        - key: 1
+                        ▿ value: 3 elements
+                          ▿ Located<CompendiumItemReferenceTextAnnotation>
+                            ▿ range: 254..<259
+                              - lowerBound: 254
+                              - upperBound: 259
+                            ▿ value: CompendiumItemReferenceTextAnnotation
+                              - resolvedTo: Optional<CompendiumItemReference>.none
+                              - text: "bless"
+                              ▿ type: Optional<CompendiumItemType>
+                                - some: CompendiumItemType.spell
+                          ▿ Located<CompendiumItemReferenceTextAnnotation>
+                            ▿ range: 261..<272
+                              - lowerBound: 261
+                              - upperBound: 272
+                            ▿ value: CompendiumItemReferenceTextAnnotation
+                              - resolvedTo: Optional<CompendiumItemReference>.none
+                              - text: "cure wounds"
+                              ▿ type: Optional<CompendiumItemType>
+                                - some: CompendiumItemType.spell
+                          ▿ Located<CompendiumItemReferenceTextAnnotation>
+                            ▿ range: 274..<283
+                              - lowerBound: 274
+                              - upperBound: 283
+                            ▿ value: CompendiumItemReferenceTextAnnotation
+                              - resolvedTo: Optional<CompendiumItemReference>.none
+                              - text: "sanctuary"
+                              ▿ type: Optional<CompendiumItemType>
+                                - some: CompendiumItemType.spell
+          - version: "1"
+  - hitPointDice: Optional<DiceExpression>.none
+  - hitPoints: Optional<Int>.none
+  - initiative: Optional<Initiative>.none
+  - languages: Optional<String>.none
+  ▿ legendary: Optional<Legendary>
+    ▿ some: Legendary
+      ▿ actions: 1 element
+        ▿ Parseable<CreatureAction, ParsedCreatureAction>
+          ▿ input: CreatureAction
+            ▿ _id: Wrapper<UUID>
+              - wrappedValue: 00000000-0000-0000-0000-300000000000
+            - description: ""
+            - name: ""
+          ▿ result: Optional<ParserResult>
+            ▿ some: ParserResult
+              ▿ _modelVersion: Wrapper<EmptyString>
+                - wrappedValue: "2"
+              ▿ _parserName: Wrapper<EmptyString>
+                - wrappedValue: "CreatureActionDomainParser"
+              - value: Optional<ParsedCreatureAction>.none
+              - version: "2"
+      - description: Optional<String>.none
+  - level: Optional<Int>.none
+  - movement: Optional<Dictionary<MovementMode, Int>>.none
+  - name: "Test"
+  - savingThrows: 0 key/value pairs
+  - senses: Optional<String>.none
+  - size: Optional<CreatureSize>.none
+  - skills: 0 key/value pairs
+  - subtype: Optional<String>.none
+  ▿ type: Optional<Parseable<String, MonsterType>>
+    ▿ some: Parseable<String, MonsterType>
+      - input: "Beast"
+      ▿ result: Optional<ParserResult>
+        ▿ some: ParserResult
+          ▿ _modelVersion: Wrapper<EmptyString>
+            - wrappedValue: "1"
+          ▿ _parserName: Wrapper<EmptyString>
+            - wrappedValue: "MonsterTypeDomainParser"
+          ▿ value: Optional<MonsterType>
+            - some: MonsterType.beast
+          - version: "1"

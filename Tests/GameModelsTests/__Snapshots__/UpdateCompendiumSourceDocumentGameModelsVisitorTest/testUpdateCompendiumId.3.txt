@@ -1,0 +1,8 @@
+  CompendiumImportJob(
+    sourceId: CompendiumImportSourceId(…),
+    sourceVersion: nil,
+-   documentId: Tagged(rawValue: "doc")
++   documentId: Tagged(rawValue: "newdoc")
+    timestamp: Date(1970-01-01T00:00:00.000Z),
+    uuid: UUID(00000000-0000-0000-0000-100000000000)
+  )

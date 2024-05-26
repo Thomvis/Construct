@@ -31,6 +31,7 @@ extension Database {
         case v12 = "v12-statBlock-removeDefaultProficiencyOverrides"
         case v13 = "v13-keyvaluestore-indexes"
         case v14 = "v14-compendium-sources"
+        case v15 = "v15-keyvaluestore-ftsDeleteSync"
     }
 
     static func migrator() throws -> DatabaseMigrator {
@@ -38,19 +39,19 @@ extension Database {
 
         migrator.registerMigration(Migration.v1.rawValue) { db in
             try db.create(table: "key_value") { t in
-                t.column(KeyValueStore.Record.Columns.key.name, .text).primaryKey()
-                t.column(KeyValueStore.Record.Columns.modified_at.name, .integer)
-                t.column(KeyValueStore.Record.Columns.value.name, .blob)
+                t.column(DatabaseKeyValueStore.Record.Columns.key.name, .text).primaryKey()
+                t.column(DatabaseKeyValueStore.Record.Columns.modified_at.name, .integer)
+                t.column(DatabaseKeyValueStore.Record.Columns.value.name, .blob)
             }
 
             try db.create(virtualTable: "key_value_fts", using: FTS5()) { t in
                 t.content = nil
                 t.tokenizer = .unicode61()
 
-                t.column(KeyValueStore.FTSRecord.Columns.title.name)
-                t.column(KeyValueStore.FTSRecord.Columns.subtitle.name)
-                t.column(KeyValueStore.FTSRecord.Columns.body.name)
-                t.column(KeyValueStore.FTSRecord.Columns.title_suffixes.name)
+                t.column(DatabaseKeyValueStore.FTSRecord.Columns.title.name)
+                t.column(DatabaseKeyValueStore.FTSRecord.Columns.subtitle.name)
+                t.column(DatabaseKeyValueStore.FTSRecord.Columns.body.name)
+                t.column(DatabaseKeyValueStore.FTSRecord.Columns.title_suffixes.name)
             }
 
             // import of default content now happens outside of the migrations
@@ -58,7 +59,7 @@ extension Database {
 
         migrator.registerMigration(Migration.v2) { db in
             // gave characters an id
-            let characters = try KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .character))%")).fetchAll(db)
+            let characters = try DatabaseKeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .character))%")).fetchAll(db)
             for c in characters {
                 guard var entry = try JSONSerialization.jsonObject(with: c.value, options: []) as? [String: Any],
                     var item = entry["item"] as? [String: Any] else { continue }
@@ -69,7 +70,7 @@ extension Database {
 
                     entry["item"] = item
                     let newData = try JSONSerialization.data(withJSONObject: entry, options: [])
-                    try KeyValueStore.Record(key: c.key, modifiedAt: c.modifiedAt, value: newData).save(db)
+                    try DatabaseKeyValueStore.Record(key: c.key, modifiedAt: c.modifiedAt, value: newData).save(db)
                 }
             }
 
@@ -81,7 +82,7 @@ extension Database {
         // - it also added ensureStableDiscriminators to RunningEncounters (now resolved with the where clause of for)
         // - it did not update encounters inside RunningEncounters (not fixed, damage has been done)
         migrator.registerMigration(Migration.v4) { db in
-            let encounters = try KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
+            let encounters = try DatabaseKeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
             for e in encounters where !e.key.contains(".running.") {
                 guard var encounter = try JSONSerialization.jsonObject(with: e.value, options: []) as? [String: Any] else { continue }
 
@@ -93,7 +94,7 @@ extension Database {
                     }
 
                     let newData = try JSONSerialization.data(withJSONObject: encounter, options: [])
-                    try KeyValueStore.Record(key: e.key, modifiedAt: e.modifiedAt, value: newData).save(db)
+                    try DatabaseKeyValueStore.Record(key: e.key, modifiedAt: e.modifiedAt, value: newData).save(db)
                 }
             }
         }
@@ -103,14 +104,14 @@ extension Database {
         }
 
         migrator.registerMigration(Migration.v6) { db in
-            let encounters = try KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
+            let encounters = try DatabaseKeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
 
-            let runs: [KeyValueStore.Record] = try encounters.flatMap { encounter -> [KeyValueStore.Record] in
+            let runs: [DatabaseKeyValueStore.Record] = try encounters.flatMap { encounter -> [DatabaseKeyValueStore.Record] in
                 guard let e = try JSONSerialization.jsonObject(with: encounter.value, options: []) as? [String: Any],
                     let uuidString = e["id"] as? String,
                     let uuid = UUID(uuidString: uuidString) else { return [] }
 
-                return try KeyValueStore.Record.filter(Column("key").like("\(RunningEncounter.keyPrefix(for: uuid.tagged()))%")).fetchAll(db)
+                return try DatabaseKeyValueStore.Record.filter(Column("key").like("\(RunningEncounter.keyPrefix(for: uuid.tagged()))%")).fetchAll(db)
             }
 
             for runRecord in runs {
@@ -149,7 +150,7 @@ extension Database {
                 }
 
                 let newData = try JSONSerialization.data(withJSONObject: run, options: [])
-                try KeyValueStore.Record(key: runRecord.key, modifiedAt: runRecord.modifiedAt, value: newData).save(db)
+                try DatabaseKeyValueStore.Record(key: runRecord.key, modifiedAt: runRecord.modifiedAt, value: newData).save(db)
             }
         }
 
@@ -168,19 +169,20 @@ extension Database {
         migrator.registerMigration(Migration.v10) { db in
             // Most characters have a UUID in their key (current behavior), others have their title (old behavior)
             // Characters with a title key don't work well
+            let store = DatabaseKeyValueStore(.direct(db))
 
-            let characterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .character))%")).fetchAll(db)
+            let characterRecords = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .character))%")).fetchAll(db)
 
             var updates: [String:CompendiumEntry.Key] = [:] // fromKey -> toKey
             for r in characterRecords {
                 guard let lastKeyComponent = r.key.components(separatedBy: CompendiumEntry.keySeparator).last else { continue }
                 guard UUID(uuidString: lastKeyComponent) == nil else { continue }
 
-                let entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
-                let newRecord = KeyValueStore.Record(key: entry.key.rawValue, modifiedAt: r.modifiedAt, value: r.value)
+                let entry = try DatabaseKeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+                let newRecord = DatabaseKeyValueStore.Record(key: entry.key.rawValue, modifiedAt: r.modifiedAt, value: r.value)
 
                 if try !newRecord.exists(db) {
-                    try DatabaseCompendium.put(entry, in: db)
+                    try store.put(entry)
                 }
                 try r.delete(db)
 
@@ -189,10 +191,10 @@ extension Database {
 
             // Update references
             // Adventuring Parties
-            let groupRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .group))%")).fetchAll(db)
+            let groupRecords = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix(for: .group))%")).fetchAll(db)
 
             for r in groupRecords {
-                var entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+                var entry = try DatabaseKeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
                 guard let group = entry.item as? CompendiumItemGroup else { continue }
 
                 let newGroup = CompendiumItemGroup(
@@ -208,8 +210,8 @@ extension Database {
 
                 if newGroup != group {
                     entry.item = newGroup
-                    let encodedEntry = try KeyValueStore.encoder.encode(entry)
-                    let newRecord = KeyValueStore.Record(key: entry.key.rawValue, modifiedAt: r.modifiedAt, value: encodedEntry)
+                    let encodedEntry = try DatabaseKeyValueStore.encoder.encode(entry)
+                    let newRecord = DatabaseKeyValueStore.Record(key: entry.key.rawValue, modifiedAt: r.modifiedAt, value: encodedEntry)
                     try newRecord.save(db)
                 }
             }
@@ -232,7 +234,7 @@ extension Database {
                 return newEncounter
             }
 
-            let encounterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
+            let encounterRecords = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
 
             var encounterIds: [Encounter.Id] = []
             for r in encounterRecords {
@@ -240,7 +242,7 @@ extension Database {
 
                 let encounter: Encounter
                 do {
-                    encounter = try KeyValueStore.decoder.decode(Encounter.self, from: r.value)
+                    encounter = try DatabaseKeyValueStore.decoder.decode(Encounter.self, from: r.value)
                 } catch {
                     print("Warning: Migration \"v10-consistentCharacterKeys\" failed for Encounter with key \(r.key), last modified: \(r.modifiedAt). Underlying decoding error: \(error)")
                     continue
@@ -251,19 +253,19 @@ extension Database {
                 let newEncounter = updateEncounter(encounter)
 
                 if newEncounter != encounter {
-                    let encodedEncounter = try KeyValueStore.encoder.encode(newEncounter)
-                    let newRecord = KeyValueStore.Record(key: newEncounter.key.rawValue, modifiedAt: r.modifiedAt, value: encodedEncounter)
+                    let encodedEncounter = try DatabaseKeyValueStore.encoder.encode(newEncounter)
+                    let newRecord = DatabaseKeyValueStore.Record(key: newEncounter.key.rawValue, modifiedAt: r.modifiedAt, value: encodedEncounter)
                     try newRecord.save(db)
                 }
             }
 
             // Running Encounters
             for id in encounterIds {
-                let reRecords = try! KeyValueStore.Record.filter(Column("key").like("\(RunningEncounter.keyPrefix(for: id))%")).fetchAll(db)
+                let reRecords = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(RunningEncounter.keyPrefix(for: id))%")).fetchAll(db)
                 for r in reRecords {
                     let re: RunningEncounter
                     do {
-                        re = try KeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
+                        re = try DatabaseKeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
                     } catch {
                         print("Warning: Migration \"v10-consistentCharacterKeys\" failed for RunningEncounter with key \(r.key), last modified: \(r.modifiedAt). Underlying decoding error: \(error)")
                         continue
@@ -274,8 +276,8 @@ extension Database {
                     newRe.current = updateEncounter(newRe.current)
 
                     if newRe != re {
-                        let encodedRe = try KeyValueStore.encoder.encode(newRe)
-                        let newRecord = KeyValueStore.Record(key: newRe.key.rawValue, modifiedAt: r.modifiedAt, value: encodedRe)
+                        let encodedRe = try DatabaseKeyValueStore.encoder.encode(newRe)
+                        let newRecord = DatabaseKeyValueStore.Record(key: newRe.key.rawValue, modifiedAt: r.modifiedAt, value: encodedRe)
                         try newRecord.save(db)
                     }
                 }
@@ -287,14 +289,14 @@ extension Database {
         migrator.registerMigration(Migration.v11) { db in
 
             // Encounters and RunningEncounters
-            let records = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
+            let records = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
             for r in records where r.key.contains(".running.") {
                 // records with old-style RunningEncounter keys
 
                 do {
-                    let re = try KeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
+                    let re = try DatabaseKeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
 
-                    let newRecord = KeyValueStore.Record(key: re.key.rawValue, modifiedAt: r.modifiedAt, value: r.value)
+                    let newRecord = DatabaseKeyValueStore.Record(key: re.key.rawValue, modifiedAt: r.modifiedAt, value: r.value)
                     try newRecord.save(db)
                 } catch {
                     print("Warning: Migration \"v11-runningEncounterKeyFix\" failed for RunningEncounter with key \(r.key), last modified: \(r.modifiedAt). Underlying decoding error: \(error)")
@@ -308,9 +310,9 @@ extension Database {
         migrator.registerMigration(Migration.v12) { db in
 
             // update the compendium
-            let itemRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix())%")).fetchAll(db)
+            let itemRecords = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix())%")).fetchAll(db)
             for var r in itemRecords {
-                var entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+                var entry = try DatabaseKeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
                 if var combatant = entry.item as? CompendiumCombatant {
                     combatant.stats.makeSkillAndSaveProficienciesRelative()
                     entry.item = combatant
@@ -320,28 +322,28 @@ extension Database {
                         combatant = character
                     }
 
-                    r.value = try KeyValueStore.encoder.encode(entry)
+                    r.value = try DatabaseKeyValueStore.encoder.encode(entry)
                     try r.save(db)
                 }
             }
 
             // update combatants in all encounters
-            let encounterRecords = try! KeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
+            let encounterRecords = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(Encounter.keyPrefix)%")).fetchAll(db)
             for var r in encounterRecords {
-                var encounter = try KeyValueStore.decoder.decode(Encounter.self, from: r.value)
+                var encounter = try DatabaseKeyValueStore.decoder.decode(Encounter.self, from: r.value)
                 for cid in encounter.combatants.ids {
                     encounter.combatants[id: cid]?.definition.stats.makeSkillAndSaveProficienciesRelative()
                     let level = encounter.combatants[id: cid]?.definition.level
                     encounter.combatants[id: cid]?.definition.stats.level = level
                 }
-                r.value = try KeyValueStore.encoder.encode(encounter)
+                r.value = try DatabaseKeyValueStore.encoder.encode(encounter)
                 try r.save(db)
             }
 
             // update combatants in all running encounters
-            let reRecords = try! KeyValueStore.Record.filter(Column("key").like("\(RunningEncounter.keyPrefix)")).fetchAll(db)
+            let reRecords = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(RunningEncounter.keyPrefix)")).fetchAll(db)
             for var r in reRecords {
-                var runningEncounter = try KeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
+                var runningEncounter = try DatabaseKeyValueStore.decoder.decode(RunningEncounter.self, from: r.value)
 
                 for cid in runningEncounter.base.combatants.ids {
                     runningEncounter.base.combatants[id: cid]?.definition.stats.makeSkillAndSaveProficienciesRelative()
@@ -355,41 +357,41 @@ extension Database {
                     runningEncounter.current.combatants[id: cid]?.definition.stats.level = level
                 }
 
-                r.value = try KeyValueStore.encoder.encode(runningEncounter)
+                r.value = try DatabaseKeyValueStore.encoder.encode(runningEncounter)
                 try r.save(db)
             }
         }
 
         migrator.registerMigration(Migration.v13.rawValue) { db in
-            try db.create(table: KeyValueStore.SecondaryIndexRecord.databaseTableName) { t in
-                t.column(KeyValueStore.SecondaryIndexRecord.Columns.idx.name, .integer)
+            try db.create(table: DatabaseKeyValueStore.SecondaryIndexRecord.databaseTableName) { t in
+                t.column(DatabaseKeyValueStore.SecondaryIndexRecord.Columns.idx.name, .integer)
                     .notNull()
                     .indexed()
-                t.column(KeyValueStore.SecondaryIndexRecord.Columns.value.name, .text)
+                t.column(DatabaseKeyValueStore.SecondaryIndexRecord.Columns.value.name, .text)
                     .notNull()
                     .indexed()
-                t.column(KeyValueStore.SecondaryIndexRecord.Columns.recordKey.name, .text)
+                t.column(DatabaseKeyValueStore.SecondaryIndexRecord.Columns.recordKey.name, .text)
                     .notNull()
                     .indexed()
                     .references(
-                        KeyValueStore.Record.databaseTableName,
-                        column: KeyValueStore.Record.Columns.key.name,
+                        DatabaseKeyValueStore.Record.databaseTableName,
+                        column: DatabaseKeyValueStore.Record.Columns.key.name,
                         onDelete: .cascade
                     )
 
                 t.primaryKey([
-                    KeyValueStore.SecondaryIndexRecord.Columns.idx.name,
-                    KeyValueStore.SecondaryIndexRecord.Columns.recordKey.name
+                    DatabaseKeyValueStore.SecondaryIndexRecord.Columns.idx.name,
+                    DatabaseKeyValueStore.SecondaryIndexRecord.Columns.recordKey.name
                 ], onConflict: .replace)
             }
 
-            let records = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix)%")).fetchAll(db)
+            let records = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix)%")).fetchAll(db)
             for r in records {
-                let entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+                let entry = try DatabaseKeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
 
                 let values = entry.secondaryIndexValues
                 if !values.isEmpty {
-                    try KeyValueStore.saveSecondaryIndexValues(values, recordKey: r.key, in: db)
+                    try DatabaseKeyValueStore.saveSecondaryIndexValues(values, recordKey: r.key, in: db)
                 }
             }
         }
@@ -403,16 +405,12 @@ extension Database {
                 CompendiumSourceDocument.srd5_1,
                 CompendiumSourceDocument.homebrew
             ]
-            
-            for fixture in fixtures {
-                try KeyValueStore.put(fixture, at: fixture.rawKey, in: db)
-            }
 
             var jobs: [CompendiumImportSourceId: CompendiumImportJob] = [:]
             var documents = IdentifiedArrayOf<CompendiumSourceDocument>()
 
             // update the compendium
-            let entryRecords = try! KeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix())%")).fetchAll(db)
+            let entryRecords = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix())%")).fetchAll(db)
             for var r in entryRecords {
                 // Read legacy source
                 guard var entryJSON = try? JSONSerialization.jsonObject(with: r.value, options: []) as? [String: Any] else {
@@ -475,19 +473,20 @@ extension Database {
                     try r.save(db)
 
                     // update secondary index values (now containing the document id)
-                    let entry = try KeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
+                    let entry = try DatabaseKeyValueStore.decoder.decode(CompendiumEntry.self, from: r.value)
 
                     let values = entry.secondaryIndexValues
-                    try KeyValueStore.saveSecondaryIndexValues(values, recordKey: r.key, in: db)
+                    try DatabaseKeyValueStore.saveSecondaryIndexValues(values, recordKey: r.key, in: db)
                 } catch {
                     assertionFailure("Could not migrate \(r.key): failed to save updated record to the db")
                     continue
                 }
             }
 
+            let store = DatabaseKeyValueStore(.direct(db))
             for doc in documents {
                 do {
-                    try KeyValueStore.put(doc, at: doc.key.rawValue, in: db)
+                    try store.put(doc, at: doc.key.rawValue)
                 } catch {
                     assertionFailure("Could not save document \(doc.key)")
                 }
@@ -495,11 +494,22 @@ extension Database {
 
             for job in jobs.values {
                 do {
-                    try KeyValueStore.put(job, at: job.key.rawValue, in: db)
+                    try store.put(job, at: job.key.rawValue)
                 } catch {
                     assertionFailure("Could not save job \(job.key)")
                 }
             }
+        }
+
+        migrator.registerMigration(Migration.v15.rawValue) { db in
+            try db.execute(literal: """
+                CREATE TRIGGER key_value_fts_delete_sync 
+                AFTER DELETE ON key_value
+                FOR EACH ROW
+                BEGIN
+                    DELETE FROM key_value_fts WHERE rowid = OLD.rowid;
+                END
+            """)
         }
 
         return migrator

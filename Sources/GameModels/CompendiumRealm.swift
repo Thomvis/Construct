@@ -30,4 +30,12 @@ public extension CompendiumRealm {
         id: .init("homebrew"),
         displayName: "Homebrew"
     )
+
+    private static var defaultRealms: [CompendiumRealm] {
+        [.core, .homebrew]
+    }
+
+    var isDefaultDocument: Bool {
+        Self.defaultRealms.contains(where: { $0.id == id })
+    }
 }

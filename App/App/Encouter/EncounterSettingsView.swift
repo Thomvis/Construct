@@ -109,8 +109,8 @@ struct EncounterSettingsView: View {
                     if (viewStore.state.resumableRunningEncounters.value ?? []).isEmpty {
                         Text("No runs found")
                     } else {
-                        ForEach(viewStore.state.resumableRunningEncounters.value ?? [], id: \.key) { run in
-                            Text(self.titleForRawRunningEncounter(run))
+                        ForEach(viewStore.state.resumableRunningEncounters.value ?? [], id: \.self) { run in
+                            Text(self.titleForRawRunningEncounter(run)).lineLimit(1)
                         }.onDelete(perform: self.onDeleteResumableRunningEncounter)
                     }
                 }
@@ -172,14 +172,14 @@ struct EncounterSettingsView: View {
         }
     }
 
-    func titleForRawRunningEncounter(_ record: KeyValueStore.Record) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        let relativeDate = formatter.localizedString(for: record.modifiedAt, relativeTo: self.now)
-        return "Run from \(relativeDate)"
+    func titleForRawRunningEncounter(_ key: String) -> String {
+//        let formatter = RelativeDateTimeFormatter()
+//        let relativeDate = formatter.localizedString(for: record.modifiedAt, relativeTo: self.now)
+        return "Run \(key.suffix(5))"
     }
 
     func onDeleteResumableRunningEncounter(_ indices: IndexSet) {
-        let keys = indices.compactMap { viewStore.state.resumableRunningEncounters.value?[$0].key }
+        let keys = indices.compactMap { viewStore.state.resumableRunningEncounters.value?[$0] }
         for key in keys {
             viewStore.send(.removeResumableRunningEncounter(key))
         }

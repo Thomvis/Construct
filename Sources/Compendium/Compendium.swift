@@ -18,7 +18,28 @@ public protocol Compendium {
     func put(_ entry: CompendiumEntry) throws
     func contains(_ key: CompendiumItemKey) throws -> Bool
     func fetchAll(search: String?, filters: CompendiumFilters?, order: Order?, range: Range<Int>?) throws -> [CompendiumEntry]
+    func fetchKeys(search: String?, filters: CompendiumFilters?, order: Order?, range: Range<Int>?) throws -> [CompendiumItemKey]
     func resolve(annotation: CompendiumItemReferenceTextAnnotation) -> ReferenceResolveResult
+}
+
+public extension Compendium {
+    func fetchAll(
+        search: String? = nil,
+        filters: CompendiumFilters? = nil,
+        order: Order? = nil,
+        range: Range<Int>? = nil
+    ) throws -> [CompendiumEntry] {
+        try fetchAll(search: search, filters: filters, order: order, range: range)
+    }
+
+    func fetchKeys(
+        search: String?,
+        filters: CompendiumFilters?,
+        order: Order?,
+        range: Range<Int>?
+    ) throws -> [CompendiumItemKey] {
+        try fetchKeys(search: search, filters: filters, order: order, range: range)
+    }
 }
 
 struct CompendiumQuery {
@@ -84,10 +105,10 @@ public struct CompendiumFilters: Equatable {
     }
 
     public struct Source: Hashable {
-        public var realm: CompendiumRealm
-        public var document: CompendiumSourceDocument
+        public var realm: CompendiumRealm.Id
+        public var document: CompendiumSourceDocument.Id
 
-        public init(realm: CompendiumRealm, document: CompendiumSourceDocument) {
+        public init(realm: CompendiumRealm.Id, document: CompendiumSourceDocument.Id) {
             self.realm = realm
             self.document = document
         }
@@ -102,6 +123,12 @@ public enum ReferenceResolveResult {
 
 public extension Compendium {
     func importDefaultContent(monsters: Bool = true, spells: Bool = true) async throws {
+        // Documents & Realms
+        try await metadata.createOrUpdateRealm(CompendiumRealm.core)
+        try await metadata.createOrUpdateRealm(CompendiumRealm.homebrew)
+        try await metadata.createOrUpdateDocument(CompendiumSourceDocument.srd5_1)
+        try await metadata.createOrUpdateDocument(CompendiumSourceDocument.homebrew)
+
         // Monsters
         if monsters {
             let task = CompendiumImportTask(

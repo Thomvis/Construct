@@ -22,7 +22,7 @@ class KeyValueStoreTest: XCTestCase {
         self.sut = database.keyValueStore
 
         // clear Preferences
-        try sut.removeAll("")
+        try sut.removeAll(.keyPrefix(""))
     }
 
     func testPutAndGet() {
@@ -30,25 +30,25 @@ class KeyValueStoreTest: XCTestCase {
         XCTAssertEqual(try! sut.get("1"), 1)
     }
 
-    func testFetchAllSearch() {
+    func testFetchAllSearch() throws {
         try! sut.put(1, at: "1", fts: FTSDocument(title: "Alpha", subtitle: nil, body: nil))
         try! sut.put(2, at: "2", fts: FTSDocument(title: "Beta", subtitle: nil, body: nil))
 
-        XCTAssertEqual(try! sut.fetchAll(search: "al"), [1])
+        XCTAssertEqual(try sut.fetchAll(.init(fullTextSearch: "al")), [1])
     }
 
-    func testOverwrite() {
+    func testOverwrite() throws {
         try! sut.put(1, at: "1")
         try! sut.put(11, at: "1")
 
-        XCTAssertEqual(try! sut.get("1"), 11)
+        XCTAssertEqual(try sut.get("1"), 11)
     }
 
-    func testOverwriteWithFTS() {
+    func testOverwriteWithFTS() throws {
         try! sut.put(1, at: "1", fts: FTSDocument(title: "Alpha", subtitle: nil, body: nil))
         try! sut.put(11, at: "1", fts: FTSDocument(title: "Omega", subtitle: nil, body: nil))
 
-        XCTAssertEqual(try! sut.fetchAll(search: "Omega"), [11])
+        XCTAssertEqual(try sut.fetchAll(.init(fullTextSearch: "Omega")), [11])
     }
 
     func testUpdateOfNonLastRowFTS() {
@@ -56,7 +56,7 @@ class KeyValueStoreTest: XCTestCase {
         try! sut.put(2, at: "2", fts: FTSDocument(title: "Beta", subtitle: nil, body: nil))
         try! sut.put(10, at: "1", fts: FTSDocument(title: "Gamma", subtitle: nil, body: nil))
 
-        XCTAssertEqual(try! sut.fetchAll(search: "Gamma"), [10])
+        XCTAssertEqual(try sut.fetchAll(.init(fullTextSearch: "Gamma")), [10])
     }
 
     func testRemove() throws {
@@ -67,12 +67,12 @@ class KeyValueStoreTest: XCTestCase {
         XCTAssertNil(one)
 
         let searchRecords = try db.queue.read { db in
-            try KeyValueStore.FTSRecord.fetchAll(db)
+            try DatabaseKeyValueStore.FTSRecord.fetchAll(db)
         }
         XCTAssertEqual(searchRecords.isEmpty, true)
 
         let indexRecords = try db.queue.read { db in
-            try KeyValueStore.SecondaryIndexRecord.fetchAll(db)
+            try DatabaseKeyValueStore.SecondaryIndexRecord.fetchAll(db)
         }
         XCTAssertEqual(indexRecords.isEmpty, true)
     }
@@ -82,18 +82,18 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(2, at: "even_2", fts: .init(title: "One"), secondaryIndexValues: [0: "one"])
         try sut.put(3, at: "odd_3", fts: .init(title: "One"), secondaryIndexValues: [0: "one"])
         try sut.put(4, at: "even_4", fts: .init(title: "One"), secondaryIndexValues: [0: "one"])
-        try sut.removeAll("even_")
+        _ = try sut.removeAll(.keyPrefix("even_"))
 
-        let records: [Int] = try sut.fetchAll()
+        let records: [Int] = try sut.fetchAll(.all)
         XCTAssertEqual(records, [1, 3])
 
         let searchRecords = try db.queue.read { db in
-            try KeyValueStore.FTSRecord.fetchAll(db)
+            try DatabaseKeyValueStore.FTSRecord.fetchAll(db)
         }
         XCTAssertEqual(searchRecords.count, 2)
 
         let indexRecords = try db.queue.read { db in
-            try KeyValueStore.SecondaryIndexRecord.fetchAll(db)
+            try DatabaseKeyValueStore.SecondaryIndexRecord.fetchAll(db)
         }
         XCTAssertEqual(indexRecords.count, 2)
     }
@@ -131,7 +131,7 @@ class KeyValueStoreTest: XCTestCase {
             try sut.put(2, at: "abc2", secondaryIndexValues: [0: "2"]) // change index
         }
 
-        let values: [[Int]] = try await Array(sut.observeAll("abc", order: [.init(index: 0, ascending: true)]).prefix(5))
+        let values: [[Int]] = try await Array(sut.observeAll(.init(keyPrefix:"abc", order: [.init(index: 0, ascending: true)])).prefix(5))
         XCTAssertEqual(
             values,
             [
@@ -150,7 +150,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3")
         try sut.put(4, at: "4")
 
-        let values: [Int] = try sut.fetchAll()
+        let values: [Int] = try sut.fetchAll(.all)
         XCTAssertEqual(values, [1, 2, 3, 4])
     }
 
@@ -162,7 +162,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "single_3")
         try sut.put(4, at: "single_4")
 
-        let values: [Int] = try sut.fetchAll("double_")
+        let values: [Int] = try sut.fetchAll(.keyPrefix("double_"))
         XCTAssertEqual(values, [11, 22])
     }
 
@@ -172,7 +172,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", secondaryIndexValues: [0: "three"])
         try sut.put(4, at: "4", secondaryIndexValues: [0: "four"])
 
-        let values: [Int] = try sut.fetchAll(order: [.init(index: 0, ascending: true)])
+        let values: [Int] = try sut.fetchAll(.init(order: [.init(index: 0, ascending: true)]))
         XCTAssertEqual(values, [4, 1, 3, 2])
     }
 
@@ -182,7 +182,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "odd_3", secondaryIndexValues: [0: "three"])
         try sut.put(4, at: "even_4", secondaryIndexValues: [0: "four"])
 
-        let values: [Int] = try sut.fetchAll("even_", order: [.init(index: 0, ascending: true)])
+        let values: [Int] = try sut.fetchAll(.init(keyPrefix: "even_", order: [.init(index: 0, ascending: true)]))
         XCTAssertEqual(values, [4, 2])
     }
 
@@ -192,7 +192,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", secondaryIndexValues: [0: "three"])
         try sut.put(4, at: "4", secondaryIndexValues: [0: "four"])
 
-        let values: [Int] = try sut.fetchAll(order: [.init(index: 0, ascending: true)], range: 1..<3)
+        let values: [Int] = try sut.fetchAll(.init(order: [.init(index: 0, ascending: true)], range: 1..<3))
         XCTAssertEqual(values, [1, 3])
     }
 
@@ -202,7 +202,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", secondaryIndexValues: [0: "three"])
         try sut.put(4, at: "4", secondaryIndexValues: [0: "four"])
 
-        let values: [Int] = try sut.fetchAll(order: [.init(index: 1, ascending: true)])
+        let values: [Int] = try sut.fetchAll(.init(order: [.init(index: 1, ascending: true)]))
         XCTAssertEqual(values, [])
     }
 
@@ -215,7 +215,7 @@ class KeyValueStoreTest: XCTestCase {
         // update 2 to make it the first instead of last
         try sut.put(2, at: "2", secondaryIndexValues: [0: "aaa"])
 
-        let values: [Int] = try sut.fetchAll(order: [.init(index: 0, ascending: true)])
+        let values: [Int] = try sut.fetchAll(.init(order: [.init(index: 0, ascending: true)]))
         XCTAssertEqual(values, [2, 4, 1, 3])
     }
 
@@ -225,7 +225,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", secondaryIndexValues: [0: "b"])
         try sut.put(2, at: "2", secondaryIndexValues: [0: "c"])
 
-        let values: [Int] = try sut.fetchAll(filters: [.init(index: 0, condition: .greaterThanOrEqualTo("b"))])
+        let values: [Int] = try sut.fetchAll(.init(filters: [.init(index: 0, condition: .greaterThanOrEqualTo("b"))]))
         XCTAssertEqual(values, [2, 3])
     }
 
@@ -235,10 +235,10 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", secondaryIndexValues: [0: "b", 1: "c"])
         try sut.put(2, at: "2", secondaryIndexValues: [0: "b", 1: "d"])
 
-        let values: [Int] = try sut.fetchAll(filters: [
+        let values: [Int] = try sut.fetchAll(.init(filters: [
             .init(index: 0, condition: .greaterThanOrEqualTo("b")),
             .init(index: 1, condition: .lessThanOrEqualTo("c"))
-        ])
+        ]))
         XCTAssertEqual(values, [3])
     }
 
@@ -248,7 +248,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", secondaryIndexValues: [0: "a"])
         try sut.put(2, at: "2", secondaryIndexValues: [0: "a"])
 
-        let values: [Int] = try sut.fetchAll(order: [.init(index: 0, ascending: true)])
+        let values: [Int] = try sut.fetchAll(.init(order: [.init(index: 0, ascending: true)]))
         XCTAssertEqual(values, [1, 2, 3, 4])
     }
 
@@ -261,7 +261,7 @@ class KeyValueStoreTest: XCTestCase {
         try sut.remove("2")
         try sut.remove("4")
 
-        let values: [Int] = try sut.fetchAll(order: [.init(index: 0, ascending: true)])
+        let values: [Int] = try sut.fetchAll(.init(order: [.init(index: 0, ascending: true)]))
         XCTAssertEqual(values, [1, 3])
     }
 
@@ -271,8 +271,14 @@ class KeyValueStoreTest: XCTestCase {
         try sut.put(3, at: "3", fts: .init(title: "Odd Three"), secondaryIndexValues: [0: "three"])
         try sut.put(4, at: "4", fts: .init(title: "Even Four"), secondaryIndexValues: [0: "four"])
 
-        let values: [Int] = try sut.fetchAll(search: "Ev", order: [.init(index: 0, ascending: true)])
+        let values: [Int] = try sut.fetchAll(.init(fullTextSearch: "Ev", order: [.init(index: 0, ascending: true)]))
         XCTAssertEqual(values, [4, 2])
+    }
+
+    func testFetchKeysAll() throws {
+        try sut.put(1, at: "1", secondaryIndexValues: [0: "one"])
+        let keys = try sut.fetchKeys(.all)
+        XCTAssertEqual(keys, ["1"])
     }
 
 }

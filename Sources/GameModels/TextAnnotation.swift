@@ -26,7 +26,7 @@ public struct CompendiumItemReferenceTextAnnotation: Codable, Hashable {
     public let text: String
     public let type: CompendiumItemType?
 
-    public let resolvedTo: CompendiumItemReference?
+    public var resolvedTo: CompendiumItemReference?
 
     public init(text: String, type: CompendiumItemType?, resolvedTo: CompendiumItemReference? = nil) {
         self.text = text

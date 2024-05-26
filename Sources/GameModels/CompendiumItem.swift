@@ -10,7 +10,7 @@ import Foundation
 
 public protocol CompendiumItem: Codable {
     var key: CompendiumItemKey { get }
-    var realm: CompendiumItemKey.Realm { get }
+    var realm: CompendiumItemKey.Realm { get set }
     var title: String { get }
 
     func isEqual(to: CompendiumItem) -> Bool

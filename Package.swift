@@ -21,7 +21,7 @@ let package = Package(
         .library(name: "OpenAIClient", targets: ["OpenAIClient"]),
         .library(name: "Open5eAPI", targets: ["Open5eAPI"]),
         .library(name: "Persistence", targets: ["Persistence"]),
-        .library(name: "PersistenceTestSupport", targets: ["PersistenceTestSupport"]),
+        .library(name: "TestSupport", targets: ["TestSupport"]),
         .library(name: "SharedViews", targets: ["Helpers"]),
         .executable(name: "db-tool", targets: ["DatabaseInitTool"])
     ],
@@ -35,6 +35,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.6.1"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.12.0"),
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.12.0"),
         .package(url: "https://github.com/LaunchDarkly/swift-eventsource.git", from: "3.0.0")
     ],
     targets: [
@@ -103,7 +104,9 @@ let package = Package(
         .testTarget(
             name: "GameModelsTests",
             dependencies: [
-                "GameModels"
+                "GameModels",
+                "TestSupport",
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
             ]
         ),
         .target(
@@ -159,7 +162,8 @@ let package = Package(
         .target(
             name: "Open5eAPI",
             dependencies: [
-                "Helpers"
+                "Helpers",
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
             ]
         ),
         .target(
@@ -174,11 +178,12 @@ let package = Package(
             name: "PersistenceTests",
             dependencies: [
                 "Persistence",
-                "GameModels"
+                "GameModels",
+                .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")
             ]
         ),
         .target(
-            name: "PersistenceTestSupport",
+            name: "TestSupport",
             resources: [
                 .copy("Resources/initial.sqlite")
             ]

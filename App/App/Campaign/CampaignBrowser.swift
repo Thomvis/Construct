@@ -21,7 +21,7 @@ class CampaignBrowser {
     }
 
     func nodes(in node: CampaignNode) throws -> [CampaignNode] {
-        return try store.fetchAll(node.keyPrefixForFetchingDirectChildren)
+        return try store.fetchAll(.keyPrefix(node.keyPrefixForFetchingDirectChildren))
     }
 
     func put(_ node: CampaignNode) throws {
@@ -54,6 +54,6 @@ class CampaignBrowser {
 
     /// Returns the total number of nodes
     func nodeCount() throws -> Int {
-        return try store.count(CampaignNode.keyPrefix)
+        return try store.count(.keyPrefix(CampaignNode.keyPrefix))
     }
 }

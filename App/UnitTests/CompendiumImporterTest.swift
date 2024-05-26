@@ -13,7 +13,7 @@ import Combine
 import Compendium
 import Persistence
 import GameModels
-import PersistenceTestSupport
+import TestSupport
 
 class CompendiumImporterTest: XCTestCase {
 

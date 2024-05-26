@@ -14,10 +14,8 @@ public func apply<T>(_ thing: T, _ f: (inout T) throws -> Void) rethrows -> T {
     return res
 }
 
-@discardableResult
-public func apply<T>(_ thing: inout T, _ f: (inout T) throws -> Void) rethrows -> T {
-    try f(&thing)
-    return thing
+public func apply<T, R>(_ thing: inout T, _ f: (inout T) throws -> R) rethrows -> R {
+    return try f(&thing)
 }
 
 public func apply<T>(_ thing: T, _ f: (inout T) async throws -> Void) async rethrows -> T {
@@ -26,8 +24,6 @@ public func apply<T>(_ thing: T, _ f: (inout T) async throws -> Void) async reth
     return res
 }
 
-@discardableResult
-public func apply<T>(_ thing: inout T, _ f: (inout T) async throws -> Void) async rethrows -> T {
-    try await f(&thing)
-    return thing
+public func apply<T, R>(_ thing: inout T, _ f: (inout T) async throws -> R) async rethrows -> R {
+    return try await f(&thing)
 }

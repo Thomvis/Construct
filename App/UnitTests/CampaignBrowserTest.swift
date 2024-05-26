@@ -12,7 +12,7 @@ import XCTest
 import Combine
 import Persistence
 import GameModels
-import PersistenceTestSupport
+import TestSupport
 
 class CampaignBrowserTest: XCTestCase {
 

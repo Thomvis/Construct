@@ -84,8 +84,9 @@ extension Character: CompendiumCombatant {
 
 extension Combatant {
 
-    public init(monster: Monster, hp: Hp? = nil) {
+    public init(id: Id = UUID().tagged(), monster: Monster, hp: Hp? = nil) {
         self.init(
+            id: id,
             definition: CompendiumCombatantDefinition(item: monster, persistent: false),
             hp: hp,
             resources: monster.stats.extractResources()

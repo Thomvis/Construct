@@ -11,10 +11,10 @@ import Tagged
 public struct CompendiumSourceDocument: Hashable, Codable, Identifiable {
     public typealias Id = Tagged<Self, String>
 
-    public let id: Id
-    public let displayName: String
+    public var id: Id
+    public var displayName: String
 
-    public let realmId: CompendiumRealm.Id
+    public var realmId: CompendiumRealm.Id
 
     public init(id: Id, displayName: String, realmId: CompendiumRealm.Id) {
         self.id = id
@@ -41,4 +41,16 @@ public extension CompendiumSourceDocument {
         displayName: "Homebrew",
         realmId: CompendiumRealm.homebrew.id
     )
+
+    private static var defaultDocuments: [CompendiumSourceDocument] {
+        [.srd5_1, .unspecifiedCore, .homebrew]
+    }
+
+    static func isDefaultDocument(id: CompendiumSourceDocument.Id) -> Bool {
+        defaultDocuments.contains(where: { $0.id == id })
+    }
+
+    var isDefaultDocument: Bool {
+        Self.isDefaultDocument(id: id)
+    }
 }

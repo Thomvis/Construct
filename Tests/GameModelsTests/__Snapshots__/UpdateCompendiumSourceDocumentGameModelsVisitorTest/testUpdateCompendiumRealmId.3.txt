@@ -1,0 +1,20 @@
+  CompendiumEntry(
+    _item: EqCompare(…),
+    itemType: .character,
+    origin: .created(
+      CompendiumItemReference(
+        itemTitle: "",
+        _itemKey: Migrated(
+          wrappedValue: CompendiumItemKey(
+            type: .monster,
+            realm: CompendiumItemKey.Realm(
+-             value: Tagged(rawValue: "realm")
++             value: Tagged(rawValue: "newrealm")
+            ),
+            identifier: ""
+          )
+        )
+      )
+    ),
+    document: CompendiumEntry.CompendiumSourceDocumentReference(…)
+  )

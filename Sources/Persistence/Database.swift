@@ -18,11 +18,13 @@ public class Database {
     private let migrator: DatabaseMigrator
     private let importDefaultContent: Bool
 
-    public let keyValueStore: KeyValueStore
-    public let parseableManager: ParseableKeyValueRecordManager
+    public let keyValueStore: DatabaseKeyValueStore
+    public let visitorManager: KeyValueStoreVisitorManager
 
     public static var uninitialized: Database {
-        try! Database(queue: DatabaseQueue(), importDefaultContent: false)
+        let db = try! Database(queue: DatabaseQueue(), importDefaultContent: false)
+        try! db.migrator.migrate(db.queue)
+        return db
     }
 
     // If path is nil, an in-memory database is created
@@ -62,8 +64,8 @@ public class Database {
         self.queue = queue
         self.migrator = try Self.migrator()
         self.importDefaultContent = importDefaultContent
-        self.keyValueStore = KeyValueStore(queue)
-        self.parseableManager = ParseableKeyValueRecordManager(queue)
+        self.keyValueStore = DatabaseKeyValueStore(DatabaseQueueAccess(queue: queue))
+        self.visitorManager = KeyValueStoreVisitorManager()
 
         #if DEBUG
         print("Opened db at path: \(queue.path)")
@@ -153,7 +155,7 @@ public class Database {
 
         // process parseables
         if needsParseableProcessing {
-            try await parseableManager.run()
+            try await visitorManager.run(visitor: ParseableEntityVisitor.shared, store: keyValueStore)
             var preferences: Preferences = try keyValueStore.get(Preferences.key) ?? Preferences()
             preferences.parseableManagerLastRunVersion = ParseableGameModels.combinedVersion
             try keyValueStore.put(preferences)
@@ -169,4 +171,59 @@ public class Database {
         try await compendium.importDefaultContent(monsters: monsters, spells: spells)
     }
 
+}
+
+public protocol DatabaseAccess {
+    func read<T>(_ value: (GRDB.Database) throws -> T) throws -> T
+    func write<T>(_ updates: (GRDB.Database) throws -> T) throws -> T
+    func observe<R>(_ observation: ValueObservation<R>) -> AsyncThrowingStream<R.Value, Error> where R: ValueReducer
+}
+
+public struct DatabaseQueueAccess: DatabaseAccess {
+    let queue: DatabaseQueue
+
+    public func read<T>(_ value: (GRDB.Database) throws -> T) throws -> T {
+        try queue.read(value)
+    }
+
+    public func write<T>(_ updates: (GRDB.Database) throws -> T) throws -> T {
+        try queue.write(updates)
+    }
+
+    public func observe<R>(_ observation: ValueObservation<R>) -> AsyncThrowingStream<R.Value, Error> where R: ValueReducer {
+        observation.values(in: queue).stream
+    }
+}
+
+public struct DirectDatabaseAccess: DatabaseAccess {
+    let db: GRDB.Database
+
+    public func read<T>(_ value: (GRDB.Database) throws -> T) throws -> T {
+        try value(db)
+    }
+
+    public func write<T>(_ updates: (GRDB.Database) throws -> T) throws -> T {
+        try updates(db)
+    }
+
+    public func observe<R>(_ observation: ValueObservation<R>) -> AsyncThrowingStream<R.Value, Error> where R : ValueReducer {
+        assertionFailure("DatabaseAccess.observe not supported on DirectDatabaseAccess")
+        return .finished(throwing: DirectDatabaseAccessError.unsupportedOperation)
+    }
+}
+
+public extension DatabaseAccess where Self == DatabaseQueueAccess {
+    static func queue(_ queue: DatabaseQueue) -> Self {
+        DatabaseQueueAccess(queue: queue)
+    }
+}
+
+public extension DatabaseAccess where Self == DirectDatabaseAccess {
+    static func direct(_ db: GRDB.Database) -> Self {
+        DirectDatabaseAccess(db: db)
+    }
+}
+
+enum DirectDatabaseAccessError: Error {
+    case unsupportedOperation
 }

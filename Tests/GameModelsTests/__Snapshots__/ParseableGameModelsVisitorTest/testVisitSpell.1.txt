@@ -1,0 +1,43 @@
+▿ Spell
+  - castingTime: "1 action"
+  ▿ classes: 2 elements
+    - "Sorcerer"
+    - "Wizard"
+  ▿ components: 2 elements
+    - Component.verbal
+    - Component.somatic
+  - concentration: false
+  ▿ description: Parseable<String, ParsedSpellDescription>
+    - input: "You hurl a bubble of acid. Choose one creature you can see within range, or choose two creatures you can see within range that are within 5 feet of each other. A target must succeed on a Dexterity saving throw or take 1d6 acid damage."
+    ▿ result: Optional<ParserResult>
+      ▿ some: ParserResult
+        ▿ _modelVersion: Wrapper<EmptyString>
+          - wrappedValue: "1"
+        ▿ _parserName: Wrapper<EmptyString>
+          - wrappedValue: "SpellDescriptionDomainParser"
+        ▿ value: Optional<ParsedSpellDescription>
+          ▿ some: ParsedSpellDescription
+            ▿ diceExpressions: 1 element
+              ▿ Located<DiceExpression>
+                ▿ range: 218..<221
+                  - lowerBound: 218
+                  - upperBound: 221
+                ▿ value: 1d6
+                  ▿ dice: (2 elements)
+                    - count: 1
+                    ▿ die: Die
+                      - color: Optional<Color>.none
+                      - sides: 6
+        - version: "1"
+  - duration: "Instantaneous"
+  ▿ higherLevelDescription: Optional<String>
+    - some: "This spell\'s damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6)."
+  - level: Optional<Int>.none
+  - material: Optional<String>.none
+  - name: "Acid Splash"
+  - range: "60 feet"
+  ▿ realm: core
+    ▿ value: core
+      - rawValue: "core"
+  - ritual: false
+  - school: "C"

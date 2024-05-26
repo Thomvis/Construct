@@ -1,0 +1,16 @@
+  CompendiumEntry(
+    _item: EqCompare(
+      wrappedValue: Monster(
+        realm: CompendiumItemKey.Realm(
+-         value: Tagged(rawValue: "realm")
++         value: Tagged(rawValue: "newrealm")
+        ),
+        stats: StatBlock(…),
+        challengeRating: Fraction(…)
+      ),
+      compare: (Function)
+    ),
+    itemType: .monster,
+    origin: .created(…),
+    document: CompendiumEntry.CompendiumSourceDocumentReference(…)
+  )

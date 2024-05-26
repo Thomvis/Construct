@@ -18,7 +18,7 @@ import DiceRollerFeature
 import Dice
 import GameModels
 import Persistence
-import PersistenceTestSupport
+import TestSupport
 import Compendium
 
 /// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests

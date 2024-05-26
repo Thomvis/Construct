@@ -56,7 +56,7 @@ extension EncounterDetailViewState: HavingEntities {
     }
 }
 
-extension KeyValueStore {
+extension DatabaseKeyValueStore {
 
 
     // Returns a middleware that saves changed entities to the db

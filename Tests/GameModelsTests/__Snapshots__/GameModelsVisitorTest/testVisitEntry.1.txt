@@ -1,0 +1,57 @@
+  CompendiumEntry(
+    _item: EqCompare(
+      wrappedValue: Character(
+        id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500000000000)),
+        realm: CompendiumItemKey.Realm(…),
+        level: nil,
+        stats: StatBlock(
+-         name: "Sir Tappalot",
++         name: "visited",
+          size: nil,
+          type: nil,
+          subtype: nil,
+          _alignment: Migrated(wrappedValue: nil),
+          armorClass: nil,
+          armor: [],
+          hitPointDice: nil,
+          hitPoints: nil,
+          movement: nil,
+          abilityScores: nil,
+          savingThrows: [:],
+          skills: [:],
+          initiative: nil,
+          damageVulnerabilities: nil,
+          damageResistances: nil,
+          damageImmunities: nil,
+          conditionImmunities: nil,
+          senses: nil,
+          languages: nil,
+          challengeRating: nil,
+          level: nil,
+          features: [],
+          actions: [],
+          _reactions: DecodableDefault.Wrapper(wrappedValue: []),
+          legendary: nil
+        ),
+        player: nil
+      ),
+      compare: (Function)
+    ),
+    itemType: .character,
+-   origin: .created(nil)
++   origin: .created(
++     CompendiumItemReference(
++       itemTitle: "visited",
++       _itemKey: Migrated(
++         wrappedValue: CompendiumItemKey(
++           type: .monster,
++           realm: CompendiumItemKey.Realm(
++             value: Tagged(rawValue: "core")
++           ),
++           identifier: "visited"
++         )
++       )
++     )
++   )
+    document: CompendiumEntry.CompendiumSourceDocumentReference(…)
+  )

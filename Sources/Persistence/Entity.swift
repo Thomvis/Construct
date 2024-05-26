@@ -48,6 +48,7 @@ public struct KeyValueStoreEntityKey<E>: Hashable where E: KeyValueStoreEntity {
     }
 }
 
+/// Convenience methods for working with KeyValueStore
 public extension KeyValueStore {
     func get<E>(_ key: E.Key) throws -> E? where E: KeyValueStoreEntity {
         try get(key.rawValue)
@@ -57,20 +58,21 @@ public extension KeyValueStore {
         try get(key.rawValue, crashReporter: crashReporter)
     }
 
+    func getAny(_ key: String) throws -> (any KeyValueStoreEntity)? {
+        guard let type = keyValueStoreEntities.first(where: { key.hasPrefix($0.keyPrefix) }) else { return nil }
+        return try get(type.self, key: key)
+    }
+
     func observe<E>(_ key: E.Key) -> AsyncThrowingStream<E?, any Error> where E: KeyValueStoreEntity & Equatable {
         observe(key.rawValue)
     }
 
-    func put<E>(_ value: E, fts: FTSDocument? = nil, secondaryIndexValues: [Int: String]? = nil, in db: GRDB.Database? = nil) throws where E: KeyValueStoreEntity {
-        try put(value, at: value.key.rawValue, fts: fts, secondaryIndexValues: secondaryIndexValues, in: db)
+    func put<E>(_ value: E, fts: FTSDocument? = nil, secondaryIndexValues: [Int: String]? = nil) throws where E: KeyValueStoreEntity {
+        try put(value, at: value.key.rawValue, fts: fts, secondaryIndexValues: secondaryIndexValues)
     }
 
-    static func put<E>(_ value: E, fts: FTSDocument? = nil, secondaryIndexValues: [Int: String]? = nil, in db: GRDB.Database) throws where E: KeyValueStoreEntity {
-        try put(value, at: value.key.rawValue, fts: fts, secondaryIndexValues: secondaryIndexValues, in: db)
-    }
-
-    func contains<E>(_ key: E.Key, in db: GRDB.Database? = nil) throws -> Bool where E: KeyValueStoreEntity {
-        try contains(key.rawValue, in: db)
+    func contains<E>(_ key: E.Key) throws -> Bool where E: KeyValueStoreEntity {
+        try contains(key.rawValue)
     }
 
     @discardableResult
@@ -79,22 +81,22 @@ public extension KeyValueStore {
     }
 }
 
-public extension String {
-    /// Checks if the string begins with the entity's key prefix
-    func toCheckedKey<E>() -> E.Key? where E: KeyValueStoreEntity {
-        return E.Key(rawKey: self)
-    }
-}
-
-extension KeyValueStore.Record {
-    func decodeEntity(_ decoder: JSONDecoder) throws -> (any KeyValueStoreEntity)? {
-        guard let type = keyValueStoreEntities.first(where: { key.hasPrefix($0.keyPrefix) }) else { return nil }
-        return try decoder.decode(type, from: value)
-    }
-}
-
-public extension KeyValueStoreEntity {
-    func encodeEntity(_ encoder: JSONEncoder) throws -> Data? {
-        return try encoder.encode(self)
-    }
-}
+//public extension String {
+//    /// Checks if the string begins with the entity's key prefix
+//    func toCheckedKey<E>() -> E.Key? where E: KeyValueStoreEntity {
+//        return E.Key(rawKey: self)
+//    }
+//}
+//
+//extension DatabaseKeyValueStore.Record {
+//    func decodeEntity(_ decoder: JSONDecoder) throws -> (any KeyValueStoreEntity)? {
+//        guard let type = keyValueStoreEntities.first(where: { key.hasPrefix($0.keyPrefix) }) else { return nil }
+//        return try decoder.decode(type, from: value)
+//    }
+//}
+//
+//public extension KeyValueStoreEntity {
+//    func encodeEntity(_ encoder: JSONEncoder) throws -> Data? {
+//        return try encoder.encode(self)
+//    }
+//}

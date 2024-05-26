@@ -1,0 +1,428 @@
+  RunningEncounter(
+    id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500800000000)),
+    base: Encounter(
+      id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500000000000)),
+-     name: "Crazy Encounter",
++     name: "visited",
+      combatants: [
+        [0]: Combatant(
+          id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500100000000)),
+          discriminator: nil,
+          _definition: Combatant.CodableCombatDefinition(
+            _definition: EqCompare(
+              wrappedValue: AdHocCombatantDefinition(
+                id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500200000000)),
+                stats: StatBlock(
+-                 name: "AdHoc Combatant A",
++                 name: "visited",
+                  size: nil,
+                  type: nil,
+                  subtype: nil,
+                  _alignment: Migrated(wrappedValue: nil),
+                  armorClass: nil,
+                  armor: [],
+                  hitPointDice: nil,
+                  hitPoints: nil,
+                  movement: nil,
+                  abilityScores: nil,
+                  savingThrows: [:],
+                  skills: [:],
+                  initiative: nil,
+                  damageVulnerabilities: nil,
+                  damageResistances: nil,
+                  damageImmunities: nil,
+                  conditionImmunities: nil,
+                  senses: nil,
+                  languages: nil,
+                  challengeRating: nil,
+                  level: nil,
+                  features: [],
+                  actions: [],
+                  _reactions: DecodableDefault.Wrapper(wrappedValue: []),
+                  legendary: nil
+                ),
+                player: nil,
+                level: nil,
+                original: nil
+              ),
+              compare: (Function)
+            )
+          ),
+-         _hp: nil,
++         _hp: Hp(
++           current: 42,
++           maximum: 42,
++           temporary: 0
++         ),
+          resources: [],
+          initiative: nil,
+          tags: [],
+          traits: nil,
+          party: nil
+        ),
+        [1]: Combatant(
+          id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500300000000)),
+          discriminator: nil,
+          _definition: Combatant.CodableCombatDefinition(
+            _definition: EqCompare(
+              wrappedValue: AdHocCombatantDefinition(
+                id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500400000000)),
+                stats: StatBlock(
+-                 name: "AdHoc Combatant B",
++                 name: "visited",
+                  size: nil,
+                  type: nil,
+                  subtype: nil,
+                  _alignment: Migrated(wrappedValue: nil),
+                  armorClass: nil,
+                  armor: [],
+                  hitPointDice: nil,
+                  hitPoints: nil,
+                  movement: nil,
+                  abilityScores: nil,
+                  savingThrows: [:],
+                  skills: [:],
+                  initiative: nil,
+                  damageVulnerabilities: nil,
+                  damageResistances: nil,
+                  damageImmunities: nil,
+                  conditionImmunities: nil,
+                  senses: nil,
+                  languages: nil,
+                  challengeRating: nil,
+                  level: nil,
+                  features: [],
+                  actions: [],
+                  _reactions: DecodableDefault.Wrapper(wrappedValue: []),
+                  legendary: nil
+                ),
+                player: nil,
+                level: nil,
+                original: nil
+              ),
+              compare: (Function)
+            )
+          ),
+-         _hp: nil,
++         _hp: Hp(
++           current: 42,
++           maximum: 42,
++           temporary: 0
++         ),
+          resources: [],
+          initiative: nil,
+          tags: [],
+          traits: nil,
+          party: nil
+        ),
+        [2]: Combatant(
+          id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500500000000)),
+          discriminator: nil,
+          _definition: Combatant.CodableCombatDefinition(
+            _definition: EqCompare(
+              wrappedValue: CompendiumCombatantDefinition(
+                _item: CodableCompendiumCombatant(
+                  _item: EqCompare(
+                    wrappedValue: Monster(
+                      realm: CompendiumItemKey.Realm(…),
+                      stats: StatBlock(
+-                       name: "Compendium Combatant A",
++                       name: "visited",
+                        size: nil,
+                        type: nil,
+                        subtype: nil,
+                        _alignment: Migrated(wrappedValue: nil),
+                        armorClass: nil,
+                        armor: [],
+                        hitPointDice: nil,
+                        hitPoints: nil,
+                        movement: nil,
+                        abilityScores: nil,
+                        savingThrows: [:],
+                        skills: [:],
+                        initiative: nil,
+                        damageVulnerabilities: nil,
+                        damageResistances: nil,
+                        damageImmunities: nil,
+                        conditionImmunities: nil,
+                        senses: nil,
+                        languages: nil,
+                        challengeRating: Fraction(…),
+                        level: nil,
+                        features: [],
+                        actions: [],
+                        _reactions: DecodableDefault.Wrapper(wrappedValue: []),
+                        legendary: nil
+                      ),
+                      challengeRating: Fraction(…)
+                    ),
+                    compare: (Function)
+                  )
+                ),
+                persistent: false
+              ),
+              compare: (Function)
+            )
+          ),
+-         _hp: nil,
++         _hp: Hp(
++           current: 42,
++           maximum: 42,
++           temporary: 0
++         ),
+          resources: [],
+          initiative: nil,
+          tags: [],
+          traits: nil,
+          party: nil
+        )
+      ],
+      partyForDifficulty: nil,
+      runningEncounterKey: nil,
+      ensureStableDiscriminators: false,
+      _isUpdatingCombatantDiscriminators: false
+    ),
+    current: Encounter(
+      id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500000000000)),
+-     name: "Crazy Encounter",
++     name: "visited",
+      combatants: [
+        [0]: Combatant(
+          id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500100000000)),
+          discriminator: nil,
+          _definition: Combatant.CodableCombatDefinition(
+            _definition: EqCompare(
+              wrappedValue: AdHocCombatantDefinition(
+                id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500200000000)),
+                stats: StatBlock(
+-                 name: "AdHoc Combatant A",
++                 name: "visited",
+                  size: nil,
+                  type: nil,
+                  subtype: nil,
+                  _alignment: Migrated(wrappedValue: nil),
+                  armorClass: nil,
+                  armor: [],
+                  hitPointDice: nil,
+                  hitPoints: nil,
+                  movement: nil,
+                  abilityScores: nil,
+                  savingThrows: [:],
+                  skills: [:],
+                  initiative: nil,
+                  damageVulnerabilities: nil,
+                  damageResistances: nil,
+                  damageImmunities: nil,
+                  conditionImmunities: nil,
+                  senses: nil,
+                  languages: nil,
+                  challengeRating: nil,
+                  level: nil,
+                  features: [],
+                  actions: [],
+                  _reactions: DecodableDefault.Wrapper(wrappedValue: []),
+                  legendary: nil
+                ),
+                player: nil,
+                level: nil,
+                original: nil
+              ),
+              compare: (Function)
+            )
+          ),
+-         _hp: nil,
++         _hp: Hp(
++           current: 42,
++           maximum: 42,
++           temporary: 0
++         ),
+          resources: [],
+          initiative: nil,
+          tags: [],
+          traits: nil,
+          party: nil
+        ),
+        [1]: Combatant(
+          id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500300000000)),
+          discriminator: nil,
+          _definition: Combatant.CodableCombatDefinition(
+            _definition: EqCompare(
+              wrappedValue: AdHocCombatantDefinition(
+                id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500400000000)),
+                stats: StatBlock(
+-                 name: "AdHoc Combatant B",
++                 name: "visited",
+                  size: nil,
+                  type: nil,
+                  subtype: nil,
+                  _alignment: Migrated(wrappedValue: nil),
+                  armorClass: nil,
+                  armor: [],
+                  hitPointDice: nil,
+                  hitPoints: nil,
+                  movement: nil,
+                  abilityScores: nil,
+                  savingThrows: [:],
+                  skills: [:],
+                  initiative: nil,
+                  damageVulnerabilities: nil,
+                  damageResistances: nil,
+                  damageImmunities: nil,
+                  conditionImmunities: nil,
+                  senses: nil,
+                  languages: nil,
+                  challengeRating: nil,
+                  level: nil,
+                  features: [],
+                  actions: [],
+                  _reactions: DecodableDefault.Wrapper(wrappedValue: []),
+                  legendary: nil
+                ),
+                player: nil,
+                level: nil,
+                original: nil
+              ),
+              compare: (Function)
+            )
+          ),
+-         _hp: nil,
++         _hp: Hp(
++           current: 42,
++           maximum: 42,
++           temporary: 0
++         ),
+          resources: [],
+          initiative: nil,
+          tags: [],
+          traits: nil,
+          party: nil
+        ),
+        [2]: Combatant(
+          id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500500000000)),
+          discriminator: nil,
+          _definition: Combatant.CodableCombatDefinition(
+            _definition: EqCompare(
+              wrappedValue: CompendiumCombatantDefinition(
+                _item: CodableCompendiumCombatant(
+                  _item: EqCompare(
+                    wrappedValue: Monster(
+                      realm: CompendiumItemKey.Realm(…),
+                      stats: StatBlock(
+-                       name: "Compendium Combatant A",
++                       name: "visited",
+                        size: nil,
+                        type: nil,
+                        subtype: nil,
+                        _alignment: Migrated(wrappedValue: nil),
+                        armorClass: nil,
+                        armor: [],
+                        hitPointDice: nil,
+                        hitPoints: nil,
+                        movement: nil,
+                        abilityScores: nil,
+                        savingThrows: [:],
+                        skills: [:],
+                        initiative: nil,
+                        damageVulnerabilities: nil,
+                        damageResistances: nil,
+                        damageImmunities: nil,
+                        conditionImmunities: nil,
+                        senses: nil,
+                        languages: nil,
+                        challengeRating: Fraction(…),
+                        level: nil,
+                        features: [],
+                        actions: [],
+                        _reactions: DecodableDefault.Wrapper(wrappedValue: []),
+                        legendary: nil
+                      ),
+                      challengeRating: Fraction(…)
+                    ),
+                    compare: (Function)
+                  )
+                ),
+                persistent: false
+              ),
+              compare: (Function)
+            )
+          ),
+-         _hp: nil,
++         _hp: Hp(
++           current: 42,
++           maximum: 42,
++           temporary: 0
++         ),
+          resources: [],
+          initiative: nil,
+          tags: [],
+          traits: nil,
+          party: nil
+        ),
+        [3]: Combatant(
+          id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500600000000)),
+          discriminator: nil,
+          _definition: Combatant.CodableCombatDefinition(
+            _definition: EqCompare(
+              wrappedValue: AdHocCombatantDefinition(
+                id: Tagged(rawValue: UUID(00000000-0000-0000-0000-500700000000)),
+                stats: StatBlock(
+-                 name: "Adoc Combatant C",
++                 name: "visited",
+                  size: nil,
+                  type: nil,
+                  subtype: nil,
+                  _alignment: Migrated(wrappedValue: nil),
+                  armorClass: nil,
+                  armor: [],
+                  hitPointDice: nil,
+                  hitPoints: nil,
+                  movement: nil,
+                  abilityScores: nil,
+                  savingThrows: [:],
+                  skills: [:],
+                  initiative: nil,
+                  damageVulnerabilities: nil,
+                  damageResistances: nil,
+                  damageImmunities: nil,
+                  conditionImmunities: nil,
+                  senses: nil,
+                  languages: nil,
+                  challengeRating: nil,
+                  level: nil,
+                  features: [],
+                  actions: [],
+                  _reactions: DecodableDefault.Wrapper(wrappedValue: []),
+                  legendary: nil
+                ),
+                player: nil,
+                level: nil,
+                original: nil
+              ),
+              compare: (Function)
+            )
+          ),
+-         _hp: nil,
++         _hp: Hp(
++           current: 42,
++           maximum: 42,
++           temporary: 0
++         ),
+          resources: [],
+          initiative: nil,
+          tags: [],
+          traits: nil,
+          party: nil
+        )
+      ],
+      partyForDifficulty: nil,
+      runningEncounterKey: nil,
+      ensureStableDiscriminators: false,
+      _isUpdatingCombatantDiscriminators: false
+    ),
+-   turn: nil,
++   turn: RunningEncounter.Turn(
++     round: 42,
++     combatantId: Tagged(rawValue: UUID(00000000-0000-0000-0000-000000000000))
++   ),
+    log: []
+  )

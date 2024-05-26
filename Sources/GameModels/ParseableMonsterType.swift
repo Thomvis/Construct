@@ -31,3 +31,11 @@ public extension ParseableMonsterType {
 extension MonsterType: DomainModel {
     public static let version: String = "1"
 }
+
+struct MonsterTypeDomainParser: DomainParser {
+    static let version: String = "1"
+
+    static func parse(input: String) -> MonsterType? {
+        MonsterType(rawValue: input.lowercased(with: Locale(identifier: "en_US")))
+    }
+}

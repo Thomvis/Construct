@@ -36,8 +36,8 @@ public struct Combatant: Equatable, Codable, Identifiable {
 
     public var party: CompendiumItemReference?
 
-    public init(discriminator: Int? = nil, definition: CombatantDefinition, hp: Hp? = nil, resources: [CombatantResource] = [], initiative: Int? = nil, party: CompendiumItemReference? = nil) {
-        self.id = UUID().tagged()
+    public init(id: Id = UUID().tagged(), discriminator: Int? = nil, definition: CombatantDefinition, hp: Hp? = nil, resources: [CombatantResource] = [], initiative: Int? = nil, party: CompendiumItemReference? = nil) {
+        self.id = id
         self.discriminator = discriminator
         self._definition = CodableCombatDefinition(definition: definition)
         self._hp = hp

@@ -60,7 +60,7 @@ public struct Parseable<Input, Result> where Input: Equatable, Result: DomainMod
     }
 
     public struct ParserResult {
-        public let value: Result?
+        public var value: Result?
         @DecodableDefault.EmptyString public var parserName: String
         let version: String
         @DecodableDefault.EmptyString public var modelVersion: String
@@ -141,49 +141,3 @@ extension Parseable.ParserResult: Equatable where Result: Equatable { }
 extension Parseable: Hashable where Input: Hashable, Result: Hashable { }
 
 extension Parseable.ParserResult: Hashable where Result: Hashable { }
-
-public enum ParseableVisitorAction {
-    case visit
-    case didParse
-}
-
-public typealias ParseableVisitor<T> = AnyReducer<T, ParseableVisitorAction, Void>
-
-extension ParseableVisitor where Action == ParseableVisitorAction, Environment == Void {
-    public init(visit: @escaping (inout State) -> Bool) {
-        self.init { state, action, env in
-            assert(action == .visit)
-            return visit(&state) ? .send(.didParse) : .none
-        }
-    }
-
-    public func visitEach<ID, Global>(in toCollection: WritableKeyPath<Global, IdentifiedArray<ID, State>>) -> ParseableVisitor<Global> {
-        return ParseableVisitor<Global> { state, action, env in
-            assert(action == .visit)
-            return .merge(
-                state[keyPath: toCollection].ids
-                    .map {
-                        self.ifSome().run(
-                            &state[keyPath: toCollection][id: $0],
-                            ParseableVisitorAction.visit,
-                            env
-                        )
-                    }
-            )
-        }
-    }
-}
-
-public protocol ParseableVisitable {
-    mutating func visitParseable() -> EffectTask<ParseableVisitorAction>
-}
-
-public protocol HasParseableVisitor: ParseableVisitable {
-    static var parseableVisitor: ParseableVisitor<Self> { get }
-}
-
-extension ParseableVisitable where Self: HasParseableVisitor {
-    public mutating func visitParseable() -> EffectTask<ParseableVisitorAction> {
-        return Self.parseableVisitor.run(&self, .visit, ())
-    }
-}

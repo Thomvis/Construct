@@ -8,6 +8,7 @@
 
 import Foundation
 import Tagged
+import Helpers
 
 public struct AdHocCombatantDefinition: Hashable, CombatantDefinition, Codable {
     public let id: Id
@@ -44,8 +45,9 @@ public struct AdHocCombatantDefinition: Hashable, CombatantDefinition, Codable {
 }
 
 public extension Combatant {
-    init(adHoc definition: AdHocCombatantDefinition) {
+    init(id: Id = UUID().tagged(), adHoc definition: AdHocCombatantDefinition) {
         self.init(
+            id: id,
             definition: definition,
             hp: definition.hitPoints.map { Hp(fullHealth: $0) }
         )

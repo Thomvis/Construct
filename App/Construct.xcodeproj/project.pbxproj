@@ -148,13 +148,13 @@
 		E99F95A42428DCB100183B5B /* RunningEncounterTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99F95A32428DCB000183B5B /* RunningEncounterTest.swift */; };
 		E9A46A49294291490082EED4 /* ActionResolutionFeature in Frameworks */ = {isa = PBXBuildFile; productRef = E9A46A48294291490082EED4 /* ActionResolutionFeature */; };
 		E9A71EBC239ADB400098317E /* Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A71EBB239ADB400098317E /* Style.swift */; };
+		E9A84A6C2B2A535B008264D1 /* TestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = E9A84A6B2B2A535B008264D1 /* TestSupport */; };
 		E9A95179233B8BC300141552 /* DDBCharacterDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95178233B8BC300141552 /* DDBCharacterDataSourceReaderTest.swift */; };
 		E9A9517C233B8C4B00141552 /* ddb_sarovin.json in Resources */ = {isa = PBXBuildFile; fileRef = E9A9517B233B8C4B00141552 /* ddb_sarovin.json */; };
 		E9A95187233BF83000141552 /* DDBCharacterSheetURLParserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9A95186233BF83000141552 /* DDBCharacterSheetURLParserTest.swift */; };
 		E9AB031323EBF09B0091C908 /* EqualSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AB031223EBF09B0091C908 /* EqualSize.swift */; };
 		E9AEA49B24C62A9600ACB44C /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AEA49A24C62A9600ACB44C /* Helpers.swift */; };
 		E9B3B87528FC8824003764DD /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = E9B3B87428FC8824003764DD /* SnapshotTesting */; };
-		E9B3B87728FC8847003764DD /* PersistenceTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = E9B3B87628FC8847003764DD /* PersistenceTestSupport */; };
 		E9B432BB22AAF7540054324E /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B432BA22AAF7540054324E /* Environment.swift */; };
 		E9BE1C4F28B524FF00D80464 /* DiceRollerInvocation in Frameworks */ = {isa = PBXBuildFile; productRef = E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */; };
 		E9C7F7862632C193000351AB /* NumberPadTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C7F7852632C193000351AB /* NumberPadTest.swift */; };
@@ -401,7 +401,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E9B3B87728FC8847003764DD /* PersistenceTestSupport in Frameworks */,
+				E9A84A6C2B2A535B008264D1 /* TestSupport in Frameworks */,
 				E9B3B87528FC8824003764DD /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -879,7 +879,7 @@
 			name = UnitTests;
 			packageProductDependencies = (
 				E9B3B87428FC8824003764DD /* SnapshotTesting */,
-				E9B3B87628FC8847003764DD /* PersistenceTestSupport */,
+				E9A84A6B2B2A535B008264D1 /* TestSupport */,
 			);
 			productName = UnitTests;
 			productReference = E9F9EB482319694100A70D11 /* UnitTests.xctest */;
@@ -1228,7 +1228,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				MARKETING_VERSION = 2.9.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -1289,7 +1289,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				MARKETING_VERSION = 2.9.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -1641,14 +1641,14 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = ActionResolutionFeature;
 		};
+		E9A84A6B2B2A535B008264D1 /* TestSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TestSupport;
+		};
 		E9B3B87428FC8824003764DD /* SnapshotTesting */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E9B3B87328FC8824003764DD /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
 			productName = SnapshotTesting;
-		};
-		E9B3B87628FC8847003764DD /* PersistenceTestSupport */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = PersistenceTestSupport;
 		};
 		E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */ = {
 			isa = XCSwiftPackageProductDependency;

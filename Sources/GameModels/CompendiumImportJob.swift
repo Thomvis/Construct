@@ -38,7 +38,7 @@ public struct CompendiumImportJob: Hashable, Codable {
 
     public let sourceId: CompendiumImportSourceId
     public let sourceVersion: String?
-    public let documentId: CompendiumSourceDocument.Id
+    public var documentId: CompendiumSourceDocument.Id
 
     public var timestamp: Date
     public let uuid: UUID

@@ -99,13 +99,25 @@ extension CompendiumEntry: KeyValueStoreEntity {
 extension CompendiumSourceDocument: KeyValueStoreEntity {
     public static var keyPrefix: String = "sourceDoc"
     public var key: Key {
+        Self.key(forRealmId: realmId, documentId: id)
+    }
+
+    public static func key(forRealmId realmId: CompendiumRealm.Id, documentId id: CompendiumSourceDocument.Id) -> Key {
         Key(id: realmId.rawValue + id.rawValue)
+    }
+
+    public static func keyPrefix(for realmId: CompendiumRealm.Id) -> Key {
+        Key(id: realmId.rawValue)
     }
 }
 
 extension CompendiumRealm: KeyValueStoreEntity {
     public static var keyPrefix: String = "realm"
     public var key: Key {
+        Self.key(for: id)
+    }
+
+    public static func key(for id: CompendiumRealm.Id) -> Key {
         Key(id: id.rawValue)
     }
 }

@@ -67,6 +67,9 @@
             </BuildableReference>
             <SkippedTests>
                <Test
+                  Identifier = "AppStoreScreenshotTests">
+               </Test>
+               <Test
                   Identifier = "DatabaseTest">
                </Test>
             </SkippedTests>

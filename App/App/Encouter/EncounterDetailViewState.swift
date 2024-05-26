@@ -45,7 +45,7 @@ struct EncounterDetailViewState: Equatable {
         }
     }
 
-    typealias ResumableRunningEncounters = Async<[KeyValueStore.Record], Error>
+    typealias ResumableRunningEncounters = Async<[String], Error>
     var resumableRunningEncounters: ResumableRunningEncounters = .initial
 
     var sheet: Sheet?
@@ -364,7 +364,7 @@ extension EncounterDetailViewState {
                     let runningEncounterPrefix = RunningEncounter.keyPrefix(for: state.building)
                     return .run { send in
                         // remove all runs
-                        _ = try? env.database.keyValueStore.removeAll(runningEncounterPrefix.rawValue)
+                        _ = try? env.database.keyValueStore.removeAll(.keyPrefix(runningEncounterPrefix.rawValue))
                         await send(.resumableRunningEncounters(.startLoading))
                     }
                 case .editMode(let mode):
@@ -454,7 +454,7 @@ extension EncounterDetailViewState {
             AnyReducer.withState({ $0.building.id }) { state in
                 ResumableRunningEncounters.reducer { env in
                     do {
-                        let nodes = try env.database.keyValueStore.fetchAllRaw(RunningEncounter.keyPrefix(for: state.building).rawValue)
+                        let nodes = try env.database.keyValueStore.fetchKeys(.keyPrefix(RunningEncounter.keyPrefix(for: state.building).rawValue))
                         return Just(nodes).setFailureType(to: Error.self).eraseToAnyPublisher()
                     } catch {
                         return Fail(error: error).eraseToAnyPublisher()

@@ -8,7 +8,7 @@
 import Foundation
 import Persistence
 
-let path = "Sources/PersistenceTestSupport/Resources/initial.sqlite"
+let path = "Sources/TestSupport/Resources/initial.sqlite"
 if FileManager.default.fileExists(atPath: path) {
     try FileManager.default.removeItem(atPath: path)
 }

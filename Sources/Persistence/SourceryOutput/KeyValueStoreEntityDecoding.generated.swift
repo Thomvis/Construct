@@ -4,7 +4,7 @@ import Foundation
 import GameModels
 import Compendium
 
-let keyValueStoreEntities: [any KeyValueStoreEntity.Type] = [
+var keyValueStoreEntities: [any KeyValueStoreEntity.Type] = [
     CampaignNode.self,
     CompendiumEntry.self,
     CompendiumImportJob.self,

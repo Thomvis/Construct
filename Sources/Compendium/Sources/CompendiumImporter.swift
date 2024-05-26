@@ -30,6 +30,8 @@ public class CompendiumImporter {
 
         try compendium.metadata.putJob(job)
 
+        let parseableVisitor = ParseableGameModelsVisitor()
+
         for try await read in try task.reader.items(realmId: CompendiumRealm.core.id) {
             switch read {
             case .item(let item):
@@ -39,8 +41,7 @@ public class CompendiumImporter {
                     document: .init(task.document)
                 )) {
                     // post-processing
-
-                    _ = $0.visitParseable()
+                    _ = parseableVisitor.visit(entry: &$0)
 
                     if var combatant = $0.item as? CompendiumCombatant {
                         combatant.stats.makeSkillAndSaveProficienciesRelative()

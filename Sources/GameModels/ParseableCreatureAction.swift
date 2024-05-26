@@ -165,5 +165,18 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
             }
         }
     }
+}
 
+struct CreatureActionDomainParser: DomainParser {
+    static let version: String = "2"
+
+    static func parse(input: CreatureAction) -> ParsedCreatureAction? {
+        return ParsedCreatureAction(
+            limitedUse: CreatureFeatureDomainParser.limitedUseInNameParser().run(input.name.lowercased()),
+            action: CreatureActionParser.parse(input.description),
+            otherDescriptionAnnotations: DiceExpressionParser.matches(in: input.description).map {
+                $0.map { TextAnnotation.diceExpression($0) }
+            }
+        )
+    }
 }

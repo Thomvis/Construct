@@ -406,12 +406,6 @@ public extension View {
     }
 }
 
-public extension View {
-    func menu(@ViewBuilder content: @escaping () -> some View, primaryAction: @escaping () -> Void) -> some View {
-        Menu(content: content, label: { self }, primaryAction: primaryAction)
-    }
-}
-
 public extension Binding {
     func withDefault(_ defaultValue: Value.Wrapped) -> Binding<Value.Wrapped> where Value: OptionalProtocol, Value.Wrapped: Equatable {
         Binding<Value.Wrapped>(get: {

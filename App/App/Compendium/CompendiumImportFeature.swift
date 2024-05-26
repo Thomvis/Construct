@@ -142,11 +142,11 @@ struct CompendiumImportFeature: ReducerProtocol {
                 return .run { send in
                     do {
                         if let newRealm {
-                            try compendium.metadata.putRealm(newRealm)
+                            try compendium.metadata.createRealm(newRealm)
                         }
 
                         if let newDocument {
-                            try compendium.metadata.putDocument(newDocument)
+                            try compendium.metadata.createDocument(newDocument)
                         }
 
                         let importer = CompendiumImporter(compendium: compendium)
@@ -219,7 +219,7 @@ struct CompendiumImportFeature: ReducerProtocol {
             var newDocumentName: String = ""
             var newDocumentCustomSlug: String? {
                 didSet {
-                    if newDocumentCustomSlug == Self.slug(newDocumentName) {
+                    if newDocumentCustomSlug == slug(newDocumentName) {
                         newDocumentCustomSlug = nil
                     }
                 }
@@ -252,7 +252,7 @@ struct CompendiumImportFeature: ReducerProtocol {
             var newRealmName: String = ""
             var newRealmCustomSlug: String? {
                 didSet {
-                    if newRealmCustomSlug == Self.slug(newRealmName) {
+                    if newRealmCustomSlug == slug(newRealmName) {
                         newRealmCustomSlug = nil
                     }
                 }
@@ -277,7 +277,7 @@ struct CompendiumImportFeature: ReducerProtocol {
             }
 
             var effectiveNewDocumentSlug: String {
-                newDocumentCustomSlug?.nonEmptyString ?? Self.slug(newDocumentName)
+                newDocumentCustomSlug?.nonEmptyString ?? slug(newDocumentName)
             }
 
             var existingDocumentMatchingNewSlug: CompendiumSourceDocument? {
@@ -331,7 +331,7 @@ struct CompendiumImportFeature: ReducerProtocol {
             }
 
             var effectiveNewRealmSlug: String {
-                newRealmCustomSlug?.nonEmptyString ?? Self.slug(newRealmName)
+                newRealmCustomSlug?.nonEmptyString ?? slug(newRealmName)
             }
 
             var existingRealmMatchingNewSlug: CompendiumRealm? {
@@ -380,16 +380,6 @@ struct CompendiumImportFeature: ReducerProtocol {
                 case existing(CompendiumRealm.Id)
                 case new
             }
-
-            static func slug(_ string: String) -> String {
-                let components = string.split(separator: " ").compactMap { $0.first.map(String.init)?.lowercased() }
-
-                if components.count == 1 {
-                    return string.prefix(3).lowercased()
-                }
-
-                return components.joined()
-            }
         }
 
         enum Action: BindableAction, Equatable {
@@ -407,29 +397,21 @@ struct CompendiumImportFeature: ReducerProtocol {
 
             Scope(state: \.documents, action: /Action.documents) {
                 Reduce(
-                    Async<[CompendiumSourceDocument], Swift.Error>.reducer { _ in
-                        do {
-                            let documents = try compendiumMetadata.sourceDocuments().sorted(by: .init(\.displayName))
-                            return Just(documents).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
-                        } catch {
-                            return Fail(error: error).eraseToAnyPublisher()
-                        }
-                    }, environment: ()
+                    Async<[CompendiumSourceDocument], Swift.Error>.reducer(),
+                    environment: AsyncDocumentsAndRealmsEnvironment(compendiumMetadata: compendiumMetadata)
                 )
             }
 
             Scope(state: \.realms, action: /Action.realms) {
                 Reduce(
-                    Async<[CompendiumRealm], Swift.Error>.reducer { _ in
-                        do {
-                            let realms = try compendiumMetadata.realms().sorted(by: .init(\.displayName))
-                            return Just(realms).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
-                        } catch {
-                            return Fail(error: error).eraseToAnyPublisher()
-                        }
-                    }, environment: ()
+                    Async<[CompendiumRealm], Swift.Error>.reducer(),
+                    environment: AsyncDocumentsAndRealmsEnvironment(compendiumMetadata: compendiumMetadata)
                 )
             }
+        }
+
+        private struct AsyncDocumentsAndRealmsEnvironment: EnvironmentWithCompendiumMetadata {
+            var compendiumMetadata: CompendiumMetadata
         }
     }
 
@@ -946,7 +928,7 @@ public struct CompendiumImportView: View {
 
                                         dataSourceStore.scope(state: \.preferences, action: CompendiumImportFeature.DataSource.Action.preferences).view
 
-                                        Button("Confirm") {
+                                        Button("Configure...") {
                                             viewStore.send(.didTapNextButton, animation: .default)
                                         }
                                         .disabled(!viewStore.state.isDataSourceConfigured)
@@ -1074,25 +1056,27 @@ public struct CompendiumImportView: View {
                             }
                         }
 
-                        SectionContainer(footer: {
-                            if let reader = viewStore.state.importSettings.effectiveDataSourceReader {
-                                let itemsList = ListFormatter().string(from: reader.supportedItemTypes.map(\.localizedDisplayNamePlural)) ?? "none"
+                        if viewStore.state.importSettings.readerForDataSource == nil {
+                            SectionContainer(footer: {
+                                if let reader = viewStore.state.importSettings.effectiveDataSourceReader {
+                                    let itemsList = ListFormatter().string(from: reader.supportedItemTypes.map(\.localizedDisplayNamePlural)) ?? "none"
 
-                                Text("Supported item types: \(itemsList)")
-                                    .font(.footnote).foregroundColor(Color.secondary)
-                                    .padding([.leading, .trailing], 12)
-                            }
-                        }) {
-                            if let fixedReader = viewStore.state.importSettings.readerForDataSource {
-                                LabeledContent("Format", value: "\(fixedReader.displayName)")
-                                    .frame(minHeight: 35)
-                            } else {
-                                MenuPickerField(
-                                    title: "Format",
-                                    selection: viewStore.binding(\.$importSettings.customDataSourceReader).animation()
-                                ) {
-                                    ForEach(CompendiumImportFeature.DataSourceReader.allCases, id: \.rawValue) { reader in
-                                        Text(reader.displayName).tag(Optional.some(reader))
+                                    Text("Supported item types: \(itemsList)")
+                                        .font(.footnote).foregroundColor(Color.secondary)
+                                        .padding([.leading, .trailing], 12)
+                                }
+                            }) {
+                                if let fixedReader = viewStore.state.importSettings.readerForDataSource {
+                                    LabeledContent("Format", value: "\(fixedReader.displayName)")
+                                        .frame(minHeight: 35)
+                                } else {
+                                    MenuPickerField(
+                                        title: "Format",
+                                        selection: viewStore.binding(\.$importSettings.customDataSourceReader).animation()
+                                    ) {
+                                        ForEach(CompendiumImportFeature.DataSourceReader.allCases, id: \.rawValue) { reader in
+                                            Text(reader.displayName).tag(Optional.some(reader))
+                                        }
                                     }
                                 }
                             }
@@ -1268,27 +1252,41 @@ enum CompendiumMetadataKey: DependencyKey {
     }
 
     public static var previewValue: CompendiumMetadata {
-        CompendiumMetadata {
-            [
-                CompendiumSourceDocument.srd5_1,
-                CompendiumSourceDocument.unspecifiedCore,
-                CompendiumSourceDocument.homebrew,
-                .init(id: Tagged("tob1"), displayName: "Tome of Beasts 1", realmId: Tagged("kp"))
-            ]
+        let dummyDocuments = [
+            CompendiumSourceDocument.srd5_1,
+            CompendiumSourceDocument.unspecifiedCore,
+            CompendiumSourceDocument.homebrew,
+            .init(id: Tagged("tob1"), displayName: "Tome of Beasts 1", realmId: Tagged("kp"))
+        ]
+        let dummyRealms = [
+            CompendiumRealm.core,
+            CompendiumRealm.homebrew,
+            .init(id: Tagged("kp"), displayName: "Kobold Press")
+        ]
+
+        return CompendiumMetadata {
+            dummyDocuments
+        } observeSourceDocuments: {
+            [dummyDocuments].async.stream
         } realms: {
-            [
-                CompendiumRealm.core,
-                CompendiumRealm.homebrew,
-                .init(id: Tagged("kp"), displayName: "Kobold Press")
-            ]
-        } putRealm: { _ in
-
-        } putDocument: { _ in
-
+            dummyRealms
+        } observeRealms: {
+            [dummyRealms].async.stream
         } putJob: { _ in
 
-        }
+        } createRealm: { _ in
 
+        } updateRealm: { _ in
+
+        } removeRealm: { _ in
+
+        } createDocument: { _ in
+
+        } updateDocument: { _, _, _ in
+
+        } removeDocument: { _, _ in
+
+        }
     }
 }
 
@@ -1324,6 +1322,32 @@ extension DependencyValues {
     var compendium: Compendium {
         get { self[CompendiumKey.self] }
         set { self[CompendiumKey.self] = newValue }
+    }
+}
+
+public extension Async<[CompendiumSourceDocument], Swift.Error> {
+    static func reducer() -> AnyReducer<Self, Action, EnvironmentWithCompendiumMetadata> {
+        Self.reducer { env in
+            do {
+                let documents = try env.compendiumMetadata.sourceDocuments().sorted(by: .init(\.displayName))
+                return Just(documents).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
+            } catch {
+                return Fail(error: error).eraseToAnyPublisher()
+            }
+        }
+    }
+}
+
+public extension Async<[CompendiumRealm], Swift.Error> {
+    static func reducer() -> AnyReducer<Self, Action, EnvironmentWithCompendiumMetadata> {
+        Self.reducer { env in
+            do {
+                let realms = try env.compendiumMetadata.realms().sorted(by: .init(\.displayName))
+                return Just(realms).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
+            } catch {
+                return Fail(error: error).eraseToAnyPublisher()
+            }
+        }
     }
 }
 

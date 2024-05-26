@@ -31,8 +31,8 @@ public struct CompendiumEntry: Equatable {
     }
 
     public struct CompendiumSourceDocumentReference: Equatable, Codable {
-        public let id: CompendiumSourceDocument.Id
-        public let displayName: String
+        public var id: CompendiumSourceDocument.Id
+        public var displayName: String
 
         public init(id: CompendiumSourceDocument.Id, displayName: String) {
             self.id = id

@@ -1,0 +1,10 @@
+  CompendiumEntry(
+    _item: EqCompare(…),
+    itemType: .monster,
+    origin: .created(…),
+    document: CompendiumEntry.CompendiumSourceDocumentReference(
+      id: Tagged(rawValue: "doc"),
+-     displayName: "Doc"
++     displayName: "Doc 2"
+    )
+  )
