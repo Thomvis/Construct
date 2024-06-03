@@ -15,57 +15,65 @@ struct NamedStatBlockContentItemEditView: View {
 
     let store: Store<NamedStatBlockContentItemEditViewState, CreatureActionEditViewAction>
 
+    // Note: this used to be implemented with a List, but autoSizingSheetContent stopped
+    // working for it on iOS 17
     var body: some View {
         WithViewStore(store) { viewStore in
-            List {
-                Section(header: HStack {
-                    Spacer()
-                    Button {
-                        viewStore.send(.set(\.$mode, viewStore.state.mode == .edit ? .preview : .edit), animation: .easeInOut)
-                    } label: {
-                        if viewStore.state.mode == .edit {
-                            Label("Preview", systemImage: "text.magnifyingglass")
-                        } else {
-                            Label("Edit", systemImage: "pencil")
+            VStack(spacing: 20) {
+                SectionContainer(
+                    accessory: Button {
+                            viewStore.send(.set(\.$mode, viewStore.state.mode == .edit ? .preview : .edit), animation: .easeInOut)
+                        } label: {
+                            if viewStore.state.mode == .edit {
+                                Label("Preview", systemImage: "text.magnifyingglass")
+                            } else {
+                                Label("Edit", systemImage: "pencil")
+                            }
                         }
-                    }
-                    .textCase(.none)
-                }) {
+                        .textCase(.none),
+                    backgroundColor: Color(UIColor.systemBackground)
+                ) {
                     ZStack {
                         editFields(viewStore)
                             .opacity(viewStore.state.mode == .edit ? 1.0 : 0.0)
-                            .autoSizingSheetContent()
-
-                        // Bug: StatBlockNamedContentItemView does not appear with an animation
-                        // This has to do with the AutoSizingSheetContainer, if I comment that out,
-                        // the transition works
-                        if viewStore.state.mode == .preview, let preview = viewStore.state.validPreview {
-                            StatBlockNamedContentItemView(item: preview)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .overlay(alignment: .bottomTrailing) {
-                                    Text("Links are not tappable in preview")
-                                        .foregroundColor(Color.secondary)
-                                        .font(.footnote)
-                                        .padding(.trailing, -10)
+                            .overlay {
+                                // Bug: StatBlockNamedContentItemView does not appear with an animation
+                                // This has to do with the AutoSizingSheetContainer, if I comment that out,
+                                // the transition works
+                                if viewStore.state.mode == .preview, let preview = viewStore.state.validPreview {
+                                    StatBlockNamedContentItemView(item: preview)
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        .overlay(alignment: .bottomTrailing) {
+                                            Text("Links are not tappable in preview")
+                                                .foregroundColor(Color.secondary)
+                                                .font(.footnote)
+                                        }
                                 }
-                                .transition(.asymmetric(insertion: .opacity.animation(.easeInOut.delay(0.15)), removal: .opacity))
-                        }
+                            }
                     }
+                    .padding(2)
                 }
 
                 if case .edit = viewStore.state.intent {
-                    Section {
+                    SectionContainer(
+                        backgroundColor: Color(UIColor.systemBackground)
+                    ) {
                         Button("Remove \(viewStore.state.itemType.localizedDisplayName)", role: .destructive) {
                             viewStore.send(.onRemoveButtonTap, animation: .default)
                         }
-                        .autoSizingSheetContent(constant: 40) // 40 for the navigationbar
+                        .padding(2)
+                        .frame(minHeight: 35)
                     }
                 }
             }
+            .padding()
+            .autoSizingSheetContent(constant: 40) // 40 for the navigationbar
             .environment(\.openURL, OpenURLAction { _ in
                 // this makes the links in the preview do nothing
                 return .handled
             })
+            .frame(maxHeight: .infinity)
+            .background(Color(UIColor.secondarySystemBackground))
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
