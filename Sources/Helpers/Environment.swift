@@ -30,6 +30,14 @@ public protocol EnvironmentWithCrashReporter {
     var crashReporter: CrashReporter { get }
 }
 
+public protocol EnvironmentWithRandomNumberGenerator {
+    var rng: AnyRandomNumberGenerator { get }
+}
+
+public protocol EnvironmentWithUUIDGenerator {
+    var generateUUID: @Sendable () -> UUID { get }
+}
+
 public struct FeedbackMailContents {
     public let subject: String
     public let attachments: [Attachment]

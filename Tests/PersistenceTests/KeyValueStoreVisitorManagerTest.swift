@@ -19,11 +19,11 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
         try db.keyValueStore.put(TestEntity1(id: "third"))
 
         let initial = try db.keyValueStore.dump(.all)
-        try sut.run(visitors: [Visitor1()], store: db.keyValueStore)
+        try sut.run(visitors: [Visitor1()], store: db.keyValueStore, conflictResolution: .overwrite)
         let result = try db.keyValueStore.dump(.all)
         let diff = diff(initial, result)
 
-        assertInlineSnapshot(of: diff, as: .lines, record: true) {
+        assertInlineSnapshot(of: diff, as: .lines) {
             #"""
               """
             - 1first
@@ -61,11 +61,11 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
         try db.keyValueStore.put(TestEntity1(id: "third"))
 
         let initial = try db.keyValueStore.dump(.all)
-        try sut.run(visitors: [Visitor2()], store: db.keyValueStore)
+        try sut.run(visitors: [Visitor2()], store: db.keyValueStore, conflictResolution: .overwrite)
         let result = try db.keyValueStore.dump(.all)
         let diff = diff(initial, result)
 
-        assertInlineSnapshot(of: diff, as: .lines, record: true) {
+        assertInlineSnapshot(of: diff, as: .lines) {
             #"""
               """
               1first
@@ -94,7 +94,110 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
         }
     }
 
-    struct TestEntity1: KeyValueStoreEntity, Codable, SecondaryIndexValueRepresentable, FTSDocumentConvertible {
+    func testConflictResolutionRemove() throws {
+        let db = Database.uninitialized
+        let sut = KeyValueStoreVisitorManager()
+
+        try db.keyValueStore.put(TestEntity1(id: "first"))
+        try db.keyValueStore.put(TestEntity1(id: "firstvisited"))
+
+        let initial = try db.keyValueStore.dump(.all)
+        try sut.run(visitors: [Visitor1()], store: db.keyValueStore, conflictResolution: .remove)
+        let result = try db.keyValueStore.dump(.all)
+        let diff = diff(initial, result)
+
+        assertInlineSnapshot(of: diff, as: .lines) {
+            #"""
+              """
+            - 1first
+            + 1firstvisitedvisited
+            -   entity: {"id":"first","value":0}
+            +   entity: {"id":"firstvisitedvisited","value":0}
+            -   fts:    {"id":1,"title":"zero"}
+            +   fts:    {"id":3,"title":"zero"}
+                idxs:   {"0":"0"}
+            - 1firstvisited
+            -   entity: {"id":"firstvisited","value":0}
+            -   fts:    {"id":1,"title":"zero"}
+            -   idxs:   {"0":"0"}
+              """
+            """#
+        }
+    }
+
+    func testConflictResolutionRename() throws {
+        let db = Database.uninitialized
+        let sut = KeyValueStoreVisitorManager()
+
+        try db.keyValueStore.put(TestEntity1(id: "first"))
+        try db.keyValueStore.put(TestEntity1(id: "firstvisited"))
+        try db.keyValueStore.put(TestEntity1(id: "firstvisited 2"))
+        try db.keyValueStore.put(TestEntity1(id: "firstvisited 2 2"))
+        try db.keyValueStore.put(TestEntity1(id: "firstvisited 2 2 2"))
+
+        try db.keyValueStore.put(TestEntity1(id: "second"))
+        try db.keyValueStore.put(TestEntity1(id: "secondvisited"))
+
+        let initial = try db.keyValueStore.dump(.all)
+        try sut.run(visitors: [Visitor1()], store: db.keyValueStore, conflictResolution: .rename(fallback: .remove))
+        let result = try db.keyValueStore.dump(.all)
+        let diff = diff(initial, result)
+
+        assertInlineSnapshot(of: diff, as: .lines) {
+            #"""
+              """
+            - 1first
+            + 1firstvisited 2 2 2visited
+            -   entity: {"id":"first","value":0}
+            +   entity: {"id":"firstvisited 2 2 2visited","value":0}
+            -   fts:    {"id":1,"title":"zero"}
+            +   fts:    {"id":11,"title":"zero"}
+                idxs:   {"0":"0"}
+            - 1firstvisited
+            + 1firstvisited 2 2visited
+            -   entity: {"id":"firstvisited","value":0}
+            +   entity: {"id":"firstvisited 2 2visited","value":0}
+            -   fts:    {"id":1,"title":"zero"}
+            +   fts:    {"id":11,"title":"zero"}
+                idxs:   {"0":"0"}
+            - 1firstvisited 2
+            + 1firstvisited 2visited
+            -   entity: {"id":"firstvisited 2","value":0}
+            +   entity: {"id":"firstvisited 2visited","value":0}
+            -   fts:    {"id":1,"title":"zero"}
+            +   fts:    {"id":11,"title":"zero"}
+                idxs:   {"0":"0"}
+            - 1firstvisited 2 2
+            + 1firstvisitedvisited
+            -   entity: {"id":"firstvisited 2 2","value":0}
+            +   entity: {"id":"firstvisitedvisited","value":0}
+            -   fts:    {"id":1,"title":"zero"}
+            +   fts:    {"id":11,"title":"zero"}
+                idxs:   {"0":"0"}
+            - 1firstvisited 2 2 2
+            + 1secondvisited 2
+            -   entity: {"id":"firstvisited 2 2 2","value":0}
+            +   entity: {"id":"secondvisited 2","value":0}
+            -   fts:    {"id":1,"title":"zero"}
+            +   fts:    {"id":11,"title":"zero"}
+                idxs:   {"0":"0"}
+            - 1second
+            + 1secondvisitedvisited
+            -   entity: {"id":"second","value":0}
+            +   entity: {"id":"secondvisitedvisited","value":0}
+            -   fts:    {"id":1,"title":"zero"}
+            +   fts:    {"id":11,"title":"zero"}
+                idxs:   {"0":"0"}
+            - 1secondvisited
+            -   entity: {"id":"secondvisited","value":0}
+            -   fts:    {"id":1,"title":"zero"}
+            -   idxs:   {"0":"0"}
+              """
+            """#
+        }
+    }
+
+    struct TestEntity1: KeyValueStoreEntity, Codable, SecondaryIndexValueRepresentable, FTSDocumentConvertible, KeyConflictResolution {
         static let keyPrefix: String = "1"
         var id: String
         var key: Key { Key(id: id) }
@@ -108,6 +211,10 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
             let formatter = NumberFormatter()
             formatter.numberStyle = .spellOut
             return FTSDocument(title: formatter.string(for: value)!)
+        }
+
+        mutating func updateKeyForConflictResolution() {
+            id = "\(id) 2"
         }
     }
 

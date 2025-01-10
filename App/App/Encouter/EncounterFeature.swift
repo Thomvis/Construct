@@ -9,6 +9,8 @@
 import Foundation
 import GameModels
 import ComposableArchitecture
+import Helpers
+import Compendium
 
 extension Encounter {
     enum Action: Equatable {
@@ -23,6 +25,8 @@ extension Encounter {
         case refreshCompendiumItems
     }
 
+    typealias Environment = EnvironmentWithCrashReporter & EnvironmentWithCompendium & EnvironmentWithRandomNumberGenerator
+
     static let reducer: AnyReducer<Encounter, Action, Environment> = AnyReducer.combine(
         AnyReducer { state, action, env in
             switch action {
@@ -30,7 +34,7 @@ extension Encounter {
                 state.name = n
             case .combatant: break
             case .initiative(let settings):
-                state.rollInitiative(settings: settings, rng: &env.rng)
+                state.rollInitiative(settings: settings, rng: &env.rng.wrapped)
             case .add(let combatant):
                 state.combatants.append(combatant)
             case .addByKey(let key, let party):
@@ -71,7 +75,11 @@ extension Encounter {
             }
             return .none
         },
-        combatantReducer.forEach(state: \.combatants, action: /Action.combatant, environment: { $0 })
+        combatantReducer.forEach(
+            state: \.combatants,
+            action: /Action.combatant,
+            environment: { $0 }
+        )
     )
 }
 
@@ -95,7 +103,7 @@ extension RunningEncounter {
             }
             return .none
         },
-        Encounter.reducer.pullback(state: \.current, action: /Action.current),
+        Encounter.reducer.pullback(state: \.current, action: /Action.current, environment: { $0 }),
         AnyReducer { state, action, _ in
             switch action {
             case .current(.combatant(let uuid, .addTag(let tag))):

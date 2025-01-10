@@ -11,6 +11,7 @@ import GRDB
 import Compendium
 import Combine
 import GameModels
+import ComposableArchitecture
 
 public class Database {
 
@@ -155,7 +156,11 @@ public class Database {
 
         // process parseables
         if needsParseableProcessing {
-            try await visitorManager.run(visitor: ParseableEntityVisitor.shared, store: keyValueStore)
+            try visitorManager.run(
+                visitor: ParseableEntityVisitor.shared,
+                store: keyValueStore,
+                conflictResolution: .overwrite
+            )
             var preferences: Preferences = try keyValueStore.get(Preferences.key) ?? Preferences()
             preferences.parseableManagerLastRunVersion = ParseableGameModels.combinedVersion
             try keyValueStore.put(preferences)
@@ -226,4 +231,15 @@ public extension DatabaseAccess where Self == DirectDatabaseAccess {
 
 enum DirectDatabaseAccessError: Error {
     case unsupportedOperation
+}
+
+extension Database: DependencyKey {
+    public static var liveValue: Database { .uninitialized }
+}
+
+public extension DependencyValues {
+    var database: Database {
+        get { self[Database.self] }
+        set { self[Database.self] = newValue }
+    }
 }

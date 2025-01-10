@@ -16,14 +16,16 @@ public class KeyValueStoreVisitorManager {
 
     public func run(
         visitor: KeyValueStoreEntityVisitor,
-        store: KeyValueStore
+        store: KeyValueStore,
+        conflictResolution: ConflictResolution
     ) throws {
-        try run(visitors: [visitor], store: store)
+        try run(visitors: [visitor], store: store, conflictResolution: conflictResolution)
     }
 
     public func run(
         visitors: [KeyValueStoreEntityVisitor],
-        store: KeyValueStore
+        store: KeyValueStore,
+        conflictResolution: ConflictResolution
     ) throws {
 
         let keys = try store.fetchKeys(.all)
@@ -42,9 +44,32 @@ public class KeyValueStoreVisitorManager {
                         try store.transaction { store in
                             let fts = (entity as? FTSDocumentConvertible)?.ftsDocument
                             let indexValues = (entity as? SecondaryIndexValueRepresentable)?.secondaryIndexValues
-                            try store.put(entity, fts: fts, secondaryIndexValues: indexValues)
 
-                            if originalKey != entity.rawKey {
+                            let keyChanged = originalKey != entity.rawKey
+                            var newKeyHasConflict = keys.contains(entity.rawKey)
+                            var effectiveConflictResoluton = conflictResolution
+
+                            if keyChanged && newKeyHasConflict, case .rename(let fallback) = conflictResolution {
+                                if var entityForConflictResolution = entity as? any KeyValueStoreEntity & KeyConflictResolution {
+                                    var triesLeft = 3
+                                    while newKeyHasConflict && triesLeft > 0 {
+                                        entityForConflictResolution.updateKeyForConflictResolution()
+
+                                        triesLeft -= 1
+                                        newKeyHasConflict = keys.contains(entityForConflictResolution.rawKey)
+                                    }
+
+                                    entity = entityForConflictResolution
+                                } else {
+                                    effectiveConflictResoluton = fallback
+                                }
+                            }
+
+                            if !keyChanged || !newKeyHasConflict || effectiveConflictResoluton == .overwrite {
+                                try store.put(entity, fts: fts, secondaryIndexValues: indexValues)
+                            }
+
+                            if keyChanged {
                                 // delete the original record if the key changed
                                 try store.remove(originalKey)
                             }
@@ -59,4 +84,23 @@ public class KeyValueStoreVisitorManager {
         }
     }
 
+    public enum ConflictResolution: Equatable {
+        /// When an entity's key changes and is in conflict with an existing entity,
+        /// the entity that had its key changed is removed (instead of updated)
+        case remove
+        /// When an entity's key changes and is in conflict with an existing entity,
+        /// the existing entity is overwritten
+        case overwrite
+
+        /// When an entity's key changes and is in conflict with an existing entity,
+        /// the entity that had its key changed gets a chance to change its key again.
+        /// This requires the entity to implement the KeyConflictResolution protocol.
+        /// Entities that do not implement that protocol use the fallback resolution
+        indirect case rename(fallback: ConflictResolution)
+    }
+
+}
+
+protocol KeyConflictResolution {
+    mutating func updateKeyForConflictResolution()
 }

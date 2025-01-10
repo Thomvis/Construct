@@ -3,7 +3,7 @@
 //  Construct
 //
 //  Created by Thomas Visser on 03/09/2023.
-//  Copyright © 2023 Thomas Visser. All rights reserved.
+//  Copyright 2023 Thomas Visser. All rights reserved.
 //
 
 import Foundation
@@ -27,7 +27,7 @@ struct CompendiumDocumentsFeature: ReducerProtocol {
         }
     }
 
-    enum Action: BindableAction {
+    enum Action: BindableAction, Equatable {
         case onAppear
 
         case onAddDocumentToRealmTap(CompendiumRealm)
@@ -48,7 +48,7 @@ struct CompendiumDocumentsFeature: ReducerProtocol {
             case editDocument(EditDocument.State)
         }
 
-        enum Action {
+        enum Action: Equatable {
             case addRealm(AddRealm.Action)
             case editDocument(EditDocument.Action)
         }
@@ -108,7 +108,7 @@ struct AddRealm: ReducerProtocol {
 
     }
 
-    enum Action {
+    enum Action: Equatable {
 
     }
 
@@ -125,7 +125,7 @@ struct EditDocument: ReducerProtocol {
         @BindingState var displayName: String = ""
         @BindingState var realmId: CompendiumRealm.Id?
 
-        @BindingState var conflictingSlugOnSave: String? = nil
+        @PresentationState var contents: CompendiumIndexState?
 
         var customSlug: String?
         var effectiveSlug: String {
@@ -168,12 +168,15 @@ struct EditDocument: ReducerProtocol {
         }
     }
 
-    enum Action: BindableAction {
+    enum Action: BindableAction, Equatable {
         case onCancelButtonTap
         case onDoneButtonTap
         case onConfirmRemoveDocumentTap
 
         case onSlugChange(String)
+
+        case onViewItemsInDocumentTap
+        case contents(PresentationAction<CompendiumIndexAction>)
 
         case binding(BindingAction<State>)
     }
@@ -187,17 +190,26 @@ struct EditDocument: ReducerProtocol {
             case .onCancelButtonTap:
                 return .fireAndForget { await dismiss() }
             case .onDoneButtonTap:
-                state.conflictingSlugOnSave = nil
+                return compendiumMetadataOperation { [state] send in
+                    guard let displayName = state.displayName.nonEmptyString,
+                            let realmId = state.realmId else {
+                        return
+                    }
 
-                return .run { [state] send in
-                    if state.original == nil {
-                        guard let displayName = state.displayName.nonEmptyString,
-                                let realmId = state.realmId else {
-                            return
-                        }
+                    if let original = state.original {
+                        try await compendiumMetadata.updateDocument(
+                            CompendiumSourceDocument(
+                                id: .init(state.effectiveSlug),
+                                displayName: displayName,
+                                realmId: realmId
+                            ),
+                            original.realmId,
+                            original.id
+                        )
 
+                        await dismiss()
+                    } else {
                         // new document
-                        // todo: check if document doesn't override an existing one
                         try compendiumMetadata.createDocument(CompendiumSourceDocument(
                             id: .init(state.effectiveSlug),
                             displayName: displayName,
@@ -205,24 +217,55 @@ struct EditDocument: ReducerProtocol {
                         ))
 
                         await dismiss()
-                    } else {
-                        await send(.binding(.set(\.$conflictingSlugOnSave, state.effectiveSlug)), animation: .spring())
                     }
                 }
             case .onConfirmRemoveDocumentTap:
-                return .fireAndForget {
-                    // todo
+                guard let original = state.original else { break }
 
+                return compendiumMetadataOperation { send in
+                    // remove document
+                    try await compendiumMetadata.removeDocument(original.realmId, original.id)
                     await dismiss()
                 }
             case .onSlugChange(let slug):
                 state.customSlug = slug
+            case .onViewItemsInDocumentTap:
+                guard let original = state.original else { break }
+
+                state.contents = CompendiumIndexState(
+                    title: original.displayName,
+                    properties: .init(showImport: false, showAdd: false, sourceRestriction: .init(
+                        realm: original.realmId,
+                        document: original.id
+                    )),
+                    results: .initial
+                )
             default: break
             }
             return .none
         }
+        .ifLet(\.$contents, action: /Action.contents) {
+            Reduce(
+                CompendiumIndexState.reducer,
+                environment: StandaloneCompendiumIndexEnvironment.fromDependencies()
+            )
+        }
 
         BindingReducer()
+    }
+
+    private func compendiumMetadataOperation(
+        operation: @escaping @Sendable (Send<Action>) async throws -> Void,
+        catch handler: (@Sendable (Error, Send<Action>) async -> Void)? = nil,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> EffectTask<Action> {
+        return .run(
+            operation: operation,
+            catch: handler,
+            fileID: fileID,
+            line: line
+        )
     }
 }
 
@@ -258,6 +301,7 @@ struct CompendiumDocumentsView: View {
                         ) {
                             if documents.isEmpty {
                                 Text("No documents").italic()
+                                    .frame(minHeight: 35)
                             } else {
                                 VStack {
                                     ForEach(documents, id: \.id) { document in
@@ -298,6 +342,7 @@ struct CompendiumDocumentsView: View {
                         Label("Add document", systemImage: "doc.badge.plus")
                     }
                 }
+                .padding(8)
             }
             .sheet(
                 store: store.scope(state: \.$sheet, action: CompendiumDocumentsFeature.Action.sheet),
@@ -315,11 +360,14 @@ struct CompendiumDocumentsView: View {
                     SheetNavigationContainer {
                         CompendiumDocumentEditView(store: store)
                     }
+//                    .autoSizingSheetContent(constant: ViewStore(store).state)
                 }
+                .interactiveDismissDisabled()
             }
             .onAppear {
                 viewStore.send(.onAppear)
             }
+            .navigationTitle("Documents")
         }
     }
 }
@@ -333,21 +381,21 @@ struct CompendiumDocumentEditView: View {
             ScrollView {
                 VStack(spacing: 20) {
 
-                    if let slug = viewStore.state.conflictingSlugOnSave {
-                        SectionContainer {
-                            HStack(spacing: 12) {
-                                Text(Image(systemName: "exclamationmark.octagon"))
-
-                                Text("Shorthand \(Text(slug).fontDesign(.monospaced)) is not available. Tap the shorthand to edit.")
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .padding(8)
-                            .foregroundStyle(Color(UIColor.systemRed))
-                            .symbolRenderingMode(.monochrome)
-                            .symbolVariant(.fill)
-                        }
-                        .transition(.scale.combined(with: .opacity))
-                    }
+//                    if let slug = viewStore.state.conflictingSlugOnSave {
+//                        SectionContainer {
+//                            HStack(spacing: 12) {
+//                                Text(Image(systemName: "exclamationmark.octagon"))
+//
+//                                Text("Shorthand \(Text(slug).fontDesign(.monospaced)) is not available. Tap the shorthand to edit.")
+//                                    .frame(maxWidth: .infinity, alignment: .leading)
+//                            }
+//                            .padding(8)
+//                            .foregroundStyle(Color(UIColor.systemRed))
+//                            .symbolRenderingMode(.monochrome)
+//                            .symbolVariant(.fill)
+//                        }
+//                        .transition(.scale.combined(with: .opacity))
+//                    }
 
                     SectionContainer {
                         VStack {
@@ -380,47 +428,22 @@ struct CompendiumDocumentEditView: View {
                     }
 
                     if viewStore.state.original != nil {
-//                        SectionContainer(title: "Contents") {
-//                            VStack(alignment: .leading) {
-//                                Text("Document contains 1 item(s)")
-//                                    .foregroundStyle(Color.secondary)
-//                                    .frame(minHeight: 35)
-//
-//                                Divider()
-//
-//                                DisclosureGroup(content: {
-//                                    SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
-//                                        HStack {
-//                                            Picker(selection: Binding.constant(0)) {
-//                                                Text("Select destination...").tag(0)
-//                                            } label: {
-//                                                Text("B")
-//                                            }
-//
-//                                            Spacer()
-//
-//                                            Button(action: { }, label: {
-//                                                Text("Move")
-//                                            })
-//                                            .disabled(true)
-//                                            .buttonStyle(.borderedProminent)
-//                                            .buttonBorderShape(.roundedRectangle)
-//                                        }
-//                                    }
-//                                    .padding(.top, 4)
-//                                }, label: {
-//                                    Label("Move", systemImage: "doc").tint(Color.secondary).bold()
-//                                        .symbolVariant(.circle.fill)
-//                                        .imageScale(.large)
-//                                        .symbolRenderingMode(.hierarchical)
-//                                })
-//                            }
-//                        }
+                        SectionContainer {
+                            NavigationRowButton {
+                                viewStore.send(.onViewItemsInDocumentTap)
+                            } label: {
+                                HStack {
+                                    Label("View items in document", systemImage: "book")
+                                        .foregroundStyle(.secondary)
+                                }
+                                .frame(minHeight: 35)
+                            }
+                        }
 
                         SectionContainer {
                             VStack {
                                 Menu {
-                                    Text("Remove the document and its contents").font(.footnote)
+                                    Text("All items in the document will be removed.").font(.footnote)
 
                                     Divider()
 
@@ -447,6 +470,12 @@ struct CompendiumDocumentEditView: View {
                 .padding()
                 .autoSizingSheetContent(constant: 100)
             }
+            .navigationDestination(
+                store: store.scope(state: \.$contents, action: EditDocument.Action.contents),
+                destination: { store in
+                    CompendiumIndexView(store: store)
+                }
+            )
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: {

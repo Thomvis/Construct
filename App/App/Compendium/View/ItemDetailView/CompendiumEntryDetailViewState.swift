@@ -15,6 +15,11 @@ import Helpers
 import DiceRollerFeature
 import GameModels
 import ActionResolutionFeature
+import Persistence
+import Compendium
+
+typealias CompendiumEntryDetailEnvironment = EnvironmentWithDatabase & EnvironmentWithCompendium & EnvironmentWithCrashReporter 
+    & CreatureEditViewEnvironment & ActionResolutionEnvironment
 
 struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
 
@@ -146,10 +151,10 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         case safariView(SafariViewState)
     }
 
-    static var reducer: AnyReducer<Self, CompendiumItemDetailViewAction, Environment> {
+    static var reducer: AnyReducer<Self, CompendiumItemDetailViewAction, CompendiumEntryDetailEnvironment> {
         return AnyReducer.combine(
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.creatureEdit, environment: { $0 }),
-            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.groupEdit),
+            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.groupEdit, environment: { $0 }),
             ActionResolutionViewState.reducer.optional().pullback(state: \.createActionPopover, action: /CompendiumItemDetailViewAction.creatureActionPopover, environment: { $0 }),
             DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckPopover, action: /CompendiumItemDetailViewAction.rollCheckPopover, environment: { $0 }),
             AnyReducer.lazy(CompendiumEntryDetailViewState.reducer).optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.compendiumItemDetailView),
@@ -157,7 +162,8 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                 didTapAction: /CompendiumItemDetailViewAction.didTapCompendiumItemReferenceTextAnnotation,
                 requestItem: \.itemRequest,
                 internalAction: /CompendiumItemDetailViewAction.setNextScreen..Self.NextScreen.compendiumItemDetailView,
-                externalAction: /CompendiumItemDetailViewAction.setNextScreen..Self.NextScreen.safariView
+                externalAction: /CompendiumItemDetailViewAction.setNextScreen..Self.NextScreen.safariView,
+                environment: { $0 }
             ),
             AnyReducer { state, action, env in
                 switch action {

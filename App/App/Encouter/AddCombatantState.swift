@@ -11,6 +11,8 @@ import ComposableArchitecture
 import Helpers
 import GameModels
 
+typealias AddCombatantEnvironment = CompendiumIndexEnvironment & CreatureEditViewEnvironment
+
 struct AddCombatantState: Equatable {
     var compendiumState: CompendiumIndexState
 
@@ -72,9 +74,13 @@ struct AddCombatantState: Equatable {
         case onSelect([Combatant], dismiss: Bool)
     }
 
-    static var reducer: AnyReducer<AddCombatantState, AddCombatantState.Action, Environment> {
+    static var reducer: AnyReducer<AddCombatantState, AddCombatantState.Action, AddCombatantEnvironment> {
         AnyReducer.combine(
-            CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditViewState, action: /Action.creatureEditView, environment: { $0 }),
+            CreatureEditViewState.reducer.optional().pullback(
+                state: \.creatureEditViewState,
+                action: /Action.creatureEditView,
+                environment: { $0 }
+            ),
             AnyReducer { state, action, _ in
                 switch action {
                 case .quickCreate:
@@ -92,7 +98,11 @@ struct AddCombatantState: Equatable {
                 }
                 return .none
             },
-            CompendiumIndexState.reducer.pullback(state: \.compendiumState, action: /Action.compendiumState)
+            CompendiumIndexState.reducer.pullback(
+                state: \.compendiumState,
+                action: /Action.compendiumState,
+                environment: { $0 }
+            )
         )
     }
 }

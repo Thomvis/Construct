@@ -293,8 +293,16 @@ extension ReferenceItemViewState {
     static let reducer: AnyReducer<Self, ReferenceItemViewAction, Environment> = AnyReducer.combine(
         ReferenceItemViewState.Content.Compendium.reducer.optional().pullback(state: \.content.compendiumState, action: /ReferenceItemViewAction.contentCompendium),
         ReferenceItemViewState.Content.CombatantDetail.reducer.optional().pullback(state: \.content.combatantDetailState, action: /ReferenceItemViewAction.contentCombatantDetail),
-        ReferenceItemViewState.Content.AddCombatant.reducer.optional().pullback(state: \.content.addCombatantState, action: /ReferenceItemViewAction.contentAddCombatant),
-        CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.content.compendiumItemState, action: /ReferenceItemViewAction.contentCompendiumItem),
+        ReferenceItemViewState.Content.AddCombatant.reducer.optional().pullback(
+            state: \.content.addCombatantState,
+            action: /ReferenceItemViewAction.contentAddCombatant,
+            environment: { $0 }
+        ),
+        CompendiumEntryDetailViewState.reducer.optional().pullback(
+            state: \.content.compendiumItemState,
+            action: /ReferenceItemViewAction.contentCompendiumItem,
+            environment: { $0 }
+        ),
         AnyReducer { state, action, env in
             switch action {
             case .onBackTapped:
@@ -355,7 +363,7 @@ extension ReferenceItemViewState.Content.CombatantDetail {
 }
 
 extension ReferenceItemViewState.Content.AddCombatant {
-    static let reducer: AnyReducer<Self, ReferenceItemViewAction.AddCombatant, Environment> = AnyReducer.combine(
+    static let reducer: AnyReducer<Self, ReferenceItemViewAction.AddCombatant, AddCombatantEnvironment> = AnyReducer.combine(
         AddCombatantState.reducer.pullback(state: \.addCombatantState, action: /ReferenceItemViewAction.AddCombatant.addCombatant)
     )
 }

@@ -35,7 +35,7 @@ enum CombatantAction: Equatable {
     }
 }
 
-let combatantReducer: AnyReducer<Combatant, CombatantAction, Environment> = AnyReducer.combine(
+let combatantReducer: AnyReducer<Combatant, CombatantAction, Void> = AnyReducer.combine(
     AnyReducer { state, action, _ in
     switch action {
     case .initiative(let score): state.initiative = score
@@ -92,7 +92,7 @@ extension Hp {
         case set(Int)
     }
 
-    static let reducer: AnyReducer<Hp, Action, Environment> = AnyReducer { state, action, _ in
+    static let reducer: AnyReducer<Hp, Action, Void> = AnyReducer { state, action, _ in
         switch action {
         case .current(let m):
             switch m {
@@ -122,7 +122,7 @@ extension Hp {
 }
 
 extension CombatantResource {
-    static let reducer: AnyReducer<CombatantResource, CombatantResourceAction, Environment> = AnyReducer { state, action, _ in
+    static let reducer: AnyReducer<CombatantResource, CombatantResourceAction, Void> = AnyReducer { state, action, _ in
         switch action {
         case .title(let t):
             state.title = t

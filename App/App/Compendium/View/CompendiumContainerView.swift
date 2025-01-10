@@ -53,7 +53,7 @@ let compendiumRootReducer: AnyReducer<CompendiumIndexState, CompendiumIndexActio
         }
         return .none
     },
-    CompendiumIndexState.reducer
+    CompendiumIndexState.reducer.pullback(state: \.self, action: /CompendiumIndexAction.self, environment: { $0 })
 )
 
 extension CompendiumIndexAction {

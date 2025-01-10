@@ -55,12 +55,24 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             .scrollDismissesKeyboard(.immediately)
             .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
             .toolbar {
-                if localViewStore.state.showImportButton {
+                if localViewStore.state.showMenu {
                     ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            localViewStore.send(.setNextScreen(.compendiumImport(CompendiumImportFeature.State())))
+                        Menu {
+                            Button {
+                                localViewStore.send(.setSheet(.documents(CompendiumDocumentsFeature.State())))
+                            } label: {
+                                Label("Manage Documents", systemImage: "books.vertical")
+                            }
+
+                            Divider()
+
+                            Button {
+                                localViewStore.send(.setSheet(.compendiumImport(CompendiumImportFeature.State())))
+                            } label: {
+                                Label("Import...", systemImage: "square.and.arrow.down")
+                            }
                         } label: {
-                            Text("Import...")
+                            Label("Actions", systemImage: "ellipsis.circle")
                         }
                     }
                 }
@@ -72,14 +84,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         }
         .modifier(CompendiumSearchableModifier(store: store))
         .alert(store.scope(state: \.alert, action: { $0 }), dismiss: .alert(nil))
-        // workaround: an inline NavigationLink inside navigationBarItems would be set to inactive
-        // when the document picker of the import view is dismissed
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CompendiumIndexState.NextScreen.compendiumImport,
-            action: /CompendiumIndexAction.NextScreenAction.import,
-            destination: { store in CompendiumImportView(store: store) }
-        )
     }
 
     @ViewBuilder
@@ -177,6 +181,44 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                         SheetNavigationContainer {
                             CompendiumItemGroupEditView(store: store)
                         }
+                    },
+                    else: {
+                        IfLetStore(
+                            store.scope(state: replayNonNil({ $0.compendiumImportSheet }), action: { .compendiumImportSheet($0) }),
+                            then: { store in
+                                SheetNavigationContainer {
+                                    CompendiumImportView(store: store)
+                                        .toolbar {
+                                            ToolbarItem(placement: .cancellationAction) {
+                                                Button {
+                                                    ViewStore(self.store).send(.setSheet(nil))
+                                                } label: {
+                                                    Text("Cancel")
+                                                }
+                                            }
+                                        }
+                                }
+                            },
+                            else: {
+                                IfLetStore(
+                                    store.scope(state: replayNonNil({ $0.documentsSheet }), action: { .documentsSheet($0) }),
+                                    then: { store in
+                                        SheetNavigationContainer {
+                                            CompendiumDocumentsView(store: store)
+                                                .toolbar {
+                                                    ToolbarItem(placement: .confirmationAction) {
+                                                        Button {
+                                                            ViewStore(self.store).send(.setSheet(nil))
+                                                        } label: {
+                                                            Text("Done").bold()
+                                                        }
+                                                    }
+                                                }
+                                        }
+                                    }
+                                )
+                            }
+                        )
                     }
                 )
             }
@@ -191,9 +233,8 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         let showAddButton: Bool
 
         let title: String
-        let showImportButton: Bool
+        let showMenu: Bool
 
-        let isShowingImport: Bool
         @EqKey({ $0?.id })
         var sheet: CompendiumIndexState.Sheet?
 
@@ -211,9 +252,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             showAddButton = state.properties.showAdd
 
             title = state.title
-            showImportButton = state.properties.showImport
-
-            isShowingImport = state.presentedNextCompendiumImport != nil || state.presentedDetailCompendiumImport != nil
+            showMenu = state.properties.showImport
 
             sheet = state.sheet
         }

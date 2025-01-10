@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ComposableArchitecture
 
 public struct CrashReporter {
     public let registerUserPermission: (UserPermission) -> Void
@@ -32,5 +33,16 @@ public struct CrashReporter {
             self.properties = properties
             self.attachments = attachments
         }
+    }
+}
+
+extension CrashReporter: DependencyKey {
+    public static var liveValue: CrashReporter = CrashReporter(registerUserPermission: { _ in }, trackError: { _ in })
+}
+
+public extension DependencyValues {
+    var crashReporter: CrashReporter {
+        get { self[CrashReporter.self] }
+        set { self[CrashReporter.self] = newValue }
     }
 }

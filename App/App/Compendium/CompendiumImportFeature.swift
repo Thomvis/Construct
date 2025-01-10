@@ -1290,12 +1290,6 @@ enum CompendiumMetadataKey: DependencyKey {
     }
 }
 
-enum DatabaseKey: DependencyKey {
-    public static var liveValue: Database {
-        Database.uninitialized
-    }
-}
-
 enum CompendiumKey: DependencyKey {
     public static var liveValue: Compendium {
         @Dependency(\.database) var database
@@ -1312,11 +1306,6 @@ extension DependencyValues {
     var compendiumMetadata: CompendiumMetadata {
         get { self[CompendiumMetadataKey.self] }
         set { self[CompendiumMetadataKey.self] = newValue }
-    }
-
-    var database: Database {
-        get { self[DatabaseKey.self] }
-        set { self[DatabaseKey.self] = newValue }
     }
 
     var compendium: Compendium {

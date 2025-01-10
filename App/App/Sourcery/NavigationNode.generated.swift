@@ -299,7 +299,6 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
             switch self {
             case .compendiumIndex(let s): return s
             case .itemDetail(let s): return s
-            case .compendiumImport(let s): return s
             case .safariView(let s): return s
             }
         }
@@ -308,7 +307,6 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
             switch newValue {
             case let v as CompendiumIndexState: self = .compendiumIndex(v)
             case let v as CompendiumEntryDetailViewState: self = .itemDetail(v)
-            case let v as CompendiumImportFeature.State: self = .compendiumImport(v)
             case let v as SafariViewState: self = .safariView(v)
             default: break
             }
@@ -856,33 +854,6 @@ extension CompendiumIndexState: NavigationNode {
         set { 
             if let value = newValue {
                 presentedScreens[.detail] = .itemDetail(value) 
-            }
-        }
-    }
-    var presentedNextCompendiumImport: CompendiumImportFeature.State? {
-        get { 
-            if case .compendiumImport(let s) = presentedScreens[.nextInStack] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.nextInStack] = .compendiumImport(value) 
-            }
-        }
-    }
-
-    var presentedDetailCompendiumImport: CompendiumImportFeature.State? {
-        get { 
-            if case .compendiumImport(let s) = presentedScreens[.detail] {
-                return s
-            }
-            return nil
-        }
-        set { 
-            if let value = newValue {
-                presentedScreens[.detail] = .compendiumImport(value) 
             }
         }
     }

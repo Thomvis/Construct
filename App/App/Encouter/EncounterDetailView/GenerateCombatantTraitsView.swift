@@ -273,7 +273,7 @@ struct GenerateCombatantTraitsView: View {
 }
 
 #if DEBUG
-struct DiceRollerView_Preview: PreviewProvider {
+struct GenerateCombatantTraitsView_Preview: PreviewProvider {
     static var previews: some View {
         NavigationView {
             GenerateCombatantTraitsView(store: Store(

@@ -12,6 +12,7 @@ import Helpers
 import GameModels
 import Parsing
 import AsyncAlgorithms
+import ComposableArchitecture
 
 /// Errors must be of type MechMuseError
 public struct MechMuse {
@@ -210,5 +211,19 @@ extension MechMuseError: LocalizedError {
         case .interpretationFailed(_, let reason): return "MechMuseError.interpretationFailed(\(reason))"
         default: return String(describing: self)
         }
+    }
+}
+
+extension MechMuse: DependencyKey {
+    public static var liveValue: MechMuse {
+        @Dependency(\.database) var database
+        return .live(db: database)
+    }
+}
+
+public extension DependencyValues {
+    var mechMuse: MechMuse {
+        get { self[MechMuse.self] }
+        set { self[MechMuse.self] = newValue }
     }
 }

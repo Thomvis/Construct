@@ -15,6 +15,7 @@ import Helpers
 import DiceRollerFeature
 import GameModels
 import ActionResolutionFeature
+import Compendium
 
 struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 
@@ -134,7 +135,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog, environment: { $0 }),
         ActionResolutionViewState.reducer.optional().pullback(state: \.diceActionPopoverState, action: /CombatantDetailViewAction.diceActionPopover, environment: { $0 }),
         NumberEntryViewState.reducer.optional().pullback(state: \.initiativePopoverState, action: /CombatantDetailViewAction.initiativePopover, environment: { $0 }),
-        CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView),
+        CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView, environment: { $0 }),
         AnyReducer { state, action, env in
             switch action {
             case .combatant: break // should be handled by parent
@@ -179,7 +180,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 if def.isUnique {
                     item = Character(id: UUID().tagged(), realm: .init(CompendiumRealm.homebrew.id), level: def.level, stats: def.stats, player: def.player)
                 } else {
-                    item = Monster(realm: .init(CompendiumRealm.homebrew.id), stats: def.stats, challengeRating: Fraction(integer: 0))
+                    item = Monster(realm: .init(CompendiumRealm.homebrew.id), stats: def.stats, challengeRating: def.stats.challengeRating ?? Fraction(integer: 0))
                 }
 
                 try? env.compendium.put(CompendiumEntry(
@@ -229,7 +230,8 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             didTapAction: /CombatantDetailViewAction.didTapCompendiumItemReferenceTextAnnotation,
             requestItem: \.itemRequest,
             internalAction: /CombatantDetailViewAction.setNextScreen..Self.NextScreen.compendiumItemDetailView,
-            externalAction: /CombatantDetailViewAction.setNextScreen..Self.NextScreen.safariView
+            externalAction: /CombatantDetailViewAction.setNextScreen..Self.NextScreen.safariView,
+            environment: { $0 }
         ),
         CombatantTagsViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagsView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagsView),
         CombatantResourcesViewState.reducer.optional().pullback(state: \.presentedNextCombatantResourcesView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantResourcesView),
@@ -311,13 +313,16 @@ extension CombatantDetailViewState {
 }
 
 extension CompendiumItemReferenceTextAnnotation {
-    static func handleTapReducer<State, Action>(
+    typealias HandleTapReducerEnvironment = EnvironmentWithCompendium & EnvironmentWithCrashReporter
+
+    static func handleTapReducer<State, Action, Environment>(
         didTapAction: CasePath<Action, (CompendiumItemReferenceTextAnnotation, AppNavigation)>,
         requestItem: WritableKeyPath<State, ReferenceViewItemRequest?>,
         internalAction: CasePath<Action, CompendiumEntryDetailViewState>,
-        externalAction: CasePath<Action, SafariViewState>
+        externalAction: CasePath<Action, SafariViewState>,
+        environment: @escaping (Environment) -> HandleTapReducerEnvironment
     ) -> AnyReducer<State, Action, Environment> {
-        AnyReducer { state, action, env in
+        AnyReducer { (state, action, env: HandleTapReducerEnvironment) in
             if let (annotation, appNavigation) = didTapAction.extract(from: action) {
                 switch env.compendium.resolve(annotation: annotation) {
                 case .internal(let ref):
@@ -348,6 +353,6 @@ extension CompendiumItemReferenceTextAnnotation {
                 }
             }
             return .none
-        }
+        }.pullback(state: \.self, action: /Action.self, environment: environment)
     }
 }

@@ -247,18 +247,30 @@ extension EncounterDetailViewState {
 
     static var reducer: AnyReducer<EncounterDetailViewState, Action, Environment> {
         return AnyReducer.combine(
-            AddCombatantState.reducer.optional().pullback(state: \.addCombatantState, action: /Action.addCombatant),
-            NumberEntryViewState.reducer.optional().pullback(state: \.combatantInitiativePopover, action: /Action.combatantInitiativePopover, environment: { $0 }),
-            GenerateCombatantTraitsViewState.reducer.optional().pullback(state: \.generateCombatantTraitsState, action: /Action.generateCombatantTraits, environment: { $0 })
-                .onChange(of: \.generateCombatantTraitsState?.traits, perform: { traits, state, action, env in
-                    guard let combatants = state.generateCombatantTraitsState?.combatants else { return .none }
+            AddCombatantState.reducer.optional().pullback(
+                state: \.addCombatantState,
+                action: /Action.addCombatant,
+                environment: { $0 }
+            ),
+            NumberEntryViewState.reducer.optional().pullback(
+                state: \.combatantInitiativePopover,
+                action: /Action.combatantInitiativePopover,
+                environment: { $0 }
+            ),
+            GenerateCombatantTraitsViewState.reducer.optional().pullback(
+                state: \.generateCombatantTraitsState,
+                action: /Action.generateCombatantTraits,
+                environment: { $0 }
+            )
+            .onChange(of: \.generateCombatantTraitsState?.traits, perform: { traits, state, action, env in
+                guard let combatants = state.generateCombatantTraitsState?.combatants else { return .none }
 
-                    // apply all changes from the "generate combatant traits" view
-                    for c in combatants {
-                        state.encounter.combatants[id: c.id]?.traits = c.traits
-                    }
-                    return .none
-                }),
+                // apply all changes from the "generate combatant traits" view
+                for c in combatants {
+                    state.encounter.combatants[id: c.id]?.traits = c.traits
+                }
+                return .none
+            }),
             AnyReducer { state, action, env in
                 switch action {
                 case .onAppear:
@@ -449,7 +461,11 @@ extension EncounterDetailViewState {
                 }
                 return .none
             },
-            Encounter.reducer.pullback(state: \.building, action: /Action.buildingEncounter),
+            Encounter.reducer.pullback(
+                state: \.building,
+                action: /Action.buildingEncounter,
+                environment: { $0 }
+            ),
             RunningEncounter.reducer.optional().pullback(state: \.running, action: /Action.runningEncounter),
             AnyReducer.withState({ $0.building.id }) { state in
                 ResumableRunningEncounters.reducer { env in

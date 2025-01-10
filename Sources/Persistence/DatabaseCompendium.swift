@@ -253,6 +253,8 @@ public extension CompendiumMetadata {
                 throw CompendiumMetadataError.invalidRealmId
             }
 
+            // todo: transaction
+
             let moving: Set<CompendiumItemKey>?
             if doc.realmId != originalRealmId {
                 let compendium = DatabaseCompendium(database: database)
@@ -278,7 +280,8 @@ public extension CompendiumMetadata {
             try database.keyValueStore.transaction { store in
                 try visitorManager.run(
                     visitor: AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: visitor),
-                    store: store
+                    store: store,
+                    conflictResolution: .rename(fallback: .remove)
                 )
 
                 if originalKey != doc.key {

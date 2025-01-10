@@ -11,6 +11,7 @@ import Tagged
 import Combine
 import Dice
 import Helpers
+import ComposableArchitecture
 
 public struct DiceLogPublisher {
     private let subject: PassthroughSubject<(DiceLogEntry.Result, RollDescription), Never> = .init()
@@ -131,5 +132,16 @@ public struct DiceLogEntry: Hashable {
             case disadvantage
             case advantage
         }
+    }
+}
+
+extension DiceLogPublisher: DependencyKey {
+    public static var liveValue: DiceLogPublisher = DiceLogPublisher()
+}
+
+public extension DependencyValues {
+    var diceLog: DiceLogPublisher {
+        get { self[DiceLogPublisher.self] }
+        set { self[DiceLogPublisher.self] = newValue }
     }
 }

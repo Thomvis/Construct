@@ -14,6 +14,11 @@ import Combine
 import Helpers
 import GameModels
 import Compendium
+import Persistence
+import MechMuse
+import DiceRollerFeature
+
+typealias CompendiumIndexEnvironment = EnvironmentWithDatabase & EnvironmentWithCrashReporter & EnvironmentWithUUIDGenerator & EnvironmentWithCompendiumMetadata & CompendiumEntryDetailEnvironment
 
 struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
@@ -49,7 +54,6 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             switch $0 {
             case .compendiumIndex: return .compendiumIndex(CompendiumIndexState.nullInstance)
             case .itemDetail: return .itemDetail(CompendiumEntryDetailViewState.nullInstance)
-            case .compendiumImport: return .compendiumImport(CompendiumImportFeature.State())
             case .safariView: return .safariView(.nullInstance)
             }
         }
@@ -57,6 +61,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             switch $0 {
             case .creatureEdit: return .creatureEdit(CreatureEditViewState.nullInstance)
             case .groupEdit: return .groupEdit(CompendiumItemGroupEditState.nullInstance)
+            case .compendiumImport: return .compendiumImport(CompendiumImportFeature.State())
+            case .documents: return .documents(CompendiumDocumentsFeature.State())
             }
         }
 
@@ -91,18 +97,58 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         }
     }
 
+    var compendiumImportSheet: CompendiumImportFeature.State? {
+        get {
+            if case .compendiumImport(let state)? = sheet {
+                return state
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                sheet = .compendiumImport(newValue)
+            }
+        }
+    }
+
+    var documentsSheet: CompendiumDocumentsFeature.State? {
+        get {
+            if case .documents(let state)? = sheet {
+                return state
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                sheet = .documents(newValue)
+            }
+        }
+    }
+
     struct Properties: Equatable {
         let showImport: Bool
         let showAdd: Bool
         let typeRestriction: [CompendiumItemType]?
+        let sourceRestriction: CompendiumFilters.Source?
 
-        var showSourceDocumentBadges = false
+        var showSourceDocumentBadges: Bool = false
+
+        public init(
+            showImport: Bool,
+            showAdd: Bool,
+            typeRestriction: [CompendiumItemType]? = nil,
+            sourceRestriction: CompendiumFilters.Source? = nil
+        ) {
+            self.showImport = showImport
+            self.showAdd = showAdd
+            self.typeRestriction = typeRestriction
+            self.sourceRestriction = sourceRestriction
+        }
     }
 
     enum NextScreen: Equatable {
         indirect case compendiumIndex(CompendiumIndexState)
         case itemDetail(CompendiumEntryDetailViewState)
-        case compendiumImport(CompendiumImportFeature.State)
         case safariView(SafariViewState)
     }
 
@@ -110,19 +156,23 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         // creatureEdit and groupEdit are used when adding a new creature/group
         case creatureEdit(CreatureEditViewState)
         case groupEdit(CompendiumItemGroupEditState)
+        case compendiumImport(CompendiumImportFeature.State)
+        case documents(CompendiumDocumentsFeature.State)
 
         var id: String {
             switch self {
             case .creatureEdit(let s): return s.navigationStackItemStateId
             case .groupEdit(let s): return s.navigationStackItemStateId
+            case .compendiumImport: return "import"
+            case .documents: return "documents"
             }
         }
     }
 
-    static var reducer: AnyReducer<Self, CompendiumIndexAction, Environment> {
+    static var reducer: AnyReducer<Self, CompendiumIndexAction, CompendiumIndexEnvironment> {
         return AnyReducer.combine(
-            CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextItemDetail, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry),
-            CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedDetailItemDetail, action: /CompendiumIndexAction.detailScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry),
+            CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextItemDetail, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry, environment: { $0 }),
+            CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedDetailItemDetail, action: /CompendiumIndexAction.detailScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry, environment: { $0 }),
             AnyReducer { state, action, env in
                 switch action {
                 case .results: break
@@ -193,6 +243,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         await send(.scrollTo(entry.key))
                         await send(.setSheet(nil))
                     }
+                case .compendiumImportSheet(.importDidFinish(.some)):
+                    return .send(.results(.result(.reload(.currentCount))))
                 case .nextScreen(.compendiumEntry(.didRemoveItem)),
                      .detailScreen(.compendiumEntry(.didRemoveItem)):
                     // creature removed
@@ -212,26 +264,26 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                      .detailScreen(.compendiumEntry(.entry)):
                     // creature on the detail screen changed
                     return .send(.results(.result(.reload(.currentCount))))
-                case .nextScreen(.import(.importDidFinish(.some))),
-                     .detailScreen(.import(.importDidFinish(.some))):
-                    // import finished
-                    return .send(.results(.result(.reload(.currentCount))))
                 case .nextScreen, .detailScreen:
                     break
                 case .alert(let s):
                     state.alert = s
                 case .setSheet(let s):
                     state.sheet = s
-                case .creatureEditSheet, .groupEditSheet: break // handled below
+                case .creatureEditSheet, .groupEditSheet, .compendiumImportSheet, .documentsSheet: break // handled below
                 }
                 return .none
             },
             MS.reducer(
-                inputReducer: CompendiumIndexState.Query.reducer,
+                inputReducer: CompendiumIndexState.Query.reducer.pullback(
+                    state: \.self,
+                    action: /CompendiumIndexQueryAction.self,
+                    environment: { _ in () } // ignore environment, CompendiumIndexState.Query.reducer doesn't need it
+                ),
                 initialResultStateForInput: { _ in PagingData() },
                 initialResultActionForInput: { _ in .didShowElementAtIndex(0) },
                 resultReducerForInput: { query in
-                    PagingData.reducer { request, env in
+                    PagingData.reducer { (request, env: CompendiumIndexEnvironment) in
                         let entries: [CompendiumEntry]
                         do {
                             entries = try env.compendium.fetchAll(
@@ -256,7 +308,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 }
                 return nil
             }
-            .pullback(state: \.results, action: /CompendiumIndexAction.results)
+            .pullback(state: \.results, action: /CompendiumIndexAction.results, environment: { $0 as CompendiumIndexEnvironment })
             .onChange(of: { $0.results.entries }, perform: { entries, state, _, env in
                 // If the list contains entries from multiple sources, we want to display the document badges
                 if !state.properties.showSourceDocumentBadges, let entries, let first = entries.first {
@@ -267,15 +319,20 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                 return .none
             }),
-            AnyReducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex),
+            AnyReducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex, environment:  { $0 }),
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumIndexAction.creatureEditSheet, environment: { $0 }),
-            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet),
+            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet, environment: { $0 }),
             AnyReducer { env in
                 CompendiumImportFeature()
                     .dependency(\.database, env.database)
                     .dependency(\.uuid, UUIDGenerator(env.generateUUID))
             }
-            .optional().pullback(state: \.presentedNextCompendiumImport, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.import)
+            .optional().pullback(state: \.compendiumImportSheet, action: /CompendiumIndexAction.compendiumImportSheet),
+            AnyReducer { env in
+                CompendiumDocumentsFeature()
+                    .dependency(\.compendiumMetadata, env.compendiumMetadata)
+            }
+            .optional().pullback(state: \.documentsSheet, action: /CompendiumIndexAction.documentsSheet)
         )
     }
 }
@@ -320,6 +377,8 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     case setSheet(CompendiumIndexState.Sheet?)
     case creatureEditSheet(CreatureEditViewAction)
     case groupEditSheet(CompendiumItemGroupEditAction)
+    case compendiumImportSheet(CompendiumImportFeature.Action)
+    case documentsSheet(CompendiumDocumentsFeature.Action)
 
     static func presentScreen(_ destination: NavigationDestination, _ screen: CompendiumIndexState.NextScreen?) -> Self {
         switch destination {
@@ -338,7 +397,6 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     enum NextScreenAction: Equatable {
         case compendiumIndex(CompendiumIndexAction)
         case compendiumEntry(CompendiumItemDetailViewAction)
-        case `import`(CompendiumImportFeature.Action)
     }
 
     // Key-path support
@@ -365,7 +423,7 @@ enum CompendiumIndexQueryAction: Equatable {
 }
 
 extension CompendiumIndexState.Query {
-    fileprivate static var reducer: AnyReducer<Self, CompendiumIndexQueryAction, Environment> {
+    fileprivate static var reducer: AnyReducer<Self, CompendiumIndexQueryAction, Void> {
         return AnyReducer { state, action, _ in
             switch action {
             case .onTextDidChange(let t):
@@ -390,7 +448,7 @@ extension CompendiumIndexState.Query {
 extension CompendiumIndexState {
     static let nullInstance = CompendiumIndexState(
         title: "",
-        properties: Properties(showImport: false, showAdd: false, typeRestriction: nil),
+        properties: Properties(showImport: false, showAdd: false),
         results: .initial,
         presentedScreens: [:]
     )
@@ -439,4 +497,45 @@ extension CompendiumImportFeature.State: NavigationStackItemState {
     }
 
 
+}
+
+public struct StandaloneCompendiumIndexEnvironment: CompendiumIndexEnvironment {
+    public var database: Database
+    public var crashReporter: CrashReporter
+    public var generateUUID: @Sendable () -> UUID
+    public var compendiumMetadata: CompendiumMetadata
+    public var compendium: Compendium
+    public var modifierFormatter: NumberFormatter
+    public var mainQueue: AnySchedulerOf<DispatchQueue>
+    public var diceLog: DiceLogPublisher
+    public var canSendMail: () -> Bool
+    public var sendMail: (FeedbackMailContents) -> Void
+    public var mechMuse: MechMuse
+
+    static func fromDependencies() -> Self {
+        @Dependency(\.database) var database
+        @Dependency(\.crashReporter) var crashReporter
+        @Dependency(\.uuid) var uuid
+        @Dependency(\.compendiumMetadata) var compendiumMetadata
+        @Dependency(\.compendium) var compendium
+        @Dependency(\.modifierFormatter) var modifierFormatter
+        @Dependency(\.mainQueue) var mainQueue
+        @Dependency(\.diceLog) var diceLog
+        @Dependency(\.mailer) var mailer
+        @Dependency(\.mechMuse) var mechMuse
+
+        return StandaloneCompendiumIndexEnvironment(
+            database: database,
+            crashReporter: crashReporter,
+            generateUUID: { uuid() },
+            compendiumMetadata: compendiumMetadata,
+            compendium: compendium,
+            modifierFormatter: modifierFormatter,
+            mainQueue: mainQueue,
+            diceLog: diceLog,
+            canSendMail: mailer.canSendMail,
+            sendMail: mailer.sendMail,
+            mechMuse: mechMuse
+        )
+    }
 }

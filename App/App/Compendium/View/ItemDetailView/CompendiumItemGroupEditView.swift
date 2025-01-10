@@ -12,6 +12,7 @@ import Combine
 import ComposableArchitecture
 import Helpers
 import GameModels
+import Compendium
 
 struct CompendiumItemGroupEditView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
@@ -175,7 +176,7 @@ enum CompendiumItemGroupEditAction: Equatable {
 }
 
 extension CompendiumItemGroupEditState {
-    static var reducer: AnyReducer<Self, CompendiumItemGroupEditAction, Environment> = AnyReducer.combine(
+    static var reducer: AnyReducer<Self, CompendiumItemGroupEditAction, EnvironmentWithCompendium> = AnyReducer.combine(
         AnyReducer { state, action, environment in
             switch action {
             case .groupTitle(let s):

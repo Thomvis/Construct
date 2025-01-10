@@ -19,6 +19,7 @@ import Persistence
 import Compendium
 import GameModels
 import MechMuse
+import ComposableArchitecture
 
 class Environment: ObservableObject {
 
@@ -106,7 +107,7 @@ extension Environment {
         } else {
             database = try await .live()
         }
-        let mailComposeDelegate = MailComposeDelegate()
+        let mailer = Mailer.liveValue
 
         let keyWindow = {
             UIApplication.shared.connectedScenes
@@ -122,26 +123,8 @@ extension Environment {
                 f.numberStyle = .ordinal
             },
             database: database,
-            canSendMail: { MFMailComposeViewController.canSendMail() },
-            sendMail: { contents in
-                let composeVC = MFMailComposeViewController()
-                composeVC.mailComposeDelegate = mailComposeDelegate
-
-                // Configure the fields of the interface.
-                composeVC.setToRecipients(["hello@construct5e.app"])
-                composeVC.setSubject(contents.subject)
-
-                for attachment in contents.attachments {
-                    composeVC.addAttachmentData(
-                        attachment.data,
-                        mimeType: attachment.mimeType,
-                        fileName: attachment.fileName
-                    )
-                }
-
-                // Present the view controller modally.
-                keyWindow()?.rootViewController?.deepestPresentedViewController.present(composeVC, animated: true, completion:nil)
-            },
+            canSendMail: mailer.canSendMail,
+            sendMail: mailer.sendMail,
             rateInAppStore: {
                 let appID = 1490015210
                 let url = "https://itunes.apple.com/app/id\(appID)?action=write-review"
@@ -179,11 +162,6 @@ extension Environment {
         )
     }
 
-    private class MailComposeDelegate: NSObject, MFMailComposeViewControllerDelegate {
-        func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-            controller.dismiss(animated: true, completion: nil)
-        }
-    }
 }
 
 extension Database {
@@ -192,20 +170,6 @@ extension Database {
             .appendingPathComponent("db.sqlite")
 
         return try await Database(path: dbUrl.absoluteString)
-    }
-}
-
-extension UIViewController {
-    var deepestPresentedViewController: UIViewController {
-        presentedViewController?.deepestPresentedViewController ?? self
-    }
-}
-
-struct AnyRandomNumberGenerator: RandomNumberGenerator {
-    var wrapped: RandomNumberGenerator
-
-    public mutating func next() -> UInt64 {
-        return wrapped.next()
     }
 }
 
@@ -221,7 +185,7 @@ extension EnvironmentWithDatabase {
     }
 }
 
-extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse, EnvironmentWithDatabase, EnvironmentWithSendMail, EnvironmentWithCrashReporter, EnvironmentWithCompendium, EnvironmentWithCompendiumMetadata {
+extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse, EnvironmentWithDatabase, EnvironmentWithSendMail, EnvironmentWithCrashReporter, EnvironmentWithCompendium, EnvironmentWithCompendiumMetadata, EnvironmentWithRandomNumberGenerator, EnvironmentWithUUIDGenerator {
 
     var compendiumMetadata: CompendiumMetadata { compendium.metadata }
 
