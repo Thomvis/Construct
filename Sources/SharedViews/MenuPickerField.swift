@@ -13,6 +13,8 @@ public struct MenuPickerField<Value, MenuBody>: View where Value: Hashable, Menu
     let selection: Binding<Value?>
     @ViewBuilder let menuBody: () -> MenuBody
 
+    @Environment(\.isEnabled) var isEnabled: Bool
+
     public init(
         title: String,
         selection: Binding<Value?>,
@@ -24,7 +26,7 @@ public struct MenuPickerField<Value, MenuBody>: View where Value: Hashable, Menu
     }
 
     public var body: some View {
-        LabeledContent(title) {
+        LabeledContent {
             Picker(title, selection: selection) {
                 if selection.wrappedValue == nil {
                     Text("Select").tag(Optional<Value>.none)
@@ -35,6 +37,9 @@ public struct MenuPickerField<Value, MenuBody>: View where Value: Hashable, Menu
                 menuBody()
             }
             .truncationMode(.middle)
+        } label: {
+            Text(title)
+                .foregroundStyle(isEnabled ? .primary : .secondary)
         }
         .animation(nil, value: selection.wrappedValue)
         .frame(minHeight: 35)

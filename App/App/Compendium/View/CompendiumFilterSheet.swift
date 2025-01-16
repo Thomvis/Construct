@@ -174,10 +174,12 @@ struct CompendiumFilterSheet: View {
                 .frame(minHeight: 35)
             } label: {
                 Text("Sources")
+                    .foregroundStyle(viewStore.state.sourcesSectionDisabled ? .secondary : .primary)
             }
         }
         .bold()
         .padding(8)
+        .disabled(viewStore.state.sourcesSectionDisabled)
     }
 
     func onEditingChanged(_ filter: CompendiumFilterSheetState.Filter) -> (Bool) -> Void {
@@ -218,6 +220,7 @@ struct CompendiumFilterSheetState: Equatable {
 
     let challengeRatings = crToXpMapping.keys.sorted()
     let allAllowedItemTypes: [CompendiumItemType]
+    let sourceRestriction: CompendiumFilters.Source?
 
     let initial: Values
     var current: Values
@@ -232,6 +235,7 @@ struct CompendiumFilterSheetState: Equatable {
 
     init() {
         self.allAllowedItemTypes = CompendiumItemType.allCases
+        self.sourceRestriction = nil
         self.initial = Values()
         self.current = Values()
     }
@@ -277,6 +281,10 @@ struct CompendiumFilterSheetState: Equatable {
             maxMonsterCR: filters.contains(.maxMonsterCR) ? current.maxMonsterCR : nil,
             monsterType: filters.contains(.monsterType) ? current.monsterType : nil
         )
+    }
+
+    var sourcesSectionDisabled: Bool {
+        sourceRestriction != nil
     }
 
     typealias Filter = CompendiumFilters.Property

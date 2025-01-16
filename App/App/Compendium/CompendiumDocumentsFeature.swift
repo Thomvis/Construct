@@ -125,6 +125,11 @@ struct EditDocument: ReducerProtocol {
         @BindingState var displayName: String = ""
         @BindingState var realmId: CompendiumRealm.Id?
 
+        @BindingState var operation: Async<Bool, Error>? = nil
+        var isLoading: Bool {
+            operation?.isLoading == true
+        }
+
         @PresentationState var contents: CompendiumIndexState?
 
         var customSlug: String?
@@ -153,6 +158,25 @@ struct EditDocument: ReducerProtocol {
             displayName.nonEmptyString == nil || realmId == nil
         }
 
+        var hasPendingChanges: Bool {
+            if let original {
+                return displayName != original.displayName ||
+                       realmId != original.realmId
+            } else {
+                return !displayName.isEmpty || customSlug != nil || realmId != nil
+            }
+        }
+        
+        var notice: Notice? {
+            if original?.isDefaultDocument == true {
+                return .immutableDefaultDocument()
+            }
+            if let error = operation?.error {
+                return .error(error)
+            }
+            return nil
+        }
+
         init(original: CompendiumSourceDocument? = nil, realms: [CompendiumRealm]) {
             if let original {
                 self.original = original
@@ -166,11 +190,37 @@ struct EditDocument: ReducerProtocol {
 
             self.realms = realms
         }
+
+        struct Notice: Equatable {
+            let icon: String
+            let message: String
+            let foregroundColor: Color
+            let isDismissible: Bool
+            
+            static func immutableDefaultDocument() -> Notice {
+                Notice(
+                    icon: "info.circle.fill",
+                    message: "This is a default document and cannot be edited.",
+                    foregroundColor: .primary,
+                    isDismissible: false
+                )
+            }
+            
+            static func error(_ error: Error) -> Notice {
+                Notice(
+                    icon: "exclamationmark.octagon",
+                    message: error.localizedDescription,
+                    foregroundColor: Color(UIColor.systemRed),
+                    isDismissible: true
+                )
+            }
+        }
     }
 
     enum Action: BindableAction, Equatable {
         case onCancelButtonTap
         case onDoneButtonTap
+        case onErrorTap
         case onConfirmRemoveDocumentTap
 
         case onSlugChange(String)
@@ -190,12 +240,16 @@ struct EditDocument: ReducerProtocol {
             case .onCancelButtonTap:
                 return .fireAndForget { await dismiss() }
             case .onDoneButtonTap:
-                return compendiumMetadataOperation { [state] send in
-                    guard let displayName = state.displayName.nonEmptyString,
-                            let realmId = state.realmId else {
-                        return
-                    }
+                guard let displayName = state.displayName.nonEmptyString,
+                        let realmId = state.realmId else {
+                    return .none
+                }
 
+                guard state.hasPendingChanges else {
+                    return .fireAndForget { await dismiss() }
+                }
+
+                return compendiumMetadataOperation(state: &state) { [state, displayName, realmId] in
                     if let original = state.original {
                         try await compendiumMetadata.updateDocument(
                             CompendiumSourceDocument(
@@ -206,8 +260,6 @@ struct EditDocument: ReducerProtocol {
                             original.realmId,
                             original.id
                         )
-
-                        await dismiss()
                     } else {
                         // new document
                         try compendiumMetadata.createDocument(CompendiumSourceDocument(
@@ -215,17 +267,16 @@ struct EditDocument: ReducerProtocol {
                             displayName: displayName,
                             realmId: realmId
                         ))
-
-                        await dismiss()
                     }
                 }
+            case .onErrorTap:
+                state.operation = nil
             case .onConfirmRemoveDocumentTap:
                 guard let original = state.original else { break }
 
-                return compendiumMetadataOperation { send in
+                return compendiumMetadataOperation(state: &state) {
                     // remove document
                     try await compendiumMetadata.removeDocument(original.realmId, original.id)
-                    await dismiss()
                 }
             case .onSlugChange(let slug):
                 state.customSlug = slug
@@ -255,14 +306,32 @@ struct EditDocument: ReducerProtocol {
     }
 
     private func compendiumMetadataOperation(
-        operation: @escaping @Sendable (Send<Action>) async throws -> Void,
-        catch handler: (@Sendable (Error, Send<Action>) async -> Void)? = nil,
+        state: inout State,
+        operation: @escaping () async throws -> Void,
         fileID: StaticString = #fileID,
         line: UInt = #line
     ) -> EffectTask<Action> {
+        state.operation = Async(isLoading: true)
         return .run(
-            operation: operation,
-            catch: handler,
+            operation: { @MainActor send in
+                let operationTask = Task {
+                    try await operation()
+                    return true
+                }
+
+                // make the operation take a minimum amount of time, to prevent UI flickering
+                let delayTask = Task {
+                    try await Task.sleep(for: .seconds(0.5))
+                }
+
+                let (operationResult, _) = await (operationTask.result, delayTask.result)
+
+                send(.binding(.set(\.$operation, Async(isLoading: false, result: operationResult))), animation: .default)
+
+                if operationResult.value != nil {
+                    await dismiss()
+                }
+            },
             fileID: fileID,
             line: line
         )
@@ -362,7 +431,6 @@ struct CompendiumDocumentsView: View {
                     }
 //                    .autoSizingSheetContent(constant: ViewStore(store).state)
                 }
-                .interactiveDismissDisabled()
             }
             .onAppear {
                 viewStore.send(.onAppear)
@@ -380,22 +448,33 @@ struct CompendiumDocumentEditView: View {
         WithViewStore(store) { viewStore in
             ScrollView {
                 VStack(spacing: 20) {
-
-//                    if let slug = viewStore.state.conflictingSlugOnSave {
-//                        SectionContainer {
-//                            HStack(spacing: 12) {
-//                                Text(Image(systemName: "exclamationmark.octagon"))
-//
-//                                Text("Shorthand \(Text(slug).fontDesign(.monospaced)) is not available. Tap the shorthand to edit.")
-//                                    .frame(maxWidth: .infinity, alignment: .leading)
-//                            }
-//                            .padding(8)
-//                            .foregroundStyle(Color(UIColor.systemRed))
-//                            .symbolRenderingMode(.monochrome)
-//                            .symbolVariant(.fill)
-//                        }
-//                        .transition(.scale.combined(with: .opacity))
-//                    }
+                    if let notice = viewStore.notice {
+                        SectionContainer {
+                            VStack(alignment: notice.isDismissible ? .trailing : .leading) {
+                                HStack(spacing: 12) {
+                                    Text(Image(systemName: notice.icon))
+                                    Text(notice.message)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .padding(8)
+                                .foregroundStyle(notice.foregroundColor)
+                                .symbolRenderingMode(.monochrome)
+                                .symbolVariant(.fill)
+                                
+                                if notice.isDismissible {
+                                    Text("Tap to dismiss")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .transition(.scale.combined(with: .opacity))
+                        .onTapGesture {
+                            if notice.isDismissible {
+                                viewStore.send(.onErrorTap, animation: .default)
+                            }
+                        }
+                    }
 
                     SectionContainer {
                         VStack {
@@ -412,6 +491,7 @@ struct CompendiumDocumentEditView: View {
                                 ),
                                 requestFocusOnText: Binding.constant(viewStore.state.original == nil)
                             )
+                            .disabled(viewStore.state.original?.isDefaultDocument == true)
                             .padding(.trailing, 10) // to align with the picker field
 
                             Divider()
@@ -424,6 +504,7 @@ struct CompendiumDocumentEditView: View {
                                     Text("\(realm.displayName) (\(realm.id.rawValue))").tag(Optional.some(realm.id))
                                 }
                             }
+                            .disabled(viewStore.state.original?.isDefaultDocument == true)
                         }
                     }
 
@@ -434,7 +515,6 @@ struct CompendiumDocumentEditView: View {
                             } label: {
                                 HStack {
                                     Label("View items in document", systemImage: "book")
-                                        .foregroundStyle(.secondary)
                                 }
                                 .frame(minHeight: 35)
                             }
@@ -465,6 +545,7 @@ struct CompendiumDocumentEditView: View {
                             }
                         }
                         .symbolRenderingMode(.hierarchical)
+                        .disabled(viewStore.state.original?.isDefaultDocument == true)
                     }
                 }
                 .padding()
@@ -478,12 +559,16 @@ struct CompendiumDocumentEditView: View {
             )
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
-                        viewStore.send(.onDoneButtonTap, animation: .spring())
-                    }, label: {
-                        Text("Done").bold()
-                    })
-                    .disabled(viewStore.state.doneButtonDisabled)
+                    if viewStore.state.isLoading {
+                        ProgressView()
+                    } else {
+                        Button(action: {
+                            viewStore.send(.onDoneButtonTap, animation: .spring())
+                        }, label: {
+                            Text("Done").bold()
+                        })
+                        .disabled(viewStore.state.doneButtonDisabled)
+                    }
                 }
 
                 ToolbarItem(placement: .navigation) {
@@ -494,6 +579,7 @@ struct CompendiumDocumentEditView: View {
             }
             .navigationTitle(viewStore.state.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
+            .interactiveDismissDisabled(viewStore.state.hasPendingChanges || viewStore.state.isLoading)
         }
     }
 }

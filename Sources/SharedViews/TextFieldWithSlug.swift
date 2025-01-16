@@ -16,6 +16,11 @@ public struct TextFieldWithSlug: View {
 
     @Binding var requestFocusOnText: Bool
     @FocusState private var focusOnText: Bool
+    @FocusState private var focusOnSlug: Bool
+
+    @Environment(\.isEnabled) var isEnabled: Bool
+
+    @State var localSlug: String = ""
 
     public init(
         title: String,
@@ -34,17 +39,18 @@ public struct TextFieldWithSlug: View {
     public var body: some View {
         HStack {
             TextField(title, text: $text)
-                .foregroundStyle(configuration.textForegroundColor)
+                .foregroundStyle(configuration.textForegroundColor.opacity(isEnabled ? 1.0 : 0.5))
                 .frame(minHeight: 35)
                 .layoutPriority(1)
                 .focused($focusOnText)
 
-            TextField("", text: $slug)
+            TextField("", text: $localSlug)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled(true)
                 .multilineTextAlignment(.trailing)
                 .foregroundStyle(configuration.slugForegroundColor)
                 .frame(minWidth: 50)
+                .focused($focusOnSlug)
         }
         .onChange(of: requestFocusOnText) { newValue in
             if newValue {
@@ -56,6 +62,18 @@ public struct TextFieldWithSlug: View {
             if requestFocusOnText {
                 focusOnText = true
                 requestFocusOnText = false
+            }
+            // populate local state with model
+            localSlug = slug
+        }
+        .onChange(of: localSlug) { newValue in
+            // write every change to the model
+            slug = localSlug
+        }
+        .onChange(of: focusOnSlug) { newValue in
+            // update field with model when we lose focus
+            if !newValue {
+                localSlug = slug
             }
         }
     }

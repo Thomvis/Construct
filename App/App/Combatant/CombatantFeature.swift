@@ -51,12 +51,12 @@ let combatantReducer: AnyReducer<Combatant, CombatantAction, Void> = AnyReducer.
         return .run { [state] send in
             if resources {
                 for r in state.resources {
-                    await send(CombatantAction.resource(r.id, .reset))
+                    send(CombatantAction.resource(r.id, .reset))
                 }
             }
 
             if hp {
-                await send(.hp(.reset))
+                send(.hp(.reset))
             }
         }
     case .setDefinition(let def):

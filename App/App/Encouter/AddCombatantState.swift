@@ -118,7 +118,7 @@ extension AddCombatantState {
                 showAdd: false,
                 typeRestriction: [.monster, .character, .group]
             ),
-            results: .initial(types: [.monster, .character, .group])
+            results: .initial
         ),
         encounter: Encounter,
         creatureEditViewState: CreatureEditViewState? = nil

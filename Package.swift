@@ -29,7 +29,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.49.2"),
         .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
         .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.5.0"),
-        .package(url: "https://github.com/Thomvis/GRDB.swift.git", from: "5.0.0"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.29.3"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "0.0.4"),
         .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.6.1"),

@@ -152,7 +152,8 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             WithViewStore(store, observe: \.results.input) { viewStore in
                 FilterButton(
                     viewStore: viewStore,
-                    allAllowedItemTypes: localViewStore.state.allAllowedItemTypes
+                    allAllowedItemTypes: localViewStore.state.allAllowedItemTypes,
+                    sourceRestriction: localViewStore.state.sourceRestriction
                 )
             }
         }
@@ -229,6 +230,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         let results: ResultsStatus
 
         let itemTypeRestriction: [CompendiumItemType]?
+        let sourceRestriction: CompendiumFilters.Source?
         let itemTypeFilter: [CompendiumItemType]?
         let showAddButton: Bool
 
@@ -248,6 +250,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             }
 
             itemTypeRestriction = state.properties.typeRestriction
+            sourceRestriction = state.properties.sourceRestriction
             itemTypeFilter = CompendiumIndexState.itemTypeFilter(input: state.results.input, properties: state.properties)
             showAddButton = state.properties.showAdd
 
@@ -571,10 +574,12 @@ struct FilterButton: View {
 
     @ObservedObject var viewStore: ViewStore<CompendiumIndexState.Query, CompendiumIndexAction>
     let allAllowedItemTypes: [CompendiumItemType]
+    let sourceRestriction: CompendiumFilters.Source?
 
     @State var sheet: CompendiumFilterSheet?
 
     var body: some View {
+        // todo: should it be "active" if filters are equal to the restrictions
         let label: String = {
             if viewStore.state.filters == nil || viewStore.state.filters == .init() {
                 return "Filter"
@@ -599,7 +604,8 @@ struct FilterButton: View {
     private func presentFilterSheet() {
         let state = CompendiumFilterSheetState(
             self.viewStore.state.filters,
-            allAllowedItemTypes: allAllowedItemTypes
+            allAllowedItemTypes: allAllowedItemTypes,
+            sourceRestriction: sourceRestriction
         )
 
         self.sheet = CompendiumFilterSheet(store: Store(initialState: state, reducer: CompendiumFilterSheetState.reducer, environment: self.env)) { filterValues in
@@ -693,7 +699,11 @@ extension CompendiumItem {
 
 // Used for communicating with the filter popover
 fileprivate extension CompendiumFilterSheetState {
-    init(_ queryFilters: CompendiumFilters?, allAllowedItemTypes: [CompendiumItemType]) {
+    init(
+        _ queryFilters: CompendiumFilters?,
+        allAllowedItemTypes: [CompendiumItemType],
+        sourceRestriction: CompendiumFilters.Source?
+    ) {
         let values = Values(
             source: queryFilters?.source,
             itemType: queryFilters?.types?.single,
@@ -705,6 +715,7 @@ fileprivate extension CompendiumFilterSheetState {
         self.current = values
 
         self.allAllowedItemTypes = allAllowedItemTypes
+        self.sourceRestriction = sourceRestriction
     }
 }
 

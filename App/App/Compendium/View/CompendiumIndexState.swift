@@ -43,6 +43,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         self.results = results
         self.presentedScreens = presentedScreens
         self.sheet = sheet
+
+        properties.apply(to: &self.results.input.filters)
     }
 
     var localStateForDeduplication: Self {
@@ -143,6 +145,17 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             self.showAdd = showAdd
             self.typeRestriction = typeRestriction
             self.sourceRestriction = sourceRestriction
+        }
+
+        func apply(to filter: inout CompendiumFilters?) {
+            if let typeRestriction {
+                filter = filter ?? CompendiumFilters()
+                filter?.types?.removeAll { !typeRestriction.contains($0) }
+            }
+            if let sourceRestriction {
+                filter = filter ?? CompendiumFilters()
+                filter?.source = sourceRestriction
+            }
         }
     }
 
@@ -319,6 +332,16 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
                 return .none
             }),
+            // apply filter restrictions from the properties to the query
+            AnyReducer { state, action, _ in
+                switch action {
+                case .results(.input):
+                    state.properties.apply(to: &state.results.input.filters)
+                default:
+                    break
+                }
+                return .none
+            },
             AnyReducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex, environment:  { $0 }),
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumIndexAction.creatureEditSheet, environment: { $0 }),
             CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet, environment: { $0 }),
@@ -331,6 +354,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             AnyReducer { env in
                 CompendiumDocumentsFeature()
                     .dependency(\.compendiumMetadata, env.compendiumMetadata)
+                    .dependency(\.database, env.database)
             }
             .optional().pullback(state: \.documentsSheet, action: /CompendiumIndexAction.documentsSheet)
         )
