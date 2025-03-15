@@ -6,7 +6,7 @@ import TestSupport
 import Helpers
 import CustomDump
 
-final class UpdateCompendiumSourceDocumentGameModelsVisitorTest: XCTestCase {
+final class PostDocumentMoveGameModelsVisitorTest: XCTestCase {
 
     var fixtures: Fixtures!
 
@@ -21,7 +21,7 @@ final class UpdateCompendiumSourceDocumentGameModelsVisitorTest: XCTestCase {
             $0.displayName = "Doc 2"
         }
 
-        let sut = UpdateCompendiumSourceDocumentGameModelsVisitor(
+        let sut = PostDocumentMoveGameModelsVisitor(
             updatedDocument: updatedDocument,
             originalRealmId: fixtures.document.realmId,
             originalDocumentId: fixtures.document.id,
@@ -61,7 +61,7 @@ final class UpdateCompendiumSourceDocumentGameModelsVisitorTest: XCTestCase {
             $0.id = .init("newdoc")
         }
 
-        let sut = UpdateCompendiumSourceDocumentGameModelsVisitor(
+        let sut = PostDocumentMoveGameModelsVisitor(
             updatedDocument: updatedDocument,
             originalRealmId: fixtures.document.realmId,
             originalDocumentId: fixtures.document.id,
@@ -106,7 +106,7 @@ final class UpdateCompendiumSourceDocumentGameModelsVisitorTest: XCTestCase {
             $0.realmId = .init("newrealm")
         }
 
-        let sut = UpdateCompendiumSourceDocumentGameModelsVisitor(
+        let sut = PostDocumentMoveGameModelsVisitor(
             updatedDocument: updatedDocument,
             originalRealmId: fixtures.document.realmId,
             originalDocumentId: fixtures.document.id,
@@ -152,6 +152,26 @@ final class UpdateCompendiumSourceDocumentGameModelsVisitorTest: XCTestCase {
         var visitedImportJob = fixtures.importJob
         XCTAssertFalse(sut.visit(job: &visitedImportJob))
         XCTAssertEqual(fixtures.importJob, visitedImportJob)
+
+        // Asserting that:
+       // - visit returns true when updating an Encounter's combatant reference that refers to a compendium combatant
+       var visitedEncounter = fixtures.encounter
+       XCTAssertTrue(sut.visit(encounter: &visitedEncounter))
+
+       // Construct the expected updated key: same type and identifier, but with the new realm id
+       let originalKey = fixtures.entryInDocument1.item.key
+       let expectedUpdatedKey = CompendiumItemKey(
+           type: originalKey.type,
+           realm: .init("newrealm"),
+           identifier: originalKey.identifier
+       )
+
+       // Verify that the combatant's definition now has the updated key
+       let updatedKey = (visitedEncounter.combatants.first!.definition as! CompendiumCombatantDefinition).item.key
+       XCTAssertEqual(updatedKey, expectedUpdatedKey)
+
+       // A second visit should return false
+       XCTAssertFalse(sut.visit(encounter: &visitedEncounter))
     }
 
     struct Fixtures {
@@ -164,6 +184,7 @@ final class UpdateCompendiumSourceDocumentGameModelsVisitorTest: XCTestCase {
         let entryNotInDocument: CompendiumEntry
 
         let importJob: CompendiumImportJob
+        let encounter: Encounter
 
 
         init() {
@@ -218,6 +239,12 @@ final class UpdateCompendiumSourceDocumentGameModelsVisitorTest: XCTestCase {
                 documentId: document.id,
                 timestamp: Date.init(timeIntervalSince1970: 0),
                 uuid: uuidGenerator()
+            )
+            encounter = Encounter(
+                name: "Encounter",
+                combatants: [
+                    .init(compendiumCombatant: entryInDocument1.item as! Monster)
+                ]
             )
         }
     }

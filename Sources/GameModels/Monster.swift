@@ -25,7 +25,14 @@ public struct Monster: Hashable {
 
 extension Monster: CompendiumItem {
     public var key: CompendiumItemKey {
-        return CompendiumItemKey(type: .monster, realm: realm, identifier: stats.name)
+        get {
+            return CompendiumItemKey(type: .monster, realm: realm, identifier: stats.name)
+        }
+        set {
+            assert(newValue.type == .monster)
+            self.realm = newValue.realm
+            self.stats.name = newValue.identifier
+        }
     }
 
     public var title: String {

@@ -16,17 +16,6 @@ public protocol KeyValueStoreEntityVisitor {
     func visit(entity: inout any KeyValueStoreEntity) -> Bool
 }
 
-//public class UpdateCompendiumSourceDocumentVisitor: AbstractKeyValueStoreEntityVisitor {
-//    public init(updatedDocument: CompendiumSourceDocument, originalRealmId: CompendiumRealm.Id, originalDocumentId: CompendiumSourceDocument.Id, moving: Set<CompendiumItemKey>?) {
-//        super.init(gameModelsVisitor: UpdateCompendiumSourceDocumentGameModelsVisitor(
-//            updatedDocument: updatedDocument,
-//            originalRealmId: originalRealmId,
-//            originalDocumentId: originalDocumentId,
-//            moving: moving
-//        ))
-//    }
-//}
-
 public class ParseableEntityVisitor: AbstractKeyValueStoreEntityVisitor {
     public static let shared = ParseableEntityVisitor()
 

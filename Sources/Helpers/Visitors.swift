@@ -17,7 +17,7 @@ public func visitEach<Global, Element>(
     for idx in model[keyPath: toCollection].indices {
         result = visit(&model[keyPath: toCollection][idx]) || result
     }
-    return false
+    return result
 }
 
 public func optionalVisit<T>(_ val: inout T?, visit: (inout T) -> Bool) -> Bool {
@@ -37,7 +37,7 @@ public func visitEach<Global, ID, Element>(
     for idx in model[keyPath: toCollection].indices {
         result = visit(&model[keyPath: toCollection][idx]) || result
     }
-    return false
+    return result
 }
 
 /// Sets the property in obj denoted by keyPath to value, if it was not already
@@ -86,5 +86,13 @@ public struct VisitorBuilder {
 
     public static func buildArray(_ components: [Bool]) -> Bool {
         return components.contains { $0 }
+    }
+
+    public static func buildEither(first component: Bool) -> Bool {
+        component
+    }
+
+    public static func buildEither(second component: Bool) -> Bool {
+        component
     }
 }

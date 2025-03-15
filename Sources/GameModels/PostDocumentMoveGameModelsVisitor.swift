@@ -1,7 +1,9 @@
 import Foundation
 import Helpers
 
-public class UpdateCompendiumSourceDocumentGameModelsVisitor: AbstractGameModelsVisitor {
+/// Updates the compendium after a document has moved
+/// Updates references from other entities (e.g. a reference from an encounter to a creature) to the items that moved.
+public class PostDocumentMoveGameModelsVisitor: AbstractGameModelsVisitor {
     let updatedDocument: CompendiumSourceDocument
     let originalRealmId: CompendiumRealm.Id
     let originalDocumentId: CompendiumSourceDocument.Id
@@ -49,6 +51,29 @@ public class UpdateCompendiumSourceDocumentGameModelsVisitor: AbstractGameModels
         if job.documentId == originalDocumentId && documentIdDidChange {
             job.documentId = updatedDocument.id
             true
+        }
+    }
+
+    @VisitorBuilder
+    public override func visit(compendiumCombatantDefinition def: inout CompendiumCombatantDefinition) -> Bool {
+        super.visit(compendiumCombatantDefinition: &def)
+
+        if didMoveBetweenRealms, let moving, moving.contains(def.item.key) {
+            let key = CompendiumItemKey(
+                type: def.item.key.type,
+                realm: .init(updatedDocument.realmId),
+                identifier: def.item.key.identifier
+            )
+            switch def.item {
+            case var monster as Monster:
+                visitValue(&monster, keyPath: \.key, value: key)
+                def.item = monster
+            case var character as Character:
+                visitValue(&character, keyPath: \.key, value: key)
+                def.item = character
+            default:
+                assertionFailure("Unexpected CompendiumCombatant in visitor")
+            }
         }
     }
 

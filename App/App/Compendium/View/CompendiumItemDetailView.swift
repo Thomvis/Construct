@@ -14,6 +14,7 @@ import Helpers
 import DiceRollerFeature
 import BetterSafariView
 import ActionResolutionFeature
+import Compendium
 
 struct CompendiumItemDetailView: View {
     @EnvironmentObject var env: Environment
@@ -130,6 +131,16 @@ struct CompendiumItemDetailView: View {
                     CompendiumItemGroupEditView(store: store)
                 }
             }
+        case .transfer:
+            IfLetStore(store.scope(state: replayNonNil({ $0.transferSheet }), action: { .sheet(.transfer($0)) })) { store in
+                SheetNavigationContainer {
+                    ScrollView {
+                        CompendiumItemTransferSheet(store: store)
+                            .padding()
+                    }
+                    .navigationTitle("Move/Copy")
+                }
+            }
         default: EmptyView()
         }
     }
@@ -142,31 +153,46 @@ struct CompendiumItemDetailView: View {
         }
     }
 
+    @ArrayBuilder<MenuItem>
     var menuItems: [MenuItem] {
         switch item {
-        case let monster as Monster: return [
+        case let monster as Monster:
             MenuItem(text: "Save as NPC", systemImage: "plus.square.on.square") {
                 self.viewStore.send(.onSaveMonsterAsNPCButton(monster))
-            },
+            }
+            
             MenuItem(text: "Edit", systemImage: "pencil") {
                 if let evs = self.editViewState {
                     self.viewStore.send(.setSheet(.creatureEdit(evs)))
                 }
             }
-        ]
-        case is Character: return [
+            
+        case is Character:
             MenuItem(text: "Edit", systemImage: "pencil") {
                 if let evs = self.editViewState {
                     self.viewStore.send(.setSheet(.creatureEdit(evs)))
                 }
             }
-        ]
-        case let group as CompendiumItemGroup: return [
+            
+        case let group as CompendiumItemGroup:
             MenuItem(text: "Edit", systemImage: "pencil") {
                 self.viewStore.send(.setSheet(.groupEdit(CompendiumItemGroupEditState(mode: .edit, group: group))))
             }
-        ]
-        default: return []
+            
+        default:
+            Array<MenuItem>()
+        }
+        
+        // Move/Copy option available for all items
+        MenuItem(text: "Move/Copy", systemImage: "arrow.right.doc.on.clipboard") {
+            let state = CompendiumItemTransferFeature.State(
+                selection: .single(self.viewStore.state.item.key),
+                originDocument: CompendiumFilters.Source(
+                    realm: self.viewStore.state.item.realm.value,
+                    document: self.viewStore.state.entry.document.id
+                )
+            )
+            self.viewStore.send(.setSheet(.transfer(state)))
         }
     }
 

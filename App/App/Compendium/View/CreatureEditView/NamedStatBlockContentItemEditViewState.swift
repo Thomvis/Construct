@@ -90,11 +90,9 @@ extension NamedStatBlockContentItemEditViewState {
         .binding()
         .onChange(of: { $0.mode }) { mode, state, _, _ in
             if mode == .preview, state.preview?.name != state.fields.name || state.preview?.description != state.fields.description {
-                return .run { [state] send in
-                    var preview = state.makeItem()
-                    preview.parseIfNeeded()
-                    await send(.binding(.set(\.$preview, preview)), animation: .easeInOut)
-                }
+                var preview = state.makeItem()
+                preview.parseIfNeeded()
+                return .send(.binding(.set(\.$preview, preview)), animation: .easeInOut)
             }
             return .none
         }

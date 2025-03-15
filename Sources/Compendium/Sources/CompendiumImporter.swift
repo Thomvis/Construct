@@ -13,9 +13,11 @@ import Helpers
 
 public class CompendiumImporter {
     let compendium: Compendium
+    let metadata: CompendiumMetadata
 
-    public init(compendium: Compendium) {
+    public init(compendium: Compendium, metadata: CompendiumMetadata) {
         self.compendium = compendium
+        self.metadata = metadata
     }
 
     public func run(_ task: CompendiumImportTask) async throws -> Result {
@@ -28,7 +30,7 @@ public class CompendiumImporter {
             timestamp: Date()
         )
 
-        try compendium.metadata.putJob(job)
+        try metadata.putJob(job)
 
         let parseableVisitor = ParseableGameModelsVisitor()
 

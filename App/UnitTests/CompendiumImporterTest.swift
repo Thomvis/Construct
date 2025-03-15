@@ -18,16 +18,21 @@ import TestSupport
 class CompendiumImporterTest: XCTestCase {
 
     var compendium: DatabaseCompendium!
+    var compendiumMetadata: CompendiumMetadata!
+    var keyValueStore: KeyValueStore!
 
     override func setUp() async throws {
         try await super.setUp()
 
         let db = try! await Database(path: nil, source: Database(path: InitialDatabase.path))
-        self.compendium = DatabaseCompendium(database: db)
+        self.compendium = DatabaseCompendium(databaseAccess: db.access)
+        self.compendiumMetadata = CompendiumMetadata.live(db)
+        self.keyValueStore = db.keyValueStore
     }
 
     func test() async throws {
-        let sut = CompendiumImporter(compendium: compendium)
+
+        let sut = CompendiumImporter(compendium: compendium, metadata: compendiumMetadata)
         let item = Fixtures.monster
         let task = CompendiumImportTask(
             sourceId: .defaultMonsters,
@@ -40,12 +45,12 @@ class CompendiumImporterTest: XCTestCase {
         let result = try await sut.run(task)
         XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 1, overwrittenItemCount: 0, invalidItemCount: 0))
 
-        let entry = try! compendium.database.keyValueStore.get(item.key)
+        let entry = try! keyValueStore.get(item.key)
         XCTAssertEqual(entry?.item.title, item.title)
     }
 
     func testOverwritingDisabled() async throws {
-        let sut = CompendiumImporter(compendium: compendium)
+        let sut = CompendiumImporter(compendium: compendium, metadata: compendiumMetadata)
         var item = Fixtures.monster
 
         let task = CompendiumImportTask(
@@ -63,12 +68,12 @@ class CompendiumImporterTest: XCTestCase {
         let result = try await sut.run(task)
         XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 0, overwrittenItemCount: 0, invalidItemCount: 0))
 
-        let entry = try! compendium.database.keyValueStore.get(item.key)
+        let entry = try! keyValueStore.get(item.key)
         XCTAssertEqual((entry?.item as? Monster)?.stats.hitPoints, 3)
     }
 
     func testOverwritingEnabled() async throws {
-        let sut = CompendiumImporter(compendium: compendium)
+        let sut = CompendiumImporter(compendium: compendium, metadata: compendiumMetadata)
         var item = Fixtures.monster
 
         let task = CompendiumImportTask(
@@ -94,7 +99,7 @@ class CompendiumImporterTest: XCTestCase {
         let result = try await sut.run(task2)
         XCTAssertEqual(result, CompendiumImporter.Result(newItemCount: 0, overwrittenItemCount: 1, invalidItemCount: 0))
 
-        let entry = try! compendium.database.keyValueStore.get(item.key)
+        let entry = try! keyValueStore.get(item.key)
         XCTAssertEqual((entry?.item as? Monster)?.stats.hitPoints, 1000)
     }
 }

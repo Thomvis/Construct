@@ -35,7 +35,11 @@ public extension CompendiumRealm {
         [.core, .homebrew]
     }
 
-    var isDefaultDocument: Bool {
-        Self.defaultRealms.contains(where: { $0.id == id })
+    static func isDefaultRealm(id: CompendiumRealm.Id) -> Bool {
+        defaultRealms.contains(where: { $0.id == id })
+    }
+
+    var isDefaultRealm: Bool {
+        Self.isDefaultRealm(id: id)
     }
 }

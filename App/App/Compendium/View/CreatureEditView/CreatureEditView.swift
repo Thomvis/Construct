@@ -35,6 +35,38 @@ struct CreatureEditView: View {
 
     var body: some View {
         return Form {
+//            HStack {
+//                Button {
+//
+//                } label: {
+//                    HStack {
+//                        Text("Monster")
+//                        Image(systemName: "chevron.down")
+//                    }
+//                }
+//                .buttonStyle(.bordered)
+//                .buttonBorderShape(.capsule)
+//
+//                Button {
+//
+//                } label: {
+//                    HStack {
+//                        HStack(spacing: 2) {
+//                            Image(systemName: "book")
+//                            Text("Homebrew")
+//                        }
+//
+//                        Image(systemName: "chevron.down")
+//                    }
+//                }
+//                .buttonStyle(.bordered)
+//                .buttonBorderShape(.capsule)
+//            }
+//            .font(.footnote)
+//            .listRowBackground(Color.clear)
+//            .listRowInsets(EdgeInsets())
+//            .padding(.bottom, 0)
+
             FormSection(.basicCharacter) {
                 ClearableTextField("Name", text: model.statBlock.name)
                     .disableAutocorrection(true)

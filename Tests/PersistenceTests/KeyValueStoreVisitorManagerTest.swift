@@ -5,21 +5,22 @@ import InlineSnapshotTesting
 import CustomDump
 
 class KeyValueStoreVisitorManagerTest: XCTestCase {
-    
+
     static override func setUp() {
         keyValueStoreEntities.append(TestEntity1.self)
     }
 
     func testRunVisitorMovingEntities() throws {
         let db = Database.uninitialized
-        let sut = KeyValueStoreVisitorManager()
+        let sut = KeyValueStoreVisitorManager(databaseQueue: db.queue)
 
         try db.keyValueStore.put(TestEntity1(id: "first"))
         try db.keyValueStore.put(TestEntity1(id: "second"))
         try db.keyValueStore.put(TestEntity1(id: "third"))
 
         let initial = try db.keyValueStore.dump(.all)
-        try sut.run(visitors: [Visitor1()], store: db.keyValueStore, conflictResolution: .overwrite)
+        let runResult = try sut.run(visitors: [Visitor1()], conflictResolution: .overwrite)
+        XCTAssertEqual(runResult.success, ["1first", "1second", "1third"])
         let result = try db.keyValueStore.dump(.all)
         let diff = diff(initial, result)
 
@@ -54,14 +55,15 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
 
     func testRunVisitorUpdatingSecondaryIndexValues() throws {
         let db = Database.uninitialized
-        let sut = KeyValueStoreVisitorManager()
+        let sut = KeyValueStoreVisitorManager(databaseQueue: db.queue)
 
         try db.keyValueStore.put(TestEntity1(id: "first"))
         try db.keyValueStore.put(TestEntity1(id: "second"))
         try db.keyValueStore.put(TestEntity1(id: "third"))
 
         let initial = try db.keyValueStore.dump(.all)
-        try sut.run(visitors: [Visitor2()], store: db.keyValueStore, conflictResolution: .overwrite)
+        let runResult = try sut.run(visitors: [Visitor2()], conflictResolution: .overwrite)
+        XCTAssertEqual(runResult.success, ["1first", "1second", "1third"])
         let result = try db.keyValueStore.dump(.all)
         let diff = diff(initial, result)
 
@@ -96,13 +98,14 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
 
     func testConflictResolutionRemove() throws {
         let db = Database.uninitialized
-        let sut = KeyValueStoreVisitorManager()
+        let sut = KeyValueStoreVisitorManager(databaseQueue: db.queue)
 
         try db.keyValueStore.put(TestEntity1(id: "first"))
         try db.keyValueStore.put(TestEntity1(id: "firstvisited"))
 
         let initial = try db.keyValueStore.dump(.all)
-        try sut.run(visitors: [Visitor1()], store: db.keyValueStore, conflictResolution: .remove)
+        let runResult = try sut.run(visitors: [Visitor1()], conflictResolution: .remove)
+        XCTAssertEqual(runResult.success, ["1firstvisited"])
         let result = try db.keyValueStore.dump(.all)
         let diff = diff(initial, result)
 
@@ -127,7 +130,7 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
 
     func testConflictResolutionRename() throws {
         let db = Database.uninitialized
-        let sut = KeyValueStoreVisitorManager()
+        let sut = KeyValueStoreVisitorManager(databaseQueue: db.queue)
 
         try db.keyValueStore.put(TestEntity1(id: "first"))
         try db.keyValueStore.put(TestEntity1(id: "firstvisited"))
@@ -139,7 +142,8 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
         try db.keyValueStore.put(TestEntity1(id: "secondvisited"))
 
         let initial = try db.keyValueStore.dump(.all)
-        try sut.run(visitors: [Visitor1()], store: db.keyValueStore, conflictResolution: .rename(fallback: .remove))
+        let runResult = try sut.run(visitors: [Visitor1()], conflictResolution: .rename(fallback: .remove))
+        XCTAssertEqual(runResult.success, ["1firstvisited", "1firstvisited 2", "1firstvisited 2 2", "1firstvisited 2 2 2", "1second", "1secondvisited"])
         let result = try db.keyValueStore.dump(.all)
         let diff = diff(initial, result)
 
@@ -197,6 +201,45 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
         }
     }
 
+    func testConflictResolutionSkip() throws {
+        let db = Database.uninitialized
+        let sut = KeyValueStoreVisitorManager(databaseQueue: db.queue)
+
+        // Insert two records where Visitor1 would cause a conflict:
+        // "first" would become "firstvisited" (conflict with the second record),
+        // while "firstvisited" would become "firstvisitedvisited" (no conflict).
+        try db.keyValueStore.put(TestEntity1(id: "first"))
+        try db.keyValueStore.put(TestEntity1(id: "firstvisited"))
+
+        let initial = try db.keyValueStore.dump(.all)
+        let runResult = try sut.run(visitors: [Visitor1()], conflictResolution: .skip)
+        XCTAssertEqual(runResult.success, ["1firstvisited"])
+        let result = try db.keyValueStore.dump(.all)
+        let diff = diff(initial, result)
+
+        // Expected behavior:
+        // - The record with key "1first" remains unchanged because its updated key ("firstvisited")
+        //   conflicts with the existing "1firstvisited" and .skip causes a no-op.
+        // - The record with key "1firstvisited" is updated to "firstvisitedvisited"
+        //   (its put succeeds since there’s no conflict) and then its original key is removed.
+        assertInlineSnapshot(of: diff, as: .lines) {
+            #"""
+              """
+              1first
+                entity: {"id":"first","value":0}
+                fts:    {"id":1,"title":"zero"}
+                idxs:   {"0":"0"}
+            - 1firstvisited
+            + 1firstvisitedvisited
+            -   entity: {"id":"firstvisited","value":0}
+            +   entity: {"id":"firstvisitedvisited","value":0}
+                fts:    {"id":1,"title":"zero"}
+                idxs:   {"0":"0"}
+              """
+            """#
+        }
+    }
+
     struct TestEntity1: KeyValueStoreEntity, Codable, SecondaryIndexValueRepresentable, FTSDocumentConvertible, KeyConflictResolution {
         static let keyPrefix: String = "1"
         var id: String
@@ -248,7 +291,7 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
 extension DatabaseKeyValueStore {
     func dump(_ request: KeyValueStoreRequest) throws -> String {
         var result = ""
-        
+
         let encoder = DatabaseKeyValueStore.encoder
         let keys = try fetchKeys(request)
 

@@ -20,7 +20,7 @@ public struct CompendiumMetadata {
     /// Fails when a realm with the same id already exists
     public let createRealm: (CompendiumRealm) throws -> Void
     /// Fails when the realm does not yet exist
-    public let updateRealm: (CompendiumRealm) async throws -> Void
+    public let updateRealm: (CompendiumRealm.Id, String) async throws -> Void
     /// Fails when the realm does not exist or if it has any documents
     public let removeRealm: (CompendiumRealm.Id) async throws -> Void
 
@@ -41,7 +41,7 @@ public struct CompendiumMetadata {
         observeRealms: @escaping () -> AsyncThrowingStream<[CompendiumRealm], Error>,
         putJob: @escaping (CompendiumImportJob) throws -> Void,
         createRealm: @escaping (CompendiumRealm) throws -> Void,
-        updateRealm: @escaping (CompendiumRealm) async throws -> Void,
+        updateRealm: @escaping (CompendiumRealm.Id, String) async throws -> Void,
         removeRealm: @escaping (CompendiumRealm.Id) async throws -> Void,
         createDocument: @escaping (CompendiumSourceDocument) throws -> Void,
         updateDocument: @escaping (CompendiumSourceDocument, CompendiumRealm.Id, CompendiumSourceDocument.Id) async throws -> Void,
@@ -69,7 +69,7 @@ extension CompendiumMetadata {
         do {
             try createRealm(realm)
         } catch {
-            try await updateRealm(realm)
+            try await updateRealm(realm.id, realm.displayName)
         }
     }
 
@@ -88,4 +88,14 @@ public enum CompendiumMetadataError: Error {
     case invalidRealmId
     case resourceNotEmpty
     case cannotMoveDefaultResource
+}
+
+public extension CompendiumMetadata {
+    func importDefaultContent() async throws {
+        // Documents & Realms
+        try await createOrUpdateRealm(CompendiumRealm.core)
+        try await createOrUpdateRealm(CompendiumRealm.homebrew)
+        try await createOrUpdateDocument(CompendiumSourceDocument.srd5_1)
+        try await createOrUpdateDocument(CompendiumSourceDocument.homebrew)
+    }
 }

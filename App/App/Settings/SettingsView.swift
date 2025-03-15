@@ -134,7 +134,8 @@ struct SettingsView: View {
 
                 NavigationRowButton(action: {
                     Task {
-                        try await DatabaseCompendium(database: env.database).importDefaultContent()
+                        let importer = CompendiumImporter(compendium: env.compendium, metadata: env.compendiumMetadata)
+                        try await importer.importDefaultContent()
                     }
                 }) {
                     Text("Import default content").foregroundColor(Color.primary)

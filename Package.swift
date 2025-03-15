@@ -106,7 +106,7 @@ let package = Package(
             dependencies: [
                 "GameModels",
                 "TestSupport",
-                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+                .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")
             ]
         ),
         .target(

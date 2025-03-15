@@ -30,6 +30,7 @@ struct CompendiumDocumentsFeature: ReducerProtocol {
     enum Action: BindableAction, Equatable {
         case onAppear
 
+        case onEditRealmTap(CompendiumRealm)
         case onAddDocumentToRealmTap(CompendiumRealm)
         case onRemoveEmptyRealmTap(CompendiumRealm)
         case onDocumentTap(CompendiumSourceDocument)
@@ -44,18 +45,18 @@ struct CompendiumDocumentsFeature: ReducerProtocol {
 
     struct Sheet: ReducerProtocol {
         enum State: Equatable {
-            case addRealm(AddRealm.State)
+            case editRealm(EditRealm.State)
             case editDocument(EditDocument.State)
         }
 
         enum Action: Equatable {
-            case addRealm(AddRealm.Action)
+            case editRealm(EditRealm.Action)
             case editDocument(EditDocument.Action)
         }
 
         var body: some ReducerProtocolOf<Self> {
-            Scope(state: /State.addRealm, action: /Action.addRealm) {
-                AddRealm()
+            Scope(state: /State.editRealm, action: /Action.editRealm) {
+                EditRealm()
             }
 
             Scope(state: /State.editDocument, action: /Action.editDocument) {
@@ -79,16 +80,20 @@ struct CompendiumDocumentsFeature: ReducerProtocol {
                         await send(.binding(.set(\.$realms, realms.sorted(by: .init(\.displayName)))))
                     }
                 }))
+            case .onEditRealmTap(let realm):
+                state.sheet = .editRealm(.init(original: realm))
             case .onAddDocumentToRealmTap(let realm):
                 state.sheet = .editDocument(apply(.init(realms: state.realms)) { sheet in
                     sheet.realmId = realm.id
                 })
             case .onRemoveEmptyRealmTap(let realm):
-                break
+                return .run { send in
+                    try await compendiumMetadata.removeRealm(realm.id)
+                }
             case .onDocumentTap(let doc):
                 state.sheet = .editDocument(.init(original: doc, realms: state.realms))
             case .onAddRealmButtonTap:
-                state.sheet = .addRealm(.init())
+                state.sheet = .editRealm(.init())
             case .onAddDocumentButtonTap:
                 state.sheet = .editDocument(.init(realms: state.realms))
             default: break
@@ -103,17 +108,144 @@ struct CompendiumDocumentsFeature: ReducerProtocol {
     }
 }
 
-struct AddRealm: ReducerProtocol {
+struct EditRealm: ReducerProtocol {
     struct State: Equatable {
+        var original: CompendiumRealm? // nil for new realms, non-nil for editing
 
+        @BindingState var displayName: String = ""
+        @BindingState var error: String?
+
+        var customSlug: String?
+        var effectiveSlug: String {
+            if let original {
+                return original.id.rawValue
+            }
+            return customSlug?.nonEmptyString ?? slug(displayName)
+        }
+
+        var navigationTitle: String {
+            if let original {
+                return "Edit “\(original.displayName)”"
+            }
+            return "Add realm"
+        }
+
+        var doneButtonDisabled: Bool {
+            displayName.nonEmptyString == nil || original?.isDefaultRealm == true
+        }
+
+        var hasPendingChanges: Bool {
+            if let original {
+                return displayName != original.displayName
+            } else {
+                return !displayName.isEmpty || customSlug != nil
+            }
+        }
+
+        var notice: Notice? {
+            if original?.isDefaultRealm == true {
+                return Notice(
+                    icon: "info.circle.fill",
+                    message: "This is a default realm and cannot be edited.",
+                    foregroundColor: .primary,
+                    isDismissible: false
+                )
+            }
+
+            if let error {
+                return .error(error)
+            }
+            return nil
+        }
+
+        init(original: CompendiumRealm? = nil) {
+            if let original {
+                self.original = original
+                self.displayName = original.displayName
+                if original.id.rawValue != slug(original.displayName) {
+                    self.customSlug = original.id.rawValue
+                }
+            }
+        }
+
+        struct Notice: Equatable {
+            let icon: String
+            let message: String
+            let foregroundColor: Color
+            let isDismissible: Bool
+
+            static func error(_ message: String) -> Notice {
+                Notice(
+                    icon: "exclamationmark.octagon",
+                    message: message,
+                    foregroundColor: Color(UIColor.systemRed),
+                    isDismissible: true
+                )
+            }
+        }
     }
 
-    enum Action: Equatable {
-
+    enum Action: BindableAction, Equatable {
+        case onCancelButtonTap
+        case onDoneButtonTap
+        case onErrorTap
+        case onSlugChange(String)
+        case binding(BindingAction<State>)
     }
+
+    @Dependency(\.dismiss) var dismiss
+    @Dependency(\.compendiumMetadata) var compendiumMetadata
 
     var body: some ReducerProtocolOf<Self> {
-        EmptyReducer()
+        Reduce { state, action in
+            switch action {
+            case .onCancelButtonTap:
+                return .fireAndForget { await dismiss() }
+
+            case .onDoneButtonTap:
+                guard let displayName = state.displayName.nonEmptyString else {
+                    return .none
+                }
+
+                guard state.hasPendingChanges else {
+                    return .fireAndForget { await dismiss() }
+                }
+
+                return .run { [state] send in
+                    do {
+                        if let original = state.original {
+                            // update existing realm
+                            try await compendiumMetadata.updateRealm(original.id, displayName)
+                        } else {
+                            // create new realm
+                            try compendiumMetadata.createRealm(CompendiumRealm(
+                                id: .init(state.effectiveSlug),
+                                displayName: displayName
+                            ))
+                        }
+                        await dismiss()
+                    } catch {
+                        await send(.binding(.set(\.$error, error.localizedDescription)))
+                    }
+                }
+            case .onErrorTap:
+                state.error = nil
+
+            case .onSlugChange(let newSlug):
+                // Don't allow slug changes for existing realms
+                guard state.original == nil else { return .none }
+                
+                if newSlug != slug(state.displayName) {
+                    state.customSlug = newSlug
+                } else {
+                    state.customSlug = nil
+                }
+            default: break
+            }
+            return .none
+        }
+
+        BindingReducer()
     }
 }
 
@@ -134,16 +266,7 @@ struct EditDocument: ReducerProtocol {
 
         var customSlug: String?
         var effectiveSlug: String {
-            get {
-                customSlug?.nonEmptyString ?? slug(displayName)
-            }
-            set {
-                if newValue == slug(displayName) {
-                    customSlug = nil
-                } else {
-                    customSlug = newValue
-                }
-            }
+            customSlug?.nonEmptyString ?? slug(displayName)
         }
 
         var navigationTitle: String {
@@ -155,7 +278,7 @@ struct EditDocument: ReducerProtocol {
         }
 
         var doneButtonDisabled: Bool {
-            displayName.nonEmptyString == nil || realmId == nil
+            displayName.nonEmptyString == nil || realmId == nil || original?.isDefaultDocument == true
         }
 
         var hasPendingChanges: Bool {
@@ -169,7 +292,12 @@ struct EditDocument: ReducerProtocol {
         
         var notice: Notice? {
             if original?.isDefaultDocument == true {
-                return .immutableDefaultDocument()
+                return Notice(
+                    icon: "info.circle.fill",
+                    message: "This is a default document and cannot be edited.",
+                    foregroundColor: .primary,
+                    isDismissible: false
+                )
             }
             if let error = operation?.error {
                 return .error(error)
@@ -189,31 +317,6 @@ struct EditDocument: ReducerProtocol {
             }
 
             self.realms = realms
-        }
-
-        struct Notice: Equatable {
-            let icon: String
-            let message: String
-            let foregroundColor: Color
-            let isDismissible: Bool
-            
-            static func immutableDefaultDocument() -> Notice {
-                Notice(
-                    icon: "info.circle.fill",
-                    message: "This is a default document and cannot be edited.",
-                    foregroundColor: .primary,
-                    isDismissible: false
-                )
-            }
-            
-            static func error(_ error: Error) -> Notice {
-                Notice(
-                    icon: "exclamationmark.octagon",
-                    message: error.localizedDescription,
-                    foregroundColor: Color(UIColor.systemRed),
-                    isDismissible: true
-                )
-            }
         }
     }
 
@@ -278,8 +381,15 @@ struct EditDocument: ReducerProtocol {
                     // remove document
                     try await compendiumMetadata.removeDocument(original.realmId, original.id)
                 }
-            case .onSlugChange(let slug):
-                state.customSlug = slug
+            case .onSlugChange(let newSlug):
+                // Don't allow slug changes for existing documents
+                guard state.original == nil else { return .none }
+                
+                if newSlug != slug(state.displayName) {
+                    state.customSlug = newSlug
+                } else {
+                    state.customSlug = nil
+                }
             case .onViewItemsInDocumentTap:
                 guard let original = state.original else { break }
 
@@ -352,6 +462,15 @@ struct CompendiumDocumentsView: View {
                         SectionContainer(
                             title: realm.displayName,
                             accessory: Menu(content: {
+
+                                Button(action: {
+                                    viewStore.send(.onEditRealmTap(realm))
+                                }, label: {
+                                    Label("Edit realm", systemImage: "pencil")
+                                })
+
+                                Divider()
+
                                 Button(action: {
                                     viewStore.send(.onAddDocumentToRealmTap(realm))
                                 }, label: {
@@ -415,10 +534,15 @@ struct CompendiumDocumentsView: View {
             }
             .sheet(
                 store: store.scope(state: \.$sheet, action: CompendiumDocumentsFeature.Action.sheet),
-                state: /CompendiumDocumentsFeature.Sheet.State.addRealm,
-                action: CompendiumDocumentsFeature.Sheet.Action.addRealm
-            ) { _ in
-                Text("Hello")
+                state: /CompendiumDocumentsFeature.Sheet.State.editRealm,
+                action: CompendiumDocumentsFeature.Sheet.Action.editRealm
+            ) { store in
+                AutoSizingSheetContainer {
+                    SheetNavigationContainer {
+                        EditRealmView(store: store)
+                    }
+//                    .autoSizingSheetContent(constant: ViewStore(store).state)
+                }
             }
             .sheet(
                 store: store.scope(state: \.$sheet, action: CompendiumDocumentsFeature.Action.sheet),
@@ -449,31 +573,7 @@ struct CompendiumDocumentEditView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     if let notice = viewStore.notice {
-                        SectionContainer {
-                            VStack(alignment: notice.isDismissible ? .trailing : .leading) {
-                                HStack(spacing: 12) {
-                                    Text(Image(systemName: notice.icon))
-                                    Text(notice.message)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                                .padding(8)
-                                .foregroundStyle(notice.foregroundColor)
-                                .symbolRenderingMode(.monochrome)
-                                .symbolVariant(.fill)
-                                
-                                if notice.isDismissible {
-                                    Text("Tap to dismiss")
-                                        .font(.footnote)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                        .transition(.scale.combined(with: .opacity))
-                        .onTapGesture {
-                            if notice.isDismissible {
-                                viewStore.send(.onErrorTap, animation: .default)
-                            }
-                        }
+                        NoticeView(notice: notice)
                     }
 
                     SectionContainer {
@@ -580,6 +680,134 @@ struct CompendiumDocumentEditView: View {
             .navigationTitle(viewStore.state.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .interactiveDismissDisabled(viewStore.state.hasPendingChanges || viewStore.state.isLoading)
+        }
+    }
+}
+
+struct EditRealmView: View {
+    let store: StoreOf<EditRealm>
+
+    var body: some View {
+        WithViewStore(store) { viewStore in
+            ScrollView {
+                VStack(spacing: 20) {
+                    if let notice = viewStore.notice {
+                        SectionContainer {
+                            VStack(alignment: notice.isDismissible ? .trailing : .leading) {
+                                HStack(spacing: 12) {
+                                    Text(Image(systemName: notice.icon))
+                                    Text(notice.message)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .padding(8)
+                                .foregroundStyle(notice.foregroundColor)
+                                .symbolRenderingMode(.monochrome)
+                                .symbolVariant(.fill)
+
+                                if notice.isDismissible {
+                                    Text("Tap to dismiss")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .transition(.scale.combined(with: .opacity))
+                        .onTapGesture {
+                            if notice.isDismissible {
+                                viewStore.send(.onErrorTap, animation: .default)
+                            }
+                        }
+                    }
+
+                    SectionContainer {
+                        TextFieldWithSlug(
+                            title: "Realm name",
+                            text: viewStore.binding(\.$displayName),
+                            slug: viewStore.binding(
+                                get: \.effectiveSlug,
+                                send: { .onSlugChange($0) }
+                            ),
+                            configuration: .init(
+                                textForegroundColor: Color(UIColor.label),
+                                slugForegroundColor: Color(UIColor.secondaryLabel)
+                            ),
+                            requestFocusOnText: Binding.constant(viewStore.state.original == nil)
+                        )
+                        .padding(.trailing, 10)
+                    }
+                    .disabled(viewStore.state.original?.isDefaultRealm == true)
+                }
+                .padding()
+                .autoSizingSheetContent(constant: 100)
+            }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        viewStore.send(.onDoneButtonTap)
+                    }, label: {
+                        Text("Done").bold()
+                    })
+                    .disabled(viewStore.state.doneButtonDisabled)
+                }
+
+                ToolbarItem(placement: .navigation) {
+                    Button("Cancel", role: .destructive) {
+                        viewStore.send(.onCancelButtonTap)
+                    }
+                }
+            }
+            .navigationTitle(viewStore.state.navigationTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .interactiveDismissDisabled(viewStore.state.hasPendingChanges)
+        }
+    }
+}
+
+struct Notice: Equatable {
+    let icon: String
+    let message: String
+    let foregroundColor: Color
+    let isDismissible: Bool
+
+    static func error(_ error: Error) -> Notice {
+        Notice(
+            icon: "exclamationmark.octagon",
+            message: error.localizedDescription,
+            foregroundColor: Color(UIColor.systemRed),
+            isDismissible: true
+        )
+    }
+}
+
+struct NoticeView: View {
+    let notice: Notice
+    var onDismiss: (() -> Void)?
+
+    var body: some View {
+        SectionContainer {
+            VStack(alignment: notice.isDismissible ? .trailing : .leading) {
+                HStack(spacing: 12) {
+                    Text(Image(systemName: notice.icon))
+                    Text(notice.message)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(8)
+                .foregroundStyle(notice.foregroundColor)
+                .symbolRenderingMode(.monochrome)
+                .symbolVariant(.fill)
+
+                if notice.isDismissible {
+                    Text("Tap to dismiss")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .transition(.scale.combined(with: .opacity))
+        .onTapGesture {
+            if notice.isDismissible {
+                onDismiss?()
+            }
         }
     }
 }

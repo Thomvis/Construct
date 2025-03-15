@@ -711,11 +711,13 @@ fileprivate extension CompendiumFilterSheetState {
             maxMonsterCR: queryFilters?.maxMonsterChallengeRating,
             monsterType: queryFilters?.monsterType
         )
-        self.initial = values
-        self.current = values
 
-        self.allAllowedItemTypes = allAllowedItemTypes
-        self.sourceRestriction = sourceRestriction
+        self.init(
+            allAllowedItemTypes: allAllowedItemTypes,
+            sourceRestriction: sourceRestriction,
+            initial: values,
+            current: values
+        )
     }
 }
 

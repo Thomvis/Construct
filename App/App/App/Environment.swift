@@ -85,7 +85,10 @@ class Environment: ObservableObject {
     }
 
     var compendium: Compendium {
-        DatabaseCompendium(database: database, fallback: DndBeyondExternalCompendium())
+        DatabaseCompendium(
+            databaseAccess: database.access,
+            fallback: DndBeyondExternalCompendium()
+        )
     }
 
     var campaignBrowser: CampaignBrowser {
@@ -187,6 +190,8 @@ extension EnvironmentWithDatabase {
 
 extension Environment: EnvironmentWithModifierFormatter, EnvironmentWithMainQueue, EnvironmentWithDiceLog, EnvironmentWithMechMuse, EnvironmentWithDatabase, EnvironmentWithSendMail, EnvironmentWithCrashReporter, EnvironmentWithCompendium, EnvironmentWithCompendiumMetadata, EnvironmentWithRandomNumberGenerator, EnvironmentWithUUIDGenerator {
 
-    var compendiumMetadata: CompendiumMetadata { compendium.metadata }
+    var compendiumMetadata: CompendiumMetadata {
+        CompendiumMetadata.live(database)
+    }
 
 }

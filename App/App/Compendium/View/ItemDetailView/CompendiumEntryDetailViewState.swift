@@ -18,8 +18,8 @@ import ActionResolutionFeature
 import Persistence
 import Compendium
 
-typealias CompendiumEntryDetailEnvironment = EnvironmentWithDatabase & EnvironmentWithCompendium & EnvironmentWithCrashReporter 
-    & CreatureEditViewEnvironment & ActionResolutionEnvironment
+typealias CompendiumEntryDetailEnvironment = EnvironmentWithDatabase & EnvironmentWithCompendium & EnvironmentWithCompendiumMetadata
+    & EnvironmentWithCrashReporter & CreatureEditViewEnvironment & ActionResolutionEnvironment
 
 struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
 
@@ -99,6 +99,20 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         }
     }
 
+    var transferSheet: CompendiumItemTransferFeature.State? {
+        get {
+            if case .transfer(let s) = sheet {
+                return s
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                sheet = .transfer(newValue)
+            }
+        }
+    }
+
     var localStateForDeduplication: Self {
         var res = self
         res.popover = popover.map {
@@ -111,6 +125,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
             switch $0 {
             case .creatureEdit: return .creatureEdit(.nullInstance)
             case .groupEdit: return .groupEdit(.nullInstance)
+            case .transfer: return .transfer(.nullInstance)
             }
         }
         res.presentedScreens = presentedScreens.mapValues {
@@ -137,11 +152,13 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
     enum Sheet: Equatable, Identifiable {
         case creatureEdit(CreatureEditViewState)
         case groupEdit(CompendiumItemGroupEditState)
+        case transfer(CompendiumItemTransferFeature.State)
 
         var id: String {
             switch self {
             case .creatureEdit(let s): return s.navigationStackItemStateId
             case .groupEdit(let s): return s.navigationStackItemStateId
+            case .transfer: return "move"
             }
         }
     }
@@ -155,6 +172,11 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         return AnyReducer.combine(
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.creatureEdit, environment: { $0 }),
             CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.groupEdit, environment: { $0 }),
+            AnyReducer { env in
+                CompendiumItemTransferFeature()
+                    .dependency(\.compendiumMetadata, env.compendiumMetadata)
+            }
+            .optional().pullback(state: \.transferSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.transfer),
             ActionResolutionViewState.reducer.optional().pullback(state: \.createActionPopover, action: /CompendiumItemDetailViewAction.creatureActionPopover, environment: { $0 }),
             DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckPopover, action: /CompendiumItemDetailViewAction.rollCheckPopover, environment: { $0 }),
             AnyReducer.lazy(CompendiumEntryDetailViewState.reducer).optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.compendiumItemDetailView),
@@ -238,6 +260,12 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                         try await Task.sleep(for: .seconds(0.1))
                         await send(.didRemoveItem)
                     }
+                case .sheet(.transfer(CompendiumItemTransferFeature.Action.onMoveButtonTap)):
+                    let entry = state.entry
+                    return .run { send in
+                        // todo
+                        await send(.setSheet(nil))
+                    }
                 case .sheet: break // handled by the reducers above
                 case .didRemoveItem: break // handled by the compendium index reducer
                 case .setNextScreen(let s):
@@ -286,6 +314,7 @@ enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
     enum SheetAction: Equatable {
         case creatureEdit(CreatureEditViewAction)
         case groupEdit(CompendiumItemGroupEditAction)
+        case transfer(CompendiumItemTransferFeature.Action)
     }
 
     enum NextScreenAction: Equatable {

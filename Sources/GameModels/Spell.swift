@@ -52,7 +52,14 @@ public struct Spell: Codable {
 
 extension Spell: CompendiumItem, Equatable {
     public var key: CompendiumItemKey {
-        return CompendiumItemKey(type: .spell, realm: realm, identifier: name)
+        get {
+            return CompendiumItemKey(type: .spell, realm: realm, identifier: name)
+        }
+        set {
+            assert(newValue.type == .spell)
+            self.realm = newValue.realm
+            self.name = newValue.identifier
+        }
     }
 
     public var title: String {

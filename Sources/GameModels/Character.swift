@@ -31,7 +31,14 @@ public struct Character: Hashable {
 
 extension Character: CompendiumItem {
     public var key: CompendiumItemKey {
-        return CompendiumItemKey(type: .character, realm: realm, identifier: id.rawValue.uuidString)
+        get {
+            return CompendiumItemKey(type: .character, realm: realm, identifier: id.rawValue.uuidString)
+        }
+        set {
+            assert(newValue.type == .character)
+            self.realm = newValue.realm
+            self.id = Tagged(uuidString: key.identifier) ?? self.id
+        }
     }
 
     public var title: String {

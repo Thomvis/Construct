@@ -15,61 +15,36 @@ import Compendium
 
 public class DatabaseCompendium: Compendium {
 
-    public let database: Database
+    private let keyValueStore: KeyValueStore
     public let fallback: ExternalCompendium
-    public let metadata: CompendiumMetadata
 
-    public init(database: Database, fallback: ExternalCompendium = .empty) {
-        self.database = database
+    public init(databaseAccess: DatabaseAccess, fallback: ExternalCompendium = .empty) {
+        self.keyValueStore = DatabaseKeyValueStore(databaseAccess)
         self.fallback = fallback
-        self.metadata = CompendiumMetadata.live(database)
     }
 
     public func get(_ key: CompendiumItemKey) throws -> CompendiumEntry? {
-        try database.keyValueStore.get(key)
+        try keyValueStore.get(key)
     }
 
     public func get(_ key: CompendiumItemKey, crashReporter: CrashReporter) throws -> CompendiumEntry? {
-        try database.keyValueStore.get(key, crashReporter: crashReporter)
+        try keyValueStore.get(key, crashReporter: crashReporter)
     }
 
     public func put(_ entry: CompendiumEntry) throws {
-        try database.keyValueStore.put(entry, fts: entry.ftsDocument, secondaryIndexValues: entry.secondaryIndexValues)
+        try keyValueStore.put(entry, fts: entry.ftsDocument, secondaryIndexValues: entry.secondaryIndexValues)
     }
 
     public func contains(_ key: GameModels.CompendiumItemKey) throws -> Bool {
-        try database.keyValueStore.contains(CompendiumEntry.key(for: key))
+        try keyValueStore.contains(CompendiumEntry.key(for: key))
     }
 
-    public func fetchAll(
-        search: String?,
-        filters: CompendiumFilters?,
-        order: Order?,
-        range: Range<Int>?
-    ) throws -> [CompendiumEntry] {
-        let typeKeyPrefixes = filters?.types.map { $0.map { CompendiumEntry.keyPrefix(for: $0) } } ?? [CompendiumEntry.keyPrefix(for: nil)]
-        return try self.database.keyValueStore.fetchAll(KeyValueStoreRequest(
-            keyPrefixes: typeKeyPrefixes,
-            fullTextSearch: search,
-            filters: filters?.secondaryIndexFilters ?? [],
-            order: order.map(SecondaryIndexOrder.init).nonNilArray,
-            range: range
-        ))
+    public func fetch(_ request: CompendiumFetchRequest) throws -> [CompendiumEntry] {
+        try keyValueStore.fetchAll(request.toKeyValueStoreRequest())
     }
 
-    public func fetchKeys(
-        search: String? = nil,
-        filters: CompendiumFilters? = nil,
-        order: Order? = nil,
-        range: Range<Int>? = nil
-    ) throws -> [CompendiumItemKey] {
-        let keys = try database.keyValueStore.fetchKeys(KeyValueStoreRequest(
-            keyPrefix: CompendiumEntry.keyPrefix,
-            fullTextSearch: search,
-            filters: filters?.secondaryIndexFilters ?? [],
-            order: order.map(SecondaryIndexOrder.init).nonNilArray,
-            range: range
-        ))
+    public func fetchKeys(_ request: CompendiumFetchRequest) throws -> [CompendiumItemKey] {
+        let keys = try keyValueStore.fetchKeys(request.toKeyValueStoreRequest())
         return keys.compactMap {
             let res = CompendiumItemKey(compendiumEntryKey: $0)
             assert(res != nil)
@@ -77,8 +52,12 @@ public class DatabaseCompendium: Compendium {
         }
     }
 
+    public func count(_ request: CompendiumFetchRequest) throws -> Int {
+        try keyValueStore.count(request.toKeyValueStoreRequest())
+    }
+
     public func resolve(annotation: CompendiumItemReferenceTextAnnotation) -> ReferenceResolveResult {
-        let internalResults = try? fetchAll(search: annotation.text, filters: .init(types: annotation.type.map { [$0] }), order: .title, range: nil)
+        let internalResults = try? fetch(CompendiumFetchRequest(search: annotation.text, filters: .init(types: annotation.type.map { [$0] }), order: .title, range: nil))
 
         if let exactMatch = internalResults?.first(where: { $0.item.title.caseInsensitiveCompare(annotation.text) == .orderedSame }) {
             return .internal(CompendiumItemReference(itemTitle: exactMatch.item.title, itemKey: exactMatch.item.key))
@@ -216,12 +195,12 @@ public extension CompendiumMetadata {
             }
 
             try store.put(realm)
-        } updateRealm: { realm in
-            if try !store.contains(realm.key) {
+        } updateRealm: { id, displayName in
+            if try !store.contains(CompendiumRealm.key(for: id)) {
                 throw CompendiumMetadataError.resourceNotFound
             }
 
-            try store.put(realm)
+            try store.put(CompendiumRealm(id: id, displayName: displayName))
         } removeRealm: { id in
             let key = CompendiumRealm.key(for: id)
             if try !store.contains(key) {
@@ -244,43 +223,43 @@ public extension CompendiumMetadata {
 
             try store.put(doc)
         } updateDocument: { doc, originalRealmId, originalDocumentId in
-            let originalKey = CompendiumSourceDocument.key(forRealmId: originalRealmId, documentId: originalDocumentId)
-            if try !store.contains(originalKey) {
-                throw CompendiumMetadataError.resourceNotFound
-            }
+            try database.queue.inTransaction { db in
+                let dbAccess = DirectDatabaseAccess(db: db)
+                let store = DatabaseKeyValueStore(dbAccess)
 
-            if try doc.realmId != originalRealmId && !store.contains(CompendiumRealm.key(for: doc.realmId)) {
-                throw CompendiumMetadataError.invalidRealmId
-            }
+                let originalKey = CompendiumSourceDocument.key(forRealmId: originalRealmId, documentId: originalDocumentId)
+                if try !store.contains(originalKey) {
+                    throw CompendiumMetadataError.resourceNotFound
+                }
 
-            // todo: transaction
+                if try doc.realmId != originalRealmId && !store.contains(CompendiumRealm.key(for: doc.realmId)) {
+                    throw CompendiumMetadataError.invalidRealmId
+                }
 
-            let moving: Set<CompendiumItemKey>?
-            if doc.realmId != originalRealmId {
-                let compendium = DatabaseCompendium(database: database)
-                moving = try Set(compendium.fetchKeys(filters: .init(
-                    source: .init(
-                        realm: originalRealmId,
-                        document: originalDocumentId
-                    )
-                )))
-            } else {
-                moving = nil
-            }
+                let moving: Set<CompendiumItemKey>?
+                if doc.realmId != originalRealmId {
+                    let compendium = DatabaseCompendium(databaseAccess: dbAccess)
+                    moving = try Set(compendium.fetchKeys(filters: .init(
+                        source: .init(
+                            realm: originalRealmId,
+                            document: originalDocumentId
+                        )
+                    )))
+                } else {
+                    moving = nil
+                }
 
-            // if display name changed: update reference to doc from content items
-            let visitor = UpdateCompendiumSourceDocumentGameModelsVisitor(
-                updatedDocument: doc,
-                originalRealmId: originalRealmId,
-                originalDocumentId: originalDocumentId,
-                moving: moving
-            )
+                // if display name changed: update reference to doc from content items
+                let visitor = PostDocumentMoveGameModelsVisitor(
+                    updatedDocument: doc,
+                    originalRealmId: originalRealmId,
+                    originalDocumentId: originalDocumentId,
+                    moving: moving
+                )
 
-            let visitorManager = KeyValueStoreVisitorManager()
-            try database.keyValueStore.transaction { store in
+                let visitorManager = KeyValueStoreVisitorManager(databaseQueue: database.queue)
                 try visitorManager.run(
                     visitor: AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: visitor),
-                    store: store,
                     conflictResolution: .rename(fallback: .remove)
                 )
 
@@ -299,6 +278,8 @@ public extension CompendiumMetadata {
                 } else {
                     try store.put(doc)
                 }
+
+                return .commit
             }
         } removeDocument: { realmId, documentId in
             let key = CompendiumSourceDocument.key(forRealmId: realmId, documentId: documentId)
@@ -319,6 +300,145 @@ public extension CompendiumMetadata {
                     ]
                 ))
             }
+        }
+    }
+
+}
+
+extension CompendiumFetchRequest {
+    func toKeyValueStoreRequest() -> KeyValueStoreRequest {
+        let keyPrefixes = filters?.types.map { $0.map { CompendiumEntry.keyPrefix(for: $0) } } ?? [CompendiumEntry.keyPrefix]
+        
+        return KeyValueStoreRequest(
+            keyPrefixes: keyPrefixes,
+            fullTextSearch: search,
+            filters: filters?.secondaryIndexFilters ?? [],
+            order: order.map(SecondaryIndexOrder.init).nonNilArray,
+            range: range
+        )
+    }
+}
+
+struct CompendiumSourceDocumentKey: Hashable {
+    let realmId: CompendiumRealm.Id
+    let documentId: CompendiumSourceDocument.Id
+}
+
+func transfer(
+    _ selection: CompendiumItemSelection,
+    mode: TransferMode,
+    target: CompendiumSourceDocumentKey,
+    conflictResolution: ConflictResolution,
+    db: DatabaseAccess
+) async throws {
+    let keyValueStore = DatabaseKeyValueStore(db)
+
+    guard let targetDocument = try keyValueStore.get(CompendiumSourceDocument.key(forRealmId: target.realmId, documentId: target.documentId)) else {
+
+        throw CompendiumMetadataError.resourceNotFound
+    }
+
+    try db.inSavepoint { db in
+        let visitorManager = KeyValueStoreVisitorManager(databaseAccess: DirectDatabaseAccess(db: db))
+
+        // Step 1: transfer items
+        let visitorScope = switch selection {
+        case .single(let compendiumItemKey):
+            KeyValueStoreRequest(keyPrefix: CompendiumEntry.key(for: compendiumItemKey).rawValue)
+        case .multiple(let compendiumFetchRequest):
+            compendiumFetchRequest.toKeyValueStoreRequest()
+        }
+
+        let visitorConflictResolution: KeyValueStoreVisitorManager.ConflictResolution = switch conflictResolution {
+            case .skip: .skip
+            case .overwrite: .overwrite
+            case .keepBoth: .rename(fallback: .skip)
+        }
+
+        let visitor = UpdateEntryDocumentGameModelsVisitor(targetDocument: targetDocument)
+        let transferVisitorResult = try visitorManager.run(
+            scope: visitorScope,
+            visitor: AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: visitor),
+            conflictResolution: visitorConflictResolution,
+            removeOriginalEntityOnKeyChange: mode == .move
+        )
+
+
+        // Step 2: update references to transferred items (if moved)
+        if mode == .move {
+            let movedItemKeys = transferVisitorResult.success
+
+            // update references to transferred items
+            let referenceVisitor = UpdateItemReferenceGameModels { key -> CompendiumItemKey? in
+                guard movedItemKeys.contains(CompendiumEntry.key(for: key).rawValue) else { return nil }
+                return CompendiumItemKey(
+                    type: key.type,
+                    realm: .init(targetDocument.realmId),
+                    identifier: key.identifier
+                )
+            }
+            try visitorManager.run(
+                visitor: AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: referenceVisitor),
+                conflictResolution: .skip
+            )
+        }
+
+        return .commit
+    }
+
+}
+
+public class UpdateEntryDocumentGameModelsVisitor: AbstractGameModelsVisitor {
+
+    let targetDocument: CompendiumSourceDocument
+
+    public init(targetDocument: CompendiumSourceDocument) {
+        self.targetDocument = targetDocument
+    }
+
+    @VisitorBuilder
+    override public func visit(entry: inout CompendiumEntry) -> Bool {
+        super.visit(entry: &entry)
+
+        visitValue(&entry, keyPath: \.document.displayName, value: targetDocument.displayName)
+        visitValue(&entry, keyPath: \.document.id, value: targetDocument.id)
+        visitValue(&entry, keyPath: \.item.realm, value: .init(targetDocument.realmId))
+    }
+
+}
+
+public class UpdateItemReferenceGameModels: AbstractGameModelsVisitor {
+
+    let updatedKey: (CompendiumItemKey) -> CompendiumItemKey?
+
+    public init(updatedKey: @escaping (CompendiumItemKey) -> CompendiumItemKey?) {
+        self.updatedKey = updatedKey
+    }
+
+    @VisitorBuilder
+    public override func visit(compendiumCombatantDefinition def: inout CompendiumCombatantDefinition) -> Bool {
+        super.visit(compendiumCombatantDefinition: &def)
+
+        if let key = updatedKey(def.item.key) {
+            switch def.item {
+            case var monster as Monster:
+                visitValue(&monster, keyPath: \.key, value: key)
+                def.item = monster
+            case var character as Character:
+                visitValue(&character, keyPath: \.key, value: key)
+                def.item = character
+            default:
+                assertionFailure("Unexpected CompendiumCombatant in visitor")
+            }
+        }
+    }
+
+    @VisitorBuilder
+    public override func visit(itemReference: inout CompendiumItemReference) -> Bool {
+        super.visit(itemReference: &itemReference)
+
+        if let key = updatedKey(itemReference.itemKey) {
+            visitValue(&itemReference, keyPath: \.itemKey, value: key)
         }
     }
 

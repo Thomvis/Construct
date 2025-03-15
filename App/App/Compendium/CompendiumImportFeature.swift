@@ -101,6 +101,7 @@ struct CompendiumImportFeature: ReducerProtocol {
     }
 
     @Dependency(\.compendium) var compendium
+    @Dependency(\.compendiumMetadata) var compendiumMetadata
 
     var body: some ReducerProtocol<State, Action> {
         Reduce { state, action in
@@ -142,14 +143,14 @@ struct CompendiumImportFeature: ReducerProtocol {
                 return .run { send in
                     do {
                         if let newRealm {
-                            try compendium.metadata.createRealm(newRealm)
+                            try compendiumMetadata.createRealm(newRealm)
                         }
 
                         if let newDocument {
-                            try compendium.metadata.createDocument(newDocument)
+                            try compendiumMetadata.createDocument(newDocument)
                         }
 
-                        let importer = CompendiumImporter(compendium: compendium)
+                        let importer = CompendiumImporter(compendium: compendium, metadata: compendiumMetadata)
 
                         let result = try await importer.run(task)
                         await send(.importDidFinish(result))
@@ -1276,7 +1277,7 @@ enum CompendiumMetadataKey: DependencyKey {
 
         } createRealm: { _ in
 
-        } updateRealm: { _ in
+        } updateRealm: { _, _ in
 
         } removeRealm: { _ in
 
@@ -1293,7 +1294,7 @@ enum CompendiumMetadataKey: DependencyKey {
 enum CompendiumKey: DependencyKey {
     public static var liveValue: Compendium {
         @Dependency(\.database) var database
-        return DatabaseCompendium(database: database)
+        return DatabaseCompendium(databaseAccess: database.access)
     }
 }
 

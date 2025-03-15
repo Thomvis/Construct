@@ -11,34 +11,46 @@ import Helpers
 import Combine
 
 public protocol Compendium {
-    var metadata: CompendiumMetadata { get }
-
     func get(_ key: CompendiumItemKey) throws -> CompendiumEntry?
     func get(_ key: CompendiumItemKey, crashReporter: CrashReporter) throws -> CompendiumEntry?
     func put(_ entry: CompendiumEntry) throws
     func contains(_ key: CompendiumItemKey) throws -> Bool
-    func fetchAll(search: String?, filters: CompendiumFilters?, order: Order?, range: Range<Int>?) throws -> [CompendiumEntry]
-    func fetchKeys(search: String?, filters: CompendiumFilters?, order: Order?, range: Range<Int>?) throws -> [CompendiumItemKey]
+    
+    func fetch(_ request: CompendiumFetchRequest) throws -> [CompendiumEntry]
+    func fetchKeys(_ request: CompendiumFetchRequest) throws -> [CompendiumItemKey]
+    func count(_ request: CompendiumFetchRequest) throws -> Int
+    
     func resolve(annotation: CompendiumItemReferenceTextAnnotation) -> ReferenceResolveResult
 }
 
 public extension Compendium {
+    // Default implementations that map old methods to new ones
     func fetchAll(
         search: String? = nil,
         filters: CompendiumFilters? = nil,
         order: Order? = nil,
         range: Range<Int>? = nil
     ) throws -> [CompendiumEntry] {
-        try fetchAll(search: search, filters: filters, order: order, range: range)
+        try fetch(CompendiumFetchRequest(
+            search: search,
+            filters: filters,
+            order: order,
+            range: range
+        ))
     }
 
     func fetchKeys(
-        search: String?,
-        filters: CompendiumFilters?,
-        order: Order?,
-        range: Range<Int>?
+        search: String? = nil,
+        filters: CompendiumFilters? = nil,
+        order: Order? = nil,
+        range: Range<Int>? = nil
     ) throws -> [CompendiumItemKey] {
-        try fetchKeys(search: search, filters: filters, order: order, range: range)
+        try fetchKeys(CompendiumFetchRequest(
+            search: search,
+            filters: filters,
+            order: order,
+            range: range
+        ))
     }
 }
 
@@ -98,6 +110,7 @@ public struct CompendiumFilters: Equatable {
     }
 
     public enum Property: CaseIterable, Equatable {
+        case source
         case itemType
         case minMonsterCR
         case maxMonsterCR
@@ -121,44 +134,18 @@ public enum ReferenceResolveResult {
     case notFound
 }
 
-public extension Compendium {
-    func importDefaultContent(monsters: Bool = true, spells: Bool = true) async throws {
-        // Documents & Realms
-        try await metadata.createOrUpdateRealm(CompendiumRealm.core)
-        try await metadata.createOrUpdateRealm(CompendiumRealm.homebrew)
-        try await metadata.createOrUpdateDocument(CompendiumSourceDocument.srd5_1)
-        try await metadata.createOrUpdateDocument(CompendiumSourceDocument.homebrew)
+public enum TransferMode: Int {
+    case copy = 0
+    case move = 1
+}
 
-        // Monsters
-        if monsters {
-            let task = CompendiumImportTask(
-                sourceId: CompendiumImportSourceId.defaultMonsters,
-                sourceVersion: DefaultContentVersions.current.monsters,
-                reader: Open5eDataSourceReader(
-                    dataSource: FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
-                    generateUUID: { UUID() }
-                ),
-                document: CompendiumSourceDocument.srd5_1,
-                overwriteExisting: true
-            )
+public enum ConflictResolution: Equatable, CaseIterable {
+    case skip
+    case overwrite
+    case keepBoth
+}
 
-            _ = try await CompendiumImporter(compendium: self).run(task)
-        }
-
-        // Spells
-        if spells {
-            let task = CompendiumImportTask(
-                sourceId: CompendiumImportSourceId.defaultSpells,
-                sourceVersion: DefaultContentVersions.current.spells,
-                reader: Open5eDataSourceReader(
-                    dataSource: FileDataSource(path: defaultSpellsPath).decode(type: [O5e.Spell].self).toOpen5eAPIResults(),
-                    generateUUID: { UUID() }
-                ),
-                document: CompendiumSourceDocument.srd5_1,
-                overwriteExisting: true
-            )
-
-            _ = try await CompendiumImporter(compendium: self).run(task)
-        }
-    }
+public enum CompendiumItemSelection: Equatable {
+    case single(CompendiumItemKey)
+    case multiple(CompendiumFetchRequest)
 }

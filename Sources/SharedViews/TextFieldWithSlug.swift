@@ -76,6 +76,12 @@ public struct TextFieldWithSlug: View {
                 localSlug = slug
             }
         }
+        .onChange(of: slug) { newValue in
+            // update field with model while we don't have focus
+            if !focusOnSlug {
+                localSlug = slug
+            }
+        }
     }
 
     public struct Configuration {

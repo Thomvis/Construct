@@ -39,7 +39,7 @@ public struct CompendiumItemKey: Codable, Hashable {
     }
 
     public struct Realm: CustomStringConvertible, Codable, Hashable {
-        let value: CompendiumRealm.Id
+        public let value: CompendiumRealm.Id
 
         public init(_ id: CompendiumRealm.Id) {
             self.value = id

@@ -28,12 +28,21 @@ public class Database {
         return db
     }
 
+    public var access: DatabaseAccess {
+        DatabaseQueueAccess(queue: queue)
+    }
+
     // If path is nil, an in-memory database is created
     public convenience init(
         path: String?,
         importDefaultContent: Bool = true
     ) async throws {
-        let queue = try path.map { try DatabaseQueue(path: $0) } ?? DatabaseQueue()
+        var conf = Configuration()
+        conf.publicStatementArguments = true
+        conf.prepareDatabase { db in
+            db.trace { print($0) }
+        }
+        let queue = try path.map { try DatabaseQueue(path: $0, configuration: conf) } ?? DatabaseQueue()
         try self.init(queue: queue, importDefaultContent: importDefaultContent)
         try await prepareForUse()
     }
@@ -66,7 +75,7 @@ public class Database {
         self.migrator = try Self.migrator()
         self.importDefaultContent = importDefaultContent
         self.keyValueStore = DatabaseKeyValueStore(DatabaseQueueAccess(queue: queue))
-        self.visitorManager = KeyValueStoreVisitorManager()
+        self.visitorManager = KeyValueStoreVisitorManager(databaseQueue: queue)
 
         #if DEBUG
         print("Opened db at path: \(queue.path)")
@@ -158,7 +167,6 @@ public class Database {
         if needsParseableProcessing {
             try visitorManager.run(
                 visitor: ParseableEntityVisitor.shared,
-                store: keyValueStore,
                 conflictResolution: .overwrite
             )
             var preferences: Preferences = try keyValueStore.get(Preferences.key) ?? Preferences()
@@ -172,8 +180,15 @@ public class Database {
     }
 
     func importDefaultCompendiumContent(monsters: Bool = true, spells: Bool = true) async throws {
-        let compendium = DatabaseCompendium(database: self, fallback: .empty)
-        try await compendium.importDefaultContent(monsters: monsters, spells: spells)
+        let compendium = DatabaseCompendium(databaseAccess: DatabaseQueueAccess(queue: queue), fallback: .empty)
+        let metadata = CompendiumMetadata.live(self)
+        let importer = CompendiumImporter(
+            compendium: compendium,
+            metadata: metadata
+        )
+
+        try await metadata.importDefaultContent()
+        try await importer.importDefaultContent(monsters: monsters, spells: spells)
     }
 
 }
@@ -182,6 +197,8 @@ public protocol DatabaseAccess {
     func read<T>(_ value: (GRDB.Database) throws -> T) throws -> T
     func write<T>(_ updates: (GRDB.Database) throws -> T) throws -> T
     func observe<R>(_ observation: ValueObservation<R>) -> AsyncThrowingStream<R.Value, Error> where R: ValueReducer
+
+    func inSavepoint(_ operations: (GRDB.Database) throws -> GRDB.Database.TransactionCompletion) throws
 }
 
 public struct DatabaseQueueAccess: DatabaseAccess {
@@ -197,6 +214,14 @@ public struct DatabaseQueueAccess: DatabaseAccess {
 
     public func observe<R>(_ observation: ValueObservation<R>) -> AsyncThrowingStream<R.Value, Error> where R: ValueReducer {
         observation.values(in: queue).stream
+    }
+
+    public func inSavepoint(_ operations: (GRDB.Database) throws -> GRDB.Database.TransactionCompletion) throws {
+        try queue.write { db in
+            try db.inSavepoint {
+                try operations(db)
+            }
+        }
     }
 }
 
@@ -214,6 +239,12 @@ public struct DirectDatabaseAccess: DatabaseAccess {
     public func observe<R>(_ observation: ValueObservation<R>) -> AsyncThrowingStream<R.Value, Error> where R : ValueReducer {
         assertionFailure("DatabaseAccess.observe not supported on DirectDatabaseAccess")
         return .finished(throwing: DirectDatabaseAccessError.unsupportedOperation)
+    }
+
+    public func inSavepoint(_ operations: (GRDB.Database) throws -> GRDB.Database.TransactionCompletion) throws {
+        try db.inSavepoint {
+            try operations(db)
+        }
     }
 }
 
@@ -234,7 +265,10 @@ enum DirectDatabaseAccessError: Error {
 }
 
 extension Database: DependencyKey {
-    public static var liveValue: Database { .uninitialized }
+    public static var liveValue: Database {
+//        assertionFailure("Database dependency is not configured")
+        return .uninitialized
+    }
 }
 
 public extension DependencyValues {

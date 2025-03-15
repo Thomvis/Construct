@@ -10,6 +10,7 @@ import Foundation
 import GameModels
 import XCTest
 import SnapshotTesting
+import InlineSnapshotTesting
 import TestSupport
 import Helpers
 import CustomDump
@@ -133,6 +134,12 @@ final class GameModelsVisitorTest: XCTestCase {
         override func visit(statBlock: inout StatBlock) -> Bool {
             super.visit(statBlock: &statBlock)
             visitValue(&statBlock, keyPath: \.name, value: "visited")
+        }
+
+        @VisitorBuilder
+        override func visit(itemReference: inout CompendiumItemReference) -> Bool {
+            super.visit(itemReference: &itemReference)
+            visitValue(&itemReference, keyPath: \.itemTitle, value: "visited")
         }
     }
 }

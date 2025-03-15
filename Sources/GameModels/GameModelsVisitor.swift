@@ -52,7 +52,7 @@ open class AbstractGameModelsVisitor: GameModelsVisitor {
             result = visit(group: &group) || result
             entry.item = group
         default:
-            assertionFailure("Unexpected CompendiumCombatant in visitor")
+            assertionFailure("Unexpected CompendiumItem in visitor")
         }
 
         // origin
@@ -88,17 +88,18 @@ open class AbstractGameModelsVisitor: GameModelsVisitor {
         optionalVisit(&adHocCombatantDefinition.original, visit: visit)
     }
 
+    @VisitorBuilder
     open func visit(compendiumCombatantDefinition: inout CompendiumCombatantDefinition) -> Bool {
         switch compendiumCombatantDefinition.item {
         case var monster as Monster:
-            defer { compendiumCombatantDefinition.item = monster }
-            return visit(monster: &monster)
+            visit(monster: &monster)
+            compendiumCombatantDefinition.item = monster
         case var character as Character:
-            defer { compendiumCombatantDefinition.item = character }
-            return visit(character: &character)
+            visit(character: &character)
+            compendiumCombatantDefinition.item = character
         default:
             assertionFailure("Unexpected CompendiumCombatant in visitor")
-            return false
+            false
         }
     }
 
@@ -115,7 +116,11 @@ open class AbstractGameModelsVisitor: GameModelsVisitor {
     }
 
     open func visit(group: inout CompendiumItemGroup) -> Bool {
-        return false
+        return visitEach(
+            model: &group,
+            toCollection: \.members,
+            visit: visit(itemReference:)
+        )
     }
 
     @VisitorBuilder

@@ -26,8 +26,6 @@ public protocol KeyValueStore {
     func count(_ request: KeyValueStoreRequest) throws -> Int
 
     func fetchKeys(_ request: KeyValueStoreRequest) throws -> [String]
-
-    func transaction(_ updates: (KeyValueStore) throws -> Void) throws -> Void
 }
 
 public extension KeyValueStore {
