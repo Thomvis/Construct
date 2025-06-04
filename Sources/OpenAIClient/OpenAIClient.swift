@@ -220,20 +220,23 @@ public struct ChatCompletionRequest: Encodable, Equatable {
     public var messages: [ChatMessage]
     public var functions: [Function]?
     public var functionCall: String?
+    public var responseFormat: ResponseFormat?
     public let maxTokens: Int?
     public let temperature: Float?
     var stream: Bool = false
 
     public init(
-        model: Model = .gpt35Turbo,
+        model: Model = .gpt4o,
         messages: [ChatMessage],
         functions: [Function]? = nil,
+        responseFormat: ResponseFormat? = nil,
         maxTokens: Int? = nil,
         temperature: Float? = nil
     ) {
         self.model = model
         self.messages = messages
         self.functions = functions
+        self.responseFormat = responseFormat
         self.maxTokens = maxTokens
         self.temperature = temperature
     }
@@ -277,6 +280,17 @@ public struct ChatCompletionRequest: Encodable, Equatable {
         struct Function: Encodable {
             var name: String
         }
+    }
+
+    public struct ResponseFormat: Encodable, Equatable {
+        public var type: String
+
+        public init(type: String) {
+            self.type = type
+        }
+
+        public static let jsonObject = Self(type: "json_object")
+        public static let text = Self(type: "text")
     }
 }
 

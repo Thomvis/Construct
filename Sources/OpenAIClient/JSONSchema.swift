@@ -13,6 +13,7 @@ public struct JSONSchema: Codable, Equatable {
     public var properties: [String: JSONSchema]?
     public var required: [String]?
     public var `enum`: [String]?
+    public var items: JSONSchema?
 }
 
 public extension JSONSchema {
@@ -30,5 +31,9 @@ public extension JSONSchema {
 
     static func boolean(description: String? = nil) -> Self {
         JSONSchema(type: "boolean", description: description)
+    }
+
+    static func array(of items: JSONSchema, description: String? = nil) -> Self {
+        JSONSchema(type: "array", description: description, properties: nil, required: nil, enum: nil, items: items)
     }
 }

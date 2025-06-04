@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Parsing
 import OpenAIClient
 
 public struct GenerateCombatantTraitsRequest {
@@ -17,92 +16,41 @@ public struct GenerateCombatantTraitsRequest {
     }
 }
 
-extension GenerateCombatantTraitsRequest: PromptConvertible {
-    public func prompt() -> [ChatMessage] {
-        let namesList = combatantNames.map { "\"\($0)\"" }.joined(separator: ", ")
-
-        // Prompt notes:
-        // - Spelling out D&D because it yields slightly longer responses
-        // - Without quotes around each combatant name, the discriminator could be omitted from the response
-        // - Added "Limit each value to a single sentence" to subdue the tendency to give a bulleted list when only
-        //   a single combatant was in the request.
+extension GenerateCombatantTraitsRequest {
+    func messages() -> [ChatMessage] {
+        let namesList = combatantNames.joined(separator: ", ")
         return [
             .init(role: .system, content: "You are helping a Dungeons & Dragons DM create awesome encounters."),
-            .init(role: .user, content: """
-                The encounter has \(combatantNames.count) monster(s): \(namesList). Come up with gritty physical and personality traits that don't interfere with its stats and unique nickname that fits its traits. One trait of each type for each monster, limit each trait to a single sentence.
-
-                Format your answer as a correct YAML sequence of maps, with an entry for each monster. Each entry has fields name, physical, personality, nickname.
-                """
-            )
+            .init(role: .user, content: "Describe gritty physical and personality traits and a unique nickname for each of the following combatants: \(namesList). Respond in JSON with an object that has a `combatants` array of objects each containing `name`, `physical`, `personality`, and `nickname`.")
         ]
+    }
+
+    func prompt() -> [ChatMessage] { messages() }
+
+    func chatRequest() -> ChatCompletionRequest {
+        ChatCompletionRequest(
+            messages: messages(),
+            responseFormat: .jsonObject,
+            maxTokens: 150 * max(combatantNames.count, 1),
+            temperature: 0.9
+        )
     }
 }
 
-public enum GenerateCombatantTraitsResponse {
-    static let parser = Parse(input: Substring.self) {
-        Whitespace()
+public struct GenerateCombatantTraitsResponse: Codable {
+    public var combatants: [Traits]
+}
 
-        OneOf {
-            Parse(input: Substring.self) {
-                "```yaml"
-                Whitespace()
-                yamlParser
-                Whitespace()
+public struct Traits: Codable, Equatable, Hashable {
+    public let name: String
+    public let physical: String
+    public let personality: String
+    public let nickname: String
 
-                Skip {
-                    Optionally { "```" }
-                }
-            }
-
-            yamlParser
-        }
-
-        Whitespace()
-    }
-
-    static let yamlParser = Many(into: [Traits]()) { acc, elem in
-        acc.append(elem)
-    } element: {
-        singleParser
-    } separator: {
-        Whitespace()
-    }
-
-    private static let singleParser = Parse(Traits.init(name:physical:personality:nickname:)) {
-        "- name: "
-        trimmedString
-        Whitespace()
-
-        StartsWith("Physical:", by: { $0.lowercased() == $1.lowercased() })
-        Whitespace()
-        trimmedString
-        Whitespace()
-
-        StartsWith("Personality:", by: { $0.lowercased() == $1.lowercased() })
-        Whitespace()
-        trimmedString
-        Whitespace()
-
-        StartsWith("Nickname:", by: { $0.lowercased() == $1.lowercased() })
-        Whitespace()
-        trimmedString
-    }
-
-    private static let trimmedString = Prefix<Substring> { !$0.isNewline }.map {
-        $0.trimmingCharacters(in: CharacterSet(["\"", "'", ".", " "]))
-    }
-
-    public struct Traits: Equatable, Hashable {
-        public let name: String
-        public let physical: String
-        public let personality: String
-        public let nickname: String
-
-        public init(name: String, physical: String, personality: String, nickname: String) {
-            self.name = name
-            self.physical = physical
-            self.personality = personality
-            self.nickname = nickname
-        }
+    public init(name: String, physical: String, personality: String, nickname: String) {
+        self.name = name
+        self.physical = physical
+        self.personality = personality
+        self.nickname = nickname
     }
 }

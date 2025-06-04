@@ -86,60 +86,17 @@ public extension MechMuse {
                 }
             },
             describeCombatants: { client, request in
-                assert(!request.combatantNames.isEmpty)
-                let prompt = request.prompt()
-
-                typealias TraitsArray = [GenerateCombatantTraitsResponse.Traits]
-                let endToken = "[Construct::END]"
                 do {
-                    return try chain(client.stream(request: ChatCompletionRequest(
-                        messages: prompt,
-                        maxTokens: 150 * max(request.combatantNames.count, 1),
-                        temperature: 0.9
-                    )), [endToken].async)
-                    // reduce the tokens into a growing (partial) response
-                    .reductions(into: "", { acc, elem in
-                        acc += elem
-                    })
-                    // parse every (partial) response
-                    .map { acc -> TraitsArray in
-                        if acc.hasSuffix(endToken) {
-
-                            do {
-                                let traits = try GenerateCombatantTraitsResponse.parser.parse(String(acc.dropLast(endToken.count)))
-
-                                if traits.isEmpty {
-                                    throw MechMuseError.unspecified // is upgraded to .interpretationFailed below
-                                }
-
-                                // we're at the end of the response, add a dummy Traits that is removed in the next operator
-                                return traits + [.init(name: "", physical: "", personality: "", nickname: "")]
-                            } catch {
-                                throw MechMuseError.interpretationFailed(
-                                    text: String(acc.dropLast(endToken.count)),
-                                    error: String(describing: error)
-                                )
-                            }
-                        } else {
-                            do {
-                                return try GenerateCombatantTraitsResponse.parser.parse(acc)
-                            } catch {
-                                return []
-                            }
-                        }
+                    let response = try await client.perform(request: request.chatRequest())
+                    guard
+                        let content = response.choices.first?.message.content,
+                        let data = content.data(using: .utf8)
+                    else {
+                        throw MechMuseError.unspecified
                     }
-                    // remember all seen traits
-                    .reductions(into: (TraitsArray(), TraitsArray()), { traits, parsed in
-                        // drop the last because it might be incomplete
-                        let new = parsed.dropLast(1).filter { t in
-                            !traits.0.contains(t)
-                        }
-                        traits = (traits.0 + new, new)
-                    })
-                    // emit just the new traits
-                    .flatMap { (all, new) in
-                        return new.async
-                    }.stream
+
+                    let wrapper = try JSONDecoder().decode(GenerateCombatantTraitsResponse.self, from: data)
+                    return wrapper.combatants.async.stream
                 } catch let error as OpenAIError {
                     throw MechMuseError(from: error)
                 } catch {
