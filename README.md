@@ -19,7 +19,8 @@ The easiest way to use the app is by downloading it from the App Store.
 You can find an overview of Construct's features at [construct5e.app](https://www.construct5e.app).
 
 ### For developers
-Download the project, open `Construct.xcodeproj` and run `Construct`.
+Download the project, copy your `GoogleService-Info.plist` downloaded from the Firebase console to `App/GoogleService-Info.plist` and then open `Construct.xcodeproj`.
+The real plist is intentionally git‑ignored. A sample `GoogleService-Info.example.plist` is included as a reference.
 
 #### Architecture overview
 Construct is built using SwiftUI and a reducer-based architecture implemented using [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) framework. The entire app's state is represented by the [AppState struct](https://github.com/Thomvis/Construct/blob/main/Construct/App/AppState.swift), a deeply nested data structure containing the top-level screens and any screen, sheet or popover opened from there. A [tight integration](https://github.com/Thomvis/Construct/blob/main/Construct/Foundation/Navigation.swift) between SwiftUI's NavigationLink and the app's state make programmatic navigation a breeze.

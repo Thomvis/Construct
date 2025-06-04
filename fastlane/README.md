@@ -31,13 +31,6 @@ Push a new beta build to TestFlight
 
 
 
-### ios update_appcenter_dsyms
-
-```sh
-[bundle exec] fastlane ios update_appcenter_dsyms
-```
-
-
 
 ### ios prepare_app_store_screenshots
 

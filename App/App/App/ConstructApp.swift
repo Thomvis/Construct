@@ -9,18 +9,16 @@
 import SwiftUI
 import Combine
 import ComposableArchitecture
-import AppCenter
-import AppCenterAnalytics
-import AppCenterCrashes
+import FirebaseCore
+import FirebaseAnalytics
+import FirebaseCrashlytics
 import GameModels
 
 @main
 struct ConstructApp: App {
 
     init() {
-        AppCenter.start(withAppSecret: "72078370-4844-4ec2-a850-22a22dee0233", services: [
-            Analytics.self, Crashes.self
-        ])
+        FirebaseApp.configure()
     }
 
     @SceneBuilder
@@ -198,16 +196,14 @@ struct ConstructView: View {
     }
 
     private func setUpCrashesUserConfirmationHandler() {
-        Crashes.userConfirmationHandler = { (errorReports: [ErrorReport]) in
-            if let preferences: Preferences = try? env.database.keyValueStore.get(Preferences.key),
-                preferences.errorReportingEnabled == true
-            {
-                // user consent has been given, send reports
-                return false
+        if let preferences: Preferences = try? env.database.keyValueStore.get(Preferences.key) {
+            Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(preferences.errorReportingEnabled == true)
+            if preferences.errorReportingEnabled != true {
+                ViewStore(store).send(.requestPresentation(.crashReportingPermissionAlert))
             }
-
+        } else {
+            Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(false)
             ViewStore(store).send(.requestPresentation(.crashReportingPermissionAlert))
-            return true
         }
     }
 }

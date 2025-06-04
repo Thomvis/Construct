@@ -105,7 +105,6 @@ GEM
       xcodeproj (>= 1.13.0, < 2.0.0)
       xcpretty (~> 0.3.0)
       xcpretty-travis-formatter (>= 0.0.3)
-    fastlane-plugin-appcenter (1.11.0)
     gh_inspector (1.1.3)
     google-apis-androidpublisher_v3 (0.33.0)
       google-apis-core (>= 0.9.1, < 2.a)
@@ -217,7 +216,6 @@ PLATFORMS
 
 DEPENDENCIES
   fastlane
-  fastlane-plugin-appcenter
   xcode-install
 
 BUNDLED WITH
