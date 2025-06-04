@@ -27,18 +27,18 @@ final class OpenAIClientTest: XCTestCase {
     func testCompletion() async throws {
         // fake the response
         let responseData = """
-        {"id":"cmpl-6JmBNcxha3k89zV2L6XzBXZdt5gb0","object":"text_completion","created":1670171465,"model":"text-davinci-003","choices":[{"text":"\\n\\nThis is indeed a test.","index":0,"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":5,"completion_tokens":8,"total_tokens":13}}
+        {"id":"cmpl-6JmBNcxha3k89zV2L6XzBXZdt5gb0","object":"text_completion","created":1670171465,"model":"gpt-4o","choices":[{"text":"\\n\\nThis is indeed a test.","index":0,"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":5,"completion_tokens":8,"total_tokens":13}}
         """.data(using: .utf8)!
         httpClient.dataResponse = (responseData, HTTPURLResponse())
 
         let response = try await sut.perform(request: CompletionRequest(
-            model: .Davinci3,
+            model: .gpt4o,
             prompt: "Say this is a test"
         ))
 
         // Assert serialized request
         let requestData = """
-        {"model":"text-davinci-003","stream":false,"prompt":"Say this is a test"}
+        {"model":"gpt-4o","stream":false,"prompt":"Say this is a test"}
         """.data(using: .utf8)!
         try XCTAssertNoDifferenceJSONData(requestData, httpClient.dataRequests.last?.httpBody)
 
@@ -47,7 +47,7 @@ final class OpenAIClientTest: XCTestCase {
             id: "cmpl-6JmBNcxha3k89zV2L6XzBXZdt5gb0",
             object: "text_completion",
             created: 1670171465,
-            model: "text-davinci-003",
+            model: "gpt-4o",
             choices: [
                 .init(text: "\n\nThis is indeed a test.", finishReason: "stop")
             ]
@@ -58,18 +58,18 @@ final class OpenAIClientTest: XCTestCase {
         // fake the response
         httpClient.streamResponse = [
             """
-            {"id":"chatcmpl-6qJTvkR92tgHsu9nvdFSJSdhzk4yO","object":"chat.completion.chunk","created":1677925963,"model":"gpt-3.5-turbo-0301","choices":[{"delta":{"role":"assistant"},"index":0,"finish_reason":null}]}
+            {"id":"chatcmpl-6qJTvkR92tgHsu9nvdFSJSdhzk4yO","object":"chat.completion.chunk","created":1677925963,"model":"gpt-4o","choices":[{"delta":{"role":"assistant"},"index":0,"finish_reason":null}]}
             """,
             """
-            {"id":"chatcmpl-6qJTvkR92tgHsu9nvdFSJSdhzk4yO","object":"chat.completion.chunk","created":1677925963,"model":"gpt-3.5-turbo-0301","choices":[{"delta":{"content":"As"},"index":0,"finish_reason":null}]}
+            {"id":"chatcmpl-6qJTvkR92tgHsu9nvdFSJSdhzk4yO","object":"chat.completion.chunk","created":1677925963,"model":"gpt-4o","choices":[{"delta":{"content":"As"},"index":0,"finish_reason":null}]}
             """,
             """
-            {"id":"chatcmpl-6qJTvkR92tgHsu9nvdFSJSdhzk4yO","object":"chat.completion.chunk","created":1677925963,"model":"gpt-3.5-turbo-0301","choices":[{"delta":{"content":" the"},"index":0,"finish_reason":null}]}
+            {"id":"chatcmpl-6qJTvkR92tgHsu9nvdFSJSdhzk4yO","object":"chat.completion.chunk","created":1677925963,"model":"gpt-4o","choices":[{"delta":{"content":" the"},"index":0,"finish_reason":null}]}
             """
         ].async.stream
 
         let response = try sut.stream(request: ChatCompletionRequest(
-            model: .gpt35Turbo,
+            model: .gpt4o,
             messages: [
                 .init(role: .system, content: "You are a D&D DM"),
                 .init(role: .user, content: "Narrate the attack of a goblin")
@@ -78,7 +78,7 @@ final class OpenAIClientTest: XCTestCase {
 
         // Assert serialized request
         let requestData = """
-        {"model":"gpt-3.5-turbo","stream":true,"messages":[{"content":"You are a D&D DM","role":"system"},{"content":"Narrate the attack of a goblin","role":"user"}]}
+        {"model":"gpt-4o","stream":true,"messages":[{"content":"You are a D&D DM","role":"system"},{"content":"Narrate the attack of a goblin","role":"user"}]}
         """.data(using: .utf8)!
         try XCTAssertNoDifferenceJSONData(requestData, httpClient.streamRequests.last?.httpBody)
 
