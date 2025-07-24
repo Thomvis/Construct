@@ -179,6 +179,7 @@ let package = Package(
             dependencies: [
                 "Persistence",
                 "GameModels",
+                "TestSupport",
                 .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")
             ]
         ),

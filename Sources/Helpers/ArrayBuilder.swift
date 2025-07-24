@@ -9,6 +9,10 @@ import Foundation
 
 @resultBuilder
 public struct ArrayBuilder<Element> {
+    public static func buildBlock() -> [Element] {
+        []
+    }
+
     public static func buildPartialBlock(first: Element) -> [Element] {
         [first]
     }
