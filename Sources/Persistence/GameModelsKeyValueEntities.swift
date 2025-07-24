@@ -96,6 +96,27 @@ extension CompendiumEntry: KeyValueStoreEntity {
     }
 }
 
+extension CompendiumEntry: KeyConflictResolution {
+    mutating func updateKeyForConflictResolution() {
+        switch item {
+        case var monster as Monster:
+            add2Suffix(&monster.stats.name)
+            item = monster
+            break
+        case var spell as Spell:
+            add2Suffix(&spell.name)
+            item = spell
+        default:
+            assertionFailure("Unexpected key conflict for compendium item")
+            break
+        }
+    }
+
+    private func add2Suffix(_ string: inout String) {
+        string = "\(string) 2"
+    }
+}
+
 extension CompendiumSourceDocument: KeyValueStoreEntity {
     public static var keyPrefix: String = "sourceDoc"
     public var key: Key {

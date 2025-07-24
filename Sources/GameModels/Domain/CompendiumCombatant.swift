@@ -93,8 +93,15 @@ extension Combatant {
         )
     }
 
-    public init(compendiumCombatant: CompendiumCombatant, hp: Hp? = nil, party: CompendiumItemReference? = nil, persistent: Bool = false) {
+    public init(
+        id: Id = UUID().tagged(),
+        compendiumCombatant: CompendiumCombatant,
+        hp: Hp? = nil,
+        party: CompendiumItemReference? = nil,
+        persistent: Bool = false
+    ) {
         self.init(
+            id: id,
             definition: CompendiumCombatantDefinition(item: compendiumCombatant, persistent: persistent),
             hp: hp,
             resources: compendiumCombatant.stats.extractResources(),

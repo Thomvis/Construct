@@ -249,29 +249,48 @@ public extension CompendiumMetadata {
                     moving = nil
                 }
 
-                // if display name changed: update reference to doc from content items
-                let visitor = PostDocumentMoveGameModelsVisitor(
-                    updatedDocument: doc,
-                    originalRealmId: originalRealmId,
-                    originalDocumentId: originalDocumentId,
-                    moving: moving
-                )
+                let visitorManager = KeyValueStoreVisitorManager(databaseAccess: DirectDatabaseAccess(db: db))
 
-                let visitorManager = KeyValueStoreVisitorManager(databaseQueue: database.queue)
+                // Create all necessary visitors
+                let visitors: [KeyValueStoreEntityVisitor] = Array {
+                    // Updates entries with new document info
+                    AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateEntryDocumentGameModelsVisitor(
+                        originalDocumentId: originalDocumentId,
+                        targetDocument: doc
+                    ))
+
+                    // Updates document id in import job(s)
+                    if doc.id != originalDocumentId {
+                        AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateImportJobDocumentGameModelsVisitor(
+                            originalDocumentId: originalDocumentId,
+                            updatedDocumentId: doc.id
+                        ))
+                    }
+
+                    // Updates compendium item references if realm changed
+                    if doc.realmId != originalRealmId, let moving = moving {
+                        AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateItemReferenceGameModelsVisitor { key -> CompendiumItemKey? in
+                            guard moving.contains(key) else { return nil }
+                            return CompendiumItemKey(
+                                type: key.type,
+                                realm: .init(doc.realmId),
+                                identifier: key.identifier
+                            )
+                        })
+                    }
+                }
+                
+                // Run all visitors in a single pass
                 try visitorManager.run(
-                    visitor: AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: visitor),
+                    visitors: visitors,
                     conflictResolution: .rename(fallback: .remove)
                 )
 
                 if originalKey != doc.key {
                     // it's a move
-
                     if CompendiumSourceDocument.isDefaultDocument(id: originalDocumentId) {
                         throw CompendiumMetadataError.cannotMoveDefaultResource
                     }
-
-                    // if the doc id changed: update reference to doc from content items
-                    // if the realm id changed: update realm of content items (i.e. move all items)
 
                     try store.put(doc)
                     try store.remove(originalKey)
@@ -322,15 +341,27 @@ extension CompendiumFetchRequest {
 struct CompendiumSourceDocumentKey: Hashable {
     let realmId: CompendiumRealm.Id
     let documentId: CompendiumSourceDocument.Id
+
+    public init(realmId: CompendiumRealm.Id, documentId: CompendiumSourceDocument.Id) {
+        self.realmId = realmId
+        self.documentId = documentId
+    }
+
+    public init(_ document: CompendiumSourceDocument) {
+        self.realmId = document.realmId
+        self.documentId = document.id
+    }
 }
 
+@discardableResult
 func transfer(
     _ selection: CompendiumItemSelection,
     mode: TransferMode,
     target: CompendiumSourceDocumentKey,
     conflictResolution: ConflictResolution,
     db: DatabaseAccess
-) async throws {
+) async throws -> [String] {
+    var result: [String] = []
     let keyValueStore = DatabaseKeyValueStore(db)
 
     guard let targetDocument = try keyValueStore.get(CompendiumSourceDocument.key(forRealmId: target.realmId, documentId: target.documentId)) else {
@@ -355,21 +386,28 @@ func transfer(
             case .keepBoth: .rename(fallback: .skip)
         }
 
-        let visitor = UpdateEntryDocumentGameModelsVisitor(targetDocument: targetDocument)
+        let visitor = UpdateEntryDocumentGameModelsVisitor(
+            originalDocumentId: nil,
+            targetDocument: targetDocument
+        )
         let transferVisitorResult = try visitorManager.run(
             scope: visitorScope,
             visitor: AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: visitor),
             conflictResolution: visitorConflictResolution,
-            removeOriginalEntityOnKeyChange: mode == .move
+            removeOriginalEntityOnKeyChange: mode == .move,
+            conflictWithOriginalEntity: true
         )
 
+        // TODO: update entry's origin for copied items
+        // TODO: not update references to items that did not move (item group)
+        // TODO: update references correctly for items that were "renamed"
 
         // Step 2: update references to transferred items (if moved)
         if mode == .move {
             let movedItemKeys = transferVisitorResult.success
 
             // update references to transferred items
-            let referenceVisitor = UpdateItemReferenceGameModels { key -> CompendiumItemKey? in
+            let referenceVisitor = UpdateItemReferenceGameModelsVisitor { key -> CompendiumItemKey? in
                 guard movedItemKeys.contains(CompendiumEntry.key(for: key).rawValue) else { return nil }
                 return CompendiumItemKey(
                     type: key.type,
@@ -382,64 +420,9 @@ func transfer(
                 conflictResolution: .skip
             )
         }
+        result = transferVisitorResult.success
 
         return .commit
     }
-
-}
-
-public class UpdateEntryDocumentGameModelsVisitor: AbstractGameModelsVisitor {
-
-    let targetDocument: CompendiumSourceDocument
-
-    public init(targetDocument: CompendiumSourceDocument) {
-        self.targetDocument = targetDocument
-    }
-
-    @VisitorBuilder
-    override public func visit(entry: inout CompendiumEntry) -> Bool {
-        super.visit(entry: &entry)
-
-        visitValue(&entry, keyPath: \.document.displayName, value: targetDocument.displayName)
-        visitValue(&entry, keyPath: \.document.id, value: targetDocument.id)
-        visitValue(&entry, keyPath: \.item.realm, value: .init(targetDocument.realmId))
-    }
-
-}
-
-public class UpdateItemReferenceGameModels: AbstractGameModelsVisitor {
-
-    let updatedKey: (CompendiumItemKey) -> CompendiumItemKey?
-
-    public init(updatedKey: @escaping (CompendiumItemKey) -> CompendiumItemKey?) {
-        self.updatedKey = updatedKey
-    }
-
-    @VisitorBuilder
-    public override func visit(compendiumCombatantDefinition def: inout CompendiumCombatantDefinition) -> Bool {
-        super.visit(compendiumCombatantDefinition: &def)
-
-        if let key = updatedKey(def.item.key) {
-            switch def.item {
-            case var monster as Monster:
-                visitValue(&monster, keyPath: \.key, value: key)
-                def.item = monster
-            case var character as Character:
-                visitValue(&character, keyPath: \.key, value: key)
-                def.item = character
-            default:
-                assertionFailure("Unexpected CompendiumCombatant in visitor")
-            }
-        }
-    }
-
-    @VisitorBuilder
-    public override func visit(itemReference: inout CompendiumItemReference) -> Bool {
-        super.visit(itemReference: &itemReference)
-
-        if let key = updatedKey(itemReference.itemKey) {
-            visitValue(&itemReference, keyPath: \.itemKey, value: key)
-        }
-    }
-
+    return result
 }

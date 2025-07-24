@@ -357,7 +357,7 @@ extension DatabaseKeyValueStore {
 
     func fts(for key: String) throws -> FTSRecord? {
         return try database.read { db in
-            try Record.select(Column.rowID).asRequest(of: Row.self).fetchOne(db).flatMap { row in
+            try Record.select(Column.rowID).filter(key: key).asRequest(of: Row.self).fetchOne(db).flatMap { row in
                 let cid = row[Column.rowID]
                 return try FTSRecord.filter(Column.rowID == cid).fetchOne(db)
             }

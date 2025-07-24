@@ -117,6 +117,7 @@ public struct CompendiumFilters: Equatable {
         case monsterType
     }
 
+    // TODO: merge with CompendiumSourceDocumentKey
     public struct Source: Hashable {
         public var realm: CompendiumRealm.Id
         public var document: CompendiumSourceDocument.Id
@@ -124,6 +125,11 @@ public struct CompendiumFilters: Equatable {
         public init(realm: CompendiumRealm.Id, document: CompendiumSourceDocument.Id) {
             self.realm = realm
             self.document = document
+        }
+
+        public init(_ document: CompendiumSourceDocument) {
+            self.realm = document.realmId
+            self.document = document.id
         }
     }
 }

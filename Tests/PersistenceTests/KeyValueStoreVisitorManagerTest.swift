@@ -31,22 +31,19 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
             + 1firstvisited
             -   entity: {"id":"first","value":0}
             +   entity: {"id":"firstvisited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":4,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
             - 1second
             + 1secondvisited
             -   entity: {"id":"second","value":0}
             +   entity: {"id":"secondvisited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":4,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
             - 1third
             + 1thirdvisited
             -   entity: {"id":"third","value":0}
             +   entity: {"id":"thirdvisited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":4,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
               """
             """#
@@ -73,22 +70,22 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
               1first
             -   entity: {"id":"first","value":0}
             +   entity: {"id":"first","value":1}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":1,"title":"one"}
+            -   fts:    {"id":0,"title":"zero"}
+            +   fts:    {"id":0,"title":"one"}
             -   idxs:   {"0":"0"}
             +   idxs:   {"0":"1"}
               1second
             -   entity: {"id":"second","value":0}
             +   entity: {"id":"second","value":1}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":1,"title":"one"}
+            -   fts:    {"id":0,"title":"zero"}
+            +   fts:    {"id":0,"title":"one"}
             -   idxs:   {"0":"0"}
             +   idxs:   {"0":"1"}
               1third
             -   entity: {"id":"third","value":0}
             +   entity: {"id":"third","value":1}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":1,"title":"one"}
+            -   fts:    {"id":0,"title":"zero"}
+            +   fts:    {"id":0,"title":"one"}
             -   idxs:   {"0":"0"}
             +   idxs:   {"0":"1"}
               """
@@ -116,12 +113,11 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
             + 1firstvisitedvisited
             -   entity: {"id":"first","value":0}
             +   entity: {"id":"firstvisitedvisited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":3,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
             - 1firstvisited
             -   entity: {"id":"firstvisited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
+            -   fts:    {"id":0,"title":"zero"}
             -   idxs:   {"0":"0"}
               """
             """#
@@ -154,47 +150,41 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
             + 1firstvisited 2 2 2visited
             -   entity: {"id":"first","value":0}
             +   entity: {"id":"firstvisited 2 2 2visited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":11,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
             - 1firstvisited
             + 1firstvisited 2 2visited
             -   entity: {"id":"firstvisited","value":0}
             +   entity: {"id":"firstvisited 2 2visited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":11,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
             - 1firstvisited 2
             + 1firstvisited 2visited
             -   entity: {"id":"firstvisited 2","value":0}
             +   entity: {"id":"firstvisited 2visited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":11,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
             - 1firstvisited 2 2
             + 1firstvisitedvisited
             -   entity: {"id":"firstvisited 2 2","value":0}
             +   entity: {"id":"firstvisitedvisited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":11,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
             - 1firstvisited 2 2 2
             + 1secondvisited 2
             -   entity: {"id":"firstvisited 2 2 2","value":0}
             +   entity: {"id":"secondvisited 2","value":0}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":11,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
             - 1second
             + 1secondvisitedvisited
             -   entity: {"id":"second","value":0}
             +   entity: {"id":"secondvisitedvisited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
-            +   fts:    {"id":11,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
             - 1secondvisited
             -   entity: {"id":"secondvisited","value":0}
-            -   fts:    {"id":1,"title":"zero"}
+            -   fts:    {"id":0,"title":"zero"}
             -   idxs:   {"0":"0"}
               """
             """#
@@ -227,15 +217,43 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
               """
               1first
                 entity: {"id":"first","value":0}
-                fts:    {"id":1,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
             - 1firstvisited
             + 1firstvisitedvisited
             -   entity: {"id":"firstvisited","value":0}
             +   entity: {"id":"firstvisitedvisited","value":0}
-                fts:    {"id":1,"title":"zero"}
+                fts:    {"id":0,"title":"zero"}
                 idxs:   {"0":"0"}
               """
+            """#
+        }
+    }
+
+    /// Verify that conflicts are handled when the conflicting entity is not in the run's scope
+    func testConflictResolutionSkipWithPartialScope() throws {
+        let db = Database.uninitialized
+        let sut = KeyValueStoreVisitorManager(databaseQueue: db.queue)
+
+        // Insert two records where Visitor1 would cause a conflict:
+        // "first" would become "firstvisited" (conflict with the second record),
+        // while "firstvisited" would become "firstvisitedvisited" (no conflict).
+        try db.keyValueStore.put(TestEntity1(id: "first", value: 2))
+        try db.keyValueStore.put(TestEntity1(id: "firstvisited"))
+
+        let initial = try db.keyValueStore.dump(.all)
+        let runResult = try sut.run(scope: .init(fullTextSearch: "two"), visitors: [Visitor1()], conflictResolution: .skip)
+        XCTAssertEqual(runResult.success, [])
+        let result = try db.keyValueStore.dump(.all)
+        let diff = diff(initial, result)
+
+        // Expected behavior:
+        // - The record with key "1first" remains unchanged because its updated key ("firstvisited")
+        //   conflicts with the existing "1firstvisited" and .skip causes a no-op.
+        // - The record with key "1firstvisited" is updated to "firstvisitedvisited"
+        //   (its put succeeds since there’s no conflict) and then its original key is removed.
+        assertInlineSnapshot(of: diff, as: .lines) {
+            #"""
             """#
         }
     }
@@ -307,7 +325,8 @@ extension DatabaseKeyValueStore {
 
             // add fts
             let fts = try fts(for: k).map {
-                try String(data: encoder.encode($0), encoding: .utf8)!
+                // Setting id to 0 because it is not relevant for the dump
+                try String(data: encoder.encode(FTSRecord(id: 0, title: $0.title, subtitle: $0.subtitle, body: $0.body)), encoding: .utf8)!
             } ?? "none"
             result += "  fts:    \(fts)\n"
 

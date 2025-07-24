@@ -25,13 +25,15 @@ public class KeyValueStoreVisitorManager {
         scope: KeyValueStoreRequest = .all,
         visitor: KeyValueStoreEntityVisitor,
         conflictResolution: ConflictResolution,
-        removeOriginalEntityOnKeyChange: Bool = true
+        removeOriginalEntityOnKeyChange: Bool = true,
+        conflictWithOriginalEntity: Bool = false
     ) throws -> Result {
         return try run(
             scope: scope,
             visitors: [visitor],
             conflictResolution: conflictResolution,
-            removeOriginalEntityOnKeyChange: removeOriginalEntityOnKeyChange
+            removeOriginalEntityOnKeyChange: removeOriginalEntityOnKeyChange,
+            conflictWithOriginalEntity: conflictWithOriginalEntity
         )
     }
 
@@ -40,7 +42,8 @@ public class KeyValueStoreVisitorManager {
         scope: KeyValueStoreRequest = .all,
         visitors: [KeyValueStoreEntityVisitor],
         conflictResolution: ConflictResolution,
-        removeOriginalEntityOnKeyChange: Bool = true
+        removeOriginalEntityOnKeyChange: Bool = true,
+        conflictWithOriginalEntity: Bool = false
     ) throws -> Result {
         var result = Result()
         try databaseAccess.inSavepoint { db in
@@ -60,25 +63,26 @@ public class KeyValueStoreVisitorManager {
                         // only save if we actually updated any parseable value
                         if entityDidChange {
                             try db.inSavepoint {
-                                let fts = (entity as? FTSDocumentConvertible)?.ftsDocument
-                                let indexValues = (entity as? SecondaryIndexValueRepresentable)?.secondaryIndexValues
 
-                                let keyChanged = originalKey != entity.rawKey
-                                var newKeyHasConflict = keys.contains(entity.rawKey)
+                                func hasConflict(_ entity: any KeyValueStoreEntity) throws -> Bool {
+                                    let keyChanged = originalKey != entity.rawKey
+                                    // `keys.contains` is faster, but might not be complete so we fallback to the store to be sure
+                                    let newKeyHasConflict = try keys.contains(entity.rawKey) || store.contains(entity.rawKey)
+                                    return (keyChanged && newKeyHasConflict) || (!keyChanged && conflictWithOriginalEntity)
+                                }
+
                                 var effectiveConflictResoluton = conflictResolution
 
-                                if keyChanged && newKeyHasConflict, case .rename(let fallback) = conflictResolution {
+                                if try hasConflict(entity), case .rename(let fallback) = conflictResolution {
                                     if var entityForConflictResolution = entity as? any KeyValueStoreEntity & KeyConflictResolution {
                                         var triesLeft = 3
-                                        while newKeyHasConflict && triesLeft > 0 {
+                                        while try hasConflict(entityForConflictResolution) && triesLeft > 0 {
                                             entityForConflictResolution.updateKeyForConflictResolution()
-
                                             triesLeft -= 1
-                                            newKeyHasConflict = keys.contains(entityForConflictResolution.rawKey)
                                         }
 
                                         entity = entityForConflictResolution
-                                        if newKeyHasConflict {
+                                        if try hasConflict(entity) {
                                             // conflict was not resolved
                                             effectiveConflictResoluton = fallback
                                         }
@@ -87,33 +91,35 @@ public class KeyValueStoreVisitorManager {
                                     }
                                 }
 
-                                if keyChanged {
-                                    if newKeyHasConflict {
-                                        switch effectiveConflictResoluton {
-                                        case .remove:
-                                            try store.remove(originalKey)
-                                        case .overwrite:
-                                            try store.put(entity, fts: fts, secondaryIndexValues: indexValues)
-                                            if removeOriginalEntityOnKeyChange {
-                                                try store.remove(originalKey)
-                                            }
-                                            result.success.append(key)
-                                        case .skip:
-                                            // no-op
-                                            break
-                                        case .rename:
-                                            assertionFailure("The fallback conflict resolution should not be rename.")
-                                            break
-                                        }
-                                    } else {
+                                let keyChanged = originalKey != entity.rawKey
+
+                                let fts = (entity as? FTSDocumentConvertible)?.ftsDocument
+                                let indexValues = (entity as? SecondaryIndexValueRepresentable)?.secondaryIndexValues
+
+                                if try hasConflict(entity) {
+                                    switch effectiveConflictResoluton {
+                                    case .remove:
+                                        assert(keyChanged)
+                                        try store.remove(originalKey)
+                                    case .overwrite:
                                         try store.put(entity, fts: fts, secondaryIndexValues: indexValues)
-                                        if removeOriginalEntityOnKeyChange {
+                                        if keyChanged && removeOriginalEntityOnKeyChange {
                                             try store.remove(originalKey)
                                         }
                                         result.success.append(key)
+                                    case .skip:
+                                        // no-op
+                                        break
+                                    case .rename:
+                                        // FIXME: throw?
+                                        assertionFailure("The fallback conflict resolution should not be rename.")
+                                        break
                                     }
                                 } else {
                                     try store.put(entity, fts: fts, secondaryIndexValues: indexValues)
+                                    if keyChanged && removeOriginalEntityOnKeyChange {
+                                        try store.remove(originalKey)
+                                    }
                                     result.success.append(key)
                                 }
 
@@ -121,9 +127,11 @@ public class KeyValueStoreVisitorManager {
                             }
                         }
                     } else {
+                        // FIXME: throw?
                         print("Visiting of record \(key) skipped")
                     }
                 } catch {
+                    // FIXME: throw?
                     print("Visiting of record \(key) failed with error \(error)")
                 }
             }
