@@ -296,8 +296,8 @@ class DatabaseCompendiumTest: XCTestCase {
         try await transfer(
             selection, 
             mode: .move, 
-            target: CompendiumSourceDocumentKey(targetDocument), 
-            conflictResolution: .overwrite, 
+            target: CompendiumFilters.Source(targetDocument),
+            conflictResolution: .overwrite,
             db: db.access
         )
 
@@ -377,7 +377,7 @@ class DatabaseCompendiumTest: XCTestCase {
         try await transfer(
             selection,
             mode: .move,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .overwrite,
             db: db.access
         )
@@ -446,7 +446,7 @@ class DatabaseCompendiumTest: XCTestCase {
         try await transfer(
             selection,
             mode: .move,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .skip,
             db: db.access
         )
@@ -499,7 +499,7 @@ class DatabaseCompendiumTest: XCTestCase {
         try await transfer(
             selection,
             mode: .move,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .overwrite,
             db: db.access
         )
@@ -552,7 +552,7 @@ class DatabaseCompendiumTest: XCTestCase {
         try await transfer(
             selection,
             mode: .move,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .keepBoth,
             db: db.access
         )
@@ -617,7 +617,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let movedItemKeys = try await transfer(
             selection,
             mode: .move,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .overwrite,
             db: db.access
         )
@@ -670,7 +670,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let copiedItemKeys = try await transfer(
             selection,
             mode: .copy,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .skip,
             db: db.access
         )
@@ -720,7 +720,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let copiedItemKeys = try await transfer(
             selection,
             mode: .copy,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .overwrite,
             db: db.access
         )
@@ -769,7 +769,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let copiedItemKeys = try await transfer(
             selection,
             mode: .copy,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .keepBoth,
             db: db.access
         )
@@ -826,7 +826,7 @@ class DatabaseCompendiumTest: XCTestCase {
         try await transfer(
             selection,
             mode: .copy,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .overwrite,
             db: db.access
         )
@@ -895,7 +895,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let copiedItemKeys = try await transfer(
             selection,
             mode: .copy,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .overwrite,
             db: db.access
         )
@@ -963,7 +963,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let copiedItemKeys = try await transfer(
             selection,
             mode: .copy,
-            target: CompendiumSourceDocumentKey(targetDocument),
+            target: CompendiumFilters.Source(targetDocument),
             conflictResolution: .keepBoth,
             db: db.access
         )
@@ -1008,7 +1008,7 @@ class DatabaseCompendiumTest: XCTestCase {
         }.insert(into: db)
 
         // Create an invalid target document key (document doesn't exist)
-        let invalidTarget = CompendiumSourceDocumentKey(
+        let invalidTarget = CompendiumFilters.Source(
             CompendiumSourceDocument(id: "nonexistent", displayName: "Nonexistent", realmId: "sourceRealm")
         )
 
