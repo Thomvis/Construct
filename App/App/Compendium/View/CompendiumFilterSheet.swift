@@ -189,7 +189,6 @@ struct CompendiumFilterSheetState: Equatable {
         sourceRestriction: CompendiumFilters.Source? = nil,
         initial: CompendiumFilterSheetState.Values = .init(),
         current: CompendiumFilterSheetState.Values = .init(),
-        documentSelection: CompendiumDocumentSelectionFeature.State = .init(),
         documents: Async<[CompendiumSourceDocument], any Error> = .initial,
         realms: Async<[CompendiumRealm], any Error> = .initial
     ) {
@@ -197,7 +196,7 @@ struct CompendiumFilterSheetState: Equatable {
         self.sourceRestriction = sourceRestriction
         self.initial = initial
         self.current = current
-        self.documentSelection = documentSelection
+        self.documentSelection = .init(selectedSource: current.source)
         self.documents = documents
         self.realms = realms
     }
@@ -262,7 +261,6 @@ struct CompendiumFilterSheetState: Equatable {
 }
 
 enum CompendiumFilterSheetAction {
-    case source(CompendiumFilterSheetState.Source?)
     case itemType(CompendiumItemType?)
     case minMonsterCR(Double)
     case maxMonsterCR(Double)
@@ -348,7 +346,11 @@ extension CompendiumFilterSheetState {
         }.pullback(
             state: \CompendiumFilterSheetState.documentSelection,
             action: /CompendiumFilterSheetAction.documentSelection
-        ),
+        )
+        .onChange(of: \.documentSelection.selectedSource, perform: { s, state, action, env in
+            state.current.source = s
+            return .none
+        }),
         AnyReducer { state, action, _ in
             switch action {
             case .itemType(let type):
@@ -357,8 +359,6 @@ extension CompendiumFilterSheetState {
                 state.minMonsterCrDouble = v
             case .maxMonsterCR(let v):
                 state.maxMonsterCrDouble = v
-            case .source(let s):
-                state.current.source = s.map { s in .init(realm: s.realm.id, document: s.document.id) }
             case .monsterType(let t):
                 state.monsterType = t
             case .editing(.minMonsterCR, false):
@@ -384,7 +384,7 @@ extension CompendiumFilterSheetState {
                 return Filter.allCases.publisher.map { f in
                     .clear(f)
                 }.eraseToEffect()
-            case .source, .documentSelection:
+            case .documentSelection:
                 break
             }
             return .none
