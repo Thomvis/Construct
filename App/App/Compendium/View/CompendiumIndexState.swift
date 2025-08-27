@@ -278,6 +278,10 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         try await Task.sleep(for: .seconds(0.1))
                         await send(.results(.result(.reload(.currentCount))))
                     }
+                case .nextScreen(.compendiumEntry(.didAddCopy)),
+                     .detailScreen(.compendiumEntry(.didAddCopy)):
+                    // creature copied, edited & added
+                    return .send(.results(.result(.reload(.currentCount))))
                 case .nextScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))),
                      .detailScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))):
                     // done editing an existing creature

@@ -222,17 +222,8 @@ struct CreatureEditViewState: Equatable {
 
 struct CreatureEditFormModel: Equatable {
     var statBlock: StatBlockFormModel
-    var level: Int? {
-        didSet {
-            statBlock.statBlock.level = level
-        }
-    }
+
     var player: Player?
-    var challengeRating: Fraction? {
-        didSet {
-            statBlock.statBlock.challengeRating = challengeRating
-        }
-    }
     var originalItemForAdHocCombatant: CompendiumItemReference?
     var document: CompendiumDocumentSelectionFeature.State
 
@@ -258,22 +249,22 @@ struct CreatureEditFormModel: Equatable {
 
     var levelOrNilAsZero: Int {
         get {
-            if let level = level {
+            if let level = statBlock.level {
                 return level
             }
             return 0
         }
         set {
             if newValue == 0 {
-                self.level = nil
+                self.statBlock.level = nil
             } else {
-                self.level = newValue
+                self.statBlock.statBlock.level = newValue
             }
         }
     }
 
     var levelOrNilAsZeroString: String {
-        if let level = level {
+        if let level = statBlock.level {
             return "\(level)"
         }
 
@@ -456,6 +447,16 @@ struct StatBlockFormModel: Equatable {
 
     var proficiencyBonusModifier: String {
         modifierFormatter.stringWithFallback(for: statBlock.proficiencyBonus.modifier)
+    }
+
+    var level: Int? {
+        get { statBlock.level }
+        set { statBlock.level = newValue }
+    }
+
+    var challengeRating: Fraction? {
+        get { statBlock.challengeRating }
+        set { statBlock.challengeRating = newValue }
     }
 
     // todo: rename
@@ -646,18 +647,18 @@ extension CreatureEditViewState {
             }
         case .editMonster(var m):
             m.stats = statBlock
-            if let cr = model.challengeRating {
+            if let cr = model.statBlock.challengeRating {
                 m.challengeRating = cr
             }
             return m
         case .editCharacter(var c):
             c.stats = statBlock
-            c.level = model.level
+            c.level = model.statBlock.level
             c.player = model.player
             return c
         case .editAdHocCombatant(var c):
             c.stats = statBlock
-            c.level = model.level
+            c.level = model.statBlock.level
             c.player = model.player
             return c
         }
@@ -672,7 +673,7 @@ extension CreatureEditViewState {
     }
 
     var monster: Monster? {
-        guard let cr = model.challengeRating else { return nil }
+        guard let cr = model.statBlock.challengeRating else { return nil }
         let realm: CompendiumItemKey.Realm
         if let selectedSource = model.document.selectedSource {
             realm = .init(selectedSource.realm)
@@ -690,11 +691,11 @@ extension CreatureEditViewState {
         } else {
             realm = mode.originalItem?.realm ?? .init(CompendiumRealm.homebrew.id)
         }
-        return Character(id: mode.originalCharacter?.id ?? UUID().tagged(), realm: realm, level: model.level, stats: statBlock, player: player)
+        return Character(id: mode.originalCharacter?.id ?? UUID().tagged(), realm: realm, level: model.statBlock.level, stats: statBlock, player: player)
     }
 
     var adHocCombatant: AdHocCombatantDefinition? {
-        return AdHocCombatantDefinition(id: UUID().tagged(), stats: statBlock, player: model.player, level: model.level, original: model.originalItemForAdHocCombatant)
+        return AdHocCombatantDefinition(id: UUID().tagged(), stats: statBlock, player: model.player, level: model.statBlock.level, original: model.originalItemForAdHocCombatant)
     }
 
     var statBlock: StatBlock {
@@ -745,7 +746,6 @@ extension CompendiumItemType {
 extension CreatureEditFormModel {
     init(monster: Monster, documentId: CompendiumSourceDocument.Id = CompendiumSourceDocument.homebrew.id) {
         self.statBlock = StatBlockFormModel(statBlock: monster.stats)
-        self.challengeRating = monster.challengeRating
         self.document = CompendiumDocumentSelectionFeature.State(
             selectedSource: CompendiumFilters.Source(realm: monster.realm.value, document: documentId)
         )
@@ -753,7 +753,6 @@ extension CreatureEditFormModel {
 
     init(character: Character, documentId: CompendiumSourceDocument.Id = CompendiumSourceDocument.homebrew.id) {
         self.statBlock = StatBlockFormModel(statBlock: character.stats)
-        self.level = character.level
         self.player = character.player
         self.document = CompendiumDocumentSelectionFeature.State(
             selectedSource: CompendiumFilters.Source(realm: character.realm.value, document: documentId)
@@ -762,7 +761,6 @@ extension CreatureEditFormModel {
 
     init(combatant: AdHocCombatantDefinition) {
         self.statBlock = StatBlockFormModel(statBlock: combatant.stats)
-        self.level = combatant.level
         self.player = combatant.player
         self.originalItemForAdHocCombatant = combatant.original
         self.document = CompendiumDocumentSelectionFeature.State(

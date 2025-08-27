@@ -72,12 +72,13 @@ public struct Order: Equatable {
 
     public static let title = Order(key: .title, ascending: true)
     public static let monsterChallengeRating = Order(key: .monsterChallengeRating, ascending: true)
+    public static let spellLevel = Order(key: .spellLevel, ascending: true)
 
     public static func `default`(_ itemTypes: [CompendiumItemType]) -> Self {
         if let single = itemTypes.single {
             switch single {
-            case .monster: return .init(key: .monsterChallengeRating, ascending: true)
-            case .spell: return .init(key: .spellLevel, ascending: true)
+            case .monster: return .monsterChallengeRating
+            case .spell: return .spell
             case .character, .group: break
             }
         }

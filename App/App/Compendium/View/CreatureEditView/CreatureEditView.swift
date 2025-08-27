@@ -275,9 +275,9 @@ struct CreatureEditView: View {
             LabeledContent {
                 Menu {
                     Picker(
-                        selection: viewStore.binding(get: { $0.model.challengeRating }, send: {
+                        selection: viewStore.binding(get: { $0.model.statBlock.challengeRating }, send: {
                             var model = viewStore.model
-                            model.challengeRating = $0
+                            model.statBlock.challengeRating = $0
                             return .model(model)
                         }),
                         label: EmptyView()
@@ -287,7 +287,7 @@ struct CreatureEditView: View {
                         }
                     }
                 } label: {
-                    model.wrappedValue.challengeRating.map { cr in
+                    model.wrappedValue.statBlock.challengeRating.map { cr in
                         Group {
                             Text("\(cr.rawValue)")
 

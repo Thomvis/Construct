@@ -161,34 +161,28 @@ struct CompendiumItemDetailView: View {
 
     @ArrayBuilder<MenuItem>
     var menuItems: [MenuItem] {
-        switch item {
-        case let monster as Monster:
-            MenuItem(text: "Save as NPC", systemImage: "plus.square.on.square") {
-                self.viewStore.send(.onSaveMonsterAsNPCButton(monster))
-            }
-            
+        let isCreature = item is Monster || item is Character
+        if isCreature {
             MenuItem(text: "Edit", systemImage: "pencil") {
                 if let evs = self.editViewState {
                     self.viewStore.send(.setSheet(.creatureEdit(evs)))
                 }
             }
-            
-        case is Character:
-            MenuItem(text: "Edit", systemImage: "pencil") {
-                if let evs = self.editViewState {
-                    self.viewStore.send(.setSheet(.creatureEdit(evs)))
-                }
-            }
-            
-        case let group as CompendiumItemGroup:
+        } else if let group =  item as? CompendiumItemGroup {
             MenuItem(text: "Edit", systemImage: "pencil") {
                 self.viewStore.send(.setSheet(.groupEdit(CompendiumItemGroupEditState(mode: .edit, group: group))))
             }
-            
-        default:
-            Array<MenuItem>()
         }
-        
+
+        if isCreature, let itemStatBlock {
+            MenuItem(text: "Edit a copy", systemImage: "document.on.document") {
+                var state = CreatureEditViewState(create: .monster)
+                state.model.statBlock = .init(statBlock: itemStatBlock)
+                state.sections = state.creatureType.initialSections.union(state.model.sectionsWithData)
+                self.viewStore.send(.setSheet(.creatureEdit(state)))
+            }
+        }
+
         // Move/Copy option available for all items
         MenuItem(text: "Move/Copy", systemImage: "arrow.right.doc.on.clipboard") {
             let state = CompendiumItemTransferFeature.State(

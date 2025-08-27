@@ -236,6 +236,27 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                         }
                         await send(.setSheet(nil))
                     }
+                case .sheet(.creatureEdit(CreatureEditViewAction.onAddTap(let editState))):
+                    // A copy was edited and added
+                    let originalEntry = state.entry
+                    return .run { send in
+                        let item = editState.compendiumItem
+                        guard originalEntry.item.key != item?.key else {
+                            // prevent overwrite
+                            return
+                        }
+                        if let item = item {
+                            let entry = CompendiumEntry(
+                                item,
+                                origin: .created(CompendiumItemReference(originalEntry.item)),
+                                document: .init(editState.document)
+                            )
+                            try? env.compendium.put(entry)
+                            await send(.didAddCopy)
+                            await send(.setNextScreen(.compendiumItemDetailView(.init(entry: entry))))
+                        }
+                        await send(.setSheet(nil))
+                    }
                 case .sheet(.creatureEdit(CreatureEditViewAction.onRemoveTap)):
                     let entryKey = state.entry.key
                     return .run { send in
@@ -268,6 +289,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                     }
                 case .sheet: break // handled by the reducers above
                 case .didRemoveItem: break // handled by the compendium index reducer
+                case .didAddCopy: break // handled by the compendium index reducer
                 case .setNextScreen(let s):
                     state.presentedScreens[.nextInStack] = s
                 case .setDetailScreen(let s):
@@ -291,6 +313,7 @@ enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
     case setSheet(CompendiumEntryDetailViewState.Sheet?)
     case sheet(SheetAction)
     case didRemoveItem
+    case didAddCopy
 
     case setNextScreen(CompendiumEntryDetailViewState.NextScreen?)
     case nextScreen(NextScreenAction)

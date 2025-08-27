@@ -327,44 +327,39 @@ public extension CompendiumMetadata {
 extension CompendiumFetchRequest {
     func toKeyValueStoreRequest() -> KeyValueStoreRequest {
         let keyPrefixes = filters?.types.map { $0.map { CompendiumEntry.keyPrefix(for: $0) } } ?? [CompendiumEntry.keyPrefix]
-        
+
+        // Ensure we order on title, either as first or fallback order
+        let effectiveOrder: [SecondaryIndexOrder]
+        if let order, order.key == .title {
+            effectiveOrder = [SecondaryIndexOrder(order)]
+        } else {
+            effectiveOrder = order.map(SecondaryIndexOrder.init).nonNilArray + [SecondaryIndexOrder(.title)]
+        }
+
         return KeyValueStoreRequest(
             keyPrefixes: keyPrefixes,
             fullTextSearch: search,
             filters: filters?.secondaryIndexFilters ?? [],
-            order: order.map(SecondaryIndexOrder.init).nonNilArray,
+            order: effectiveOrder,
             range: range
         )
     }
 }
 
-struct CompendiumSourceDocumentKey: Hashable {
-    let realmId: CompendiumRealm.Id
-    let documentId: CompendiumSourceDocument.Id
 
-    public init(realmId: CompendiumRealm.Id, documentId: CompendiumSourceDocument.Id) {
-        self.realmId = realmId
-        self.documentId = documentId
-    }
-
-    public init(_ document: CompendiumSourceDocument) {
-        self.realmId = document.realmId
-        self.documentId = document.id
-    }
-}
 
 @discardableResult
 func transfer(
     _ selection: CompendiumItemSelection,
     mode: TransferMode,
-    target: CompendiumSourceDocumentKey,
+    target: CompendiumFilters.Source,
     conflictResolution: ConflictResolution,
     db: DatabaseAccess
 ) async throws -> [String] {
     var result: [String] = []
     let keyValueStore = DatabaseKeyValueStore(db)
 
-    guard let targetDocument = try keyValueStore.get(CompendiumSourceDocument.key(forRealmId: target.realmId, documentId: target.documentId)) else {
+    guard let targetDocument = try keyValueStore.get(CompendiumSourceDocument.key(forRealmId: target.realm, documentId: target.document)) else {
 
         throw CompendiumMetadataError.resourceNotFound
     }
@@ -386,21 +381,27 @@ func transfer(
             case .keepBoth: .rename(fallback: .skip)
         }
 
-        let visitor = UpdateEntryDocumentGameModelsVisitor(
-            originalDocumentId: nil,
-            targetDocument: targetDocument
-        )
+        let visitors: [KeyValueStoreEntityVisitor] = Array {
+            AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateEntryDocumentGameModelsVisitor(
+                originalDocumentId: nil,
+                targetDocument: targetDocument
+            ))
+
+// TODO: understand why past me wanted to add this logic (it was never committed)
+//            if mode == .copy {
+//                AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateOriginGameModelsVisitor())
+//            }
+        }
+
         let transferVisitorResult = try visitorManager.run(
             scope: visitorScope,
-            visitor: AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: visitor),
+            visitors: visitors,
             conflictResolution: visitorConflictResolution,
             removeOriginalEntityOnKeyChange: mode == .move,
             conflictWithOriginalEntity: true
         )
 
-        // TODO: update entry's origin for copied items
-        // TODO: not update references to items that did not move (item group)
-        // TODO: update references correctly for items that were "renamed"
+        
 
         // Step 2: update references to transferred items (if moved)
         if mode == .move {
