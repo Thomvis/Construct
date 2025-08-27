@@ -80,11 +80,14 @@ extension CompendiumEntry {
 }
 
 extension CompendiumEntry {
-    public var attribution: String? {
+    public var attribution: AttributedString? {
         if case .created(let ref?) = origin {
-            return "Based on “\(ref.itemTitle)”"
+            var result = AttributedString("Based on “")
+            result.append(ref.attributedTitle)
+            result.append(AttributedString("”"))
+            return result
         }
 
-        return document.displayName
+        return AttributedString(document.displayName)
     }
 }

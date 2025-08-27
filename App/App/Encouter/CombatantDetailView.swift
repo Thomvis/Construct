@@ -203,15 +203,24 @@ struct CombatantDetailView: View {
                         }
                     }
 
-                    SectionContainer(
-                        title: "Stats",
-                        accessory: Button {
-                            viewStore.send(.editCreatureConfirmingUnlinkIfNeeded)
-                        } label: {
-                            Text("Edit")
+                    VStack { // reduces spacing between stats and attribution
+                        SectionContainer(
+                            title: "Stats",
+                            accessory: Button {
+                                viewStore.send(.editCreatureConfirmingUnlinkIfNeeded)
+                            } label: {
+                                Text("Edit")
+                            }
+                        ) {
+                            contentView(for: combatant)
                         }
-                    ) {
-                        contentView(for: combatant)
+
+                        if let attribution = viewStore.state.attribution {
+                            Text(attribution)
+                                .font(.footnote).italic()
+                                .foregroundColor(Color(UIColor.secondaryLabel))
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
                     }
 
                     viewStore.state.runningEncounter.map { running in
@@ -268,6 +277,19 @@ struct CombatantDetailView: View {
                 }
                 .padding(12)
                 .padding(.bottom, 50)
+                .environment(\.openURL, OpenURLAction { url in
+                    guard url.scheme == StatBlockView.urlSchema,
+                          let host = url.host,
+                          let target = try? StatBlockView.TapTarget(urlEncoded: host)
+                    else {
+                        return .systemAction
+                    }
+                    
+                    if case .compendiumItemReferenceTextAnnotation(let annotation) = target {
+                        viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(annotation, appNavigation))
+                    }
+                    return .handled
+                })
                 // Placing this (and .popover) inside the scrollview to work around https://github.com/stleamist/BetterSafariView/issues/23
                 .safariView(
                     item: viewStore.binding(get: { $0.presentedNextSafariView }, send: { _ in .setNextScreen(nil) }),
@@ -280,6 +302,9 @@ struct CombatantDetailView: View {
                 )
                 .popover(self.popover)
                 .alert(store.scope(state: { $0.alert }, action: { $0 }), dismiss: CombatantDetailViewAction.alert(nil))
+                .onAppear {
+                    viewStore.send(.onAppear)
+                }
             }
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)

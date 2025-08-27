@@ -45,3 +45,18 @@ extension AttributedString {
         }
     }
 }
+
+extension CompendiumItemReference {
+    public var attributedTitle: AttributedString {
+        var res = AttributedString(self.itemTitle)
+        let titleRange = res.range(of: self.itemTitle)
+        if let titleRange {
+            res[titleRange].construct.compendiumItemReference = CompendiumItemReferenceTextAnnotation(
+                text: self.itemTitle, 
+                type: nil,
+                resolvedTo: self
+            )
+        }
+        return res
+    }
+}

@@ -28,6 +28,8 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             presentedNextCombatantResourcesView?.combatant = c
         }
     }
+    // entry is loaded if the combatant is a CompendiumCombatant
+    var entry: CompendiumEntry?
 
     var popover: Popover?
     var alert: AlertState<CombatantDetailViewAction>?
@@ -42,6 +44,25 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
     var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
 
     var itemRequest: ReferenceViewItemRequest?
+
+    var attribution: AttributedString? {
+        if let entry, let attribution = entry.attribution {
+            var res = attribution
+            // Process the attributed string to convert annotations to links
+            StatBlockView.process(attributedString: &res)
+            return res
+        } else if let def = combatant.definition as? AdHocCombatantDefinition, let original = def.original {
+            // Build attributed string that makes the item title tappable
+            var res = AttributedString("Based on “")
+            res.append(original.attributedTitle)
+            res.append(AttributedString("”"))
+            
+            // Process the attributed string to convert annotations to links
+            StatBlockView.process(attributedString: &res)
+            return res
+        }
+        return nil
+    }
 
     var addLimitedResourceState: CombatantTrackerEditViewState? {
         get {
@@ -138,6 +159,10 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView, environment: { $0 }),
         AnyReducer { state, action, env in
             switch action {
+            case .onAppear:
+                if let def = state.combatant.definition as? CompendiumCombatantDefinition {
+                    state.entry = try? env.compendium.get(def.item.key)
+                }
             case .combatant: break // should be handled by parent
             case .popover(let p):
                 state.popover = p
@@ -183,17 +208,20 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                     item = Monster(realm: .init(CompendiumRealm.homebrew.id), stats: def.stats, challengeRating: def.stats.challengeRating ?? Fraction(integer: 0))
                 }
 
-                try? env.compendium.put(CompendiumEntry(
+                let entry = CompendiumEntry(
                     item,
                     origin: .created(def.original),
                     document: .init(CompendiumSourceDocument.homebrew)
-                ))
+                )
+                try? env.compendium.put(entry)
+                state.entry = entry
                 return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: CompendiumCombatantDefinition(item: item, persistent: false)))))
             case .unlinkFromCompendium:
                 let currentDefinition = state.combatant.definition
 
                 let original = (currentDefinition as? CompendiumCombatantDefinition).map { CompendiumItemReference(itemTitle: $0.name, itemKey: $0.item.key) }
                 let def = AdHocCombatantDefinition(id: UUID().tagged(), stats: currentDefinition.stats, player: currentDefinition.player, level: currentDefinition.level, original: original)
+                state.entry = nil
                 return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def))))
             case .unlinkAndEditCreature:
                 return .send(.editCreatureConfirmingUnlinkIfNeeded)
@@ -262,6 +290,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
 }
 
 enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
+    case onAppear
     case combatant(CombatantAction)
     case popover(CombatantDetailViewState.Popover?)
     case alert(AlertState<Self>?)
