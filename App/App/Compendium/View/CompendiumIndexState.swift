@@ -469,6 +469,9 @@ extension CompendiumIndexState.Query {
                 }
                 state.order = .default(types ?? CompendiumItemType.allCases)
             case .onFiltersDidChange(let f):
+                if state.filters?.types != f.types {
+                    state.order = .default(f.types ?? CompendiumItemType.allCases)
+                }
                 state.filters = f
             }
             return .none
