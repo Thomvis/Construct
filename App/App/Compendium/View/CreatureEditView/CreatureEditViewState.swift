@@ -12,6 +12,7 @@ import ComposableArchitecture
 import GameModels
 import Helpers
 import DiceRollerFeature
+import Compendium
 
 struct CreatureEditViewState: Equatable {
     var mode: Mode
@@ -21,9 +22,14 @@ struct CreatureEditViewState: Equatable {
     var popover: Popover?
     var sheet: Sheet? = nil
 
-    init(create creatureType: CreatureType) {
+    init(create creatureType: CreatureType, sourceDocument: CompendiumFilters.Source = .init(.homebrew)) {
         self.mode = .create(creatureType)
-        self.model = CreatureEditFormModel(statBlock: StatBlockFormModel(statBlock: .default))
+        self.model = CreatureEditFormModel(
+            statBlock: StatBlockFormModel(statBlock: .default),
+            document: CompendiumDocumentSelectionFeature.State(
+                selectedSource: sourceDocument
+            )
+        )
         self.sections = creatureType.initialSections
         self.popover = nil
 
@@ -34,16 +40,16 @@ struct CreatureEditViewState: Equatable {
         }
     }
 
-    init(edit monster: Monster) {
+    init(edit monster: Monster, documentId: CompendiumSourceDocument.Id) {
         self.mode = .editMonster(monster)
-        self.model = CreatureEditFormModel(monster: monster)
+        self.model = CreatureEditFormModel(monster: monster, documentId: documentId)
         self.sections = CreatureType.monster.initialSections.union(self.model.sectionsWithData)
         self.popover = nil
     }
 
-    init(edit character: Character) {
+    init(edit character: Character, documentId: CompendiumSourceDocument.Id) {
         self.mode = .editCharacter(character)
-        self.model = CreatureEditFormModel(character: character)
+        self.model = CreatureEditFormModel(character: character, documentId: documentId)
         self.sections = CreatureType.character.initialSections.union(self.model.sectionsWithData)
         self.popover = nil
     }
@@ -228,6 +234,7 @@ struct CreatureEditFormModel: Equatable {
         }
     }
     var originalItemForAdHocCombatant: CompendiumItemReference?
+    var document: CompendiumDocumentSelectionFeature.State
 
     var isPlayer: Bool {
         get {
@@ -465,6 +472,7 @@ enum CreatureEditViewAction: Equatable {
     case numberEntryPopover(NumberEntryViewAction)
     case sheet(CreatureEditViewState.Sheet?)
     case creatureActionEditSheet(CreatureActionEditViewAction)
+    case documentSelection(CompendiumDocumentSelectionFeature.Action)
     case onNamedContentItemTap(NamedStatBlockContentItemType, UUID)
     case onNamedContentItemRemove(NamedStatBlockContentItemType, IndexSet)
     case onNamedContentItemMove(NamedStatBlockContentItemType, IndexSet, Int)
@@ -475,12 +483,19 @@ enum CreatureEditViewAction: Equatable {
     case onRemoveTap(CreatureEditViewState)
 }
 
-typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog
+typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata
 
 extension CreatureEditViewState {
     static let reducer: AnyReducer<Self, CreatureEditViewAction, CreatureEditViewEnvironment> = AnyReducer.combine(
-        NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CreatureEditViewAction.numberEntryPopover),
+        NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CreatureEditViewAction.numberEntryPopover, environment:  { $0 }),
         NamedStatBlockContentItemEditViewState.reducer.optional().pullback(state: \.actionEditor, action: /CreatureEditViewAction.creatureActionEditSheet),
+        AnyReducer { env in
+            CompendiumDocumentSelectionFeature()
+                .dependency(\.compendiumMetadata, env.compendiumMetadata)
+        }.pullback(
+            state: \.model.document,
+            action: /CreatureEditViewAction.documentSelection
+        ),
         AnyReducer { state, action, _ in
             switch action {
             case .model(let m): state.model = m
@@ -506,6 +521,7 @@ extension CreatureEditViewState {
                 guard case let .actionEditor(editorState) = state.sheet, case let .edit(i) = editorState.intent else { break }
                 state.model.statBlock[itemsOfType: editorState.itemType].remove(id: i.id)
                 state.sheet = nil
+            case .documentSelection: break // handled above
             case .onNamedContentItemTap(let t, let id):
                 if let item = state.model.statBlock[itemsOfType: t][id: id] {
                     state.sheet = .actionEditor(NamedStatBlockContentItemEditViewState(editing: item))
@@ -657,12 +673,24 @@ extension CreatureEditViewState {
 
     var monster: Monster? {
         guard let cr = model.challengeRating else { return nil }
-        return Monster(realm: mode.originalItem?.realm ?? .init(CompendiumRealm.homebrew.id), stats: statBlock, challengeRating: cr)
+        let realm: CompendiumItemKey.Realm
+        if let selectedSource = model.document.selectedSource {
+            realm = .init(selectedSource.realm)
+        } else {
+            realm = mode.originalItem?.realm ?? .init(CompendiumRealm.homebrew.id)
+        }
+        return Monster(realm: realm, stats: statBlock, challengeRating: cr)
     }
 
     var character: Character? {
         let player = sections.contains(.player) ? model.player : nil
-        return Character(id: mode.originalCharacter?.id ?? UUID().tagged(), realm: mode.originalItem?.realm ?? .init(CompendiumRealm.homebrew.id), level: model.level, stats: statBlock, player: player)
+        let realm: CompendiumItemKey.Realm
+        if let selectedSource = model.document.selectedSource {
+            realm = .init(selectedSource.realm)
+        } else {
+            realm = mode.originalItem?.realm ?? .init(CompendiumRealm.homebrew.id)
+        }
+        return Character(id: mode.originalCharacter?.id ?? UUID().tagged(), realm: realm, level: model.level, stats: statBlock, player: player)
     }
 
     var adHocCombatant: AdHocCombatantDefinition? {
@@ -693,6 +721,14 @@ extension CreatureEditViewState {
 
         return result
     }
+
+    var document: CompendiumSourceDocument {
+        if let doc = model.document.currentDocument {
+            return doc
+        }
+
+        return .homebrew
+    }
 }
 
 extension CompendiumItemType {
@@ -707,15 +743,21 @@ extension CompendiumItemType {
 }
 
 extension CreatureEditFormModel {
-    init(monster: Monster) {
+    init(monster: Monster, documentId: CompendiumSourceDocument.Id = CompendiumSourceDocument.homebrew.id) {
         self.statBlock = StatBlockFormModel(statBlock: monster.stats)
         self.challengeRating = monster.challengeRating
+        self.document = CompendiumDocumentSelectionFeature.State(
+            selectedSource: CompendiumFilters.Source(realm: monster.realm.value, document: documentId)
+        )
     }
 
-    init(character: Character) {
+    init(character: Character, documentId: CompendiumSourceDocument.Id = CompendiumSourceDocument.homebrew.id) {
         self.statBlock = StatBlockFormModel(statBlock: character.stats)
         self.level = character.level
         self.player = character.player
+        self.document = CompendiumDocumentSelectionFeature.State(
+            selectedSource: CompendiumFilters.Source(realm: character.realm.value, document: documentId)
+        )
     }
 
     init(combatant: AdHocCombatantDefinition) {
@@ -723,6 +765,9 @@ extension CreatureEditFormModel {
         self.level = combatant.level
         self.player = combatant.player
         self.originalItemForAdHocCombatant = combatant.original
+        self.document = CompendiumDocumentSelectionFeature.State(
+            selectedSource: CompendiumFilters.Source(.homebrew)
+        )
     }
 
     var sectionsWithData: Set<CreatureEditViewState.Section> {

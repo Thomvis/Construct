@@ -13,6 +13,7 @@ import GameModels
 import DiceRollerFeature
 import SharedViews
 import Helpers
+import Compendium
 
 struct CreatureEditView: View {
     static let iconColumnWidth: CGFloat = 30
@@ -35,42 +36,14 @@ struct CreatureEditView: View {
 
     var body: some View {
         return Form {
-//            HStack {
-//                Button {
-//
-//                } label: {
-//                    HStack {
-//                        Text("Monster")
-//                        Image(systemName: "chevron.down")
-//                    }
-//                }
-//                .buttonStyle(.bordered)
-//                .buttonBorderShape(.capsule)
-//
-//                Button {
-//
-//                } label: {
-//                    HStack {
-//                        HStack(spacing: 2) {
-//                            Image(systemName: "book")
-//                            Text("Homebrew")
-//                        }
-//
-//                        Image(systemName: "chevron.down")
-//                    }
-//                }
-//                .buttonStyle(.bordered)
-//                .buttonBorderShape(.capsule)
-//            }
-//            .font(.footnote)
-//            .listRowBackground(Color.clear)
-//            .listRowInsets(EdgeInsets())
-//            .padding(.bottom, 0)
-
             FormSection(.basicCharacter) {
                 ClearableTextField("Name", text: model.statBlock.name)
                     .disableAutocorrection(true)
                 characterFields
+
+                if viewStore.state.mode != .create(.adHocCombatant) {
+                    compendiumDocumentField
+                }
             }
 
             FormSection(.basicMonster) {
@@ -79,6 +52,10 @@ struct CreatureEditView: View {
                     .disabled(!viewStore.state.canEditName)
                     .foregroundColor(viewStore.state.canEditName ? Color(UIColor.label) : Color(UIColor.secondaryLabel))
                 monsterFields
+
+                if viewStore.state.mode != .create(.adHocCombatant) {
+                    compendiumDocumentField
+                }
             }
 
             FormSection(.basicStats, footer:Group {
@@ -240,6 +217,33 @@ struct CreatureEditView: View {
             }
         })
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+    }
+
+    @ViewBuilder
+    var compendiumDocumentField: some View {
+        let documentSelectionStore = store.scope(state: \.model.document, action: CreatureEditViewAction.documentSelection)
+        LabeledContent {
+            if !viewStore.state.mode.isEdit {
+                CompendiumDocumentSelectionView.menu(
+                    store: documentSelectionStore,
+                    label: { name in
+                        HStack {
+                            Text(name)
+                                .foregroundColor(Color.secondary)
+
+                            Image(systemName: "chevron.down.square.fill")
+                                .foregroundColor(Color.secondary)
+                        }
+                    }
+                )
+            } else {
+                CompendiumDocumentSelectionView.scaffold(store: documentSelectionStore) { state in
+                    Text(state.currentDocument?.displayName ?? "")
+                }
+            }
+        } label: {
+            Text("Document")
+        }
     }
 
     var characterFields: some View {
@@ -646,12 +650,13 @@ struct CreatureEditView_Preview: PreviewProvider {
                         reactions: []
                     ),
                     challengeRating: Fraction(integer: 1)
-                )),
+                ), documentId: CompendiumSourceDocument.homebrew.id),
                 reducer: CreatureEditViewState.reducer,
                 environment: CEVE(
                     modifierFormatter: modifierFormatter,
                     mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
-                    diceLog: DiceLogPublisher()
+                    diceLog: DiceLogPublisher(),
+                    compendiumMetadata: CompendiumMetadataKey.previewValue
                 )
             )
         )
@@ -662,5 +667,6 @@ struct CEVE: CreatureEditViewEnvironment {
     var modifierFormatter: NumberFormatter
     var mainQueue: AnySchedulerOf<DispatchQueue>
     var diceLog: DiceLogPublisher
+    var compendiumMetadata: CompendiumMetadata
 }
 #endif

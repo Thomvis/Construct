@@ -147,8 +147,14 @@ struct CompendiumItemDetailView: View {
 
     var editViewState: CreatureEditViewState? {
         switch item {
-        case let monster as Monster: return CreatureEditViewState(edit: monster)
-        case let character as Character: return CreatureEditViewState(edit: character)
+        case let monster as Monster: return CreatureEditViewState(
+            edit: monster,
+            documentId: viewStore.state.entry.document.id
+        )
+        case let character as Character: return CreatureEditViewState(
+            edit: character,
+            documentId: viewStore.state.entry.document.id
+        )
         default: return nil
         }
     }

@@ -8,7 +8,7 @@ import Helpers
 struct CompendiumDocumentSelectionFeature: ReducerProtocol {
     struct State: Equatable {
 
-        let unselectedLabel: String
+        let unselectedLabel: String?
         let disabledSources: [CompendiumFilters.Source]
 
         var documents: Async<[CompendiumSourceDocument], Error> = .initial
@@ -42,6 +42,17 @@ struct CompendiumDocumentSelectionFeature: ReducerProtocol {
             self.disabledSources = disabledSources
             self.unselectedLabel = unselectedLabel
         }
+
+        init(
+            selectedSource: CompendiumFilters.Source,
+            disabledSources: [CompendiumFilters.Source] = [],
+        ) {
+            self.selectedSource = selectedSource
+            self.disabledSources = disabledSources
+            self.unselectedLabel = nil
+        }
+
+
     }
     
     enum Action: BindableAction, Equatable {
@@ -101,43 +112,12 @@ struct CompendiumDocumentSelectionView: View {
     @SwiftUI.Environment(\.isEnabled) var isEnabled
 
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
-            LabeledContent {
-                Menu {
-                    Button(viewStore.unselectedLabel) {
-                        viewStore.send(.clearSource)
-                    }
-
-                    if let allSources = viewStore.allSources {
-                        ForEach(allSources, id: \.document.id) { source in
-                            // Add divider between realms
-                            if needsDividerBefore(source, in: allSources) {
-                                Divider()
-                            }
-
-                            Button(action: {
-                                viewStore.send(.source(source.document, source.realm))
-                            }) {
-                                if let s = viewStore.selectedSource, s.document == source.document.id && s.realm == source.realm.id {
-                                    Label(source.document.displayName, systemImage: "checkmark")
-                                } else {
-                                    Text(source.document.displayName)
-                                }
-                                if source.document.displayName != source.realm.displayName {
-                                    Text(source.realm.displayName)
-                                }
-                            }
-                            .disabled(viewStore.state.disabledSources.contains { $0.document == source.document.id && $0.realm == source.realm.id })                        }
-                    } else {
-                        Text("Loading...")
-                    }
-                } label: {
+        LabeledContent {
+            Self.menu(
+                store: store,
+                label: { name in
                     HStack(spacing: 4) {
-                        if let doc = viewStore.currentDocument {
-                            Text(doc.displayName)
-                        } else {
-                            Text(viewStore.unselectedLabel)
-                        }
+                        Text(name)
 
                         Image(systemName: "chevron.up.chevron.down")
                             .font(.footnote)
@@ -145,20 +125,78 @@ struct CompendiumDocumentSelectionView: View {
                     .fontWeight(.regular)
                     .padding(.trailing, 12)
                 }
-                .frame(minHeight: 35)
+            )
+            .frame(minHeight: 35)
+        } label: {
+            Text("Sources")
+                .foregroundStyle(isEnabled ? .primary : .secondary)
+        }
+        .bold()
+    }
+
+    public static func menu(
+        store: StoreOf<CompendiumDocumentSelectionFeature>,
+        label: @escaping (String) -> some View
+    ) -> some View {
+        WithViewStore(store, observe: { $0 }) { viewStore in
+            Menu {
+                if let unselectedLabel = viewStore.unselectedLabel {
+                    Button(unselectedLabel) {
+                        viewStore.send(.clearSource)
+                    }
+                }
+
+                if let allSources = viewStore.allSources {
+                    ForEach(allSources, id: \.document.id) { source in
+                        // Add divider between realms
+                        if needsDividerBefore(source, in: allSources) {
+                            Divider()
+                        }
+
+                        Button(action: {
+                            viewStore.send(.source(source.document, source.realm))
+                        }) {
+                            if let s = viewStore.selectedSource, s.document == source.document.id && s.realm == source.realm.id {
+                                Label(source.document.displayName, systemImage: "checkmark")
+                            } else {
+                                Text(source.document.displayName)
+                            }
+                            if source.document.displayName != source.realm.displayName {
+                                Text(source.realm.displayName)
+                            }
+                        }
+                        .disabled(viewStore.state.disabledSources.contains { $0.document == source.document.id && $0.realm == source.realm.id })
+                    }
+                } else {
+                    Text("Loading...")
+                }
             } label: {
-                Text("Sources")
-                    .foregroundStyle(isEnabled ? .primary : .secondary)
+                if let name = viewStore.currentDocument.map({ $0.displayName }) ?? viewStore.unselectedLabel {
+                    label(name)
+                }
             }
-            .bold()
             .onAppear {
                 viewStore.send(.documents(.startLoading))
                 viewStore.send(.realms(.startLoading))
             }
         }
     }
-    
-    private func needsDividerBefore(
+
+    // Wraps some view so it can access our state
+    public static func scaffold(
+        store: StoreOf<CompendiumDocumentSelectionFeature>,
+        content: @escaping (CompendiumDocumentSelectionFeature.State) -> some View
+    ) -> some View {
+        WithViewStore(store, observe: { $0 }) { viewStore in
+            content(viewStore.state)
+                .onAppear {
+                    viewStore.send(.documents(.startLoading))
+                    viewStore.send(.realms(.startLoading))
+                }
+        }
+    }
+
+    private static func needsDividerBefore(
         _ source: (document: CompendiumSourceDocument, realm: CompendiumRealm),
         in sources: [(document: CompendiumSourceDocument, realm: CompendiumRealm)]
     ) -> Bool {
@@ -168,3 +206,13 @@ struct CompendiumDocumentSelectionView: View {
         return idx == 0 || sources[idx-1].realm != source.realm
     }
 } 
+
+extension CompendiumDocumentSelectionFeature.State {
+    public static var nullInstance: Self {
+        CompendiumDocumentSelectionFeature.State(
+            selectedSource: nil,
+            disabledSources: [],
+            unselectedLabel: ""
+        )
+    }
+}

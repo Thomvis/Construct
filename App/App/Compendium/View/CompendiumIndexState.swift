@@ -201,13 +201,22 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         return .send(.query(.onTypeFilterDidChange(withinRestrictions)))
                     }
                 case .onAddButtonTap(let type):
+                    let sourceDocument: CompendiumFilters.Source
+                    if let source = state.results.input.filters?.source {
+                        sourceDocument = source
+                    } else {
+                        sourceDocument = CompendiumFilters.Source(CompendiumSourceDocument.homebrew)
+                    }
                     switch type {
                     case .monster, .character:
                         guard let creatureType = type.creatureType else {
                             assertionFailure("Adding item of type \(type) is not supported yet")
                             break
                         }
-                        state.sheet = .creatureEdit(CreatureEditViewState(create: creatureType))
+                        state.sheet = .creatureEdit(CreatureEditViewState(
+                            create: creatureType,
+                            sourceDocument: sourceDocument
+                        ))
                     case .spell:
                         assertionFailure("Adding spells is not supported")
                         break
@@ -234,7 +243,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                             let entry = CompendiumEntry(
                                 item,
                                 origin: .created(nil),
-                                document: .init(CompendiumSourceDocument.homebrew)
+                                document: .init(editState.document)
                             )
                             _ = try? env.compendium.put(entry)
                             await send(.scrollTo(entry.key))
