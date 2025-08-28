@@ -35,7 +35,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.6.1"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.12.0"),
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
-        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.12.0"),
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.14.0"),
         .package(url: "https://github.com/LaunchDarkly/swift-eventsource.git", from: "3.0.0")
     ],
     targets: [
