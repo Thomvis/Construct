@@ -271,20 +271,32 @@ public extension CompendiumMetadata {
                     if doc.realmId != originalRealmId, let moving = moving {
                         AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateItemReferenceGameModelsVisitor { key -> CompendiumItemKey? in
                             guard moving.contains(key) else { return nil }
-                            return CompendiumItemKey(
-                                type: key.type,
-                                realm: .init(doc.realmId),
-                                identifier: key.identifier
-                            )
+                            // This is the old, incorrect logic. We'll replace it after running the move.
+                            return nil
                         })
                     }
                 }
                 
                 // Run all visitors in a single pass
-                try visitorManager.run(
+                let visitorResult = try visitorManager.run(
                     visitors: visitors,
                     conflictResolution: .rename(fallback: .remove)
                 )
+
+                // Update references with the correct new keys
+                if !visitorResult.keyChanges.isEmpty {
+                    let referenceVisitor = UpdateItemReferenceGameModelsVisitor { key -> CompendiumItemKey? in
+                        let oldKeyString = CompendiumEntry.key(for: key).rawValue
+                        if let newKeyString = visitorResult.keyChanges[oldKeyString] {
+                            return CompendiumItemKey(compendiumEntryKey: newKeyString)
+                        }
+                        return nil
+                    }
+                    try visitorManager.run(
+                        visitor: AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: referenceVisitor),
+                        conflictResolution: .skip
+                    )
+                }
 
                 if originalKey != doc.key {
                     // it's a move
@@ -405,16 +417,15 @@ public func transfer(
 
         // Step 2: update references to transferred items (if moved)
         if mode == .move {
-            let movedItemKeys = transferVisitorResult.success
+            let keyChanges = transferVisitorResult.keyChanges
 
             // update references to transferred items
             let referenceVisitor = UpdateItemReferenceGameModelsVisitor { key -> CompendiumItemKey? in
-                guard movedItemKeys.contains(CompendiumEntry.key(for: key).rawValue) else { return nil }
-                return CompendiumItemKey(
-                    type: key.type,
-                    realm: .init(targetDocument.realmId),
-                    identifier: key.identifier
-                )
+                let oldKeyString = CompendiumEntry.key(for: key).rawValue
+                if let newKeyString = keyChanges[oldKeyString] {
+                    return CompendiumItemKey(compendiumEntryKey: newKeyString)
+                }
+                return nil
             }
             try visitorManager.run(
                 visitor: AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: referenceVisitor),

@@ -932,6 +932,7 @@ class DatabaseCompendiumTest: XCTestCase {
         var sourceEntry1: CompendiumEntry!
         var sourceEntry2: CompendiumEntry!
         var targetEntry1: CompendiumEntry!
+        var partyInSource: CompendiumEntry!
         
         try KeyValueStoreDefinition { s in
             s.Compendium { c in
@@ -939,6 +940,9 @@ class DatabaseCompendiumTest: XCTestCase {
                     r.Document(name: "sourceDocument", to: &sourceDocument) { d in
                         d.Monster(name: "Monster A", to: &sourceEntry1)
                         d.Monster(name: "Monster B", to: &sourceEntry2)
+                        d.Party(name: "Party", to: &partyInSource) {
+                            sourceEntry1.item
+                        }
                     }
                 }
                 c.Realm(name: "targetRealm") { r in
@@ -970,6 +974,10 @@ class DatabaseCompendiumTest: XCTestCase {
 
         XCTAssertEqual(Set(copiedItemKeys), Set([sourceEntry1.rawKey, sourceEntry2.rawKey]))
 
+        let compendium = DatabaseCompendium(databaseAccess: db.access)
+        let party = try compendium.get(partyInSource.item.key)!.item as! CompendiumItemGroup
+        XCTAssertEqual(party.members.first?.itemKey, sourceEntry1.item.key, "The party's reference should not change after a copy operation.")
+
         // Assert final state - both items copied, with duplicated item renamed
         try KeyValueStoreDefinition { s in
             s.Compendium { c in
@@ -977,6 +985,9 @@ class DatabaseCompendiumTest: XCTestCase {
                     r.Document(name: "sourceDocument") { d in
                         d.Monster(name: "Monster A", to: &sourceEntry1)
                         d.Monster(name: "Monster B", to: &sourceEntry2)
+                        d.Party(name: "Party", to: &partyInSource) {
+                            sourceEntry1.item
+                        }
                     }
                 }
                 c.Realm(name: "targetRealm") { r in

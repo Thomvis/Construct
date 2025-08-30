@@ -123,6 +123,10 @@ public class KeyValueStoreVisitorManager {
                                     result.success.append(key)
                                 }
 
+                                if keyChanged && removeOriginalEntityOnKeyChange {
+                                    result.keyChanges[originalKey] = entity.rawKey
+                                }
+
                                 return .commit
                             }
                         }
@@ -159,6 +163,8 @@ public class KeyValueStoreVisitorManager {
     public struct Result {
         // All entities that were changed by the visitor(s) and subseqently saved to the database (not skipped or removed)
         var success: [String] = []
+        /// A dictionary mapping the old key to the new key for all entities whose key changed
+        var keyChanges: [String: String] = [:]
     }
 
 }
