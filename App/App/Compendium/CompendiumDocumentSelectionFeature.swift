@@ -109,6 +109,7 @@ struct CompendiumDocumentSelectionFeature: ReducerProtocol {
 
 struct CompendiumDocumentSelectionView: View {
     let store: StoreOf<CompendiumDocumentSelectionFeature>
+    let label: String
     @SwiftUI.Environment(\.isEnabled) var isEnabled
 
     var body: some View {
@@ -128,7 +129,7 @@ struct CompendiumDocumentSelectionView: View {
             )
             .frame(minHeight: 35)
         } label: {
-            Text("Sources")
+            Text(label)
                 .foregroundStyle(isEnabled ? .primary : .secondary)
         }
         .bold()
@@ -183,7 +184,7 @@ struct CompendiumDocumentSelectionView: View {
     }
 
     // Wraps some view so it can access our state
-    public static func scaffold(
+    public static func withViewStore(
         store: StoreOf<CompendiumDocumentSelectionFeature>,
         content: @escaping (CompendiumDocumentSelectionFeature.State) -> some View
     ) -> some View {

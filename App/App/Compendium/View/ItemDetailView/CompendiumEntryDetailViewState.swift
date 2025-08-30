@@ -38,6 +38,14 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         entry.item
     }
 
+    var entryAttribution: AttributedString? {
+        if var result = entry.attribution {
+            StatBlockView.process(attributedString: &result)
+            return result
+        }
+        return nil
+    }
+
     var navigationStackItemStateId: String { entry.item.compendiumItemDetailViewStateId }
 
     var navigationTitle: String { item.title }
@@ -254,8 +262,8 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                             try? env.compendium.put(entry)
                             await send(.didAddCopy)
                             await send(.setNextScreen(.compendiumItemDetailView(.init(entry: entry))))
+                            await send(.setSheet(nil))
                         }
-                        await send(.setSheet(nil))
                     }
                 case .sheet(.creatureEdit(CreatureEditViewAction.onRemoveTap)):
                     let entryKey = state.entry.key
@@ -281,10 +289,9 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                         try await Task.sleep(for: .seconds(0.1))
                         await send(.didRemoveItem)
                     }
-                case .sheet(.transfer(CompendiumItemTransferFeature.Action.onMoveButtonTap)):
-                    let entry = state.entry
+                case .sheet(.transfer(CompendiumItemTransferFeature.Action.onTransferDidSucceed)):
                     return .run { send in
-                        // todo
+                        // TODO: refresh screen (but how to know the new entry key if it moved realms)
                         await send(.setSheet(nil))
                     }
                 case .sheet: break // handled by the reducers above

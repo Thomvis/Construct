@@ -81,13 +81,14 @@ extension CompendiumEntry {
 
 extension CompendiumEntry {
     public var attribution: AttributedString? {
+        var result = AttributedString("")
         if case .created(let ref?) = origin {
-            var result = AttributedString("Based on “")
+            result.append(AttributedString("Based on “"))
             result.append(ref.attributedTitle)
-            result.append(AttributedString("”"))
-            return result
+            result.append(AttributedString("” - "))
         }
 
-        return AttributedString(document.displayName)
+        result.append(AttributedString("\(document.displayName) (\(item.realm.value.rawValue.uppercased()))"))
+        return result
     }
 }

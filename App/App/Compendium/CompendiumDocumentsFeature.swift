@@ -14,6 +14,7 @@ import GameModels
 import Persistence
 import SwiftUINavigation
 import Helpers
+import SharedViews
 
 struct CompendiumDocumentsFeature: ReducerProtocol {
     struct State: Equatable {
@@ -165,22 +166,6 @@ struct EditRealm: ReducerProtocol {
                 if original.id.rawValue != slug(original.displayName) {
                     self.customSlug = original.id.rawValue
                 }
-            }
-        }
-
-        struct Notice: Equatable {
-            let icon: String
-            let message: String
-            let foregroundColor: Color
-            let isDismissible: Bool
-
-            static func error(_ message: String) -> Notice {
-                Notice(
-                    icon: "exclamationmark.octagon",
-                    message: message,
-                    foregroundColor: Color(UIColor.systemRed),
-                    isDismissible: true
-                )
             }
         }
     }
@@ -587,7 +572,8 @@ struct CompendiumDocumentEditView: View {
                                 ),
                                 configuration: .init(
                                     textForegroundColor: Color(UIColor.label),
-                                    slugForegroundColor: Color(UIColor.secondaryLabel)
+                                    slugForegroundColor: Color(UIColor.secondaryLabel),
+                                    slugFieldEnabled: viewStore.state.original == nil
                                 ),
                                 requestFocusOnText: Binding.constant(viewStore.state.original == nil)
                             )
@@ -729,7 +715,8 @@ struct EditRealmView: View {
                             ),
                             configuration: .init(
                                 textForegroundColor: Color(UIColor.label),
-                                slugForegroundColor: Color(UIColor.secondaryLabel)
+                                slugForegroundColor: Color(UIColor.secondaryLabel),
+                                slugFieldEnabled: viewStore.state.original == nil
                             ),
                             requestFocusOnText: Binding.constant(viewStore.state.original == nil)
                         )
@@ -759,55 +746,6 @@ struct EditRealmView: View {
             .navigationTitle(viewStore.state.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .interactiveDismissDisabled(viewStore.state.hasPendingChanges)
-        }
-    }
-}
-
-struct Notice: Equatable {
-    let icon: String
-    let message: String
-    let foregroundColor: Color
-    let isDismissible: Bool
-
-    static func error(_ error: Error) -> Notice {
-        Notice(
-            icon: "exclamationmark.octagon",
-            message: error.localizedDescription,
-            foregroundColor: Color(UIColor.systemRed),
-            isDismissible: true
-        )
-    }
-}
-
-struct NoticeView: View {
-    let notice: Notice
-    var onDismiss: (() -> Void)?
-
-    var body: some View {
-        SectionContainer {
-            VStack(alignment: notice.isDismissible ? .trailing : .leading) {
-                HStack(spacing: 12) {
-                    Text(Image(systemName: notice.icon))
-                    Text(notice.message)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(8)
-                .foregroundStyle(notice.foregroundColor)
-                .symbolRenderingMode(.monochrome)
-                .symbolVariant(.fill)
-
-                if notice.isDismissible {
-                    Text("Tap to dismiss")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .transition(.scale.combined(with: .opacity))
-        .onTapGesture {
-            if notice.isDismissible {
-                onDismiss?()
-            }
         }
     }
 }

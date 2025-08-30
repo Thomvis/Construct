@@ -8,8 +8,8 @@
 import Foundation
 import SwiftUI
 
-public func RoundedButton<Label>(color: Color = Color(UIColor.systemGray4), action: @escaping () -> Void, @ViewBuilder label: () -> Label) -> some View where Label: View {
-    Button(action: action, label: label).buttonStyle(RoundedButtonStyle(color: color, maxHeight: nil))
+public func RoundedButton<Label>(color: Color = Color(UIColor.systemGray4), maxHeight: CGFloat? = nil, action: @escaping () -> Void, @ViewBuilder label: () -> Label) -> some View where Label: View {
+    Button(action: action, label: label).buttonStyle(RoundedButtonStyle(color: color, maxHeight: maxHeight))
 }
 
 public func RoundedButton(color: Color = Color(UIColor.systemGray4), action: @escaping () -> Void, label: () -> SwiftUI.Label<Text, Image>) -> some View {

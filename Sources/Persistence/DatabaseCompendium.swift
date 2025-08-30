@@ -349,7 +349,7 @@ extension CompendiumFetchRequest {
 
 
 @discardableResult
-func transfer(
+public func transfer(
     _ selection: CompendiumItemSelection,
     mode: TransferMode,
     target: CompendiumFilters.Source,

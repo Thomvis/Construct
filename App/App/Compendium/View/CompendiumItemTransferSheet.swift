@@ -3,11 +3,15 @@ import ComposableArchitecture
 import Compendium
 import GameModels
 import Helpers
+import Persistence
+import SharedViews
 
+/// The UI that enables the user to move/copy compendium items between documents
 struct CompendiumItemTransferFeature: ReducerProtocol {
+    static let operationEffectId = "CompendiumItemTransferFeature.operationEffectId"
 
     struct State: Equatable {
-        @BindingState var mode: TransferMode = .copy
+        let mode: TransferMode
         @BindingState var conflictResolution: ConflictResolution = .keepBoth
 
         // The thing that we're moving/copying
@@ -18,14 +22,18 @@ struct CompendiumItemTransferFeature: ReducerProtocol {
 
         var documentSelection: CompendiumDocumentSelectionFeature.State
 
+        @BindingState var operation: Operation?
+
         var isValid: Bool {
-            documentSelection.selectedSource != nil
+            documentSelection.selectedSource != nil && operation == nil
         }
 
         init(
+            mode: TransferMode,
             selection: CompendiumItemSelection,
             originDocument: CompendiumFilters.Source? = nil
         ) {
+            self.mode = mode
             self.selection = selection
 
             if originDocument == nil, case .multiple(let request) = selection, let source = request.filters?.source {
@@ -40,17 +48,30 @@ struct CompendiumItemTransferFeature: ReducerProtocol {
             )
         }
 
-        static let nullInstance = State(selection: .single(CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "")), originDocument: nil)
+        var notice: Notice? {
+            if case .failure(let error) = operation {
+                return .error(error, isDismissible: false)
+            }
+            return nil
+        }
+
+        enum Operation: Equatable {
+            case pending
+            case success
+            case failure(String)
+        }
+
+        static let nullInstance = State(mode: .copy, selection: .single(CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "")), originDocument: nil)
     }
 
     enum Action: BindableAction, Equatable {
         case onAppear
+        case onTransferButtonTap
         case onCancelButtonTap
-        case onMoveButtonTap
         case documentSelection(CompendiumDocumentSelectionFeature.Action)
         case itemCountResponse(Int)
+        case onTransferDidSucceed
         case binding(BindingAction<State>)
-        case didFinish
     }
 
     @Dependency(\.database) var database
@@ -78,16 +99,29 @@ struct CompendiumItemTransferFeature: ReducerProtocol {
                     await send(.itemCountResponse(count))
                 }
 
+            case .onTransferButtonTap:
+                guard state.isValid, let target = state.documentSelection.selectedSource else { return .none }
+
+                return .run { [state] send in
+
+                    await send(.set(\.$operation, .pending))
+                    do {
+                        try await transfer(
+                            state.selection,
+                            mode: state.mode,
+                            target: target,
+                            conflictResolution: state.conflictResolution,
+                            db: database.access
+                        )
+                        await send(.set(\.$operation, .success))
+                        await send(.onTransferDidSucceed)
+                    } catch {
+                        await send(.set(\.$operation, .failure(error.localizedDescription)), animation: .default)
+                    }
+                }
+                .cancellable(id: Self.operationEffectId)
             case .onCancelButtonTap:
-                // We'll handle this in the view using SwiftUI's built-in dismissal
-                return .none
-
-            case .onMoveButtonTap:
-                guard state.isValid else { return .none }
-
-                // TODO: Implement move/copy logic
-                return .send(.didFinish)
-
+                return .cancel(id: Self.operationEffectId)
             case .documentSelection:
                 return .none
 
@@ -95,8 +129,8 @@ struct CompendiumItemTransferFeature: ReducerProtocol {
                 state.itemCount = count
                 return .none
 
-            case .didFinish: // handled by parent
-                return .none
+            case .onTransferDidSucceed:
+                return .none // for the parent to handle
 
             case .binding:
                 return .none
@@ -108,24 +142,22 @@ struct CompendiumItemTransferFeature: ReducerProtocol {
 struct CompendiumItemTransferSheet: View {
     let store: StoreOf<CompendiumItemTransferFeature>
     @SwiftUI.Environment(\.presentationMode) private var presentationMode
+    @SwiftUI.ScaledMetric(relativeTo: .footnote) private var footerHeight = 50
 
     var body: some View {
         WithViewStore(store) { viewStore in
             VStack {
-                Picker(selection: viewStore.binding(\.$mode)) {
-                    Text("Copy").tag(TransferMode.copy)
-                    Text("Move").tag(TransferMode.move)
-                } label: {
-                    EmptyView()
+                if let notice = viewStore.state.notice {
+                    NoticeView(notice: notice)
                 }
-                .pickerStyle(.segmented)
 
                 SectionContainer {
                     CompendiumDocumentSelectionView(
                         store: store.scope(
                             state: \.documentSelection,
                             action: CompendiumItemTransferFeature.Action.documentSelection
-                        )
+                        ),
+                        label: "Destination"
                     )
                 }
 
@@ -134,9 +166,10 @@ struct CompendiumItemTransferSheet: View {
                         .font(.footnote)
                         .foregroundColor(Color.secondary)
                         .padding([.leading, .trailing], 12)
+                        .frame(minHeight: footerHeight, alignment: .top)
                 }) {
                     HStack {
-                        Text("Conflicts").bold()
+                        Text("Conflict resolution").bold()
                         Spacer()
                         Picker("", selection: viewStore.binding(\.$conflictResolution)) {
                             ForEach(ConflictResolution.allCases, id: \.self) { strategy in
@@ -147,19 +180,27 @@ struct CompendiumItemTransferSheet: View {
                 }
 
                 Button(action: {
-                    viewStore.send(.onMoveButtonTap)
+                    viewStore.send(.onTransferButtonTap)
                 }) {
-                    Text(viewStore.buttonTitle)
-                        .frame(maxWidth: .infinity)
+                    switch viewStore.state.operation {
+                    case .pending:
+                        ProgressView()
+                    default:
+                        Text(viewStore.buttonTitle)
+                            .frame(maxWidth: .infinity)
+
+                    }
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .padding(.top, 8)
                 .disabled(!viewStore.isValid)
             }
+            .padding()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
+                        viewStore.send(.onCancelButtonTap)
                         presentationMode.wrappedValue.dismiss()
                     }
                 }
@@ -167,6 +208,7 @@ struct CompendiumItemTransferSheet: View {
             .onAppear {
                 viewStore.send(.onAppear)
             }
+            .navigationTitle(viewStore.state.mode.actionText)
         }
     }
 }
@@ -218,6 +260,7 @@ struct CompendiumItemTransferSheet_Preview: PreviewProvider {
         CompendiumItemTransferSheet(
             store: Store(
                 initialState: CompendiumItemTransferFeature.State(
+                    mode: .copy,
                     selection: .multiple(
                         CompendiumFetchRequest(filters: .init(types: [.monster]))
                     ),

@@ -17,5 +17,14 @@ extension CompendiumIndexState {
         var text: String?
         var filters: CompendiumFilters?
         var order: Order
+
+        func fetchRequest(range: Range<Int>?) -> CompendiumFetchRequest {
+            CompendiumFetchRequest(
+                search: text,
+                filters: filters,
+                order: order,
+                range: range
+            )
+        }
     }
 }

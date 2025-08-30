@@ -51,6 +51,7 @@ public struct TextFieldWithSlug: View {
                 .foregroundStyle(configuration.slugForegroundColor)
                 .frame(minWidth: 50)
                 .focused($focusOnSlug)
+                .disabled(!configuration.slugFieldEnabled)
         }
         .onChange(of: requestFocusOnText) { newValue in
             if newValue {
@@ -85,18 +86,22 @@ public struct TextFieldWithSlug: View {
     }
 
     public struct Configuration {
-        var textForegroundColor: Color
-        var slugForegroundColor: Color
+        let textForegroundColor: Color
+        let slugForegroundColor: Color
+        let slugFieldEnabled: Bool
 
-        public init(textForegroundColor: Color, slugForegroundColor: Color) {
+
+        public init(
+            textForegroundColor: Color = Color(UIColor.secondaryLabel),
+            slugForegroundColor: Color = Color(UIColor.tertiaryLabel),
+            slugFieldEnabled: Bool = true
+        ) {
             self.textForegroundColor = textForegroundColor
             self.slugForegroundColor = slugForegroundColor
+            self.slugFieldEnabled = slugFieldEnabled
         }
 
-        public static let `default`: Self = .init(
-            textForegroundColor: Color(UIColor.secondaryLabel),
-            slugForegroundColor: Color(UIColor.tertiaryLabel)
-        )
+        public static let `default`: Self = .init()
     }
 
     private enum Field {

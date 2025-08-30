@@ -44,17 +44,52 @@ private struct RoundedButtonToolbarLayout: Layout {
     }
 
     public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout CGFloat) {
-        let subviewWidth = (bounds.width - CGFloat(subviews.count-1)*spacing)/CGFloat(subviews.count)
-        let offsetPerSubview = subviewWidth + spacing
-
+        let totalSpacing = CGFloat(subviews.count - 1) * spacing
+        let availableWidth = bounds.width - totalSpacing
+        let equalWidth = availableWidth / CGFloat(subviews.count)
+        
+        // First pass: determine actual widths for each subview
+        var subviewWidths: [CGFloat] = []
+        var fixedWidth: CGFloat = 0
+        var flexibleViewCount = 0
+        
+        for subview in subviews {
+            let actualSize = subview.sizeThatFits(.init(width: equalWidth, height: cache))
+            let actualWidth = actualSize.width
+            
+            subviewWidths.append(actualWidth)
+            
+            // If the actual width is significantly different from equal width,
+            // consider it a fixed-width view
+            if abs(actualWidth - equalWidth) > 1 {
+                fixedWidth += actualWidth
+            } else {
+                flexibleViewCount += 1
+            }
+        }
+        
+        // Calculate width for flexible views
+        let remainingWidth = availableWidth - fixedWidth
+        let flexibleWidth = flexibleViewCount > 0 ? remainingWidth / CGFloat(flexibleViewCount) : 0
+        
+        // Second pass: adjust widths for flexible views
+        for i in 0..<subviewWidths.count {
+            if abs(subviewWidths[i] - equalWidth) <= 1 {
+                subviewWidths[i] = flexibleWidth
+            }
+        }
+        
+        // Place subviews with calculated widths
+        var currentX = bounds.minX
         for (idx, subview) in subviews.enumerated() {
+            let width = subviewWidths[idx]
+            
             subview.place(
-                at: CGPoint(
-                    x: bounds.minX + CGFloat(idx) * offsetPerSubview,
-                    y: bounds.minY
-                ),
-                proposal: .init(width: subviewWidth, height: cache)
+                at: CGPoint(x: currentX, y: bounds.minY),
+                proposal: .init(width: width, height: cache)
             )
+            
+            currentX += width + spacing
         }
     }
 

@@ -449,17 +449,17 @@ extension Database {
                     newDocument = CompendiumSourceDocument.homebrew
                 }
 
-                // Write new source & document to entry
+                // Write new source & document reference to entry
                 guard let originData = try? encoder.encode(origin),
                       let originJSON = try? JSONSerialization.jsonObject(with: originData) as? [String: Any],
-                      let documentData = try? encoder.encode(newDocument),
-                      let documentJSON = try? JSONSerialization.jsonObject(with: documentData) as? [String: Any] else {
+                      let documentReferenceData = try? encoder.encode(CompendiumEntry.CompendiumSourceDocumentReference(newDocument)),
+                      let documentReferenceJSON = try? JSONSerialization.jsonObject(with: documentReferenceData) as? [String: Any] else {
                     assertionFailure("Could not migrate \(r.key): failed to convert new origin & document to JSON")
                     continue
                 }
 
                 entryJSON[CompendiumEntry.CodingKeys.origin.stringValue] = originJSON
-                entryJSON[CompendiumEntry.CodingKeys.document.stringValue] = documentJSON
+                entryJSON[CompendiumEntry.CodingKeys.document.stringValue] = documentReferenceJSON
 
                 guard let entryData = try? JSONSerialization.data(withJSONObject: entryJSON) else {
                     assertionFailure("Could not migrate \(r.key): failed to write new origin & document JSON to the entry")

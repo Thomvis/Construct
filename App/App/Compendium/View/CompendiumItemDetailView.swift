@@ -15,6 +15,7 @@ import DiceRollerFeature
 import BetterSafariView
 import ActionResolutionFeature
 import Compendium
+import SharedViews
 
 struct CompendiumItemDetailView: View {
     @EnvironmentObject var env: Environment
@@ -45,7 +46,7 @@ struct CompendiumItemDetailView: View {
             VStack {
                 contentView()
 
-                if let attribution = viewStore.state.entry.attribution {
+                if var attribution = viewStore.state.entryAttribution {
                     Text(attribution)
                         .font(.footnote).italic()
                         .foregroundColor(Color(UIColor.secondaryLabel))
@@ -56,6 +57,18 @@ struct CompendiumItemDetailView: View {
             // Placing .popover inside ScrollView to work around https://github.com/stleamist/BetterSafariView/issues/23
             .popover(popoverBinding)
         }
+        // Handle taps from the attribution
+        .environment(\.openURL, OpenURLAction { url in
+            guard url.scheme == StatBlockView.urlSchema,
+                  let host = url.host,
+                  let target = try? StatBlockView.TapTarget(urlEncoded: host)
+            else {
+                return .systemAction
+            }
+
+            self.onTap(target)
+            return .handled
+        })
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 with(menuItems) { items in
@@ -66,8 +79,12 @@ struct CompendiumItemDetailView: View {
                     } else if items.count > 1 {
                         Menu(content: {
                             ForEach(menuItems, id: \.text) { item in
-                                Button(action: item.action) {
-                                    Label(item.text, systemImage: item.systemImage)
+                                if item.text == MenuItem.divider.text {
+                                    Divider()
+                                } else {
+                                    Button(action: item.action) {
+                                        Label(item.text, systemImage: item.systemImage)
+                                    }
                                 }
                             }
                         }) {
@@ -133,12 +150,13 @@ struct CompendiumItemDetailView: View {
             }
         case .transfer:
             IfLetStore(store.scope(state: replayNonNil({ $0.transferSheet }), action: { .sheet(.transfer($0)) })) { store in
-                SheetNavigationContainer {
-                    ScrollView {
+                AutoSizingSheetContainer {
+                    SheetNavigationContainer {
                         CompendiumItemTransferSheet(store: store)
-                            .padding()
+                            .autoSizingSheetContent(constant: 40) // add 40 for the navigation bar
+                            .navigationTitle("Move")
+                            .navigationBarTitleDisplayMode(.inline)
                     }
-                    .navigationTitle("Move/Copy")
                 }
             }
         default: EmptyView()
@@ -183,9 +201,12 @@ struct CompendiumItemDetailView: View {
             }
         }
 
+        MenuItem.divider
+
         // Move/Copy option available for all items
-        MenuItem(text: "Move/Copy", systemImage: "arrow.right.doc.on.clipboard") {
+        MenuItem(text: "Move...", systemImage: "arrow.right.doc.on.clipboard") {
             let state = CompendiumItemTransferFeature.State(
+                mode: .move,
                 selection: .single(self.viewStore.state.item.key),
                 originDocument: CompendiumFilters.Source(
                     realm: self.viewStore.state.item.realm.value,
@@ -196,6 +217,7 @@ struct CompendiumItemDetailView: View {
         }
     }
 
+    /// Handles the stats-related tap targets, defers to onTap below for the more general targets
     func onTap(_ stats: StatBlock) -> ((StatBlockView.TapTarget) -> Void)? {
         { target in
             switch target {
@@ -212,11 +234,22 @@ struct CompendiumItemDetailView: View {
                     preferences: env.preferences()
                 )
                 self.viewStore.send(.popover(.creatureAction(state)))
-            case .rollCheck(let e):
-                self.viewStore.send(.popover(.rollCheck(DiceCalculatorState.rollingExpression(e, rollOnAppear: true))))
-            case .compendiumItemReferenceTextAnnotation(let a):
-                self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(a, appNavigation))
+            default:
+                onTap(target)
             }
+        }
+    }
+
+    /// Handles the stat-free targets
+    func onTap(_ target: StatBlockView.TapTarget) {
+        switch target {
+        case .rollCheck(let e):
+            self.viewStore.send(.popover(.rollCheck(DiceCalculatorState.rollingExpression(e, rollOnAppear: true))))
+        case .compendiumItemReferenceTextAnnotation(let a):
+            self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(a, appNavigation))
+        default:
+            assertionFailure("Failed to handle statblock tap target: \(target)")
+            break
         }
     }
 
@@ -245,6 +278,8 @@ struct CompendiumItemDetailView: View {
         let text: String
         let systemImage: String
         let action: () -> Void
+
+        static let divider = MenuItem(text: "DIVIDER", systemImage: "", action: { })
     }
 }
 

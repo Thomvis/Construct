@@ -65,6 +65,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             case .groupEdit: return .groupEdit(CompendiumItemGroupEditState.nullInstance)
             case .compendiumImport: return .compendiumImport(CompendiumImportFeature.State())
             case .documents: return .documents(CompendiumDocumentsFeature.State())
+            case .transfer: return .transfer(CompendiumItemTransferFeature.State(mode: .copy, selection: .multiple(.init())))
             }
         }
 
@@ -127,6 +128,20 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         }
     }
 
+    var transferSheet: CompendiumItemTransferFeature.State? {
+        get {
+            if case .transfer(let state)? = sheet {
+                return state
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                sheet = .transfer(newValue)
+            }
+        }
+    }
+
     struct Properties: Equatable {
         let showImport: Bool
         let showAdd: Bool
@@ -171,6 +186,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         case groupEdit(CompendiumItemGroupEditState)
         case compendiumImport(CompendiumImportFeature.State)
         case documents(CompendiumDocumentsFeature.State)
+        case transfer(CompendiumItemTransferFeature.State)
 
         var id: String {
             switch self {
@@ -178,6 +194,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             case .groupEdit(let s): return s.navigationStackItemStateId
             case .compendiumImport: return "import"
             case .documents: return "documents"
+            case .transfer: return "transfer"
             }
         }
     }
@@ -232,6 +249,11 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                             types: state.results.input.filters?.types
                         )
                     )
+                case .onTransferMenuItemTap(let mode):
+                    state.sheet = .transfer(CompendiumItemTransferFeature.State(
+                        mode: mode,
+                        selection: .multiple(state.results.input.fetchRequest(range: nil))
+                    ))
                 case .setNextScreen(let n):
                     state.presentedScreens[.nextInStack] = n
                 case .setDetailScreen(let s):
@@ -267,6 +289,11 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     }
                 case .compendiumImportSheet(.importDidFinish(.some)):
                     return .send(.results(.result(.reload(.currentCount))))
+                case .transferSheet(.onTransferDidSucceed):
+                    return .merge(
+                        .send(.results(.result(.reload(.currentCount)))),
+                        .send(.setSheet(nil))
+                    )
                 case .nextScreen(.compendiumEntry(.didRemoveItem)),
                      .detailScreen(.compendiumEntry(.didRemoveItem)):
                     // creature removed
@@ -296,7 +323,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     state.alert = s
                 case .setSheet(let s):
                     state.sheet = s
-                case .creatureEditSheet, .groupEditSheet, .compendiumImportSheet, .documentsSheet: break // handled below
+                case .creatureEditSheet, .groupEditSheet, .compendiumImportSheet, .documentsSheet, .transferSheet: break // handled below
                 }
                 return .none
             },
@@ -369,7 +396,14 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     .dependency(\.compendiumMetadata, env.compendiumMetadata)
                     .dependency(\.database, env.database)
             }
-            .optional().pullback(state: \.documentsSheet, action: /CompendiumIndexAction.documentsSheet)
+            .optional().pullback(state: \.documentsSheet, action: /CompendiumIndexAction.documentsSheet),
+            AnyReducer { env in
+                CompendiumItemTransferFeature()
+                    .dependency(\.compendium, env.compendium)
+                    .dependency(\.compendiumMetadata, env.compendiumMetadata)
+                    .dependency(\.database, env.database)
+            }
+            .optional().pullback(state: \.transferSheet, action: /CompendiumIndexAction.transferSheet)
         )
     }
 }
@@ -403,6 +437,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     case onQueryTypeFilterDidChange([CompendiumItemType]?)
     case onAddButtonTap(CompendiumItemType)
     case onSearchOnWebButtonTap
+    case onTransferMenuItemTap(TransferMode)
 
     case setNextScreen(CompendiumIndexState.NextScreen?)
     indirect case nextScreen(NextScreenAction)
@@ -416,6 +451,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     case groupEditSheet(CompendiumItemGroupEditAction)
     case compendiumImportSheet(CompendiumImportFeature.Action)
     case documentsSheet(CompendiumDocumentsFeature.Action)
+    case transferSheet(CompendiumItemTransferFeature.Action)
 
     static func presentScreen(_ destination: NavigationDestination, _ screen: CompendiumIndexState.NextScreen?) -> Self {
         switch destination {

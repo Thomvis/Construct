@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 import SwiftUI
 import ComposableArchitecture
 import BetterSafariView
@@ -64,15 +65,13 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                                 Label("Manage Documents", systemImage: "books.vertical")
                             }
 
-                            Divider()
-
                             Button {
                                 localViewStore.send(.setSheet(.compendiumImport(CompendiumImportFeature.State())))
                             } label: {
                                 Label("Import...", systemImage: "square.and.arrow.down")
                             }
                         } label: {
-                            Label("Actions", systemImage: "ellipsis.circle")
+                            Text("Manage")
                         }
                     }
                 }
@@ -156,6 +155,28 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                     sourceRestriction: localViewStore.state.sourceRestriction
                 )
             }
+
+            Menu {
+                Button {
+                    localViewStore.send(.onTransferMenuItemTap(.move))
+                } label: {
+                    Label("Move all...", systemImage: "arrow.right.doc.on.clipboard")
+                }
+
+                Button {
+                    localViewStore.send(.onTransferMenuItemTap(.copy))
+                } label: {
+                    Label("Copy all...", systemImage: "document.on.clipboard")
+                }
+            } label: {
+                Button(action: {
+
+                }) {
+                    Image(systemName: "ellipsis.circle.fill")
+                }
+            }
+            .menuStyle(.borderlessButton)
+            .frame(width: 50)
         }
         .padding([.leading, .trailing, .bottom], 8)
     }
@@ -216,6 +237,20 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                                                     }
                                                 }
                                         }
+                                    },
+                                    else: {
+                                        IfLetStore(
+                                            store.scope(state: replayNonNil({ $0.transferSheet }), action: { .transferSheet($0) }),
+                                            then: { store in
+                                                AutoSizingSheetContainer {
+                                                    SheetNavigationContainer {
+                                                        CompendiumItemTransferSheet(store: store)
+                                                            .autoSizingSheetContent(constant: 40) // add 40 for the navigation bar
+                                                            .navigationBarTitleDisplayMode(.inline)
+                                                    }
+                                                }
+                                            }
+                                        )
                                     }
                                 )
                             }

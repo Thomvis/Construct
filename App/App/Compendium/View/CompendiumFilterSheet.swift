@@ -37,7 +37,8 @@ struct CompendiumFilterSheet: View {
                             store: store.scope(
                                 state: \.documentSelection,
                                 action: CompendiumFilterSheetAction.documentSelection
-                            )
+                            ),
+                            label: "Sources"
                         )
                         .disabled(viewStore.state.sourcesSectionDisabled)
                     }
