@@ -388,6 +388,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             AnyReducer { env in
                 CompendiumImportFeature()
                     .dependency(\.database, env.database)
+                    .dependency(\.compendium, env.compendium)
+                    .dependency(\.compendiumMetadata, env.compendiumMetadata)
                     .dependency(\.uuid, UUIDGenerator(env.generateUUID))
             }
             .optional().pullback(state: \.compendiumImportSheet, action: /CompendiumIndexAction.compendiumImportSheet),
