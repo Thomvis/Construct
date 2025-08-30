@@ -31,11 +31,11 @@ class CreatureEditViewStateTest: XCTestCase {
         // Set required fields to make monster valid
         var updatedModel = store.state.model
         updatedModel.statBlock.name = "Test Monster"
-        updatedModel.challengeRating = Fraction(integer: 1)
-        
+        updatedModel.statBlock.challengeRating = Fraction(integer: 1)
+
         await store.send(.model(updatedModel)) {
             $0.model.statBlock.name = "Test Monster"
-            $0.model.challengeRating = Fraction(integer: 1)
+            $0.model.statBlock.challengeRating = Fraction(integer: 1)
         }
         
         // Get the created monster - should default to homebrew realm since no source was selected
@@ -62,11 +62,11 @@ class CreatureEditViewStateTest: XCTestCase {
         // Set required fields to make monster valid
         var updatedModel = store.state.model
         updatedModel.statBlock.name = "Test Monster"
-        updatedModel.challengeRating = Fraction(integer: 1)
-        
+        updatedModel.statBlock.challengeRating = Fraction(integer: 1)
+
         await store.send(.model(updatedModel)) {
             $0.model.statBlock.name = "Test Monster"
-            $0.model.challengeRating = Fraction(integer: 1)
+            $0.model.statBlock.challengeRating = Fraction(integer: 1)
         }
         
         // Should use the selected source's realm
@@ -88,11 +88,11 @@ class CreatureEditViewStateTest: XCTestCase {
         // Set required fields to make monster valid
         var updatedModel = store.state.model
         updatedModel.statBlock.name = "Test Monster"
-        updatedModel.challengeRating = Fraction(integer: 1)
-        
+        updatedModel.statBlock.challengeRating = Fraction(integer: 1)
+
         await store.send(.model(updatedModel)) {
             $0.model.statBlock.name = "Test Monster"
-            $0.model.challengeRating = Fraction(integer: 1)
+            $0.model.statBlock.challengeRating = Fraction(integer: 1)
         }
         
         // Initially should default to homebrew
@@ -133,11 +133,11 @@ class CreatureEditViewStateTest: XCTestCase {
         // Set required fields
         var updatedModel = store.state.model
         updatedModel.statBlock.name = "Test Monster"
-        updatedModel.challengeRating = Fraction(integer: 1)
-        
+        updatedModel.statBlock.challengeRating = Fraction(integer: 1)
+
         await store.send(.model(updatedModel)) {
             $0.model.statBlock.name = "Test Monster"
-            $0.model.challengeRating = Fraction(integer: 1)
+            $0.model.statBlock.challengeRating = Fraction(integer: 1)
         }
         
         // Should initially use core realm

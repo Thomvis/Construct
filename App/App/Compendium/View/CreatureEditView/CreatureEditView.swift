@@ -37,8 +37,12 @@ struct CreatureEditView: View {
     var body: some View {
         return Form {
             FormSection(.basicCharacter) {
-                ClearableTextField("Name", text: model.statBlock.name)
-                    .disableAutocorrection(true)
+                HStack {
+                    ClearableTextField("Name", text: model.statBlock.name)
+                        .disableAutocorrection(true)
+
+                    creatureTypeAccessoryControl
+                }
                 characterFields
 
                 if viewStore.state.mode != .create(.adHocCombatant) {
@@ -47,10 +51,14 @@ struct CreatureEditView: View {
             }
 
             FormSection(.basicMonster) {
-                ClearableTextField("Name", text: model.statBlock.name)
-                    .disableAutocorrection(true)
-                    .disabled(!viewStore.state.canEditName)
-                    .foregroundColor(viewStore.state.canEditName ? Color(UIColor.label) : Color(UIColor.secondaryLabel))
+                HStack {
+                    ClearableTextField("Name", text: model.statBlock.name)
+                        .disableAutocorrection(true)
+                        .disabled(!viewStore.state.canEditName)
+                        .foregroundColor(viewStore.state.canEditName ? Color(UIColor.label) : Color(UIColor.secondaryLabel))
+
+                    creatureTypeAccessoryControl
+                }
                 monsterFields
 
                 if viewStore.state.mode != .create(.adHocCombatant) {
@@ -220,6 +228,43 @@ struct CreatureEditView: View {
     }
 
     @ViewBuilder
+    var creatureTypeAccessoryControl: some View {
+        let editableCreatureType = !viewStore.state.mode.isEdit
+
+        Menu {
+            if editableCreatureType {
+                Picker(
+                    selection: viewStore.binding(get: \.creatureType, send: {
+                        .setCreateModeCreatureType($0)
+                    }),
+                    label: EmptyView()
+                ) {
+                    ForEach(CreatureEditViewState.CreatureType.allCases, id: \.rawValue) { type in
+                        Text(type.localizedDisplayName).tag(type)
+                    }
+                }
+            } else {
+                Text("Type cannot be edited.")
+                Text("Choose “Edit a Copy” instead.")
+            }
+        } label: {
+            HStack(alignment: .firstTextBaseline) {
+                Text(viewStore.state.creatureType.localizedDisplayName)
+
+                if editableCreatureType {
+                    Image(systemName: "chevron.down")
+                        .font(.footnote)
+                }
+            }
+            .padding([.leading, .trailing], 12)
+            .padding([.top, .bottom], 2)
+            .foregroundStyle(Color.secondary)
+            .background(Color(UIColor.systemGray5).cornerRadius(100))
+            .padding(.trailing, -12)
+        }
+    }
+
+    @ViewBuilder
     var compendiumDocumentField: some View {
         let documentSelectionStore = store.scope(state: \.model.document, action: CreatureEditViewAction.documentSelection)
         LabeledContent {
@@ -237,7 +282,7 @@ struct CreatureEditView: View {
                     }
                 )
             } else {
-                CompendiumDocumentSelectionView.scaffold(store: documentSelectionStore) { state in
+                CompendiumDocumentSelectionView.withViewStore(store: documentSelectionStore) { state in
                     Text(state.currentDocument?.displayName ?? "")
                 }
             }
@@ -633,6 +678,7 @@ extension StatBlock.Proficiency {
 #if DEBUG
 struct CreatureEditView_Preview: PreviewProvider {
     static var previews: some View {
+        // edit
         CreatureEditView(
             store: Store(
                 initialState: CreatureEditViewState(edit: Monster(
@@ -651,6 +697,23 @@ struct CreatureEditView_Preview: PreviewProvider {
                     ),
                     challengeRating: Fraction(integer: 1)
                 ), documentId: CompendiumSourceDocument.homebrew.id),
+                reducer: CreatureEditViewState.reducer,
+                environment: CEVE(
+                    modifierFormatter: modifierFormatter,
+                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                    diceLog: DiceLogPublisher(),
+                    compendiumMetadata: CompendiumMetadataKey.previewValue
+                )
+            )
+        )
+
+        // create
+        CreatureEditView(
+            store: Store(
+                initialState: CreatureEditViewState(
+                    create: .monster,
+                    sourceDocument: .init(CompendiumSourceDocument.homebrew)
+                ),
                 reducer: CreatureEditViewState.reducer,
                 environment: CEVE(
                     modifierFormatter: modifierFormatter,

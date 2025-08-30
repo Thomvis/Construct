@@ -159,7 +159,7 @@ struct CreatureEditViewState: Equatable {
         }
     }
 
-    enum CreatureType: Int {
+    enum CreatureType: Int, CaseIterable {
         case monster
         case character
         case adHocCombatant
@@ -468,6 +468,7 @@ struct StatBlockFormModel: Equatable {
 }
 
 enum CreatureEditViewAction: Equatable {
+    case setCreateModeCreatureType(CreatureEditViewState.CreatureType)
     case model(CreatureEditFormModel)
     case popover(CreatureEditViewState.Popover?)
     case numberEntryPopover(NumberEntryViewAction)
@@ -499,6 +500,11 @@ extension CreatureEditViewState {
         ),
         AnyReducer { state, action, _ in
             switch action {
+            case .setCreateModeCreatureType(let type):
+                if case .create = state.mode {
+                    state.mode = .create(type)
+                    state.sections = type.initialSections.union(state.model.sectionsWithData)
+                }
             case .model(let m): state.model = m
             case .popover(let p): state.popover = p
             case .numberEntryPopover: break // handled above
