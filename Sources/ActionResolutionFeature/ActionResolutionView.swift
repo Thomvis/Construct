@@ -13,7 +13,7 @@ import DiceRollerFeature
 import GameModels
 import CombineSchedulers
 import MechMuse
-import OpenAIClient
+import OpenAI
 import Persistence
 import SharedViews
 
@@ -119,7 +119,7 @@ struct StandaloneActionResolutionEnvironment: ActionResolutionEnvironment {
     var mainQueue: AnySchedulerOf<DispatchQueue> = DispatchQueue.immediate.eraseToAnyScheduler()
     var diceLog = DiceLogPublisher()
     var mechMuse = MechMuse(
-        client: .constant(OpenAIClient.live(apiKey: "")),
+        client: .constant(OpenAI(apiToken: "")),
         describeAction: { client, request in
             return AsyncThrowingStream { continuation in
                 Task {

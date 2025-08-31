@@ -12,6 +12,7 @@ import ComposableArchitecture
 import GameModels
 import Helpers
 import SharedViews
+import OpenAI
 
 struct GenerateCombatantTraitsView: View {
     typealias State = GenerateCombatantTraitsViewState
@@ -323,7 +324,7 @@ import OpenAIClient
 import MechMuse
 struct GenerateCombatantTraitsViewPreviewEnvironment: GenerateCombatantTraitsViewEnvironment {
     var mechMuse = MechMuse(
-        client: .constant(OpenAIClient.live(apiKey: "")),
+        client: .constant(OpenAI(apiToken: "")),
         describeAction: { client, request in
             return AsyncThrowingStream { continuation in
                 Task {

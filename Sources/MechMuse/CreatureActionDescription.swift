@@ -7,7 +7,7 @@
 
 import Foundation
 import GameModels
-import OpenAIClient
+import OpenAI
 
 public struct CreatureActionDescriptionRequest: Hashable {
     public let creatureName: String // e.g. "Goblin"
@@ -91,7 +91,7 @@ public extension CreatureActionDescriptionRequest.Outcome {
 }
 
 extension CreatureActionDescriptionRequest: PromptConvertible {
-    public func prompt() -> [ChatMessage] {
+    public func prompt() -> [ChatQuery.ChatCompletionMessageParam] {
         let enemyNoun = isUniqueCreature ? "NPC" : "monster"
 
         // init result with prelude
@@ -142,8 +142,8 @@ extension CreatureActionDescriptionRequest: PromptConvertible {
         }
 
         return [
-            .init(role: .system, content: "You are a Dungeons & Dragons DM."),
-            .init(role: .user, content: result)
+            .system(.init(content: .textContent("You are a Dungeons & Dragons DM."))),
+            .user(.init(content: .string(result)))
         ]
     }
 }

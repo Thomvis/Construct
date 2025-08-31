@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import OpenAIClient
+import OpenAI
 import Persistence
 import Helpers
 import GameModels
@@ -16,16 +16,16 @@ import ComposableArchitecture
 
 /// Errors must be of type MechMuseError
 public struct MechMuse {
-    private var client: CurrentValue<OpenAIClient?>
-    private let describeAction: (OpenAIClient, CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error>
-    private let describeCombatants: (OpenAIClient, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream<GenerateCombatantTraitsResponse.Traits, Error>
-    private let verifyAPIKey: (OpenAIClient) async throws -> Void
+    private var client: CurrentValue<OpenAI?>
+    private let describeAction: (OpenAI, CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error>
+    private let describeCombatants: (OpenAI, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream<GenerateCombatantTraitsResponse.Traits, Error>
+    private let verifyAPIKey: (OpenAI) async throws -> Void
 
     public init(
-        client: CurrentValue<OpenAIClient?>,
-        describeAction: @escaping (OpenAIClient, CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error>,
-        describeCombatants: @escaping (OpenAIClient, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream< GenerateCombatantTraitsResponse.Traits, Error>,
-        verifyAPIKey: @escaping (OpenAIClient) async throws -> Void
+        client: CurrentValue<OpenAI?>,
+        describeAction: @escaping (OpenAI, CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error>,
+        describeCombatants: @escaping (OpenAI, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream< GenerateCombatantTraitsResponse.Traits, Error>,
+        verifyAPIKey: @escaping (OpenAI) async throws -> Void
     ) {
         self.client = client
         self.describeAction = describeAction
@@ -53,7 +53,8 @@ public extension MechMuse {
     }
 
     func verifyAPIKey(_ key: String) async throws {
-        try await verifyAPIKey(OpenAIClient.live(apiKey: key))
+        let client = OpenAI(apiToken: key)
+        try await verifyAPIKey(client)
     }
 }
 
@@ -62,93 +63,165 @@ public extension MechMuse {
         live(
             client: db.keyValueStore.observe(Preferences.key)
                 .map(\.?.mechMuse.apiKey).removeDuplicates()
-                .map { key in key.map { OpenAIClient.live(apiKey: $0) } }
+                .map { key in key.map { OpenAI(apiToken: $0) } }
                 .stream
                 .currentValue(nil)
         )
     }
 
-    static func live(client: CurrentValue<OpenAIClient?>) -> Self {
+    private static let model: Model = .gpt5_mini
+
+    static func live(client: CurrentValue<OpenAI?>) -> Self {
         MechMuse(
             client: client,
             describeAction: { client, request in
                 let prompt = request.prompt()
 
-                do {
-                    return try client.stream(request: ChatCompletionRequest(
-                        messages: prompt,
-                        maxTokens: 350,
-                        temperature: 0.9
-                    ))
-                } catch let error as OpenAIError {
-                    throw MechMuseError(from: error)
-                } catch {
-                    throw MechMuseError.unspecified
+                return AsyncThrowingStream(String.self) { continuation in
+                    Task.detached {
+                        do {
+                            let response = try await client.chats(query: ChatQuery(
+                                messages: prompt,
+                                model: Self.model,
+                                maxCompletionTokens: 1000
+                            ))
+                            if let content = response.choices[0].message.content {
+                                continuation.yield(content)
+                            }
+                            continuation.finish()
+                        } catch {
+                            if let error = error as? APIError {
+                                continuation.finish(throwing: MechMuseError(from: error))
+                            } else {
+                                continuation.finish(throwing: MechMuseError.unspecified)
+                            }
+                        }
+                    }
                 }
+
+                // Stream doesn't seem to work (maybe limitation of my account?)
+
+//                return client.chatsStream(query: ChatQuery(
+//                    messages: prompt,
+//                    model: Self.model,
+//                    maxCompletionTokens: 1000,
+//                ))
+//                .compactMap { chatStreamResult in
+//                    chatStreamResult.choices[0].delta.content
+//                }
+//                .mapError { error in
+//                    if let error = error as? APIError {
+//                        return MechMuseError(from: error)
+//                    }
+//                    return MechMuseError.unspecified
+//                }
+//                .stream
             },
             describeCombatants: { client, request in
                 assert(!request.combatantNames.isEmpty)
                 let prompt = request.prompt()
 
-                typealias TraitsArray = [GenerateCombatantTraitsResponse.Traits]
-                let endToken = "[Construct::END]"
-                do {
-                    return try chain(client.stream(request: ChatCompletionRequest(
-                        messages: prompt,
-                        maxTokens: 150 * max(request.combatantNames.count, 1),
-                        temperature: 0.9
-                    )), [endToken].async)
-                    // reduce the tokens into a growing (partial) response
-                    .reductions(into: "", { acc, elem in
-                        acc += elem
-                    })
-                    // parse every (partial) response
-                    .map { acc -> TraitsArray in
-                        if acc.hasSuffix(endToken) {
+//                typealias TraitsArray = [GenerateCombatantTraitsResponse.Traits]
+//                let endToken = "[Construct::END]"
+//
+//                return chain(
+//                    client.chatsStream(query: ChatQuery(
+//                        messages: prompt,
+//                        model: Self.model,
+//                        maxCompletionTokens: 150 * max(request.combatantNames.count, 1),
+//                        temperature: 0.9
+//                    ))
+//                    .compactMap { chatStreamResult in
+//                        chatStreamResult.choices[0].delta.content
+//                    }
+//                    .mapError { error in
+//                        if let error = error as? APIError {
+//                            return MechMuseError(from: error)
+//                        }
+//                        return MechMuseError.unspecified
+//                    },
+//                    [endToken].async
+//                )
+//                // reduce the tokens into a growing (partial) response
+//                .reductions(into: "", { acc, elem in
+//                    acc += elem
+//                })
+//                // parse every (partial) response
+//                .map { acc -> TraitsArray in
+//                    if acc.hasSuffix(endToken) {
+//
+//                        do {
+//                            let traits = try GenerateCombatantTraitsResponse.parser.parse(String(acc.dropLast(endToken.count)))
+//
+//                            if traits.isEmpty {
+//                                throw MechMuseError.unspecified // is upgraded to .interpretationFailed below
+//                            }
+//
+//                            // we're at the end of the response, add a dummy Traits that is removed in the next operator
+//                            return traits + [.init(name: "", physical: "", personality: "", nickname: "")]
+//                        } catch {
+//                            throw MechMuseError.interpretationFailed(
+//                                text: String(acc.dropLast(endToken.count)),
+//                                error: String(describing: error)
+//                            )
+//                        }
+//                    } else {
+//                        do {
+//                            return try GenerateCombatantTraitsResponse.parser.parse(acc)
+//                        } catch {
+//                            return []
+//                        }
+//                    }
+//                }
+//                // remember all seen traits
+//                .reductions(into: (TraitsArray(), TraitsArray()), { traits, parsed in
+//                    // drop the last because it might be incomplete
+//                    let new = parsed.dropLast(1).filter { t in
+//                        !traits.0.contains(t)
+//                    }
+//                    traits = (traits.0 + new, new)
+//                })
+//                // emit just the new traits
+//                .flatMap { (all, new) in
+//                    return new.async
+//                }.stream
 
-                            do {
-                                let traits = try GenerateCombatantTraitsResponse.parser.parse(String(acc.dropLast(endToken.count)))
+                return AsyncThrowingStream(GenerateCombatantTraitsResponse.Traits.self) { continuation in
+                    Task.detached {
+                        do {
+                            let response = try await client.chats(query: ChatQuery(
+                                messages: prompt,
+                                model: Self.model,
+                                maxCompletionTokens: 1000,
+                                responseFormat: .jsonSchema(.init(
+                                    name: "combatant_traits_response",
+                                    schema: .dynamicJsonSchema(GenerateCombatantTraitsResponse.schema.definition())
+                                ))
+                            ))
+                            if let content = response.choices[0].message.content,
+                               let traitsResponseData = content.data(using: .utf8) {
 
-                                if traits.isEmpty {
-                                    throw MechMuseError.unspecified // is upgraded to .interpretationFailed below
+                                let traitsResponse = try JSONDecoder().decode(GenerateCombatantTraitsResponse.self, from: traitsResponseData)
+                                for traits in traitsResponse.combatantTraits {
+                                    continuation.yield(traits)
                                 }
-
-                                // we're at the end of the response, add a dummy Traits that is removed in the next operator
-                                return traits + [.init(name: "", physical: "", personality: "", nickname: "")]
-                            } catch {
-                                throw MechMuseError.interpretationFailed(
-                                    text: String(acc.dropLast(endToken.count)),
-                                    error: String(describing: error)
-                                )
+                            } else {
+                                continuation.finish(throwing: MechMuseError.unspecified)
                             }
-                        } else {
-                            do {
-                                return try GenerateCombatantTraitsResponse.parser.parse(acc)
-                            } catch {
-                                return []
+
+                            continuation.finish()
+                        } catch {
+                            if let error = error as? APIError {
+                                continuation.finish(throwing: MechMuseError(from: error))
+                            } else {
+                                continuation.finish(throwing: MechMuseError.unspecified)
                             }
                         }
                     }
-                    // remember all seen traits
-                    .reductions(into: (TraitsArray(), TraitsArray()), { traits, parsed in
-                        // drop the last because it might be incomplete
-                        let new = parsed.dropLast(1).filter { t in
-                            !traits.0.contains(t)
-                        }
-                        traits = (traits.0 + new, new)
-                    })
-                    // emit just the new traits
-                    .flatMap { (all, new) in
-                        return new.async
-                    }.stream
-                } catch let error as OpenAIError {
-                    throw MechMuseError(from: error)
-                } catch {
-                    throw MechMuseError.unspecified
                 }
             },
             verifyAPIKey: { client in
-                _ = try await client.performModelsRequest()
+                _ = try await client.models()
             }
         )
     }
@@ -174,19 +247,12 @@ public enum MechMuseError: Error, Equatable {
     case insufficientQuota
     case invalidAPIKey
 
-    public init(from error: OpenAIError) {
-        switch error {
-        case .remote(let remoteError):
-            switch remoteError.code {
-            case .invalidAPIKey: self = .invalidAPIKey
-            case .insufficientQuota: self = .insufficientQuota
-            case .contextLengthExceeded: self = .unspecified // map to unspecified because the user can't help it anyway
-            case .none: self = .unspecified
-            }
-        case .decodingFailed:
-            self = .unspecified
-        case .unexpected:
-            self = .unspecified
+    public init(from error: APIError) {
+        switch error.code {
+        case "invalid_api_key": self = .invalidAPIKey
+        case "insufficient_quota": self = .insufficientQuota
+        case "context_length_exceeded": self = .unspecified // map to unspecified because the user can't help it anyway
+        default: self = .unspecified
         }
     }
 

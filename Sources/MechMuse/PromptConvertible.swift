@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import OpenAIClient
+import OpenAI
 
 public protocol PromptConvertible {
-    func prompt() -> [ChatMessage]
+    func prompt() -> [ChatQuery.ChatCompletionMessageParam]
 }

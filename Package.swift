@@ -1,4 +1,4 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Construct",
     platforms: [
-        .iOS(.v16),
+        .iOS(.v17),
         .macOS(.v12)
     ],
     products: [
@@ -18,7 +18,6 @@ let package = Package(
         .library(name: "GameModels", targets: ["GameModels"]),
         .library(name: "Helpers", targets: ["Helpers"]),
         .library(name: "MechMuse", targets: ["MechMuse"]),
-        .library(name: "OpenAIClient", targets: ["OpenAIClient"]),
         .library(name: "Open5eAPI", targets: ["Open5eAPI"]),
         .library(name: "Persistence", targets: ["Persistence"]),
         .library(name: "TestSupport", targets: ["TestSupport"]),
@@ -36,7 +35,8 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.12.0"),
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.14.0"),
-        .package(url: "https://github.com/LaunchDarkly/swift-eventsource.git", from: "3.0.0")
+        .package(url: "https://github.com/ajevans99/swift-json-schema", from: "0.9.0"),
+        .package(url: "https://github.com/MacPaw/OpenAI.git", from: "0.4.6")
     ],
     targets: [
         .target(
@@ -130,33 +130,17 @@ let package = Package(
             dependencies: [
                 "GameModels",
                 "Helpers",
-                "OpenAIClient",
                 "Persistence",
 
-                .product(name: "Parsing", package: "swift-parsing")
+                .product(name: "Parsing", package: "swift-parsing"),
+                .product(name: "JSONSchemaBuilder", package: "swift-json-schema"),
+                .product(name: "OpenAI", package: "openai")
             ]
         ),
         .testTarget(
             name: "MechMuseTests",
             dependencies: [
                 "MechMuse"
-            ]
-        ),
-        .target(
-            name: "OpenAIClient",
-            dependencies: [
-                "Helpers",
-
-                .product(name: "LDSwiftEventSource", package: "swift-eventsource"),
-                .product(name: "CustomDump", package: "swift-custom-dump")
-            ]
-        ),
-        .testTarget(
-            name: "OpenAIClientTests",
-            dependencies: [
-                "OpenAIClient",
-
-                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
             ]
         ),
         .target(
@@ -199,5 +183,6 @@ let package = Package(
                 "Persistence"
             ]
         )
-    ]
+    ],
+    swiftLanguageModes: [.v5]
 )
