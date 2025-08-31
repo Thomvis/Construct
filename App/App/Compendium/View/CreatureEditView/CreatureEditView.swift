@@ -14,6 +14,7 @@ import DiceRollerFeature
 import SharedViews
 import Helpers
 import Compendium
+import MechMuse
 
 struct CreatureEditView: View {
     static let iconColumnWidth: CGFloat = 30
@@ -187,6 +188,14 @@ struct CreatureEditView: View {
                             }
                         }
                     }
+                    CaseLet(state: /CreatureEditViewState.Sheet.mechMuse, action: CreatureEditViewAction.creatureGenerationSheet) { store in
+                        AutoSizingSheetContainer {
+                            SheetNavigationContainer {
+                                MechMuseCreatureGenerationSheet(store: store)
+                                    .autoSizingSheetContent()
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -225,6 +234,15 @@ struct CreatureEditView: View {
             }
         })
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    viewStore.send(.onCreatureGenerationButtonTap)
+                }) {
+                    Image(systemName: "quote.bubble")
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -702,7 +720,8 @@ struct CreatureEditView_Preview: PreviewProvider {
                     modifierFormatter: modifierFormatter,
                     mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
                     diceLog: DiceLogPublisher(),
-                    compendiumMetadata: CompendiumMetadataKey.previewValue
+                    compendiumMetadata: CompendiumMetadataKey.previewValue,
+                    mechMuse: MechMuse.previewValue
                 )
             )
         )
@@ -719,7 +738,8 @@ struct CreatureEditView_Preview: PreviewProvider {
                     modifierFormatter: modifierFormatter,
                     mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
                     diceLog: DiceLogPublisher(),
-                    compendiumMetadata: CompendiumMetadataKey.previewValue
+                    compendiumMetadata: CompendiumMetadataKey.previewValue,
+                    mechMuse: MechMuse.previewValue
                 )
             )
         )
@@ -731,5 +751,6 @@ struct CEVE: CreatureEditViewEnvironment {
     var mainQueue: AnySchedulerOf<DispatchQueue>
     var diceLog: DiceLogPublisher
     var compendiumMetadata: CompendiumMetadata
+    var mechMuse: MechMuse
 }
 #endif

@@ -47,7 +47,7 @@ extension Alignment.Ethic {
     }
 }
 
-extension Alignment {
+public extension Alignment {
     init?(englishName s: String) {
         switch s {
         case "any alignment":

@@ -142,6 +142,14 @@ struct StandaloneActionResolutionEnvironment: ActionResolutionEnvironment {
                 }
             }
         },
+        generateStatBlock: { _, _ in
+            AsyncThrowingStream { continuation in
+                Task {
+                    try await Task.sleep(for: .seconds(0.5))
+                    continuation.finish()
+                }
+            }
+        },
         verifyAPIKey: { client in
             try await Task.sleep(for: .seconds(1))
         }

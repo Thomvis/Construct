@@ -19,17 +19,20 @@ public struct MechMuse {
     private var client: CurrentValue<OpenAI?>
     private let describeAction: (OpenAI, CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error>
     private let describeCombatants: (OpenAI, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream<GenerateCombatantTraitsResponse.Traits, Error>
+    private let generateStatBlock: (OpenAI, GenerateStatBlockRequest) throws -> AsyncThrowingStream<SimpleStatBlock, Error>
     private let verifyAPIKey: (OpenAI) async throws -> Void
 
     public init(
         client: CurrentValue<OpenAI?>,
         describeAction: @escaping (OpenAI, CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error>,
         describeCombatants: @escaping (OpenAI, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream< GenerateCombatantTraitsResponse.Traits, Error>,
+        generateStatBlock: @escaping (OpenAI, GenerateStatBlockRequest) throws -> AsyncThrowingStream<SimpleStatBlock, Error>,
         verifyAPIKey: @escaping (OpenAI) async throws -> Void
     ) {
         self.client = client
         self.describeAction = describeAction
         self.describeCombatants = describeCombatants
+        self.generateStatBlock = generateStatBlock
         self.verifyAPIKey = verifyAPIKey
     }
 }
@@ -50,6 +53,13 @@ public extension MechMuse {
             throw MechMuseError.unconfigured
         }
         return try describeCombatants(openAIClient, request)
+    }
+
+    func generate(statBlock request: GenerateStatBlockRequest) throws -> AsyncThrowingStream<SimpleStatBlock, Error> {
+        guard let openAIClient = try? client.value else {
+            throw MechMuseError.unconfigured
+        }
+        return try generateStatBlock(openAIClient, request)
     }
 
     func verifyAPIKey(_ key: String) async throws {
@@ -220,6 +230,39 @@ public extension MechMuse {
                     }
                 }
             },
+            generateStatBlock: { client, request in
+                let prompt = request.prompt()
+
+                return AsyncThrowingStream(SimpleStatBlock.self) { continuation in
+                    Task.detached {
+                        do {
+                            let response = try await client.chats(query: ChatQuery(
+                                messages: prompt,
+                                model: Self.model,
+                                maxCompletionTokens: 10000,
+                                responseFormat: .jsonSchema(.init(
+                                    name: "simple_stat_block",
+                                    schema: .dynamicJsonSchema(SimpleStatBlock.schema.definition())
+                                ))
+                            ))
+                            if let content = response.choices[0].message.content,
+                               let data = content.data(using: .utf8) {
+                                let result = try JSONDecoder().decode(SimpleStatBlock.self, from: data)
+                                continuation.yield(result)
+                                continuation.finish()
+                            } else {
+                                continuation.finish(throwing: MechMuseError.unspecified)
+                            }
+                        } catch {
+                            if let error = error as? APIError {
+                                continuation.finish(throwing: MechMuseError(from: error))
+                            } else {
+                                continuation.finish(throwing: MechMuseError.unspecified)
+                            }
+                        }
+                    }
+                }
+            },
             verifyAPIKey: { client in
                 _ = try await client.models()
             }
@@ -232,6 +275,9 @@ public extension MechMuse {
             [].async.stream
         },
         describeCombatants: { _, _ in
+            [].async.stream
+        },
+        generateStatBlock: { _, _ in
             [].async.stream
         },
         verifyAPIKey: { _ in

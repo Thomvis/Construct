@@ -13,6 +13,7 @@ import GameModels
 import Helpers
 import DiceRollerFeature
 import Compendium
+import MechMuse
 
 struct CreatureEditViewState: Equatable {
     var mode: Mode
@@ -117,6 +118,20 @@ struct CreatureEditViewState: Equatable {
         }
     }
 
+    var mechMuseSheet: MechMuseCreatureGenerationFeature.State? {
+        get {
+            if case .mechMuse(let s) = sheet {
+                return s
+            }
+            return nil
+        }
+        set {
+            if let newValue = newValue {
+                sheet = .mechMuse(newValue)
+            }
+        }
+    }
+
     var localStateForDeduplication: Self {
         var res = self
         res.popover = popover.map {
@@ -127,6 +142,7 @@ struct CreatureEditViewState: Equatable {
         res.sheet = sheet.map {
             switch $0 {
             case .actionEditor: return .actionEditor(.nullInstance)
+            case .mechMuse: return .mechMuse(.nullInstance)
             }
         }
         return res
@@ -211,10 +227,12 @@ struct CreatureEditViewState: Equatable {
 
     enum Sheet: Equatable, Identifiable {
         case actionEditor(NamedStatBlockContentItemEditViewState)
+        case mechMuse(MechMuseCreatureGenerationFeature.State)
 
         var id: String {
             switch self {
             case .actionEditor: return "actionEditor"
+            case .mechMuse: return "mechMuse"
             }
         }
     }
@@ -474,23 +492,34 @@ enum CreatureEditViewAction: Equatable {
     case numberEntryPopover(NumberEntryViewAction)
     case sheet(CreatureEditViewState.Sheet?)
     case creatureActionEditSheet(CreatureActionEditViewAction)
+    case creatureGenerationSheet(MechMuseCreatureGenerationFeature.Action)
     case documentSelection(CompendiumDocumentSelectionFeature.Action)
     case onNamedContentItemTap(NamedStatBlockContentItemType, UUID)
     case onNamedContentItemRemove(NamedStatBlockContentItemType, IndexSet)
     case onNamedContentItemMove(NamedStatBlockContentItemType, IndexSet, Int)
     case addSection(CreatureEditViewState.Section)
     case removeSection(CreatureEditViewState.Section)
+    case onCreatureGenerationButtonTap
     case onAddTap(CreatureEditViewState)
     case onDoneTap(CreatureEditViewState)
     case onRemoveTap(CreatureEditViewState)
 }
 
-typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata
+typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse
 
 extension CreatureEditViewState {
     static let reducer: AnyReducer<Self, CreatureEditViewAction, CreatureEditViewEnvironment> = AnyReducer.combine(
         NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CreatureEditViewAction.numberEntryPopover, environment:  { $0 }),
         NamedStatBlockContentItemEditViewState.reducer.optional().pullback(state: \.actionEditor, action: /CreatureEditViewAction.creatureActionEditSheet),
+        AnyReducer { env in
+            MechMuseCreatureGenerationFeature()
+                .dependency(\.mechMuse, env.mechMuse)
+        }
+        .optional()
+        .pullback(
+            state: \.mechMuseSheet,
+            action: /CreatureEditViewAction.creatureGenerationSheet
+        ),
         AnyReducer { env in
             CompendiumDocumentSelectionFeature()
                 .dependency(\.compendiumMetadata, env.compendiumMetadata)
@@ -529,6 +558,15 @@ extension CreatureEditViewState {
                 state.model.statBlock[itemsOfType: editorState.itemType].remove(id: i.id)
                 state.sheet = nil
             case .documentSelection: break // handled above
+            case .creatureGenerationSheet(.generated(let simple)):
+                // Apply result to current model
+                var new = state.model
+                var updated = simple.toStatBlock()
+                _ = ParseableGameModelsVisitor().visit(statBlock: &updated)
+                new.statBlock = StatBlockFormModel(statBlock: updated)
+                state.model = new
+                state.sections = state.creatureType.initialSections.union(state.model.sectionsWithData)
+                state.sheet = nil
             case .onNamedContentItemTap(let t, let id):
                 if let item = state.model.statBlock[itemsOfType: t][id: id] {
                     state.sheet = .actionEditor(NamedStatBlockContentItemEditViewState(editing: item))
@@ -537,7 +575,10 @@ extension CreatureEditViewState {
                 state.model.statBlock[itemsOfType: t].remove(atOffsets: indices)
             case .onNamedContentItemMove(let t, let indices, let offset):
                 state.model.statBlock[itemsOfType: t].move(fromOffsets: indices, toOffset: offset)
+            case .onCreatureGenerationButtonTap:
+                state.sheet = .mechMuse(.init(base: state.model.statBlock.statBlock))
             case .creatureActionEditSheet: break // handled above
+            case .creatureGenerationSheet: break // handled above
             case .addSection(let s): state.sections.insert(s)
             case .removeSection(let s): state.sections.remove(s)
             case .onAddTap: break // should be handled by parent
