@@ -558,14 +558,18 @@ extension CreatureEditViewState {
                 state.model.statBlock[itemsOfType: editorState.itemType].remove(id: i.id)
                 state.sheet = nil
             case .documentSelection: break // handled above
-            case .creatureGenerationSheet(.generated(let simple)):
-                // Apply result to current model
-                var new = state.model
-                var updated = simple.toStatBlock()
-                _ = ParseableGameModelsVisitor().visit(statBlock: &updated)
-                new.statBlock = StatBlockFormModel(statBlock: updated)
-                state.model = new
-                state.sections = state.creatureType.initialSections.union(state.model.sectionsWithData)
+            case .creatureGenerationSheet(.generated):
+                // Child handles storing result and navigation to diff. Do not apply yet.
+                break
+            case .creatureGenerationSheet(.onApplyButtonTap):
+                if case let .mechMuse(s) = state.sheet, let simple = s.result {
+                    var new = state.model
+                    var updated = simple.toStatBlock()
+                    _ = ParseableGameModelsVisitor().visit(statBlock: &updated)
+                    new.statBlock = StatBlockFormModel(statBlock: updated)
+                    state.model = new
+                    state.sections = state.creatureType.initialSections.union(state.model.sectionsWithData)
+                }
                 state.sheet = nil
             case .onNamedContentItemTap(let t, let id):
                 if let item = state.model.statBlock[itemsOfType: t][id: id] {

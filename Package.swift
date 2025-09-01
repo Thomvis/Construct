@@ -137,12 +137,6 @@ let package = Package(
                 .product(name: "OpenAI", package: "openai")
             ]
         ),
-        .testTarget(
-            name: "MechMuseTests",
-            dependencies: [
-                "MechMuse"
-            ]
-        ),
         .target(
             name: "Open5eAPI",
             dependencies: [

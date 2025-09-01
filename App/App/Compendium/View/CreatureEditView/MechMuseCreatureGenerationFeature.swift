@@ -1,9 +1,11 @@
 import Foundation
+import SharedViews
 import SwiftUI
 import ComposableArchitecture
 import GameModels
 import Helpers
 import MechMuse
+import CustomDump
 
 struct MechMuseCreatureGenerationFeature: ReducerProtocol {
     struct State: Equatable, Identifiable {
@@ -15,6 +17,9 @@ struct MechMuseCreatureGenerationFeature: ReducerProtocol {
 
         // Result to apply
         var result: SimpleStatBlock?
+
+        // Navigate to diff view after generation
+        @BindingState var isShowingDiff: Bool = false
 
         static let nullInstance = State(base: .default)
     }
@@ -56,6 +61,7 @@ struct MechMuseCreatureGenerationFeature: ReducerProtocol {
             case .generated(let simple):
                 state.result = simple
                 state.isGenerating = false
+                state.isShowingDiff = true
                 return .none
             case .failed(let err):
                 state.error = err
@@ -78,36 +84,90 @@ struct MechMuseCreatureGenerationSheet: View {
 
     var body: some View {
         WithViewStore(store) { viewStore in
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(spacing: 12) {
                 if let error = viewStore.state.error {
-                    Text(error.attributedDescription).foregroundColor(.red)
+                    NoticeView(notice: .error(error.attributedDescription))
                 }
-
-                Text("Mechanical Muse").bold()
-                Text("Describe what to create or change about this creature.")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
 
                 TextEditor(text: viewStore.binding(\.$prompt))
                     .frame(minHeight: 120)
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.3)))
 
-                HStack {
-                    Button("Cancel") { presentationMode.wrappedValue.dismiss() }
-                    Spacer()
-                    Button(action: { viewStore.send(.onGenerateButtonTap) }) {
-                        if viewStore.isGenerating {
-                            ProgressView()
-                        } else {
-                            Text("Generate")
-                        }
+
+                Button(action: {
+                    viewStore.send(.onGenerateButtonTap)
+                }) {
+                    if viewStore.isGenerating {
+                        ProgressView()
+                    } else {
+                        Text("Generate")
+                            .frame(maxWidth: .infinity)
                     }
-                    .disabled(viewStore.isGenerating || viewStore.prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .padding(.top, 8)
+                .disabled(viewStore.isGenerating || viewStore.prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
             }
             .padding()
+            .navigationDestination(isPresented: viewStore.binding(\.$isShowingDiff)) {
+                MechMuseCreatureDiffView(store: store)
+            }
+        }
+        .navigationTitle("Generate stats")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
         }
     }
 }
+
+
+struct MechMuseCreatureDiffView: View {
+    let store: StoreOf<MechMuseCreatureGenerationFeature>
+
+    var body: some View {
+        WithViewStore(store) { viewStore in
+            let baseSimple = SimpleStatBlock(statBlock: viewStore.state.base)
+            let target = viewStore.state.result ?? baseSimple
+            let diffText = diff(baseSimple, target) ?? ""
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 4) {
+                    ForEach(diffText.split(separator: "\n", omittingEmptySubsequences: false).enumerated().map({ ($0.offset, String($0.element)) }), id: \.0) { _, line in
+                        Text(line)
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundColor(color(for: line))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("Review changes")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: { viewStore.send(.onApplyButtonTap) }) {
+                        Text("Accept").bold()
+                    }
+                    .disabled(viewStore.state.result == nil)
+                }
+            }
+        }
+    }
+
+    private func color(for line: String) -> Color {
+        if line.hasPrefix("+ ") { return Color.green }
+        if line.hasPrefix("- ") { return Color.red }
+        if line.hasPrefix("− ") { return Color.red } // U+2212 minus
+        return Color.primary
+    }
+}
+
 
 

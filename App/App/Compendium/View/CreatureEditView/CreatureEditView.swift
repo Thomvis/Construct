@@ -189,12 +189,12 @@ struct CreatureEditView: View {
                         }
                     }
                     CaseLet(state: /CreatureEditViewState.Sheet.mechMuse, action: CreatureEditViewAction.creatureGenerationSheet) { store in
-                        AutoSizingSheetContainer {
+//                        AutoSizingSheetContainer {
                             SheetNavigationContainer {
                                 MechMuseCreatureGenerationSheet(store: store)
-                                    .autoSizingSheetContent()
+//                                    .autoSizingSheetContent(constant: 40)
                             }
-                        }
+//                        }
                     }
                 }
             }
@@ -697,34 +697,36 @@ extension StatBlock.Proficiency {
 struct CreatureEditView_Preview: PreviewProvider {
     static var previews: some View {
         // edit
-        CreatureEditView(
-            store: Store(
-                initialState: CreatureEditViewState(edit: Monster(
-                    realm: .init(CompendiumRealm.homebrew.id),
-                    stats: StatBlock(
-                        name: "Goblin",
-                        armor: [],
-                        savingThrows: [:],
-                        skills: [:],
-                        features: [],
-                        actions: [
-                            CreatureAction(id: UUID(), name: "Scimitar", description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage."),
-                            CreatureAction(id: UUID(), name: "Shortbow", description: "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage.")
-                        ],
-                        reactions: []
-                    ),
-                    challengeRating: Fraction(integer: 1)
-                ), documentId: CompendiumSourceDocument.homebrew.id),
-                reducer: CreatureEditViewState.reducer,
-                environment: CEVE(
-                    modifierFormatter: modifierFormatter,
-                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
-                    diceLog: DiceLogPublisher(),
-                    compendiumMetadata: CompendiumMetadataKey.previewValue,
-                    mechMuse: MechMuse.previewValue
+        NavigationView {
+            CreatureEditView(
+                store: Store(
+                    initialState: CreatureEditViewState(edit: Monster(
+                        realm: .init(CompendiumRealm.homebrew.id),
+                        stats: StatBlock(
+                            name: "Goblin",
+                            armor: [],
+                            savingThrows: [:],
+                            skills: [:],
+                            features: [],
+                            actions: [
+                                CreatureAction(id: UUID(), name: "Scimitar", description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage."),
+                                CreatureAction(id: UUID(), name: "Shortbow", description: "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage.")
+                            ],
+                            reactions: []
+                        ),
+                        challengeRating: Fraction(integer: 1)
+                    ), documentId: CompendiumSourceDocument.homebrew.id),
+                    reducer: CreatureEditViewState.reducer,
+                    environment: CEVE(
+                        modifierFormatter: modifierFormatter,
+                        mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                        diceLog: DiceLogPublisher(),
+                        compendiumMetadata: CompendiumMetadataKey.previewValue,
+                        mechMuse: MechMuse.previewValue
+                    )
                 )
             )
-        )
+        }
 
         // create
         CreatureEditView(

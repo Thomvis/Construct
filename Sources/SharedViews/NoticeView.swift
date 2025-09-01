@@ -4,11 +4,11 @@ import UIKit
 
 public struct Notice: Equatable {
     public let icon: String
-    public let message: String
+    public let message: AttributedString
     public let foregroundColor: Color
     public let isDismissible: Bool
 
-    public init(icon: String, message: String, foregroundColor: Color, isDismissible: Bool) {
+    public init(icon: String, message: AttributedString, foregroundColor: Color, isDismissible: Bool) {
         self.icon = icon
         self.message = message
         self.foregroundColor = foregroundColor
@@ -16,15 +16,14 @@ public struct Notice: Equatable {
     }
 
     public static func error(_ error: Error, isDismissible: Bool = true) -> Notice {
-        Notice(
-            icon: "exclamationmark.octagon",
-            message: error.localizedDescription,
-            foregroundColor: Color(UIColor.systemRed),
-            isDismissible: isDismissible
-        )
+        .error(AttributedString(error.localizedDescription), isDismissible: isDismissible)
     }
 
     public static func error(_ message: String, isDismissible: Bool = true) -> Notice {
+        .error(AttributedString(message), isDismissible: isDismissible)
+    }
+
+    public static func error(_ message: AttributedString, isDismissible: Bool = true) -> Notice {
         Notice(
             icon: "exclamationmark.octagon",
             message: message,
@@ -56,7 +55,7 @@ public struct NoticeView: View {
                 .symbolRenderingMode(.monochrome)
                 .symbolVariant(.fill)
 
-                if notice.isDismissible {
+                if notice.isDismissible && onDismiss != nil {
                     Text("Tap to dismiss")
                         .font(.footnote)
                         .foregroundStyle(.secondary)

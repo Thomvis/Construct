@@ -14,6 +14,7 @@ import Compendium
 import ComposableArchitecture
 import Helpers
 import DiceRollerFeature
+import MechMuse
 
 class CreatureEditViewStateTest: XCTestCase {
     
@@ -197,5 +198,6 @@ class CreatureEditViewStateTest: XCTestCase {
             updateDocument: { _, _, _ in },
             removeDocument: { _, _ in }
         )
+        var mechMuse: MechMuse = MechMuse.unconfigured
     }
 }

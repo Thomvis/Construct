@@ -13,7 +13,7 @@ import ComposableArchitecture
 import GameModels
 import Helpers
 import MechMuse
-import OpenAIClient
+import OpenAI
 
 class GenerateCombatantTraitsViewTest: XCTestCase {
 
@@ -74,12 +74,13 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
 
         init() {
             _mechMuse = MechMuse(
-                client: .constant(OpenAIClient.live(apiKey: "")),
+                client: .constant(OpenAI(apiToken: "")),
                 describeAction: { _, _ in fatalError() },
                 describeCombatants: { client, requests in
                     self.describeCombatantsCallCount += 1
                     return self.describeCombatantsResult
                 },
+                generateStatBlock: { _, _ in fatalError() },
                 verifyAPIKey: { _ in fatalError() }
             )
 

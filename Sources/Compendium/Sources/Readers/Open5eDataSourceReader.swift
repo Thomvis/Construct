@@ -91,6 +91,7 @@ private extension StatBlock {
                     MovementMode.fly: speeds.fly,
                     MovementMode.swim: speeds.swim,
                     MovementMode.climb: speeds.climb,
+                    MovementMode.burrow: speeds.burrow
                 ].compactMapValues { $0 }
             },
 
