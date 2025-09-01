@@ -64,6 +64,7 @@
 		E95FA115231C58A30098BD83 /* DiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */; };
 		E95FD42F249BFA280023F363 /* EncounterDetailTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */; };
 		E963CCF7247AE5CD009863D7 /* CompendiumContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E46FC231D9390005D1E6F /* CompendiumContainerView.swift */; };
+		E96DC8A82E6458B20038E9B7 /* MechMuseCreatureGenerationFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96DC8A72E6458B20038E9B7 /* MechMuseCreatureGenerationFeature.swift */; };
 		E96FC16923D3A5BE00A12F1E /* ogl.md in Resources */ = {isa = PBXBuildFile; fileRef = E96FC16823D3A5BE00A12F1E /* ogl.md */; };
 		E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96FC16A23D3A64800A12F1E /* WebView.swift */; };
 		E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */; };
@@ -263,6 +264,7 @@
 		E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerView.swift; sourceTree = "<group>"; };
 		E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExpressionTest.swift; sourceTree = "<group>"; };
 		E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailTest.swift; sourceTree = "<group>"; };
+		E96DC8A72E6458B20038E9B7 /* MechMuseCreatureGenerationFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MechMuseCreatureGenerationFeature.swift; sourceTree = "<group>"; };
 		E96FC16523D3976800A12F1E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E96FC16823D3A5BE00A12F1E /* ogl.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ogl.md; sourceTree = "<group>"; };
 		E96FC16A23D3A64800A12F1E /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
@@ -470,6 +472,7 @@
 				E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */,
 				E93CCC4A29153DFA001E35BA /* NamedStatBlockContentItemEditViewState.swift */,
 				E93CCC4C29153E03001E35BA /* NamedStatBlockContentItemEditView.swift */,
+				E96DC8A72E6458B20038E9B7 /* MechMuseCreatureGenerationFeature.swift */,
 			);
 			path = CreatureEditView;
 			sourceTree = "<group>";
@@ -1101,6 +1104,7 @@
 				E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */,
 				E9819BE52485252A005B898E /* SheetNavigationContainer.swift in Sources */,
 				E97651CE248ADC9700C76865 /* InitiativeDialog.swift in Sources */,
+				E96DC8A82E6458B20038E9B7 /* MechMuseCreatureGenerationFeature.swift in Sources */,
 				E92A41E4240D2F0C009AF440 /* WelcomeView.swift in Sources */,
 				E97651D8248AE9EC00C76865 /* CombatantTagsView.swift in Sources */,
 				E942E010247EA5DE00170FAC /* AddCombatantState.swift in Sources */,
@@ -1377,6 +1381,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1409,6 +1414,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

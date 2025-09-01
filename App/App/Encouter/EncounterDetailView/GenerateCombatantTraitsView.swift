@@ -13,6 +13,7 @@ import GameModels
 import Helpers
 import SharedViews
 import OpenAI
+import MechMuse
 
 struct GenerateCombatantTraitsView: View {
     typealias State = GenerateCombatantTraitsViewState
@@ -320,8 +321,6 @@ struct GenerateCombatantTraitsView_Preview: PreviewProvider {
     }
 }
 
-import OpenAIClient
-import MechMuse
 struct GenerateCombatantTraitsViewPreviewEnvironment: GenerateCombatantTraitsViewEnvironment {
     var mechMuse = MechMuse(
         client: .constant(OpenAI(apiToken: "")),

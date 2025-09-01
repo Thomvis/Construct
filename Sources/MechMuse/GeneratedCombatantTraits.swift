@@ -19,7 +19,7 @@ public struct GenerateCombatantTraitsRequest {
 }
 
 extension GenerateCombatantTraitsRequest: PromptConvertible {
-    public func prompt() -> [ChatQuery.ChatCompletionMessageParam] {
+    public func prompt() -> [InputItem] {
         let namesList = combatantNames.map { "\"\($0)\"" }.joined(separator: ", ")
 
         // Prompt notes:
@@ -28,8 +28,8 @@ extension GenerateCombatantTraitsRequest: PromptConvertible {
         // - Added "Limit each value to a single sentence" to subdue the tendency to give a bulleted list when only
         //   a single combatant was in the request.
         return [
-            .system(.init(content: .textContent("You are helping a Dungeons & Dragons DM create awesome encounters."))),
-            .user(.init(content: .string("""
+            .inputMessage(.init(role: .system, content: .textInput("You are helping a Dungeons & Dragons DM create awesome encounters."))),
+            .inputMessage(.init(role: .user, content: .textInput("""
                 The encounter has \(combatantNames.count) monster(s): \(namesList). Come up with gritty physical and personality traits that don't interfere with its stats and unique nickname that fits its traits. One trait of each type for each monster, limit each trait to a single sentence.
                 """
             )))

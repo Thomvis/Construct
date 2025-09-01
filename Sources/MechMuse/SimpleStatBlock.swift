@@ -4,6 +4,7 @@ import Helpers
 import JSONSchemaBuilder
 
 @Schemable
+@ObjectOptions(.additionalProperties(false))
 public struct SimpleStatBlock: Codable, Equatable, Hashable {
     public var name: String
     public var size: String?
@@ -47,6 +48,7 @@ public struct SimpleStatBlock: Codable, Equatable, Hashable {
     public var legendaryActions: [NamedTextItem]?
 
     @Schemable
+    @ObjectOptions(.additionalProperties(false))
     public struct Abilities: Codable, Equatable, Hashable {
         public var strength: Int?
         public var dexterity: Int?
@@ -73,6 +75,7 @@ public struct SimpleStatBlock: Codable, Equatable, Hashable {
     }
 
     @Schemable
+    @ObjectOptions(.additionalProperties(false))
     public struct NamedTextItem: Codable, Equatable, Hashable {
         public var name: String
         public var description: String

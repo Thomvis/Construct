@@ -91,7 +91,7 @@ public extension CreatureActionDescriptionRequest.Outcome {
 }
 
 extension CreatureActionDescriptionRequest: PromptConvertible {
-    public func prompt() -> [ChatQuery.ChatCompletionMessageParam] {
+    public func prompt() -> [InputItem] {
         let enemyNoun = isUniqueCreature ? "NPC" : "monster"
 
         // init result with prelude
@@ -142,8 +142,8 @@ extension CreatureActionDescriptionRequest: PromptConvertible {
         }
 
         return [
-            .system(.init(content: .textContent("You are a Dungeons & Dragons DM."))),
-            .user(.init(content: .string(result)))
+            .inputMessage(.init(role: .system, content: .textInput("You are a Dungeons & Dragons DM."))),
+            .inputMessage(.init(role: .user, content: .textInput(result)))
         ]
     }
 }

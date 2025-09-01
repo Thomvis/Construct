@@ -9,5 +9,5 @@ import Foundation
 import OpenAI
 
 public protocol PromptConvertible {
-    func prompt() -> [ChatQuery.ChatCompletionMessageParam]
+    func prompt() -> [InputItem]
 }

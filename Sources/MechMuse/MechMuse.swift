@@ -73,7 +73,14 @@ public extension MechMuse {
         live(
             client: db.keyValueStore.observe(Preferences.key)
                 .map(\.?.mechMuse.apiKey).removeDuplicates()
-                .map { key in key.map { OpenAI(apiToken: $0) } }
+                .map { key in
+                    key.map {
+                        OpenAI(configuration: OpenAI.Configuration(
+                            token: $0,
+                            timeoutInterval: 180
+                        ))
+                    }
+                }
                 .stream
                 .currentValue(nil)
         )
@@ -90,12 +97,14 @@ public extension MechMuse {
                 return AsyncThrowingStream(String.self) { continuation in
                     Task.detached {
                         do {
-                            let response = try await client.chats(query: ChatQuery(
-                                messages: prompt,
-                                model: Self.model,
-                                maxCompletionTokens: 1000
-                            ))
-                            if let content = response.choices[0].message.content {
+                            let response = try await client.responses.createResponse(
+                                query: CreateModelResponseQuery(
+                                    input: .inputItemList(prompt),
+                                    model: Self.model
+                                )
+                            )
+
+                            if let content = response.outputText {
                                 continuation.yield(content)
                             }
                             continuation.finish()
@@ -111,13 +120,16 @@ public extension MechMuse {
 
                 // Stream doesn't seem to work (maybe limitation of my account?)
 
-//                return client.chatsStream(query: ChatQuery(
-//                    messages: prompt,
+//                return client.responses.createResponseStreaming(query: CreateModelResponseQuery(
+//                    input: .inputItemList(prompt),
 //                    model: Self.model,
-//                    maxCompletionTokens: 1000,
+//                    stream: true
 //                ))
-//                .compactMap { chatStreamResult in
-//                    chatStreamResult.choices[0].delta.content
+//                .compactMap { streamEvent in
+//                    if case .inProgress(let event) = streamEvent {
+//                        return event.response.outputText
+//                    }
+//                    return nil
 //                }
 //                .mapError { error in
 //                    if let error = error as? APIError {
@@ -199,16 +211,18 @@ public extension MechMuse {
                 return AsyncThrowingStream(GenerateCombatantTraitsResponse.Traits.self) { continuation in
                     Task.detached {
                         do {
-                            let response = try await client.chats(query: ChatQuery(
-                                messages: prompt,
+                            let response = try await client.responses.createResponse(query: CreateModelResponseQuery(
+                                input: .inputItemList(prompt),
                                 model: Self.model,
-                                maxCompletionTokens: 1000,
-                                responseFormat: .jsonSchema(.init(
+                                text: .jsonSchema(.init(
                                     name: "combatant_traits_response",
-                                    schema: .dynamicJsonSchema(GenerateCombatantTraitsResponse.schema.definition())
+                                    schema: .dynamicJsonSchema(GenerateCombatantTraitsResponse.schema.definition()),
+                                    description: nil,
+                                    strict: true
                                 ))
                             ))
-                            if let content = response.choices[0].message.content,
+
+                            if let content = response.outputText,
                                let traitsResponseData = content.data(using: .utf8) {
 
                                 let traitsResponse = try JSONDecoder().decode(GenerateCombatantTraitsResponse.self, from: traitsResponseData)
@@ -236,16 +250,18 @@ public extension MechMuse {
                 return AsyncThrowingStream(SimpleStatBlock.self) { continuation in
                     Task.detached {
                         do {
-                            let response = try await client.chats(query: ChatQuery(
-                                messages: prompt,
+                            let response = try await client.responses.createResponse(query: CreateModelResponseQuery(
+                                input: .inputItemList(prompt),
                                 model: Self.model,
-                                maxCompletionTokens: 10000,
-                                responseFormat: .jsonSchema(.init(
+                                text: .jsonSchema(.init(
                                     name: "simple_stat_block",
-                                    schema: .dynamicJsonSchema(SimpleStatBlock.schema.definition())
+                                    schema: .dynamicJsonSchema(SimpleStatBlock.schema.definition()),
+                                    description: nil,
+                                    strict: false
                                 ))
                             ))
-                            if let content = response.choices[0].message.content,
+
+                            if let content = response.outputText,
                                let data = content.data(using: .utf8) {
                                 let result = try JSONDecoder().decode(SimpleStatBlock.self, from: data)
                                 continuation.yield(result)
@@ -337,5 +353,21 @@ public extension DependencyValues {
     var mechMuse: MechMuse {
         get { self[MechMuse.self] }
         set { self[MechMuse.self] = newValue }
+    }
+}
+
+extension ResponseObject {
+    var outputText: String? {
+        var result = ""
+        for item in output {
+            if case .outputMessage(let msg) = item {
+                for c in msg.content {
+                    if case .OutputTextContent(let txt) = c {
+                        result += txt.text
+                    }
+                }
+            }
+        }
+        return result.trimmingCharacters(in: .whitespacesAndNewlines).nonEmptyString
     }
 }

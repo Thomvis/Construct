@@ -19,7 +19,7 @@ public struct GenerateStatBlockRequest: Hashable {
 }
 
 extension GenerateStatBlockRequest: PromptConvertible {
-    public func prompt() -> [ChatQuery.ChatCompletionMessageParam] {
+    public func prompt() -> [InputItem] {
         var user = """
         Create or edit a Dungeons & Dragons creature stat block following these instructions:
         
@@ -49,8 +49,8 @@ extension GenerateStatBlockRequest: PromptConvertible {
         }
 
         return [
-            .system(.init(content: .textContent("You help a Dungeons & Dragons DM create or edit creatures. Be concise and consistent with 5e."))),
-            .user(.init(content: .string(user)))
+            .inputMessage(.init(role: .system, content: .textInput("You help a Dungeons & Dragons DM create or edit creatures. Be concise and consistent with 5e."))),
+            .inputMessage(.init(role: .user, content: .textInput(user)))
         ]
     }
 }
