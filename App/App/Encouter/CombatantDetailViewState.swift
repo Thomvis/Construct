@@ -247,9 +247,11 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 if let tag = tag {
                     return .send(.combatant(.addTag(tag)))
                 }
-            case .nextScreen(.creatureEditView(.onDoneTap(let state))):
-                guard let def = state.adHocCombatant else { return .none }
-                return [.setNextScreen(nil), .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def)))].publisher.eraseToEffect()
+            case .nextScreen(.creatureEditView(.didEdit(let result))):
+                if case let .adHoc(def) = result {
+                    return [.setNextScreen(nil), .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def)))].publisher.eraseToEffect()
+                }
+                return .none
             case .nextScreen, .detailScreen: break// handled by reducers below
             }
             return .none

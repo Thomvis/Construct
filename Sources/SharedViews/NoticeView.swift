@@ -35,15 +35,21 @@ public struct Notice: Equatable {
 
 public struct NoticeView: View {
     let notice: Notice
+    let backgroundColor: Color
     var onDismiss: (() -> Void)?
 
-    public init(notice: Notice, onDismiss: (() -> Void)? = nil) {
+    public init(
+        notice: Notice,
+        backgroundColor: Color = Color(UIColor.secondarySystemBackground),
+        onDismiss: (() -> Void)? = nil
+    ) {
         self.notice = notice
+        self.backgroundColor = backgroundColor
         self.onDismiss = onDismiss
     }
 
     public var body: some View {
-        SectionContainer {
+        SectionContainer(backgroundColor: backgroundColor) {
             VStack(alignment: notice.isDismissible ? .trailing : .leading) {
                 HStack(spacing: 12) {
                     Text(Image(systemName: notice.icon))

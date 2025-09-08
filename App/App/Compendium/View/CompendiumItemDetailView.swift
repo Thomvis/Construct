@@ -167,11 +167,13 @@ struct CompendiumItemDetailView: View {
         switch item {
         case let monster as Monster: return CreatureEditViewState(
             edit: monster,
-            documentId: viewStore.state.entry.document.id
+            documentId: viewStore.state.entry.document.id,
+            origin: viewStore.state.entry.origin
         )
         case let character as Character: return CreatureEditViewState(
             edit: character,
-            documentId: viewStore.state.entry.document.id
+            documentId: viewStore.state.entry.document.id,
+            origin: viewStore.state.entry.origin
         )
         default: return nil
         }
@@ -197,6 +199,7 @@ struct CompendiumItemDetailView: View {
                 var state = CreatureEditViewState(create: .monster)
                 state.model.statBlock = .init(statBlock: itemStatBlock)
                 state.sections = state.creatureType.initialSections.union(state.model.sectionsWithData)
+                state.createOrigin = .created(CompendiumItemReference(self.viewStore.state.item))
                 self.viewStore.send(.setSheet(.creatureEdit(state)))
             }
         }

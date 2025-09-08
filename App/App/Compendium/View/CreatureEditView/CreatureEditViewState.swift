@@ -14,6 +14,8 @@ import Helpers
 import DiceRollerFeature
 import Compendium
 import MechMuse
+import Persistence
+import SharedViews
 
 struct CreatureEditViewState: Equatable {
     var mode: Mode
@@ -22,6 +24,12 @@ struct CreatureEditViewState: Equatable {
 
     var popover: Popover?
     var sheet: Sheet? = nil
+    var notice: Notice? = nil
+
+    // Used to preserve attribution when creating new items (e.g. "Edit a copy")
+    var createOrigin: CompendiumEntry.Origin? = .created(nil)
+    // Used to preserve attribution when editing existing items
+    var originalOrigin: CompendiumEntry.Origin? = nil
 
     init(create creatureType: CreatureType, sourceDocument: CompendiumFilters.Source = .init(.homebrew)) {
         self.mode = .create(creatureType)
@@ -41,18 +49,20 @@ struct CreatureEditViewState: Equatable {
         }
     }
 
-    init(edit monster: Monster, documentId: CompendiumSourceDocument.Id) {
+    init(edit monster: Monster, documentId: CompendiumSourceDocument.Id, origin: CompendiumEntry.Origin = .created(nil)) {
         self.mode = .editMonster(monster)
         self.model = CreatureEditFormModel(monster: monster, documentId: documentId)
         self.sections = CreatureType.monster.initialSections.union(self.model.sectionsWithData)
         self.popover = nil
+        self.originalOrigin = origin
     }
 
-    init(edit character: Character, documentId: CompendiumSourceDocument.Id) {
+    init(edit character: Character, documentId: CompendiumSourceDocument.Id, origin: CompendiumEntry.Origin = .created(nil)) {
         self.mode = .editCharacter(character)
         self.model = CreatureEditFormModel(character: character, documentId: documentId)
         self.sections = CreatureType.character.initialSections.union(self.model.sectionsWithData)
         self.popover = nil
+        self.originalOrigin = origin
     }
 
     init(edit combatant: AdHocCombatantDefinition) {
@@ -503,9 +513,12 @@ enum CreatureEditViewAction: Equatable {
     case onAddTap(CreatureEditViewState)
     case onDoneTap(CreatureEditViewState)
     case onRemoveTap(CreatureEditViewState)
+    case didAdd(CreatureEditResult)
+    case didEdit(CreatureEditResult)
+    case dismissNotice
 }
 
-typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse
+typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase
 
 extension CreatureEditViewState {
     static let reducer: AnyReducer<Self, CreatureEditViewAction, CreatureEditViewEnvironment> = AnyReducer.combine(
@@ -575,11 +588,78 @@ extension CreatureEditViewState {
             case .creatureGenerationSheet: break // handled above
             case .addSection(let s): state.sections.insert(s)
             case .removeSection(let s): state.sections.remove(s)
-            case .onAddTap: break // should be handled by parent
-            case .onDoneTap: break // should be handled by parent
+            case .onAddTap: break // handled below in environment-aware reducer
+            case .onDoneTap: break // handled below in environment-aware reducer
             case .onRemoveTap: break // should be handled by parent
+            case .didAdd: break // bubbled up
+            case .didEdit: break // bubbled up
+            case .dismissNotice:
+                state.notice = nil
             }
             return .none
+        }
+        ,
+        AnyReducer { state, action, env in
+            switch action {
+            case .onAddTap:
+                // Create flows
+                switch state.creatureType {
+                case .adHocCombatant:
+                    if let def = state.adHocCombatant {
+                        return .send(.didAdd(.adHoc(def)))
+                    }
+                    return .none
+                case .monster, .character:
+                    guard let item = state.compendiumItem else { return .none }
+
+                    // Check for key collision in compendium
+                    let key = item.key
+                    let exists = (try? env.compendium.contains(key)) ?? false
+                    if exists {
+                        state.notice = .error("An item named “\(item.title)” already exists in “\(state.document.displayName)”. Please choose another name.")
+                        return .none
+                    }
+
+                    let entry = CompendiumEntry(item, origin: state.createOrigin ?? .created(nil), document: .init(state.document))
+                    _ = try? env.compendium.put(entry)
+                    return .send(.didAdd(.compendium(entry)))
+                }
+
+            case .onDoneTap:
+                // Edit flows
+                switch state.mode {
+                case .editAdHocCombatant:
+                    if let def = state.adHocCombatant {
+                        return .send(.didEdit(.adHoc(def)))
+                    }
+                    return .none
+                case .editMonster, .editCharacter:
+                    guard let item = state.compendiumItem else { return .none }
+
+                    // If key changed and collides with another item, block and show notice
+                    if let orig = state.originalItem, orig.key != item.key {
+                        let collision = (try? env.compendium.contains(item.key)) ?? false
+                        if collision {
+                            state.notice = .error("An item named “\(item.title)” already exists in “\(state.document.displayName)”. Please choose another name.")
+                            return .none
+                        }
+                    }
+
+                    // Remove old key if it changed
+                    if let orig = state.originalItem, orig.key != item.key {
+                        _ = try? env.database.keyValueStore.remove(orig.key)
+                    }
+
+                    let entry = CompendiumEntry(item, origin: state.originalOrigin ?? .created(nil), document: .init(state.document))
+                    _ = try? env.compendium.put(entry)
+                    return .send(.didEdit(.compendium(entry)))
+
+                case .create:
+                    return .none
+                }
+            default:
+                return .none
+            }
         }
     )
 }
@@ -840,4 +920,9 @@ extension CreatureEditFormModel {
 
 extension CreatureEditViewState {
     static let nullInstance = CreatureEditViewState(create: .monster)
+}
+
+enum CreatureEditResult: Equatable {
+    case compendium(CompendiumEntry)
+    case adHoc(AdHocCombatantDefinition)
 }

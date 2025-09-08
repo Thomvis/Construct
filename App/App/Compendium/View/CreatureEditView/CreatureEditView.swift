@@ -15,6 +15,7 @@ import SharedViews
 import Helpers
 import Compendium
 import MechMuse
+import Persistence
 
 struct CreatureEditView: View {
     static let iconColumnWidth: CGFloat = 30
@@ -35,8 +36,24 @@ struct CreatureEditView: View {
         viewStore.binding(get: { $0.model }, send: { .model($0) })
     }
 
+    @ViewBuilder
+    var noticeBanner: some View {
+        if let notice = viewStore.state.notice {
+            NoticeView(
+                notice: notice,
+                backgroundColor: Color(UIColor.systemBackground),
+                onDismiss: {
+                    viewStore.send(.dismissNotice, animation: .default)
+                }
+            )
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+        }
+    }
+
     var body: some View {
         return Form {
+            noticeBanner
             FormSection(.basicCharacter) {
                 HStack {
                     ClearableTextField("Name", text: model.statBlock.name)
@@ -225,7 +242,7 @@ struct CreatureEditView: View {
                             Text("Cancel")
                         },
                         trailing: Button(action: {
-                            self.viewStore.send(.onAddTap(self.viewStore.state))
+                            self.viewStore.send(.onAddTap(self.viewStore.state), animation: .default)
                         }) {
                             Text("Add").bold()
                         }
@@ -717,15 +734,17 @@ struct CreatureEditView_Preview: PreviewProvider {
                         challengeRating: Fraction(integer: 1)
                     ), documentId: CompendiumSourceDocument.homebrew.id),
                     reducer: CreatureEditViewState.reducer,
-                    environment: CEVE(
-                        modifierFormatter: modifierFormatter,
-                        mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
-                        diceLog: DiceLogPublisher(),
-                        compendiumMetadata: CompendiumMetadataKey.previewValue,
-                        mechMuse: MechMuse.previewValue
-                    )
+                environment: CEVE(
+                    modifierFormatter: modifierFormatter,
+                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                    diceLog: DiceLogPublisher(),
+                    compendiumMetadata: CompendiumMetadataKey.previewValue,
+                    mechMuse: MechMuse.previewValue,
+                    database: Database.uninitialized,
+                    compendium: DatabaseCompendium(databaseAccess: Database.uninitialized.access)
                 )
             )
+        )
         }
 
         // create
@@ -741,7 +760,9 @@ struct CreatureEditView_Preview: PreviewProvider {
                     mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
                     diceLog: DiceLogPublisher(),
                     compendiumMetadata: CompendiumMetadataKey.previewValue,
-                    mechMuse: MechMuse.previewValue
+                    mechMuse: MechMuse.previewValue,
+                    database: Database.uninitialized,
+                    compendium: DatabaseCompendium(databaseAccess: Database.uninitialized.access)
                 )
             )
         )
@@ -754,5 +775,7 @@ struct CEVE: CreatureEditViewEnvironment {
     var diceLog: DiceLogPublisher
     var compendiumMetadata: CompendiumMetadata
     var mechMuse: MechMuse
+    var database: Database
+    var compendium: Compendium
 }
 #endif

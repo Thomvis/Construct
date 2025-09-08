@@ -258,20 +258,16 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     state.presentedScreens[.nextInStack] = n
                 case .setDetailScreen(let s):
                     state.presentedScreens[.detail] = s
-                case .creatureEditSheet(CreatureEditViewAction.onAddTap(let editState)):
-                    // adding a new creature
-                    return .run { send in
-                        if let item = editState.compendiumItem {
-                            let entry = CompendiumEntry(
-                                item,
-                                origin: .created(nil),
-                                document: .init(editState.document)
-                            )
-                            _ = try? env.compendium.put(entry)
-                            await send(.scrollTo(entry.key))
-                            await send(.results(.result(.reload(.all))))
-                        }
-                        await send(.setSheet(nil))
+                case .creatureEditSheet(CreatureEditViewAction.didAdd(let result)):
+                    // adding a new creature (handled by CreatureEditView reducer)
+                    if case let .compendium(entry) = result {
+                        return .merge(
+                            .send(.scrollTo(entry.key)),
+                            .send(.results(.result(.reload(.all)))),
+                            .send(.setSheet(nil))
+                        )
+                    } else {
+                        return .send(.setSheet(nil))
                     }
                 case .groupEditSheet(CompendiumItemGroupEditAction.onAddTap(let group)):
                     // adding a group
@@ -309,8 +305,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                      .detailScreen(.compendiumEntry(.didAddCopy)):
                     // creature copied, edited & added
                     return .send(.results(.result(.reload(.currentCount))))
-                case .nextScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))),
-                     .detailScreen(.compendiumEntry(.sheet(.creatureEdit(.onDoneTap)))):
+                case .nextScreen(.compendiumEntry(.sheet(.creatureEdit(.didEdit)))),
+                     .detailScreen(.compendiumEntry(.sheet(.creatureEdit(.didEdit)))):
                     // done editing an existing creature
                     return .send(.results(.result(.reload(.currentCount))))
                 case .nextScreen(.compendiumEntry(.entry)),

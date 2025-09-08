@@ -230,40 +230,22 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                 case .creatureActionPopover: break // handled by a reducer above
                 case .rollCheckPopover: break // handled by a reducer above
                 case .setSheet(let s): state.sheet = s
-                case .sheet(.creatureEdit(CreatureEditViewAction.onDoneTap(let editState))):
-                    let originalEntry = state.entry
-                    return .run { send in
-                        let item = editState.compendiumItem
-                        if let orig = editState.originalItem, orig.key != item?.key {
-                            _ = try? env.database.keyValueStore.remove(orig.key)
-                        }
-                        if let item = item {
-                            let entry = CompendiumEntry(item, origin: originalEntry.origin, document: originalEntry.document)
-                            try? env.compendium.put(entry)
-                            await send(.entry(entry))
-                        }
-                        await send(.setSheet(nil))
+                case .sheet(.creatureEdit(CreatureEditViewAction.didEdit(let result))):
+                    if case let .compendium(entry) = result {
+                        state.entry = entry
+                        return .send(.setSheet(nil))
                     }
-                case .sheet(.creatureEdit(CreatureEditViewAction.onAddTap(let editState))):
+                    return .send(.setSheet(nil))
+                case .sheet(.creatureEdit(CreatureEditViewAction.didAdd(let result))):
                     // A copy was edited and added
-                    let originalEntry = state.entry
-                    return .run { send in
-                        let item = editState.compendiumItem
-                        guard originalEntry.item.key != item?.key else {
-                            // prevent overwrite
-                            return
-                        }
-                        if let item = item {
-                            let entry = CompendiumEntry(
-                                item,
-                                origin: .created(CompendiumItemReference(originalEntry.item)),
-                                document: .init(editState.document)
-                            )
-                            try? env.compendium.put(entry)
-                            await send(.didAddCopy)
-                            await send(.setNextScreen(.compendiumItemDetailView(.init(entry: entry))))
-                            await send(.setSheet(nil))
-                        }
+                    if case let .compendium(entry) = result {
+                        return .merge(
+                            .send(.didAddCopy),
+                            .send(.setNextScreen(.compendiumItemDetailView(.init(entry: entry)))),
+                            .send(.setSheet(nil))
+                        )
+                    } else {
+                        return .send(.setSheet(nil))
                     }
                 case .sheet(.creatureEdit(CreatureEditViewAction.onRemoveTap)):
                     let entryKey = state.entry.key

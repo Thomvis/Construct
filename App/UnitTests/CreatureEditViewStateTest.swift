@@ -15,6 +15,7 @@ import ComposableArchitecture
 import Helpers
 import DiceRollerFeature
 import MechMuse
+import Persistence
 
 class CreatureEditViewStateTest: XCTestCase {
     
@@ -199,5 +200,7 @@ class CreatureEditViewStateTest: XCTestCase {
             removeDocument: { _, _ in }
         )
         var mechMuse: MechMuse = MechMuse.unconfigured
+        var database: Database = Database.uninitialized
+        var compendium: Compendium { DatabaseCompendium(databaseAccess: database.access) }
     }
 }
