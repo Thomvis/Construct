@@ -19,14 +19,18 @@ public struct MechMuse {
     private var client: CurrentValue<OpenAI?>
     private let describeAction: (OpenAI, CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error>
     private let describeCombatants: (OpenAI, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream<GenerateCombatantTraitsResponse.Traits, Error>
-    private let generateStatBlock: (OpenAI, GenerateStatBlockRequest) throws -> AsyncThrowingStream<SimpleStatBlock, Error>
+    private let generateStatBlock: (OpenAI, GenerateStatBlockRequest) async throws -> SimpleStatBlock?
     private let verifyAPIKey: (OpenAI) async throws -> Void
+
+    public var isConfigured: Bool {
+        (try? client.value) != nil
+    }
 
     public init(
         client: CurrentValue<OpenAI?>,
         describeAction: @escaping (OpenAI, CreatureActionDescriptionRequest) throws -> AsyncThrowingStream<String, Error>,
         describeCombatants: @escaping (OpenAI, GenerateCombatantTraitsRequest) throws -> AsyncThrowingStream< GenerateCombatantTraitsResponse.Traits, Error>,
-        generateStatBlock: @escaping (OpenAI, GenerateStatBlockRequest) throws -> AsyncThrowingStream<SimpleStatBlock, Error>,
+        generateStatBlock: @escaping (OpenAI, GenerateStatBlockRequest) async throws -> SimpleStatBlock?,
         verifyAPIKey: @escaping (OpenAI) async throws -> Void
     ) {
         self.client = client
@@ -55,11 +59,11 @@ public extension MechMuse {
         return try describeCombatants(openAIClient, request)
     }
 
-    func generate(statBlock request: GenerateStatBlockRequest) throws -> AsyncThrowingStream<SimpleStatBlock, Error> {
+    func generate(statBlock request: GenerateStatBlockRequest) async throws -> SimpleStatBlock? {
         guard let openAIClient = try? client.value else {
             throw MechMuseError.unconfigured
         }
-        return try generateStatBlock(openAIClient, request)
+        return try await generateStatBlock(openAIClient, request)
     }
 
     func verifyAPIKey(_ key: String) async throws {
@@ -74,7 +78,7 @@ public extension MechMuse {
             client: db.keyValueStore.observe(Preferences.key)
                 .map(\.?.mechMuse.apiKey).removeDuplicates()
                 .map { key in
-                    key.map {
+                    key?.nonEmptyString.map {
                         OpenAI(configuration: OpenAI.Configuration(
                             token: $0,
                             timeoutInterval: 180
@@ -86,7 +90,7 @@ public extension MechMuse {
         )
     }
 
-    private static let model: Model = .gpt5_mini
+    private static let model: Model = .gpt5
 
     static func live(client: CurrentValue<OpenAI?>) -> Self {
         MechMuse(
@@ -100,7 +104,8 @@ public extension MechMuse {
                             let response = try await client.responses.createResponse(
                                 query: CreateModelResponseQuery(
                                     input: .inputItemList(prompt),
-                                    model: Self.model
+                                    model: Self.model,
+                                    reasoning: CreateModelResponseQuery.Schemas.Reasoning(effort: .low)
                                 )
                             )
 
@@ -214,6 +219,7 @@ public extension MechMuse {
                             let response = try await client.responses.createResponse(query: CreateModelResponseQuery(
                                 input: .inputItemList(prompt),
                                 model: Self.model,
+                                reasoning: CreateModelResponseQuery.Schemas.Reasoning(effort: .low),
                                 text: .jsonSchema(.init(
                                     name: "combatant_traits_response",
                                     schema: .dynamicJsonSchema(GenerateCombatantTraitsResponse.schema.definition()),
@@ -247,35 +253,30 @@ public extension MechMuse {
             generateStatBlock: { client, request in
                 let prompt = request.prompt()
 
-                return AsyncThrowingStream(SimpleStatBlock.self) { continuation in
-                    Task.detached {
-                        do {
-                            let response = try await client.responses.createResponse(query: CreateModelResponseQuery(
-                                input: .inputItemList(prompt),
-                                model: Self.model,
-                                text: .jsonSchema(.init(
-                                    name: "simple_stat_block",
-                                    schema: .dynamicJsonSchema(SimpleStatBlock.schema.definition()),
-                                    description: nil,
-                                    strict: false
-                                ))
-                            ))
+                do {
+                    let response = try await client.responses.createResponse(query: CreateModelResponseQuery(
+                        input: .inputItemList(prompt),
+                        model: Self.model,
+                        reasoning: CreateModelResponseQuery.Schemas.Reasoning(effort: .low),
+                        text: .jsonSchema(.init(
+                            name: "simple_stat_block",
+                            schema: .dynamicJsonSchema(SimpleStatBlock.schema.definition()),
+                            description: nil,
+                            strict: false
+                        ))
+                    ))
 
-                            if let content = response.outputText,
-                               let data = content.data(using: .utf8) {
-                                let result = try JSONDecoder().decode(SimpleStatBlock.self, from: data)
-                                continuation.yield(result)
-                                continuation.finish()
-                            } else {
-                                continuation.finish(throwing: MechMuseError.unspecified)
-                            }
-                        } catch {
-                            if let error = error as? APIError {
-                                continuation.finish(throwing: MechMuseError(from: error))
-                            } else {
-                                continuation.finish(throwing: MechMuseError.unspecified)
-                            }
-                        }
+                    if let content = response.outputText,
+                       let data = content.data(using: .utf8) {
+                        let result = try JSONDecoder().decode(SimpleStatBlock.self, from: data)
+                        return result
+                    }
+                    return nil
+                } catch {
+                    if let error = error as? APIError {
+                        throw MechMuseError(from: error)
+                    } else {
+                        throw MechMuseError.unspecified
                     }
                 }
             },
@@ -294,7 +295,7 @@ public extension MechMuse {
             [].async.stream
         },
         generateStatBlock: { _, _ in
-            [].async.stream
+            return nil
         },
         verifyAPIKey: { _ in
 

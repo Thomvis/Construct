@@ -24,11 +24,8 @@ struct GenerateCombatantTraitsViewState: Equatable {
     var error: MechMuseError?
     var isLoading: Bool = false
 
-    public init(encounter: Encounter, isMechMuseConfigured: Bool = true) {
+    public init(encounter: Encounter) {
         self.encounter = encounter
-        if !isMechMuseConfigured {
-            error = .unconfigured
-        }
     }
 
     var combatants: [CombatantModel] {
@@ -126,6 +123,7 @@ struct GenerateCombatantTraitsViewState: Equatable {
 enum GenerateCombatantTraitsViewAction: BindableAction, Equatable {
     typealias State = GenerateCombatantTraitsViewState
 
+    case onAppear
     case onSmartSelectionGroupTap(State.Selection.Group)
     case onOverwriteButtonTap
     case onRemoveAllTraitsTap
@@ -174,6 +172,10 @@ extension GenerateCombatantTraitsViewState {
         }
 
         switch action {
+        case .onAppear:
+            if !env.mechMuse.isConfigured {
+                state.error = .unconfigured
+            }
         case .onSmartSelectionGroupTap(let g):
             if state.selection == .smart(g) { // already selected
                 state.selection = .custom([])

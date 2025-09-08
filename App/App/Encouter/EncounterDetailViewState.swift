@@ -433,8 +433,7 @@ extension EncounterDetailViewState {
                     }
                 case .onGenerateCombatantTraitsButtonTap:
                     state.sheet = .generateCombatantTraits(.init(
-                        encounter: state.encounter,
-                        isMechMuseConfigured: env.preferences().mechMuse.apiKey != nil
+                        encounter: state.encounter
                     ))
                 case .onFeedbackButtonTap:
                     guard env.canSendMail() else { break }

@@ -23,6 +23,7 @@ public struct ActionDescriptionViewState: Equatable {
 
     private var description: AsyncDescription = .init(wrapped: .init(input: nil, result: .init(value: "")))
     private var cache: [RequestInput: AsyncReduceState<String, MechMuseError>] = [:]
+    private var mechMuseIsConfigured = true
 
     init(
         encounterContext: ActionResolutionViewState.EncounterContext? = nil,
@@ -39,11 +40,9 @@ public struct ActionDescriptionViewState: Equatable {
     }
 
     var descriptionErrorString: AttributedString? {
+        guard mechMuseIsConfigured else { return MechMuseError.unconfigured.attributedDescription }
         guard let error = description.wrapped.result.error else { return nil }
-        switch error {
-        case MechMuseError.unconfigured: return try? AttributedString(markdown: "Mechanical Muse can provide you with a description of this attack to inspire your DM'ing. Configure Mechanical Muse in the settings screen.")
-        default: return error.attributedDescription
-        }
+        return error.attributedDescription
     }
 
     var isLoadingDescription: Bool {
@@ -140,7 +139,8 @@ extension ActionDescriptionViewState {
     static var reducer: AnyReducer<Self, ActionDescriptionViewAction, ActionDescriptionEnvironment> = AnyReducer.combine(
         AnyReducer { state, action, env in
             switch action {
-            case .onAppear: break
+            case .onAppear:
+                state.mechMuseIsConfigured = env.mechMuse.isConfigured
             case .onFeedbackButtonTap: break // handled by the parent
             case .onReloadOrCancelButtonTap:
                 if state.description.result.isReducing {

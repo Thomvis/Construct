@@ -118,16 +118,16 @@ struct CreatureEditViewState: Equatable {
         }
     }
 
-    var mechMuseSheet: MechMuseCreatureGenerationFeature.State? {
+    var creatureGenerationSheet: MechMuseCreatureGenerationFeature.State? {
         get {
-            if case .mechMuse(let s) = sheet {
+            if case .creatureGeneration(let s) = sheet {
                 return s
             }
             return nil
         }
         set {
             if let newValue = newValue {
-                sheet = .mechMuse(newValue)
+                sheet = .creatureGeneration(newValue)
             }
         }
     }
@@ -142,7 +142,7 @@ struct CreatureEditViewState: Equatable {
         res.sheet = sheet.map {
             switch $0 {
             case .actionEditor: return .actionEditor(.nullInstance)
-            case .mechMuse: return .mechMuse(.nullInstance)
+            case .creatureGeneration: return .creatureGeneration(.nullInstance)
             }
         }
         return res
@@ -227,12 +227,12 @@ struct CreatureEditViewState: Equatable {
 
     enum Sheet: Equatable, Identifiable {
         case actionEditor(NamedStatBlockContentItemEditViewState)
-        case mechMuse(MechMuseCreatureGenerationFeature.State)
+        case creatureGeneration(MechMuseCreatureGenerationFeature.State)
 
         var id: String {
             switch self {
             case .actionEditor: return "actionEditor"
-            case .mechMuse: return "mechMuse"
+            case .creatureGeneration: return "creatureGenerator"
             }
         }
     }
@@ -517,7 +517,7 @@ extension CreatureEditViewState {
         }
         .optional()
         .pullback(
-            state: \.mechMuseSheet,
+            state: \.creatureGenerationSheet,
             action: /CreatureEditViewAction.creatureGenerationSheet
         ),
         AnyReducer { env in
@@ -558,19 +558,6 @@ extension CreatureEditViewState {
                 state.model.statBlock[itemsOfType: editorState.itemType].remove(id: i.id)
                 state.sheet = nil
             case .documentSelection: break // handled above
-            case .creatureGenerationSheet(.generated):
-                // Child handles storing result and navigation to diff. Do not apply yet.
-                break
-            case .creatureGenerationSheet(.onApplyButtonTap):
-                if case let .mechMuse(s) = state.sheet, let simple = s.result {
-                    var new = state.model
-                    var updated = simple.toStatBlock()
-                    _ = ParseableGameModelsVisitor().visit(statBlock: &updated)
-                    new.statBlock = StatBlockFormModel(statBlock: updated)
-                    state.model = new
-                    state.sections = state.creatureType.initialSections.union(state.model.sectionsWithData)
-                }
-                state.sheet = nil
             case .onNamedContentItemTap(let t, let id):
                 if let item = state.model.statBlock[itemsOfType: t][id: id] {
                     state.sheet = .actionEditor(NamedStatBlockContentItemEditViewState(editing: item))
@@ -580,7 +567,10 @@ extension CreatureEditViewState {
             case .onNamedContentItemMove(let t, let indices, let offset):
                 state.model.statBlock[itemsOfType: t].move(fromOffsets: indices, toOffset: offset)
             case .onCreatureGenerationButtonTap:
-                state.sheet = .mechMuse(.init(base: state.model.statBlock.statBlock))
+                state.sheet = .creatureGeneration(.init(base: state.model.statBlock.statBlock))
+            case .creatureGenerationSheet(.onGenerationResultAccepted(let result)):
+                state.model.statBlock.statBlock = result
+                state.sheet = nil
             case .creatureActionEditSheet: break // handled above
             case .creatureGenerationSheet: break // handled above
             case .addSection(let s): state.sections.insert(s)

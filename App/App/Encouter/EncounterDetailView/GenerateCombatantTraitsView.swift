@@ -74,6 +74,9 @@ struct GenerateCombatantTraitsView: View {
                         }
                     }
                 }
+                .onAppear {
+                    viewStore.send(.onAppear)
+                }
         }
         .navigationTitle("Combatant Traits")
         .navigationBarTitleDisplayMode(.inline)
@@ -341,12 +344,8 @@ struct GenerateCombatantTraitsViewPreviewEnvironment: GenerateCombatantTraitsVie
             }
         },
         generateStatBlock: { _, _ in
-            AsyncThrowingStream { continuation in
-                Task {
-                    try await Task.sleep(for: .seconds(0.5))
-                    continuation.finish()
-                }
-            }
+            try await Task.sleep(for: .seconds(0.5))
+            return nil
         },
         verifyAPIKey: { client in
             try await Task.sleep(for: .seconds(1))

@@ -107,7 +107,7 @@ struct SettingsView: View {
                         }
                         .padding(.trailing, 5) // 5 is the magic number to align with the API key textfield
 
-                        if let errorMessage = mechMuseVerificationResult.error?.errorDescription {
+                        if let errorMessage = mechMuseVerificationResult.error?.attributedDescription {
                             Text(errorMessage)
                                 .font(.footnote)
                                 .multilineTextAlignment(.leading)

@@ -9,48 +9,73 @@ import Foundation
 import OpenAI
 
 public struct GenerateStatBlockRequest: Hashable {
-    public var instructions: String
     public var base: SimpleStatBlock?
+    public var revisions: [(String, SimpleStatBlock)]
+    public var instructions: String
 
-    public init(instructions: String, base: SimpleStatBlock? = nil) {
-        self.instructions = instructions
+    public init(base: SimpleStatBlock? = nil, revisions: [(String, SimpleStatBlock)], instructions: String) {
         self.base = base
+        self.revisions = revisions
+        self.instructions = instructions
     }
+
 }
 
 extension GenerateStatBlockRequest: PromptConvertible {
     public func prompt() -> [InputItem] {
-        var user = """
+        var initialMessage = """
         Create or edit a Dungeons & Dragons creature stat block following these instructions:
-        
-        <instructions>
-        \(instructions)
-        </instructions>
         
         """
 
+        let encoder = JSONEncoder()
         if let base {
             // Provide current creature JSON to guide edits.
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.sortedKeys]
             if let data = try? encoder.encode(base), let json = String(data: data, encoding: .utf8) {
-                user += """
-                Current creature stat block:
-                
-                <stat-block>
-                \(json)
-                </stat-block>
+                initialMessage += """
+                    Current creature stat block:
+                    
+                    <stat-block>
+                    \(json)
+                    </stat-block>
+                    """
+            }
+        }
 
+        func instructionsInputItem(_ instructions: String) -> InputItem {
+            return .inputMessage(.init(role: .user, content: .textInput("""
+                Update the latest stat block following the following instructions:
+
+                <instructions>
+                \(instructions)
+                </instructions
+                
                 Respond with the updated stat block. If a field should not change, use the same value in your response.
                 """
-            }
-        } else {
-            user += "\nGenerate a cohesive stat block that fits the instructions.\n"
+            )))
         }
 
         return [
-            .inputMessage(.init(role: .system, content: .textInput("You help a Dungeons & Dragons DM create or edit creatures. Be concise and consistent with 5e."))),
-            .inputMessage(.init(role: .user, content: .textInput(user)))
+            .inputMessage(.init(role: .system, content: .textInput("""
+                You help a Dungeons & Dragons DM create or edit creatures. Be concise and consistent with 5e.
+                
+                Guidelines:
+                - pass null instead of empty strings, arrays or objects.
+                - pass null instead of 0 for movement types the creature does not have.
+                """
+            ))),
+            .inputMessage(.init(role: .user, content: .textInput(initialMessage)))
+        ] + revisions.flatMap { (instructions, statBlock) in
+            return if let data = try? encoder.encode(statBlock), let json = String(data: data, encoding: .utf8) {
+                [
+                    instructionsInputItem(instructions),
+                    .inputMessage(.init(role: .assistant, content: .textInput(json)))
+                ]
+            } else {
+                [instructionsInputItem(instructions)]
+            }
+        } + [
+            instructionsInputItem(instructions)
         ]
     }
 }

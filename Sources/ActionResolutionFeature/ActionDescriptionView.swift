@@ -49,9 +49,7 @@ struct ActionDescriptionView: View {
                             }
                             .transition(.opacity)
                         } else if let error = viewStore.state.descriptionErrorString {
-                            Text(error)
-                                .multilineTextAlignment(.center)
-                                .padding(6)
+                            NoticeView(notice: .error(error))
                                 .frame(minHeight: descriptionHeight)
                         } else if viewStore.state.isMissingOutcomeSetting {
                             VStack {
@@ -116,6 +114,9 @@ struct ActionDescriptionView: View {
                     .buttonStyle(.bordered)
                     .buttonBorderShape(.capsule)
                 }
+            }
+            .onAppear {
+                viewStore.send(.onAppear)
             }
             .onDisappear {
                 viewStore.send(.onDisappear)
