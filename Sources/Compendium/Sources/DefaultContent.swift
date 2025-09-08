@@ -16,7 +16,7 @@ public struct DefaultContentVersions: Codable, Hashable {
 
 public extension DefaultContentVersions {
     static let current = Self(
-        monsters: "2021.03.19",
+        monsters: "2021.03.19a",
         spells: "2020.09.26"
     )
 }
