@@ -18,6 +18,9 @@ public struct CompendiumEntry: Equatable {
     public var origin: Origin
     public var document: CompendiumSourceDocumentReference
 
+    @CodableIgnored
+    public var error: Error?
+
     public init(_ item: CompendiumItem, origin: Origin, document: CompendiumSourceDocumentReference) {
         _item = EqCompare(wrappedValue: item, compare: { $0.isEqual(to: $1) })
         self.itemType = item.key.type
@@ -41,6 +44,16 @@ public struct CompendiumEntry: Equatable {
 
         public init(_ document: CompendiumSourceDocument) {
             self.init(id: document.id, displayName: document.displayName)
+        }
+    }
+
+    public struct Error: Equatable {
+        let errorDump: String
+        let data: Data
+
+        public init(errorDump: String, data: Data) {
+            self.errorDump = errorDump
+            self.data = data
         }
     }
 

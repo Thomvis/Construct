@@ -17,6 +17,7 @@ public protocol Compendium {
     func contains(_ key: CompendiumItemKey) throws -> Bool
     
     func fetch(_ request: CompendiumFetchRequest) throws -> [CompendiumEntry]
+    func fetchCatching(_ request: CompendiumFetchRequest) throws -> [Result<CompendiumEntry, any Error>]
     func fetchKeys(_ request: CompendiumFetchRequest) throws -> [CompendiumItemKey]
     func count(_ request: CompendiumFetchRequest) throws -> Int
     
@@ -154,5 +155,6 @@ public enum ConflictResolution: Equatable, CaseIterable {
 
 public enum CompendiumItemSelection: Equatable {
     case single(CompendiumItemKey)
-    case multiple(CompendiumFetchRequest)
+    case multipleFetchRequest(CompendiumFetchRequest)
+    case multipleKeys([CompendiumItemKey])
 }

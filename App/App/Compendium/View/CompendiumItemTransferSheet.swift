@@ -36,8 +36,28 @@ struct CompendiumItemTransferFeature: ReducerProtocol {
             self.mode = mode
             self.selection = selection
 
-            if originDocument == nil, case .multiple(let request) = selection, let source = request.filters?.source {
-                self.originDocument = source
+            if originDocument == nil {
+                switch selection {
+                case .multipleFetchRequest(let request):
+                    if let source = request.filters?.source {
+                        self.originDocument = source
+                    } else {
+                        self.originDocument = nil
+                    }
+                case .multipleKeys(let keys):
+                    // If all keys share the same origin document, disable selecting it as target
+                    if let first = keys.first {
+                        let realm = first.realm
+                        let doc = first.identifier.split(separator: ":").first
+                        // Don't rely on identifier parsing; attempt via compendium metadata in onAppear
+                        // Here, we leave it nil; onAppear will not depend on originDocument.
+                        self.originDocument = nil
+                    } else {
+                        self.originDocument = nil
+                    }
+                case .single:
+                    self.originDocument = originDocument
+                }
             } else {
                 self.originDocument = originDocument
             }
@@ -93,8 +113,10 @@ struct CompendiumItemTransferFeature: ReducerProtocol {
                     switch selection {
                     case .single:
                         count = 1
-                    case .multiple(let request):
+                    case .multipleFetchRequest(let request):
                         count = try compendium.count(request)
+                    case .multipleKeys(let keys):
+                        count = keys.count
                     }
                     await send(.itemCountResponse(count))
                 }
@@ -261,7 +283,7 @@ struct CompendiumItemTransferSheet_Preview: PreviewProvider {
             store: Store(
                 initialState: CompendiumItemTransferFeature.State(
                     mode: .copy,
-                    selection: .multiple(
+                    selection: .multipleFetchRequest(
                         CompendiumFetchRequest(filters: .init(types: [.monster]))
                     ),
                     originDocument: .init(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)

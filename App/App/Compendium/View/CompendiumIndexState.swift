@@ -33,6 +33,10 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     
     var scrollTo: CompendiumEntry.Key? // the key of the entry to scroll to
 
+    // Selection UI state
+    var isSelecting: Bool = false
+    var selectedKeys: Set<CompendiumItemKey> = []
+
     var presentedScreens: [NavigationDestination: NextScreen]
     var alert: AlertState<CompendiumIndexAction>?
     var sheet: Sheet?
@@ -65,7 +69,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             case .groupEdit: return .groupEdit(CompendiumItemGroupEditState.nullInstance)
             case .compendiumImport: return .compendiumImport(CompendiumImportFeature.State())
             case .documents: return .documents(CompendiumDocumentsFeature.State())
-            case .transfer: return .transfer(CompendiumItemTransferFeature.State(mode: .copy, selection: .multiple(.init())))
+            case .transfer: return .transfer(CompendiumItemTransferFeature.State(mode: .copy, selection: .multipleFetchRequest(.init())))
             }
         }
 
@@ -249,11 +253,39 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                             types: state.results.input.filters?.types
                         )
                     )
-                case .onTransferMenuItemTap(let mode):
+                case .onTransferSelectedMenuItemTap(let mode):
                     state.sheet = .transfer(CompendiumItemTransferFeature.State(
                         mode: mode,
-                        selection: .multiple(state.results.input.fetchRequest(range: nil))
+                        selection: .multipleKeys(Array(state.selectedKeys))
                     ))
+                case .onDeleteSelectedRequested:
+                    let count = state.selectedKeys.count
+                    state.alert = AlertState {
+                        TextState("Delete \(count) item\(count == 1 ? "" : "s")?")
+                    } actions: {
+                        ButtonState(role: .destructive, action: .onDeleteSelectedConfirmed) {
+                            TextState("Delete")
+                        }
+                    } message: {
+                        TextState("This action cannot be undone.")
+                    }
+                case .onDeleteSelectedConfirmed:
+                    return .run { [keys=state.selectedKeys, env] send in
+                        for key in keys {
+                            _ = try? env.database.keyValueStore.remove(key)
+                        }
+                        await send(.results(.result(.reload(.currentCount))))
+                        await send(.alert(nil))
+                    }
+                case .setSelecting(let selecting):
+                    state.isSelecting = selecting
+                    if !selecting {
+                        state.selectedKeys.removeAll()
+                    }
+                case .clearSelection:
+                    state.selectedKeys.removeAll()
+                case .setSelectedKeys(let keys):
+                    state.selectedKeys = keys
                 case .setNextScreen(let n):
                     state.presentedScreens[.nextInStack] = n
                 case .setDetailScreen(let s):
@@ -335,12 +367,20 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     PagingData.reducer { (request, env: CompendiumIndexEnvironment) in
                         let entries: [CompendiumEntry]
                         do {
-                            entries = try env.compendium.fetchAll(
+                            entries = try env.compendium.fetchCatching(CompendiumFetchRequest(
                                 search: query.text?.nonEmptyString,
                                 filters: query.filters,
                                 order: query.order,
                                 range: request.range
-                            )
+                            )).compactMap { result in
+                                switch result {
+                                case .success(let entry):
+                                    return entry
+                                case .failure(DatabaseKeyValueStoreError.decodingError(_, let data, let error)):
+                                    return CompendiumEntry.error(String(customDumping: error), data: data)
+                                case .failure: return nil
+                                }
+                            }
                         } catch {
                             assertionFailure("compendium.fetchAll failed with error: \(error)")
                             env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
@@ -435,7 +475,12 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     case onQueryTypeFilterDidChange([CompendiumItemType]?)
     case onAddButtonTap(CompendiumItemType)
     case onSearchOnWebButtonTap
-    case onTransferMenuItemTap(TransferMode)
+    case onTransferSelectedMenuItemTap(TransferMode)
+    case onDeleteSelectedRequested
+    case onDeleteSelectedConfirmed
+    case setSelecting(Bool)
+    case clearSelection
+    case setSelectedKeys(Set<CompendiumItemKey>)
 
     case setNextScreen(CompendiumIndexState.NextScreen?)
     indirect case nextScreen(NextScreenAction)
@@ -571,6 +616,37 @@ extension CompendiumImportFeature.State: NavigationStackItemState {
     }
 
 
+}
+
+extension CompendiumEntry {
+    static func error(_ errorDump: String, data: Data) -> Self {
+        let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+
+        // attempt to parse stats
+        let stats = json.flatMap { json in
+            (json["item"] as? [String: Any])?["stats"] as? [String: Any]
+        }.flatMap { statsJson in
+            try? JSONSerialization.data(withJSONObject: statsJson)
+        }.flatMap { statsData in
+            try? DatabaseKeyValueStore.decoder.decode(StatBlock.self, from: statsData)
+        } ?? apply(StatBlock.default) { stats in
+            if let name = ((json?["item"] as? [String: Any])?["stats"] as? [String: Any])?["name"] as? String {
+                stats.name = name
+            }
+        }
+
+        var result = CompendiumEntry(
+            Monster(
+                realm: .init(CompendiumRealm.core.id),
+                stats: stats,
+                challengeRating: stats.challengeRating ?? 0
+            ),
+            origin: .created(nil),
+            document: .init(.unspecifiedCore)
+        )
+        result.error = CompendiumEntry.Error(errorDump: errorDump, data: data)
+        return result
+    }
 }
 
 public struct StandaloneCompendiumIndexEnvironment: CompendiumIndexEnvironment {

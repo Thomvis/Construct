@@ -18,6 +18,7 @@ import Compendium
 
 struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View {
     @EnvironmentObject var env: Environment
+    @State var isSearching = false
 
     let store: Store<CompendiumIndexState, CompendiumIndexAction>
 
@@ -57,12 +58,21 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
             .toolbar {
                 if localViewStore.state.showMenu {
-                    ToolbarItem(placement: .primaryAction) {
+                    ToolbarItemGroup(placement: .primaryAction) {
+                        Button {
+                            localViewStore.send(.setSelecting(!localViewStore.state.isSelecting), animation: .default)
+                        } label: {
+                            Label(
+                                "Select",
+                                systemImage: localViewStore.state.isSelecting ? "checkmark.circle.fill" : "checkmark.circle"
+                            )
+                        }
+
                         Menu {
                             Button {
                                 localViewStore.send(.setSheet(.documents(CompendiumDocumentsFeature.State())))
                             } label: {
-                                Label("Manage Documents", systemImage: "books.vertical")
+                                Label("Manage Documents", systemImage: "line.3.horizontal.decrease")
                             }
 
                             Button {
@@ -71,7 +81,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                                 Label("Import...", systemImage: "square.and.arrow.down")
                             }
                         } label: {
-                            Text("Manage")
+                            Label("Manage", systemImage: "books.vertical")
                         }
                     }
                 }
@@ -81,6 +91,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             }
             .sheet(item: localViewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
         }
+        .modifier(IsSearchingModifier(isSearching: $isSearching.animation(.default)))
         .modifier(CompendiumSearchableModifier(store: store))
         .alert(store.scope(state: \.alert, action: { $0 }), dismiss: .alert(nil))
     }
@@ -156,27 +167,55 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                 )
             }
 
-            Menu {
-                Button {
-                    localViewStore.send(.onTransferMenuItemTap(.move))
-                } label: {
-                    Label("Move all...", systemImage: "arrow.right.doc.on.clipboard")
-                }
+            if localViewStore.state.isSelecting || isSearching {
+                let keys = localViewStore.state.selectedKeys
+                Menu {
+                    // If the user is searching, the toggle selection mode button is not visible in the navigation bar
+                    if isSearching {
+                        Button {
+                            localViewStore.send(.setSelecting(!localViewStore.state.isSelecting), animation: .default)
+                        } label: {
+                            Label(
+                                "Select",
+                                systemImage: localViewStore.state.isSelecting ? "checkmark.circle.fill" : "checkmark.circle"
+                            )
+                        }
 
-                Button {
-                    localViewStore.send(.onTransferMenuItemTap(.copy))
-                } label: {
-                    Label("Copy all...", systemImage: "document.on.clipboard")
-                }
-            } label: {
-                Button(action: {
+                        Divider()
+                    }
 
-                }) {
-                    Image(systemName: "ellipsis.circle.fill")
+                    Button {
+                        localViewStore.send(.onTransferSelectedMenuItemTap(.move))
+                    } label: {
+                        Label("Move selected...", systemImage: "arrow.right.doc.on.clipboard")
+                    }
+                    .disabled(keys.isEmpty)
+
+                    Button {
+                        localViewStore.send(.onTransferSelectedMenuItemTap(.copy))
+                    } label: {
+                        Label("Copy selected...", systemImage: "document.on.clipboard")
+                    }
+                    .disabled(keys.isEmpty)
+
+                    Divider()
+
+                    Button(role: .destructive) {
+                        localViewStore.send(.onDeleteSelectedRequested)
+                    } label: {
+                        Label("Delete selected...", systemImage: "trash")
+                    }
+                    .disabled(keys.isEmpty)
+                } label: {
+                    Button(action: {
+
+                    }) {
+                        Image(systemName: "ellipsis.circle.fill")
+                    }
                 }
+                .menuStyle(.borderlessButton)
+                .frame(width: 50)
             }
-            .menuStyle(.borderlessButton)
-            .frame(width: 50)
         }
         .padding([.leading, .trailing, .bottom], 8)
     }
@@ -274,6 +313,8 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 
         @EqKey({ $0?.id })
         var sheet: CompendiumIndexState.Sheet?
+        let isSelecting: Bool
+        let selectedKeys: Set<CompendiumItemKey>
 
         init(_ state: CompendiumIndexState) {
             if let resValues = state.results.entries {
@@ -292,6 +333,8 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             title = state.title
             showMenu = state.properties.showImport
 
+            isSelecting = state.isSelecting
+            selectedKeys = state.selectedKeys
             sheet = state.sheet
         }
 
@@ -393,6 +436,18 @@ fileprivate struct CompendiumSearchableModifier: ViewModifier {
     }
 }
 
+private struct IsSearchingModifier: ViewModifier {
+    @SwiftUI.Environment(\.isSearching) private var envIsSearching: Bool
+    @Binding var isSearching: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: envIsSearching) { oldValue, newValue in
+                isSearching = newValue
+            }
+    }
+}
+
 fileprivate struct CompendiumItemList: View, Equatable {
 
     var store: Store<CompendiumIndexState, CompendiumIndexAction>
@@ -411,14 +466,19 @@ fileprivate struct CompendiumItemList: View, Equatable {
 
         let state = viewStore.state
         return ScrollViewReader { scrollView in
-            List {
+            List(selection: viewStore.binding(
+                get: \.selectedKeys,
+                send: { .setSelectedKeys($0) }
+            )) {
                 if state.useNamedSections {
                     if let suggestions = state.suggestions {
                         section(header: Text("Suggestions"), entries: suggestions)
+                            .selectionDisabled()
                     }
 
                     if let typeFilters = state.typeFilters {
                         typeFilterSection(typeFilters: typeFilters)
+                            .selectionDisabled()
                     }
 
                     if !state.entries.isEmpty {
@@ -441,6 +501,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .listRowSeparator(.hidden)
+                    .selectionDisabled()
                 }
             }
             .listStyle(.plain)
@@ -450,6 +511,12 @@ fileprivate struct CompendiumItemList: View, Equatable {
             // that a switch from one compendium type to another does not create a new CompendiumIndexView
             // instance
             .id(viewStore.state.title)
+            .environment(\.editMode, viewStore.binding(
+                get: {
+                    $0.isSelecting ? .active : .inactive
+                },
+                send: { .setSelecting($0 == .active) }
+            ))
             // Workaround: we use a single NavigationLink instead of one per row because that breaks
             // programmatic navigation inside the reference view
             .stateDrivenNavigationLink(
@@ -458,7 +525,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
                 action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
                 destination: { viewProvider.detail($0) }
             )
-            .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _ in
+            .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _, _ in
                 // workaround: this closure is called with `self.entries` still out of date,
                 // that's why we access it from viewStore
                 let entries = viewStore.state.entries
@@ -477,7 +544,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
         let indexByKey = Dictionary(uniqueKeysWithValues: entries.enumerated().map { ($0.element.key, $0.offset) })
 
         Section(header: header) {
-            ForEach(entries, id: \.key) { entry in
+            ForEach(entries, id: \.item.key) { entry in
                 NavigationRowButton(action: {
                     viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
                 }) {
@@ -531,6 +598,8 @@ fileprivate struct CompendiumItemList: View, Equatable {
         let showSourceDocumentBadges: Bool
 
         let scrollTo: CompendiumEntry.Key?
+        let isSelecting: Bool
+        let selectedKeys: Set<CompendiumItemKey>
 
         init(_ state: CompendiumIndexState) {
             self.title = state.title
@@ -556,6 +625,8 @@ fileprivate struct CompendiumItemList: View, Equatable {
 
             self.scrollTo = state.scrollTo
             self.showSourceDocumentBadges = state.properties.showSourceDocumentBadges
+            self.isSelecting = state.isSelecting
+            self.selectedKeys = state.selectedKeys
         }
 
         var useNamedSections: Bool {
@@ -564,10 +635,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
     }
 
     static func == (lhs: Self, rhs: Self) -> Bool {
-        func eq<E>(_ lhs: E, _ rhs: Any) -> Bool where E: Equatable {
-            lhs == (rhs as? E)
-        }
-
+        func eq<E>(_ lhs: E, _ rhs: Any) -> Bool where E: Equatable { lhs == (rhs as? E) }
         return lhs.viewStore.state == rhs.viewStore.state && eq(lhs.viewProvider.state(), rhs.viewProvider.state())
     }
 }
@@ -591,9 +659,15 @@ fileprivate struct CompendiumEntryRow: View {
                     .lineLimit(1)
             }
 
-            if ViewStore(store).properties.showSourceDocumentBadges {
-                Spacer()
+            Spacer()
 
+            if entry.error != nil {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                    .font(.headline)
+            }
+
+            if ViewStore(store).properties.showSourceDocumentBadges {
                 Text(entry.document.id.rawValue.uppercased())
                     .font(.caption)
                     .foregroundStyle(Color(UIColor.systemBackground))

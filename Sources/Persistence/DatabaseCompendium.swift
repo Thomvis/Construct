@@ -43,6 +43,10 @@ public class DatabaseCompendium: Compendium {
         try keyValueStore.fetchAll(request.toKeyValueStoreRequest())
     }
 
+    public func fetchCatching(_ request: CompendiumFetchRequest) throws -> [Result<CompendiumEntry, any Error>] {
+        try keyValueStore.fetchAllCatching(request.toKeyValueStoreRequest())
+    }
+
     public func fetchKeys(_ request: CompendiumFetchRequest) throws -> [CompendiumItemKey] {
         let keys = try keyValueStore.fetchKeys(request.toKeyValueStoreRequest())
         return keys.compactMap {
@@ -368,13 +372,6 @@ public func transfer(
         let visitorManager = KeyValueStoreVisitorManager(databaseAccess: DirectDatabaseAccess(db: db))
 
         // Step 1: transfer items
-        let visitorScope = switch selection {
-        case .single(let compendiumItemKey):
-            KeyValueStoreRequest(keyPrefix: CompendiumEntry.key(for: compendiumItemKey).rawValue)
-        case .multiple(let compendiumFetchRequest):
-            compendiumFetchRequest.toKeyValueStoreRequest()
-        }
-
         let visitorConflictResolution: KeyValueStoreVisitorManager.ConflictResolution = switch conflictResolution {
             case .skip: .skip
             case .overwrite: .overwrite
@@ -393,19 +390,52 @@ public func transfer(
 //            }
         }
 
-        let transferVisitorResult = try visitorManager.run(
-            scope: visitorScope,
-            visitors: visitors,
-            conflictResolution: visitorConflictResolution,
-            removeOriginalEntityOnKeyChange: mode == .move,
-            conflictWithOriginalEntity: true
-        )
+        var keyChangesAccum: [String: String] = [:]
+        var successAccum: [String] = []
+
+        switch selection {
+        case .single(let compendiumItemKey):
+            let scope = KeyValueStoreRequest(keyPrefix: CompendiumEntry.key(for: compendiumItemKey).rawValue)
+            let transferVisitorResult = try visitorManager.run(
+                scope: scope,
+                visitors: visitors,
+                conflictResolution: visitorConflictResolution,
+                removeOriginalEntityOnKeyChange: mode == .move,
+                conflictWithOriginalEntity: true
+            )
+            keyChangesAccum.merge(transferVisitorResult.keyChanges, uniquingKeysWith: { $1 })
+            successAccum.append(contentsOf: transferVisitorResult.success)
+        case .multipleFetchRequest(let compendiumFetchRequest):
+            let scope = compendiumFetchRequest.toKeyValueStoreRequest()
+            let transferVisitorResult = try visitorManager.run(
+                scope: scope,
+                visitors: visitors,
+                conflictResolution: visitorConflictResolution,
+                removeOriginalEntityOnKeyChange: mode == .move,
+                conflictWithOriginalEntity: true
+            )
+            keyChangesAccum.merge(transferVisitorResult.keyChanges, uniquingKeysWith: { $1 })
+            successAccum.append(contentsOf: transferVisitorResult.success)
+        case .multipleKeys(let keys):
+            for itemKey in keys {
+                let scope = KeyValueStoreRequest(keyPrefix: CompendiumEntry.key(for: itemKey).rawValue)
+                let transferVisitorResult = try visitorManager.run(
+                    scope: scope,
+                    visitors: visitors,
+                    conflictResolution: visitorConflictResolution,
+                    removeOriginalEntityOnKeyChange: mode == .move,
+                    conflictWithOriginalEntity: true
+                )
+                keyChangesAccum.merge(transferVisitorResult.keyChanges, uniquingKeysWith: { $1 })
+                successAccum.append(contentsOf: transferVisitorResult.success)
+            }
+        }
 
         
 
         // Step 2: update references to transferred items (if moved)
         if mode == .move {
-            let keyChanges = transferVisitorResult.keyChanges
+            let keyChanges = keyChangesAccum
 
             // update references to transferred items
             let referenceVisitor = UpdateItemReferenceGameModelsVisitor { key -> CompendiumItemKey? in
@@ -420,7 +450,7 @@ public func transfer(
                 conflictResolution: .skip
             )
         }
-        result = transferVisitorResult.success
+        result = successAccum
 
         return .commit
     }

@@ -364,7 +364,7 @@ class DatabaseCompendiumTest: XCTestCase {
         }.insert(into: db)
 
         // Build a selection to fetch all entries from the source document
-        let selection = CompendiumItemSelection.multiple(
+        let selection = CompendiumItemSelection.multipleFetchRequest(
             CompendiumFetchRequest(
                 search: nil,
                 filters: .init(source: .init(sourceDocument)),
@@ -604,7 +604,7 @@ class DatabaseCompendiumTest: XCTestCase {
         }.insert(into: db)
 
         // Create a selection that finds all Bobs across both documents
-        let selection = CompendiumItemSelection.multiple(
+        let selection = CompendiumItemSelection.multipleFetchRequest(
             CompendiumFetchRequest(
                 search: "Bob",
                 filters: nil,
@@ -882,7 +882,7 @@ class DatabaseCompendiumTest: XCTestCase {
         }.insert(into: db)
 
         // Build a selection to fetch all entries from the source document
-        let selection = CompendiumItemSelection.multiple(
+        let selection = CompendiumItemSelection.multipleFetchRequest(
             CompendiumFetchRequest(
                 search: nil,
                 filters: .init(source: .init(sourceDocument)),
@@ -954,7 +954,7 @@ class DatabaseCompendiumTest: XCTestCase {
         }.insert(into: db)
 
         // Create selection for all monsters in source document
-        let selection = CompendiumItemSelection.multiple(
+        let selection = CompendiumItemSelection.multipleFetchRequest(
             CompendiumFetchRequest(
                 search: nil,
                 filters: .init(source: .init(sourceDocument)),

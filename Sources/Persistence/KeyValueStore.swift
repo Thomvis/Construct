@@ -21,6 +21,7 @@ public protocol KeyValueStore {
     func contains(_ key: String) throws -> Bool
 
     func fetchAll<V>(_ request: KeyValueStoreRequest) throws -> [V] where V: Decodable
+    func fetchAllCatching<V>(_ request: KeyValueStoreRequest) throws -> [Result<V, Error>] where V: Decodable
     func observeAll<V>(_ request: KeyValueStoreRequest) -> AsyncThrowingStream<[V], any Error> where V: Codable & Equatable
     func removeAll(_ request: KeyValueStoreRequest) throws -> Int
     func count(_ request: KeyValueStoreRequest) throws -> Int
@@ -172,6 +173,20 @@ public final class DatabaseKeyValueStore: KeyValueStore {
         }
     }
 
+    public func fetchAllCatching<V>(_ request: KeyValueStoreRequest) throws -> [Result<V, Error>] where V: Decodable {
+        try getAllRaw(request).map { r in
+            return Result {
+                do {
+                    return try Self.decode(V.self, from: r)
+                } catch let error as DecodingError {
+                    throw DatabaseKeyValueStoreError.decodingError(r.key, r.value, error)
+                } catch {
+                    throw error
+                }
+            }
+        }
+    }
+
     public func fetchKeys(_ request: KeyValueStoreRequest) throws -> [String] {
         let query = Self.build(request: request)
             .select(Record.Columns.key)
@@ -183,7 +198,7 @@ public final class DatabaseKeyValueStore: KeyValueStore {
         }
     }
 
-    public func observeAll<V>(_ request: KeyValueStoreRequest) -> AsyncThrowingStream<[V], Error> where V : Decodable, V : Encodable, V : Equatable {
+    public func observeAll<V>(_ request: KeyValueStoreRequest) -> AsyncThrowingStream<[V], Error> where V: Codable, V: Equatable {
         let observation = ValueObservation.trackingConstantRegion { db in
             let store = DatabaseKeyValueStore(DirectDatabaseAccess(db: db))
             return try store.getAllRaw(request)
@@ -234,7 +249,7 @@ public final class DatabaseKeyValueStore: KeyValueStore {
         do {
             return try Self.decoder.decode(type, from: record.value)
         } catch let error as DecodingError {
-            throw DatabaseKeyValueStoreError.decodingError(record.value, error)
+            throw DatabaseKeyValueStoreError.decodingError(record.key, record.value, error)
         }
     }
 
@@ -470,7 +485,7 @@ public extension KeyValueStore {
 
             let data: String?
             switch error {
-            case DatabaseKeyValueStoreError.decodingError(let d, _):
+            case DatabaseKeyValueStoreError.decodingError(_, let d, _):
                 data = String(data: d, encoding: .utf8)
             default:
                 data = nil
@@ -491,6 +506,6 @@ public extension KeyValueStore {
     }
 }
 
-enum DatabaseKeyValueStoreError: Error {
-    case decodingError(Data, DecodingError)
+public enum DatabaseKeyValueStoreError: Error {
+    case decodingError(String, Data, DecodingError)
 }
