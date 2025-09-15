@@ -9,18 +9,15 @@
 import SwiftUI
 import Combine
 import ComposableArchitecture
-import AppCenter
-import AppCenterAnalytics
-import AppCenterCrashes
+import FirebaseCore
+import FirebaseCrashlytics
 import GameModels
 
 @main
 struct ConstructApp: App {
 
     init() {
-        AppCenter.start(withAppSecret: "72078370-4844-4ec2-a850-22a22dee0233", services: [
-            Analytics.self, Crashes.self
-        ])
+        FirebaseApp.configure()
     }
 
     @SceneBuilder
@@ -129,14 +126,14 @@ struct ConstructView: View {
             environment: env
         )
 
-        setUpCrashesUserConfirmationHandler()
+        setUpCrashReporter()
     }
 
     init(env: Environment, store: Store<AppState, AppState.Action>) {
         self.env = env
         self.store = store
 
-        setUpCrashesUserConfirmationHandler()
+        setUpCrashReporter()
     }
 
     var body: some View {
@@ -197,17 +194,17 @@ struct ConstructView: View {
         }
     }
 
-    private func setUpCrashesUserConfirmationHandler() {
-        Crashes.userConfirmationHandler = { (errorReports: [ErrorReport]) in
+    private func setUpCrashReporter() {
+        if Crashlytics.crashlytics().didCrashDuringPreviousExecution() {
             if let preferences: Preferences = try? env.database.keyValueStore.get(Preferences.key),
                 preferences.errorReportingEnabled == true
             {
                 // user consent has been given, send reports
-                return false
+                env.crashReporter.registerUserPermission(.send)
+                return
             }
 
             ViewStore(store).send(.requestPresentation(.crashReportingPermissionAlert))
-            return true
         }
     }
 }
@@ -217,11 +214,10 @@ extension AppState {
         guard presentation == .crashReportingPermissionAlert else { return nil }
         return AlertState(
             title: .init("Construct quit unexpectedly."),
-            message: .init("Do you want to send an anonymous crash report so I can fix the issue?"),
+            message: .init("Do you want to send an anonymous crash reports so I can fix the issue?"),
             buttons: [
                 .cancel(.init("Don't send")),
                 .default(.init("Send"), action: .send(.onReceiveCrashReportingUserPermission(.send))),
-                .default(.init("Always send"), action: .send(.onReceiveCrashReportingUserPermission(.sendAlways)))
             ])
     }
 }

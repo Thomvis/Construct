@@ -20,7 +20,6 @@ public struct CrashReporter {
     public enum UserPermission {
         case dontSend
         case send
-        case sendAlways
     }
 
     public struct ErrorReport {

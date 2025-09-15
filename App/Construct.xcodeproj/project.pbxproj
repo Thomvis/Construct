@@ -13,6 +13,9 @@
 		E90EFF322620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF312620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift */; };
 		E90EFF412623220300F5443E /* DataSourceReaderParsersTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */; };
 		E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */; };
+		E911C3232E7897E80073DE9C /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = E911C3222E7897E80073DE9C /* FirebaseCore */; };
+		E911C3252E7898630073DE9C /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = E911C3242E7898630073DE9C /* FirebaseCrashlytics */; };
+		E911C3272E789EF50073DE9C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E911C3262E789EF50073DE9C /* GoogleService-Info.plist */; };
 		E9121E2925FA75D50048BE32 /* FloatingDiceRollerViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9121E2825FA75D50048BE32 /* FloatingDiceRollerViewState.swift */; };
 		E91885CD23944A3F0094EC87 /* ddb_bass.json in Resources */ = {isa = PBXBuildFile; fileRef = E91885CC23944A3F0094EC87 /* ddb_bass.json */; };
 		E91B857F23DA355B009AF6D7 /* software_licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = E91B857E23DA3552009AF6D7 /* software_licenses.md */; };
@@ -103,8 +106,6 @@
 		E9819BE324852498005B898E /* CampaignBrowserContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC32350FA5D0085A72D /* CampaignBrowserContainerView.swift */; };
 		E9819BE4248524AA005B898E /* CampaignBrowseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB31123505AF400CA0AF4 /* CampaignBrowseView.swift */; };
 		E9819BE52485252A005B898E /* SheetNavigationContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91C167A2402DF3E004B5C85 /* SheetNavigationContainer.swift */; };
-		E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F732520A17A0098A166 /* AppCenterAnalytics */; };
-		E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = E9869F752520A17A0098A166 /* AppCenterCrashes */; };
 		E9869F8D252203BA0098A166 /* TabNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F8C252203BA0098A166 /* TabNavigationView.swift */; };
 		E9869F91252203F40098A166 /* TabNavigationViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F90252203F40098A166 /* TabNavigationViewState.swift */; };
 		E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9425223E870098A166 /* ColumnNavigationView.swift */; };
@@ -217,6 +218,7 @@
 		E90EFF312620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMLCompendiumDataSourceReaderTest.swift; sourceTree = "<group>"; };
 		E90EFF402623220300F5443E /* DataSourceReaderParsersTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSourceReaderParsersTest.swift; sourceTree = "<group>"; };
 		E90FB9FD25E946E90026191A /* AddCombatantReferenceItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantReferenceItemView.swift; sourceTree = "<group>"; };
+		E911C3262E789EF50073DE9C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		E9121E2825FA75D50048BE32 /* FloatingDiceRollerViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerViewState.swift; sourceTree = "<group>"; };
 		E91885CC23944A3F0094EC87 /* ddb_bass.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = ddb_bass.json; sourceTree = "<group>"; };
 		E91885CE239674DB0094EC87 /* Construct.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Construct.entitlements; sourceTree = "<group>"; };
@@ -371,9 +373,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E9869F742520A17A0098A166 /* AppCenterAnalytics in Frameworks */,
 				E99C930828B0189D00018518 /* Dice in Frameworks */,
 				E91CCC832614C4D200CB0527 /* Tagged in Frameworks */,
+				E911C3232E7897E80073DE9C /* FirebaseCore in Frameworks */,
 				E991F89D2545A791006CE8E8 /* Introspect in Frameworks */,
 				E975753C2A5606EA008E8B60 /* Open5eAPI in Frameworks */,
 				E9A46A49294291490082EED4 /* ActionResolutionFeature in Frameworks */,
@@ -381,10 +383,10 @@
 				E9F1286D28E6D6130040C90C /* Persistence in Frameworks */,
 				E99C930C28B0189D00018518 /* Helpers in Frameworks */,
 				E9D1138B28AFBCA300CEF923 /* DiceRollerFeature in Frameworks */,
-				E9869F762520A17A0098A166 /* AppCenterCrashes in Frameworks */,
 				E99C930E28B0189D00018518 /* SharedViews in Frameworks */,
 				E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */,
 				E9BE1C4F28B524FF00D80464 /* DiceRollerInvocation in Frameworks */,
+				E911C3252E7898630073DE9C /* FirebaseCrashlytics in Frameworks */,
 				E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */,
 				E9558B702757FBBC000837AB /* BetterSafariView in Frameworks */,
 				E9DEA084293E9359007166C1 /* MechMuse in Frameworks */,
@@ -629,6 +631,7 @@
 		E999896222A6B4F20067BA25 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				E911C3262E789EF50073DE9C /* GoogleService-Info.plist */,
 				E91885CE239674DB0094EC87 /* Construct.entitlements */,
 				E92A41E2240D2CCD009AF440 /* App */,
 				E91EB0B223EE089A00F40E46 /* Resources */,
@@ -827,8 +830,6 @@
 			packageProductDependencies = (
 				E905E0BB246D83B800698C0A /* ComposableArchitecture */,
 				E93FA1C924EC5B7F007441BF /* Parma */,
-				E9869F732520A17A0098A166 /* AppCenterAnalytics */,
-				E9869F752520A17A0098A166 /* AppCenterCrashes */,
 				E991F89C2545A791006CE8E8 /* Introspect */,
 				E91CCC822614C4D200CB0527 /* Tagged */,
 				E9558B6F2757FBBC000837AB /* BetterSafariView */,
@@ -842,6 +843,8 @@
 				E9DEA083293E9359007166C1 /* MechMuse */,
 				E9A46A48294291490082EED4 /* ActionResolutionFeature */,
 				E975753B2A5606EA008E8B60 /* Open5eAPI */,
+				E911C3222E7897E80073DE9C /* FirebaseCore */,
+				E911C3242E7898630073DE9C /* FirebaseCrashlytics */,
 			);
 			productName = SwiftUITest;
 			productReference = E999896022A6B4F20067BA25 /* Construct.app */;
@@ -925,11 +928,11 @@
 			packageReferences = (
 				E905E0BA246D83B800698C0A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				E93FA1C824EC5B7F007441BF /* XCRemoteSwiftPackageReference "Parma" */,
-				E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
 				E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
 				E91CCC812614C4D200CB0527 /* XCRemoteSwiftPackageReference "swift-tagged" */,
 				E9558B6E2757FBBC000837AB /* XCRemoteSwiftPackageReference "BetterSafariView" */,
 				E9B3B87328FC8824003764DD /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+				E911C31F2E7897AE0073DE9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -953,6 +956,7 @@
 				E999896D22A6B4F30067BA25 /* Preview Assets.xcassets in Resources */,
 				E999896A22A6B4F30067BA25 /* Assets.xcassets in Resources */,
 				E96FC16923D3A5BE00A12F1E /* ogl.md in Resources */,
+				E911C3272E789EF50073DE9C /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1520,6 +1524,14 @@
 				minimumVersion = 0.1.3;
 			};
 		};
+		E911C31F2E7897AE0073DE9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.3.0;
+			};
+		};
 		E91CCC812614C4D200CB0527 /* XCRemoteSwiftPackageReference "swift-tagged" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-tagged.git";
@@ -1542,14 +1554,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.0.0;
-			};
-		};
-		E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple.git";
-			requirement = {
-				branch = master;
-				kind = branch;
 			};
 		};
 		E991F89B2545A791006CE8E8 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */ = {
@@ -1576,6 +1580,16 @@
 			package = E905E0BA246D83B800698C0A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
 		};
+		E911C3222E7897E80073DE9C /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E911C31F2E7897AE0073DE9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		E911C3242E7898630073DE9C /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E911C31F2E7897AE0073DE9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
 		E91CCC822614C4D200CB0527 /* Tagged */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E91CCC812614C4D200CB0527 /* XCRemoteSwiftPackageReference "swift-tagged" */;
@@ -1598,16 +1612,6 @@
 		E975753B2A5606EA008E8B60 /* Open5eAPI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Open5eAPI;
-		};
-		E9869F732520A17A0098A166 /* AppCenterAnalytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */;
-			productName = AppCenterAnalytics;
-		};
-		E9869F752520A17A0098A166 /* AppCenterCrashes */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E9869F6F2520A1320098A166 /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */;
-			productName = AppCenterCrashes;
 		};
 		E991F89C2545A791006CE8E8 /* Introspect */ = {
 			isa = XCSwiftPackageProductDependency;

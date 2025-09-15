@@ -27,3 +27,5 @@ Pods
 fastlane/report.xml
 Construct.app.dSYM.zip
 Construct.ipa
+
+App/App/GoogleService-Info.plist

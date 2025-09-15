@@ -142,6 +142,12 @@ struct AppState: Equatable {
                     }
                 case .onReceiveCrashReportingUserPermission(let permission):
                     env.crashReporter.registerUserPermission(permission)
+                    if var preferences: Preferences = try? env.database.keyValueStore.get(Preferences.key) {
+                        if preferences.errorReportingEnabled != (permission == .send) {
+                            preferences.errorReportingEnabled = permission == .send
+                            try? env.database.keyValueStore.put(preferences)
+                        }
+                    }
                 case .welcomeSheetSampleEncounterTapped:
                     return .run { send in
                         SampleEncounter.create(with: env)

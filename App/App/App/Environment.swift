@@ -160,7 +160,7 @@ extension Environment {
                 return UIGraphicsGetImageFromCurrentImageContext()
             },
             diceLog: DiceLogPublisher(),
-            crashReporter: CrashReporter.appCenter,
+            crashReporter: CrashReporter.firebase,
             mechMuse: .live(db: database)
         )
     }
