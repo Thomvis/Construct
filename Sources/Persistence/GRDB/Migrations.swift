@@ -32,6 +32,7 @@ extension Database {
         case v13 = "v13-keyvaluestore-indexes"
         case v14 = "v14-compendium-sources"
         case v15 = "v15-keyvaluestore-ftsDeleteSync"
+        case v16 = "v16-fix-missing-origin-document"
     }
 
     static func migrator() throws -> DatabaseMigrator {
@@ -510,6 +511,66 @@ extension Database {
                     DELETE FROM key_value_fts WHERE rowid = OLD.rowid;
                 END
             """)
+        }
+
+        migrator.registerMigration(Migration.v16) { db in
+            // Fix missing CompendiumEntry.origin values (might only have affected my own phone during development)
+
+            let encoder = JSONEncoder()
+
+            let entryRecords = try! DatabaseKeyValueStore.Record.filter(Column("key").like("\(CompendiumEntry.keyPrefix())%")).fetchAll(db)
+            for var r in entryRecords {
+                // Read legacy entry
+                guard var entryJSON = try? JSONSerialization.jsonObject(with: r.value, options: []) as? [String: Any] else {
+                    assertionFailure("Could not migrate \(r.key): failed to read entry")
+                    continue
+                }
+
+                var didUpdateEntry = false
+                if entryJSON[CompendiumEntry.CodingKeys.origin.stringValue] == nil {
+                    let origin: CompendiumEntry.Origin = .created(nil)
+
+                    guard let originData = try? encoder.encode(origin),
+                          let originJSON = try? JSONSerialization.jsonObject(with: originData) as? [String: Any] else {
+                        assertionFailure("Could not migrate \(r.key): failed to convert fallback origin to JSON")
+                        continue
+                    }
+
+                    entryJSON[CompendiumEntry.CodingKeys.origin.stringValue] = originJSON
+                    didUpdateEntry = true
+                }
+
+                if entryJSON[CompendiumEntry.CodingKeys.document.stringValue] == nil {
+                    let document: CompendiumSourceDocument = .homebrew
+
+                    // Write new source & document reference to entry
+                    guard let documentReferenceData = try? encoder.encode(CompendiumEntry.CompendiumSourceDocumentReference(document)),
+                          let documentReferenceJSON = try? JSONSerialization.jsonObject(with: documentReferenceData) as? [String: Any] else {
+                        assertionFailure("Could not migrate \(r.key): failed to convert new origin & document to JSON")
+                        continue
+                    }
+
+                    entryJSON[CompendiumEntry.CodingKeys.document.stringValue] = documentReferenceJSON
+                    didUpdateEntry = true
+                }
+
+                guard didUpdateEntry else { continue }
+
+                guard let entryData = try? JSONSerialization.data(withJSONObject: entryJSON) else {
+                    assertionFailure("Could not migrate \(r.key): failed to write new origin & document JSON to the entry")
+                    continue
+                }
+
+                r.value = entryData
+
+                do {
+                    // save migrated record
+                    try r.save(db)
+                } catch {
+                    assertionFailure("Could not migrate \(r.key): failed to save updated record to the db")
+                    continue
+                }
+            }
         }
 
         return migrator
