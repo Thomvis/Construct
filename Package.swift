@@ -31,7 +31,7 @@ let package = Package(
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.29.3"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "0.0.4"),
         .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2"),
-        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.6.1"),
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.11.2"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.12.0"),
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.14.0"),
