@@ -1,0 +1,69 @@
+[project]
+name = "server"
+version = "0.1.0"
+description = "FastAPI backend for Construct"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.117.1",
+    "pyjwt>=2.9.0",
+    "uvicorn>=0.36.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx>=0.27.2",
+    "mypy>=1.11.0",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.23.8",
+    "ruff>=0.6.8",
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+warn_return_any = true
+warn_unreachable = true
+color_output = true
+pretty = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+    ".venv",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "B",
+    "UP",
+]
+ignore = [
+    "E203",
+    "B008",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+asyncio_mode = "strict"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.coverage.run]
+branch = true
+source = ["main"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true

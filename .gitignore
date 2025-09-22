@@ -29,3 +29,6 @@ Construct.app.dSYM.zip
 Construct.ipa
 
 App/App/GoogleService-Info.plist
+
+# Python artifacts
+__pycache__/

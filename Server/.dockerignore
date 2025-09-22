@@ -1,0 +1,11 @@
+# Local artifacts
+.venv
+__pycache__
+*.py[cod]
+
+# VCS
+.git
+.gitignore
+
+# macOS
+.DS_Store
