@@ -1,0 +1,24 @@
+name: OpenAPI Spec
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify-openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Generate OpenAPI schema
+        run: uv run --project Server python scripts/generate_openapi.py
+
+      - name: Ensure OpenAPI schema is up to date
+        run: git diff --exit-code -- Sources/ConstructAPI/openapi.json

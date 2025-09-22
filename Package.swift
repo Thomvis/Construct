@@ -12,6 +12,7 @@ let package = Package(
     products: [
         .library(name: "ActionResolutionFeature", targets: ["ActionResolutionFeature"]),
         .library(name: "Compendium", targets: ["Compendium"]),
+        .library(name: "ConstructAPI", targets: ["ConstructAPI"]),
         .library(name: "DiceRollerFeature", targets: ["DiceRollerFeature"]),
         .library(name: "DiceRollerInvocation", targets: ["DiceRollerInvocation"]),
         .library(name: "Dice", targets: ["Dice"]),
@@ -36,7 +37,9 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.14.0"),
         .package(url: "https://github.com/ajevans99/swift-json-schema", from: "0.9.0"),
-        .package(url: "https://github.com/MacPaw/OpenAI.git", from: "0.4.6")
+        .package(url: "https://github.com/MacPaw/OpenAI.git", from: "0.4.6"),
+        .package(url: "https://github.com/apple/swift-openapi-generator", from: "1.3.0"),
+        .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.3.0")
     ],
     targets: [
         .target(
@@ -60,6 +63,15 @@ let package = Package(
             resources: [
                 .copy("Fixtures/monsters.json"),
                 .copy("Fixtures/spells.json")
+            ]
+        ),
+        .target(
+            name: "ConstructAPI",
+            dependencies: [
+                .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
+            ],
+            plugins: [
+                .plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")
             ]
         ),
         .testTarget(

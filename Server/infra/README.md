@@ -11,7 +11,7 @@ terraform init
 terraform apply \
   -var="project_id=your-gcp-project" \
   -var="image=gcr.io/your-gcp-project/construct-server:latest" \
-  -var='service_env_vars={"ADMIN_PASSWORD"="your-password","JWT_SECRET"="super-secret"}'
+  -var='service_env_vars={"ADMIN_PASSWORD"="your-password","JWT_SECRET"="super-secret","OPENAI_API_KEY"="sk-prod-key"}'
 ```
 
 ## Inputs
@@ -21,6 +21,6 @@ terraform apply \
 - `service_name`: Cloud Run service name (default `construct-server`).
 - `container_port`: Container listening port (default `8080`).
 - `allow_unauthenticated`: Grant public access when `true` (default `true`).
-- `service_env_vars`: Map of environment variables to inject into the Cloud Run revision (default `{}`).
+- `service_env_vars`: Map of environment variables to inject into the Cloud Run revision (default `{}`). Provide values such as `ADMIN_PASSWORD`, `JWT_SECRET`, and `OPENAI_API_KEY` here.
 
 The configuration enables required APIs (`run.googleapis.com`, `cloudbuild.googleapis.com`), provisions the Cloud Run service, and optionally configures public invocation permissions.
