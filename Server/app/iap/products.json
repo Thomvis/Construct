@@ -1,0 +1,14 @@
+{
+  "products": [
+    {
+      "id": "com.construct.mechmuse.monthly",
+      "type": "auto_renewable_subscription",
+      "displayName": "Mechanical Muse Monthly",
+      "description": "Unlock Mechanical Muse features with a monthly subscription.",
+      "duration": "P1M",
+      "entitlements": [
+        "mechanical_muse"
+      ]
+    }
+  ]
+}

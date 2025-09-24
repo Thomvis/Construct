@@ -9,15 +9,28 @@ A minimal FastAPI service managed with [uv](https://github.com/astral-sh/uv) and
 - [gcloud CLI](https://cloud.google.com/sdk/docs/install) authenticated to your GCP project for deployment
 
 ## Configuration
-Environment variables configure authentication and OpenAI access:
+Environment variables configure authentication, in-app purchase verification, usage tracking, and OpenAI access:
 - `ADMIN_PASSWORD`: Magic password that issues an admin JWT (default `change-me`).
 - `JWT_SECRET`: Symmetric signing key for JWTs (default `change-me-too`).
 - `ACCESS_TOKEN_EXPIRE_MINUTES`: Lifetime for issued tokens (default `60`).
+- `USER_ACCESS_TOKEN_EXPIRE_MINUTES`: Optional override for customer access tokens (defaults to `ACCESS_TOKEN_EXPIRE_MINUTES`).
 - `OPENAI_API_KEY`: API key used for Mechanical Muse requests (**required** for Mech Muse endpoints).
 - `OPENAI_MODEL`: OpenAI Responses model to use (default `gpt-4.1-mini`).
 - `OPENAI_TEMPERATURE`: Sampling temperature when talking to OpenAI (default `0.7`).
 - `OPENAI_TIMEOUT_SECONDS`: HTTP timeout when calling OpenAI (default `180`).
 - `OPENAI_MAX_OUTPUT_TOKENS`: Optional cap on OpenAI completion tokens.
+- `APPLE_API_KEY_ID`: The key identifier for your App Store Connect in-app purchase key.
+- `APPLE_API_ISSUER_ID`: The issuer identifier associated with your App Store Connect key.
+- `APPLE_API_PRIVATE_KEY`: The PEM-encoded private key downloaded from App Store Connect (escape newlines when storing in env vars).
+- `APPLE_BUNDLE_ID`: Bundle identifier of the app whose transactions you are validating.
+- `APPLE_API_ENV`: App Store Server API environment (`sandbox`, `production`, or `local_testing`; default `sandbox`).
+- `APPLE_APP_APPLE_ID`: Optional App Store numeric identifier for the app; required when calling production.
+- `APPLE_ROOT_CERT_PATHS`: Optional colon-separated list of filesystem paths to Apple root certificates (DER or PEM) used to validate signed transactions.
+- `APPLE_ROOT_CERT_BASE64`: Optional comma-separated list of base64-encoded DER certificates (alternative to `APPLE_ROOT_CERT_PATHS`).
+- `APPLE_ENABLE_ONLINE_CHECKS`: Set to `true` to enable OCSP checks when verifying Apple certificates (defaults to `false`).
+- `FIRESTORE_PROJECT_ID`: When set, token usage totals are persisted to this Firestore project; otherwise an in-memory store is used.
+- `FIRESTORE_USAGE_COLLECTION`: Firestore collection used for subscription usage aggregation (default `subscription_usage`).
+- `IAP_CATALOG_PATH`: Optional override for the bundled in-app purchase catalog (`app/iap/products.json`).
 
 Override these defaults in local development (for example via a `.env` file or export statements) and always provide secure values in production.
 
@@ -50,7 +63,7 @@ curl http://localhost:8000/protected -H "Authorization: Bearer ${TOKEN}"
 ```
 
 ## Mech Muse endpoints
-The Mechanical Muse API is grouped under `/mech-muse`.
+The Mechanical Muse API is grouped under `/mech-muse` and requires a bearer token containing the `mechanical_muse` entitlement (issued after verifying an in-app purchase receipt).
 
 `POST /mech-muse/creatures/generate` issues a new creature stat block using OpenAI. Example request:
 ```json
@@ -65,7 +78,17 @@ The Mechanical Muse API is grouped under `/mech-muse`.
   ]
 }
 ```
-The response returns a simplified stat block matching the supplied schema. Provide `OPENAI_API_KEY` (and optionally `OPENAI_MODEL`, etc.) before calling the endpoint.
+The response returns a simplified stat block matching the supplied schema. Provide `OPENAI_API_KEY` (and optionally `OPENAI_MODEL`, etc.) before calling the endpoint. Token usage (input/output tokens) is recorded per subscription in Firestore when configured.
+
+## In-app purchases & Mechanical Muse access
+- `GET /iap/products` exposes the in-app purchase catalog defined in `app/iap/products.json`, keeping product identifiers and entitlements synchronized between the app and server.
+- `POST /iap/receipts/verify` accepts a transaction identifier (`transactionId`) from StoreKit, uses Apple's App Store Server API to fetch and verify the signed transaction, seeds or updates usage records, and issues a JWT access token containing subscription metadata and entitlements.
+
+Send the original transaction identifier for subscriptions so renewal activity collapses to a single entitlement record on the server.
+
+Provide at least one Apple root certificate via `APPLE_ROOT_CERT_PATHS` or `APPLE_ROOT_CERT_BASE64` before calling the verification endpoint; the server needs it to validate Apple's certificate chain. The endpoint returns `403` for expired subscriptions and `503` when Apple is unavailable so the client can retry.
+
+Forward the returned `access_token` when calling Mechanical Muse endpoints to unlock the Mechanical Muse features for that user.
 
 ## Running quality checks
 ```bash

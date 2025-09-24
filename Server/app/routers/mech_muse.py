@@ -9,11 +9,15 @@ from pydantic import BaseModel, Field, ValidationError
 from pydantic.config import ConfigDict
 from starlette.concurrency import run_in_threadpool
 
+from ..security import TokenData, require_entitlement
+from ..services.usage import TokenUsageStore, get_usage_store
 from ..settings import get_openai_client, get_settings
 
 __all__ = ["router", "provide_openai_client"]
 
 router = APIRouter(prefix="/mech-muse", tags=["mech-muse"])
+
+MECH_MUSE_ENTITLEMENT = "mechanical_muse"
 
 
 class AbilityScoresModel(BaseModel):
@@ -201,6 +205,38 @@ def _extract_response_text(response: Any) -> str:
     raise ValueError("OpenAI response did not contain textual content")
 
 
+def _extract_usage_counts(response: Any | None) -> tuple[int, int]:
+    if response is None:
+        return (0, 0)
+
+    usage = getattr(response, "usage", None)
+    if usage is None and isinstance(response, dict):
+        usage = response.get("usage")
+
+    if usage is None:
+        return (0, 0)
+
+    if isinstance(usage, dict):
+        input_tokens = usage.get("input_tokens") or usage.get("prompt_tokens")
+        output_tokens = usage.get("output_tokens") or usage.get("completion_tokens")
+    else:
+        input_tokens = getattr(usage, "input_tokens", None)
+        if input_tokens is None:
+            input_tokens = getattr(usage, "prompt_tokens", None)
+        output_tokens = getattr(usage, "output_tokens", None)
+        if output_tokens is None:
+            output_tokens = getattr(usage, "completion_tokens", None)
+
+    def _coerce(value: Any) -> int:
+        if isinstance(value, int):
+            return max(value, 0)
+        if isinstance(value, float):
+            return max(int(value), 0)
+        return 0
+
+    return (_coerce(input_tokens), _coerce(output_tokens))
+
+
 async def provide_openai_client() -> OpenAI:
     try:
         return get_openai_client()
@@ -222,6 +258,8 @@ async def provide_openai_client() -> OpenAI:
 async def generate_creature_stat_block(
     payload: CreatureGenerationRequest,
     openai_client: OpenAI = Depends(provide_openai_client),
+    token: TokenData = Depends(require_entitlement(MECH_MUSE_ENTITLEMENT)),
+    usage_store: TokenUsageStore = Depends(get_usage_store),
 ) -> SimpleStatBlockModel:
     settings = get_settings()
     prompt = _build_mech_muse_prompt(payload)
@@ -237,6 +275,7 @@ async def generate_creature_stat_block(
             kwargs["max_output_tokens"] = settings.openai_max_output_tokens
         return openai_client.responses.create(**kwargs)
 
+    response: Any | None = None
     try:
         response = await run_in_threadpool(_call_openai)
     except OpenAIError as exc:
@@ -267,3 +306,19 @@ async def generate_creature_stat_block(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="OpenAI response did not match the expected schema",
         ) from exc
+    finally:
+        usage = _extract_usage_counts(response)
+        if usage != (0, 0):
+            subscription_id = token.subscription_id or token.subject
+            product_id = token.product_id or "unknown"
+
+            def _record_usage() -> None:
+                usage_store.increment_usage(
+                    subscription_id=subscription_id,
+                    user_id=token.subject,
+                    product_id=product_id,
+                    input_tokens=usage[0],
+                    output_tokens=usage[1],
+                )
+
+            await run_in_threadpool(_record_usage)

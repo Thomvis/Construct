@@ -274,6 +274,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         for key in keys {
                             _ = try? env.database.keyValueStore.remove(key)
                         }
+                        await send(.clearSelection)
                         await send(.results(.result(.reload(.currentCount))))
                         await send(.alert(nil))
                     }
@@ -319,6 +320,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     return .send(.results(.result(.reload(.currentCount))))
                 case .transferSheet(.onTransferDidSucceed):
                     return .merge(
+                        .send(.clearSelection),
                         .send(.results(.result(.reload(.currentCount)))),
                         .send(.setSheet(nil))
                     )

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
-from .routers import auth, mech_muse
+from .routers import auth, iap, mech_muse
 from .schemas import HealthResponse, RootResponse
 
 __all__ = ["app", "create_app"]
@@ -20,6 +20,7 @@ def create_app() -> FastAPI:
         return HealthResponse(status="ok")
 
     application.include_router(auth.router)
+    application.include_router(iap.router)
     application.include_router(mech_muse.router)
 
     return application

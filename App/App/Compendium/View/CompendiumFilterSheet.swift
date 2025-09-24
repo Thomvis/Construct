@@ -373,6 +373,7 @@ extension CompendiumFilterSheetState {
             case .editing: break
             case .clear(.source):
                 state.current.source = nil
+                state.documentSelection.selectedSource = nil
             case .clear(.itemType):
                 state.current.itemType = nil
             case .clear(.minMonsterCR):
