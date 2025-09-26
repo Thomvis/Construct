@@ -14,7 +14,7 @@ This project aims to be...
 ### For Dungeon Masters
 The easiest way to use the app is by downloading it from the App Store.
 
-<a href="https://apps.apple.com/app/construct-for-d-d-5e/id1490015210"><img src="https://github.com/Volorf/Badges/blob/master/App%20Store/App%20Store%20Badge.png?raw=true" width="150" /></a>
+<a href="https://apps.apple.com/app/construct-for-d-d-5e/id1490015210"><img src="https://signal.org/external/images/app-store-download-badge.svg" /></a>
 
 You can find an overview of Construct's features at [construct5e.app](https://www.construct5e.app).
 
