@@ -697,12 +697,19 @@ struct FilterButton: View {
             }
         }()
 
-        return Button(action: {
-            presentFilterSheet()
-        }) {
+        return Menu {
+            Button {
+                viewStore.send(.results(.input(.onFiltersDidChange(.init()))))
+            } label: {
+                Label("Clear filters", systemImage: "clear")
+            }
+            .disabled(viewStore.state.filters == nil || viewStore.state.filters == .init())
+
+        } label: {
             Label(label, systemImage: "slider.horizontal.3")
+        } primaryAction: {
+            presentFilterSheet()
         }
-        .menuOrder(.fixed)
         .sheet(item: $sheet) { popover in
             AutoSizingSheetContainer {
                 popover
