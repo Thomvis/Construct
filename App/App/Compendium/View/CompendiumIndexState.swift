@@ -406,6 +406,12 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     }
                 }
 
+                // remove keys from selection that are not displayed
+                if let entries {
+                    let displayedKeys = Set(entries.map { $0.item.key })
+                    state.selectedKeys = state.selectedKeys.intersection(displayedKeys)
+                }
+
                 return .none
             }),
             // apply filter restrictions from the properties to the query
