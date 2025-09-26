@@ -325,6 +325,10 @@ extension DatabaseKeyValueStore {
             }
         }
 
+        if let keys = request.keys {
+            query = query.filter(keys.map { k in Record.Columns.key == k }.joined(operator: .or))
+        }
+
         if let keyPrefixes = request.keyPrefixes?.nonEmptyArray {
             query = query.filter(keyPrefixes.map { p in Record.Columns.key.like("\(p)%") }.joined(operator: .or))
         }

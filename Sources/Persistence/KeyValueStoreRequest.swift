@@ -8,13 +8,15 @@
 import Foundation
 
 public struct KeyValueStoreRequest {
+    public var keys: [String]? = nil
     public var keyPrefixes: [String]? = nil
     public var fullTextSearch: String? = nil
     public var filters: [SecondaryIndexFilter]? = nil
     public var order: [SecondaryIndexOrder]? = nil
     public var range: Range<Int>? = nil
 
-    public init(keyPrefixes: [String]? = nil, fullTextSearch: String? = nil, filters: [SecondaryIndexFilter]? = nil, order: [SecondaryIndexOrder]? = nil, range: Range<Int>? = nil) {
+    public init(keys: [String]? = nil, keyPrefixes: [String]? = nil, fullTextSearch: String? = nil, filters: [SecondaryIndexFilter]? = nil, order: [SecondaryIndexOrder]? = nil, range: Range<Int>? = nil) {
+        self.keys = keys
         self.keyPrefixes = keyPrefixes
         self.fullTextSearch = fullTextSearch
         self.filters = filters

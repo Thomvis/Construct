@@ -321,6 +321,58 @@ class DatabaseCompendiumTest: XCTestCase {
         }.assert(db)
     }
 
+    func testTransferMoveSingleItemWithinSameDocumentWithPrefixedKeyDoesNothing() async throws {
+        let db = Database.uninitialized
+
+        // Setup compendium with two documents in the same realm. Document B
+        // has an item whose key string starts with the key string of the item in
+        // document A to reproduce the move-prefix bug.
+        var documentA: CompendiumSourceDocument!
+        var documentB: CompendiumSourceDocument!
+        var entryA: CompendiumEntry!
+        var entryB: CompendiumEntry!
+        try KeyValueStoreDefinition { s in
+            s.Compendium { c in
+                c.Realm(name: "realm") { r in
+                    r.Document(name: "documentB", to: &documentB) { d in
+                        d.Monster(name: "Monster B", to: &entryB)
+                    }
+
+                    r.Document(name: "documentA", to: &documentA) { d in
+                        d.Monster(name: "Monster", to: &entryA)
+                    }
+                }
+            }
+        }.insert(into: db)
+
+        let entryAKey = CompendiumEntry.key(for: entryA.item.key).rawValue
+        let entryBKey = CompendiumEntry.key(for: entryB.item.key).rawValue
+        XCTAssertTrue(entryBKey.hasPrefix(entryAKey))
+
+        let selection = CompendiumItemSelection.single(entryA.item.key)
+
+        _ = try await transfer(
+            selection,
+            mode: .move,
+            target: CompendiumFilters.Source(documentA),
+            conflictResolution: .overwrite,
+            db: db.access
+        )
+
+        try KeyValueStoreDefinition { s in
+            s.Compendium { c in
+                c.Realm(name: "realm") { r in
+                    r.Document(name: "documentA") { d in
+                        d.Monster(name: "Monster")
+                    }
+                    r.Document(name: "documentB") { d in
+                        d.Monster(name: "Monster B")
+                    }
+                }
+            }
+        }.assert(db)
+    }
+
     func testTransferMoveMultipleItemsWithoutConflictBetweenRealms() async throws {
         let db = Database.uninitialized
         

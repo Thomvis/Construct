@@ -395,7 +395,7 @@ public func transfer(
 
         switch selection {
         case .single(let compendiumItemKey):
-            let scope = KeyValueStoreRequest(keyPrefix: CompendiumEntry.key(for: compendiumItemKey).rawValue)
+            let scope = KeyValueStoreRequest(keys: [CompendiumEntry.key(for: compendiumItemKey).rawValue])
             let transferVisitorResult = try visitorManager.run(
                 scope: scope,
                 visitors: visitors,
@@ -417,18 +417,19 @@ public func transfer(
             keyChangesAccum.merge(transferVisitorResult.keyChanges, uniquingKeysWith: { $1 })
             successAccum.append(contentsOf: transferVisitorResult.success)
         case .multipleKeys(let keys):
-            for itemKey in keys {
-                let scope = KeyValueStoreRequest(keyPrefix: CompendiumEntry.key(for: itemKey).rawValue)
-                let transferVisitorResult = try visitorManager.run(
-                    scope: scope,
-                    visitors: visitors,
-                    conflictResolution: visitorConflictResolution,
-                    removeOriginalEntityOnKeyChange: mode == .move,
-                    conflictWithOriginalEntity: true
-                )
-                keyChangesAccum.merge(transferVisitorResult.keyChanges, uniquingKeysWith: { $1 })
-                successAccum.append(contentsOf: transferVisitorResult.success)
-            }
+            let scope = KeyValueStoreRequest(
+                keys: keys.map { CompendiumEntry.key(for: $0).rawValue }
+            )
+
+            let transferVisitorResult = try visitorManager.run(
+                scope: scope,
+                visitors: visitors,
+                conflictResolution: visitorConflictResolution,
+                removeOriginalEntityOnKeyChange: mode == .move,
+                conflictWithOriginalEntity: true
+            )
+            keyChangesAccum.merge(transferVisitorResult.keyChanges, uniquingKeysWith: { $1 })
+            successAccum.append(contentsOf: transferVisitorResult.success)
         }
 
         
