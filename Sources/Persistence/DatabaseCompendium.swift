@@ -393,46 +393,27 @@ public func transfer(
         var keyChangesAccum: [String: String] = [:]
         var successAccum: [String] = []
 
-        switch selection {
+        let scope = switch selection {
         case .single(let compendiumItemKey):
-            let scope = KeyValueStoreRequest(keys: [CompendiumEntry.key(for: compendiumItemKey).rawValue])
-            let transferVisitorResult = try visitorManager.run(
-                scope: scope,
-                visitors: visitors,
-                conflictResolution: visitorConflictResolution,
-                removeOriginalEntityOnKeyChange: mode == .move,
-                conflictWithOriginalEntity: true
-            )
-            keyChangesAccum.merge(transferVisitorResult.keyChanges, uniquingKeysWith: { $1 })
-            successAccum.append(contentsOf: transferVisitorResult.success)
+            KeyValueStoreRequest(keys: [CompendiumEntry.key(for: compendiumItemKey).rawValue])
         case .multipleFetchRequest(let compendiumFetchRequest):
-            let scope = compendiumFetchRequest.toKeyValueStoreRequest()
-            let transferVisitorResult = try visitorManager.run(
-                scope: scope,
-                visitors: visitors,
-                conflictResolution: visitorConflictResolution,
-                removeOriginalEntityOnKeyChange: mode == .move,
-                conflictWithOriginalEntity: true
-            )
-            keyChangesAccum.merge(transferVisitorResult.keyChanges, uniquingKeysWith: { $1 })
-            successAccum.append(contentsOf: transferVisitorResult.success)
+            compendiumFetchRequest.toKeyValueStoreRequest()
         case .multipleKeys(let keys):
-            let scope = KeyValueStoreRequest(
+            KeyValueStoreRequest(
                 keys: keys.map { CompendiumEntry.key(for: $0).rawValue }
             )
-
-            let transferVisitorResult = try visitorManager.run(
-                scope: scope,
-                visitors: visitors,
-                conflictResolution: visitorConflictResolution,
-                removeOriginalEntityOnKeyChange: mode == .move,
-                conflictWithOriginalEntity: true
-            )
-            keyChangesAccum.merge(transferVisitorResult.keyChanges, uniquingKeysWith: { $1 })
-            successAccum.append(contentsOf: transferVisitorResult.success)
         }
 
-        
+        let transferVisitorResult = try visitorManager.run(
+            scope: scope,
+            visitors: visitors,
+            conflictResolution: visitorConflictResolution,
+            removeOriginalEntityOnKeyChange: mode == .move,
+            conflictWithOriginalEntity: mode == .copy
+        )
+        keyChangesAccum.merge(transferVisitorResult.keyChanges, uniquingKeysWith: { $1 })
+        successAccum.append(contentsOf: transferVisitorResult.success)
+
 
         // Step 2: update references to transferred items (if moved)
         if mode == .move {

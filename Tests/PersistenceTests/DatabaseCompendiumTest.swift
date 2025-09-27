@@ -467,6 +467,62 @@ class DatabaseCompendiumTest: XCTestCase {
         }.assert(db)
     }
 
+    func testTransferMoveMultipleItemsByKeyWithoutConflictKeepBothWithinRealm() async throws {
+        let db = Database.uninitialized
+
+        // Setup compendium
+        var sourceDocument: CompendiumSourceDocument!
+        var targetDocument: CompendiumSourceDocument!
+        var entry1: CompendiumEntry!
+        var entry2: CompendiumEntry!
+
+        try KeyValueStoreDefinition { s in
+            s.Compendium { c in
+                c.Realm(name: "realm") { r in
+                    r.Document(name: "sourceDocument", to: &sourceDocument) { d in
+                        d.Monster(name: "Gobby", to: &entry1)
+                        d.Monster(name: "Dobby", to: &entry2)
+                    }
+
+                    r.Document(name: "targetDocument", to: &targetDocument) { _ in
+                        // Empty initially
+                    }
+                }
+            }
+        }.insert(into: db)
+
+        // Build a selection to fetch all entries from the source document
+        let selection = CompendiumItemSelection.multipleKeys([
+            entry1.item.key,
+            entry2.item.key,
+        ])
+
+        // Transfer entries in move mode with overwrite conflict resolution
+        try await transfer(
+            selection,
+            mode: .move,
+            target: CompendiumFilters.Source(targetDocument),
+            conflictResolution: .keepBoth,
+            db: db.access
+        )
+
+        // Assert final state - all characters moved from source to target, references updated
+        try KeyValueStoreDefinition { s in
+            s.Compendium { c in
+                c.Realm(name: "realm") { r in
+                    r.Document(name: "targetDocument") { d in
+                        d.Monster(name: "Gobby", to: &entry1)
+                        d.Monster(name: "Dobby", to: &entry2)
+                    }
+
+                    r.Document(name: "sourceDocument") { d in
+
+                    }
+                }
+            }
+        }.assert(db)
+    }
+
     func testTransferMoveSingleItemWithConflictSkip() async throws {
         let db = Database.uninitialized
 
