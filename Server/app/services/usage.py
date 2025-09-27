@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from functools import lru_cache
-from threading import Lock
-from typing import Protocol
+from typing import Any, Protocol
 
 from ..settings import get_settings
 
@@ -28,7 +28,7 @@ class TokenUsageRecord:
 
 
 class TokenUsageStore(Protocol):
-    def increment_usage(
+    async def increment_usage(
         self,
         *,
         subscription_id: str,
@@ -39,16 +39,16 @@ class TokenUsageStore(Protocol):
     ) -> None:
         """Increment usage counters for a subscription."""
 
-    def get_usage(self, subscription_id: str) -> TokenUsageRecord | None:
+    async def get_usage(self, subscription_id: str) -> TokenUsageRecord | None:
         """Return the current aggregate usage for the given subscription."""
 
 
 class InMemoryUsageStore(TokenUsageStore):
     def __init__(self) -> None:
-        self._lock = Lock()
+        self._lock = asyncio.Lock()
         self._records: dict[str, TokenUsageRecord] = {}
 
-    def increment_usage(
+    async def increment_usage(
         self,
         *,
         subscription_id: str,
@@ -58,7 +58,7 @@ class InMemoryUsageStore(TokenUsageStore):
         output_tokens: int,
     ) -> None:
         now = datetime.now(UTC)
-        with self._lock:
+        async with self._lock:
             record = self._records.get(subscription_id)
             if record is None:
                 record = TokenUsageRecord(
@@ -81,8 +81,8 @@ class InMemoryUsageStore(TokenUsageStore):
                 updated_at=now,
             )
 
-    def get_usage(self, subscription_id: str) -> TokenUsageRecord | None:
-        with self._lock:
+    async def get_usage(self, subscription_id: str) -> TokenUsageRecord | None:
+        async with self._lock:
             record = self._records.get(subscription_id)
             if record is None:
                 return None
@@ -98,13 +98,13 @@ class InMemoryUsageStore(TokenUsageStore):
 
 class FirestoreUsageStore(TokenUsageStore):
     def __init__(self, *, project_id: str, collection: str = "subscription_usage") -> None:
-        from google.cloud import firestore
+        from google.cloud import firestore  # type: ignore[import-untyped]
 
         self._client = firestore.Client(project=project_id)
         self._collection = collection
         self._firestore = firestore
 
-    def increment_usage(
+    async def increment_usage(
         self,
         *,
         subscription_id: str,
@@ -122,10 +122,17 @@ class FirestoreUsageStore(TokenUsageStore):
             "output_tokens": self._firestore.Increment(max(output_tokens, 0)),
             "updated_at": self._firestore.SERVER_TIMESTAMP,
         }
-        doc_ref.set(updates, merge=True)
 
-    def get_usage(self, subscription_id: str) -> TokenUsageRecord | None:
-        doc = self._client.collection(self._collection).document(subscription_id).get()
+        def _set() -> None:
+            doc_ref.set(updates, merge=True)
+
+        await asyncio.to_thread(_set)
+
+    async def get_usage(self, subscription_id: str) -> TokenUsageRecord | None:
+        def _fetch() -> Any:
+            return self._client.collection(self._collection).document(subscription_id).get()
+
+        doc = await asyncio.to_thread(_fetch)
         if not doc.exists:
             return None
         data = doc.to_dict() or {}

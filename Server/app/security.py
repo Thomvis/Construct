@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any, Callable, Iterable
+from typing import Any
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -43,35 +44,29 @@ class TokenData:
 
 def create_access_token(
     subject: str,
+    expires_at: datetime | None = None,
     *,
     clock: Clock | None = None,
-    expires_delta: timedelta | None = None,
-    scope: Iterable[str] | None = None,
-    entitlements: Iterable[str] | None = None,
-    token_type: str | None = None,
-    product_id: str | None = None,
-    subscription_id: str | None = None,
 ) -> str:
     settings = get_settings()
     now = (clock or default_clock)()
-    if expires_delta is None:
-        expire_minutes = settings.access_token_exp_minutes
-        if token_type == "user" and settings.user_access_token_exp_minutes is not None:
-            expire_minutes = settings.user_access_token_exp_minutes
-        expires_delta = timedelta(minutes=expire_minutes)
 
-    expire_at = now + expires_delta
+    user_minutes = settings.user_access_token_exp_minutes
+    if expires_at is not None:
+        expire_at = expires_at
+        if expire_at.tzinfo is None:
+            expire_at = expire_at.replace(tzinfo=UTC)
+        else:
+            expire_at = expire_at.astimezone(UTC)
+        if user_minutes is not None:
+            cap_at = now + timedelta(minutes=user_minutes)
+            if expire_at > cap_at:
+                expire_at = cap_at
+    else:
+        minutes = user_minutes or settings.access_token_exp_minutes
+        expire_at = now + timedelta(minutes=minutes)
+
     payload: dict[str, Any] = {"sub": subject, "exp": expire_at}
-    if scope is not None:
-        payload["scope"] = list(dict.fromkeys(scope))
-    if entitlements is not None:
-        payload["entitlements"] = list(dict.fromkeys(entitlements))
-    if token_type is not None:
-        payload["token_type"] = token_type
-    if product_id is not None:
-        payload["product_id"] = product_id
-    if subscription_id is not None:
-        payload["subscription_id"] = subscription_id
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
@@ -108,9 +103,14 @@ def decode_token(token: str) -> TokenData:
     expires_at = _parse_exp_claim(expires_at_raw)
     scopes = _parse_claim_list(payload.get("scope"))
     entitlements = _parse_claim_list(payload.get("entitlements"))
-    token_type = payload.get("token_type") if isinstance(payload.get("token_type"), str) else None
-    product_id = payload.get("product_id") if isinstance(payload.get("product_id"), str) else None
-    subscription_id = payload.get("subscription_id") if isinstance(payload.get("subscription_id"), str) else None
+    raw_token_type = payload.get("token_type")
+    token_type = raw_token_type if isinstance(raw_token_type, str) else None
+
+    raw_product_id = payload.get("product_id")
+    product_id = raw_product_id if isinstance(raw_product_id, str) else None
+
+    raw_subscription_id = payload.get("subscription_id")
+    subscription_id = raw_subscription_id if isinstance(raw_subscription_id, str) else None
 
     return TokenData(
         subject=subject,
@@ -148,7 +148,7 @@ async def get_current_token(
     return decode_token(credentials.credentials)
 
 
-def require_entitlement(entitlement: str) -> Callable[[TokenData], TokenData]:
+def require_entitlement(entitlement: str) -> Callable[[TokenData], Awaitable[TokenData]]:
     async def dependency(token: TokenData = Depends(get_current_token)) -> TokenData:
         if entitlement not in token.entitlements:
             raise HTTPException(

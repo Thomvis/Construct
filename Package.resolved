@@ -1,5 +1,5 @@
 {
-  "originHash" : "ac7f8be3f856eee3b9991c2c1067842b38fcf53d49042d72b7b06dff273ad1d9",
+  "originHash" : "bbf5716aabce97be6add563824676af622bca8e1a29b04894f592647ac5f0840",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -26,6 +26,33 @@
       "state" : {
         "revision" : "80045fcda7ba727a327eb0a525e983fd7a796c70",
         "version" : "0.4.6"
+      }
+    },
+    {
+      "identity" : "openapikit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mattpolzin/OpenAPIKit",
+      "state" : {
+        "revision" : "c1dcd65ccbcc1f3e132293ff2338c72c49a9026d",
+        "version" : "3.8.0"
+      }
+    },
+    {
+      "identity" : "swift-algorithms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-algorithms",
+      "state" : {
+        "revision" : "87e50f483c54e6efd60e885f7f5aa946cee68023",
+        "version" : "1.2.1"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser",
+      "state" : {
+        "revision" : "309a47b2b1d9b5e991f36961c983ecec72275be3",
+        "version" : "1.6.1"
       }
     },
     {
@@ -119,6 +146,24 @@
       }
     },
     {
+      "identity" : "swift-numerics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-numerics.git",
+      "state" : {
+        "revision" : "0c0290ff6b24942dadb83a929ffaaa1481df04a2",
+        "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "swift-openapi-generator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-openapi-generator",
+      "state" : {
+        "revision" : "d74223cc5595a8165181c4d9579243c932e5cd07",
+        "version" : "1.10.3"
+      }
+    },
+    {
       "identity" : "swift-openapi-runtime",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-openapi-runtime",
@@ -188,6 +233,15 @@
       "state" : {
         "revision" : "50843cbb8551db836adec2290bb4bc6bac5c1865",
         "version" : "0.9.0"
+      }
+    },
+    {
+      "identity" : "yams",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jpsim/Yams",
+      "state" : {
+        "revision" : "d41ba4e7164c0838c6d48351f7575f7f762151fe",
+        "version" : "6.1.0"
       }
     }
   ],

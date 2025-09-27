@@ -12,6 +12,7 @@ dependencies = [
     "pyjwt>=2.9.0",
     "uvicorn>=0.36.0",
     "app-store-server-library>=1.9.0",
+    "pydantic-settings>=2.11.0",
 ]
 
 [project.optional-dependencies]

@@ -1,5 +1,5 @@
 """Router modules for the Construct server."""
 
-from . import auth, iap, mech_muse
+from . import auth, mech_muse
 
-__all__ = ["auth", "iap", "mech_muse"]
+__all__ = ["auth", "mech_muse"]

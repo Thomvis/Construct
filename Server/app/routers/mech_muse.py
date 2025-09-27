@@ -4,20 +4,17 @@ import json
 from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from openai import OpenAI, OpenAIError
+from openai import AsyncOpenAI, OpenAIError
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.config import ConfigDict
-from starlette.concurrency import run_in_threadpool
 
-from ..security import TokenData, require_entitlement
+from ..security import TokenData, get_current_token
 from ..services.usage import TokenUsageStore, get_usage_store
 from ..settings import get_openai_client, get_settings
 
 __all__ = ["router", "provide_openai_client"]
 
 router = APIRouter(prefix="/mech-muse", tags=["mech-muse"])
-
-MECH_MUSE_ENTITLEMENT = "mechanical_muse"
 
 
 class AbilityScoresModel(BaseModel):
@@ -237,7 +234,7 @@ def _extract_usage_counts(response: Any | None) -> tuple[int, int]:
     return (_coerce(input_tokens), _coerce(output_tokens))
 
 
-async def provide_openai_client() -> OpenAI:
+async def provide_openai_client() -> AsyncOpenAI:
     try:
         return get_openai_client()
     except RuntimeError as exc:
@@ -257,14 +254,15 @@ async def provide_openai_client() -> OpenAI:
 )
 async def generate_creature_stat_block(
     payload: CreatureGenerationRequest,
-    openai_client: OpenAI = Depends(provide_openai_client),
-    token: TokenData = Depends(require_entitlement(MECH_MUSE_ENTITLEMENT)),
+    openai_client: AsyncOpenAI = Depends(provide_openai_client),
+    token: TokenData = Depends(get_current_token),
     usage_store: TokenUsageStore = Depends(get_usage_store),
 ) -> SimpleStatBlockModel:
     settings = get_settings()
     prompt = _build_mech_muse_prompt(payload)
 
-    def _call_openai() -> Any:
+    response: Any | None = None
+    try:
         kwargs: dict[str, Any] = {
             "model": settings.openai_model,
             "input": prompt,
@@ -273,11 +271,7 @@ async def generate_creature_stat_block(
         }
         if settings.openai_max_output_tokens is not None:
             kwargs["max_output_tokens"] = settings.openai_max_output_tokens
-        return openai_client.responses.create(**kwargs)
-
-    response: Any | None = None
-    try:
-        response = await run_in_threadpool(_call_openai)
+        response = await openai_client.responses.create(**kwargs)
     except OpenAIError as exc:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
     except Exception as exc:  # pragma: no cover - unexpected failures
@@ -311,14 +305,10 @@ async def generate_creature_stat_block(
         if usage != (0, 0):
             subscription_id = token.subscription_id or token.subject
             product_id = token.product_id or "unknown"
-
-            def _record_usage() -> None:
-                usage_store.increment_usage(
-                    subscription_id=subscription_id,
-                    user_id=token.subject,
-                    product_id=product_id,
-                    input_tokens=usage[0],
-                    output_tokens=usage[1],
-                )
-
-            await run_in_threadpool(_record_usage)
+            await usage_store.increment_usage(
+                subscription_id=subscription_id,
+                user_id=token.subject,
+                product_id=product_id,
+                input_tokens=usage[0],
+                output_tokens=usage[1],
+            )
