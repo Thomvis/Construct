@@ -57,7 +57,7 @@ class _StubTransactionVerifier:
         self.result = result
         self.calls: list[str] = []
 
-    def verify_transaction(self, transaction_id: str) -> VerifiedTransaction:
+    async def verify_transaction(self, transaction_id: str) -> VerifiedTransaction:
         self.calls.append(transaction_id)
         return self.result
 
@@ -339,7 +339,7 @@ def test_verify_receipt_rejects_expired_subscription(
 
 def test_verify_receipt_propagates_apple_errors(client: TestClient) -> None:
     class _FailingVerifier:
-        def verify_transaction(self, transaction_id: str) -> VerifiedTransaction:
+        async def verify_transaction(self, transaction_id: str) -> VerifiedTransaction:
             raise TransactionVerificationError("Rate limited", status_code=429)
 
     app.dependency_overrides[get_transaction_verifier] = _FailingVerifier

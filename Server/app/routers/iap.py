@@ -75,7 +75,7 @@ async def verify_receipt(
 ) -> ReceiptVerificationResponse:
     catalog = get_iap_catalog()
     try:
-        verified = await run_in_threadpool(verifier.verify_transaction, payload.transaction_id)
+        verified = await verifier.verify_transaction(payload.transaction_id)
     except TransactionVerificationError as exc:
         status_code = exc.status_code or status.HTTP_503_SERVICE_UNAVAILABLE
         if status_code == 429:

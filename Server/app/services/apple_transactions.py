@@ -7,7 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Iterable
 
-from appstoreserverlibrary.api_client import APIException, AppStoreServerAPIClient
+from appstoreserverlibrary.api_client import APIException, AsyncAppStoreServerAPIClient
 from appstoreserverlibrary.models.Environment import Environment as AppleEnvironment
 from appstoreserverlibrary.models.JWSTransactionDecodedPayload import JWSTransactionDecodedPayload
 from appstoreserverlibrary.signed_data_verifier import SignedDataVerifier, VerificationException
@@ -44,9 +44,9 @@ class AppleTransactionVerifier:
         self._client = _build_api_client(settings)
         self._verifier = _build_signed_data_verifier(settings)
 
-    def verify_transaction(self, transaction_id: str) -> VerifiedTransaction:
+    async def verify_transaction(self, transaction_id: str) -> VerifiedTransaction:
         try:
-            response = self._client.get_transaction_info(transaction_id)
+            response = await self._client.get_transaction_info(transaction_id)
         except APIException as exc:  # pragma: no cover - library raises rich exceptions
             raise _from_api_exception(exc) from exc
 
@@ -82,7 +82,7 @@ def _from_api_exception(exc: APIException) -> TransactionVerificationError:
     return TransactionVerificationError(message, status_code=exc.http_status_code)
 
 
-def _build_api_client(settings: Settings) -> AppStoreServerAPIClient:
+def _build_api_client(settings: Settings) -> AsyncAppStoreServerAPIClient:
     if not settings.apple_api_private_key:
         raise TransactionVerificationError("APPLE_API_PRIVATE_KEY is not configured")
     if not settings.apple_api_key_id:
@@ -96,7 +96,7 @@ def _build_api_client(settings: Settings) -> AppStoreServerAPIClient:
     environment = _map_environment(settings.apple_api_environment)
 
     try:
-        return AppStoreServerAPIClient(
+        return AsyncAppStoreServerAPIClient(
             signing_key=private_key_bytes,
             key_id=settings.apple_api_key_id,
             issuer_id=settings.apple_api_issuer_id,
