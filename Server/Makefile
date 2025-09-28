@@ -1,4 +1,4 @@
-PHONY.PHONY: lint test
+.PHONY: lint test
 
 lint:
 	uv run --extra dev mypy .
