@@ -75,6 +75,12 @@ let package = Package(
             ]
         ),
         .testTarget(
+            name: "ConstructAPITests",
+            dependencies: [
+                "ConstructAPI"
+            ]
+        ),
+        .testTarget(
             name: "CompendiumTests",
             dependencies: [
                 "Compendium"

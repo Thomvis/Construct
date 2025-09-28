@@ -21,6 +21,14 @@ You can find an overview of Construct's features at [construct5e.app](https://ww
 ### For developers
 Download the project, open `Construct.xcodeproj` and run `Construct`.
 
+### Testing
+Use the provided Makefile targets to exercise each part of the stack:
+
+- `make test-ios` – Executes the application’s iOS simulator unit test suite (`UnitTests` scheme on an iPhone 16 simulator).
+- `make test-server` – Runs the Python server test suite with pytest (requires `uv` and the dev extras).
+- `make test-constructapi` – Runs the macOS end-to-end ConstructAPI test, launching the FastAPI service locally via `uvicorn`.
+- `make test-all` – Executes the ConstructAPI integration test, iOS tests, and server tests in sequence.
+
 #### Architecture overview
 Construct is built using SwiftUI and a reducer-based architecture implemented using [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) framework. The entire app's state is represented by the [AppState struct](https://github.com/Thomvis/Construct/blob/main/Construct/App/AppState.swift), a deeply nested data structure containing the top-level screens and any screen, sheet or popover opened from there. A [tight integration](https://github.com/Thomvis/Construct/blob/main/Construct/Foundation/Navigation.swift) between SwiftUI's NavigationLink and the app's state make programmatic navigation a breeze.
 

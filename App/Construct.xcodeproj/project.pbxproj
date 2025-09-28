@@ -1005,7 +1005,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\n\nif which sourcery >/dev/null; then\n  cd ..\n  sh sourcery-gen.sh\nelse\n  echo \"warning: Sourcery not installed\"\nfi\n";
+        shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\n\nif which sourcery >/dev/null; then\n  cd ..\n  sh scripts/sourcery-gen.sh\nelse\n  echo \"warning: Sourcery not installed\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
