@@ -30,7 +30,6 @@ Environment variables configure authentication, in-app purchase verification, us
 - `APPLE_ENABLE_ONLINE_CHECKS`: Set to `true` to enable OCSP checks when verifying Apple certificates (defaults to `false`).
 - `FIRESTORE_PROJECT_ID`: When set, token usage totals are persisted to this Firestore project; otherwise an in-memory store is used.
 - `FIRESTORE_USAGE_COLLECTION`: Firestore collection used for subscription usage aggregation (default `subscription_usage`).
-- `IAP_CATALOG_PATH`: Optional override for the bundled in-app purchase catalog (`app/iap/products.json`).
 
 Override these defaults in local development (for example via a `.env` file or export statements) and always provide secure values in production.
 
@@ -63,7 +62,7 @@ curl http://localhost:8000/protected -H "Authorization: Bearer ${TOKEN}"
 ```
 
 ## Mech Muse endpoints
-The Mechanical Muse API is grouped under `/mech-muse` and requires a bearer token containing the `mechanical_muse` entitlement (issued after verifying an in-app purchase receipt).
+The Mechanical Muse API is grouped under `/mech-muse` and requires an authenticated bearer token. Tokens can be created via the admin password grant or by submitting an App Store transaction JWS.
 
 `POST /mech-muse/creatures/generate` issues a new creature stat block using OpenAI. Example request:
 ```json
@@ -80,11 +79,10 @@ The Mechanical Muse API is grouped under `/mech-muse` and requires a bearer toke
 ```
 The response returns a simplified stat block matching the supplied schema. Provide `OPENAI_API_KEY` (and optionally `OPENAI_MODEL`, etc.) before calling the endpoint. Token usage (input/output tokens) is recorded per subscription in Firestore when configured.
 
-## In-app purchases & Mechanical Muse access
-- `GET /iap/products` exposes the in-app purchase catalog defined in `app/iap/products.json`, keeping product identifiers and entitlements synchronized between the app and server.
-- `POST /iap/receipts/verify` accepts a transaction identifier (`transactionId`) from StoreKit, uses Apple's App Store Server API to fetch and verify the signed transaction, seeds or updates usage records, and issues a JWT access token containing subscription metadata and entitlements.
+## App Store transaction grant
+- `POST /token` with `grantType: "urn:app:grant:appstore-transaction-jws"` accepts a signed transaction JWS from StoreKit, verifies it with Apple's App Store Server API, records usage for the subscription, and issues a JWT access token tied to the transaction.
 
-Send the original transaction identifier for subscriptions so renewal activity collapses to a single entitlement record on the server.
+Send the original transaction identifier for subscriptions so renewal activity collapses to a single usage record on the server.
 
 Provide at least one Apple root certificate via `APPLE_ROOT_CERT_PATHS` or `APPLE_ROOT_CERT_BASE64` before calling the verification endpoint; the server needs it to validate Apple's certificate chain. The endpoint returns `403` for expired subscriptions and `503` when Apple is unavailable so the client can retry.
 
@@ -99,7 +97,7 @@ uv run --extra dev pytest
 ```
 
 ## Running tests
-Add additional tests under `tests/`. Example tests cover the authentication flow, Mechanical Muse integration, and public endpoints using FastAPI's `TestClient`.
+Add additional tests under `tests/`. Auth-specific cases live in `test_auth.py`; Mechanical Muse coverage is in `test_mech_muse.py`.
 
 ## Docker
 Build and run the container locally:
