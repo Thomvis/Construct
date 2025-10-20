@@ -191,6 +191,10 @@ struct ConstructView: View {
                 guard let url = activity.webpageURL else { return }
                 viewStore.send(.onOpenURL(url))
             }
+            .task {
+                env.storeManager.beginObservingTransactionUpdates()
+                await env.storeManager.checkForUnfinishedTransactions()
+            }
         }
     }
 

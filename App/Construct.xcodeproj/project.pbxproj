@@ -64,6 +64,9 @@
 		E957C08725BEFC110042ECF6 /* AddCombatantCompendiumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */; };
 		E959BB5728BBF1AE0063CB64 /* CompendiumEntryTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E959BB5628BBF1AE0063CB64 /* CompendiumEntryTest.swift */; };
 		E95DE630251E8D160085D550 /* FloatingDiceRollerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */; };
+		E95E25A52EA6895D000B82BF /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95E25A42EA6895D000B82BF /* StoreManager.swift */; };
+		E95E25A72EA6899F000B82BF /* TipJarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95E25A62EA6899F000B82BF /* TipJarView.swift */; };
+		E95E25A92EA689B5000B82BF /* SettingsViewTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95E25A82EA689B5000B82BF /* SettingsViewTest.swift */; };
 		E95FA115231C58A30098BD83 /* DiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */; };
 		E95FD42F249BFA280023F363 /* EncounterDetailTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */; };
 		E963CCF7247AE5CD009863D7 /* CompendiumContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E46FC231D9390005D1E6F /* CompendiumContainerView.swift */; };
@@ -264,6 +267,9 @@
 		E957C08625BEFC110042ECF6 /* AddCombatantCompendiumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantCompendiumView.swift; sourceTree = "<group>"; };
 		E959BB5628BBF1AE0063CB64 /* CompendiumEntryTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryTest.swift; sourceTree = "<group>"; };
 		E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerView.swift; sourceTree = "<group>"; };
+		E95E25A42EA6895D000B82BF /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
+		E95E25A62EA6899F000B82BF /* TipJarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipJarView.swift; sourceTree = "<group>"; };
+		E95E25A82EA689B5000B82BF /* SettingsViewTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewTest.swift; sourceTree = "<group>"; };
 		E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExpressionTest.swift; sourceTree = "<group>"; };
 		E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailTest.swift; sourceTree = "<group>"; };
 		E96DC8A72E6458B20038E9B7 /* MechMuseCreatureGenerationFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MechMuseCreatureGenerationFeature.swift; sourceTree = "<group>"; };
@@ -482,6 +488,7 @@
 		E92A41E2240D2CCD009AF440 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				E95E25A42EA6895D000B82BF /* StoreManager.swift */,
 				E9F1286E28E6D8510040C90C /* EntityChangeObserver.swift */,
 				E9B432BA22AAF7540054324E /* Environment.swift */,
 				E9F56AC5235483780085A72D /* AppState.swift */,
@@ -526,6 +533,7 @@
 			children = (
 				E96FC16723D3A59E00A12F1E /* Fixtures */,
 				E96FC16523D3976800A12F1E /* SettingsView.swift */,
+				E95E25A62EA6899F000B82BF /* TipJarView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -804,6 +812,7 @@
 				E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */,
 				E959BB5628BBF1AE0063CB64 /* CompendiumEntryTest.swift */,
 				E9EDE6B8296AEC1800026643 /* GenerateCombatantTraitsViewTest.swift */,
+				E95E25A82EA689B5000B82BF /* SettingsViewTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1083,12 +1092,14 @@
 				E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */,
 				E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */,
 				E996919B247C411300A8B1A0 /* CompendiumEntryDetailViewState.swift in Sources */,
+				E95E25A52EA6895D000B82BF /* StoreManager.swift in Sources */,
 				E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */,
 				E9F1287528E9BA330040C90C /* EncounterFeature.swift in Sources */,
 				E97A4FB1236240EA0044E424 /* Checkbox.swift in Sources */,
 				E9F7EB4D2D7B2D7000A0C19D /* CompendiumDocumentSelectionFeature.swift in Sources */,
 				E97651CC248ADA0100C76865 /* EncounterDetailView.swift in Sources */,
 				E931E54B233971B300C3FE9A /* SearchField.swift in Sources */,
+				E95E25A72EA6899F000B82BF /* TipJarView.swift in Sources */,
 				E97651D2248AE0D600C76865 /* RunningEncounterEventRow.swift in Sources */,
 				E9819BE22482E772005B898E /* CombatantTrackerEditView.swift in Sources */,
 				E97651D9248AEA8000C76865 /* CombatantTagEditView.swift in Sources */,
@@ -1143,6 +1154,7 @@
 				E97A43AE233407D000A8B032 /* Fixtures.swift in Sources */,
 				E90EFF322620597700F5443E /* XMLCompendiumDataSourceReaderTest.swift in Sources */,
 				E931CF8524FD17B8006CEE78 /* CreatureActionParserTest.swift in Sources */,
+				E95E25A92EA689B5000B82BF /* SettingsViewTest.swift in Sources */,
 				E97A4FAD23621FDA0044E424 /* EncounterDifficultyTest.swift in Sources */,
 				E959BB5728BBF1AE0063CB64 /* CompendiumEntryTest.swift in Sources */,
 				E91E596F24477D3E00975453 /* AlignmentTest.swift in Sources */,

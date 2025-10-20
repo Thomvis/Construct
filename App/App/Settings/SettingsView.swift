@@ -69,6 +69,30 @@ struct SettingsView: View {
                 }) {
                     Text("Please rate Construct").foregroundColor(Color.primary)
                 }
+
+                NavigationRowButton(action: {
+                    destination = .tipJar
+                }) {
+                    let text = HStack(alignment: .firstTextBaseline) {
+                        Image(systemName: "gift.fill")
+                            .symbolEffect(.pulse, isActive: true)
+                        Text("Tip jar")
+                    }
+                    .bold()
+
+                    // First text is only there for sizing. What we see on screen is the masked gradient
+                    text
+                        .opacity(0)
+                        .overlay {
+                            LinearGradient(
+                                colors: [.red, .blue, .green, .yellow],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                            .mask(text)
+                        }
+
+                }
             }
 
             Section(
@@ -237,7 +261,7 @@ struct SettingsView: View {
     var pushDestination: Binding<Destination?> {
         Binding(get: {
             switch self.destination {
-            case .ogl, .acknowledgements: return self.destination
+            case .ogl, .acknowledgements, .tipJar: return self.destination
             default: return nil
             }
         }, set: {
@@ -263,6 +287,8 @@ struct SettingsView: View {
             ScrollView {
                 try? Parma(fromResource: "software_licenses", ofType: "md")?.padding()
             }
+        case .tipJar:
+            TipJarView()
         default: EmptyView()
         }
     }
@@ -273,6 +299,7 @@ struct SettingsView: View {
         case safariView(String)
         case ogl
         case acknowledgements
+        case tipJar
     }
 }
 

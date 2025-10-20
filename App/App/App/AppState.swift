@@ -168,7 +168,9 @@ struct AppState: Equatable {
                               nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
                     {
                         // if the user created some campaign nodes
+                        #if !DEBUG
                         env.requestAppStoreReview()
+                        #endif
                     }
                 case .scene(let phase):
                     state.sceneIsActive = phase == .active

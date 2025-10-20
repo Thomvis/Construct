@@ -46,6 +46,8 @@
 	</array>
 	<key>FirebaseCrashlyticsCollectionEnabled</key>
 	<false/>
+	<key>SKIncludeConsumableInAppPurchaseHistory</key>
+	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

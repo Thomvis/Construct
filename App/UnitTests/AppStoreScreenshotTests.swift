@@ -22,7 +22,6 @@ import TestSupport
 import Compendium
 
 /// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests
-@available(iOS 16.0, *)
 class AppStoreScreenshotTests: XCTestCase {
     static let phones: [(String, ViewImageConfig)] = [
         ("iPhone65", apply(.iPhoneXsMax) { $0.traits = UITraitCollection(traitsFrom: [$0.traits, .init(displayScale: 3)]) }),

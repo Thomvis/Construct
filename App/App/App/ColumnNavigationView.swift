@@ -8,7 +8,6 @@
 
 import SwiftUI
 import ComposableArchitecture
-import Introspect
 
 struct ColumnNavigationView: View {
     let store: Store<ColumnNavigationViewState, ColumnNavigationViewAction>

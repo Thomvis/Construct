@@ -8,7 +8,6 @@
 
 import Foundation
 import SwiftUI
-import Introspect
 import Tagged
 
 struct TabbedDocumentView<Content>: View where Content: View {

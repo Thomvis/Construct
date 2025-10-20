@@ -46,6 +46,8 @@ class Environment: ObservableObject {
     var crashReporter: CrashReporter
     var mechMuse: MechMuse
 
+    var storeManager: StoreManager
+
     internal init(
         modifierFormatter: NumberFormatter,
         ordinalFormatter: NumberFormatter,
@@ -63,7 +65,8 @@ class Environment: ObservableObject {
         screenshot: @escaping () -> (UIImage?),
         diceLog: DiceLogPublisher,
         crashReporter: CrashReporter,
-        mechMuse: MechMuse
+        mechMuse: MechMuse,
+        storeManager: StoreManager
     ) {
         self.modifierFormatter = modifierFormatter
         self.ordinalFormatter = ordinalFormatter
@@ -82,6 +85,7 @@ class Environment: ObservableObject {
         self.diceLog = diceLog
         self.crashReporter = crashReporter
         self.mechMuse = mechMuse
+        self.storeManager = storeManager
     }
 
     var compendium: Compendium {
@@ -161,7 +165,8 @@ extension Environment {
             },
             diceLog: DiceLogPublisher(),
             crashReporter: CrashReporter.firebase,
-            mechMuse: .live(db: database)
+            mechMuse: .live(db: database),
+            storeManager: StoreManager()
         )
     }
 
