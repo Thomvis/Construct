@@ -47,12 +47,18 @@ public struct Async<Success, Failure> where Failure: Swift.Error {
         return AnyReducer { state, action, environment in
             switch action {
             case .startLoading:
-                return fetch(environment)
-                    .catchToEffect()
-                    .map { Action.didFinishLoading($0) }
-                    .prepend(Action.didStartLoading)
-                    .eraseToEffect()
-                    .cancellable(id: state.identifier, cancelInFlight: true)
+                return .run { send in
+                    await send(.didStartLoading)
+                    do {
+                        for try await value in fetch(environment).values {
+                            await send(.didFinishLoading(.success(value)))
+                        }
+                    } catch {
+                        guard let failure = error as? Failure else { return }
+                        await send(.didFinishLoading(.failure(failure)))
+                    }
+                }
+                .cancellable(id: state.identifier, cancelInFlight: true)
             case .didStartLoading:
                 state.result = nil
                 state.isLoading = true

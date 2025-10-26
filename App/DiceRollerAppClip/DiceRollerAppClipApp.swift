@@ -72,10 +72,12 @@ let appReducer: AnyReducer<AppState, AppAction, DiceRollerEnvironment> = .combin
         switch action {
         case .onLaunch:
             // Listen to dice rolls and forward them to the right place
-            return env.diceLog.rolls.map { (result, roll) in
-                    .diceRoller(.onProcessRollForDiceLog(result, roll))
+            let rolls = env.diceLog.rolls
+            return .run { send in
+                for await (result, roll) in rolls.values {
+                    await send(.diceRoller(.onProcessRollForDiceLog(result, roll)))
+                }
             }
-            .eraseToEffect()
             .cancellable(id: "diceLog", cancelInFlight: true)
         case .onContinueUserActivity(let activity):
             guard let url = activity.webpageURL, let invocation = try? diceRollerInvocationRouter.match(url: url) else {

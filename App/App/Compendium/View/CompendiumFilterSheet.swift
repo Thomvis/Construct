@@ -382,9 +382,11 @@ extension CompendiumFilterSheetState {
             case .clear(.monsterType):
                 state.current.monsterType = nil
             case .clearAll:
-                return Filter.allCases.publisher.map { f in
-                    .clear(f)
-                }.eraseToEffect()
+                return .merge(
+                    Filter.allCases.map { filter in
+                        .send(.clear(filter))
+                    }
+                )
             case .documentSelection:
                 break
             }

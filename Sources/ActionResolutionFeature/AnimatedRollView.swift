@@ -48,9 +48,10 @@ struct AnimatedRollState: Hashable {
 
             state.intermediaryResult = expr.roll
 
-            return .send(.rollIntermediary(expr, remaining-1))
-                .delay(for: 0.08, scheduler: env.mainQueue.animation())
-                .eraseToEffect()
+            return Effect.run { send in
+                try await Task.sleep(for: .seconds(0.08))
+                await send(.rollIntermediary(expr, remaining-1), animation: .default)
+            }
         }
     }
 }

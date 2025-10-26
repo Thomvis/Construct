@@ -224,10 +224,15 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 state.entry = nil
                 return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def))))
             case .unlinkAndEditCreature:
-                return .send(.editCreatureConfirmingUnlinkIfNeeded)
-                    .delay(for: 0, scheduler: env.mainQueue)
-                    .prepend(.unlinkFromCompendium)
-                    .eraseToEffect()
+                return .concatenate(
+                    [
+                        .send(.unlinkFromCompendium),
+                        .run { send in
+                            await Task.yield()
+                            await send(.editCreatureConfirmingUnlinkIfNeeded)
+                        }
+                    ]
+                )
             case .didTapCompendiumItemReferenceTextAnnotation: break // handled by CompendiumItemReferenceTextAnnotation.handleTapReducer
             case .setNextScreen(let s):
                 state.presentedScreens[.nextInStack] = s
@@ -249,7 +254,12 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
                 }
             case .nextScreen(.creatureEditView(.didEdit(let result))):
                 if case let .adHoc(def) = result {
-                    return [.setNextScreen(nil), .combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def)))].publisher.eraseToEffect()
+                    return .concatenate(
+                        [
+                            .send(.setNextScreen(nil)),
+                            .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: def))))
+                        ]
+                    )
                 }
                 return .none
             case .nextScreen, .detailScreen: break// handled by reducers below

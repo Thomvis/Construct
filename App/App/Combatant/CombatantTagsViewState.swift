@@ -81,19 +81,25 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
         AnyReducer { state, action, _ in
             switch action {
             case .addTag(let tag):
-                return state.combatants.map { c in
-                    CombatantTagsViewAction.combatant(c, .addTag(CombatantTag(
-                        id: UUID().tagged(), // make sure every tag has a unique id
-                        definition: tag.definition,
-                        note: tag.note,
-                        sourceCombatantId: tag.sourceCombatantId
-                    )))
-                }.publisher.eraseToEffect()
+                return .merge(
+                    state.combatants.map { c in
+                        .send(
+                            CombatantTagsViewAction.combatant(c, .addTag(CombatantTag(
+                                id: UUID().tagged(), // make sure every tag has a unique id
+                                definition: tag.definition,
+                                note: tag.note,
+                                sourceCombatantId: tag.sourceCombatantId
+                            )))
+                        )
+                    }
+                )
             case .removeTag(let tagId, let section):
-                return section.combatants.compactMap { c in
-                    guard let tag = c.tags.first(where: { TagId($0) == tagId }) else { return nil }
-                    return CombatantTagsViewAction.combatant(c, .removeTag(tag))
-                }.publisher.eraseToEffect()
+                return .merge(
+                    section.combatants.compactMap { c in
+                        guard let tag = c.tags.first(where: { TagId($0) == tagId }) else { return nil }
+                        return .send(CombatantTagsViewAction.combatant(c, .removeTag(tag)))
+                    }
+                )
             case .combatant: break // should be handled by parent
             case .setNextScreen(let s):
                 state.presentedScreens[.nextInStack] = s
@@ -106,9 +112,11 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
                 let combatants = state.combatants
 
                 if let tag = tag {
-                    return combatants.map { c in
-                        .combatant(c, .addTag(tag))
-                    }.publisher.eraseToEffect()
+                    return .merge(
+                        combatants.map { c in
+                            .send(.combatant(c, .addTag(tag)))
+                        }
+                    )
                 }
             case .nextScreen, .detailScreen: break// handled by next screen
             }

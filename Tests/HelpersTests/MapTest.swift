@@ -186,16 +186,12 @@ final class MapTest: XCTestCase {
                         try await env.clock.sleep(for: .seconds(1))
                         await send(.count(res))
                     }
-                    // work-around for issue https://github.com/pointfreeco/swift-composable-architecture/issues/1848
-                    .eraseToEffect()
                 case .remove:
                     let res = state.count - count
                     return .run { send in
                         try await env.clock.sleep(for: .seconds(1))
                         await send(.count(res))
                     }
-                    // work-around for issue https://github.com/pointfreeco/swift-composable-architecture/issues/1848
-                    .eraseToEffect()
                 case .count(let c):
                     state.count = c
                 }

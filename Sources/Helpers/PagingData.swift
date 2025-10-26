@@ -77,13 +77,10 @@ public extension PagingData {
 
             func load(_ request: FetchRequest, in state: inout Self) -> EffectTask<PagingDataAction<Element>> {
                 state.loadingState = .loading
-                return .task {
+                return .run { send in
                     let result = await fetch(request, env)
-                    return .didLoadMore(result)
+                    await send(.didLoadMore(result))
                 }
-                // work-around for issue https://github.com/pointfreeco/swift-composable-architecture/issues/1848
-                // when used inside a MapState
-                .eraseToEffect()
                 .cancellable(id: CancelID.load)
             }
 
@@ -106,33 +103,36 @@ public extension PagingData {
                 state.elements = nil
                 state.loadingState = .notLoading(didReachEnd: false)
 
-                return loadIfNeeded(for: 0, state: &state)
-                    .prepend(EffectTask.cancel(id: CancelID.load))
-                    .eraseToEffect()
+                return .concatenate(
+                    .cancel(id: CancelID.load),
+                    loadIfNeeded(for: 0, state: &state)
+                )
             case .reload(.currentCount):
                 let count = state.elements?.count ?? 0
                 state.elements = nil
                 state.loadingState = .notLoading(didReachEnd: false)
 
                 if count > 0 {
-                    return load(FetchRequest(offset: 0, count: count), in: &state)
-                        .prepend(EffectTask.cancel(id: CancelID.load))
-                        .eraseToEffect()
+                    return .concatenate(
+                        .cancel(id: CancelID.load),
+                        load(FetchRequest(offset: 0, count: count), in: &state)
+                    )
                 } else {
-                    return loadIfNeeded(for: 0, state: &state)
-                        .prepend(EffectTask.cancel(id: CancelID.load))
-                        .eraseToEffect()
+                    return .concatenate(
+                        .cancel(id: CancelID.load),
+                        loadIfNeeded(for: 0, state: &state)
+                    )
                 }
             case .reload(.all):
                 state.elements = nil
                 state.loadingState = .notLoading(didReachEnd: false)
 
-                return load(FetchRequest(offset: 0, count: nil), in: &state)
-                    .prepend(EffectTask.cancel(id: CancelID.load))
-                    .eraseToEffect()
+                return .concatenate(
+                    .cancel(id: CancelID.load),
+                    load(FetchRequest(offset: 0, count: nil), in: &state)
+                )
             }
             return .none
         }
     }
 }
-

@@ -326,14 +326,20 @@ extension EncounterDetailViewState {
                 case .sheet(let s):
                     state.sheet = s
                 case .addCombatant(AddCombatantState.Action.onSelect(let combatants, let dismiss)):
-                    return combatants.map { c in
-                        .encounter(.add(c))
-                    }.publisher.append(
-                        // Async is needed if this action also dismissed a
-                        dismiss
-                            ? Just(Action.sheet(nil)).delay(for: 0, scheduler: env.mainQueue).eraseToAnyPublisher()
-                            : Empty().eraseToAnyPublisher()
-                    ).eraseToEffect()
+                    var effects: [EffectTask<Action>] = combatants.map { combatant in
+                        .send(.encounter(.add(combatant)))
+                    }
+
+                    if dismiss {
+                        effects.append(
+                            .run { send in
+                                await Task.yield()
+                                await send(.sheet(nil))
+                            }
+                        )
+                    }
+
+                    return .concatenate(effects)
                 case .addCombatant: break // handled by AddCombatantState.reducer
                 case .addCombatantAction(let action, let dismiss):
                     let state = state
@@ -390,20 +396,24 @@ extension EncounterDetailViewState {
                     state.sheet = nil
                 case .generateCombatantTraits: break // handled above
                 case .selectionCombatantAction(let action):
-                    return state.selection.map {
-                        .encounter(.combatant($0, action))
-                    }.publisher.eraseToEffect()
+                    return .merge(
+                        state.selection.map {
+                            .send(.encounter(.combatant($0, action)))
+                        }
+                    )
                 case .selectionEncounterAction(let action):
                     let encounter = state.encounter
-                    return state.selection.compactMap {
-                        guard let combatant = encounter.combatant(for: $0) else { return nil }
-                        switch action {
-                        case .duplicate:
-                            return .encounter(.duplicate(combatant))
-                        case .remove:
-                            return .encounter(.remove(combatant))
+                    return .merge(
+                        state.selection.compactMap { id -> EffectTask<Action>? in
+                            guard let combatant = encounter.combatant(for: id) else { return nil }
+                            switch action {
+                            case .duplicate:
+                                return .send(.encounter(.duplicate(combatant)))
+                            case .remove:
+                                return .send(.encounter(.remove(combatant)))
+                            }
                         }
-                    }.publisher.eraseToEffect()
+                    )
                 case .selectedCombatantTags(.combatant(let c, let a)):
                     return .send(.encounter(.combatant(c.id, a)))
                 case .selectedCombatantTags: break // handled below

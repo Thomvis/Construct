@@ -143,9 +143,7 @@ public struct DiceCalculatorState: Hashable {
             state.mode = m
         case .onRerollButtonTap:
             if state.expression.diceCount == 0 {
-                return .send(.mode(.editingExpression))
-                    .receive(on: env.mainQueue.animation())
-                    .eraseToEffect()
+                return .send(.mode(.editingExpression), animation: .default)
             } else {
                 state.result = state.expression.roll
                 return .send(.startGeneratingIntermediaryResults(state.expression))
@@ -207,9 +205,10 @@ public struct DiceCalculatorState: Hashable {
 
             state.intermediaryResult = expression.roll
 
-            return .send(.intermediaryResultsStep(expression, remaining-1))
-                .delay(for: state.intermediaryResultStepDelay, scheduler: env.mainQueue.animation())
-                .eraseToEffect()
+            return .run { [delay=state.intermediaryResultStepDelay] send in
+                try await Task.sleep(for: .seconds(delay))
+                await send(.intermediaryResultsStep(expression, remaining-1), animation: .default)
+            }
         }
         return .none
     }
@@ -264,7 +263,7 @@ extension DiceCalculatorState {
         showDice && showDiceSummary ? 2 : 6
     }
 
-    var intermediaryResultStepDelay: DispatchQueue.SchedulerTimeType.Stride {
+    var intermediaryResultStepDelay: Double {
         showDice && showDiceSummary ? 0.2 : 0.08
     }
 }

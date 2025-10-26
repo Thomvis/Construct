@@ -50,17 +50,21 @@ extension DiceActionViewState {
         AnyReducer { state, action, env in
             switch action {
             case .rollAll:
-                return state.action.steps.compactMap { step in
-                    if case .roll = step.value {
-                        return DiceActionViewAction.stepAction(step.id, .value(.roll(.roll)))
+                return .merge(
+                    state.action.steps.compactMap { step -> EffectTask<DiceActionViewAction>? in
+                        guard case .roll = step.value else { return nil }
+                        return .send(.stepAction(step.id, .value(.roll(.roll))))
                     }
-                    return nil
-                }.publisher.eraseToEffect()
+                )
             case .onFeedbackButtonTap: break // handled by the parent
             case .stepAction(let id, .value(.roll(.details(_?)))):
-                return state.action.steps.filter { $0.id != id && $0.rollDetails != nil }.map {
-                    .stepAction($0.id, .value(.roll(.details(nil))))
-                }.publisher.eraseToEffect()
+                return .merge(
+                    state.action.steps
+                        .filter { $0.id != id && $0.rollDetails != nil }
+                        .map { step in
+                            .send(.stepAction(step.id, .value(.roll(.details(nil)))))
+                        }
+                )
             case .stepAction(let id, .value(.roll(.first(.roll)))),
                     .stepAction(let id, .value(.roll(.second(.roll)))):
                 state.rollingSteps.append(id)
@@ -132,15 +136,16 @@ extension DiceAction.Step {
             switch action {
             case .value(.roll(.roll)):
                 guard let rollValue = state.rollValue else { return .none }
-                var actions: [DiceActionStepAction] = [
-                    .value(.roll(.first(.roll(rollValue.expression))))
+
+                var effects: [EffectTask<DiceActionStepAction>] = [
+                    .send(.value(.roll(.first(.roll(rollValue.expression)))))
                 ]
 
                 if rollValue.type != .normal {
-                    actions.append(.value(.roll(.second(.roll(rollValue.expression)))))
+                    effects.append(.send(.value(.roll(.second(.roll(rollValue.expression))))))
                 }
-                
-                return actions.publisher.eraseToEffect()
+
+                return .merge(effects)
             case .value(.roll(.type(let t))):
                 guard let rollValue = state.rollValue else { return .none }
 

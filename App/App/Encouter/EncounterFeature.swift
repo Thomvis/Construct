@@ -47,10 +47,10 @@ extension Encounter {
                                 compendiumCombatant: combatant,
                                 party: party.map { CompendiumItemReference(itemTitle: $0.title, itemKey: $0.key) }
                             )
-                            await send (.add(combatant))
+                            await send(.add(combatant))
                         }
                     } catch { }
-                }.compactMap { $0 }.eraseToEffect()
+                }
             case .remove(let combatant):
                 if let idx = state.combatants.firstIndex(where: { $0.id == combatant.id }) {
                     state.combatants.remove(at: idx)
@@ -61,17 +61,24 @@ extension Encounter {
             case .partyForDifficulty(let p):
                 state.partyForDifficulty = p
             case .refreshCompendiumItems:
-                return state.combatants.publisher.compactMap { combatant in
-                    if var def = combatant.definition as? CompendiumCombatantDefinition {
-                        if let entry = try? env.compendium.get(def.item.key, crashReporter: env.crashReporter),
-                            let item = entry.item as? CompendiumCombatant
-                        {
-                            def.item = item
-                            return .combatant(combatant.id, .setDefinition(Combatant.CodableCombatDefinition(definition: def)))
+                return .merge(
+                    state.combatants.compactMap { combatant in
+                        if var def = combatant.definition as? CompendiumCombatantDefinition {
+                            if let entry = try? env.compendium.get(def.item.key, crashReporter: env.crashReporter),
+                                let item = entry.item as? CompendiumCombatant
+                            {
+                                def.item = item
+                                return .send(
+                                    .combatant(
+                                        combatant.id,
+                                        .setDefinition(Combatant.CodableCombatDefinition(definition: def))
+                                    )
+                                )
+                            }
                         }
+                        return nil
                     }
-                    return nil
-                }.eraseToEffect()
+                )
             }
             return .none
         },

@@ -94,13 +94,14 @@ struct AppState: Equatable {
                 case .onLaunch:
                     return .merge(
                         // Listen to dice rolls and forward them to the right place
-                        env.diceLog.rolls.map { (result, roll) in
-                                .onProcessRollForDiceLog(result, roll)
+                        Effect.run { send in
+                            for await (result, roll) in env.diceLog.rolls.values {
+                                await send(.onProcessRollForDiceLog(result, roll))
+                            }
                         }
-                        .eraseToEffect()
                         .cancellable(id: "diceLog", cancelInFlight: true),
                         // kickstart compendium loading to prevent flicker on tab switch (not needed on iPad)
-                        .init(value: .navigation(.tab(.compendium(.results(.result(.didShowElementAtIndex(0)))))))
+                        .send(.navigation(.tab(.compendium(.results(.result(.didShowElementAtIndex(0)))))))
                     )
                 case .navigation: break // handled below
                 case .onHorizontalSizeClassChange(let sizeClass):
@@ -136,9 +137,10 @@ struct AppState: Equatable {
                         state.pendingPresentations.removeFirst()
                         // workaround: we need to delay the action to work around
                         // a "Attempt to present X which is already presenting Y" error
-                        return .init(value: .requestPresentation(next))
-                            .delay(for: 0.1, scheduler: env.mainQueue)
-                            .eraseToEffect()
+                        return Effect.run { send in
+                            try await Task.sleep(for: .seconds(0.1))
+                            await send(.requestPresentation(next))
+                        }
                     }
                 case .onReceiveCrashReportingUserPermission(let permission):
                     env.crashReporter.registerUserPermission(permission)
@@ -163,7 +165,7 @@ struct AppState: Equatable {
                     }
                 case .onAppear:
                     if !env.preferences().didShowWelcomeSheet {
-                        return .init(value: .requestPresentation(.welcomeSheet))
+                        return .send(.requestPresentation(.welcomeSheet))
                     } else if let nodeCount = try? env.campaignBrowser.nodeCount(),
                               nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
                     {
