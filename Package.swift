@@ -25,7 +25,7 @@ let package = Package(
         .executable(name: "db-tool", targets: ["DatabaseInitTool"])
     ],
     dependencies: [
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.49.2"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.58.0"),
         .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
         .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.5.0"),
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.29.3"),
