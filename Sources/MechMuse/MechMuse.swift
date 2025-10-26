@@ -76,7 +76,12 @@ public extension MechMuse {
     static func live(db: Database) -> Self {
         live(
             client: db.keyValueStore.observe(Preferences.key)
-                .map(\.?.mechMuse.apiKey).removeDuplicates()
+                .map { prefs in
+                    if prefs?.mechMuse.enabled == true {
+                        return prefs?.mechMuse.apiKey
+                    }
+                    return nil
+                }
                 .map { key in
                     key?.nonEmptyString.map {
                         OpenAI(configuration: OpenAI.Configuration(
