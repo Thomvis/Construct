@@ -195,19 +195,25 @@ struct CreatureEditView: View {
         .popover(popoverBinding)
         .sheet(item: viewStore.binding(get: { $0.sheet }, send: { .sheet($0) })) { item in
             IfLetStore(store.scope(state: replayNonNil({ $0.sheet }), action: { $0 })) { store in
-                SwitchStore(store) {
-                    CaseLet(state: /CreatureEditViewState.Sheet.actionEditor, action: CreatureEditViewAction.creatureActionEditSheet) { store in
-                        AutoSizingSheetContainer {
-                            SheetNavigationContainer {
-                                NamedStatBlockContentItemEditView(store: store)
-                                    .navigationTitle(ViewStore(store).state.title)
-                                    .navigationBarTitleDisplayMode(.inline)
+                SwitchStore(store) { sheet in
+                    switch sheet {
+                    case .actionEditor(let actionEditorState):
+                        CaseLet(
+                            /CreatureEditViewState.Sheet.actionEditor, action: CreatureEditViewAction.creatureActionEditSheet
+                        ) { store in
+                            AutoSizingSheetContainer {
+                                SheetNavigationContainer {
+                                    NamedStatBlockContentItemEditView(store: store)
+                                        .navigationTitle(actionEditorState.title)
+                                        .navigationBarTitleDisplayMode(.inline)
+                                }
                             }
                         }
-                    }
-                    CaseLet(state: /CreatureEditViewState.Sheet.creatureGeneration, action: CreatureEditViewAction.creatureGenerationSheet) { store in
-                        SheetNavigationContainer {
-                            MechMuseCreatureGenerationSheet(store: store)
+                    case .creatureGeneration:
+                        CaseLet(/CreatureEditViewState.Sheet.creatureGeneration, action: CreatureEditViewAction.creatureGenerationSheet) { store in
+                            SheetNavigationContainer {
+                                MechMuseCreatureGenerationSheet(store: store)
+                            }
                         }
                     }
                 }
