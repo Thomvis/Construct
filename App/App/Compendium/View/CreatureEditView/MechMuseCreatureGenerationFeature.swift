@@ -190,136 +190,138 @@ struct MechMuseCreatureGenerationSheet: View {
 
     var body: some View {
         WithViewStore(store) { viewStore in
-            ScrollView {
+            VStack {
+                ScrollView {
 
-                // Messages
-                LazyVStack(spacing: 22) {
-                    ForEach(viewStore.state.revisions, id: \.id) { revision in
-                        // user message
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text(revision.prompt)
-                                .multilineTextAlignment(.leading)
+                    // Messages
+                    LazyVStack(spacing: 22) {
+                        ForEach(viewStore.state.revisions, id: \.id) { revision in
+                            // user message
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text(revision.prompt)
+                                    .multilineTextAlignment(.leading)
 
-                            Menu {
-                                Button {
-                                    viewStore.send(.onRestorePromptButtonTap(revision.id))
-                                } label: {
-                                    Text("Restore prompt")
-                                }
-                            } label: {
-                                Image(systemName: "arrow.uturn.backward")
-                            }
-                            .disabled(viewStore.state.isGenerating)
-                        }
-                        .padding(8)
-                        .foregroundStyle(.secondary)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.secondary.opacity(0.3))
-                                .fill(Color(UIColor.secondarySystemBackground))
-                        )
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .padding(.leading, 22)
-
-                        // model response
-                        if let result = revision.result.value {
-                            Button {
-                                viewStore.send(.onGenerationResultTap(revision.id))
-                            } label: {
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text(result.name)
-                                        Text("Generated stat block")
-                                            .font(.footnote)
+                                Menu {
+                                    Button {
+                                        viewStore.send(.onRestorePromptButtonTap(revision.id))
+                                    } label: {
+                                        Text("Restore prompt")
                                     }
-                                    Image(systemName: "chevron.right")
+                                } label: {
+                                    Image(systemName: "arrow.uturn.backward")
                                 }
-                                .padding(6)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.secondary.opacity(0.3))
-                                        .fill(Color(UIColor.secondarySystemBackground))
-                                )
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .disabled(viewStore.state.isGenerating)
                             }
-                            .transition(.opacity)
-                        }
-                    }
-
-                    // Status
-                    if viewStore.state.isGenerating {
-                        HStack {
-                            Text("Generating")
-
-                            Image(systemName: "ellipsis")
-                                .symbolEffect(.variableColor.cumulative)
-                                .offset(x: -7*ellipsisOffset, y: 4*ellipsisOffset)
-                                .fontWeight(.light)
-                        }
-                        .foregroundStyle(.secondary)
-                        .font(.callout)
-                        .padding(4)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-                .padding()
-            }
-            .background {
-                if viewStore.state.revisions.isEmpty {
-                    VStack(spacing: 12) {
-                        Text("I can adapt, reskin and buff creatures or conjure up completely new ones. Tell me what you need.")
-                            .italic()
-                        Text("- Mechanical Muse")
+                            .padding(8)
+                            .foregroundStyle(.secondary)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.secondary.opacity(0.3))
+                                    .fill(Color(UIColor.secondarySystemBackground))
+                            )
                             .frame(maxWidth: .infinity, alignment: .trailing)
+                            .padding(.leading, 22)
+
+                            // model response
+                            if let result = revision.result.value {
+                                Button {
+                                    viewStore.send(.onGenerationResultTap(revision.id))
+                                } label: {
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            Text(result.name)
+                                            Text("Generated stat block")
+                                                .font(.footnote)
+                                        }
+                                        Image(systemName: "chevron.right")
+                                    }
+                                    .padding(6)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.secondary.opacity(0.3))
+                                            .fill(Color(UIColor.secondarySystemBackground))
+                                    )
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .transition(.opacity)
+                            }
+                        }
+
+                        // Status
+                        if viewStore.state.isGenerating {
+                            HStack {
+                                Text("Generating")
+
+                                Image(systemName: "ellipsis")
+                                    .symbolEffect(.variableColor.cumulative)
+                                    .offset(x: -7*ellipsisOffset, y: 4*ellipsisOffset)
+                                    .fontWeight(.light)
+                            }
+                            .foregroundStyle(.secondary)
+                            .font(.callout)
+                            .padding(4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     .padding()
                 }
-            }
-
-            if let error = viewStore.state.error {
-                NoticeView(notice: .error(error.attributedDescription))
-                    .padding([.leading, .trailing])
-            }
-
-            // Editor
-            VStack(spacing: 12) {
-
-                VStack {
-                    TextEditor(text: viewStore.binding(\.$prompt))
-                        .disabled(viewStore.state.isGenerating)
-                        .overlay(alignment: .topLeading) {
-                            if viewStore.state.prompt.isEmpty {
-                                Text("Adapt, reskin, buff or conjure...")
-                                    .foregroundStyle(.secondary)
-                                    .padding(EdgeInsets(top: placeholderPadding*2, leading: placeholderPadding, bottom: 0, trailing: 0))
-                            }
+                .background {
+                    if viewStore.state.revisions.isEmpty {
+                        VStack(spacing: 12) {
+                            Text("I can adapt, reskin and buff creatures or conjure up completely new ones. Tell me what you need.")
+                                .italic()
+                            Text("- Mechanical Muse")
+                                .frame(maxWidth: .infinity, alignment: .trailing)
                         }
-                        .frame(minHeight: 50)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    HStack {
-                        Spacer()
-
-                        if viewStore.state.isGenerating {
-                            Button {
-                                viewStore.send(.onCancelGenerateButtonTap, animation: .spring)
-                            } label: {
-                                Image(systemName: "stop.circle.fill")
-                            }
-                        } else {
-                            Button {
-                                viewStore.send(.onGenerateButtonTap, animation: .spring)
-                            } label: {
-                                Image(systemName: "arrow.up.circle.fill")
-                            }
-                            .disabled(viewStore.state.isGenerating || !viewStore.state.promptIsValid)
-                        }
+                        .padding()
                     }
-                    .font(.title)
-                    .padding(4)
                 }
-                .disabled(!viewStore.state.mechMuseIsConfigured)
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.3)))
+
+                if let error = viewStore.state.error {
+                    NoticeView(notice: .error(error.attributedDescription))
+                        .padding([.leading, .trailing])
+                }
+
+                // Editor
+                VStack(spacing: 12) {
+
+                    VStack {
+                        TextEditor(text: viewStore.binding(\.$prompt))
+                            .disabled(viewStore.state.isGenerating)
+                            .overlay(alignment: .topLeading) {
+                                if viewStore.state.prompt.isEmpty {
+                                    Text("Adapt, reskin, buff or conjure...")
+                                        .foregroundStyle(.secondary)
+                                        .padding(EdgeInsets(top: placeholderPadding*2, leading: placeholderPadding, bottom: 0, trailing: 0))
+                                }
+                            }
+                            .frame(minHeight: 50)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        HStack {
+                            Spacer()
+
+                            if viewStore.state.isGenerating {
+                                Button {
+                                    viewStore.send(.onCancelGenerateButtonTap, animation: .spring)
+                                } label: {
+                                    Image(systemName: "stop.circle.fill")
+                                }
+                            } else {
+                                Button {
+                                    viewStore.send(.onGenerateButtonTap, animation: .spring)
+                                } label: {
+                                    Image(systemName: "arrow.up.circle.fill")
+                                }
+                                .disabled(viewStore.state.isGenerating || !viewStore.state.promptIsValid)
+                            }
+                        }
+                        .font(.title)
+                        .padding(4)
+                    }
+                    .disabled(!viewStore.state.mechMuseIsConfigured)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.3)))
+                }
             }
             .padding()
             .geometryGroup()
@@ -329,6 +331,12 @@ struct MechMuseCreatureGenerationSheet: View {
         }
         .navigationTitle("Generate stats")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(
+            store: store.scope(state: \.$preview, action: MechMuseCreatureGenerationFeature.Action.preview),
+            destination: { store in
+                MechMuseCreatureGenerationPreview(store: store)
+            }
+        )
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
@@ -336,12 +344,6 @@ struct MechMuseCreatureGenerationSheet: View {
                 }
             }
         }
-        .navigationDestination(
-            store: store.scope(state: \.$preview, action: MechMuseCreatureGenerationFeature.Action.preview),
-            destination: { store in
-                MechMuseCreatureGenerationPreview(store: store)
-            }
-        )
     }
 }
 

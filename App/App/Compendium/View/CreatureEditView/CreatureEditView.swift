@@ -206,12 +206,9 @@ struct CreatureEditView: View {
                         }
                     }
                     CaseLet(state: /CreatureEditViewState.Sheet.creatureGeneration, action: CreatureEditViewAction.creatureGenerationSheet) { store in
-//                        AutoSizingSheetContainer {
-                            SheetNavigationContainer {
-                                MechMuseCreatureGenerationSheet(store: store)
-//                                    .autoSizingSheetContent(constant: 40)
-                            }
-//                        }
+                        SheetNavigationContainer {
+                            MechMuseCreatureGenerationSheet(store: store)
+                        }
                     }
                 }
             }
