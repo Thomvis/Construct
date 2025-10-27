@@ -185,7 +185,7 @@ struct EditRealm: ReducerProtocol {
         Reduce { state, action in
             switch action {
             case .onCancelButtonTap:
-                return .fireAndForget { await dismiss() }
+                return .run { _ in await dismiss() }
 
             case .onDoneButtonTap:
                 guard let displayName = state.displayName.nonEmptyString else {
@@ -193,7 +193,7 @@ struct EditRealm: ReducerProtocol {
                 }
 
                 guard state.hasPendingChanges else {
-                    return .fireAndForget { await dismiss() }
+                    return .run { _ in await dismiss() }
                 }
 
                 return .run { [state] send in
@@ -327,7 +327,7 @@ struct EditDocument: ReducerProtocol {
         Reduce { state, action in
             switch action {
             case .onCancelButtonTap:
-                return .fireAndForget { await dismiss() }
+                return .run { _ in await dismiss() }
             case .onDoneButtonTap:
                 guard let displayName = state.displayName.nonEmptyString,
                         let realmId = state.realmId else {
@@ -335,7 +335,7 @@ struct EditDocument: ReducerProtocol {
                 }
 
                 guard state.hasPendingChanges else {
-                    return .fireAndForget { await dismiss() }
+                    return .run { _ in await dismiss() }
                 }
 
                 return compendiumMetadataOperation(state: &state) { [state, displayName, realmId] in
