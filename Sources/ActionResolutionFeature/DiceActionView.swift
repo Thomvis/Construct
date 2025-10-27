@@ -14,7 +14,7 @@ import DiceRollerFeature
 import GameModels
 
 struct DiceActionView: View {
-    let store: Store<DiceActionViewState, DiceActionViewAction>
+    let store: Store<DiceActionFeature.State, DiceActionFeature.Action>
 
     var body: some View {
         WithViewStore(store, observe: \.self) { viewStore in
@@ -48,7 +48,7 @@ struct DiceActionView: View {
     }
 
     struct StepView: View {
-        let store: Store<DiceAction.Step, DiceActionStepAction>
+        let store: Store<DiceAction.Step, DiceActionFeature.StepAction>
 
         var body: some View {
             WithViewStore(store, observe: \.self) { viewStore in
@@ -86,7 +86,7 @@ struct DiceActionView: View {
 
         struct RollValueView: View {
             let step: DiceAction.Step
-            let store: Store<DiceAction.Step.Value.RollValue, DiceActionStepAction.ValueAction.RollAction>
+            let store: Store<DiceAction.Step.Value.RollValue, DiceActionFeature.StepAction.ValueAction.RollAction>
 
             var body: some View {
                 WithViewStore(store, observe: \.self) { viewStore in
@@ -136,7 +136,7 @@ struct DiceActionView: View {
                 }
             }
 
-            private func rollView(_ viewStore: ViewStore<AnimatedRollState, DiceActionStepAction.ValueAction.RollAction>, _ step: DiceAction.Step, _ rollValue: DiceAction.Step.Value.RollValue, _ roll: DiceAction.Step.Value.RollValue.Details) -> some View {
+            private func rollView(_ viewStore: ViewStore<AnimatedRollState, DiceActionFeature.StepAction.ValueAction.RollAction>, _ step: DiceAction.Step, _ rollValue: DiceAction.Step.Value.RollValue, _ roll: DiceAction.Step.Value.RollValue.Details) -> some View {
                 AnimatedRollView(roll: viewStore.binding(send: { _ in fatalError() })) { res, final in
                     Text("\(res?.total ?? 0)")
                         .underline(res != nil && res?.total == res?.unroll.maximum)
@@ -167,7 +167,7 @@ struct DiceActionView: View {
 
         struct RollDetailView: View {
             let step: DiceAction.Step
-            let store: Store<DiceAction.Step, DiceActionStepAction>
+            let store: Store<DiceAction.Step, DiceActionFeature.StepAction>
 
             var body: some View {
                 WithViewStore(store, observe: \.self) { viewStore in
@@ -191,16 +191,16 @@ struct DiceActionViewDebugHost: View {
 
     var body: some View {
         DiceActionView(store: Store(
-            initialState: DiceActionViewState(
+            initialState: DiceActionFeature.State(
                 creatureName: "",
                 action: DiceAction(
                     title: "Scimitar",
                     parsedAction: CreatureActionParser.parse("Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.")!
                 )!
-            ),
-            reducer: DiceActionViewState.reducer,
-            environment: env
-        ))
+            )
+        ) {
+            DiceActionFeature(environment: env)
+        })
     }
 }
 #endif

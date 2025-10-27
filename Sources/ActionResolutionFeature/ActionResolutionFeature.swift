@@ -14,7 +14,7 @@ import MechMuse
 import Persistence
 import SwiftUI
 
-public struct ActionResolutionFeature: ReducerProtocol {
+public struct ActionResolutionFeature: Reducer {
 
     let environment: ActionResolutionEnvironment
 
@@ -28,7 +28,7 @@ public struct ActionResolutionFeature: ReducerProtocol {
         private let preferences: Preferences
 
         @BindingState var mode: Mode = .diceAction
-        var diceAction: DiceActionViewState?
+        var diceAction: DiceActionFeature.State?
         var muse: ActionDescriptionViewState
 
         public init(
@@ -44,7 +44,7 @@ public struct ActionResolutionFeature: ReducerProtocol {
             self.diceAction = (action.result?.value?.action).flatMap {
                 DiceAction(title: action.name, parsedAction: $0)
             }.map {
-                DiceActionViewState(
+                DiceActionFeature.State(
                     creatureName: creatureStats.name,
                     action: $0
                 )
@@ -95,19 +95,12 @@ public struct ActionResolutionFeature: ReducerProtocol {
     }
 
     public enum Action: Equatable, BindableAction {
-        case diceAction(DiceActionViewAction)
+        case diceAction(DiceActionFeature.Action)
         case muse(ActionDescriptionViewAction)
         case binding(BindingAction<State>)
     }
 
     public var body: some ReducerProtocol<State, Action> {
-        EmptyReducer()
-            .ifLet(\.diceAction, action: /Action.diceAction) {
-                Reduce(
-                    DiceActionViewState.reducer,
-                    environment: environment
-                )
-            }
 
         Scope(state: \.muse, action: /Action.muse) {
             Reduce(
@@ -149,6 +142,8 @@ public struct ActionResolutionFeature: ReducerProtocol {
             default: break
             }
             return .none
+        }.ifLet(\.diceAction, action: /Action.diceAction) {
+            DiceActionFeature(environment: environment)
         }
 
         BindingReducer()

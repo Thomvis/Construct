@@ -16,7 +16,7 @@ import Helpers
 public struct DiceAction: Hashable {
     let title: String
     let subtitle: String
-    var steps: IdentifiedArray<UUID, Step>
+    var steps: IdentifiedArrayOf<Step>
 
     public struct Step: Hashable, Identifiable {
         public let id = UUID()

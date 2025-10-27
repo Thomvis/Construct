@@ -1,57 +1,53 @@
-//
-//  DiceActionViewState.swift
-//  Construct
-//
-//  Created by Thomas Visser on 03/09/2020.
-//  Copyright © 2020 Thomas Visser. All rights reserved.
-//
-
 import Foundation
 import ComposableArchitecture
 import CasePaths
 import DiceRollerFeature
 
-struct DiceActionViewState: Hashable {
-    var creatureName: String
-    var action: DiceAction
+public struct DiceActionFeature: Reducer {
 
-    // to keep track of which steps are being rolled
-    var rollingSteps: [UUID] = []
-}
+    let environment: ActionResolutionEnvironment
 
-public enum DiceActionViewAction: Hashable {
-    case rollAll
-    case onFeedbackButtonTap
-    case stepAction(UUID, DiceActionStepAction)
-}
+    public init(environment: ActionResolutionEnvironment) {
+        self.environment = environment
+    }
 
-public enum DiceActionStepAction: Hashable {
-    case value(ValueAction)
-    case rollDetails(DiceCalculatorAction)
+    public struct State: Hashable {
+        var creatureName: String
+        var action: DiceAction
 
-    public enum ValueAction: Hashable {
-        case roll(RollAction)
+        // to keep track of which steps are being rolled
+        var rollingSteps: [UUID] = []
+    }
 
-        public enum RollAction: Hashable {
-            case roll
-            case type(DiceAction.Step.Value.RollValue.RollType)
-            case first(AnimatedRollAction)
-            case second(AnimatedRollAction)
-            case details(DiceAction.Step.Value.RollValue.Details?)
+    public enum Action: Hashable {
+        case rollAll
+        case onFeedbackButtonTap
+        case stepAction(DiceAction.Step.ID, DiceActionFeature.StepAction)
+    }
+
+    public enum StepAction: Hashable {
+        case value(ValueAction)
+        case rollDetails(DiceCalculatorAction)
+
+        public enum ValueAction: Hashable {
+            case roll(RollAction)
+
+            public enum RollAction: Hashable {
+                case roll
+                case type(DiceAction.Step.Value.RollValue.RollType)
+                case first(AnimatedRollAction)
+                case second(AnimatedRollAction)
+                case details(DiceAction.Step.Value.RollValue.Details?)
+            }
         }
     }
-}
 
-// Reducers
-
-extension DiceActionViewState {
-    static var reducer: AnyReducer<Self, DiceActionViewAction, ActionResolutionEnvironment> = AnyReducer.combine(
-        DiceAction.Step.reducer.forEach(state: \.action.steps, action: /DiceActionViewAction.stepAction, environment: { $0 }),
-        AnyReducer { state, action, env in
+    public var body: some ReducerOf<Self> {
+        Reduce { state, action in
             switch action {
             case .rollAll:
                 return .merge(
-                    state.action.steps.compactMap { step -> EffectTask<DiceActionViewAction>? in
+                    state.action.steps.compactMap { step -> EffectTask<Action>? in
                         guard case .roll = step.value else { return nil }
                         return .send(.stepAction(step.id, .value(.roll(.roll))))
                     }
@@ -95,13 +91,13 @@ extension DiceActionViewState {
                     )
 
                     if roll.type == .normal {
-                        env.diceLog.didRoll(
+                        environment.diceLog.didRoll(
                             firstResult,
                             roll: description
                         )
                     } else if let second = roll.second {
                         guard let secondResult = second.result else { break }
-                        env.diceLog.didRoll(
+                        environment.diceLog.didRoll(
                             DiceLogEntry.Result(
                                 type: roll.type == .advantage ? .advantage : .disadvantage, // todo: unify enums
                                 first: firstResult,
@@ -116,28 +112,19 @@ extension DiceActionViewState {
             case .stepAction: break
             }
             return .none
+        }.forEach(\.action.steps, action: /Action.stepAction) {
+            stepReducer
         }
-    )
-}
+    }
 
-extension DiceAction.Step {
-    static var reducer: AnyReducer<Self, DiceActionStepAction, ActionResolutionEnvironment> = AnyReducer.combine(
-        AnyReducer.combine(
-            AnimatedRollState.reducer
-                .pullback(state: \DiceAction.Step.Value.RollValue.first, action: /DiceActionStepAction.ValueAction.RollAction.first),
-            AnimatedRollState.reducer.optional()
-                .pullback(state: \DiceAction.Step.Value.RollValue.second, action: /DiceActionStepAction.ValueAction.RollAction.second)
-        )
-        .optional()
-        .pullback(state: \DiceAction.Step.rollValue, action: /DiceActionStepAction.value..DiceActionStepAction.ValueAction.roll),
-        DiceCalculatorState.reducer.optional().pullback(state: \.rollDetails, action: /DiceActionStepAction.rollDetails, environment: { $0 }),
-        AnyReducer { state, action, env in
-            let cp: CasePath<DiceActionStepAction, DiceActionStepAction.ValueAction> = /DiceActionStepAction.value
+    @ReducerBuilder<DiceAction.Step, DiceActionFeature.StepAction>
+    private var stepReducer: some Reducer<DiceAction.Step, DiceActionFeature.StepAction> {
+        Reduce { state, action in
             switch action {
             case .value(.roll(.roll)):
                 guard let rollValue = state.rollValue else { return .none }
 
-                var effects: [EffectTask<DiceActionStepAction>] = [
+                var effects: [EffectTask<DiceActionFeature.StepAction>] = [
                     .send(.value(.roll(.first(.roll(rollValue.expression)))))
                 ]
 
@@ -166,10 +153,25 @@ extension DiceAction.Step {
             case .rollDetails: break // handled above
             }
             return .none
+        }.ifLet(\.rollValue, action: /DiceActionFeature.StepAction.value..DiceActionFeature.StepAction.ValueAction.roll) {
+            Reduce(
+                AnyReducer.combine(
+                    AnimatedRollState.reducer
+                        .pullback(state: \DiceAction.Step.Value.RollValue.first, action: /DiceActionFeature.StepAction.ValueAction.RollAction.first),
+                    AnimatedRollState.reducer.optional()
+                        .pullback(state: \DiceAction.Step.Value.RollValue.second, action: /DiceActionFeature.StepAction.ValueAction.RollAction.second)
+                ),
+                environment: environment
+            )
+        }.ifLet(\.rollDetails, action: /DiceActionFeature.StepAction.rollDetails) {
+            Reduce(
+                DiceCalculatorState.reducer,
+                environment: environment
+            )
         }
-    )
+    }
 }
 
-extension DiceActionViewState {
-    static let nullInstance = DiceActionViewState(creatureName: "", action: DiceAction(title: "", subtitle: "", steps: []))
+extension DiceActionFeature.State {
+    static let nullInstance = Self(creatureName: "", action: DiceAction(title: "", subtitle: "", steps: []))
 }
