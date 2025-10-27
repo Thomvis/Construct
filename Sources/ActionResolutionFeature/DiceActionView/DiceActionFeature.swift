@@ -35,8 +35,8 @@ public struct DiceActionFeature: Reducer {
             public enum RollAction: Hashable {
                 case roll
                 case type(DiceAction.Step.Value.RollValue.RollType)
-                case first(AnimatedRollAction)
-                case second(AnimatedRollAction)
+                case first(AnimatedRoll.Action)
+                case second(AnimatedRoll.Action)
                 case details(DiceAction.Step.Value.RollValue.Details?)
             }
         }
@@ -68,7 +68,7 @@ public struct DiceActionFeature: Reducer {
                 state.rollingSteps.append(id)
                 fallthrough
             case .stepAction(_, .value(.roll(.first(.rollIntermediary(_, 0))))),
-                    .stepAction(_, .value(.roll(.second(AnimatedRollAction.rollIntermediary(_, 0))))),
+                    .stepAction(_, .value(.roll(.second(AnimatedRoll.Action.rollIntermediary(_, 0))))),
                     .stepAction(_, .rollDetails(.intermediaryResultsStep(_, 0))):
 
                 // check if all rolling steps have finished
@@ -139,7 +139,7 @@ public struct DiceActionFeature: Reducer {
                 state.rollValue?.type = t
                 if t != .normal {
                     if state.rollValue?.second == nil {
-                        state.rollValue?.second = AnimatedRollState(expression: rollValue.expression, result: nil, intermediaryResult: nil)
+                        state.rollValue?.second = AnimatedRoll.State(expression: rollValue.expression, result: nil, intermediaryResult: nil)
                         if rollValue.first.result != nil {
                             return .send(.value(.roll(.second(.roll(rollValue.expression)))))
                         }
@@ -154,15 +154,14 @@ public struct DiceActionFeature: Reducer {
             }
             return .none
         }.ifLet(\.rollValue, action: /DiceActionFeature.StepAction.value..DiceActionFeature.StepAction.ValueAction.roll) {
-            Reduce(
-                AnyReducer.combine(
-                    AnimatedRollState.reducer
-                        .pullback(state: \DiceAction.Step.Value.RollValue.first, action: /DiceActionFeature.StepAction.ValueAction.RollAction.first),
-                    AnimatedRollState.reducer.optional()
-                        .pullback(state: \DiceAction.Step.Value.RollValue.second, action: /DiceActionFeature.StepAction.ValueAction.RollAction.second)
-                ),
-                environment: environment
-            )
+            Scope(
+                state: \.first,
+                action: /DiceActionFeature.StepAction.ValueAction.RollAction.first
+            ) {
+                AnimatedRoll()
+            }.ifLet(\.second, action: /DiceActionFeature.StepAction.ValueAction.RollAction.second) {
+                AnimatedRoll()
+            }
         }.ifLet(\.rollDetails, action: /DiceActionFeature.StepAction.rollDetails) {
             Reduce(
                 DiceCalculatorState.reducer,

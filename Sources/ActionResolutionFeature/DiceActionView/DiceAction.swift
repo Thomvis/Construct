@@ -31,8 +31,8 @@ public struct DiceAction: Hashable {
                 let roll: Roll
                 var type: RollType = .normal
 
-                var first: AnimatedRollState = AnimatedRollState(expression: nil, result: nil, intermediaryResult: nil)
-                var second: AnimatedRollState? = nil
+                var first: AnimatedRoll.State = AnimatedRoll.State(expression: nil, result: nil, intermediaryResult: nil)
+                var second: AnimatedRoll.State? = nil
 
                 var details: Details?
 
@@ -67,7 +67,7 @@ public struct DiceAction: Hashable {
                     return true
                 }
 
-                func animatedRollState(for roll: Details) -> AnimatedRollState? {
+                func animatedRollState(for roll: Details) -> AnimatedRoll.State? {
                     switch roll {
                     case .firstRoll: return first
                     case .secondRoll: return second

@@ -136,7 +136,7 @@ struct DiceActionView: View {
                 }
             }
 
-            private func rollView(_ viewStore: ViewStore<AnimatedRollState, DiceActionFeature.StepAction.ValueAction.RollAction>, _ step: DiceAction.Step, _ rollValue: DiceAction.Step.Value.RollValue, _ roll: DiceAction.Step.Value.RollValue.Details) -> some View {
+            private func rollView(_ viewStore: ViewStore<AnimatedRoll.State, DiceActionFeature.StepAction.ValueAction.RollAction>, _ step: DiceAction.Step, _ rollValue: DiceAction.Step.Value.RollValue, _ roll: DiceAction.Step.Value.RollValue.Details) -> some View {
                 AnimatedRollView(roll: viewStore.binding(send: { _ in fatalError() })) { res, final in
                     Text("\(res?.total ?? 0)")
                         .underline(res != nil && res?.total == res?.unroll.maximum)
