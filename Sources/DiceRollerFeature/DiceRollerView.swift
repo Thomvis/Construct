@@ -15,11 +15,11 @@ import Dice
 public struct DiceRollerView: View {
     public static let outcomePopoverId = UUID()
 
-    var store: Store<DiceRollerViewState, DiceRollerViewAction>
-    @ObservedObject var viewStore: ViewStore<DiceRollerViewState, DiceRollerViewAction>
+    let store: StoreOf<DiceRollerFeature>
+    @ObservedObject var viewStore: ViewStoreOf<DiceRollerFeature>
     @State var rot: Double = 0
 
-    public init(store: Store<DiceRollerViewState, DiceRollerViewAction>) {
+    public init(store: StoreOf<DiceRollerFeature>) {
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
     }
@@ -140,14 +140,14 @@ struct DiceRollerView_Preview: PreviewProvider {
     static var previews: some View {
         DiceRollerView(
             store: Store(
-                initialState: DiceRollerViewState(),
-                reducer: DiceRollerViewState.reducer,
-                environment: StandaloneDiceRollerEnvironment(
+                initialState: DiceRollerFeature.State()
+            ) {
+                DiceRollerFeature(environment: StandaloneDiceRollerEnvironment(
                     mainQueue: .main,
                     diceLog: DiceLogPublisher(),
                     modifierFormatter: NumberFormatter()
-                )
-            )
+                ))
+            }
         )
     }
 }

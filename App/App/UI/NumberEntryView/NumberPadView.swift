@@ -71,7 +71,7 @@ struct NumberPadView: View {
     func makeButton(_ text: String, _ n: Int) -> some View {
         Button(action: { self.viewStore.send(.numberButtonTap(n)) }) {
             Text(text)
-        }.buttonStyle(DiceRollerFeature.ButtonStyle())
+        }.buttonStyle(DiceCalculator.ButtonStyle())
     }
 }
 

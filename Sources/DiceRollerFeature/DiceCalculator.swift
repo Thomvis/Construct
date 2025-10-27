@@ -110,6 +110,28 @@ public struct DiceCalculator: Reducer {
         case intermediaryResultsStep(DiceExpression, Int)
     }
 
+    public struct ButtonStyle: SwiftUI.ButtonStyle {
+        let color: Color
+
+        public init(color: Color = Color(UIColor.systemGray3)) {
+            self.color = color
+        }
+
+        public func makeBody(configuration: Self.Configuration) -> some View {
+            configuration.label
+                .font(.headline)
+                .frame(width: 70, height: 70)
+                .background(GeometryReader { proxy in
+                    self.shapeHelper(size: proxy.size, configuration: configuration)
+                })
+        }
+
+        func shapeHelper(size: CGSize, configuration: Self.Configuration) -> some View {
+            let radius = min(size.width, size.height)
+            return (configuration.isPressed ? self.color.opacity(0.5) : self.color).cornerRadius(radius/2)
+        }
+    }
+
     public func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
         case .mode(let mode):
@@ -529,7 +551,7 @@ fileprivate struct DicePadView: View {
                 }) {
                     Text("Roll")
                 }
-                .buttonStyle(ButtonStyle(color: Color(UIColor.systemBlue).opacity(0.5)))
+                .buttonStyle(DiceCalculator.ButtonStyle(color: Color(UIColor.systemBlue).opacity(0.5)))
                 .disabled(store.state.expression.diceCount == 0)
                 .opacity(store.state.expression.diceCount == 0 ? 0.33 : 1.0)
             }
@@ -539,7 +561,7 @@ fileprivate struct DicePadView: View {
     func makeButton(_ text: String, _ expression: DiceExpression) -> some View {
         Button(action: { self.store.send(.appendExpression(expression)) }) {
             Text(text)
-        }.buttonStyle(ButtonStyle())
+        }.buttonStyle(DiceCalculator.ButtonStyle())
     }
 
     func makeFnButton(action: @escaping () -> Void, _ text: String) -> some View {
@@ -620,28 +642,6 @@ extension RolledDiceExpression {
         case .number(let n):
             return Text("\(n)")
         }
-    }
-}
-
-public struct ButtonStyle: SwiftUI.ButtonStyle {
-    let color: Color
-
-    public init(color: Color = Color(UIColor.systemGray3)) {
-        self.color = color
-    }
-
-    public func makeBody(configuration: Self.Configuration) -> some View {
-        configuration.label
-            .font(.headline)
-            .frame(width: 70, height: 70)
-            .background(GeometryReader { proxy in
-                self.shapeHelper(size: proxy.size, configuration: configuration)
-            })
-    }
-
-    func shapeHelper(size: CGSize, configuration: Self.Configuration) -> some View {
-        let radius = min(size.width, size.height)
-        return (configuration.isPressed ? self.color.opacity(0.5) : self.color).cornerRadius(radius/2)
     }
 }
 

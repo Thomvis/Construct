@@ -53,7 +53,7 @@ struct DiceRollerAppClipApp: App {
 }
 
 struct AppState: Equatable {
-    var diceRoller = DiceRollerViewState()
+    var diceRoller = DiceRollerFeature.State()
 
     @BindingState var showAppStoreOverlay: Bool = false
     var didShowAppStoreOverlay: Bool = false
@@ -62,7 +62,7 @@ struct AppState: Equatable {
 enum AppAction: Equatable, BindableAction {
     case onLaunch
     case onContinueUserActivity(NSUserActivity)
-    case diceRoller(DiceRollerViewAction)
+    case diceRoller(DiceRollerFeature.Action)
 
     case binding(BindingAction<AppState>)
 }
@@ -92,10 +92,17 @@ let appReducer: AnyReducer<AppState, AppAction, DiceRollerEnvironment> = .combin
                 state.showAppStoreOverlay = true
                 state.didShowAppStoreOverlay = true
             }
-        case .diceRoller(let action): break
+        case .diceRoller: break
         case .binding: break
         }
         return .none
     },
-    DiceRollerViewState.reducer.pullback(state: \.diceRoller, action: /AppAction.diceRoller)
+    AnyReducer { env in
+        DiceRollerFeature(environment: env)
+    }
+    .pullback(
+        state: \.diceRoller,
+        action: /AppAction.diceRoller,
+        environment: { $0 }
+    )
 )

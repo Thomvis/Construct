@@ -11,8 +11,8 @@ import DiceRollerFeature
 import ComposableArchitecture
 
 struct ContentView: View {
-    let store: Store<DiceRollerViewState, DiceRollerViewAction>
-    
+    let store: StoreOf<DiceRollerFeature>
+
     var body: some View {
         DiceRollerView(store: store)
     }

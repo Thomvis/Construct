@@ -25,7 +25,7 @@ struct TabNavigationViewState: Equatable {
             typeRestriction: nil
         ), results: .initial
     )
-    var diceRoller: DiceRollerViewState = DiceRollerViewState()
+    var diceRoller: DiceRollerFeature.State = DiceRollerFeature.State()
 
     var topNavigationItems: [Any] {
         switch selectedTab {
@@ -46,14 +46,21 @@ enum TabNavigationViewAction: Equatable {
     case selectedTab(TabNavigationViewState.Tabs)
     case campaignBrowser(CampaignBrowseViewAction)
     case compendium(CompendiumIndexAction)
-    case diceRoller(DiceRollerViewAction)
+    case diceRoller(DiceRollerFeature.Action)
 }
 
 extension TabNavigationViewState {
     public static let reducer: AnyReducer<Self, TabNavigationViewAction, Environment> = AnyReducer.combine(
         CampaignBrowseViewState.reducer.pullback(state: \.campaignBrowser, action: /TabNavigationViewAction.campaignBrowser),
         compendiumRootReducer.pullback(state: \.compendium, action: /TabNavigationViewAction.compendium),
-        DiceRollerViewState.reducer.pullback(state: \.diceRoller, action: /TabNavigationViewAction.diceRoller, environment: { $0 }),
+        AnyReducer { env in
+            DiceRollerFeature(environment: env)
+        }
+        .pullback(
+            state: \.diceRoller,
+            action: /TabNavigationViewAction.diceRoller,
+            environment: { $0 }
+        ),
         AnyReducer { state, action, env in
             switch action {
             case .selectedTab(let t):

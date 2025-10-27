@@ -159,7 +159,7 @@ class AppStoreScreenshotTests: XCTestCase {
                             .nextInStack: .encounter(encounterDetailViewState)
                         ]),
                     compendium: CompendiumIndexState.nullInstance,
-                    diceRoller: DiceRollerViewState.nullInstance
+                    diceRoller: DiceRollerFeature.State.nullInstance
                 )
             )
         )
@@ -175,7 +175,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     selectedTab: .diceRoller,
                     campaignBrowser: .nullInstance,
                     compendium: .nullInstance,
-                    diceRoller: apply(DiceRollerViewState()) { state in
+                    diceRoller: apply(DiceRollerFeature.State()) { state in
                         state.calculatorState.expression = 1.d(20)+1.d(6)+2
                         state.calculatorState.previousExpressions = [1.d(20)+1.d(6)]
                     }
@@ -217,7 +217,7 @@ class AppStoreScreenshotTests: XCTestCase {
                             await store.send(.query(.onTextDidChange("Dragon"))).finish()
                             state = ViewStore(store, observe: \.self).state
                         },
-                        diceRoller: DiceRollerViewState.nullInstance
+                        diceRoller: DiceRollerFeature.State.nullInstance
                     )
                 )
             )
@@ -245,7 +245,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         ]
                     ),
                     compendium: .nullInstance,
-                    diceRoller: DiceRollerViewState.nullInstance
+                    diceRoller: DiceRollerFeature.State.nullInstance
                 )
             )
         )
