@@ -120,7 +120,7 @@ struct CombatantDetailFeature: Reducer {
             }
         }
 
-        var initiativePopoverState: NumberEntryViewState? {
+        var initiativePopoverState: NumberEntryFeature.State? {
             get {
                 guard case .initiative(let state) = popover else { return nil }
                 return state
@@ -148,7 +148,7 @@ struct CombatantDetailFeature: Reducer {
             res.popover = popover.map {
                 switch $0 {
                 case .healthAction: return .healthAction(HealthDialogState.nullInstance)
-                case .initiative: return .initiative(NumberEntryViewState.nullInstance)
+                case .initiative: return .initiative(NumberEntryFeature.State.nullInstance)
                 case .rollCheck: return .rollCheck(DiceCalculator.State.nullInstance)
                 case .diceAction: return .diceAction(ActionResolutionFeature.State.nullInstance)
                 case .tagDetails: return .tagDetails(CombatantTag.nullInstance)
@@ -170,7 +170,7 @@ struct CombatantDetailFeature: Reducer {
 
         enum Popover: Equatable {
             case healthAction(HealthDialogState)
-            case initiative(NumberEntryViewState)
+            case initiative(NumberEntryFeature.State)
             case rollCheck(DiceCalculator.State)
             case diceAction(ActionResolutionFeature.State)
             case tagDetails(CombatantTag)
@@ -187,7 +187,7 @@ struct CombatantDetailFeature: Reducer {
         case healthDialog(HealthDialogAction)
         case rollCheckDialog(DiceCalculator.Action)
         case diceActionPopover(ActionResolutionFeature.Action)
-        case initiativePopover(NumberEntryViewAction)
+        case initiativePopover(NumberEntryFeature.Action)
         case editCreatureConfirmingUnlinkIfNeeded
         case saveToCompendium
         case unlinkFromCompendium
@@ -251,7 +251,11 @@ struct CombatantDetailFeature: Reducer {
             action: /Action.diceActionPopover,
             environment: { $0 }
         ),
-        NumberEntryViewState.reducer.optional().pullback(state: \.initiativePopoverState, action: /Action.initiativePopover, environment: { $0 }),
+        AnyReducer { env in
+            NumberEntryFeature(environment: env)
+        }
+        .optional()
+        .pullback(state: \.initiativePopoverState, action: /Action.initiativePopover, environment: { $0 }),
         CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /Action.nextScreen..Action.NextScreenAction.compendiumItemDetailView, environment: { $0 }),
         AnyReducer { state, action, env in
             switch action {

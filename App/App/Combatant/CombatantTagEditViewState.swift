@@ -29,7 +29,7 @@ struct CombatantTagEditViewState: Equatable, NavigationStackItemState {
             : "Add \(tag.definition.name)"
     }
 
-    var numberEntryPopover: NumberEntryViewState? {
+    var numberEntryPopover: NumberEntryFeature.State? {
         get {
             guard case .numberEntry(let s) = popover else { return nil }
             return s
@@ -48,7 +48,7 @@ struct CombatantTagEditViewState: Equatable, NavigationStackItemState {
 
     enum Popover: Equatable {
         case effectDuration(EffectDurationPopover)
-        case numberEntry(NumberEntryViewState)
+        case numberEntry(NumberEntryFeature.State)
     }
 
     enum Mode: Equatable {
@@ -64,7 +64,11 @@ struct CombatantTagEditViewState: Equatable, NavigationStackItemState {
     }
 
     static let reducer: AnyReducer<CombatantTagEditViewState, CombatantTagEditViewAction, Environment> = AnyReducer.combine(
-        NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CombatantTagEditViewAction.numberEntryPopover, environment: { $0 }),
+        AnyReducer { env in
+            NumberEntryFeature(environment: env)
+        }
+        .optional()
+        .pullback(state: \.numberEntryPopover, action: /CombatantTagEditViewAction.numberEntryPopover, environment: { $0 }),
         AnyReducer { state, action, _ in
             switch action {
             case .onNoteTextDidChange(let text):
@@ -87,7 +91,7 @@ enum CombatantTagEditViewAction: Equatable {
     case onDoneTap
 
     case popover(CombatantTagEditViewState.Popover?)
-    case numberEntryPopover(NumberEntryViewAction)
+    case numberEntryPopover(NumberEntryFeature.Action)
 }
 
 extension CombatantTagEditViewState {

@@ -22,7 +22,7 @@ struct AddCombatantDetailView: View {
 
     init(parentStore: Store<AddCombatantState, AddCombatantState.Action>, store: Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>, onSelection: @escaping (AddCombatantView.Action) -> Void) {
         self.parentStore = parentStore
-        self.parentViewStore = ViewStore(parentStore)
+        self.parentViewStore = ViewStore(parentStore, observe: \.self)
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
         self.onSelection = onSelection
@@ -42,7 +42,7 @@ struct AddCombatantDetailView: View {
     }
 
     @State var rollForHp = false
-    @State var popover: Store<NumberEntryViewState, NumberEntryViewAction>? // fixme: should be part of the view state
+    @State var popover: StoreOf<NumberEntryFeature>? // fixme: should be part of the view state
 
     var monster: Monster? {
         viewStore.state.item as? Monster
@@ -57,10 +57,10 @@ struct AddCombatantDetailView: View {
                             Stepper("Quantity: \(effectiveAmount.wrappedValue)", value: effectiveAmount, in: 0...100)
                             Button(action: {
                                 self.popover = Store(
-                                    initialState: NumberEntryViewState.dice(.editingExpression()),
-                                    reducer: NumberEntryViewState.reducer,
-                                    environment: env
-                                )
+                                    initialState: NumberEntryFeature.State.dice(.editingExpression()),
+                                ) {
+                                    NumberEntryFeature(environment: env)
+                                }
                             }) {
                                 Text("Roll")
                             }

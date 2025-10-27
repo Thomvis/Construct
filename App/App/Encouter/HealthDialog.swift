@@ -94,12 +94,12 @@ struct HealthDialog: View {
 }
 
 struct HealthDialogState: Equatable {
-    var numberEntryView: NumberEntryViewState
+    var numberEntryView: NumberEntryFeature.State
     var hp: Hp?
 }
 
 enum HealthDialogAction: Equatable {
-    case numberEntryView(NumberEntryViewAction)
+    case numberEntryView(NumberEntryFeature.Action)
 }
 
 extension HealthDialog: Popover {
@@ -129,9 +129,12 @@ extension HealthDialog: Popover {
 }
 
 extension HealthDialogState {
-    static let reducer: AnyReducer<Self, HealthDialogAction, Environment> = NumberEntryViewState.reducer.pullback(state: \.numberEntryView, action: /HealthDialogAction.numberEntryView, environment: { $0 })
+    static let reducer: AnyReducer<Self, HealthDialogAction, Environment> = AnyReducer { env in
+        NumberEntryFeature(environment: env)
+    }
+    .pullback(state: \.numberEntryView, action: /HealthDialogAction.numberEntryView, environment: { $0 })
 }
 
 extension HealthDialogState {
-    static let nullInstance = HealthDialogState(numberEntryView: NumberEntryViewState.nullInstance, hp: nil)
+    static let nullInstance = HealthDialogState(numberEntryView: NumberEntryFeature.State.nullInstance, hp: nil)
 }

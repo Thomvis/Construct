@@ -15,10 +15,10 @@ import SharedViews
 struct NumberEntryPopover: Popover, View {
 
     var popoverId: AnyHashable { "NumberEntryPopover" }
-    var store: Store<NumberEntryViewState, NumberEntryViewAction>
+    var store: StoreOf<NumberEntryFeature>
     let onOutcomeSelected: (Int) -> Void
 
-    init(store: Store<NumberEntryViewState, NumberEntryViewAction>, onOutcomeSelected: @escaping (Int) -> Void) {
+    init(store: StoreOf<NumberEntryFeature>, onOutcomeSelected: @escaping (Int) -> Void) {
         self.store = store
         self.onOutcomeSelected = onOutcomeSelected
     }
@@ -44,7 +44,7 @@ struct NumberEntryPopover: Popover, View {
     struct State: Equatable {
         let outcome: Int?
 
-        init(_ state: NumberEntryViewState) {
+        init(_ state: NumberEntryFeature.State) {
             self.outcome = state.value
         }
     }

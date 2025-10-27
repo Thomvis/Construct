@@ -1,121 +1,108 @@
-//
-//  NumberPadView.swift
-//  Construct
-//
-//  Created by Thomas Visser on 02/01/2020.
-//  Copyright © 2020 Thomas Visser. All rights reserved.
-//
-
 import Foundation
 import SwiftUI
 import ComposableArchitecture
 import DiceRollerFeature
 
-struct NumberPadView: View {
-    var store: Store<NumberPadViewState, NumberPadViewAction>
-    @ObservedObject var viewStore: ViewStore<NumberPadViewState, NumberPadViewAction>
+public struct NumberPadFeature: Reducer {
+    public struct State: Equatable {
+        fileprivate var digits: [Int]
 
-    init(store: Store<NumberPadViewState, NumberPadViewAction>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
+        var value: Int {
+            digits.reduce(0) { accumulator, element in
+                (accumulator * 10) + element
+            }
+        }
+
+        public init(value: Int) {
+            var digits: [Int] = []
+            var remainder = value
+            while remainder > 0 {
+                let digit = remainder % 10
+                digits.insert(digit, at: 0)
+                remainder = (remainder - digit) / 10
+            }
+            self.digits = digits
+        }
     }
 
-    var overwriteString: String {
-        return "\(viewStore.value)"
+    public enum Action: Equatable {
+        case numberButtonTap(Int)
+        case deleteButtonTap
+    }
+
+    public func reduce(into state: inout State, action: Action) -> Effect<Action> {
+        switch action {
+        case .numberButtonTap(let digit):
+            state.digits.append(digit)
+            state.digits = Array(state.digits.drop(while: { $0 == 0 }))
+        case .deleteButtonTap:
+            _ = state.digits.popLast()
+        }
+        return .none
+    }
+}
+
+struct NumberPadView: View {
+    let store: StoreOf<NumberPadFeature>
+
+    init(store: StoreOf<NumberPadFeature>) {
+        self.store = store
     }
 
     var body: some View {
-        VStack {
-            HStack {
-                Text(overwriteString)
-                    .font(.largeTitle)
-                    .animation(.none)
-                Spacer()
-                SwiftUI.Button(action: { self.viewStore.send(.deleteButtonTap) }) {
-                    Image(systemName: "delete.left").font(.title)
-                }
-                .accentColor(Color(UIColor.systemRed))
-                .keyboardShortcut(.delete, modifiers: [])
-            }
-
-            Divider()
-
-            VStack(spacing: DiceCalculatorView.buttonSpacing) {
-
-                HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                    makeButton("7", 7).keyboardShortcut("7", modifiers: [])
-                    makeButton("8", 8).keyboardShortcut("8", modifiers: [])
-                    makeButton("9", 9).keyboardShortcut("9", modifiers: [])
+        WithViewStore(store, observe: \.self) { viewStore in
+            VStack {
+                HStack {
+                    Text("\(viewStore.value)")
+                        .font(.largeTitle)
+                        .animation(.none, value: viewStore.value)
+                    Spacer()
+                    Button {
+                        viewStore.send(.deleteButtonTap)
+                    } label: {
+                        Image(systemName: "delete.left").font(.title)
+                    }
+                    .accentColor(Color(UIColor.systemRed))
+                    .keyboardShortcut(.delete, modifiers: [])
                 }
 
-                HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                    makeButton("4", 4).keyboardShortcut("4", modifiers: [])
-                    makeButton("5", 5).keyboardShortcut("5", modifiers: [])
-                    makeButton("6", 6).keyboardShortcut("6", modifiers: [])
-                }
+                Divider()
 
-                HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                    makeButton("1", 1).keyboardShortcut("1", modifiers: [])
-                    makeButton("2", 2).keyboardShortcut("2", modifiers: [])
-                    makeButton("3", 3).keyboardShortcut("3", modifiers: [])
-                }
-                HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                    makeButton("--", 0).opacity(0.0)
-                    makeButton("0", 0).keyboardShortcut("0", modifiers: [])
-                    makeButton("--", 0).opacity(0.0)
+                VStack(spacing: DiceCalculatorView.buttonSpacing) {
+                    HStack(spacing: DiceCalculatorView.buttonSpacing) {
+                        makeButton("7", 7).keyboardShortcut("7", modifiers: [])
+                        makeButton("8", 8).keyboardShortcut("8", modifiers: [])
+                        makeButton("9", 9).keyboardShortcut("9", modifiers: [])
+                    }
+
+                    HStack(spacing: DiceCalculatorView.buttonSpacing) {
+                        makeButton("4", 4).keyboardShortcut("4", modifiers: [])
+                        makeButton("5", 5).keyboardShortcut("5", modifiers: [])
+                        makeButton("6", 6).keyboardShortcut("6", modifiers: [])
+                    }
+
+                    HStack(spacing: DiceCalculatorView.buttonSpacing) {
+                        makeButton("1", 1).keyboardShortcut("1", modifiers: [])
+                        makeButton("2", 2).keyboardShortcut("2", modifiers: [])
+                        makeButton("3", 3).keyboardShortcut("3", modifiers: [])
+                    }
+
+                    HStack(spacing: DiceCalculatorView.buttonSpacing) {
+                        makeButton("--", 0).opacity(0)
+                        makeButton("0", 0).keyboardShortcut("0", modifiers: [])
+                        makeButton("--", 0).opacity(0)
+                    }
                 }
             }
         }
     }
 
-    func makeButton(_ text: String, _ n: Int) -> some View {
-        Button(action: { self.viewStore.send(.numberButtonTap(n)) }) {
+    private func makeButton(_ text: String, _ value: Int) -> some View {
+        Button {
+            store.send(.numberButtonTap(value))
+        } label: {
             Text(text)
-        }.buttonStyle(DiceCalculator.ButtonStyle())
-    }
-}
-
-struct NumberPadViewState: Hashable {
-    private var ints: [Int] = []
-    var value: Int {
-        ints.reduce(0) { seq, elem in (seq*10) + elem }
-    }
-
-    init(value: Int) {
-        var ints: [Int] = []
-
-        var remainder = value
-        while remainder > 0 {
-            let v = remainder % 10
-            ints.insert(v, at: 0)
-            remainder = (remainder - v) / 10
         }
-        self.ints = ints
-    }
-
-    mutating func append(_ n: Int) {
-        ints.append(n)
-        ints = Array(ints.drop(while: { $0 == 0 })) // remove leading zeroes
-    }
-
-    mutating func deleteNumber() {
-        _ = ints.popLast()
-    }
-}
-
-enum NumberPadViewAction: Equatable {
-    case numberButtonTap(Int)
-    case deleteButtonTap
-}
-
-extension NumberPadViewState {
-    static var reducer: AnyReducer<Self, NumberPadViewAction, Void> = AnyReducer { state, action, _ in
-        switch action {
-        case .numberButtonTap(let n):
-            state.append(n)
-        case .deleteButtonTap:
-            state.deleteNumber()
-        }
-        return .none
+        .buttonStyle(DiceCalculator.ButtonStyle())
     }
 }

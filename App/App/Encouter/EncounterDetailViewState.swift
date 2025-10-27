@@ -136,7 +136,7 @@ struct EncounterDetailViewState: Equatable {
         }
     }
 
-    var combatantInitiativePopover: NumberEntryViewState? {
+    var combatantInitiativePopover: NumberEntryFeature.State? {
         get {
             guard case .combatantInitiative(_, let s) = popover else { return nil }
             return s
@@ -176,7 +176,7 @@ struct EncounterDetailViewState: Equatable {
         res.popover = popover.map {
             switch $0 {
             case .encounterInitiative: return .encounterInitiative
-            case .combatantInitiative: return .combatantInitiative(Combatant.nullInstance, NumberEntryViewState.nullInstance)
+            case .combatantInitiative: return .combatantInitiative(Combatant.nullInstance, NumberEntryFeature.State.nullInstance)
             case .health: return .health(.single(Combatant.nullInstance))
             }
         }
@@ -195,7 +195,7 @@ struct EncounterDetailViewState: Equatable {
 
     enum Popover: Equatable {
         case encounterInitiative
-        case combatantInitiative(Combatant, NumberEntryViewState)
+        case combatantInitiative(Combatant, NumberEntryFeature.State)
         case health(CombatantActionTarget)
     }
 
@@ -216,7 +216,7 @@ extension EncounterDetailViewState {
         case stop
         case sheet(Sheet?)
         case popover(Popover?)
-        case combatantInitiativePopover(NumberEntryViewAction)
+        case combatantInitiativePopover(NumberEntryFeature.Action)
         case addCombatant(AddCombatantState.Action)
         case addCombatantAction(AddCombatantView.Action, Bool)
         case combatantDetail(CombatantDetailViewAction)
@@ -252,7 +252,11 @@ extension EncounterDetailViewState {
                 action: /Action.addCombatant,
                 environment: { $0 }
             ),
-            NumberEntryViewState.reducer.optional().pullback(
+            AnyReducer { env in
+                NumberEntryFeature(environment: env)
+            }
+            .optional()
+            .pullback(
                 state: \.combatantInitiativePopover,
                 action: /Action.combatantInitiativePopover,
                 environment: { $0 }
@@ -517,3 +521,22 @@ extension AddCombatantSheet {
 extension EncounterDetailViewState {
     static let nullInstance = EncounterDetailViewState(building: Encounter.nullInstance, isMechMuseEnabled: false)
 }
+
+struct EncounterDetailFeature: Reducer {
+    typealias State = EncounterDetailViewState
+    typealias Action = EncounterDetailViewState.Action
+
+    let environment: Environment
+
+    init(environment: Environment) {
+        self.environment = environment
+    }
+
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
+            EncounterDetailViewState.reducer.run(&state, action, environment)
+        }
+    }
+}
+
+typealias EncounterDetailViewAction = EncounterDetailViewState.Action

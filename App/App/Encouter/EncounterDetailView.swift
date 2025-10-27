@@ -432,7 +432,7 @@ struct CombatantSection: View {
                 CombatantRow(encounter: self.encounter, running: self.running, combatant: combatant, onHealthTap: {
                     self.parent.viewStore.send(.popover(.health(.single(combatant))))
                 }, onInitiativeTap: {
-                    self.parent.viewStore.send(.popover(.combatantInitiative(combatant, NumberEntryViewState.initiative(combatant: combatant))), animation: .default)
+                    self.parent.viewStore.send(.popover(.combatantInitiative(combatant, NumberEntryFeature.State.initiative(combatant: combatant))), animation: .default)
                 })
                 .accentColor(Color.primary)
                 // contentShape is needed or else the tapGesture on the whole cell doesn't work

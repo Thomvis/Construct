@@ -1,11 +1,3 @@
-//
-//  NumberEntryView.swift
-//  Construct
-//
-//  Created by Thomas Visser on 02/01/2020.
-//  Copyright © 2020 Thomas Visser. All rights reserved.
-//
-
 import Foundation
 import SwiftUI
 import ComposableArchitecture
@@ -14,103 +6,141 @@ import Dice
 import GameModels
 import Helpers
 
-// A view that allows entry of a number, either directly or through a simulated dice roll
-struct NumberEntryView: View {
-    var store: Store<NumberEntryViewState, NumberEntryViewAction>
-    @ObservedObject var viewStore: ViewStore<NumberEntryViewState, NumberEntryViewAction>
+public struct NumberEntryFeature: Reducer {
+    public struct State: Equatable {
+        var mode: Mode
+        var pad: NumberPadFeature.State
+        var dice: DiceCalculator.State
 
-    init(store: Store<NumberEntryViewState, NumberEntryViewAction>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
-    }
+        public init(
+            mode: Mode = .dice,
+            pad: NumberPadFeature.State = NumberPadFeature.State(value: 0),
+            dice: DiceCalculator.State = .editingExpression()
+        ) {
+            self.mode = mode
+            self.pad = pad
+            self.dice = dice
+        }
 
-    var body: some View {
-        VStack {
-            Picker("Type", selection: viewStore.binding(get: { $0.mode }, send: { .mode($0) }).animation(.spring())) {
-                Text("Roll").tag(NumberEntryViewState.Mode.dice)
-                Text("Manual").tag(NumberEntryViewState.Mode.pad)
-            }.pickerStyle(SegmentedPickerStyle())
-
-            if viewStore.state.mode == .dice {
-                DiceCalculatorView(store: store.scope(state: { $0.diceState }, action: { .dice($0) }))
-            } else if viewStore.state.mode == .pad {
-                NumberPadView(store: store.scope(state: { $0.padState }, action: { .pad($0) }))
+        var value: Int? {
+            switch mode {
+            case .pad:
+                return pad.value
+            case .dice:
+                return dice.result(includingIntermediary: false)?.total
             }
         }
-    }
-}
 
-struct NumberEntryViewState: Hashable {
-    var mode: Mode
-    var padState: NumberPadViewState
-    var diceState: DiceCalculator.State
-
-    var value: Int? {
-        switch mode {
-        case .pad: return padState.value
-        case .dice: return diceState.result(includingIntermediary: false)?.total
+        public enum Mode: Hashable {
+            case pad
+            case dice
         }
     }
 
-    enum Mode: Hashable {
-        case pad
-        case dice
-    }
-}
-
-enum NumberEntryViewAction: Equatable {
-    case mode(NumberEntryViewState.Mode)
-    case pad(NumberPadViewAction)
-    case dice(DiceCalculator.Action)
-}
-
-extension NumberEntryViewState {
-    static func pad(value: Int, expression: DiceExpression? = nil) -> NumberEntryViewState {
-        return NumberEntryViewState(mode: .pad, padState: NumberPadViewState(value: value), diceState: expression.map { .rollingExpression($0) } ?? .editingExpression())
+    public enum Action: Equatable {
+        case mode(State.Mode)
+        case pad(NumberPadFeature.Action)
+        case dice(DiceCalculator.Action)
     }
 
-    static func dice(_ state: DiceCalculator.State) -> NumberEntryViewState {
-        return NumberEntryViewState(mode: .dice, padState: NumberPadViewState(value: 0), diceState: state)
+    typealias Environment = NumberEntryViewEnvironment
+
+    let environment: Environment
+
+    init(environment: Environment) {
+        self.environment = environment
     }
 
-    static func initiative(combatant: Combatant) -> NumberEntryViewState {
-        if combatant.definition.player != nil {
-            return NumberEntryViewState.pad(
-                value: combatant.initiative ?? 0,
-                expression: combatant.definition.initiativeModifier.map { 1.d(20) + $0 }
-            )
-        } else if let mod = combatant.definition.initiativeModifier {
-            return NumberEntryViewState.dice(.rollingExpression(1.d(20) + mod, prefilledResult: combatant.initiative))
-        } else if let initiative = combatant.initiative {
-            return NumberEntryViewState.dice(.rollingExpression(1.d(20), prefilledResult: initiative))
-        } else {
-            return NumberEntryViewState.dice(.editingExpression(1.d(20)))
+    public var body: some ReducerOf<Self> {
+        Scope(state: \State.pad, action: /Action.pad) {
+            NumberPadFeature()
         }
-    }
 
-    static var reducer: AnyReducer<Self, NumberEntryViewAction, NumberEntryViewEnvironment> = AnyReducer.combine(
-        AnyReducer { state, action, _ in
+        Scope(state: \State.dice, action: /Action.dice) {
+            DiceCalculator(environment: environment)
+        }
+
+        Reduce { state, action in
             switch action {
-            case .mode(let m):
-                state.mode = m
-            case .pad, .dice: break // handled by reducers below
+            case .mode(let mode):
+                state.mode = mode
+            case .pad, .dice:
+                break
             }
             return .none
-        },
-        NumberPadViewState.reducer.pullback(state: \.padState, action: /NumberEntryViewAction.pad, environment: { _ in () }),
-        AnyReducer { env in
-            DiceCalculator(environment: env)
         }
-        .pullback(
-            state: \.diceState,
-            action: /NumberEntryViewAction.dice,
-            environment: { $0 }
-        )
-    )
+    }
 }
 
 typealias NumberEntryViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog
 
-extension NumberEntryViewState {
-    static let nullInstance = NumberEntryViewState(mode: .dice, padState: NumberPadViewState(value: 0), diceState: DiceCalculator.State(displayOutcomeExternally: false, rollOnAppear: false, expression: .number(0), mode: .editingExpression))
+public extension NumberEntryFeature.State {
+    static func pad(value: Int, expression: DiceExpression? = nil) -> Self {
+        Self(
+            mode: .pad,
+            pad: NumberPadFeature.State(value: value),
+            dice: expression.map { .rollingExpression($0) } ?? .editingExpression()
+        )
+    }
+
+    static func dice(_ state: DiceCalculator.State) -> Self {
+        Self(
+            mode: .dice,
+            pad: NumberPadFeature.State(value: 0),
+            dice: state
+        )
+    }
+
+    static func initiative(combatant: Combatant) -> Self {
+        if combatant.definition.player != nil {
+            return .pad(
+                value: combatant.initiative ?? 0,
+                expression: combatant.definition.initiativeModifier.map { 1.d(20) + $0 }
+            )
+        } else if let mod = combatant.definition.initiativeModifier {
+            return .dice(.rollingExpression(1.d(20) + mod, prefilledResult: combatant.initiative))
+        } else if let initiative = combatant.initiative {
+            return .dice(.rollingExpression(1.d(20), prefilledResult: initiative))
+        } else {
+            return .dice(.editingExpression(1.d(20)))
+        }
+    }
+
+    static let nullInstance = Self(
+        mode: .dice,
+        pad: NumberPadFeature.State(value: 0),
+        dice: DiceCalculator.State(displayOutcomeExternally: false, rollOnAppear: false, expression: .number(0), mode: .editingExpression)
+    )
+}
+
+struct NumberEntryView: View {
+    let store: StoreOf<NumberEntryFeature>
+
+    init(store: StoreOf<NumberEntryFeature>) {
+        self.store = store
+    }
+
+    var body: some View {
+        WithViewStore(store, observe: \.self) { viewStore in
+            VStack {
+                Picker(
+                    "Type",
+                    selection: viewStore.binding(
+                        get: \.mode,
+                        send: NumberEntryFeature.Action.mode
+                    ).animation(.spring())
+                ) {
+                    Text("Roll").tag(NumberEntryFeature.State.Mode.dice)
+                    Text("Manual").tag(NumberEntryFeature.State.Mode.pad)
+                }
+                .pickerStyle(.segmented)
+
+                if viewStore.state.mode == .dice {
+                    DiceCalculatorView(store: store.scope(state: \.dice, action: NumberEntryFeature.Action.dice))
+                } else {
+                    NumberPadView(store: store.scope(state: \.pad, action: NumberEntryFeature.Action.pad))
+                }
+            }
+        }
+    }
 }

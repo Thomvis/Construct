@@ -100,7 +100,7 @@ struct CreatureEditViewState: Equatable {
         Section.allCases.filter { creatureType.compatibleSections.contains($0) && !sections.contains($0) }
     }
 
-    var numberEntryPopover: NumberEntryViewState? {
+    var numberEntryPopover: NumberEntryFeature.State? {
         get {
             if case .numberEntry(let s) = popover {
                 return s
@@ -232,7 +232,7 @@ struct CreatureEditViewState: Equatable {
     }
 
     enum Popover: Equatable {
-        case numberEntry(NumberEntryViewState)
+        case numberEntry(NumberEntryFeature.State)
     }
 
     enum Sheet: Equatable, Identifiable {
@@ -499,7 +499,7 @@ enum CreatureEditViewAction: Equatable {
     case setCreateModeCreatureType(CreatureEditViewState.CreatureType)
     case model(CreatureEditFormModel)
     case popover(CreatureEditViewState.Popover?)
-    case numberEntryPopover(NumberEntryViewAction)
+    case numberEntryPopover(NumberEntryFeature.Action)
     case sheet(CreatureEditViewState.Sheet?)
     case creatureActionEditSheet(CreatureActionEditViewAction)
     case creatureGenerationSheet(MechMuseCreatureGenerationFeature.Action)
@@ -522,7 +522,11 @@ typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & Envir
 
 extension CreatureEditViewState {
     static let reducer: AnyReducer<Self, CreatureEditViewAction, CreatureEditViewEnvironment> = AnyReducer.combine(
-        NumberEntryViewState.reducer.optional().pullback(state: \.numberEntryPopover, action: /CreatureEditViewAction.numberEntryPopover, environment:  { $0 }),
+        AnyReducer { env in
+            NumberEntryFeature(environment: env)
+        }
+        .optional()
+        .pullback(state: \.numberEntryPopover, action: /CreatureEditViewAction.numberEntryPopover, environment:  { $0 }),
         NamedStatBlockContentItemEditViewState.reducer.optional().pullback(state: \.actionEditor, action: /CreatureEditViewAction.creatureActionEditSheet),
         AnyReducer { env in
             MechMuseCreatureGenerationFeature()

@@ -102,7 +102,7 @@ struct CreatureEditView: View {
                     ClearableTextField("Hit Points (Optional)", text: model.statBlock.hp)
                         .keyboardType(.numberPad)
                     Button(action: {
-                        self.viewStore.send(.popover(.numberEntry(NumberEntryViewState.dice(.editingExpression()))))
+                        self.viewStore.send(.popover(.numberEntry(NumberEntryFeature.State.dice(.editingExpression()))))
                     }) {
                         Text("Roll")
                     }
