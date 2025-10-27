@@ -16,7 +16,7 @@ struct ActionDescriptionView: View {
     @ScaledMetric(relativeTo: .largeTitle) var speechBalloonOffset = 8
     @ScaledMetric(relativeTo: .footnote) var bottomButtonHeight = 16
 
-    let store: Store<ActionDescriptionViewState, ActionDescriptionViewAction>
+    let store: StoreOf<ActionDescriptionFeature>
 
     var body: some View {
         WithViewStore(store, observe: \.self) { viewStore in
@@ -57,14 +57,14 @@ struct ActionDescriptionView: View {
 
                                 EqualWidthLayout(spacing: 20) {
                                     Button {
-                                        viewStore.send(ActionDescriptionViewAction.binding(.set(\.$settings.outcome, .hit)))
+                                        viewStore.send(.binding(.set(\.$settings.outcome, .hit)))
                                     } label: {
                                         Text("Hit").frame(maxWidth: .infinity)
                                     }
                                     .tint(hitOrMissTintHit)
 
                                     Button {
-                                        viewStore.send(ActionDescriptionViewAction.binding(.set(\.$settings.outcome, .miss)))
+                                        viewStore.send(.binding(.set(\.$settings.outcome, .miss)))
                                     } label: {
                                         Text("Miss").frame(maxWidth: .infinity)
                                     }
@@ -126,13 +126,13 @@ struct ActionDescriptionView: View {
 
     @ViewBuilder
     func hitButton(
-        _ viewStore: ViewStore<ActionDescriptionViewState, ActionDescriptionViewAction>
+        _ viewStore: ViewStoreOf<ActionDescriptionFeature>
     ) -> some View {
         if viewStore.settings.outcome != nil {
             Menu {
                 Picker("Outcome", selection: viewStore.$settings.outcome) {
-                    Text("Hit").tag(Optional<ActionDescriptionViewState.Settings.OutcomeSetting>.some(.hit))
-                    Text("Miss").tag(Optional<ActionDescriptionViewState.Settings.OutcomeSetting>.some(.miss))
+                    Text("Hit").tag(Optional<ActionDescriptionFeature.State.Settings.OutcomeSetting>.some(.hit))
+                    Text("Miss").tag(Optional<ActionDescriptionFeature.State.Settings.OutcomeSetting>.some(.miss))
                 }
                 .disabled(viewStore.state.context.diceAction == nil)
             } label: {
@@ -145,7 +145,7 @@ struct ActionDescriptionView: View {
 
     @ViewBuilder
     func impactButton(
-        _ viewStore: ViewStore<ActionDescriptionViewState, ActionDescriptionViewAction>
+        _ viewStore: ViewStoreOf<ActionDescriptionFeature>
     ) -> some View {
         Menu {
             Picker("Outcome", selection: viewStore.$settings.impact) {
@@ -165,7 +165,7 @@ struct ActionDescriptionView: View {
 let hitOrMissTintHit: Color? = Color(UIColor.systemRed)
 let hitOrMissTintMiss: Color? = nil
 
-extension ActionDescriptionViewState {
+extension ActionDescriptionFeature.State {
     var hitOrMissTint: Color? {
         if effectiveOutcome?.isHit == true {
             return hitOrMissTintHit

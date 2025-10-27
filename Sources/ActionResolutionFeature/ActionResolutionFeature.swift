@@ -29,7 +29,7 @@ public struct ActionResolutionFeature: Reducer {
 
         @BindingState var mode: Mode = .diceAction
         var diceAction: DiceActionFeature.State?
-        var muse: ActionDescriptionViewState
+        var muse: ActionDescriptionFeature.State
 
         public init(
             encounterContext: EncounterContext? = nil,
@@ -96,17 +96,14 @@ public struct ActionResolutionFeature: Reducer {
 
     public enum Action: Equatable, BindableAction {
         case diceAction(DiceActionFeature.Action)
-        case muse(ActionDescriptionViewAction)
+        case muse(ActionDescriptionFeature.Action)
         case binding(BindingAction<State>)
     }
 
     public var body: some ReducerProtocol<State, Action> {
 
         Scope(state: \.muse, action: /Action.muse) {
-            Reduce(
-                ActionDescriptionViewState.reducer,
-                environment: environment
-            )
+            ActionDescriptionFeature(environment: environment)
         }
 
         Reduce { state, action in
