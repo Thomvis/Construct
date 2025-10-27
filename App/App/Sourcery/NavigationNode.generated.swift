@@ -208,7 +208,7 @@ extension CampaignBrowseViewState.NextScreen: NavigationNode {
     }
 }
 
-extension CombatantDetailViewState.NextScreen: NavigationNode {
+extension CombatantDetailFeature.State.NextScreen: NavigationNode {
     var nodeId: String {
         navigationNode.nodeId
     }
@@ -417,7 +417,7 @@ extension CampaignBrowseViewState: NavigationNode {
         }
     }
 }
-extension CombatantDetailViewState: NavigationNode {
+extension CombatantDetailFeature.State: NavigationNode {
 
     var nodeId: String { 
         navigationStackItemStateId

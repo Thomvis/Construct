@@ -139,64 +139,8 @@ public struct ActionDescriptionFeature: Reducer {
 
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
-            let descriptionEffect = Self.descriptionReducer.reduce(into: &state, action: action, environment: environment)
-
-            switch action {
-            case .onAppear:
-                state.mechMuseIsConfigured = environment.mechMuse.isConfigured
-                return descriptionEffect
-
-            case .onFeedbackButtonTap:
-                return descriptionEffect
-
-            case .onReloadOrCancelButtonTap:
-                let effect: Effect<Action>
-                if state.description.result.isReducing {
-                    effect = .send(.description(.result(.stop)))
-                } else {
-                    effect = .send(.description(.set(state.input, nil)))
-                }
-                return .merge(descriptionEffect, effect)
-
-            case .didRollDiceAction(let diceAction):
-                state.context.diceAction = diceAction
-                if diceAction.isCriticalHit {
-                    state.settings.outcome = .hit
-                } else if diceAction.isCriticalMiss {
-                    state.settings.outcome = .miss
-                }
-                return descriptionEffect
-
-            case .onDisappear:
-                return .merge(descriptionEffect, .task { .description(.result(.stop)) })
-
-            case .description:
-                return descriptionEffect
-
-            case .binding:
-                return descriptionEffect
-            }
+            Self.legacyReducer.run(&state, action, environment)
         }
-
-        BindingReducer()
-            .onChange(of: \.context) { _, state, _, _ in
-                state.cache.removeAll()
-                return .none
-            }
-            .onChange(of: \.input) { input, state, _, _ in
-                guard let input else { return .none }
-                if let cacheHit = state.cache[input] {
-                    return EffectTask(value: .description(.set(input, cacheHit)))
-                } else {
-                    return .task { .description(.set(input, nil)) }
-                }
-            }
-            .onChange(of: \.description.result) { result, state, _, _ in
-                if let input = state.description.input, result.isFinished {
-                    state.cache[input] = result
-                }
-                return .none
-            }
     }
 }
 
@@ -207,27 +151,73 @@ extension ActionDescriptionFeature.State.RequestInput {
 }
 
 extension ActionDescriptionFeature {
-    private static let descriptionReducer: AnyReducer<State, Action, ActionDescriptionEnvironment> = AsyncDescriptionMapState.reducer(
-        inputReducer: State.RequestInput.reducer.binding().optional(),
-        initialResultStateForInput: { _ in State.AsyncDescriptionReduceState(value: "") },
-        initialResultActionForInput: { _ in .start("") },
-        resultReducerForInput: { input in
-            State.AsyncDescriptionReduceState.reducer({ env in
-                guard let input else { throw ActionDescriptionFeatureError.missingInput }
-                return try env.mechMuse.describe(
-                    action: input.request
-                )
-            }, reduce: { result, element in
-                result += element
-            }, mapError: {
-                ($0 as? MechMuseError) ?? MechMuseError.unspecified
-            })
+    private static let legacyReducer: AnyReducer<State, Action, ActionDescriptionEnvironment> = AnyReducer.combine(
+        AnyReducer { state, action, env in
+            switch action {
+            case .onAppear:
+                state.mechMuseIsConfigured = env.mechMuse.isConfigured
+            case .onFeedbackButtonTap: break // handled by the parent
+            case .onReloadOrCancelButtonTap:
+                if state.description.result.isReducing {
+                    return .send(.description(.result(.stop)))
+                } else {
+                    return .send(.description(.set(state.input, nil)))
+                }
+            case .didRollDiceAction(let action):
+                state.context.diceAction = action
+                if action.isCriticalHit {
+                    state.settings.outcome = .hit
+                } else if action.isCriticalMiss {
+                    state.settings.outcome = .miss
+                }
+            case .onDisappear:
+                return .task { .description(.result(.stop)) }
+            case .description: break // handled by child reducer
+            case .binding: break // handled by wrapper reducer
+            }
+            return .none
+        },
+        State.AsyncDescriptionMapState.reducer(
+            inputReducer: State.RequestInput.reducer.binding().optional(),
+            initialResultStateForInput: { _ in State.AsyncDescriptionReduceState(value: "") },
+            initialResultActionForInput: { _ in AsyncReduceAction<String, MechMuseError, String>.start("") },
+            resultReducerForInput: { input in
+                State.AsyncDescriptionReduceState.reducer({ (env: ActionDescriptionEnvironment) in
+                    guard let input else { throw ActionDescriptionFeatureError.missingInput }
+                    return try env.mechMuse.describe(
+                        action: input.request
+                    )
+                }, reduce: { result, element in
+                    result += element
+                }, mapError: {
+                    ($0 as? MechMuseError) ?? MechMuseError.unspecified
+                })
+            }
+        )
+        .retaining {
+            $0.result
         }
+        .pullback(state: \State.description, action: /Action.description, environment: { $0 })
     )
-    .retaining {
-        $0.result
-    }
-    .pullback(state: \.description, action: /Action.description, environment: { $0 })
+    .binding()
+    .onChange(of: \.context, perform: { _, state, _, _ in
+        state.cache.removeAll()
+        return .none
+    })
+    .onChange(of: \.input, perform: { input, state, _, _ in
+        guard let input else { return .none }
+        if let cacheHit = state.cache[input] {
+            return EffectTask(value: .description(.set(input, cacheHit)))
+        } else {
+            return .task { .description(.set(input, nil)) }
+        }
+    })
+    .onChange(of: \.description.result, perform: { value, state, _, _ in
+        if let input = state.description.input, value.isFinished {
+            state.cache[input] = value
+        }
+        return .none
+    })
 }
 
 extension ActionDescriptionFeature.State {
