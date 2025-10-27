@@ -45,8 +45,8 @@ struct EncounterDetailViewState: Equatable {
         }
     }
 
-    typealias ResumableRunningEncounters = Async<[String], Error>
-    var resumableRunningEncounters: ResumableRunningEncounters = .initial
+    typealias AsyncResumableRunningEncounters = Async<[String], EquatableError>
+    var resumableRunningEncounters: AsyncResumableRunningEncounters.State = .initial
 
     var sheet: Sheet?
     var popover: Popover?
@@ -59,7 +59,7 @@ struct EncounterDetailViewState: Equatable {
     public init(
         building: Encounter,
         running: RunningEncounter? = nil,
-        resumableRunningEncounters: ResumableRunningEncounters = .initial,
+        resumableRunningEncounters: AsyncResumableRunningEncounters.State = .initial,
         sheet: Sheet? = nil,
         popover: Popover? = nil,
         editMode: EditMode = .inactive,
@@ -220,7 +220,7 @@ extension EncounterDetailViewState {
         case addCombatant(AddCombatantState.Action)
         case addCombatantAction(AddCombatantView.Action, Bool)
         case combatantDetail(CombatantDetailViewAction)
-        case resumableRunningEncounters(ResumableRunningEncounters.Action)
+        case resumableRunningEncounters(AsyncResumableRunningEncounters.Action)
         case removeResumableRunningEncounter(String) // key of the running encounter
         case resetEncounter(Bool) // false = clear monsters, true = clear all
         case editMode(EditMode)
@@ -477,12 +477,13 @@ extension EncounterDetailViewState {
             ),
             RunningEncounter.reducer.optional().pullback(state: \.running, action: /Action.runningEncounter),
             AnyReducer.withState({ $0.building.id }) { state in
-                ResumableRunningEncounters.reducer { env in
-                    do {
-                        let nodes = try env.database.keyValueStore.fetchKeys(.keyPrefix(RunningEncounter.keyPrefix(for: state.building).rawValue))
-                        return Just(nodes).setFailureType(to: Error.self).eraseToAnyPublisher()
-                    } catch {
-                        return Fail(error: error).eraseToAnyPublisher()
+                AnyReducer { env in
+                    AsyncResumableRunningEncounters {
+                        do {
+                            return try env.database.keyValueStore.fetchKeys(.keyPrefix(RunningEncounter.keyPrefix(for: state.building).rawValue))
+                        } catch {
+                            throw error.toEquatableError()
+                        }
                     }
                 }.pullback(state: \.resumableRunningEncounters, action: /Action.resumableRunningEncounters)
             },

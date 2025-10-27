@@ -139,7 +139,8 @@ struct CompendiumItemGroupEditState: Equatable {
 
     var group: CompendiumItemGroup
 
-    var allCharacters: Async<[Character], Error> = .initial
+    typealias AsyncAllCharacers = Async<[Character], EquatableError>
+    var allCharacters: AsyncAllCharacers.State = .initial
 
     var isValid: Bool {
         !group.title.isEmpty && !group.members.isEmpty
@@ -160,7 +161,7 @@ struct CompendiumItemGroupEditState: Equatable {
 
 enum CompendiumItemGroupEditAction: Equatable {
     case groupTitle(String)
-    case allCharacters(Async<[Character], Error>.Action)
+    case allCharacters(CompendiumItemGroupEditState.AsyncAllCharacers.Action)
 
     case addMember(Character)
     case removeMember(CompendiumItemKey)
@@ -169,7 +170,7 @@ enum CompendiumItemGroupEditAction: Equatable {
     case onDoneTap(CompendiumItemGroup)
     case onRemoveTap(CompendiumItemGroup)
 
-    var allCharactersAction: Async<[Character], Error>.Action? {
+    var allCharactersAction: CompendiumItemGroupEditState.AsyncAllCharacers.Action? {
         guard case .allCharacters(let a) = self else { return nil }
         return a
     }
@@ -190,13 +191,15 @@ extension CompendiumItemGroupEditState {
             }
             return .none
         },
-        Async<[Character], Error>.reducer { env in
-            Deferred(catching: {
+        AnyReducer { env in
+            CompendiumItemGroupEditState.AsyncAllCharacers {
                 try env.compendium.fetchAll(search: nil, filters: .init(types: [.character]), order: .title, range: nil)
-            }).map { entries in
-                entries.compactMap { $0.item as? Character }
-            }.eraseToAnyPublisher()
-        }.pullback(state: \.allCharacters, action: /CompendiumItemGroupEditAction.allCharacters)
+                    .compactMap {
+                        $0.item as? Character
+                    }
+            }
+        }
+        .pullback(state: \.allCharacters, action: /CompendiumItemGroupEditAction.allCharacters)
     )
 }
 

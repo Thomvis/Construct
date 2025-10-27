@@ -176,8 +176,10 @@ struct CompendiumFilterSheetState: Equatable {
 
     var documentSelection: CompendiumDocumentSelectionFeature.State
 
-    var documents: Async<[CompendiumSourceDocument], Error> = .initial
-    var realms: Async<[CompendiumRealm], Error> = .initial
+    typealias AsyncDocuments = Async<[CompendiumSourceDocument], EquatableError>
+    var documents: AsyncDocuments.State = .initial
+    typealias AsyncRealms = Async<[CompendiumRealm], EquatableError>
+    var realms: AsyncRealms.State = .initial
 
     var currentDocument: CompendiumSourceDocument? {
         guard let s = current.source else { return nil }
@@ -190,8 +192,8 @@ struct CompendiumFilterSheetState: Equatable {
         sourceRestriction: CompendiumFilters.Source? = nil,
         initial: CompendiumFilterSheetState.Values = .init(),
         current: CompendiumFilterSheetState.Values = .init(),
-        documents: Async<[CompendiumSourceDocument], any Error> = .initial,
-        realms: Async<[CompendiumRealm], any Error> = .initial
+        documents: AsyncDocuments.State = .initial,
+        realms: AsyncRealms.State = .initial
     ) {
         self.allAllowedItemTypes = allAllowedItemTypes
         self.sourceRestriction = sourceRestriction

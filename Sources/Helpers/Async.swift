@@ -11,29 +11,38 @@ import Combine
 import ComposableArchitecture
 
 // Storage of an async result
-public struct Async<Success, Failure> where Failure: Swift.Error {
-    var identifier: AnyHashable
-    public var isLoading: Bool
-    public var result: Result<Success, Failure>?
+public struct Async<Success, Failure>: Reducer where Failure: Error {
 
-    public init(identifier: AnyHashable = UUID(), isLoading: Bool = false, result: Result<Success, Failure>? = nil) {
-        self.identifier = identifier
-        self.isLoading = isLoading
-        self.result = result
+    public let fetch: () async throws -> Success
+
+    public init(fetch: @escaping () async throws -> Success) {
+        self.fetch = fetch
     }
 
-    public var value: Success? {
-        guard case .success(let value)? = result else { return nil }
-        return value
-    }
+    public struct State {
+        var identifier: AnyHashable
+        public var isLoading: Bool
+        public var result: Result<Success, Failure>?
 
-    public var error: Failure? {
-        guard case .failure(let error)? = result else { return nil }
-        return error
-    }
+        public init(identifier: AnyHashable = UUID(), isLoading: Bool = false, result: Result<Success, Failure>? = nil) {
+            self.identifier = identifier
+            self.isLoading = isLoading
+            self.result = result
+        }
 
-    public static var initial: Async {
-        Async()
+        public var value: Success? {
+            guard case .success(let value)? = result else { return nil }
+            return value
+        }
+
+        public var error: Failure? {
+            guard case .failure(let error)? = result else { return nil }
+            return error
+        }
+
+        public static var initial: State {
+            State()
+        }
     }
 
     public enum Action {
@@ -43,60 +52,37 @@ public struct Async<Success, Failure> where Failure: Swift.Error {
         case reset
     }
 
-    public static func reducer<Environment>(_ fetch: @escaping (Environment) -> AnyPublisher<Success, Failure>) -> AnyReducer<Self, Action, Environment> {
-        return AnyReducer { state, action, environment in
-            switch action {
-            case .startLoading:
-                return .run { send in
-                    await send(.didStartLoading)
-                    do {
-                        for try await value in fetch(environment).values {
-                            await send(.didFinishLoading(.success(value)))
-                        }
-                    } catch {
-                        guard let failure = error as? Failure else { return }
-                        await send(.didFinishLoading(.failure(failure)))
-                    }
+    public func reduce(into state: inout State, action: Action) -> Effect<Action> {
+        switch action {
+        case .startLoading:
+            return .run { send in
+                await send(.didStartLoading)
+                do {
+                    try await send(.didFinishLoading(.success(fetch())))
+                } catch let error as Failure {
+                    await send(.didFinishLoading(.failure(error)))
                 }
-                .cancellable(id: state.identifier, cancelInFlight: true)
-            case .didStartLoading:
-                state.result = nil
-                state.isLoading = true
-            case .didFinishLoading(let result):
-                state.result = result
-                state.isLoading = false
-            case .reset:
-                state.result = nil
-                state.isLoading = false
-                return .cancel(id: state.identifier)
             }
-            return .none
+            .cancellable(id: state.identifier, cancelInFlight: true)
+        case .didStartLoading:
+            state.result = nil
+            state.isLoading = true
+        case .didFinishLoading(let result):
+            state.result = result
+            state.isLoading = false
+        case .reset:
+            state.result = nil
+            state.isLoading = false
+            return .cancel(id: state.identifier)
         }
+        return .none
     }
 }
 
-extension Async: Equatable where Success: Equatable {
-    public static func ==(lhs: Async<Success, Failure>, rhs: Async<Success, Failure>) -> Bool {
-        (lhs.identifier, lhs.isLoading, lhs.result?.value, lhs.result?.error == nil) ==
-        (rhs.identifier, rhs.isLoading, rhs.result?.value, rhs.result?.error == nil)
-    }
+extension Async.State: Equatable where Success: Equatable, Failure: Equatable {
+
 }
 
-extension Async.Action: Equatable where Success: Equatable {
-    public static func ==(lhs: Async<Success, Failure>.Action, rhs: Async<Success, Failure>.Action) -> Bool {
-        switch (lhs, rhs) {
-        case (.startLoading, .startLoading): return true
-        case (.didStartLoading, .didStartLoading): return true
-        case (.didFinishLoading(.success(let s1)), .didFinishLoading(.success(let s2))): return s1 == s2
-        case (.didFinishLoading(.failure), .didFinishLoading(.failure)): return true
-        case (.didFinishLoading, .didFinishLoading): return false // tv: saw this during a big refactor, fixme?
-        case (.reset, .reset): return true
+extension Async.Action: Equatable where Success: Equatable, Failure: Equatable {
 
-        // the following is so we get a warning when a new action is added
-        case (.startLoading, _): return false
-        case (.didStartLoading, _): return false
-        case (.didFinishLoading, _): return false
-        case (.reset, _): return false
-        }
-    }
 }

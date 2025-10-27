@@ -11,9 +11,11 @@ struct CompendiumDocumentSelectionFeature: ReducerProtocol {
         let unselectedLabel: String?
         let disabledSources: [CompendiumFilters.Source]
 
-        var documents: Async<[CompendiumSourceDocument], Error> = .initial
-        var realms: Async<[CompendiumRealm], Error> = .initial
-        
+        typealias AsyncDocuments = Async<[CompendiumSourceDocument], EquatableError>
+        var documents: AsyncDocuments.State = .initial
+        typealias AsyncRealms = Async<[CompendiumRealm], EquatableError>
+        var realms: AsyncRealms.State = .initial
+
         @BindingState var selectedSource: CompendiumFilters.Source?
         
         var currentDocument: CompendiumSourceDocument? {
@@ -59,8 +61,8 @@ struct CompendiumDocumentSelectionFeature: ReducerProtocol {
         case onAppear
         case source(CompendiumSourceDocument, CompendiumRealm)
         case clearSource
-        case documents(Async<[CompendiumSourceDocument], Error>.Action)
-        case realms(Async<[CompendiumRealm], Error>.Action)
+        case documents(State.AsyncDocuments.Action)
+        case realms(State.AsyncRealms.Action)
         case binding(BindingAction<State>)
     }
     
@@ -92,17 +94,11 @@ struct CompendiumDocumentSelectionFeature: ReducerProtocol {
         }
 
         Scope(state: \.documents, action: /Action.documents) {
-            Reduce(
-                Async<[CompendiumSourceDocument], Swift.Error>.reducer(),
-                environment: AsyncDocumentsAndRealmsEnvironment(compendiumMetadata: compendiumMetadata)
-            )
+            State.AsyncDocuments(compendiumMetadata: compendiumMetadata)
         }
 
         Scope(state: \.realms, action: /Action.realms) {
-            Reduce(
-                Async<[CompendiumRealm], Swift.Error>.reducer(),
-                environment: AsyncDocumentsAndRealmsEnvironment(compendiumMetadata: compendiumMetadata)
-            )
+            State.AsyncRealms(compendiumMetadata: compendiumMetadata)
         }
     }
 }

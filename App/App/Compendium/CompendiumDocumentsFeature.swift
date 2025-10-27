@@ -242,7 +242,8 @@ struct EditDocument: ReducerProtocol {
         @BindingState var displayName: String = ""
         @BindingState var realmId: CompendiumRealm.Id?
 
-        @BindingState var operation: Async<Bool, Error>? = nil
+        typealias AsyncOperation = Async<Bool, EquatableError>
+        @BindingState var operation: AsyncOperation.State? = nil
         var isLoading: Bool {
             operation?.isLoading == true
         }
@@ -406,7 +407,7 @@ struct EditDocument: ReducerProtocol {
         fileID: StaticString = #fileID,
         line: UInt = #line
     ) -> EffectTask<Action> {
-        state.operation = Async(isLoading: true)
+        state.operation = State.AsyncOperation.State(isLoading: true)
         return .run(
             operation: { @MainActor send in
                 let operationTask = Task {
@@ -421,7 +422,7 @@ struct EditDocument: ReducerProtocol {
 
                 let (operationResult, _) = await (operationTask.result, delayTask.result)
 
-                send(.binding(.set(\.$operation, Async(isLoading: false, result: operationResult))), animation: .default)
+                send(.binding(.set(\.$operation, State.AsyncOperation.State(isLoading: false, result: operationResult.mapError { $0.toEquatableError() }))), animation: .default)
 
                 if operationResult.value != nil {
                     await dismiss()

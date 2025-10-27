@@ -57,7 +57,7 @@ struct MechMuseCreatureGenerationFeature: ReducerProtocol {
         struct Revision: Equatable, Identifiable {
             let id: Id
             let prompt: String
-            var result = Async<SimpleStatBlock, MechMuseError>.initial // Async is only used for state, not for its reducer
+            var result = Async<SimpleStatBlock, MechMuseError>.State.initial // Async is only used for state, not for its reducer
 
             public typealias Id = Tagged<Revision, UUID>
         }

@@ -50,7 +50,7 @@ struct CompendiumImportFeature: ReducerProtocol {
         @BindingState var importSettings = ImportSettings.State()
 
         // we use Async just for state storage, not its reducer
-        var importResult: Async<CompendiumImporter.Result, Error> = .initial
+        var importResult: Async<CompendiumImporter.Result, Error>.State = .initial
         var resultAlert: AlertState<Action>? {
             guard let result = importResult.result else { return nil }
 
@@ -215,7 +215,8 @@ struct CompendiumImportFeature: ReducerProtocol {
 
     struct ImportSettings: ReducerProtocol {
         struct State: Equatable {
-            var documents: Async<[CompendiumSourceDocument], Swift.Error> = .initial
+            typealias AsyncDocuments = Async<[CompendiumSourceDocument], EquatableError>
+            var documents: AsyncDocuments.State = .initial
             var document: SelectedCompendiumDocument? = nil
             var newDocumentName: String = ""
             var newDocumentCustomSlug: String? {
@@ -248,7 +249,8 @@ struct CompendiumImportFeature: ReducerProtocol {
                 existingDocument ?? newDocument
             }
 
-            var realms: Async<[CompendiumRealm], Swift.Error> = .initial
+            typealias AsyncRealms = Async<[CompendiumRealm], EquatableError>
+            var realms: AsyncRealms.State = .initial
             var realm: SelectedRealm? = nil
             var newRealmName: String = ""
             var newRealmCustomSlug: String? {
@@ -385,8 +387,8 @@ struct CompendiumImportFeature: ReducerProtocol {
 
         enum Action: BindableAction, Equatable {
             case binding(BindingAction<State>)
-            case documents(Async<[CompendiumSourceDocument], Swift.Error>.Action)
-            case realms(Async<[CompendiumRealm], Swift.Error>.Action)
+            case documents(State.AsyncDocuments.Action)
+            case realms(State.AsyncRealms.Action)
         }
 
         @Dependency(\.compendiumMetadata) var compendiumMetadata
@@ -398,15 +400,13 @@ struct CompendiumImportFeature: ReducerProtocol {
 
             Scope(state: \.documents, action: /Action.documents) {
                 Reduce(
-                    Async<[CompendiumSourceDocument], Swift.Error>.reducer(),
-                    environment: AsyncDocumentsAndRealmsEnvironment(compendiumMetadata: compendiumMetadata)
+                    State.AsyncDocuments(compendiumMetadata: compendiumMetadata),
                 )
             }
 
             Scope(state: \.realms, action: /Action.realms) {
                 Reduce(
-                    Async<[CompendiumRealm], Swift.Error>.reducer(),
-                    environment: AsyncDocumentsAndRealmsEnvironment(compendiumMetadata: compendiumMetadata)
+                    State.AsyncRealms(compendiumMetadata: compendiumMetadata),
                 )
             }
         }
@@ -535,8 +535,8 @@ struct DataSourcePreferences: ReducerProtocol {
 
     struct Open5e: ReducerProtocol {
         struct State: Equatable {
-            typealias RemoteDocuments = Async<[Open5eAPI.Document], Error>
-            var remoteDocuments: RemoteDocuments = .initial
+            typealias RemoteDocuments = Async<[Open5eAPI.Document], EquatableError>
+            var remoteDocuments: RemoteDocuments.State = .initial
 
             @BindingState var document: SelectedOpen5eDocument? = nil
             @BindingState var other: String = ""
@@ -607,23 +607,14 @@ struct DataSourcePreferences: ReducerProtocol {
             }
 
             Scope(state: \.remoteDocuments, action: /Action.remoteDocuments) {
-                Reduce(
-                    State.RemoteDocuments.reducer { (env: ()) in
-                        @Dependency(\.mainQueue) var mainQueue
-
-                        return Future { fulfill in
-                            Task {
-                                do {
-                                    let response = try await Array(open5eAPIClient.fetchDocuments().all)
-                                    fulfill(.success(response.sorted(by: .init(\.title))))
-                                } catch {
-                                    fulfill(.failure(error))
-                                }
-                            }
-                        }.receive(on: mainQueue).eraseToAnyPublisher()
-                    },
-                    environment: ()
-                )
+                State.RemoteDocuments {
+                    do {
+                        return try await Array(open5eAPIClient.fetchDocuments().all)
+                            .sorted(by: .init(\.title))
+                    } catch {
+                        throw error.toEquatableError()
+                    }
+                }
             }
 
             BindingReducer()
@@ -1315,27 +1306,25 @@ extension DependencyValues {
     }
 }
 
-public extension Async<[CompendiumSourceDocument], Swift.Error> {
-    static func reducer() -> AnyReducer<Self, Action, EnvironmentWithCompendiumMetadata> {
-        Self.reducer { env in
+public extension Async<[CompendiumSourceDocument], EquatableError> {
+    init(compendiumMetadata: CompendiumMetadata) {
+        self.init {
             do {
-                let documents = try env.compendiumMetadata.sourceDocuments().sorted(by: .init(\.displayName))
-                return Just(documents).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
+                return try compendiumMetadata.sourceDocuments().sorted(by: .init(\.displayName))
             } catch {
-                return Fail(error: error).eraseToAnyPublisher()
+                throw error.toEquatableError()
             }
         }
     }
 }
 
-public extension Async<[CompendiumRealm], Swift.Error> {
-    static func reducer() -> AnyReducer<Self, Action, EnvironmentWithCompendiumMetadata> {
-        Self.reducer { env in
+public extension Async<[CompendiumRealm], EquatableError> {
+    init(compendiumMetadata: CompendiumMetadata) {
+        self.init {
             do {
-                let realms = try env.compendiumMetadata.realms().sorted(by: .init(\.displayName))
-                return Just(realms).setFailureType(to: Swift.Error.self).eraseToAnyPublisher()
+                return try compendiumMetadata.realms().sorted(by: .init(\.displayName))
             } catch {
-                return Fail(error: error).eraseToAnyPublisher()
+                throw error.toEquatableError()
             }
         }
     }

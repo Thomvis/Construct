@@ -17,7 +17,8 @@ struct CampaignBrowseViewState: NavigationStackSourceState, Equatable {
     let node: CampaignNode
     var mode: Mode
 
-    var items: Async<[CampaignNode], Error>
+    typealias AsyncItems = Async<[CampaignNode], EquatableError>
+    var items: AsyncItems.State
 
     let showSettingsButton: Bool
 
@@ -25,7 +26,7 @@ struct CampaignBrowseViewState: NavigationStackSourceState, Equatable {
 
     var presentedScreens: [NavigationDestination: NextScreen]
 
-    init(node: CampaignNode, mode: Mode, items: Async<[CampaignNode], Error> = .initial, showSettingsButton: Bool, sheet: Sheet? = nil, presentedScreens: [NavigationDestination: NextScreen] = [:]) {
+    init(node: CampaignNode, mode: Mode, items: AsyncItems.State = .initial, showSettingsButton: Bool, sheet: Sheet? = nil, presentedScreens: [NavigationDestination: NextScreen] = [:]) {
         self.node = node
         self.mode = mode
         self.items = items
@@ -107,7 +108,7 @@ extension CampaignBrowseViewState: NavigationStackItemState {
 
 enum CampaignBrowseViewAction: NavigationStackSourceAction, Equatable {
 
-    case items(Async<[CampaignNode], Error>.Action)
+    case items(CampaignBrowseViewState.AsyncItems.Action)
     case didTapNodeEditDone(CampaignBrowseViewState.NodeEditState, CampaignNode?, String)
     case didTapConfirmMoveButton
     case remove(CampaignNode)
@@ -120,7 +121,7 @@ enum CampaignBrowseViewAction: NavigationStackSourceAction, Equatable {
     indirect case detailScreen(NextScreenAction)
 
     // Key-path support
-    var items: Async<[CampaignNode], Error>.Action? {
+    var items: CampaignBrowseViewState.AsyncItems.Action? {
         get {
             guard case .items(let a) = self else { return nil }
             return a
@@ -327,14 +328,13 @@ extension CampaignBrowseViewState {
                 return .none
             },
             AnyReducer.withState({ $0.node.id != $1.node.id }) { state in
-                Async<[CampaignNode], Error>.reducer { env in
-                    precondition(!env.database.needsPrepareForUse)
-                    do {
-                        let nodes = try env.campaignBrowser.nodes(in: state.node)
-                        return Just(nodes).setFailureType(to: Error.self).eraseToAnyPublisher()
-                    } catch {
-                        env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
-                        return Fail(error: error).eraseToAnyPublisher()
+                AnyReducer { env in
+                    CampaignBrowseViewState.AsyncItems {
+                        do {
+                            return try env.campaignBrowser.nodes(in: state.node)
+                        } catch {
+                            throw EquatableError(error)
+                        }
                     }
                 }.pullback(state: \.items, action: /CampaignBrowseViewAction.items)
             },

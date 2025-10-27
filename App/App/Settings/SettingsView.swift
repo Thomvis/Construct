@@ -45,7 +45,7 @@ struct SettingsView: View {
     @State var preferences = Preferences()
 
     // the value is the api key
-    @State var mechMuseVerificationResult: Async<String, MechMuseError> = .initial
+    @State var mechMuseVerificationResult: Async<String, MechMuseError>.State = .initial
 
     var body: some View {
         List {
