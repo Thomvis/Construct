@@ -27,7 +27,7 @@ public struct DiceActionFeature: Reducer {
 
     public enum StepAction: Hashable {
         case value(ValueAction)
-        case rollDetails(DiceCalculatorAction)
+        case rollDetails(DiceCalculator.Action)
 
         public enum ValueAction: Hashable {
             case roll(RollAction)
@@ -64,7 +64,7 @@ public struct DiceActionFeature: Reducer {
             case .stepAction(let id, .value(.roll(.first(.roll)))),
                     .stepAction(let id, .value(.roll(.second(.roll)))):
                 state.rollingSteps.append(id)
-            case .stepAction(let id, .rollDetails(DiceCalculatorAction.onResultDieTap)):
+            case .stepAction(let id, .rollDetails(DiceCalculator.Action.onResultDieTap)):
                 state.rollingSteps.append(id)
                 fallthrough
             case .stepAction(_, .value(.roll(.first(.rollIntermediary(_, 0))))),
@@ -163,10 +163,7 @@ public struct DiceActionFeature: Reducer {
                 AnimatedRoll()
             }
         }.ifLet(\.rollDetails, action: /DiceActionFeature.StepAction.rollDetails) {
-            Reduce(
-                DiceCalculatorState.reducer,
-                environment: environment
-            )
+            DiceCalculator(environment: environment)
         }
     }
 }

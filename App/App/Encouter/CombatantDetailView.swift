@@ -381,7 +381,7 @@ struct CombatantDetailView: View {
                 )
                 self.viewStore.send(.popover(.diceAction(state)))
             case .rollCheck(let e):
-                self.viewStore.send(.popover(.rollCheck(DiceCalculatorState.rollingExpression(e, rollOnAppear: true))))
+                self.viewStore.send(.popover(.rollCheck(DiceCalculator.State.rollingExpression(e, rollOnAppear: true))))
             case .compendiumItemReferenceTextAnnotation(let annotation):
                 self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(annotation, appNavigation))
             }

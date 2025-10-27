@@ -16,7 +16,7 @@ struct ColumnNavigationViewState: Equatable {
     var campaignBrowse = CampaignBrowseViewState(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)
     var referenceView = ReferenceViewState.defaultInstance
 
-    var diceCalculator = FloatingDiceRollerViewState(diceCalculator: DiceCalculatorState(
+    var diceCalculator = FloatingDiceRollerViewState(diceCalculator: DiceCalculator.State(
         displayOutcomeExternally: false,
         rollOnAppear: false,
         expression: .dice(count: 1, die: Die(sides: 20)),

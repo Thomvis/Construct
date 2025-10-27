@@ -43,7 +43,7 @@ struct NumberEntryView: View {
 struct NumberEntryViewState: Hashable {
     var mode: Mode
     var padState: NumberPadViewState
-    var diceState: DiceCalculatorState
+    var diceState: DiceCalculator.State
 
     var value: Int? {
         switch mode {
@@ -61,7 +61,7 @@ struct NumberEntryViewState: Hashable {
 enum NumberEntryViewAction: Equatable {
     case mode(NumberEntryViewState.Mode)
     case pad(NumberPadViewAction)
-    case dice(DiceCalculatorAction)
+    case dice(DiceCalculator.Action)
 }
 
 extension NumberEntryViewState {
@@ -69,7 +69,7 @@ extension NumberEntryViewState {
         return NumberEntryViewState(mode: .pad, padState: NumberPadViewState(value: value), diceState: expression.map { .rollingExpression($0) } ?? .editingExpression())
     }
 
-    static func dice(_ state: DiceCalculatorState) -> NumberEntryViewState {
+    static func dice(_ state: DiceCalculator.State) -> NumberEntryViewState {
         return NumberEntryViewState(mode: .dice, padState: NumberPadViewState(value: 0), diceState: state)
     }
 
@@ -98,12 +98,19 @@ extension NumberEntryViewState {
             return .none
         },
         NumberPadViewState.reducer.pullback(state: \.padState, action: /NumberEntryViewAction.pad, environment: { _ in () }),
-        DiceCalculatorState.reducer.pullback(state: \.diceState, action: /NumberEntryViewAction.dice)
+        AnyReducer { env in
+            DiceCalculator(environment: env)
+        }
+        .pullback(
+            state: \.diceState,
+            action: /NumberEntryViewAction.dice,
+            environment: { $0 }
+        )
     )
 }
 
 typealias NumberEntryViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog
 
 extension NumberEntryViewState {
-    static let nullInstance = NumberEntryViewState(mode: .dice, padState: NumberPadViewState(value: 0), diceState: DiceCalculatorState(displayOutcomeExternally: false, rollOnAppear: false, expression: .number(0), mode: .editingExpression))
+    static let nullInstance = NumberEntryViewState(mode: .dice, padState: NumberPadViewState(value: 0), diceState: DiceCalculator.State(displayOutcomeExternally: false, rollOnAppear: false, expression: .number(0), mode: .editingExpression))
 }

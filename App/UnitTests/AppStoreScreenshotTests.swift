@@ -327,7 +327,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     ),
                     diceCalculator: FloatingDiceRollerViewState(
                         hidden: true,
-                        diceCalculator: DiceCalculatorState.abilityCheck(3, rollOnAppear: false, prefilledResult: 22)
+                        diceCalculator: DiceCalculator.State.abilityCheck(3, rollOnAppear: false, prefilledResult: 22)
                     )
                 )
             )
@@ -526,7 +526,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         ),
                         diceCalculator: FloatingDiceRollerViewState(
                             hidden: true,
-                            diceCalculator: DiceCalculatorState.abilityCheck(3, rollOnAppear: false, prefilledResult: 22)
+                            diceCalculator: DiceCalculator.State.abilityCheck(3, rollOnAppear: false, prefilledResult: 22)
                         )
                     )
                 )
@@ -580,7 +580,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 )
                             )
                         ),
-                        diceCalculator: FloatingDiceRollerViewState(hidden: true, diceCalculator: DiceCalculatorState.nullInstance)
+                        diceCalculator: FloatingDiceRollerViewState(hidden: true, diceCalculator: DiceCalculator.State.nullInstance)
                     )
                 )
             )
@@ -672,7 +672,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         ),
                         diceCalculator:  FloatingDiceRollerViewState(
                             hidden: false,
-                            diceCalculator: DiceCalculatorState(
+                            diceCalculator: DiceCalculator.State(
                                 displayOutcomeExternally: false,
                                 rollOnAppear: false,
                                 expression: 8.d(6),
@@ -684,7 +684,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 mode: .rollingExpression,
                                 showDice: false,
                                 previousExpressions: [],
-                                entryContext: DiceCalculatorState.EntryContext(
+                                entryContext: DiceCalculator.State.EntryContext(
                                     color: nil,
                                     subtract: false
                                 )
@@ -733,7 +733,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         ),
                         diceCalculator: FloatingDiceRollerViewState(
                             hidden: true,
-                            diceCalculator: DiceCalculatorState.nullInstance
+                            diceCalculator: DiceCalculator.State.nullInstance
                         )
                     )
                 )

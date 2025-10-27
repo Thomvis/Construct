@@ -12,12 +12,12 @@ import Dice
 import Helpers
 
 public struct DiceRollerViewState: Equatable {
-    public var calculatorState: DiceCalculatorState
+    public var calculatorState: DiceCalculator.State
     public var diceLog: DiceLog
     public var showOutcome: Bool
 
     public init() {
-        self.calculatorState = DiceCalculatorState(
+        self.calculatorState = DiceCalculator.State(
             displayOutcomeExternally: true,
             rollOnAppear: false,
             expression: .number(0),
@@ -29,12 +29,12 @@ public struct DiceRollerViewState: Equatable {
 }
 
 public enum DiceRollerViewAction: Equatable {
-    case calculatorState(DiceCalculatorAction)
+    case calculatorState(DiceCalculator.Action)
     case hideOutcome
     case onProcessRollForDiceLog(DiceLogEntry.Result, RollDescription)
     case onClearDiceLog
 
-    var calculatorState: DiceCalculatorAction? {
+    var calculatorState: DiceCalculator.Action? {
         guard case .calculatorState(let a) = self else { return nil }
         return a
     }
@@ -71,10 +71,17 @@ public extension DiceRollerViewState {
                 state.diceLog.receive(result, for: roll)
             case .onClearDiceLog:
                 state.diceLog.clear()
-            }
-            return .none
-        },
-        DiceCalculatorState.reducer.pullback(state: \.calculatorState, action: /DiceRollerViewAction.calculatorState)
+        }
+        return .none
+    },
+        AnyReducer { env in
+            DiceCalculator(environment: env)
+        }
+        .pullback(
+            state: \.calculatorState,
+            action: /DiceRollerViewAction.calculatorState,
+            environment: { $0 }
+        )
     )
 
     static let nullInstance = DiceRollerViewState()

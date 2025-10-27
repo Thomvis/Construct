@@ -8,17 +8,204 @@
 
 import Foundation
 import SwiftUI
-import Combine
 import ComposableArchitecture
 import Dice
 import SharedViews
 
+public struct DiceCalculator: Reducer {
+
+    let environment: DiceRollerEnvironment
+
+    public init(environment: DiceRollerEnvironment) {
+        self.environment = environment
+    }
+
+    public struct State: Hashable {
+        public let displayOutcomeExternally: Bool
+        public let rollOnAppear: Bool
+
+        public var expression: DiceExpression
+        public var roll: RollDescription? = nil
+
+        public var result: RolledDiceExpression? = nil
+        public var intermediaryResult: RolledDiceExpression? = nil // contains values in rapid succession just after a new result it set
+
+        public var mode: Mode
+        public var showDice: Bool = false
+
+        public var previousExpressions: [DiceExpression] = []
+
+        public var entryContext: EntryContext = EntryContext(color: nil, subtract: false)
+
+        public init(
+            displayOutcomeExternally: Bool,
+            rollOnAppear: Bool,
+            expression: DiceExpression,
+            roll: RollDescription? = nil,
+            result: RolledDiceExpression? = nil,
+            intermediaryResult: RolledDiceExpression? = nil,
+            mode: Mode,
+            showDice: Bool = false,
+            previousExpressions: [DiceExpression] = [],
+            entryContext: EntryContext = EntryContext(color: nil, subtract: false)
+        ) {
+            self.displayOutcomeExternally = displayOutcomeExternally
+            self.rollOnAppear = rollOnAppear
+            self.expression = expression
+            self.roll = roll
+            self.result = result
+            self.intermediaryResult = intermediaryResult
+            self.mode = mode
+            self.showDice = showDice
+            self.previousExpressions = previousExpressions
+            self.entryContext = entryContext
+        }
+
+        public func result(includingIntermediary: Bool) -> RolledDiceExpression? {
+            if includingIntermediary {
+                return intermediaryResult ?? result
+            }
+            return result
+        }
+
+        public mutating func reset() {
+            expression = .number(0)
+            previousExpressions = []
+
+            result = nil
+        }
+
+        public enum Mode: Hashable {
+            case editingExpression
+            case rollingExpression
+        }
+
+        public struct EntryContext: Hashable {
+            public var color: Die.Color?
+            public var subtract: Bool
+
+            public init(color: Die.Color? = nil, subtract: Bool) {
+                self.color = color
+                self.subtract = subtract
+            }
+        }
+    }
+
+    public enum Action: Hashable {
+        case mode(State.Mode)
+
+        case onRerollButtonTap
+        case onShowDiceButtonTap
+        case onExpressionEditButtonTap
+        case onExpressionEditUndoButtonTap
+        case onExpressionEditRollButtonTap
+        case onResultDieTap(Int)
+
+        case clearExpression
+        case appendExpression(DiceExpression)
+        case onColorCycleButtonTap
+        case onPlusMinusButtonTap
+
+        case startGeneratingIntermediaryResults(DiceExpression)
+        case intermediaryResultsStep(DiceExpression, Int)
+    }
+
+    public func reduce(into state: inout State, action: Action) -> Effect<Action> {
+        switch action {
+        case .mode(let mode):
+            state.mode = mode
+
+        case .onRerollButtonTap:
+            if state.expression.diceCount == 0 {
+                return .send(.mode(.editingExpression), animation: .default)
+            } else {
+                state.result = state.expression.roll
+                return .send(.startGeneratingIntermediaryResults(state.expression))
+            }
+
+        case .onShowDiceButtonTap:
+            state.showDice.toggle()
+
+        case .onExpressionEditButtonTap:
+            if state.mode == .rollingExpression {
+                state.mode = .editingExpression
+            }
+
+        case .onExpressionEditUndoButtonTap:
+            if let previousExpression = state.previousExpressions.popLast() {
+                state.expression = previousExpression
+            }
+
+        case .onExpressionEditRollButtonTap:
+            if state.mode == .editingExpression {
+                state.result = state.expression.roll
+                if !state.displayOutcomeExternally {
+                    state.mode = .rollingExpression
+                }
+
+                return .send(.startGeneratingIntermediaryResults(state.expression))
+            }
+
+        case .onResultDieTap(let index):
+            state.result?.rerollDice(index)
+
+        case .appendExpression(let expression):
+            state.previousExpressions.append(state.expression)
+            let effectiveExpression = (state.entryContext.subtract ? expression.opposite : expression).color(state.entryContext.color)
+            state.expression.append(effectiveExpression)
+
+            state.result = nil
+
+        case .onColorCycleButtonTap:
+            let current = State.colors.firstIndex(of: state.entryContext.color) ?? 0
+            state.entryContext.color = State.colors[(current + 1) % State.colors.count]
+
+        case .onPlusMinusButtonTap:
+            state.entryContext.subtract.toggle()
+
+        case .clearExpression:
+            state.reset()
+
+        case .startGeneratingIntermediaryResults(let expression):
+            return .send(.intermediaryResultsStep(expression, state.intermediaryResultStepCount))
+
+        case .intermediaryResultsStep(let expression, let remaining):
+            guard expression == state.expression else {
+                state.intermediaryResult = nil
+                return .none
+            }
+
+            guard remaining > 0 else {
+                state.intermediaryResult = nil
+
+                if let result = state.result {
+                    if let roll = state.roll, roll.expression == expression {
+                        environment.diceLog.didRoll(result, roll: roll)
+                    } else {
+                        environment.diceLog.didRoll(result, roll: .custom(expression))
+                    }
+                }
+                return .none
+            }
+
+            state.intermediaryResult = expression.roll
+
+            return .run { [delay = state.intermediaryResultStepDelay] send in
+                try await Task.sleep(for: .seconds(delay))
+                await send(.intermediaryResultsStep(expression, remaining - 1), animation: .default)
+            }
+        }
+
+        return .none
+    }
+}
+
 public struct DiceCalculatorView: View {
     public static let buttonSpacing: CGFloat = 10
 
-    var store: Store<DiceCalculatorState, DiceCalculatorAction>
+    var store: StoreOf<DiceCalculator>
 
-    public init(store: Store<DiceCalculatorState, DiceCalculatorAction>) {
+    public init(store: StoreOf<DiceCalculator>) {
         self.store = store
     }
 
@@ -42,67 +229,9 @@ public struct DiceCalculatorView: View {
     }
 }
 
-public struct DiceCalculatorState: Hashable {
-    public let displayOutcomeExternally: Bool
-    public let rollOnAppear: Bool
-
-    public var expression: DiceExpression
-    public var roll: RollDescription? = nil
-
-    public var result: RolledDiceExpression? = nil
-    public var intermediaryResult: RolledDiceExpression? = nil // contains values in rapid succession just after a new result it set
-
-    public var mode: Mode
-    public var showDice: Bool = false
-
-    public var previousExpressions: [DiceExpression] = []
-
-    public var entryContext: EntryContext = EntryContext(color: nil, subtract: false)
-
-    public init(displayOutcomeExternally: Bool, rollOnAppear: Bool, expression: DiceExpression, roll: RollDescription? = nil, result: RolledDiceExpression? = nil, intermediaryResult: RolledDiceExpression? = nil, mode: Mode, showDice: Bool = false, previousExpressions: [DiceExpression] = [], entryContext: EntryContext = EntryContext(color: nil, subtract: false)) {
-        self.displayOutcomeExternally = displayOutcomeExternally
-        self.rollOnAppear = rollOnAppear
-        self.expression = expression
-        self.roll = roll
-        self.result = result
-        self.intermediaryResult = intermediaryResult
-        self.mode = mode
-        self.showDice = showDice
-        self.previousExpressions = previousExpressions
-        self.entryContext = entryContext
-    }
-
-    public func result(includingIntermediary: Bool) -> RolledDiceExpression? {
-        if includingIntermediary {
-            return intermediaryResult ?? result
-        }
-        return result
-    }
-
-    public mutating func reset() {
-        expression = .number(0)
-        previousExpressions = []
-
-        result = nil
-    }
-
-    public enum Mode: Hashable {
-        case editingExpression
-        case rollingExpression
-    }
-
-    public struct EntryContext: Hashable {
-        public var color: Die.Color?
-        public var subtract: Bool
-
-        public init(color: Die.Color? = nil, subtract: Bool) {
-            self.color = color
-            self.subtract = subtract
-        }
-    }
-
-    public static func rolling(_ roll: RollDescription, rollOnAppear: Bool = false, prefilledResult: Int? = nil) -> DiceCalculatorState {
-        DiceCalculatorState(
+public extension DiceCalculator.State {
+    static func rolling(_ roll: RollDescription, rollOnAppear: Bool = false, prefilledResult: Int? = nil) -> Self {
+        Self(
             displayOutcomeExternally: false,
             rollOnAppear: rollOnAppear,
             expression: roll.expression,
@@ -113,8 +242,8 @@ public struct DiceCalculatorState: Hashable {
         )
     }
 
-    public static func rollingExpression(_ expression: DiceExpression, rollOnAppear: Bool = false, prefilledResult: Int? = nil) -> DiceCalculatorState {
-        DiceCalculatorState(
+    static func rollingExpression(_ expression: DiceExpression, rollOnAppear: Bool = false, prefilledResult: Int? = nil) -> Self {
+        Self(
             displayOutcomeExternally: false,
             rollOnAppear: rollOnAppear,
             expression: expression,
@@ -124,8 +253,8 @@ public struct DiceCalculatorState: Hashable {
         )
     }
 
-    public static func editingExpression(_ expression: DiceExpression = .number(0)) -> DiceCalculatorState {
-        DiceCalculatorState(
+    static func editingExpression(_ expression: DiceExpression = .number(0)) -> Self {
+        Self(
             displayOutcomeExternally: false,
             rollOnAppear: false,
             expression: expression,
@@ -133,89 +262,12 @@ public struct DiceCalculatorState: Hashable {
         )
     }
 
-    public static func abilityCheck(_ modifier: Int, rollOnAppear: Bool = true, prefilledResult: Int? = nil) -> DiceCalculatorState {
-        return .rollingExpression((1.d(20)+modifier).normalized ?? 1.d(20), rollOnAppear: rollOnAppear, prefilledResult: prefilledResult)
-    }
-
-    public static var reducer = AnyReducer<DiceCalculatorState, DiceCalculatorAction, DiceRollerEnvironment> { state, action, env in
-        switch action {
-        case .mode(let m):
-            state.mode = m
-        case .onRerollButtonTap:
-            if state.expression.diceCount == 0 {
-                return .send(.mode(.editingExpression), animation: .default)
-            } else {
-                state.result = state.expression.roll
-                return .send(.startGeneratingIntermediaryResults(state.expression))
-            }
-        case .onShowDiceButtonTap:
-            state.showDice.toggle()
-        case .onExpressionEditButtonTap:
-            if state.mode == .rollingExpression {
-                state.mode = .editingExpression
-            }
-        case .onExpressionEditUndoButtonTap:
-            if let previousExpression = state.previousExpressions.popLast() {
-                state.expression = previousExpression
-            }
-        case .onExpressionEditRollButtonTap:
-            if state.mode == .editingExpression {
-                state.result = state.expression.roll
-                if !state.displayOutcomeExternally {
-                    state.mode = .rollingExpression
-                }
-
-                return .send(.startGeneratingIntermediaryResults(state.expression))
-            }
-        case .onResultDieTap(let idx):
-            state.result?.rerollDice(idx)
-        case .appendExpression(let e):
-            state.previousExpressions.append(state.expression)
-            let effectiveExpression = (state.entryContext.subtract ? e.opposite : e).color(state.entryContext.color)
-            state.expression.append(effectiveExpression)
-
-            state.result = nil
-        case .onColorCycleButtonTap:
-            let current = DiceCalculatorState.colors.firstIndex(of: state.entryContext.color) ?? 0
-            state.entryContext.color = DiceCalculatorState.colors[(current + 1) % DiceCalculatorState.colors.count]
-        case .onPlusMinusButtonTap:
-            state.entryContext.subtract.toggle()
-        case .clearExpression:
-            state.reset()
-        case .startGeneratingIntermediaryResults(let expression):
-            return .send(.intermediaryResultsStep(expression, state.intermediaryResultStepCount))
-        case .intermediaryResultsStep(let expression, let remaining):
-            guard expression == state.expression else {
-                state.intermediaryResult = nil
-                return .none
-            }
-
-            guard remaining > 0 else {
-                state.intermediaryResult = nil
-
-                if let result = state.result {
-                    if let roll = state.roll, roll.expression == expression {
-                        env.diceLog.didRoll(result, roll: roll)
-                    } else {
-                        env.diceLog.didRoll(result, roll: .custom(expression))
-                    }
-                }
-                return .none
-            }
-
-            state.intermediaryResult = expression.roll
-
-            return .run { [delay=state.intermediaryResultStepDelay] send in
-                try await Task.sleep(for: .seconds(delay))
-                await send(.intermediaryResultsStep(expression, remaining-1), animation: .default)
-            }
-        }
-        return .none
+    static func abilityCheck(_ modifier: Int, rollOnAppear: Bool = true, prefilledResult: Int? = nil) -> Self {
+        .rollingExpression((1.d(20)+modifier).normalized ?? 1.d(20), rollOnAppear: rollOnAppear, prefilledResult: prefilledResult)
     }
 }
 
-// Derrived values
-extension DiceCalculatorState {
+extension DiceCalculator.State {
 
     var showMinimizedExpressionView: Bool {
         mode != .editingExpression
@@ -266,29 +318,12 @@ extension DiceCalculatorState {
     var intermediaryResultStepDelay: Double {
         showDice && showDiceSummary ? 0.2 : 0.08
     }
-}
 
-public enum DiceCalculatorAction: Hashable {
-    case mode(DiceCalculatorState.Mode)
-
-    case onRerollButtonTap
-    case onShowDiceButtonTap
-    case onExpressionEditButtonTap
-    case onExpressionEditUndoButtonTap
-    case onExpressionEditRollButtonTap
-    case onResultDieTap(Int)
-
-    case clearExpression
-    case appendExpression(DiceExpression)
-    case onColorCycleButtonTap
-    case onPlusMinusButtonTap
-
-    case startGeneratingIntermediaryResults(DiceExpression)
-    case intermediaryResultsStep(DiceExpression, Int)
+    static let colors: [Die.Color?] = [nil] + Die.Color.allCases.map(Optional.some)
 }
 
 fileprivate struct DiceExpressionView: View {
-    var store: Store<DiceCalculatorState, DiceCalculatorAction>
+    var store: StoreOf<DiceCalculator>
 
     var body: some View {
         WithViewStore(store, observe: \.self) { viewStore in
@@ -321,7 +356,7 @@ fileprivate struct DiceExpressionView: View {
 }
 
 struct OutcomeView: View {
-    let store: Store<DiceCalculatorState, DiceCalculatorAction>
+    let store: StoreOf<DiceCalculator>
 
     var body: some View {
         WithViewStore(store, observe: \.self) { viewStore in
@@ -390,7 +425,7 @@ struct OutcomeView: View {
     }
 
     struct TrailingButtons: View {
-        @ObservedObject var store: ViewStore<DiceCalculatorState, DiceCalculatorAction>
+        @ObservedObject var store: ViewStore<DiceCalculator.State, DiceCalculator.Action>
 
         var body: some View {
             VStack {
@@ -405,9 +440,9 @@ struct OutcomeView: View {
 }
 
 public struct ResultDetailView: View {
-    let store: Store<RolledDiceExpression, DiceCalculatorAction>
+    let store: Store<RolledDiceExpression, DiceCalculator.Action>
 
-    public init(store: Store<RolledDiceExpression, DiceCalculatorAction>) {
+    public init(store: Store<RolledDiceExpression, DiceCalculator.Action>) {
         self.store = store
     }
 
@@ -457,7 +492,7 @@ public struct ResultDetailView: View {
 }
 
 fileprivate struct DicePadView: View {
-    @ObservedObject var store: ViewStore<DiceCalculatorState, DiceCalculatorAction>
+    @ObservedObject var store: ViewStore<DiceCalculator.State, DiceCalculator.Action>
 
     var body: some View {
         VStack(spacing: DiceCalculatorView.buttonSpacing) {
@@ -546,10 +581,6 @@ fileprivate struct PlusMinusToggleButton: View {
 
 }
 
-extension DiceCalculatorState {
-    static let colors: [Die.Color?] = [nil] + Die.Color.allCases.map(Optional.some)
-}
-
 fileprivate struct CycleColorButton: View {
 
     var action: () -> Void
@@ -614,6 +645,6 @@ public struct ButtonStyle: SwiftUI.ButtonStyle {
     }
 }
 
-public extension DiceCalculatorState {
-    static let nullInstance = DiceCalculatorState(displayOutcomeExternally: false, rollOnAppear: false, expression: .number(0), mode: .editingExpression)
+public extension DiceCalculator.State {
+    static let nullInstance = Self(displayOutcomeExternally: false, rollOnAppear: false, expression: .number(0), mode: .editingExpression)
 }

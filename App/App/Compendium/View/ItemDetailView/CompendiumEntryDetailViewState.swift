@@ -65,7 +65,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         }
     }
 
-    var rollCheckPopover: DiceCalculatorState? {
+    var rollCheckPopover: DiceCalculator.State? {
         get {
             if case .rollCheck(let s) = popover {
                 return s
@@ -147,7 +147,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
 
     enum Popover: Equatable, Identifiable {
         case creatureAction(ActionResolutionFeature.State)
-        case rollCheck(DiceCalculatorState)
+        case rollCheck(DiceCalculator.State)
 
         var id: String {
             switch self {
@@ -194,7 +194,15 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                 action: /CompendiumItemDetailViewAction.creatureActionPopover,
                 environment: { $0 }
             ),
-            DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckPopover, action: /CompendiumItemDetailViewAction.rollCheckPopover, environment: { $0 }),
+            AnyReducer { env in
+                DiceCalculator(environment: env)
+            }
+            .optional()
+            .pullback(
+                state: \.rollCheckPopover,
+                action: /CompendiumItemDetailViewAction.rollCheckPopover,
+                environment: { $0 }
+            ),
             AnyReducer.lazy(CompendiumEntryDetailViewState.reducer).optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.compendiumItemDetailView),
             CompendiumItemReferenceTextAnnotation.handleTapReducer(
                 didTapAction: /CompendiumItemDetailViewAction.didTapCompendiumItemReferenceTextAnnotation,
@@ -306,7 +314,7 @@ enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
     case didTapCompendiumItemReferenceTextAnnotation(CompendiumItemReferenceTextAnnotation, AppNavigation)
     case popover(CompendiumEntryDetailViewState.Popover?)
     case creatureActionPopover(ActionResolutionFeature.Action)
-    case rollCheckPopover(DiceCalculatorAction)
+    case rollCheckPopover(DiceCalculator.Action)
     case setSheet(CompendiumEntryDetailViewState.Sheet?)
     case sheet(SheetAction)
     case didRemoveItem

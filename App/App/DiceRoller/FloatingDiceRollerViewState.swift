@@ -13,7 +13,7 @@ import DiceRollerFeature
 struct FloatingDiceRollerViewState: Equatable {
     var hidden: Bool = false
     var content: Content = .calculator
-    var diceCalculator: DiceCalculatorState
+    var diceCalculator: DiceCalculator.State
     var diceLog = DiceLog()
 
     var canCollapse: Bool {
@@ -27,7 +27,7 @@ struct FloatingDiceRollerViewState: Equatable {
 }
 
 enum FloatingDiceRollerViewAction: Equatable {
-    case diceCalculator(DiceCalculatorAction)
+    case diceCalculator(DiceCalculator.Action)
     case hide
     case content(FloatingDiceRollerViewState.Content)
     case show
@@ -40,7 +40,14 @@ enum FloatingDiceRollerViewAction: Equatable {
 
 extension FloatingDiceRollerViewState {
     static let reducer: AnyReducer<Self, FloatingDiceRollerViewAction, Environment> = AnyReducer.combine(
-        DiceCalculatorState.reducer.pullback(state: \.diceCalculator, action: /FloatingDiceRollerViewAction.diceCalculator, environment: { $0 }),
+        AnyReducer { env in
+            DiceCalculator(environment: env)
+        }
+        .pullback(
+            state: \.diceCalculator,
+            action: /FloatingDiceRollerViewAction.diceCalculator,
+            environment: { $0 }
+        ),
         AnyReducer { state, action, env in
             switch action {
             case .diceCalculator: break // handled above

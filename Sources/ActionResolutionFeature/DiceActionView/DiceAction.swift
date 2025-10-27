@@ -129,10 +129,10 @@ public struct DiceAction: Hashable {
             }
         }
 
-        var rollDetails: DiceCalculatorState? {
+        var rollDetails: DiceCalculator.State? {
             get {
                 if case .roll(let v) = value, let detailRoll = v.details, let roll = detailRoll.isFirstRoll ? v.first : v.second {
-                    return DiceCalculatorState(
+                    return DiceCalculator.State(
                         displayOutcomeExternally: false,
                         rollOnAppear: false,
                         expression: v.expression,

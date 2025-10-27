@@ -118,7 +118,7 @@ public struct DiceRollerView: View {
 
 struct OutcomePopover: View, Popover {
     let popoverId: AnyHashable
-    var store: Store<DiceCalculatorState, DiceCalculatorAction>
+    var store: StoreOf<DiceCalculator>
 
     var body: some View {
         WithViewStore(store, observe: \.self) { viewStore in
@@ -245,4 +245,3 @@ let sampleEntries = [
 //   )
 ]
 #endif
-
