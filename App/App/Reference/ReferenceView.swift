@@ -18,7 +18,7 @@ struct ReferenceView: View {
     let store: Store<ReferenceViewState, ReferenceViewAction>
 
     var body: some View {
-        WithViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication }) { viewStore in
+        WithViewStore(store, observe: \.self, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication }) { viewStore in
             TabbedDocumentView(
                 items: tabItems(viewStore),
                 content: { item in

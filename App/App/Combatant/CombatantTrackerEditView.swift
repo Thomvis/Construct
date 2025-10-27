@@ -21,7 +21,7 @@ struct CombatantTrackerEditView: View, Popover {
 
     init(store: Store<CombatantTrackerEditViewState, CombatantTrackerEditViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
     }
 
     var body: some View {

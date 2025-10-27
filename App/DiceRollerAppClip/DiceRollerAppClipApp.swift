@@ -33,7 +33,7 @@ struct DiceRollerAppClipApp: App {
 
     var body: some Scene {
         WindowGroup {
-            WithViewStore(store) { viewStore in
+            WithViewStore(store, observe: \.self) { viewStore in
                 ContentView(store: store.scope(state: \.diceRoller, action: AppAction.diceRoller))
                     .onAppear {
                         viewStore.send(.onLaunch)
@@ -42,7 +42,7 @@ struct DiceRollerAppClipApp: App {
                         viewStore.send(.onContinueUserActivity(activity))
                     }
                     .appStoreOverlay(
-                        isPresented: viewStore.binding(\.$showAppStoreOverlay),
+                        isPresented: viewStore.$showAppStoreOverlay,
                         configuration: {
                             return SKOverlay.AppClipConfiguration(position: .bottom)
                         }

@@ -19,7 +19,7 @@ struct AddCombatantReferenceItemView: View {
             externalNavigation: true,
             showEncounterDifficulty: false,
             onSelection: { action, _ in
-                ViewStore(store).send(.onSelection(action))
+                store.send(.onSelection(action))
             }
         )
     }

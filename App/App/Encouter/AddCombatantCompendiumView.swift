@@ -48,11 +48,12 @@ struct AddCombatantCompendiumView: View {
                 }.eraseToAnyView
             },
             detail: { store in
-                guard ViewStore(store).state.item is Monster else { return CompendiumIndexViewProvider.default.detail(store).eraseToAnyView }
+                let viewStore = ViewStore(store, observe: \.self)
+                guard viewStore.state.item is Monster else { return CompendiumIndexViewProvider.default.detail(store).eraseToAnyView }
                 return AddCombatantDetailView(parentStore: self.store, store: store, onSelection: { action in
                     self.onSelection(action, false)
                 })
-                .navigationBarTitle(Text(ViewStore(store).state.item.title), displayMode: .inline)
+                .navigationBarTitle(Text(viewStore.state.item.title), displayMode: .inline)
                 .eraseToAnyView
             },
             state: { [state=viewStore.state] in state.combatantsByDefinitionCache }
@@ -164,7 +165,7 @@ extension AddCombatantCompendiumView {
         onSelection: @escaping (AddCombatantView.Action, _ dismiss: Bool) -> Void
     ) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
         self.onSelection = onSelection
     }
 }

@@ -19,7 +19,7 @@ struct ReferenceItemView: View {
 
     var body: some View {
         // TODO: not all content should be presented in a NavigationView
-        WithViewStore(store, removeDuplicates: { $0.content.typeHash == $1.content.typeHash }) { viewStore in
+        WithViewStore(store, observe: \.self, removeDuplicates: { $0.content.typeHash == $1.content.typeHash }) { viewStore in
             NavigationStack {
                 ZStack {
                     IfLetStore(store.scope(state: { $0.content.compendiumState?.compendium }, action: { .contentCompendium(.compendium($0)) })) { store in
@@ -56,7 +56,7 @@ struct ReferenceItemView: View {
         let store: Store<ReferenceItemViewState.Content.CombatantDetail, ReferenceItemViewAction.CombatantDetail>
 
         var body: some View {
-            WithViewStore(store) { viewStore in
+            WithViewStore(store, observe: \.self) { viewStore in
                 Construct.CombatantDetailView(store: store.scope(state: { $0.detailState }, action: { .detail($0) }))
                     .id(viewStore.state.selectedCombatantId)
                     .toolbar {

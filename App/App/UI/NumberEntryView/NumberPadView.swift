@@ -17,7 +17,7 @@ struct NumberPadView: View {
 
     init(store: Store<NumberPadViewState, NumberPadViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
     }
 
     var overwriteString: String {

@@ -47,7 +47,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     }
 
     var body: some View {
-        WithViewStore(store, observe:LocalState.init) { localViewStore in
+        WithViewStore(store, observe: LocalState.init) { localViewStore in
             Group {
                 contentView(localViewStore)
             }
@@ -252,7 +252,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                                         .toolbar {
                                             ToolbarItem(placement: .cancellationAction) {
                                                 Button {
-                                                    ViewStore(self.store).send(.setSheet(nil))
+                                                    self.store.send(.setSheet(nil))
                                                 } label: {
                                                     Text("Cancel")
                                                 }
@@ -399,10 +399,10 @@ fileprivate struct CompendiumSearchableModifier: ViewModifier {
             }
         )
         .onChange(of: text, perform: { t in
-            ViewStore(store).send(.query(.onTextDidChange(t.nonEmptyString)))
+            store.send(.query(.onTextDidChange(t.nonEmptyString)))
         })
         .onChange(of: tokens) { tokens in
-            ViewStore(store).send(.onQueryTypeFilterDidChange(tokens.nonEmptyArray))
+            store.send(.onQueryTypeFilterDidChange(tokens.nonEmptyArray))
         }
         .background {
             WithViewStore(store, observe: LocalState.init) { localViewStore in
@@ -652,7 +652,7 @@ fileprivate struct CompendiumEntryRow: View {
             VStack(alignment: .leading) {
                 Text(entry.item.title).lineLimit(1)
 
-                entry.item.localizedSummary(in: ViewStore(store).state, env: env)
+                entry.item.localizedSummary(in: ViewStore(store, observe: \.self).state, env: env)
                     .font(.footnote)
                     .foregroundColor(Color(UIColor.secondaryLabel))
                     .multilineTextAlignment(.leading)
@@ -667,7 +667,7 @@ fileprivate struct CompendiumEntryRow: View {
                     .font(.headline)
             }
 
-            if ViewStore(store).properties.showSourceDocumentBadges {
+            if ViewStore(store, observe: \.self).properties.showSourceDocumentBadges {
                 Text(entry.document.id.rawValue.uppercased())
                     .font(.caption)
                     .foregroundStyle(Color(UIColor.systemBackground))

@@ -135,7 +135,7 @@ struct CompendiumDocumentSelectionView: View {
         store: StoreOf<CompendiumDocumentSelectionFeature>,
         label: @escaping (String) -> some View
     ) -> some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             Menu {
                 if let unselectedLabel = viewStore.unselectedLabel {
                     Button(unselectedLabel) {
@@ -184,7 +184,7 @@ struct CompendiumDocumentSelectionView: View {
         store: StoreOf<CompendiumDocumentSelectionFeature>,
         content: @escaping (CompendiumDocumentSelectionFeature.State) -> some View
     ) -> some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             content(viewStore.state)
                 .onAppear {
                     viewStore.send(.documents(.startLoading))

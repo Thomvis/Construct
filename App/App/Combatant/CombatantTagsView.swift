@@ -22,7 +22,7 @@ struct CombatantTagsView: View {
 
     init(store: Store<CombatantTagsViewState, CombatantTagsViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
     }
 
     var body: some View {

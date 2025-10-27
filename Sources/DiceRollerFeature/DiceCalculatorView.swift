@@ -23,13 +23,13 @@ public struct DiceCalculatorView: View {
     }
 
     public var body: some View {
-        WithViewStore(store, removeDuplicates: { $0.showDicePad == $1.showDicePad }) { viewStore in
+        WithViewStore(store, observe: \.self, removeDuplicates: { $0.showDicePad == $1.showDicePad }) { viewStore in
             VStack {
                 DiceExpressionView(store: self.store)
                 Divider()
 
                 if viewStore.showDicePad {
-                    DicePadView(store: ViewStore(store)).transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
+                    DicePadView(store: ViewStore(store, observe: \.self)).transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
                 } else {
                     OutcomeView(store: store).transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
                 }
@@ -291,7 +291,7 @@ fileprivate struct DiceExpressionView: View {
     var store: Store<DiceCalculatorState, DiceCalculatorAction>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             HStack {
                 viewStore.state.expression.text
                     .font(viewStore.state.showMinimizedExpressionView ? .body : .largeTitle)
@@ -324,7 +324,7 @@ struct OutcomeView: View {
     let store: Store<DiceCalculatorState, DiceCalculatorAction>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             ZStack {
                 if viewStore.state.showDice && viewStore.state.showDiceSummary {
                     IfLetStore(store.scope(state: { $0.result(includingIntermediary: true) }, action: { $0 })) { store in
@@ -412,7 +412,7 @@ public struct ResultDetailView: View {
     }
 
     public var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             VStack {
                 LazyVGrid(
                     columns: gridColumns(viewStore.state),

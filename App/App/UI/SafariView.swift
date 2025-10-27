@@ -48,6 +48,6 @@ extension SafariViewState: NavigationStackItemState {
 
 extension SafariView {
     init(store: Store<SafariViewState, Void>) {
-        self.init(url: ViewStore(store).url)
+        self.init(url: ViewStore(store, observe: \.self).url)
     }
 }

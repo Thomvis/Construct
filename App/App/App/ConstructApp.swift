@@ -137,7 +137,7 @@ struct ConstructView: View {
     }
 
     var body: some View {
-        WithViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication }) { viewStore in
+        WithViewStore(store, observe: \.self, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication }) { viewStore in
             ZStack {
                 IfLetStore(store.scope(state: { $0.navigation?.tabState }, action: { .navigation(.tab($0)) }), then: { store in
                     TabNavigationView(store: store)
@@ -208,7 +208,7 @@ struct ConstructView: View {
                 return
             }
 
-            ViewStore(store).send(.requestPresentation(.crashReportingPermissionAlert))
+            store.send(.requestPresentation(.crashReportingPermissionAlert))
         }
     }
 }

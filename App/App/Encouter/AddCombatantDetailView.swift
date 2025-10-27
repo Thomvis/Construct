@@ -24,7 +24,7 @@ struct AddCombatantDetailView: View {
         self.parentStore = parentStore
         self.parentViewStore = ViewStore(parentStore)
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
         self.onSelection = onSelection
     }
 

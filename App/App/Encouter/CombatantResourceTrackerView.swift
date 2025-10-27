@@ -16,7 +16,7 @@ struct CombatantResourceTrackerView: View {
     var store: Store<CombatantResource, CombatantResourceAction>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             VStack(alignment: .leading) {
                 HStack {
                     Text(viewStore.state.title).font(.footnote).bold()

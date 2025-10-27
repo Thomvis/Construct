@@ -22,7 +22,7 @@ struct CompendiumItemGroupEditView: View {
 
     init(store: Store<CompendiumItemGroupEditState, CompendiumItemGroupEditAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
     }
 
     var body: some View {

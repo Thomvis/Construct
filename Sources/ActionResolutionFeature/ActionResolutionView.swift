@@ -25,7 +25,7 @@ public struct ActionResolutionView: View {
     }
 
     public var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             VStack {
                 HStack {
                     Image(systemName: "quote.bubble").opacity(0) // for symmetry

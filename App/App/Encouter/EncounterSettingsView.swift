@@ -27,7 +27,7 @@ struct EncounterSettingsView: View {
 
     init(store: Store<EncounterDetailViewState, EncounterDetailViewState.Action>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
     }
 
     var encounter: Encounter {

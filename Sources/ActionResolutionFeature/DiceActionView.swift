@@ -17,7 +17,7 @@ struct DiceActionView: View {
     let store: Store<DiceActionViewState, DiceActionViewAction>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             VStack {
 
                 VStack {
@@ -51,7 +51,7 @@ struct DiceActionView: View {
         let store: Store<DiceAction.Step, DiceActionStepAction>
 
         var body: some View {
-            WithViewStore(store) { viewStore in
+            WithViewStore(store, observe: \.self) { viewStore in
                 VStack(spacing: 8) {
                     HStack {
                         SimpleButton(action: {
@@ -89,7 +89,7 @@ struct DiceActionView: View {
             let store: Store<DiceAction.Step.Value.RollValue, DiceActionStepAction.ValueAction.RollAction>
 
             var body: some View {
-                WithViewStore(store) { viewStore in
+                WithViewStore(store, observe: \.self) { viewStore in
                     HStack {
                         if viewStore.state.isToHit {
                             Menu(content: {
@@ -123,7 +123,7 @@ struct DiceActionView: View {
                         }
 
                         IfLetStore(store.scope(state: { $0.second }, action: { $0 })) { store in
-                            WithViewStore(store) { secondViewStore in
+                            WithViewStore(store, observe: \.self) { secondViewStore in
                                 SimpleButton(action: {
                                     viewStore.send(.details(viewStore.state.details.toggled(.secondRoll)), animation: .default)
                                 }) {
@@ -170,7 +170,7 @@ struct DiceActionView: View {
             let store: Store<DiceAction.Step, DiceActionStepAction>
 
             var body: some View {
-                WithViewStore(store) { viewStore in
+                WithViewStore(store, observe: \.self) { viewStore in
                     IfLetStore(self.store.scope(state: { $0.rollDetails?.result(includingIntermediary: true) }, action: { .rollDetails($0) })) { store in
                         ResultDetailView(store: store)
                             .padding(10)

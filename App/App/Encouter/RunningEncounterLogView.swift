@@ -18,7 +18,7 @@ struct RunningEncounterLogView: View {
 
     init(store: Store<RunningEncounterLogViewState, Void>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
     }
 
     var body: some View {

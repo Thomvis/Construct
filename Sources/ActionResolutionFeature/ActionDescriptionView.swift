@@ -19,7 +19,7 @@ struct ActionDescriptionView: View {
     let store: Store<ActionDescriptionViewState, ActionDescriptionViewAction>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             VStack {
                 let isLoading = viewStore.state.isLoadingDescription
 
@@ -130,7 +130,7 @@ struct ActionDescriptionView: View {
     ) -> some View {
         if viewStore.settings.outcome != nil {
             Menu {
-                Picker("Outcome", selection: viewStore.binding(\.$settings.outcome)) {
+                Picker("Outcome", selection: viewStore.$settings.outcome) {
                     Text("Hit").tag(Optional<ActionDescriptionViewState.Settings.OutcomeSetting>.some(.hit))
                     Text("Miss").tag(Optional<ActionDescriptionViewState.Settings.OutcomeSetting>.some(.miss))
                 }
@@ -148,7 +148,7 @@ struct ActionDescriptionView: View {
         _ viewStore: ViewStore<ActionDescriptionViewState, ActionDescriptionViewAction>
     ) -> some View {
         Menu {
-            Picker("Outcome", selection: viewStore.binding(\.$settings.impact)) {
+            Picker("Outcome", selection: viewStore.$settings.impact) {
                 Text("Minimal").tag(CreatureActionDescriptionRequest.Impact.minimal)
                 Text("Average").tag(CreatureActionDescriptionRequest.Impact.average)
                 Text("Devastating").tag(CreatureActionDescriptionRequest.Impact.devastating)

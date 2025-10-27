@@ -439,7 +439,7 @@ struct CompendiumDocumentsView: View {
     let store: StoreOf<CompendiumDocumentsFeature>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             ScrollView {
                 VStack(spacing: 20) {
                     ForEach(viewStore.state.realms, id: \.id) { realm in
@@ -555,7 +555,7 @@ struct CompendiumDocumentEditView: View {
     let store: StoreOf<EditDocument>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             ScrollView {
                 VStack(spacing: 20) {
                     if let notice = viewStore.notice {
@@ -566,7 +566,7 @@ struct CompendiumDocumentEditView: View {
                         VStack {
                             TextFieldWithSlug(
                                 title: "Document name",
-                                text: viewStore.binding(\.$displayName),
+                                text: viewStore.$displayName,
                                 slug: viewStore.binding(
                                     get: \.effectiveSlug,
                                     send: { .onSlugChange($0) }
@@ -585,7 +585,7 @@ struct CompendiumDocumentEditView: View {
 
                             MenuPickerField(
                                 title: "Realm",
-                                selection: viewStore.binding(\.$realmId)
+                                selection: viewStore.$realmId
                             ) {
                                 ForEach(viewStore.state.realms, id: \.id) { realm in
                                     Text("\(realm.displayName) (\(realm.id.rawValue))").tag(Optional.some(realm.id))
@@ -675,7 +675,7 @@ struct EditRealmView: View {
     let store: StoreOf<EditRealm>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             ScrollView {
                 VStack(spacing: 20) {
                     if let notice = viewStore.notice {
@@ -709,7 +709,7 @@ struct EditRealmView: View {
                     SectionContainer {
                         TextFieldWithSlug(
                             title: "Realm name",
-                            text: viewStore.binding(\.$displayName),
+                            text: viewStore.$displayName,
                             slug: viewStore.binding(
                                 get: \.effectiveSlug,
                                 send: { .onSlugChange($0) }

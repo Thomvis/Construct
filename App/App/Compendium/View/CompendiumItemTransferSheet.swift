@@ -167,7 +167,7 @@ struct CompendiumItemTransferSheet: View {
     @SwiftUI.ScaledMetric(relativeTo: .footnote) private var footerHeight = 50
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             VStack {
                 if let notice = viewStore.state.notice {
                     NoticeView(notice: notice)
@@ -193,7 +193,7 @@ struct CompendiumItemTransferSheet: View {
                     HStack {
                         Text("Conflict resolution").bold()
                         Spacer()
-                        Picker("", selection: viewStore.binding(\.$conflictResolution)) {
+                        Picker("", selection: viewStore.$conflictResolution) {
                             ForEach(ConflictResolution.allCases, id: \.self) { strategy in
                                 Text(strategy.description).tag(strategy)
                             }

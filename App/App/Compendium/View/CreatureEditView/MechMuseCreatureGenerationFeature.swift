@@ -189,7 +189,7 @@ struct MechMuseCreatureGenerationSheet: View {
     @ScaledMetric(relativeTo: .callout) var ellipsisOffset = 1
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             VStack {
                 ScrollView {
 
@@ -286,7 +286,7 @@ struct MechMuseCreatureGenerationSheet: View {
                 VStack(spacing: 12) {
 
                     VStack {
-                        TextEditor(text: viewStore.binding(\.$prompt))
+                        TextEditor(text: viewStore.$prompt)
                             .disabled(viewStore.state.isGenerating)
                             .overlay(alignment: .topLeading) {
                                 if viewStore.state.prompt.isEmpty {
@@ -452,7 +452,7 @@ struct MechMuseCreatureGenerationPreview: View {
     let store: StoreOf<MechMuseCreatureGenerationFeature.Preview>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             ScrollView {
                 VStack(spacing: 6) {
                     Menu {

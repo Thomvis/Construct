@@ -24,7 +24,7 @@ struct CompendiumFilterSheet: View {
 
     init(store: Store<CompendiumFilterSheetState, CompendiumFilterSheetAction>, onApply: @escaping (CompendiumFilterSheetState.Values) -> Void) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
         self.onApply = onApply
     }
 

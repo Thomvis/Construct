@@ -723,7 +723,7 @@ struct Open5ePreferencesView: View {
     let store: StoreOf<DataSourcePreferences.Open5e>
 
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
                 VStack {
                     let remoteDocuments = viewStore.state.remoteDocuments
@@ -732,7 +732,7 @@ struct Open5ePreferencesView: View {
                     } else {
                         MenuPickerField(
                             title: "Document",
-                            selection: viewStore.binding(\.$document).animation()
+                            selection: viewStore.$document.animation()
                         ) {
                             if let docs = remoteDocuments.value {
                                 ForEach(docs, id: \.slug) { doc in
@@ -751,7 +751,7 @@ struct Open5ePreferencesView: View {
                     if viewStore.document == .other {
                         Divider()
 
-                        TextField("Document slug", text: viewStore.binding(\.$other))
+                        TextField("Document slug", text: viewStore.$other)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled(true)
                             .frame(minHeight: 35)
@@ -761,7 +761,7 @@ struct Open5ePreferencesView: View {
 
                     MenuPickerField(
                         title: "Item type",
-                        selection: viewStore.binding(\.$itemType).optional()
+                        selection: viewStore.$itemType.optional()
                     ) {
                         Text("Monsters").tag(Optional<CompendiumItemType>.some(.monster))
                         Text("Spells").tag(Optional<CompendiumItemType>.some(.spell))
@@ -780,7 +780,7 @@ struct FilePreferencesView: View {
     let store: StoreOf<DataSourcePreferences.File>
 
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
                 VStack {
                     if let url = viewStore.state.url {
@@ -801,7 +801,7 @@ struct FilePreferencesView: View {
                 }
                 .frame(minHeight: 35)
             }
-            .sheet(isPresented: viewStore.binding(\.$openPicker)) {
+            .sheet(isPresented: viewStore.$openPicker) {
                 DocumentPicker { urls in
                     viewStore.send(.binding(.set(\.$url, urls.first)))
                 }
@@ -815,10 +815,10 @@ struct NetworkPreferencesView: View {
     let store: StoreOf<DataSourcePreferences.Network>
 
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
                 VStack {
-                    ClearableTextField("URL", text: viewStore.binding(\.$urlString))
+                    ClearableTextField("URL", text: viewStore.$urlString)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
                 }
@@ -833,7 +833,7 @@ struct UrlPreferencesView: View {
     let store: StoreOf<DataSourcePreferences.File>
 
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
                 VStack {
                     if let url = viewStore.state.url {
@@ -852,7 +852,7 @@ struct UrlPreferencesView: View {
                 }
                 .frame(minHeight: 35)
             }
-            .sheet(isPresented: viewStore.binding(\.$openPicker)) {
+            .sheet(isPresented: viewStore.$openPicker) {
                 DocumentPicker { urls in
                     viewStore.send(.binding(.set(\.$url, urls.first)))
                 }
@@ -877,7 +877,7 @@ public struct CompendiumImportView: View {
     @State var saved = false
 
     public var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             ScrollView {
                 VStack(alignment: .leading) {
                     if viewStore.state.phase == .dataSourcePreferences {
@@ -889,7 +889,7 @@ public struct CompendiumImportView: View {
                         state: \.visibleDataSources,
                         action: CompendiumImportFeature.Action.dataSource
                     )) { dataSourceStore in
-                        WithViewStore(dataSourceStore) { dataSourceViewStore in
+                        WithViewStore(dataSourceStore, observe: \.self) { dataSourceViewStore in
                             let unselected = viewStore.state.selectedDataSourceId != nil && viewStore.state.selectedDataSourceId != dataSourceViewStore.state.id
                             SectionContainer {
                                 VStack(alignment: .leading) {
@@ -953,7 +953,7 @@ public struct CompendiumImportView: View {
                                 VStack {
                                     MenuPickerField(
                                         title: "Document",
-                                        selection: viewStore.binding(\.$importSettings.document).animation()
+                                        selection: viewStore.$importSettings.document.animation()
                                     ) {
                                         if let docs = viewStore.state.importSettings.documents.value {
                                             ForEach(docs, id: \.id) { doc in
@@ -974,10 +974,10 @@ public struct CompendiumImportView: View {
                                         VStack {
                                             TextFieldWithSlug(
                                                 title: "Document name",
-                                                text: viewStore.binding(\.$importSettings.newDocumentName),
+                                                text: viewStore.$importSettings.newDocumentName,
                                                 slug: Binding(
                                                     get: { viewStore.state.importSettings.effectiveNewDocumentSlug },
-                                                    set: { viewStore.binding(\.$importSettings.newDocumentCustomSlug).wrappedValue = $0 }
+                                                    set: { viewStore.$importSettings.newDocumentCustomSlug.wrappedValue = $0 }
                                                 )
                                             )
                                             .frame(minHeight: 35)
@@ -1003,7 +1003,7 @@ public struct CompendiumImportView: View {
                                         if configureRealmForNewDocument {
                                             MenuPickerField(
                                                 title: "Realm",
-                                                selection: viewStore.binding(\.$importSettings.realm).animation()
+                                                selection: viewStore.$importSettings.realm.animation()
                                             ) {
                                                 if let realms = viewStore.state.importSettings.realms.value {
                                                     ForEach(realms, id: \.id) { realm in
@@ -1023,10 +1023,10 @@ public struct CompendiumImportView: View {
                                                 
                                                 TextFieldWithSlug(
                                                     title: "Realm name",
-                                                    text: viewStore.binding(\.$importSettings.newRealmName),
+                                                    text: viewStore.$importSettings.newRealmName,
                                                     slug: Binding(
                                                         get: { viewStore.state.importSettings.effectiveNewRealmSlug },
-                                                        set: { viewStore.binding(\.$importSettings.newRealmCustomSlug).wrappedValue = $0 }
+                                                        set: { viewStore.$importSettings.newRealmCustomSlug.wrappedValue = $0 }
                                                     )
                                                 )
                                                 .frame(minHeight: 35)
@@ -1064,7 +1064,7 @@ public struct CompendiumImportView: View {
                                 } else {
                                     MenuPickerField(
                                         title: "Format",
-                                        selection: viewStore.binding(\.$importSettings.customDataSourceReader).animation()
+                                        selection: viewStore.$importSettings.customDataSourceReader.animation()
                                     ) {
                                         ForEach(CompendiumImportFeature.DataSourceReader.allCases, id: \.rawValue) { reader in
                                             Text(reader.displayName).tag(Optional.some(reader))
@@ -1081,7 +1081,7 @@ public struct CompendiumImportView: View {
                             Text(text).font(.footnote).foregroundColor(Color.secondary)
                                 .padding([.leading, .trailing], 12)
                         }) {
-                            Toggle(isOn: viewStore.binding(\.$importSettings.overwrite)) {
+                            Toggle(isOn: viewStore.$importSettings.overwrite) {
                                 Text("Overwrite existing items")
                             }
                         }

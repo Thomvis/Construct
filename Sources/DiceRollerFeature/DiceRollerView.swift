@@ -21,7 +21,7 @@ public struct DiceRollerView: View {
 
     public init(store: Store<DiceRollerViewState, DiceRollerViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
     }
 
     public var body: some View {
@@ -121,7 +121,7 @@ struct OutcomePopover: View, Popover {
     var store: Store<DiceCalculatorState, DiceCalculatorAction>
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             VStack(alignment: .leading) {
                 (Text("Rolling: ") + Text(viewStore.state.expression.description)).bold()
                 Divider()

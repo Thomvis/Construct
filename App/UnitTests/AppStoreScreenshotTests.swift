@@ -214,8 +214,8 @@ class AppStoreScreenshotTests: XCTestCase {
                             results: .initial
                         )) { state in
                             let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
-                            await ViewStore(store).send(.query(.onTextDidChange("Dragon"))).finish()
-                            state = ViewStore(store).state
+                            await store.send(.query(.onTextDidChange("Dragon"))).finish()
+                            state = ViewStore(store, observe: \.self).state
                         },
                         diceRoller: DiceRollerViewState.nullInstance
                     )
@@ -510,10 +510,10 @@ class AppStoreScreenshotTests: XCTestCase {
                                                         state.results.input.order = .monsterChallengeRating
                                                         let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
                                                         let filters = CompendiumFilters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4))
-                                                        await ViewStore(store).send(.query(.onFiltersDidChange(filters))).finish()
-                                                        let entry = ViewStore(store).state.results.entries!.first!
-                                                        ViewStore(store).send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
-                                                        state = ViewStore(store).state
+                                                        await store.send(.query(.onFiltersDidChange(filters))).finish()
+                                                        let entry = ViewStore(store, observe: \.self).state.results.entries!.first!
+                                                        store.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                                                        state = ViewStore(store, observe: \.self).state
                                                     },
                                                     encounter: encounter
                                                 ),
@@ -557,8 +557,8 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     results: .initial
                                                 )) { state in
                                                     let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
-                                                    await ViewStore(store).send(.query(.onTextDidChange("Dragon"))).finish()
-                                                    state = ViewStore(store).state
+                                                    await store.send(.query(.onTextDidChange("Dragon"))).finish()
+                                                    state = ViewStore(store, observe: \.self).state
                                                 }
                                             )
                                         )
@@ -657,8 +657,8 @@ class AppStoreScreenshotTests: XCTestCase {
                                                 )) { @MainActor state in
                                                     let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
 
-                                                    await ViewStore(store).send(.results(.result(.reload(.all)))).finish()
-                                                    state = ViewStore(store).state
+                                                    await store.send(.results(.result(.reload(.all)))).finish()
+                                                    state = ViewStore(store, observe: \.self).state
 
                                                     let fireballSpell = state.results.entries!.first(where: { $0.item.title == "Fireball" })!
                                                     state.scrollTo = fireballSpell.key
@@ -722,8 +722,8 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     results: .initial
                                                 )) { state in
                                                     let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
-                                                    await ViewStore(store).send(.query(.onTextDidChange("Dragon"))).finish()
-                                                    state = ViewStore(store).state
+                                                    await store.send(.query(.onTextDidChange("Dragon"))).finish()
+                                                    state = ViewStore(store, observe: \.self).state
                                                 }
                                             )
                                         )

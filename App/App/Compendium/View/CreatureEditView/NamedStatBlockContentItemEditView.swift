@@ -18,7 +18,7 @@ struct NamedStatBlockContentItemEditView: View {
     // Note: this used to be implemented with a List, but autoSizingSheetContent stopped
     // working for it on iOS 17
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             VStack(spacing: 20) {
                 SectionContainer(
                     accessory: Button {
@@ -99,11 +99,11 @@ struct NamedStatBlockContentItemEditView: View {
     @ViewBuilder
     func editFields(_ viewStore: ViewStore<NamedStatBlockContentItemEditViewState, CreatureActionEditViewAction>) -> some View {
         VStack(spacing: 11) {
-            TextField("Name", text: viewStore.binding(\.$fields.name))
+            TextField("Name", text: viewStore.$fields.name)
 
             Divider().padding(.trailing, -20)
 
-            TextField("Description", text: viewStore.binding(\.$fields.description), axis: .vertical)
+            TextField("Description", text: viewStore.$fields.description, axis: .vertical)
                 .lineLimit(5...)
         }
 

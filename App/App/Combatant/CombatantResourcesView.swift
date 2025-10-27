@@ -19,7 +19,7 @@ struct CombatantResourcesView: View {
 
     init(store: Store<CombatantResourcesViewState, CombatantResourcesViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
     }
 
     var body: some View {

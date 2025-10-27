@@ -21,7 +21,7 @@ struct NumberEntryView: View {
 
     init(store: Store<NumberEntryViewState, NumberEntryViewAction>) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
     }
 
     var body: some View {

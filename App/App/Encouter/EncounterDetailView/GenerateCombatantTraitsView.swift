@@ -23,7 +23,7 @@ struct GenerateCombatantTraitsView: View {
     let store: ThisStore
 
     var body: some View {
-        WithViewStore(store) { viewStore in
+        WithViewStore(store, observe: \.self) { viewStore in
             list(viewStore)
                 .safeAreaInset(edge: .top) {
                     topMessage(viewStore)

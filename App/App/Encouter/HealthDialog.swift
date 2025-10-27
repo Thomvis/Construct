@@ -121,7 +121,7 @@ extension HealthDialog: Popover {
 
     init(store: Store<HealthDialogState, HealthDialogAction>, onCombatantAction: @escaping (CombatantAction) -> ()) {
         self.store = store
-        self.viewStore = ViewStore(store)
+        self.viewStore = ViewStore(store, observe: \.self)
         self.onOutcomeSelected = { a in
             onCombatantAction(.hp(a))
         }
