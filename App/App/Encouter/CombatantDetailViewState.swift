@@ -100,7 +100,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         }
     }
 
-    var diceActionPopoverState: ActionResolutionViewState? {
+    var diceActionPopoverState: ActionResolutionFeature.State? {
         get {
             guard case .diceAction(let s) = popover else { return nil }
             return s
@@ -143,7 +143,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
             case .healthAction: return .healthAction(HealthDialogState.nullInstance)
             case .initiative: return .initiative(NumberEntryViewState.nullInstance)
             case .rollCheck: return .rollCheck(DiceCalculatorState.nullInstance)
-            case .diceAction: return .diceAction(ActionResolutionViewState.nullInstance)
+            case .diceAction: return .diceAction(ActionResolutionFeature.State.nullInstance)
             case .tagDetails: return .tagDetails(CombatantTag.nullInstance)
             case .addLimitedResource: return .addLimitedResource(CombatantTrackerEditViewState.nullInstance)
             }
@@ -154,7 +154,15 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
     static let reducer: AnyReducer<Self, CombatantDetailViewAction, Environment> = AnyReducer.combine(
         CombatantTagEditViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagEditView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.combatantTagEditView),
         DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckDialogState, action: /CombatantDetailViewAction.rollCheckDialog, environment: { $0 }),
-        ActionResolutionViewState.reducer.optional().pullback(state: \.diceActionPopoverState, action: /CombatantDetailViewAction.diceActionPopover, environment: { $0 }),
+        AnyReducer { env in
+            ActionResolutionFeature(environment: env)
+        }
+        .optional()
+        .pullback(
+            state: \.diceActionPopoverState,
+            action: /CombatantDetailViewAction.diceActionPopover,
+            environment: { $0 }
+        ),
         NumberEntryViewState.reducer.optional().pullback(state: \.initiativePopoverState, action: /CombatantDetailViewAction.initiativePopover, environment: { $0 }),
         CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CombatantDetailViewAction.nextScreen..CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView, environment: { $0 }),
         AnyReducer { state, action, env in
@@ -294,7 +302,7 @@ struct CombatantDetailViewState: NavigationStackSourceState, Equatable {
         case healthAction(HealthDialogState)
         case initiative(NumberEntryViewState)
         case rollCheck(DiceCalculatorState)
-        case diceAction(ActionResolutionViewState)
+        case diceAction(ActionResolutionFeature.State)
         case tagDetails(CombatantTag)
         case addLimitedResource(CombatantTrackerEditViewState)
     }
@@ -309,7 +317,7 @@ enum CombatantDetailViewAction: NavigationStackSourceAction, Equatable {
     case addLimitedResource(CombatantTrackerEditViewAction)
     case healthDialog(HealthDialogAction)
     case rollCheckDialog(DiceCalculatorAction)
-    case diceActionPopover(ActionResolutionViewAction)
+    case diceActionPopover(ActionResolutionFeature.Action)
     case initiativePopover(NumberEntryViewAction)
     case editCreatureConfirmingUnlinkIfNeeded
     case saveToCompendium

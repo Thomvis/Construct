@@ -18,9 +18,9 @@ import Persistence
 import SharedViews
 
 public struct ActionResolutionView: View {
-    public let store: Store<ActionResolutionViewState, ActionResolutionViewAction>
+    public let store: StoreOf<ActionResolutionFeature>
 
-    public init(store: Store<ActionResolutionViewState, ActionResolutionViewAction>) {
+    public init(store: StoreOf<ActionResolutionFeature>) {
         self.store = store
     }
 
@@ -52,11 +52,11 @@ public struct ActionResolutionView: View {
 
                 switch viewStore.state.mode {
                 case .diceAction:
-                    IfLetStore(store.scope(state: \.diceAction, action: ActionResolutionViewAction.diceAction)) { store in
+                    IfLetStore(store.scope(state: \.diceAction, action: ActionResolutionFeature.Action.diceAction)) { store in
                         DiceActionView(store: store)
                     }
                 case .muse:
-                    ActionDescriptionView(store: store.scope(state: \.muse, action: ActionResolutionViewAction.muse))
+                    ActionDescriptionView(store: store.scope(state: \.muse, action: ActionResolutionFeature.Action.muse))
                 }
 
             }
@@ -80,7 +80,7 @@ struct ActionResolutionView_Preview: PreviewProvider {
     static func fromAction(name: String, description: String) -> some View {
         ZStack {
             ActionResolutionView(store: Store(
-                initialState: ActionResolutionViewState(
+                initialState: ActionResolutionFeature.State(
                     creatureStats: StatBlock(
                         name: "Goblin"
                     ),
@@ -92,10 +92,10 @@ struct ActionResolutionView_Preview: PreviewProvider {
                         _ = $0.parseIfNeeded()
                     },
                     preferences: Preferences()
-                ),
-                reducer: ActionResolutionViewState.reducer,
-                environment: StandaloneActionResolutionEnvironment()
-            ))
+                )
+            ) {
+                ActionResolutionFeature(environment: StandaloneActionResolutionEnvironment())
+            })
             .padding(12)
             .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
         }

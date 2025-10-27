@@ -51,7 +51,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
     var navigationTitle: String { item.title }
     var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
 
-    var createActionPopover: ActionResolutionViewState? {
+    var createActionPopover: ActionResolutionFeature.State? {
         get {
             if case .creatureAction(let s) = popover {
                 return s
@@ -146,7 +146,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
     }
 
     enum Popover: Equatable, Identifiable {
-        case creatureAction(ActionResolutionViewState)
+        case creatureAction(ActionResolutionFeature.State)
         case rollCheck(DiceCalculatorState)
 
         var id: String {
@@ -185,7 +185,15 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                     .dependency(\.compendiumMetadata, env.compendiumMetadata)
             }
             .optional().pullback(state: \.transferSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.transfer),
-            ActionResolutionViewState.reducer.optional().pullback(state: \.createActionPopover, action: /CompendiumItemDetailViewAction.creatureActionPopover, environment: { $0 }),
+            AnyReducer { env in
+                ActionResolutionFeature(environment: env)
+            }
+            .optional()
+            .pullback(
+                state: \.createActionPopover,
+                action: /CompendiumItemDetailViewAction.creatureActionPopover,
+                environment: { $0 }
+            ),
             DiceCalculatorState.reducer.optional().pullback(state: \.rollCheckPopover, action: /CompendiumItemDetailViewAction.rollCheckPopover, environment: { $0 }),
             AnyReducer.lazy(CompendiumEntryDetailViewState.reducer).optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /CompendiumItemDetailViewAction.nextScreen..CompendiumItemDetailViewAction.NextScreenAction.compendiumItemDetailView),
             CompendiumItemReferenceTextAnnotation.handleTapReducer(
@@ -297,7 +305,7 @@ enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
     case onSaveMonsterAsNPCButton(Monster)
     case didTapCompendiumItemReferenceTextAnnotation(CompendiumItemReferenceTextAnnotation, AppNavigation)
     case popover(CompendiumEntryDetailViewState.Popover?)
-    case creatureActionPopover(ActionResolutionViewAction)
+    case creatureActionPopover(ActionResolutionFeature.Action)
     case rollCheckPopover(DiceCalculatorAction)
     case setSheet(CompendiumEntryDetailViewState.Sheet?)
     case sheet(SheetAction)

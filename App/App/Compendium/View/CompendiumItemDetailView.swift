@@ -231,7 +231,7 @@ struct CompendiumItemDetailView: View {
                 let modifier: Int = stats.skillModifier(s).modifier
                 self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, creatureName: stats.name, environment: self.env), rollOnAppear: true))))
             case .action(let action):
-                let state = ActionResolutionViewState(
+                let state = ActionResolutionFeature.State(
                     creatureStats: stats,
                     action: action,
                     preferences: env.preferences()

@@ -17,7 +17,7 @@ public struct ActionDescriptionViewState: Equatable {
     public typealias AsyncDescriptionMapState = MapState<RequestInput?, AsyncDescriptionReduceState>
     public typealias AsyncDescription = RetainState<AsyncDescriptionMapState, AsyncDescriptionReduceState>
 
-    let encounterContext: ActionResolutionViewState.EncounterContext?
+    let encounterContext: ActionResolutionFeature.State.EncounterContext?
     @BindingState var context: Context
     @BindingState var settings: Settings = .init(outcome: nil, impact: .average)
 
@@ -26,7 +26,7 @@ public struct ActionDescriptionViewState: Equatable {
     private var mechMuseIsConfigured = true
 
     init(
-        encounterContext: ActionResolutionViewState.EncounterContext? = nil,
+        encounterContext: ActionResolutionFeature.State.EncounterContext? = nil,
         creature: StatBlock,
         action: CreatureAction
     ) {
@@ -237,7 +237,7 @@ enum ActionDescriptionViewStateError: Swift.Error {
     case missingInput
 }
 
-extension ActionResolutionViewState.EncounterContext {
+extension ActionResolutionFeature.State.EncounterContext {
     var creatureTraits: String? {
         guard let c = combatant.traits else { return nil }
 
