@@ -84,7 +84,7 @@ struct CombatantDetailFeature: Reducer {
             }
         }
 
-        var healthDialogState: HealthDialogState? {
+        var healthDialogState: HealthDialogFeature.State? {
             get {
                 guard case .healthAction(let state) = popover else { return nil }
                 return state
@@ -147,7 +147,7 @@ struct CombatantDetailFeature: Reducer {
             }
             res.popover = popover.map {
                 switch $0 {
-                case .healthAction: return .healthAction(HealthDialogState.nullInstance)
+                case .healthAction: return .healthAction(HealthDialogFeature.State.nullInstance)
                 case .initiative: return .initiative(NumberEntryFeature.State.nullInstance)
                 case .rollCheck: return .rollCheck(DiceCalculator.State.nullInstance)
                 case .diceAction: return .diceAction(ActionResolutionFeature.State.nullInstance)
@@ -169,7 +169,7 @@ struct CombatantDetailFeature: Reducer {
         }
 
         enum Popover: Equatable {
-            case healthAction(HealthDialogState)
+            case healthAction(HealthDialogFeature.State)
             case initiative(NumberEntryFeature.State)
             case rollCheck(DiceCalculator.State)
             case diceAction(ActionResolutionFeature.State)
@@ -184,7 +184,7 @@ struct CombatantDetailFeature: Reducer {
         case popover(State.Popover?)
         case alert(AlertState<Self>?)
         case addLimitedResource(CombatantTrackerEditViewAction)
-        case healthDialog(HealthDialogAction)
+        case healthDialog(HealthDialogFeature.Action)
         case rollCheckDialog(DiceCalculator.Action)
         case diceActionPopover(ActionResolutionFeature.Action)
         case initiativePopover(NumberEntryFeature.Action)
@@ -377,7 +377,11 @@ struct CombatantDetailFeature: Reducer {
         CombatantResourcesViewState.reducer.optional().pullback(state: \.presentedNextCombatantResourcesView, action: /Action.nextScreen..Action.NextScreenAction.combatantResourcesView),
         CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEditView, action: /Action.nextScreen..Action.NextScreenAction.creatureEditView, environment: { $0 }),
         CombatantTrackerEditViewState.reducer.optional().pullback(state: \.addLimitedResourceState, action: /Action.addLimitedResource),
-        HealthDialogState.reducer.optional().pullback(state: \.healthDialogState, action: /Action.healthDialog)
+        AnyReducer { env in
+            HealthDialogFeature(environment: env)
+        }
+        .optional()
+        .pullback(state: \.healthDialogState, action: /Action.healthDialog)
     )
 }
 

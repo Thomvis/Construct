@@ -61,7 +61,7 @@ struct CombatantDetailView: View {
                 VStack(spacing: 18) {
                     HStack {
                         SimpleButton(action: {
-                            self.viewStore.send(.popover(.healthAction(HealthDialogState(numberEntryView: NumberEntryFeature.State.pad(value: 0), hp: self.combatant.hp))))
+                            self.viewStore.send(.popover(.healthAction(HealthDialogFeature.State(numberEntryView: NumberEntryFeature.State.pad(value: 0), hp: self.combatant.hp))))
                         }) {
                             VStack {
                                 Text("Hit Points")

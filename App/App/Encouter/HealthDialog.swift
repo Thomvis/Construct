@@ -15,8 +15,8 @@ import GameModels
 struct HealthDialog: View {
     var popoverId: AnyHashable { "HealthDialog" } // fine unless a view tries to replace one health dialog with another
 
-    var store: Store<HealthDialogState, HealthDialogAction>
-    @ObservedObject var viewStore: ViewStore<HealthDialogState, HealthDialogAction>
+    var store: StoreOf<HealthDialogFeature>
+    @ObservedObject var viewStore: ViewStoreOf<HealthDialogFeature>
     let onOutcomeSelected: (Hp.Action) -> Void
 
     var outcome: Int {
@@ -93,13 +93,27 @@ struct HealthDialog: View {
     }
 }
 
-struct HealthDialogState: Equatable {
-    var numberEntryView: NumberEntryFeature.State
-    var hp: Hp?
-}
+struct HealthDialogFeature: Reducer {
+    struct State: Equatable {
+        var numberEntryView: NumberEntryFeature.State
+        var hp: Hp?
+    }
 
-enum HealthDialogAction: Equatable {
-    case numberEntryView(NumberEntryFeature.Action)
+    enum Action: Equatable {
+        case numberEntryView(NumberEntryFeature.Action)
+    }
+    
+    let environment: Environment
+    
+    init(environment: Environment) {
+        self.environment = environment
+    }
+    
+    var body: some ReducerOf<Self> {
+        Scope(state: \.numberEntryView, action: /Action.numberEntryView) {
+            NumberEntryFeature(environment: environment)
+        }
+    }
 }
 
 extension HealthDialog: Popover {
@@ -111,15 +125,15 @@ extension HealthDialog: Popover {
     init(environment: Environment, hp: Hp?, onCombatantAction: @escaping (CombatantAction) -> ()) {
         self.init(
             store: Store(
-                initialState: HealthDialogState(numberEntryView: .pad(value: 0), hp: hp),
-                reducer: HealthDialogState.reducer,
-                environment: environment
-            ),
+                initialState: HealthDialogFeature.State(numberEntryView: .pad(value: 0), hp: hp)
+            ) {
+                HealthDialogFeature(environment: environment)
+            },
             onCombatantAction: onCombatantAction
         )
     }
 
-    init(store: Store<HealthDialogState, HealthDialogAction>, onCombatantAction: @escaping (CombatantAction) -> ()) {
+    init(store: Store<HealthDialogFeature.State, HealthDialogFeature.Action>, onCombatantAction: @escaping (CombatantAction) -> ()) {
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
         self.onOutcomeSelected = { a in
@@ -128,13 +142,6 @@ extension HealthDialog: Popover {
     }
 }
 
-extension HealthDialogState {
-    static let reducer: AnyReducer<Self, HealthDialogAction, Environment> = AnyReducer { env in
-        NumberEntryFeature(environment: env)
-    }
-    .pullback(state: \.numberEntryView, action: /HealthDialogAction.numberEntryView, environment: { $0 })
-}
-
-extension HealthDialogState {
-    static let nullInstance = HealthDialogState(numberEntryView: NumberEntryFeature.State.nullInstance, hp: nil)
+extension HealthDialogFeature.State {
+    static let nullInstance = HealthDialogFeature.State(numberEntryView: NumberEntryFeature.State.nullInstance, hp: nil)
 }
