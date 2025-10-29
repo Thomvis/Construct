@@ -93,7 +93,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
         }
     }
 
-    var groupEditSheet: CompendiumItemGroupEditState? {
+    var groupEditSheet: CompendiumItemGroupEditFeature.State? {
         get {
             if case .groupEdit(let s) = sheet {
                 return s
@@ -159,7 +159,7 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
 
     enum Sheet: Equatable, Identifiable {
         case creatureEdit(CreatureEditViewState)
-        case groupEdit(CompendiumItemGroupEditState)
+        case groupEdit(CompendiumItemGroupEditFeature.State)
         case transfer(CompendiumItemTransferFeature.State)
 
         var id: String {
@@ -179,7 +179,10 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
     static var reducer: AnyReducer<Self, CompendiumItemDetailViewAction, CompendiumEntryDetailEnvironment> {
         return AnyReducer.combine(
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.creatureEdit, environment: { $0 }),
-            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.groupEdit, environment: { $0 }),
+            AnyReducer { env in
+                CompendiumItemGroupEditFeature(environment: env)
+            }
+            .optional().pullback(state: \.groupEditSheet, action: /CompendiumItemDetailViewAction.sheet..CompendiumItemDetailViewAction.SheetAction.groupEdit, environment: { $0 }),
             AnyReducer { env in
                 CompendiumItemTransferFeature()
                     .dependency(\.compendiumMetadata, env.compendiumMetadata)
@@ -272,14 +275,14 @@ struct CompendiumEntryDetailViewState: NavigationStackSourceState, Equatable {
                         try await Task.sleep(for: .seconds(0.1))
                         await send(.didRemoveItem)
                     }
-                case .sheet(.groupEdit(CompendiumItemGroupEditAction.onDoneTap(let group))):
+                case .sheet(.groupEdit(CompendiumItemGroupEditFeature.Action.onDoneTap(let group))):
                     let entry = CompendiumEntry(group, origin: state.entry.origin, document: state.entry.document)
                     state.entry = entry
                     return .run { send in
                         try? env.compendium.put(entry)
                         await send(.setSheet(nil))
                     }
-                case .sheet(.groupEdit(CompendiumItemGroupEditAction.onRemoveTap(let group))):
+                case .sheet(.groupEdit(CompendiumItemGroupEditFeature.Action.onRemoveTap(let group))):
                     return .run { send in
                         _ = try? env.database.keyValueStore.remove(group.key)
                         await send(.setSheet(nil))
@@ -341,7 +344,7 @@ enum CompendiumItemDetailViewAction: NavigationStackSourceAction, Equatable {
 
     enum SheetAction: Equatable {
         case creatureEdit(CreatureEditViewAction)
-        case groupEdit(CompendiumItemGroupEditAction)
+        case groupEdit(CompendiumItemGroupEditFeature.Action)
         case transfer(CompendiumItemTransferFeature.Action)
     }
 

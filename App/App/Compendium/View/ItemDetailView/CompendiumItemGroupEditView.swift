@@ -17,10 +17,10 @@ import Compendium
 struct CompendiumItemGroupEditView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    var store: Store<CompendiumItemGroupEditState, CompendiumItemGroupEditAction>
-    @ObservedObject var viewStore: ViewStore<CompendiumItemGroupEditState, CompendiumItemGroupEditAction>
+    var store: StoreOf<CompendiumItemGroupEditFeature>
+    @ObservedObject var viewStore: ViewStoreOf<CompendiumItemGroupEditFeature>
 
-    init(store: Store<CompendiumItemGroupEditState, CompendiumItemGroupEditAction>) {
+    init(store: StoreOf<CompendiumItemGroupEditFeature>) {
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
     }
@@ -134,51 +134,57 @@ struct CompendiumItemGroupEditView: View {
     }
 }
 
-struct CompendiumItemGroupEditState: Equatable {
-    var mode: Mode
+struct CompendiumItemGroupEditFeature: Reducer {
+    struct State: Equatable {
+        var mode: Mode
 
-    var group: CompendiumItemGroup
+        var group: CompendiumItemGroup
 
-    typealias AsyncAllCharacers = Async<[Character], EquatableError>
-    var allCharacters: AsyncAllCharacers.State = .initial
+        typealias AsyncAllCharacers = Async<[Character], EquatableError>
+        var allCharacters: AsyncAllCharacers.State = .initial
 
-    var isValid: Bool {
-        !group.title.isEmpty && !group.members.isEmpty
-    }
+        var isValid: Bool {
+            !group.title.isEmpty && !group.members.isEmpty
+        }
 
-    enum Mode: Equatable {
-        case create
-        case edit
+        enum Mode: Equatable {
+            case create
+            case edit
 
-        var isEdit: Bool {
-            switch self {
-            case .create: return false
-            case .edit: return true
+            var isEdit: Bool {
+                switch self {
+                case .create: return false
+                case .edit: return true
+                }
             }
         }
     }
-}
 
-enum CompendiumItemGroupEditAction: Equatable {
-    case groupTitle(String)
-    case allCharacters(CompendiumItemGroupEditState.AsyncAllCharacers.Action)
+    enum Action: Equatable {
+        case groupTitle(String)
+        case allCharacters(State.AsyncAllCharacers.Action)
 
-    case addMember(Character)
-    case removeMember(CompendiumItemKey)
+        case addMember(Character)
+        case removeMember(CompendiumItemKey)
 
-    case onAddTap(CompendiumItemGroup)
-    case onDoneTap(CompendiumItemGroup)
-    case onRemoveTap(CompendiumItemGroup)
+        case onAddTap(CompendiumItemGroup)
+        case onDoneTap(CompendiumItemGroup)
+        case onRemoveTap(CompendiumItemGroup)
 
-    var allCharactersAction: CompendiumItemGroupEditState.AsyncAllCharacers.Action? {
-        guard case .allCharacters(let a) = self else { return nil }
-        return a
+        var allCharactersAction: State.AsyncAllCharacers.Action? {
+            guard case .allCharacters(let a) = self else { return nil }
+            return a
+        }
     }
-}
 
-extension CompendiumItemGroupEditState {
-    static var reducer: AnyReducer<Self, CompendiumItemGroupEditAction, EnvironmentWithCompendium> = AnyReducer.combine(
-        AnyReducer { state, action, environment in
+    let environment: EnvironmentWithCompendium
+
+    init(environment: EnvironmentWithCompendium) {
+        self.environment = environment
+    }
+
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
             switch action {
             case .groupTitle(let s):
                 state.group.title = s
@@ -190,20 +196,20 @@ extension CompendiumItemGroupEditState {
             case .onAddTap, .onDoneTap, .onRemoveTap: break // should be handled by parent reducer
             }
             return .none
-        },
-        AnyReducer { env in
-            CompendiumItemGroupEditState.AsyncAllCharacers {
-                try env.compendium.fetchAll(search: nil, filters: .init(types: [.character]), order: .title, range: nil)
+        }
+
+        Scope(state: \.allCharacters, action: /Action.allCharacters) {
+            Async<[Character], EquatableError> {
+                try environment.compendium.fetchAll(search: nil, filters: .init(types: [.character]), order: .title, range: nil)
                     .compactMap {
                         $0.item as? Character
                     }
             }
         }
-        .pullback(state: \.allCharacters, action: /CompendiumItemGroupEditAction.allCharacters)
-    )
+    }
 }
 
-extension CompendiumItemGroupEditState: NavigationStackItemState {
+extension CompendiumItemGroupEditFeature.State: NavigationStackItemState {
     var navigationStackItemStateId: String { "CompendiumItemGroupEditView:\(group.id)" }
     var navigationTitle: String {
         if mode.isEdit {
@@ -214,6 +220,6 @@ extension CompendiumItemGroupEditState: NavigationStackItemState {
     }
 }
 
-extension CompendiumItemGroupEditState {
-    static let nullInstance = CompendiumItemGroupEditState(mode: .create, group: CompendiumItemGroup.nullInstance, allCharacters: .initial)
+extension CompendiumItemGroupEditFeature.State {
+    static let nullInstance = CompendiumItemGroupEditFeature.State(mode: .create, group: CompendiumItemGroup.nullInstance, allCharacters: .initial)
 }

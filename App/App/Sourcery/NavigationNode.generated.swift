@@ -70,7 +70,7 @@ extension CompendiumImportFeature.State: NavigationNode {
         // no-op
     }
 }
-extension CompendiumItemGroupEditState: NavigationNode {
+extension CompendiumItemGroupEditFeature.State: NavigationNode {
     var nodeId: String { 
         navigationStackItemStateId
     }

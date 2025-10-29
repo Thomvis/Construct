@@ -190,7 +190,7 @@ struct CompendiumItemDetailView: View {
             }
         } else if let group =  item as? CompendiumItemGroup {
             MenuItem(text: "Edit", systemImage: "pencil") {
-                self.viewStore.send(.setSheet(.groupEdit(CompendiumItemGroupEditState(mode: .edit, group: group))))
+                self.viewStore.send(.setSheet(.groupEdit(CompendiumItemGroupEditFeature.State(mode: .edit, group: group))))
             }
         }
 

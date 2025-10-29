@@ -66,7 +66,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         res.sheet = sheet.map {
             switch $0 {
             case .creatureEdit: return .creatureEdit(CreatureEditViewState.nullInstance)
-            case .groupEdit: return .groupEdit(CompendiumItemGroupEditState.nullInstance)
+            case .groupEdit: return .groupEdit(CompendiumItemGroupEditFeature.State.nullInstance)
             case .compendiumImport: return .compendiumImport(CompendiumImportFeature.State())
             case .documents: return .documents(CompendiumDocumentsFeature.State())
             case .transfer: return .transfer(CompendiumItemTransferFeature.State(mode: .copy, selection: .multipleFetchRequest(.init())))
@@ -90,7 +90,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         }
     }
 
-    var groupEditSheet: CompendiumItemGroupEditState? {
+    var groupEditSheet: CompendiumItemGroupEditFeature.State? {
         get {
             if case .groupEdit(let state)? = sheet {
                 return state
@@ -187,7 +187,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
     enum Sheet: Equatable, Identifiable {
         // creatureEdit and groupEdit are used when adding a new creature/group
         case creatureEdit(CreatureEditViewState)
-        case groupEdit(CompendiumItemGroupEditState)
+        case groupEdit(CompendiumItemGroupEditFeature.State)
         case compendiumImport(CompendiumImportFeature.State)
         case documents(CompendiumDocumentsFeature.State)
         case transfer(CompendiumItemTransferFeature.State)
@@ -242,7 +242,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                         assertionFailure("Adding spells is not supported")
                         break
                     case .group:
-                        state.sheet = .groupEdit(CompendiumItemGroupEditState(mode: .create, group: CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])))
+                        state.sheet = .groupEdit(CompendiumItemGroupEditFeature.State(mode: .create, group: CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])))
                     }
 
                 case .onSearchOnWebButtonTap:
@@ -301,7 +301,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     } else {
                         return .send(.setSheet(nil))
                     }
-                case .groupEditSheet(CompendiumItemGroupEditAction.onAddTap(let group)):
+                case .groupEditSheet(CompendiumItemGroupEditFeature.Action.onAddTap(let group)):
                     // adding a group
                     return .run { send in
                         let entry = CompendiumEntry(
@@ -426,7 +426,10 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
             },
             AnyReducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex, environment:  { $0 }),
             CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumIndexAction.creatureEditSheet, environment: { $0 }),
-            CompendiumItemGroupEditState.reducer.optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet, environment: { $0 }),
+            AnyReducer { env in
+                CompendiumItemGroupEditFeature(environment: env)
+            }
+            .optional().pullback(state: \.groupEditSheet, action: /CompendiumIndexAction.groupEditSheet, environment: { $0 }),
             AnyReducer { env in
                 CompendiumImportFeature()
                     .dependency(\.database, env.database)
@@ -497,7 +500,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 
     case setSheet(CompendiumIndexState.Sheet?)
     case creatureEditSheet(CreatureEditViewAction)
-    case groupEditSheet(CompendiumItemGroupEditAction)
+    case groupEditSheet(CompendiumItemGroupEditFeature.Action)
     case compendiumImportSheet(CompendiumImportFeature.Action)
     case documentsSheet(CompendiumDocumentsFeature.Action)
     case transferSheet(CompendiumItemTransferFeature.Action)
