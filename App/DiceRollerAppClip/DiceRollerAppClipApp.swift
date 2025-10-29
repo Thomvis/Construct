@@ -15,26 +15,24 @@ import StoreKit
 
 @main
 struct DiceRollerAppClipApp: App {
-    let store: Store<AppState, AppAction>
+    let store: StoreOf<AppFeature>
 
     init() {
-        store = Store(
-            initialState: AppState(),
-            reducer: appReducer,
-            environment: StandaloneDiceRollerEnvironment(
+        store = Store(initialState: AppFeature.State()) {
+            AppFeature(environment: StandaloneDiceRollerEnvironment(
                 mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
                 diceLog: DiceLogPublisher(),
                 modifierFormatter: apply(NumberFormatter()) { f in
                     f.positivePrefix = f.plusSign
                 }
-            )
-        )
+            ))
+        }
     }
 
     var body: some Scene {
         WindowGroup {
             WithViewStore(store, observe: \.self) { viewStore in
-                ContentView(store: store.scope(state: \.diceRoller, action: AppAction.diceRoller))
+                ContentView(store: store.scope(state: \.diceRoller, action: AppFeature.Action.diceRoller))
                     .onAppear {
                         viewStore.send(.onLaunch)
                     }
@@ -52,57 +50,63 @@ struct DiceRollerAppClipApp: App {
     }
 }
 
-struct AppState: Equatable {
-    var diceRoller = DiceRollerFeature.State()
+struct AppFeature: Reducer {
+    let environment: DiceRollerEnvironment
 
-    @BindingState var showAppStoreOverlay: Bool = false
-    var didShowAppStoreOverlay: Bool = false
-}
-
-enum AppAction: Equatable, BindableAction {
-    case onLaunch
-    case onContinueUserActivity(NSUserActivity)
-    case diceRoller(DiceRollerFeature.Action)
-
-    case binding(BindingAction<AppState>)
-}
-
-let appReducer: AnyReducer<AppState, AppAction, DiceRollerEnvironment> = .combine(
-    AnyReducer { state, action, env in
-        switch action {
-        case .onLaunch:
-            // Listen to dice rolls and forward them to the right place
-            let rolls = env.diceLog.rolls
-            return .run { send in
-                for await (result, roll) in rolls.values {
-                    await send(.diceRoller(.onProcessRollForDiceLog(result, roll)))
-                }
-            }
-            .cancellable(id: "diceLog", cancelInFlight: true)
-        case .onContinueUserActivity(let activity):
-            guard let url = activity.webpageURL, let invocation = try? diceRollerInvocationRouter.match(url: url) else {
-                print("ERROR: Could not continue user activity")
-                break
-            }
-
-            state.diceRoller.calculatorState.reset()
-            state.diceRoller.calculatorState.expression = invocation.expression
-        case .diceRoller(.hideOutcome):
-            if !state.didShowAppStoreOverlay {
-                state.showAppStoreOverlay = true
-                state.didShowAppStoreOverlay = true
-            }
-        case .diceRoller: break
-        case .binding: break
-        }
-        return .none
-    },
-    AnyReducer { env in
-        DiceRollerFeature(environment: env)
+    init(environment: DiceRollerEnvironment) {
+        self.environment = environment
     }
-    .pullback(
-        state: \.diceRoller,
-        action: /AppAction.diceRoller,
-        environment: { $0 }
-    )
-)
+
+    struct State: Equatable {
+        var diceRoller = DiceRollerFeature.State()
+
+        @BindingState var showAppStoreOverlay: Bool = false
+        var didShowAppStoreOverlay: Bool = false
+    }
+
+    enum Action: Equatable, BindableAction {
+        case onLaunch
+        case onContinueUserActivity(NSUserActivity)
+        case diceRoller(DiceRollerFeature.Action)
+
+        case binding(BindingAction<State>)
+    }
+
+    var body: some ReducerOf<Self> {
+        Scope(state: \.diceRoller, action: /Action.diceRoller) {
+            DiceRollerFeature(environment: environment)
+        }
+
+        Reduce { state, action in
+            switch action {
+            case .onLaunch:
+                // Listen to dice rolls and forward them to the right place
+                let rolls = environment.diceLog.rolls
+                return .run { send in
+                    for await (result, roll) in rolls.values {
+                        await send(.diceRoller(.onProcessRollForDiceLog(result, roll)))
+                    }
+                }
+                .cancellable(id: "diceLog", cancelInFlight: true)
+            case .onContinueUserActivity(let activity):
+                guard let url = activity.webpageURL, let invocation = try? diceRollerInvocationRouter.match(url: url) else {
+                    print("ERROR: Could not continue user activity")
+                    break
+                }
+
+                state.diceRoller.calculatorState.reset()
+                state.diceRoller.calculatorState.expression = invocation.expression
+            case .diceRoller(.hideOutcome):
+                if !state.didShowAppStoreOverlay {
+                    state.showAppStoreOverlay = true
+                    state.didShowAppStoreOverlay = true
+                }
+            case .diceRoller: break
+            case .binding: break
+            }
+            return .none
+        }
+
+        BindingReducer()
+    }
+}
