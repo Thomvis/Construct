@@ -59,8 +59,8 @@ let compendiumRootReducer: AnyReducer<CompendiumIndexState, CompendiumIndexActio
 extension CompendiumIndexAction {
     var onSaveMonsterAsNPCButtonMonster: Monster? {
         switch self {
-        case .nextScreen(.compendiumEntry(CompendiumItemDetailViewAction.onSaveMonsterAsNPCButton(let m))),
-             .detailScreen(.compendiumEntry(CompendiumItemDetailViewAction.onSaveMonsterAsNPCButton(let m))):
+        case .nextScreen(.compendiumEntry(CompendiumEntryDetailFeature.Action.onSaveMonsterAsNPCButton(let m))),
+             .detailScreen(.compendiumEntry(CompendiumEntryDetailFeature.Action.onSaveMonsterAsNPCButton(let m))):
             return m
         case .nextScreen(.compendiumIndex(let a)), .detailScreen(.compendiumIndex(let a)):
             return a.onSaveMonsterAsNPCButtonMonster

@@ -141,7 +141,7 @@ struct CombatantDetailFeature: Reducer {
                 case .creatureEditView: return .creatureEditView(CreatureEditViewState.nullInstance)
                 case .combatantResourcesView: return .combatantResourcesView(CombatantResourcesViewState.nullInstance)
                 case .runningEncounterLogView: return .runningEncounterLogView(RunningEncounterLogViewState.nullInstance)
-                case .compendiumItemDetailView: return .compendiumItemDetailView(.nullInstance)
+                case .compendiumItemDetailView: return .compendiumItemDetailView(CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance))
                 case .safariView: return .safariView(.nullInstance)
                 }
             }
@@ -164,7 +164,7 @@ struct CombatantDetailFeature: Reducer {
             case creatureEditView(CreatureEditViewState)
             case combatantResourcesView(CombatantResourcesViewState)
             case runningEncounterLogView(RunningEncounterLogViewState)
-            case compendiumItemDetailView(CompendiumEntryDetailViewState)
+            case compendiumItemDetailView(CompendiumEntryDetailFeature.State)
             case safariView(SafariViewState)
         }
 
@@ -220,7 +220,7 @@ struct CombatantDetailFeature: Reducer {
             case creatureEditView(CreatureEditViewAction)
             case combatantResourcesView(CombatantResourcesViewAction)
             case runningEncounterLogView
-            case compendiumItemDetailView(CompendiumItemDetailViewAction)
+            case compendiumItemDetailView(CompendiumEntryDetailFeature.Action)
             case safariView
         }
     }
@@ -256,7 +256,11 @@ struct CombatantDetailFeature: Reducer {
         }
         .optional()
         .pullback(state: \.initiativePopoverState, action: /Action.initiativePopover, environment: { $0 }),
-        CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextCompendiumItemDetailView, action: /Action.nextScreen..Action.NextScreenAction.compendiumItemDetailView, environment: { $0 }),
+        AnyReducer { env in
+            CompendiumEntryDetailFeature(environment: env)
+        }
+        .optional()
+        .pullback(state: \.presentedNextCompendiumItemDetailView, action: /Action.nextScreen..Action.NextScreenAction.compendiumItemDetailView, environment: { $0 }),
         AnyReducer { state, action, env in
             switch action {
             case .onAppear:
@@ -402,7 +406,7 @@ extension CompendiumItemReferenceTextAnnotation {
     static func handleTapReducer<State, Action, Environment>(
         didTapAction: CasePath<Action, (CompendiumItemReferenceTextAnnotation, AppNavigation)>,
         requestItem: WritableKeyPath<State, ReferenceViewItemRequest?>,
-        internalAction: CasePath<Action, CompendiumEntryDetailViewState>,
+        internalAction: CasePath<Action, CompendiumEntryDetailFeature.State>,
         externalAction: CasePath<Action, SafariViewState>,
         environment: @escaping (Environment) -> HandleTapReducerEnvironment
     ) -> AnyReducer<State, Action, Environment> {
@@ -411,7 +415,7 @@ extension CompendiumItemReferenceTextAnnotation {
                 switch env.compendium.resolve(annotation: annotation) {
                 case .internal(let reference):
                     if let entry = try? env.compendium.get(reference.itemKey, crashReporter: env.crashReporter) {
-                        let detailState = CompendiumEntryDetailViewState(entry: entry)
+                        let detailState = CompendiumEntryDetailFeature.State(entry: entry)
                         switch appNavigation {
                         case .column:
                             state[keyPath: requestItem] = ReferenceViewItemRequest(

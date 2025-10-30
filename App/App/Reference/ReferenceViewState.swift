@@ -109,7 +109,7 @@ struct ReferenceViewState: Equatable {
             .flatMap { item -> [(TabbedDocumentViewContentItem.Id, Any)] in item.state.content.navigationNode.topNavigationItems().map { (item.id, $0) } }
             .compactMap { (itemId, anyItem) -> (TabbedDocumentViewContentItem.Id, CompendiumEntry)? in
                 switch anyItem {
-                case let item as CompendiumEntryDetailViewState:
+                case let item as CompendiumEntryDetailFeature.State:
                     return (itemId, item.entry)
                 default:
                     return nil

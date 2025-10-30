@@ -30,7 +30,7 @@ struct ReferenceItemView: View {
 
                     IfLetStore(store.scope(state: { $0.content.addCombatantState }, action: { .contentAddCombatant($0) }), then: AddCombatantReferenceItemView.init)
 
-                    IfLetStore(store.scope(state: { $0.content.compendiumItemState }, action: { .contentCompendiumItem($0) }), then: CompendiumItemDetailView.init)
+                    IfLetStore(store.scope(state: { $0.content.compendiumItemState }, action: { .contentCompendiumItem($0) }), then: CompendiumEntryDetailView.init)
 
                     IfLetStore(store.scope(state: { $0.content.safariState}, action: { _ in .contentSafari })) { (store: Store<SafariViewState, Void>) in
                         SafariView(store: store)

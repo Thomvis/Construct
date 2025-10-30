@@ -233,7 +233,7 @@ extension CombatantDetailFeature.State.NextScreen: NavigationNode {
             case let v as CreatureEditViewState: self = .creatureEditView(v)
             case let v as CombatantResourcesViewState: self = .combatantResourcesView(v)
             case let v as RunningEncounterLogViewState: self = .runningEncounterLogView(v)
-            case let v as CompendiumEntryDetailViewState: self = .compendiumItemDetailView(v)
+            case let v as CompendiumEntryDetailFeature.State: self = .compendiumItemDetailView(v)
             case let v as SafariViewState: self = .safariView(v)
             default: break
             }
@@ -254,7 +254,7 @@ extension CombatantDetailFeature.State.NextScreen: NavigationNode {
 }
 
 
-extension CompendiumEntryDetailViewState.NextScreen: NavigationNode {
+extension CompendiumEntryDetailFeature.State.NextScreen: NavigationNode {
     var nodeId: String {
         navigationNode.nodeId
     }
@@ -269,7 +269,7 @@ extension CompendiumEntryDetailViewState.NextScreen: NavigationNode {
 
         set {
             switch newValue {
-            case let v as CompendiumEntryDetailViewState: self = .compendiumItemDetailView(v)
+            case let v as CompendiumEntryDetailFeature.State: self = .compendiumItemDetailView(v)
             case let v as SafariViewState: self = .safariView(v)
             default: break
             }
@@ -306,7 +306,7 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
         set {
             switch newValue {
             case let v as CompendiumIndexState: self = .compendiumIndex(v)
-            case let v as CompendiumEntryDetailViewState: self = .itemDetail(v)
+            case let v as CompendiumEntryDetailFeature.State: self = .itemDetail(v)
             case let v as SafariViewState: self = .safariView(v)
             default: break
             }
@@ -587,7 +587,7 @@ extension CombatantDetailFeature.State: NavigationNode {
             }
         }
     }
-    var presentedNextCompendiumItemDetailView: CompendiumEntryDetailViewState? {
+    var presentedNextCompendiumItemDetailView: CompendiumEntryDetailFeature.State? {
         get { 
             if case .compendiumItemDetailView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -601,7 +601,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
 
-    var presentedDetailCompendiumItemDetailView: CompendiumEntryDetailViewState? {
+    var presentedDetailCompendiumItemDetailView: CompendiumEntryDetailFeature.State? {
         get { 
             if case .compendiumItemDetailView(let s) = presentedScreens[.detail] {
                 return s
@@ -678,7 +678,7 @@ extension CombatantTagsViewState: NavigationNode {
     }
 
 }
-extension CompendiumEntryDetailViewState: NavigationNode {
+extension CompendiumEntryDetailFeature.State: NavigationNode {
 
     var nodeId: String { 
         navigationStackItemStateId
@@ -713,7 +713,7 @@ extension CompendiumEntryDetailViewState: NavigationNode {
         }
     }
 
-    var presentedNextCompendiumItemDetailView: CompendiumEntryDetailViewState? {
+    var presentedNextCompendiumItemDetailView: CompendiumEntryDetailFeature.State? {
         get { 
             if case .compendiumItemDetailView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -727,7 +727,7 @@ extension CompendiumEntryDetailViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCompendiumItemDetailView: CompendiumEntryDetailViewState? {
+    var presentedDetailCompendiumItemDetailView: CompendiumEntryDetailFeature.State? {
         get { 
             if case .compendiumItemDetailView(let s) = presentedScreens[.detail] {
                 return s
@@ -830,7 +830,7 @@ extension CompendiumIndexState: NavigationNode {
             }
         }
     }
-    var presentedNextItemDetail: CompendiumEntryDetailViewState? {
+    var presentedNextItemDetail: CompendiumEntryDetailFeature.State? {
         get { 
             if case .itemDetail(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -844,7 +844,7 @@ extension CompendiumIndexState: NavigationNode {
         }
     }
 
-    var presentedDetailItemDetail: CompendiumEntryDetailViewState? {
+    var presentedDetailItemDetail: CompendiumEntryDetailFeature.State? {
         get { 
             if case .itemDetail(let s) = presentedScreens[.detail] {
                 return s

@@ -329,7 +329,7 @@ struct CombatantDetailView: View {
             store: store,
             state: /CombatantDetailViewState.NextScreen.compendiumItemDetailView,
             action: /CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView,
-            destination: CompendiumItemDetailView.init
+            destination: CompendiumEntryDetailView.init
         )
         .stateDrivenNavigationLink(
             store: store,

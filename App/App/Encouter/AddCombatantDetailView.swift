@@ -15,12 +15,12 @@ struct AddCombatantDetailView: View {
     @EnvironmentObject var env: Environment
     var parentStore: Store<AddCombatantState, AddCombatantState.Action>
     @ObservedObject var parentViewStore: ViewStore<AddCombatantState, AddCombatantState.Action>
-    var store: Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>
-    @ObservedObject var viewStore: ViewStore<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>
+    var store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
+    @ObservedObject var viewStore: ViewStore<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
 
     let onSelection: (AddCombatantView.Action) -> Void
 
-    init(parentStore: Store<AddCombatantState, AddCombatantState.Action>, store: Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>, onSelection: @escaping (AddCombatantView.Action) -> Void) {
+    init(parentStore: Store<AddCombatantState, AddCombatantState.Action>, store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>, onSelection: @escaping (AddCombatantView.Action) -> Void) {
         self.parentStore = parentStore
         self.parentViewStore = ViewStore(parentStore, observe: \.self)
         self.store = store

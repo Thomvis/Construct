@@ -43,7 +43,7 @@
 		E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */; };
 		E942E010247EA5DE00170FAC /* AddCombatantState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA8E2477E50A00F313D7 /* AddCombatantState.swift */; };
 		E942E011247EA78200170FAC /* CompendiumIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E4700231D95A9005D1E6F /* CompendiumIndexView.swift */; };
-		E942E012247EAA2600170FAC /* CompendiumItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43B32338B5FC00A8B032 /* CompendiumItemDetailView.swift */; };
+		E942E012247EAA2600170FAC /* CompendiumEntryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43B32338B5FC00A8B032 /* CompendiumEntryDetailView.swift */; };
 		E942E013247EABA900170FAC /* StatBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43B82338B7EA00A8B032 /* StatBlockView.swift */; };
 		E942E014247EACA900170FAC /* CreatureEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9238C3023871C8A0023DFC3 /* CreatureEditView.swift */; };
 		E942E019247FE9E900170FAC /* CampaignBrowseViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB31323505B0F00CA0AF4 /* CampaignBrowseViewState.swift */; };
@@ -289,7 +289,7 @@
 		E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemGroupEditView.swift; sourceTree = "<group>"; };
 		E97A43AB2334004B00A8B032 /* CompendiumImporterTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumImporterTest.swift; sourceTree = "<group>"; };
 		E97A43AD233407D000A8B032 /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
-		E97A43B32338B5FC00A8B032 /* CompendiumItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemDetailView.swift; sourceTree = "<group>"; };
+		E97A43B32338B5FC00A8B032 /* CompendiumEntryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryDetailView.swift; sourceTree = "<group>"; };
 		E97A43B82338B7EA00A8B032 /* StatBlockView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatBlockView.swift; sourceTree = "<group>"; };
 		E97A4FAC23621FDA0044E424 /* EncounterDifficultyTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDifficultyTest.swift; sourceTree = "<group>"; };
 		E97A4FAE2362276B0044E424 /* EncounterDifficultyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDifficultyView.swift; sourceTree = "<group>"; };
@@ -448,7 +448,7 @@
 				E97A43B52338B62800A8B032 /* ItemDetailView */,
 				E91E46FC231D9390005D1E6F /* CompendiumContainerView.swift */,
 				E91E4700231D95A9005D1E6F /* CompendiumIndexView.swift */,
-				E97A43B32338B5FC00A8B032 /* CompendiumItemDetailView.swift */,
+				E97A43B32338B5FC00A8B032 /* CompendiumEntryDetailView.swift */,
 				E978861B23BE8E5A003B2DA2 /* CompendiumFilterSheet.swift */,
 				E9F1287828EA0BF40040C90C /* CompendiumQuery.swift */,
 				E972BA902477E56300F313D7 /* CompendiumIndexState.swift */,
@@ -1071,7 +1071,7 @@
 				E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */,
 				E946B02C247E6225008A407C /* CompendiumItemGroupDetailView.swift in Sources */,
 				E97651DB248BBF1B00C76865 /* RunningEncounterLogView.swift in Sources */,
-				E942E012247EAA2600170FAC /* CompendiumItemDetailView.swift in Sources */,
+				E942E012247EAA2600170FAC /* CompendiumEntryDetailView.swift in Sources */,
 				E9F1287928EA0BF40040C90C /* CompendiumQuery.swift in Sources */,
 				E942E014247EACA900170FAC /* CreatureEditView.swift in Sources */,
 				E99095B3249797F400731EB9 /* AddCombatantDetailView.swift in Sources */,

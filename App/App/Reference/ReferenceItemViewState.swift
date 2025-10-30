@@ -20,7 +20,7 @@ struct ReferenceItemViewState: Equatable {
         case compendium(Compendium)
         case combatantDetail(CombatantDetail)
         case addCombatant(AddCombatant)
-        case compendiumItem(CompendiumEntryDetailViewState)
+        case compendiumItem(CompendiumEntryDetailFeature.State)
         case safari(SafariViewState)
 
         var compendiumState: Content.Compendium? {
@@ -61,7 +61,7 @@ struct ReferenceItemViewState: Equatable {
             }
         }
 
-        var compendiumItemState: CompendiumEntryDetailViewState? {
+        var compendiumItemState: CompendiumEntryDetailFeature.State? {
             get {
                 if case .compendiumItem(let s) = self {
                     return s
@@ -259,7 +259,7 @@ enum ReferenceItemViewAction: Equatable {
     case contentCompendium(Compendium)
     case contentCombatantDetail(CombatantDetail)
     case contentAddCombatant(AddCombatant)
-    case contentCompendiumItem(CompendiumItemDetailViewAction)
+    case contentCompendiumItem(CompendiumEntryDetailFeature.Action)
     case contentSafari
 
     /// Wraps actions that need to be executed inside the EncounterReferenceContext
@@ -298,7 +298,11 @@ extension ReferenceItemViewState {
             action: /ReferenceItemViewAction.contentAddCombatant,
             environment: { $0 }
         ),
-        CompendiumEntryDetailViewState.reducer.optional().pullback(
+        AnyReducer { env in
+            CompendiumEntryDetailFeature(environment: env)
+        }
+        .optional()
+        .pullback(
             state: \.content.compendiumItemState,
             action: /ReferenceItemViewAction.contentCompendiumItem,
             environment: { $0 }

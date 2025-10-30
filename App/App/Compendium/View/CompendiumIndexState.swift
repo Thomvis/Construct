@@ -59,7 +59,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         res.presentedScreens = presentedScreens.mapValues {
             switch $0 {
             case .compendiumIndex: return .compendiumIndex(CompendiumIndexState.nullInstance)
-            case .itemDetail: return .itemDetail(CompendiumEntryDetailViewState.nullInstance)
+            case .itemDetail: return .itemDetail(CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance))
             case .safariView: return .safariView(.nullInstance)
             }
         }
@@ -180,7 +180,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
     enum NextScreen: Equatable {
         indirect case compendiumIndex(CompendiumIndexState)
-        case itemDetail(CompendiumEntryDetailViewState)
+        case itemDetail(CompendiumEntryDetailFeature.State)
         case safariView(SafariViewState)
     }
 
@@ -205,8 +205,16 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
     static var reducer: AnyReducer<Self, CompendiumIndexAction, CompendiumIndexEnvironment> {
         return AnyReducer.combine(
-            CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedNextItemDetail, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry, environment: { $0 }),
-            CompendiumEntryDetailViewState.reducer.optional().pullback(state: \.presentedDetailItemDetail, action: /CompendiumIndexAction.detailScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry, environment: { $0 }),
+            AnyReducer { env in
+                CompendiumEntryDetailFeature(environment: env)
+            }
+            .optional()
+            .pullback(state: \.presentedNextItemDetail, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry, environment: { $0 }),
+            AnyReducer { env in
+                CompendiumEntryDetailFeature(environment: env)
+            }
+            .optional()
+            .pullback(state: \.presentedDetailItemDetail, action: /CompendiumIndexAction.detailScreen..CompendiumIndexAction.NextScreenAction.compendiumEntry, environment: { $0 }),
             AnyReducer { state, action, env in
                 switch action {
                 case .results: break
@@ -521,7 +529,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
 
     enum NextScreenAction: Equatable {
         case compendiumIndex(CompendiumIndexAction)
-        case compendiumEntry(CompendiumItemDetailViewAction)
+        case compendiumEntry(CompendiumEntryDetailFeature.Action)
     }
 
     // Key-path support

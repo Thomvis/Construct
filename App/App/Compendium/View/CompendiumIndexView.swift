@@ -361,7 +361,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 
 struct CompendiumIndexViewProvider {
     let row: (Store<CompendiumIndexState, CompendiumIndexAction>, CompendiumEntry) -> AnyView
-    let detail: (Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>) -> AnyView
+    let detail: (Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>) -> AnyView
 
     /// Can be used by the view to invalidate itself if the state changes
     let state: () -> any Equatable
@@ -371,7 +371,7 @@ struct CompendiumIndexViewProvider {
             CompendiumEntryRow(store: store, entry: entry).eraseToAnyView
         },
         detail: { store in
-            CompendiumItemDetailView(store: store).eraseToAnyView
+            CompendiumEntryDetailView(store: store).eraseToAnyView
         },
         state: { 0 }
     )
@@ -546,7 +546,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
         Section(header: header) {
             ForEach(entries, id: \.item.key) { entry in
                 NavigationRowButton(action: {
-                    viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                    viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailFeature.State(entry: entry))))
                 }) {
                     let itemView = viewProvider.row(self.store, entry)
 

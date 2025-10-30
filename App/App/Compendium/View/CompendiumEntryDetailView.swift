@@ -17,16 +17,16 @@ import ActionResolutionFeature
 import Compendium
 import SharedViews
 
-struct CompendiumItemDetailView: View {
+struct CompendiumEntryDetailView: View {
     @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.appNavigation) var appNavigation
 
-    var store: Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>
-    @ObservedObject var viewStore: ViewStore<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>
+    var store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
+    @ObservedObject var viewStore: ViewStore<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
 
-    init(store: Store<CompendiumEntryDetailViewState, CompendiumItemDetailViewAction>) {
+    init(store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
+        self.viewStore = ViewStore(store, observe: \.self, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
 
     var item: CompendiumItem {
@@ -45,8 +45,8 @@ struct CompendiumItemDetailView: View {
         ScrollView {
             VStack {
                 contentView()
-
-                if var attribution = viewStore.state.entryAttribution {
+                
+                if let attribution = viewStore.state.entryAttribution {
                     Text(attribution)
                         .font(.footnote).italic()
                         .foregroundColor(Color(UIColor.secondaryLabel))
@@ -101,9 +101,9 @@ struct CompendiumItemDetailView: View {
         }
         .stateDrivenNavigationLink(
             store: store,
-            state: /CompendiumEntryDetailViewState.NextScreen.compendiumItemDetailView,
-            action: /CompendiumItemDetailViewAction.NextScreenAction.compendiumItemDetailView,
-            destination: CompendiumItemDetailView.init
+            state: /CompendiumEntryDetailFeature.State.NextScreen.compendiumItemDetailView,
+            action: /CompendiumEntryDetailFeature.Action.NextScreenAction.compendiumItemDetailView,
+            destination: CompendiumEntryDetailView.init
         )
         .safariView(
             item: viewStore.binding(get: { $0.presentedNextSafariView }, send: { _ in .setNextScreen(nil) }),
@@ -134,7 +134,7 @@ struct CompendiumItemDetailView: View {
     }
 
     @ViewBuilder
-    func sheetView(_ sheet: CompendiumEntryDetailViewState.Sheet) -> some View {
+    func sheetView(_ sheet: CompendiumEntryDetailFeature.State.Sheet) -> some View {
         switch viewStore.state.sheet {
         case .creatureEdit:
             IfLetStore(store.scope(state: replayNonNil({ $0.creatureEditSheet }), action: { .sheet(.creatureEdit($0)) })) { store in

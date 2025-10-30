@@ -512,7 +512,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                         let filters = CompendiumFilters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4))
                                                         await store.send(.query(.onFiltersDidChange(filters))).finish()
                                                         let entry = ViewStore(store, observe: \.self).state.results.entries!.first!
-                                                        store.send(.setNextScreen(.itemDetail(CompendiumEntryDetailViewState(entry: entry))))
+                                                        store.send(.setNextScreen(.itemDetail(CompendiumEntryDetailFeature.State(entry: entry))))
                                                         state = ViewStore(store, observe: \.self).state
                                                     },
                                                     encounter: encounter
@@ -662,7 +662,7 @@ class AppStoreScreenshotTests: XCTestCase {
 
                                                     let fireballSpell = state.results.entries!.first(where: { $0.item.title == "Fireball" })!
                                                     state.scrollTo = fireballSpell.key
-                                                    state.nextScreen = .itemDetail(CompendiumEntryDetailViewState(entry: fireballSpell))
+                                                    state.nextScreen = .itemDetail(CompendiumEntryDetailFeature.State(entry: fireballSpell))
                                                 }
                                             )
                                         )
