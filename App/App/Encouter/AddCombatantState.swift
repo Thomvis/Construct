@@ -10,8 +10,12 @@ import Foundation
 import ComposableArchitecture
 import Helpers
 import GameModels
+import Compendium
+import MechMuse
+import Persistence
+import DiceRollerFeature
 
-typealias AddCombatantEnvironment = CompendiumIndexEnvironment & CreatureEditViewEnvironment
+typealias AddCombatantEnvironment = CompendiumIndexEnvironment & (EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase)
 
 struct AddCombatantState: Equatable {
     var compendiumState: CompendiumIndexState
@@ -22,7 +26,7 @@ struct AddCombatantState: Equatable {
             updateSuggestedCombatants()
         }
     }
-    var creatureEditViewState: CreatureEditViewState?
+    var creatureEditViewState: CreatureEditFeature.State?
 
     var combatantsByDefinitionCache: [String: [Combatant]] = [:] // computed from the encounter
 
@@ -62,21 +66,22 @@ struct AddCombatantState: Equatable {
         return AddCombatantState(
             compendiumState: CompendiumIndexState.nullInstance,
             encounter: self.encounter,
-            creatureEditViewState: self.creatureEditViewState.map { _ in CreatureEditViewState.nullInstance }
+            creatureEditViewState: self.creatureEditViewState.map { _ in CreatureEditFeature.State.nullInstance }
         )
     }
 
     enum Action: Equatable {
         case compendiumState(CompendiumIndexAction)
         case quickCreate
-        case creatureEditView(CreatureEditViewAction)
+        case creatureEditView(CreatureEditFeature.Action)
         case onCreatureEditViewDismiss
         case onSelect([Combatant], dismiss: Bool)
     }
 
     static var reducer: AnyReducer<AddCombatantState, AddCombatantState.Action, AddCombatantEnvironment> {
         AnyReducer.combine(
-            CreatureEditViewState.reducer.optional().pullback(
+            AnyReducer { _ in CreatureEditFeature() }
+                .optional().pullback(
                 state: \.creatureEditViewState,
                 action: /Action.creatureEditView,
                 environment: { $0 }
@@ -84,7 +89,7 @@ struct AddCombatantState: Equatable {
             AnyReducer { state, action, _ in
                 switch action {
                 case .quickCreate:
-                    state.creatureEditViewState = CreatureEditViewState(create: .adHocCombatant)
+                    state.creatureEditViewState = CreatureEditFeature.State(create: .adHocCombatant)
                 case .creatureEditView(.didAdd(let result)):
                     state.creatureEditViewState = nil
                     if case let .adHoc(def) = result {
@@ -121,7 +126,7 @@ extension AddCombatantState {
             results: .initial
         ),
         encounter: Encounter,
-        creatureEditViewState: CreatureEditViewState? = nil
+        creatureEditViewState: CreatureEditFeature.State? = nil
     ) {
         self.compendiumState = compendiumState
         self.encounter = encounter

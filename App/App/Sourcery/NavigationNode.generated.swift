@@ -87,7 +87,7 @@ extension CompendiumItemGroupEditFeature.State: NavigationNode {
         // no-op
     }
 }
-extension CreatureEditViewState: NavigationNode {
+extension CreatureEditFeature.State: NavigationNode {
     var nodeId: String { 
         navigationStackItemStateId
     }
@@ -230,7 +230,7 @@ extension CombatantDetailFeature.State.NextScreen: NavigationNode {
             switch newValue {
             case let v as CombatantTagsViewState: self = .combatantTagsView(v)
             case let v as CombatantTagEditViewState: self = .combatantTagEditView(v)
-            case let v as CreatureEditViewState: self = .creatureEditView(v)
+            case let v as CreatureEditFeature.State: self = .creatureEditView(v)
             case let v as CombatantResourcesViewState: self = .combatantResourcesView(v)
             case let v as RunningEncounterLogViewState: self = .runningEncounterLogView(v)
             case let v as CompendiumEntryDetailFeature.State: self = .compendiumItemDetailView(v)
@@ -506,7 +506,7 @@ extension CombatantDetailFeature.State: NavigationNode {
             }
         }
     }
-    var presentedNextCreatureEditView: CreatureEditViewState? {
+    var presentedNextCreatureEditView: CreatureEditFeature.State? {
         get { 
             if case .creatureEditView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -520,7 +520,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
 
-    var presentedDetailCreatureEditView: CreatureEditViewState? {
+    var presentedDetailCreatureEditView: CreatureEditFeature.State? {
         get { 
             if case .creatureEditView(let s) = presentedScreens[.detail] {
                 return s

@@ -163,14 +163,14 @@ struct CompendiumEntryDetailView: View {
         }
     }
 
-    var editViewState: CreatureEditViewState? {
+    var editViewState: CreatureEditFeature.State? {
         switch item {
-        case let monster as Monster: return CreatureEditViewState(
+        case let monster as Monster: return CreatureEditFeature.State(
             edit: monster,
             documentId: viewStore.state.entry.document.id,
             origin: viewStore.state.entry.origin
         )
-        case let character as Character: return CreatureEditViewState(
+        case let character as Character: return CreatureEditFeature.State(
             edit: character,
             documentId: viewStore.state.entry.document.id,
             origin: viewStore.state.entry.origin
@@ -196,7 +196,7 @@ struct CompendiumEntryDetailView: View {
 
         if isCreature, let itemStatBlock {
             MenuItem(text: "Edit a copy", systemImage: "document.on.document") {
-                var state = CreatureEditViewState(create: .monster)
+                var state = CreatureEditFeature.State(create: .monster)
                 state.model.statBlock = .init(statBlock: itemStatBlock)
                 state.sections = state.creatureType.initialSections.union(state.model.sectionsWithData)
                 state.createOrigin = .created(CompendiumItemReference(self.viewStore.state.item))

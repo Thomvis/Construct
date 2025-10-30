@@ -21,13 +21,13 @@ struct CreatureEditView: View {
     static let iconColumnWidth: CGFloat = 30
 
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    var store: Store<CreatureEditViewState, CreatureEditViewAction>
-    @ObservedObject var viewStore: ViewStore<CreatureEditViewState, CreatureEditViewAction>
+    var store: Store<CreatureEditFeature.State, CreatureEditFeature.Action>
+    @ObservedObject var viewStore: ViewStore<CreatureEditFeature.State, CreatureEditFeature.Action>
 
     @ScaledMetric(relativeTo: .body)
     var bodyMetric: CGFloat = 14
 
-    init(store: Store<CreatureEditViewState, CreatureEditViewAction>) {
+    init(store: Store<CreatureEditFeature.State, CreatureEditFeature.Action>) {
         self.store = store
         self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
@@ -199,7 +199,7 @@ struct CreatureEditView: View {
                     switch sheet {
                     case .actionEditor(let actionEditorState):
                         CaseLet(
-                            /CreatureEditViewState.Sheet.actionEditor, action: CreatureEditViewAction.creatureActionEditSheet
+                            /CreatureEditFeature.State.Sheet.actionEditor, action: CreatureEditFeature.Action.creatureActionEditSheet
                         ) { store in
                             AutoSizingSheetContainer {
                                 SheetNavigationContainer {
@@ -210,7 +210,7 @@ struct CreatureEditView: View {
                             }
                         }
                     case .creatureGeneration:
-                        CaseLet(/CreatureEditViewState.Sheet.creatureGeneration, action: CreatureEditViewAction.creatureGenerationSheet) { store in
+                        CaseLet(/CreatureEditFeature.State.Sheet.creatureGeneration, action: CreatureEditFeature.Action.creatureGenerationSheet) { store in
                             SheetNavigationContainer {
                                 MechMuseCreatureGenerationSheet(store: store)
                             }
@@ -277,7 +277,7 @@ struct CreatureEditView: View {
                     }),
                     label: EmptyView()
                 ) {
-                    ForEach(CreatureEditViewState.CreatureType.allCases, id: \.rawValue) { type in
+                    ForEach(CreatureEditFeature.State.CreatureType.allCases, id: \.rawValue) { type in
                         Text(type.localizedDisplayName).tag(type)
                     }
                 }
@@ -304,7 +304,7 @@ struct CreatureEditView: View {
 
     @ViewBuilder
     var compendiumDocumentField: some View {
-        let documentSelectionStore = store.scope(state: \.model.document, action: CreatureEditViewAction.documentSelection)
+        let documentSelectionStore = store.scope(state: \.model.document, action: CreatureEditFeature.Action.documentSelection)
         LabeledContent {
             if !viewStore.state.mode.isEdit {
                 CompendiumDocumentSelectionView.menu(
@@ -422,7 +422,7 @@ struct CreatureEditView: View {
 
     @ViewBuilder
     var allNamedContentItemSections: some View {
-        ForEach(CreatureEditViewState.Section.allNamedContentItemCases) { section in
+        ForEach(CreatureEditFeature.State.Section.allNamedContentItemCases) { section in
             if case .namedContentItems(let t) = section {
                 FormSection(section, footer: HStack {
                     Button(action: {
@@ -486,12 +486,12 @@ struct CreatureEditView: View {
 }
 
 extension CreatureEditView {
-    fileprivate func FormSection<Content>(_ section: CreatureEditViewState.Section, @ViewBuilder content: @escaping () -> Content) -> some View where Content: View {
+    fileprivate func FormSection<Content>(_ section: CreatureEditFeature.State.Section, @ViewBuilder content: @escaping () -> Content) -> some View where Content: View {
         FormSection(section, footer: EmptyView(), content: content)
     }
 
     @ViewBuilder
-    fileprivate func FormSection<Footer, Content>(_ section: CreatureEditViewState.Section, footer: Footer, @ViewBuilder content: @escaping () -> Content) -> some View where Footer: View, Content: View {
+    fileprivate func FormSection<Footer, Content>(_ section: CreatureEditFeature.State.Section, footer: Footer, @ViewBuilder content: @escaping () -> Content) -> some View where Footer: View, Content: View {
         if viewStore.state.addableSections.contains(section) || viewStore.state.sections.contains(section) {
             Section(footer: Group {
                 if viewStore.state.sections.contains(section) {
@@ -720,7 +720,7 @@ struct CreatureEditView_Preview: PreviewProvider {
         NavigationView {
             CreatureEditView(
                 store: Store(
-                    initialState: CreatureEditViewState(edit: Monster(
+                    initialState: CreatureEditFeature.State(edit: Monster(
                         realm: .init(CompendiumRealm.homebrew.id),
                         stats: StatBlock(
                             name: "Goblin",
@@ -736,43 +736,41 @@ struct CreatureEditView_Preview: PreviewProvider {
                         ),
                         challengeRating: Fraction(integer: 1)
                     ), documentId: CompendiumSourceDocument.homebrew.id),
-                    reducer: CreatureEditViewState.reducer,
-                environment: CEVE(
-                    modifierFormatter: modifierFormatter,
-                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
-                    diceLog: DiceLogPublisher(),
-                    compendiumMetadata: CompendiumMetadataKey.previewValue,
-                    mechMuse: MechMuse.previewValue,
-                    database: Database.uninitialized,
-                    compendium: DatabaseCompendium(databaseAccess: Database.uninitialized.access)
-                )
+                    reducer: CreatureEditFeature()
+                ) {
+                    $0.modifierFormatter = modifierFormatter
+                    $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                    $0.diceLog = DiceLogPublisher()
+                    $0.compendiumMetadata = CompendiumMetadataKey.previewValue
+                    $0.mechMuse = MechMuse.previewValue
+                    $0.database = Database.uninitialized
+                    $0.compendium = DatabaseCompendium(databaseAccess: Database.uninitialized.access)
+                }
             )
-        )
         }
 
         // create
         CreatureEditView(
             store: Store(
-                initialState: CreatureEditViewState(
+                initialState: CreatureEditFeature.State(
                     create: .monster,
                     sourceDocument: .init(CompendiumSourceDocument.homebrew)
                 ),
-                reducer: CreatureEditViewState.reducer,
-                environment: CEVE(
-                    modifierFormatter: modifierFormatter,
-                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
-                    diceLog: DiceLogPublisher(),
-                    compendiumMetadata: CompendiumMetadataKey.previewValue,
-                    mechMuse: MechMuse.previewValue,
-                    database: Database.uninitialized,
-                    compendium: DatabaseCompendium(databaseAccess: Database.uninitialized.access)
-                )
-            )
+                reducer: CreatureEditFeature()
+            ) {
+                $0.modifierFormatter = modifierFormatter
+                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.diceLog = DiceLogPublisher()
+                $0.compendiumMetadata = CompendiumMetadataKey.previewValue
+                $0.mechMuse = MechMuse.previewValue
+                $0.database = Database.uninitialized
+                $0.compendium = DatabaseCompendium(databaseAccess: Database.uninitialized.access)
+            }
         )
     }
 }
 
-struct CEVE: CreatureEditViewEnvironment {
+struct CEVE: EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase {
     var modifierFormatter: NumberFormatter
     var mainQueue: AnySchedulerOf<DispatchQueue>
     var diceLog: DiceLogPublisher

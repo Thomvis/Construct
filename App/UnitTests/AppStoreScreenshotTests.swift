@@ -744,7 +744,7 @@ class AppStoreScreenshotTests: XCTestCase {
             let sheetView = SheetNavigationContainer {
                 CreatureEditView(
                     store: Store(
-                        initialState: CreatureEditViewState(
+                        initialState: CreatureEditFeature.State(
                             edit: encounter.combatants[3].definition as! AdHocCombatantDefinition
                         ),
                         reducer: AnyReducer.empty,

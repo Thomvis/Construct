@@ -138,7 +138,7 @@ struct CombatantDetailFeature: Reducer {
                 switch $0 {
                 case .combatantTagsView: return .combatantTagsView(CombatantTagsViewState.nullInstance)
                 case .combatantTagEditView: return .combatantTagEditView(CombatantTagEditViewState.nullInstance)
-                case .creatureEditView: return .creatureEditView(CreatureEditViewState.nullInstance)
+                case .creatureEditView: return .creatureEditView(CreatureEditFeature.State.nullInstance)
                 case .combatantResourcesView: return .combatantResourcesView(CombatantResourcesViewState.nullInstance)
                 case .runningEncounterLogView: return .runningEncounterLogView(RunningEncounterLogViewState.nullInstance)
                 case .compendiumItemDetailView: return .compendiumItemDetailView(CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance))
@@ -161,7 +161,7 @@ struct CombatantDetailFeature: Reducer {
         enum NextScreen: Equatable {
             case combatantTagsView(CombatantTagsViewState)
             case combatantTagEditView(CombatantTagEditViewState)
-            case creatureEditView(CreatureEditViewState)
+            case creatureEditView(CreatureEditFeature.State)
             case combatantResourcesView(CombatantResourcesViewState)
             case runningEncounterLogView(RunningEncounterLogViewState)
             case compendiumItemDetailView(CompendiumEntryDetailFeature.State)
@@ -217,7 +217,7 @@ struct CombatantDetailFeature: Reducer {
         enum NextScreenAction: Equatable {
             case combatantTagsView(CombatantTagsViewAction)
             case combatantTagEditView(CombatantTagEditViewAction)
-            case creatureEditView(CreatureEditViewAction)
+            case creatureEditView(CreatureEditFeature.Action)
             case combatantResourcesView(CombatantResourcesViewAction)
             case runningEncounterLogView
             case compendiumItemDetailView(CompendiumEntryDetailFeature.Action)
@@ -286,7 +286,7 @@ struct CombatantDetailFeature: Reducer {
             case .initiativePopover: break // handled above
             case .editCreatureConfirmingUnlinkIfNeeded:
                 if let def = state.combatant.definition as? AdHocCombatantDefinition {
-                    return EffectTask(value: .setNextScreen(.creatureEditView(CreatureEditViewState(edit: def))))
+                    return EffectTask(value: .setNextScreen(.creatureEditView(CreatureEditFeature.State(edit: def))))
                 }
 
                 if state.combatant.definition is CompendiumCombatantDefinition {
@@ -379,7 +379,8 @@ struct CombatantDetailFeature: Reducer {
         ),
         CombatantTagsViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagsView, action: /Action.nextScreen..Action.NextScreenAction.combatantTagsView),
         CombatantResourcesViewState.reducer.optional().pullback(state: \.presentedNextCombatantResourcesView, action: /Action.nextScreen..Action.NextScreenAction.combatantResourcesView),
-        CreatureEditViewState.reducer.optional().pullback(state: \.presentedNextCreatureEditView, action: /Action.nextScreen..Action.NextScreenAction.creatureEditView, environment: { $0 }),
+        AnyReducer { _ in CreatureEditFeature() }
+            .optional().pullback(state: \.presentedNextCreatureEditView, action: /Action.nextScreen..Action.NextScreenAction.creatureEditView, environment: { $0 }),
         CombatantTrackerEditViewState.reducer.optional().pullback(state: \.addLimitedResourceState, action: /Action.addLimitedResource),
         AnyReducer { env in
             HealthDialogFeature(environment: env)

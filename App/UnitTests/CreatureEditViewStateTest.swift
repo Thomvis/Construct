@@ -21,11 +21,19 @@ class CreatureEditViewStateTest: XCTestCase {
     
     @MainActor
     func testNewMonsterDefaultsToHomebrew() async {
+        let testEnv = TestEnvironment()
         let store = TestStore(
-            initialState: CreatureEditViewState(create: .monster),
-            reducer: CreatureEditViewState.reducer,
-            environment: TestEnvironment()
-        )
+            initialState: CreatureEditFeature.State(create: .monster),
+            reducer: CreatureEditFeature()
+        ) {
+            $0.modifierFormatter = testEnv.modifierFormatter
+            $0.mainQueue = testEnv.mainQueue
+            $0.diceLog = testEnv.diceLog
+            $0.compendiumMetadata = testEnv.compendiumMetadata
+            $0.mechMuse = testEnv.mechMuse
+            $0.compendium = testEnv.compendium
+            $0.database = testEnv.database
+        }
         
         // Verify initial document selection is nil (allowing all sources)
         XCTAssertNil(store.state.model.document.selectedSource)
@@ -52,11 +60,19 @@ class CreatureEditViewStateTest: XCTestCase {
     func testNewMonsterWithCustomSource() async {
         // Test that creating a new monster with a custom source uses that source
         let customSource = CompendiumFilters.Source(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)
+        let testEnv = TestEnvironment()
         let store = TestStore(
-            initialState: CreatureEditViewState(create: .monster, sourceDocument: customSource),
-            reducer: CreatureEditViewState.reducer,
-            environment: TestEnvironment()
-        )
+            initialState: CreatureEditFeature.State(create: .monster, sourceDocument: customSource),
+            reducer: CreatureEditFeature()
+        ) {
+            $0.modifierFormatter = testEnv.modifierFormatter
+            $0.mainQueue = testEnv.mainQueue
+            $0.diceLog = testEnv.diceLog
+            $0.compendiumMetadata = testEnv.compendiumMetadata
+            $0.mechMuse = testEnv.mechMuse
+            $0.compendium = testEnv.compendium
+            $0.database = testEnv.database
+        }
         
         // Verify initial document selection is set
         XCTAssertEqual(store.state.model.document.selectedSource, customSource)
@@ -81,11 +97,19 @@ class CreatureEditViewStateTest: XCTestCase {
     
     @MainActor
     func testDocumentSelectionUpdatesOutput() async {
+        let testEnv = TestEnvironment()
         let store = TestStore(
-            initialState: CreatureEditViewState(create: .monster),
-            reducer: CreatureEditViewState.reducer,
-            environment: TestEnvironment()
-        )
+            initialState: CreatureEditFeature.State(create: .monster),
+            reducer: CreatureEditFeature()
+        ) {
+            $0.modifierFormatter = testEnv.modifierFormatter
+            $0.mainQueue = testEnv.mainQueue
+            $0.diceLog = testEnv.diceLog
+            $0.compendiumMetadata = testEnv.compendiumMetadata
+            $0.mechMuse = testEnv.mechMuse
+            $0.compendium = testEnv.compendium
+            $0.database = testEnv.database
+        }
         
         // Set required fields to make monster valid
         var updatedModel = store.state.model
@@ -126,11 +150,19 @@ class CreatureEditViewStateTest: XCTestCase {
     func testClearingDocumentSelectionDefaultsToHomebrew() async {
         // Start with a core document selected
         let coreSource = CompendiumFilters.Source(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)
+        let testEnv = TestEnvironment()
         let store = TestStore(
             initialState: CreatureEditViewState(create: .monster, sourceDocument: coreSource),
-            reducer: CreatureEditViewState.reducer,
-            environment: TestEnvironment()
-        )
+            reducer: CreatureEditFeature()
+        ) {
+            $0.modifierFormatter = testEnv.modifierFormatter
+            $0.mainQueue = testEnv.mainQueue
+            $0.diceLog = testEnv.diceLog
+            $0.compendiumMetadata = testEnv.compendiumMetadata
+            $0.mechMuse = testEnv.mechMuse
+            $0.compendium = testEnv.compendium
+            $0.database = testEnv.database
+        }
         
         // Set required fields
         var updatedModel = store.state.model
@@ -166,7 +198,7 @@ class CreatureEditViewStateTest: XCTestCase {
             challengeRating: Fraction(integer: 20)
         )
         
-        let sut = CreatureEditViewState(edit: coreMonster, documentId: CompendiumSourceDocument.srd5_1.id)
+        let sut = CreatureEditFeature.State(edit: coreMonster, documentId: CompendiumSourceDocument.srd5_1.id)
         
         // Should have the correct document selection based on realm and provided document ID
         let expectedSource = CompendiumFilters.Source(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)
@@ -182,7 +214,7 @@ class CreatureEditViewStateTest: XCTestCase {
     
     // MARK: - Test Environment
     
-    class TestEnvironment: CreatureEditViewEnvironment {
+    class TestEnvironment: EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase {
         var modifierFormatter: NumberFormatter = Helpers.modifierFormatter
         var mainQueue: AnySchedulerOf<DispatchQueue> = DispatchQueue.immediate.eraseToAnyScheduler()
         var diceLog: DiceLogPublisher = DiceLogPublisher()

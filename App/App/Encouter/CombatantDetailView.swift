@@ -264,8 +264,8 @@ struct CombatantDetailView: View {
 
                                 Button {
                                     let state = {
-                                        guard let def = self.combatant.definition as? AdHocCombatantDefinition else { return CreatureEditViewState(create: .monster) }
-                                        return CreatureEditViewState(edit: def)
+                                        guard let def = self.combatant.definition as? AdHocCombatantDefinition else { return CreatureEditFeature.State(create: .monster) }
+                                        return CreatureEditFeature.State(edit: def)
                                     }()
                                     viewStore.send(.setNextScreen(.creatureEditView(state)))
                                 } label: {

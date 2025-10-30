@@ -10,13 +10,18 @@ import Foundation
 import ComposableArchitecture
 import GameModels
 import SwiftUI
+import Helpers
+import DiceRollerFeature
+import Compendium
+import MechMuse
+import Persistence
 
 struct NamedStatBlockContentItemEditViewState: Equatable {
     let intent: Intent
     @BindingState var mode: Mode = .edit
     @BindingState var fields = Fields(name: "", description: "")
 
-    @BindingState private var preview: NamedStatBlockContentItem?
+    @BindingState var preview: NamedStatBlockContentItem?
 
     init(editing item: NamedStatBlockContentItem) {
         self.intent = .edit(item)
@@ -83,7 +88,7 @@ enum CreatureActionEditViewAction: Equatable, BindableAction {
 }
 
 extension NamedStatBlockContentItemEditViewState {
-    static let reducer: AnyReducer<NamedStatBlockContentItemEditViewState, CreatureActionEditViewAction, CreatureEditViewEnvironment> =
+    static let reducer: AnyReducer<NamedStatBlockContentItemEditViewState, CreatureActionEditViewAction, EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase> =
         AnyReducer { state, action, env in
             return .none
         }
@@ -98,4 +103,23 @@ extension NamedStatBlockContentItemEditViewState {
         }
 
     static let nullInstance = NamedStatBlockContentItemEditViewState(newItemOfType: .feature)
+}
+
+struct CreatureActionEditFeature: Reducer {
+    typealias State = NamedStatBlockContentItemEditViewState
+    typealias Action = CreatureActionEditViewAction
+
+    var body: some ReducerOf<Self> {
+        BindingReducer()
+            .onChange(of: \.mode) { oldValue, newValue in
+                Reduce { state, action in
+                    if state.mode == .preview, state.preview?.name != state.fields.name || state.preview?.description != state.fields.description {
+                        var preview = state.makeItem()
+                        preview.parseIfNeeded()
+                        return .send(.binding(.set(\.$preview, preview)), animation: .easeInOut)
+                    }
+                    return .none
+                }
+            }
+    }
 }

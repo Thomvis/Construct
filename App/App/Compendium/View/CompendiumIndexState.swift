@@ -65,7 +65,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         }
         res.sheet = sheet.map {
             switch $0 {
-            case .creatureEdit: return .creatureEdit(CreatureEditViewState.nullInstance)
+            case .creatureEdit: return .creatureEdit(CreatureEditFeature.State.nullInstance)
             case .groupEdit: return .groupEdit(CompendiumItemGroupEditFeature.State.nullInstance)
             case .compendiumImport: return .compendiumImport(CompendiumImportFeature.State())
             case .documents: return .documents(CompendiumDocumentsFeature.State())
@@ -76,7 +76,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
         return res
     }
 
-    var creatureEditSheet: CreatureEditViewState? {
+    var creatureEditSheet: CreatureEditFeature.State? {
         get {
             if case .creatureEdit(let state)? = sheet {
                 return state
@@ -186,7 +186,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
 
     enum Sheet: Equatable, Identifiable {
         // creatureEdit and groupEdit are used when adding a new creature/group
-        case creatureEdit(CreatureEditViewState)
+        case creatureEdit(CreatureEditFeature.State)
         case groupEdit(CompendiumItemGroupEditFeature.State)
         case compendiumImport(CompendiumImportFeature.State)
         case documents(CompendiumDocumentsFeature.State)
@@ -242,7 +242,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                             assertionFailure("Adding item of type \(type) is not supported yet")
                             break
                         }
-                        state.sheet = .creatureEdit(CreatureEditViewState(
+                        state.sheet = .creatureEdit(CreatureEditFeature.State(
                             create: creatureType,
                             sourceDocument: sourceDocument
                         ))
@@ -298,7 +298,7 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                     state.presentedScreens[.nextInStack] = n
                 case .setDetailScreen(let s):
                     state.presentedScreens[.detail] = s
-                case .creatureEditSheet(CreatureEditViewAction.didAdd(let result)):
+                case .creatureEditSheet(CreatureEditFeature.Action.didAdd(let result)):
                     // adding a new creature (handled by CreatureEditView reducer)
                     if case let .compendium(entry) = result {
                         return .merge(
@@ -433,7 +433,8 @@ struct CompendiumIndexState: NavigationStackSourceState, Equatable {
                 return .none
             },
             AnyReducer.lazy(CompendiumIndexState.reducer).optional().pullback(state: \.presentedNextCompendiumIndex, action: /CompendiumIndexAction.nextScreen..CompendiumIndexAction.NextScreenAction.compendiumIndex, environment:  { $0 }),
-            CreatureEditViewState.reducer.optional().pullback(state: \.creatureEditSheet, action: /CompendiumIndexAction.creatureEditSheet, environment: { $0 }),
+            AnyReducer { _ in CreatureEditFeature() }
+                .optional().pullback(state: \.creatureEditSheet, action: /CompendiumIndexAction.creatureEditSheet, environment: { $0 }),
             AnyReducer { env in
                 CompendiumItemGroupEditFeature(environment: env)
             }
@@ -507,7 +508,7 @@ enum CompendiumIndexAction: NavigationStackSourceAction, Equatable {
     indirect case alert(AlertState<CompendiumIndexAction>?)
 
     case setSheet(CompendiumIndexState.Sheet?)
-    case creatureEditSheet(CreatureEditViewAction)
+    case creatureEditSheet(CreatureEditFeature.Action)
     case groupEditSheet(CompendiumItemGroupEditFeature.Action)
     case compendiumImportSheet(CompendiumImportFeature.Action)
     case documentsSheet(CompendiumDocumentsFeature.Action)

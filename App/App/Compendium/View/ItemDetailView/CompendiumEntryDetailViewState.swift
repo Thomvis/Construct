@@ -17,9 +17,10 @@ import GameModels
 import ActionResolutionFeature
 import Persistence
 import Compendium
+import MechMuse
 
 typealias CompendiumEntryDetailEnvironment = EnvironmentWithDatabase & EnvironmentWithCompendium & EnvironmentWithCompendiumMetadata
-    & EnvironmentWithCrashReporter & CreatureEditViewEnvironment & ActionResolutionEnvironment
+    & EnvironmentWithCrashReporter & (EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase) & ActionResolutionEnvironment
 
 struct CompendiumEntryDetailFeature: Reducer {
     struct State: NavigationStackSourceState, Equatable {
@@ -80,7 +81,7 @@ struct CompendiumEntryDetailFeature: Reducer {
             }
         }
 
-        var creatureEditSheet: CreatureEditViewState? {
+        var creatureEditSheet: CreatureEditFeature.State? {
             get {
                 if case .creatureEdit(let s) = sheet {
                     return s
@@ -159,7 +160,7 @@ struct CompendiumEntryDetailFeature: Reducer {
         }
 
         enum Sheet: Equatable, Identifiable {
-            case creatureEdit(CreatureEditViewState)
+            case creatureEdit(CreatureEditFeature.State)
             case groupEdit(CompendiumItemGroupEditFeature.State)
             case transfer(CompendiumItemTransferFeature.State)
 
@@ -211,7 +212,7 @@ struct CompendiumEntryDetailFeature: Reducer {
         }
 
         enum SheetAction: Equatable {
-            case creatureEdit(CreatureEditViewAction)
+            case creatureEdit(CreatureEditFeature.Action)
             case groupEdit(CompendiumItemGroupEditFeature.Action)
             case transfer(CompendiumItemTransferFeature.Action)
         }
@@ -264,13 +265,13 @@ struct CompendiumEntryDetailFeature: Reducer {
             case .creatureActionPopover: break // handled by a reducer below
             case .rollCheckPopover: break // handled by a reducer below
             case .setSheet(let s): state.sheet = s
-            case .sheet(.creatureEdit(CreatureEditViewAction.didEdit(let result))):
+            case .sheet(.creatureEdit(CreatureEditFeature.Action.didEdit(let result))):
                 if case let .compendium(entry) = result {
                     state.entry = entry
                     return .send(.setSheet(nil))
                 }
                 return .send(.setSheet(nil))
-            case .sheet(.creatureEdit(CreatureEditViewAction.didAdd(let result))):
+            case .sheet(.creatureEdit(CreatureEditFeature.Action.didAdd(let result))):
                 // A copy was edited and added
                 if case let .compendium(entry) = result {
                     return .merge(
@@ -281,7 +282,7 @@ struct CompendiumEntryDetailFeature: Reducer {
                 } else {
                     return .send(.setSheet(nil))
                 }
-            case .sheet(.creatureEdit(CreatureEditViewAction.onRemoveTap)):
+            case .sheet(.creatureEdit(CreatureEditFeature.Action.onRemoveTap)):
                 let entryKey = state.entry.key
                 return .run { send in
                     _ = try? environment.database.keyValueStore.remove(entryKey.rawValue)
@@ -322,7 +323,7 @@ struct CompendiumEntryDetailFeature: Reducer {
             return .none
         }
         .ifLet(\.creatureEditSheet, action: /Action.sheet..Action.SheetAction.creatureEdit) {
-            Reduce(CreatureEditViewState.reducer, environment: environment)
+            CreatureEditFeature()
         }
         .ifLet(\.groupEditSheet, action: /Action.sheet..Action.SheetAction.groupEdit) {
             CompendiumItemGroupEditFeature(environment: environment)

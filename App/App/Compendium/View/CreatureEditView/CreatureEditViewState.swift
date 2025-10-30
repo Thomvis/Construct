@@ -17,233 +17,397 @@ import MechMuse
 import Persistence
 import SharedViews
 
-struct CreatureEditViewState: Equatable {
-    var mode: Mode
-    var model: CreatureEditFormModel
-    var sections: Set<Section>
+struct CreatureEditFeature: Reducer {
+    struct State: Equatable {
+        var mode: Mode
+        var model: CreatureEditFormModel
+        var sections: Set<Section>
 
-    var popover: Popover?
-    var sheet: Sheet? = nil
-    var notice: Notice? = nil
+        var popover: Popover?
+        var sheet: Sheet? = nil
+        var notice: Notice? = nil
 
-    // Used to preserve attribution when creating new items (e.g. "Edit a copy")
-    var createOrigin: CompendiumEntry.Origin? = .created(nil)
-    // Used to preserve attribution when editing existing items
-    var originalOrigin: CompendiumEntry.Origin? = nil
+        // Used to preserve attribution when creating new items (e.g. "Edit a copy")
+        var createOrigin: CompendiumEntry.Origin? = .created(nil)
+        // Used to preserve attribution when editing existing items
+        var originalOrigin: CompendiumEntry.Origin? = nil
 
-    init(create creatureType: CreatureType, sourceDocument: CompendiumFilters.Source = .init(.homebrew)) {
-        self.mode = .create(creatureType)
-        self.model = CreatureEditFormModel(
-            statBlock: StatBlockFormModel(statBlock: .default),
-            document: CompendiumDocumentSelectionFeature.State(
-                selectedSource: sourceDocument
+        init(create creatureType: CreatureType, sourceDocument: CompendiumFilters.Source = .init(.homebrew)) {
+            self.mode = .create(creatureType)
+            self.model = CreatureEditFormModel(
+                statBlock: StatBlockFormModel(statBlock: .default),
+                document: CompendiumDocumentSelectionFeature.State(
+                    selectedSource: sourceDocument
+                )
             )
-        )
-        self.sections = creatureType.initialSections
-        self.popover = nil
+            self.sections = creatureType.initialSections
+            self.popover = nil
 
-        if case .adHocCombatant = creatureType {
-            self.model.statBlock.initiative = Initiative(modifier: Modifier(modifier: 0), advantage: false)
-        } else if case .character = creatureType {
-            self.model.player = Player(name: nil)
-        }
-    }
-
-    init(edit monster: Monster, documentId: CompendiumSourceDocument.Id, origin: CompendiumEntry.Origin = .created(nil)) {
-        self.mode = .editMonster(monster)
-        self.model = CreatureEditFormModel(monster: monster, documentId: documentId)
-        self.sections = CreatureType.monster.initialSections.union(self.model.sectionsWithData)
-        self.popover = nil
-        self.originalOrigin = origin
-    }
-
-    init(edit character: Character, documentId: CompendiumSourceDocument.Id, origin: CompendiumEntry.Origin = .created(nil)) {
-        self.mode = .editCharacter(character)
-        self.model = CreatureEditFormModel(character: character, documentId: documentId)
-        self.sections = CreatureType.character.initialSections.union(self.model.sectionsWithData)
-        self.popover = nil
-        self.originalOrigin = origin
-    }
-
-    init(edit combatant: AdHocCombatantDefinition) {
-        self.mode = .editAdHocCombatant(combatant)
-        self.model = CreatureEditFormModel(combatant: combatant)
-        self.sections = CreatureType.character.initialSections.union(self.model.sectionsWithData)
-        self.popover = nil
-    }
-
-    var creatureType: CreatureType {
-        switch mode {
-        case .create(let t): return t
-        case .editMonster: return .monster
-        case .editCharacter: return .character
-        case .editAdHocCombatant: return .adHocCombatant
-        }
-    }
-
-    var maximumAbilityScore: Int {
-        creatureType == .character ? 20 : 30
-    }
-
-    var isValid: Bool {
-        model.statBlock.name.nonEmptyString != nil && result != nil
-    }
-
-    var canEditName: Bool {
-        if case .editMonster = mode {
-            return false
-        }
-        return true
-    }
-
-    var addableSections: [Section] {
-        Section.allCases.filter { creatureType.compatibleSections.contains($0) && !sections.contains($0) }
-    }
-
-    var numberEntryPopover: NumberEntryFeature.State? {
-        get {
-            if case .numberEntry(let s) = popover {
-                return s
-            }
-            return nil
-        }
-        set {
-            if let newValue = newValue {
-                popover = .numberEntry(newValue)
-            }
-        }
-    }
-
-    var actionEditor: NamedStatBlockContentItemEditViewState? {
-        get {
-            if case .actionEditor(let s) = sheet {
-                return s
-            }
-            return nil
-        }
-        set {
-            if let newValue = newValue {
-                sheet = .actionEditor(newValue)
-            }
-        }
-    }
-
-    var creatureGenerationSheet: MechMuseCreatureGenerationFeature.State? {
-        get {
-            if case .creatureGeneration(let s) = sheet {
-                return s
-            }
-            return nil
-        }
-        set {
-            if let newValue = newValue {
-                sheet = .creatureGeneration(newValue)
-            }
-        }
-    }
-
-    var localStateForDeduplication: Self {
-        var res = self
-        res.popover = popover.map {
-            switch $0 {
-            case .numberEntry: return .numberEntry(.nullInstance)
-            }
-        }
-        res.sheet = sheet.map {
-            switch $0 {
-            case .actionEditor: return .actionEditor(.nullInstance)
-            case .creatureGeneration: return .creatureGeneration(.nullInstance)
-            }
-        }
-        return res
-    }
-
-    enum Mode: Equatable {
-        case create(CreatureType)
-        case editMonster(Monster)
-        case editCharacter(Character)
-        case editAdHocCombatant(AdHocCombatantDefinition)
-
-        var originalItem: CompendiumItem? {
-            switch self {
-            case .create: return nil
-            case .editMonster(let m): return m
-            case .editCharacter(let c): return c
-            case .editAdHocCombatant: return nil
+            if case .adHocCombatant = creatureType {
+                self.model.statBlock.initiative = Initiative(modifier: Modifier(modifier: 0), advantage: false)
+            } else if case .character = creatureType {
+                self.model.player = Player(name: nil)
             }
         }
 
-        var originalCharacter: Character? {
-            originalItem as? Character
+        init(edit monster: Monster, documentId: CompendiumSourceDocument.Id, origin: CompendiumEntry.Origin = .created(nil)) {
+            self.mode = .editMonster(monster)
+            self.model = CreatureEditFormModel(monster: monster, documentId: documentId)
+            self.sections = CreatureType.monster.initialSections.union(self.model.sectionsWithData)
+            self.popover = nil
+            self.originalOrigin = origin
         }
 
-        var isEdit: Bool {
-            switch self {
-            case .create: return false
-            case .editMonster, .editCharacter, .editAdHocCombatant: return true
+        init(edit character: Character, documentId: CompendiumSourceDocument.Id, origin: CompendiumEntry.Origin = .created(nil)) {
+            self.mode = .editCharacter(character)
+            self.model = CreatureEditFormModel(character: character, documentId: documentId)
+            self.sections = CreatureType.character.initialSections.union(self.model.sectionsWithData)
+            self.popover = nil
+            self.originalOrigin = origin
+        }
+
+        init(edit combatant: AdHocCombatantDefinition) {
+            self.mode = .editAdHocCombatant(combatant)
+            self.model = CreatureEditFormModel(combatant: combatant)
+            self.sections = CreatureType.character.initialSections.union(self.model.sectionsWithData)
+            self.popover = nil
+        }
+
+        var creatureType: CreatureType {
+            switch mode {
+            case .create(let t): return t
+            case .editMonster: return .monster
+            case .editCharacter: return .character
+            case .editAdHocCombatant: return .adHocCombatant
+            }
+        }
+
+        var maximumAbilityScore: Int {
+            creatureType == .character ? 20 : 30
+        }
+
+        var isValid: Bool {
+            model.statBlock.name.nonEmptyString != nil && result != nil
+        }
+
+        var canEditName: Bool {
+            if case .editMonster = mode {
+                return false
+            }
+            return true
+        }
+
+        var addableSections: [Section] {
+            Section.allCases.filter { creatureType.compatibleSections.contains($0) && !sections.contains($0) }
+        }
+
+        var numberEntryPopover: NumberEntryFeature.State? {
+            get {
+                if case .numberEntry(let s) = popover {
+                    return s
+                }
+                return nil
+            }
+            set {
+                if let newValue = newValue {
+                    popover = .numberEntry(newValue)
+                }
+            }
+        }
+
+        var actionEditor: NamedStatBlockContentItemEditViewState? {
+            get {
+                if case .actionEditor(let s) = sheet {
+                    return s
+                }
+                return nil
+            }
+            set {
+                if let newValue = newValue {
+                    sheet = .actionEditor(newValue)
+                }
+            }
+        }
+
+        var creatureGenerationSheet: MechMuseCreatureGenerationFeature.State? {
+            get {
+                if case .creatureGeneration(let s) = sheet {
+                    return s
+                }
+                return nil
+            }
+            set {
+                if let newValue = newValue {
+                    sheet = .creatureGeneration(newValue)
+                }
+            }
+        }
+
+        var localStateForDeduplication: Self {
+            var res = self
+            res.popover = popover.map {
+                switch $0 {
+                case .numberEntry: return .numberEntry(.nullInstance)
+                }
+            }
+            res.sheet = sheet.map {
+                switch $0 {
+                case .actionEditor: return .actionEditor(.nullInstance)
+                case .creatureGeneration: return .creatureGeneration(.nullInstance)
+                }
+            }
+            return res
+        }
+
+        enum Mode: Equatable {
+            case create(CreatureType)
+            case editMonster(Monster)
+            case editCharacter(Character)
+            case editAdHocCombatant(AdHocCombatantDefinition)
+
+            var originalItem: CompendiumItem? {
+                switch self {
+                case .create: return nil
+                case .editMonster(let m): return m
+                case .editCharacter(let c): return c
+                case .editAdHocCombatant: return nil
+                }
+            }
+
+            var originalCharacter: Character? {
+                originalItem as? Character
+            }
+
+            var isEdit: Bool {
+                switch self {
+                case .create: return false
+                case .editMonster, .editCharacter, .editAdHocCombatant: return true
+                }
+            }
+        }
+
+        enum CreatureType: Int, CaseIterable {
+            case monster
+            case character
+            case adHocCombatant
+
+            var localizedDisplayName: String {
+                switch self {
+                case .monster: return CompendiumItemType.monster.localizedDisplayName
+                case .character: return CompendiumItemType.character.localizedDisplayName
+                case .adHocCombatant: return "combatant"
+                }
+            }
+        }
+
+        enum Section: CaseIterable, Hashable, Identifiable {
+            case basicMonster
+            case basicCharacter
+            case basicStats
+            case abilities
+            case skillsAndSaves
+            case initiative
+            case namedContentItems(NamedStatBlockContentItemType)
+            case player
+
+            static var allCases: [CreatureEditFeature.State.Section] =
+                [.basicMonster, .basicCharacter, .basicStats, .abilities, .skillsAndSaves, .initiative]
+                + allNamedContentItemCases
+                + [.player]
+
+            static var allNamedContentItemCases: [CreatureEditFeature.State.Section] =
+                NamedStatBlockContentItemType.allCases.map { .namedContentItems($0) }
+
+            var id: String {
+                switch self {
+                case .basicMonster: return "bm"
+                case .basicCharacter: return "bc"
+                case .basicStats: return "bs"
+                case .abilities: return "abs"
+                case .skillsAndSaves: return "ss"
+                case .initiative: return "init"
+                case .namedContentItems(let t): return "nci_\(t.rawValue)"
+                case .player: return "pl"
+                }
+            }
+        }
+
+        enum Popover: Equatable {
+            case numberEntry(NumberEntryFeature.State)
+        }
+
+        enum Sheet: Equatable, Identifiable {
+            case actionEditor(NamedStatBlockContentItemEditViewState)
+            case creatureGeneration(MechMuseCreatureGenerationFeature.State)
+
+            var id: String {
+                switch self {
+                case .actionEditor: return "actionEditor"
+                case .creatureGeneration: return "creatureGenerator"
+                }
             }
         }
     }
+    
+    enum Action: Equatable {
+        case setCreateModeCreatureType(State.CreatureType)
+        case model(CreatureEditFormModel)
+        case popover(State.Popover?)
+        case numberEntryPopover(NumberEntryFeature.Action)
+        case sheet(State.Sheet?)
+        case creatureActionEditSheet(CreatureActionEditViewAction)
+        case creatureGenerationSheet(MechMuseCreatureGenerationFeature.Action)
+        case documentSelection(CompendiumDocumentSelectionFeature.Action)
+        case onNamedContentItemTap(NamedStatBlockContentItemType, UUID)
+        case onNamedContentItemRemove(NamedStatBlockContentItemType, IndexSet)
+        case onNamedContentItemMove(NamedStatBlockContentItemType, IndexSet, Int)
+        case addSection(State.Section)
+        case removeSection(State.Section)
+        case onCreatureGenerationButtonTap
+        case onAddTap(State)
+        case onDoneTap(State)
+        case onRemoveTap(State)
+        case didAdd(CreatureEditResult)
+        case didEdit(CreatureEditResult)
+        case dismissNotice
+    }
+    
+    @Dependency(\.modifierFormatter) var modifierFormatter
+    @Dependency(\.mainQueue) var mainQueue
+    @Dependency(\.diceLog) var diceLog
+    @Dependency(\.compendiumMetadata) var compendiumMetadata
+    @Dependency(\.mechMuse) var mechMuse
+    @Dependency(\.compendium) var compendium
+    @Dependency(\.database) var database
 
-    enum CreatureType: Int, CaseIterable {
-        case monster
-        case character
-        case adHocCombatant
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
+            switch action {
+            case .setCreateModeCreatureType(let type):
+                if case .create = state.mode {
+                    state.mode = .create(type)
+                    state.sections = type.initialSections.union(state.model.sectionsWithData)
+                }
+            case .model(let m): state.model = m
+            case .popover(let p): state.popover = p
+            case .numberEntryPopover: break // handled below
+            case .sheet(let s): state.sheet = s
+            case .creatureActionEditSheet(.onDoneButtonTap):
+                guard case let .actionEditor(editorState) = state.sheet else { break }
+                switch editorState.intent {
+                case .new(let t):
+                    var item = editorState.makeItem()
+                    item.parseIfNeeded()
+                    state.model.statBlock[itemsOfType: editorState.itemType].append(item)
+                case .edit(let i):
+                    state.model.statBlock[itemsOfType: editorState.itemType][id: i.id]?.name = editorState.fields.name
+                    state.model.statBlock[itemsOfType: editorState.itemType][id: i.id]?.description = editorState.fields.description
+                    state.model.statBlock[itemsOfType: editorState.itemType][id: i.id]?.parseIfNeeded()
+                }
 
-        var localizedDisplayName: String {
-            switch self {
-            case .monster: return CompendiumItemType.monster.localizedDisplayName
-            case .character: return CompendiumItemType.character.localizedDisplayName
-            case .adHocCombatant: return "combatant"
+                state.sheet = nil
+                state.sections.insert(.namedContentItems(editorState.itemType))
+            case .creatureActionEditSheet(.onRemoveButtonTap):
+                guard case let .actionEditor(editorState) = state.sheet, case let .edit(i) = editorState.intent else { break }
+                state.model.statBlock[itemsOfType: editorState.itemType].remove(id: i.id)
+                state.sheet = nil
+            case .documentSelection: break // handled below
+            case .onNamedContentItemTap(let t, let id):
+                if let item = state.model.statBlock[itemsOfType: t][id: id] {
+                    state.sheet = .actionEditor(NamedStatBlockContentItemEditViewState(editing: item))
+                }
+            case .onNamedContentItemRemove(let t, let indices):
+                state.model.statBlock[itemsOfType: t].remove(atOffsets: indices)
+            case .onNamedContentItemMove(let t, let indices, let offset):
+                state.model.statBlock[itemsOfType: t].move(fromOffsets: indices, toOffset: offset)
+            case .onCreatureGenerationButtonTap:
+                state.sheet = .creatureGeneration(.init(base: state.model.statBlock.statBlock))
+            case .creatureGenerationSheet(.onGenerationResultAccepted(let result)):
+                state.model.statBlock.statBlock = result
+                state.sheet = nil
+            case .creatureActionEditSheet: break // handled below
+            case .creatureGenerationSheet: break // handled below
+            case .addSection(let s): state.sections.insert(s)
+            case .removeSection(let s): state.sections.remove(s)
+            case .onAddTap:
+                // Create flows
+                switch state.creatureType {
+                case .adHocCombatant:
+                    if let def = state.adHocCombatant {
+                        return .send(.didAdd(.adHoc(def)))
+                    }
+                    return .none
+                case .monster, .character:
+                    guard let item = state.compendiumItem else { return .none }
+
+                    // Check for key collision in compendium
+                    let key = item.key
+                    let exists = (try? compendium.contains(key)) ?? false
+                    if exists {
+                        state.notice = .error("An item named \"\(item.title)\" already exists in \"\(state.document.displayName)\". Please choose another name.")
+                        return .none
+                    }
+
+                    let entry = CompendiumEntry(item, origin: state.createOrigin ?? .created(nil), document: .init(state.document))
+                    _ = try? compendium.put(entry)
+                    return .send(.didAdd(.compendium(entry)))
+                }
+
+            case .onDoneTap:
+                // Edit flows
+                switch state.mode {
+                case .editAdHocCombatant:
+                    if let def = state.adHocCombatant {
+                        return .send(.didEdit(.adHoc(def)))
+                    }
+                    return .none
+                case .editMonster, .editCharacter:
+                    guard let item = state.compendiumItem else { return .none }
+
+                    // If key changed and collides with another item, block and show notice
+                    if let orig = state.originalItem, orig.key != item.key {
+                        let collision = (try? compendium.contains(item.key)) ?? false
+                        if collision {
+                            state.notice = .error("An item named \"\(item.title)\" already exists in \"\(state.document.displayName)\". Please choose another name.")
+                            return .none
+                        }
+                    }
+
+                    // Remove old key if it changed
+                    if let orig = state.originalItem, orig.key != item.key {
+                        _ = try? database.keyValueStore.remove(orig.key)
+                    }
+
+                    let entry = CompendiumEntry(item, origin: state.originalOrigin ?? .created(nil), document: .init(state.document))
+                    _ = try? compendium.put(entry)
+                    return .send(.didEdit(.compendium(entry)))
+
+                case .create:
+                    return .none
+                }
+            case .onRemoveTap: break // should be handled by parent
+            case .didAdd: break // bubbled up
+            case .didEdit: break // bubbled up
+            case .dismissNotice:
+                state.notice = nil
             }
+            return .none
         }
-    }
-
-    enum Section: CaseIterable, Hashable, Identifiable {
-        case basicMonster
-        case basicCharacter
-        case basicStats
-        case abilities
-        case skillsAndSaves
-        case initiative
-        case namedContentItems(NamedStatBlockContentItemType)
-        case player
-
-        static var allCases: [CreatureEditViewState.Section] =
-            [.basicMonster, .basicCharacter, .basicStats, .abilities, .skillsAndSaves, .initiative]
-            + allNamedContentItemCases
-            + [.player]
-
-        static var allNamedContentItemCases: [CreatureEditViewState.Section] =
-            NamedStatBlockContentItemType.allCases.map { .namedContentItems($0) }
-
-        var id: String {
-            switch self {
-            case .basicMonster: return "bm"
-            case .basicCharacter: return "bc"
-            case .basicStats: return "bs"
-            case .abilities: return "abs"
-            case .skillsAndSaves: return "ss"
-            case .initiative: return "init"
-            case .namedContentItems(let t): return "nci_\(t.rawValue)"
-            case .player: return "pl"
-            }
+        .ifLet(\.numberEntryPopover, action: /Action.numberEntryPopover) {
+            NumberEntryFeature(environment: NumberEntryEnvironment(
+                modifierFormatter: modifierFormatter,
+                mainQueue: mainQueue,
+                diceLog: diceLog
+            ))
         }
-    }
-
-    enum Popover: Equatable {
-        case numberEntry(NumberEntryFeature.State)
-    }
-
-    enum Sheet: Equatable, Identifiable {
-        case actionEditor(NamedStatBlockContentItemEditViewState)
-        case creatureGeneration(MechMuseCreatureGenerationFeature.State)
-
-        var id: String {
-            switch self {
-            case .actionEditor: return "actionEditor"
-            case .creatureGeneration: return "creatureGenerator"
-            }
+        .ifLet(\.actionEditor, action: /Action.creatureActionEditSheet) {
+            CreatureActionEditFeature()
+        }
+        .ifLet(\.creatureGenerationSheet, action: /Action.creatureGenerationSheet) {
+            MechMuseCreatureGenerationFeature()
+        }
+        Scope(state: \.model.document, action: /Action.documentSelection) {
+            CompendiumDocumentSelectionFeature()
         }
     }
 }
@@ -495,180 +659,20 @@ struct StatBlockFormModel: Equatable {
     }
 }
 
-enum CreatureEditViewAction: Equatable {
-    case setCreateModeCreatureType(CreatureEditViewState.CreatureType)
-    case model(CreatureEditFormModel)
-    case popover(CreatureEditViewState.Popover?)
-    case numberEntryPopover(NumberEntryFeature.Action)
-    case sheet(CreatureEditViewState.Sheet?)
-    case creatureActionEditSheet(CreatureActionEditViewAction)
-    case creatureGenerationSheet(MechMuseCreatureGenerationFeature.Action)
-    case documentSelection(CompendiumDocumentSelectionFeature.Action)
-    case onNamedContentItemTap(NamedStatBlockContentItemType, UUID)
-    case onNamedContentItemRemove(NamedStatBlockContentItemType, IndexSet)
-    case onNamedContentItemMove(NamedStatBlockContentItemType, IndexSet, Int)
-    case addSection(CreatureEditViewState.Section)
-    case removeSection(CreatureEditViewState.Section)
-    case onCreatureGenerationButtonTap
-    case onAddTap(CreatureEditViewState)
-    case onDoneTap(CreatureEditViewState)
-    case onRemoveTap(CreatureEditViewState)
-    case didAdd(CreatureEditResult)
-    case didEdit(CreatureEditResult)
-    case dismissNotice
+private struct NumberEntryEnvironment: NumberEntryViewEnvironment {
+    let modifierFormatter: NumberFormatter
+    let mainQueue: AnySchedulerOf<DispatchQueue>
+    let diceLog: DiceLogPublisher
+
+    init(modifierFormatter: NumberFormatter, mainQueue: AnySchedulerOf<DispatchQueue>, diceLog: DiceLogPublisher) {
+        self.modifierFormatter = modifierFormatter
+        self.mainQueue = mainQueue
+        self.diceLog = diceLog
+    }
 }
 
-typealias CreatureEditViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase
 
-extension CreatureEditViewState {
-    static let reducer: AnyReducer<Self, CreatureEditViewAction, CreatureEditViewEnvironment> = AnyReducer.combine(
-        AnyReducer { env in
-            NumberEntryFeature(environment: env)
-        }
-        .optional()
-        .pullback(state: \.numberEntryPopover, action: /CreatureEditViewAction.numberEntryPopover, environment:  { $0 }),
-        NamedStatBlockContentItemEditViewState.reducer.optional().pullback(state: \.actionEditor, action: /CreatureEditViewAction.creatureActionEditSheet),
-        AnyReducer { env in
-            MechMuseCreatureGenerationFeature()
-                .dependency(\.mechMuse, env.mechMuse)
-        }
-        .optional()
-        .pullback(
-            state: \.creatureGenerationSheet,
-            action: /CreatureEditViewAction.creatureGenerationSheet
-        ),
-        AnyReducer { env in
-            CompendiumDocumentSelectionFeature()
-                .dependency(\.compendiumMetadata, env.compendiumMetadata)
-        }.pullback(
-            state: \.model.document,
-            action: /CreatureEditViewAction.documentSelection
-        ),
-        AnyReducer { state, action, _ in
-            switch action {
-            case .setCreateModeCreatureType(let type):
-                if case .create = state.mode {
-                    state.mode = .create(type)
-                    state.sections = type.initialSections.union(state.model.sectionsWithData)
-                }
-            case .model(let m): state.model = m
-            case .popover(let p): state.popover = p
-            case .numberEntryPopover: break // handled above
-            case .sheet(let s): state.sheet = s
-            case .creatureActionEditSheet(.onDoneButtonTap):
-                guard case let .actionEditor(editorState) = state.sheet else { break }
-                switch editorState.intent {
-                case .new(let t):
-                    var item = editorState.makeItem()
-                    item.parseIfNeeded()
-                    state.model.statBlock[itemsOfType: editorState.itemType].append(item)
-                case .edit(let i):
-                    state.model.statBlock[itemsOfType: editorState.itemType][id: i.id]?.name = editorState.fields.name
-                    state.model.statBlock[itemsOfType: editorState.itemType][id: i.id]?.description = editorState.fields.description
-                    state.model.statBlock[itemsOfType: editorState.itemType][id: i.id]?.parseIfNeeded()
-                }
-
-                state.sheet = nil
-                state.sections.insert(.namedContentItems(editorState.itemType))
-            case .creatureActionEditSheet(.onRemoveButtonTap):
-                guard case let .actionEditor(editorState) = state.sheet, case let .edit(i) = editorState.intent else { break }
-                state.model.statBlock[itemsOfType: editorState.itemType].remove(id: i.id)
-                state.sheet = nil
-            case .documentSelection: break // handled above
-            case .onNamedContentItemTap(let t, let id):
-                if let item = state.model.statBlock[itemsOfType: t][id: id] {
-                    state.sheet = .actionEditor(NamedStatBlockContentItemEditViewState(editing: item))
-                }
-            case .onNamedContentItemRemove(let t, let indices):
-                state.model.statBlock[itemsOfType: t].remove(atOffsets: indices)
-            case .onNamedContentItemMove(let t, let indices, let offset):
-                state.model.statBlock[itemsOfType: t].move(fromOffsets: indices, toOffset: offset)
-            case .onCreatureGenerationButtonTap:
-                state.sheet = .creatureGeneration(.init(base: state.model.statBlock.statBlock))
-            case .creatureGenerationSheet(.onGenerationResultAccepted(let result)):
-                state.model.statBlock.statBlock = result
-                state.sheet = nil
-            case .creatureActionEditSheet: break // handled above
-            case .creatureGenerationSheet: break // handled above
-            case .addSection(let s): state.sections.insert(s)
-            case .removeSection(let s): state.sections.remove(s)
-            case .onAddTap: break // handled below in environment-aware reducer
-            case .onDoneTap: break // handled below in environment-aware reducer
-            case .onRemoveTap: break // should be handled by parent
-            case .didAdd: break // bubbled up
-            case .didEdit: break // bubbled up
-            case .dismissNotice:
-                state.notice = nil
-            }
-            return .none
-        }
-        ,
-        AnyReducer { state, action, env in
-            switch action {
-            case .onAddTap:
-                // Create flows
-                switch state.creatureType {
-                case .adHocCombatant:
-                    if let def = state.adHocCombatant {
-                        return .send(.didAdd(.adHoc(def)))
-                    }
-                    return .none
-                case .monster, .character:
-                    guard let item = state.compendiumItem else { return .none }
-
-                    // Check for key collision in compendium
-                    let key = item.key
-                    let exists = (try? env.compendium.contains(key)) ?? false
-                    if exists {
-                        state.notice = .error("An item named “\(item.title)” already exists in “\(state.document.displayName)”. Please choose another name.")
-                        return .none
-                    }
-
-                    let entry = CompendiumEntry(item, origin: state.createOrigin ?? .created(nil), document: .init(state.document))
-                    _ = try? env.compendium.put(entry)
-                    return .send(.didAdd(.compendium(entry)))
-                }
-
-            case .onDoneTap:
-                // Edit flows
-                switch state.mode {
-                case .editAdHocCombatant:
-                    if let def = state.adHocCombatant {
-                        return .send(.didEdit(.adHoc(def)))
-                    }
-                    return .none
-                case .editMonster, .editCharacter:
-                    guard let item = state.compendiumItem else { return .none }
-
-                    // If key changed and collides with another item, block and show notice
-                    if let orig = state.originalItem, orig.key != item.key {
-                        let collision = (try? env.compendium.contains(item.key)) ?? false
-                        if collision {
-                            state.notice = .error("An item named “\(item.title)” already exists in “\(state.document.displayName)”. Please choose another name.")
-                            return .none
-                        }
-                    }
-
-                    // Remove old key if it changed
-                    if let orig = state.originalItem, orig.key != item.key {
-                        _ = try? env.database.keyValueStore.remove(orig.key)
-                    }
-
-                    let entry = CompendiumEntry(item, origin: state.originalOrigin ?? .created(nil), document: .init(state.document))
-                    _ = try? env.compendium.put(entry)
-                    return .send(.didEdit(.compendium(entry)))
-
-                case .create:
-                    return .none
-                }
-            default:
-                return .none
-            }
-        }
-    )
-}
-
-extension CreatureEditViewState: NavigationStackItemState {
+extension CreatureEditFeature.State: NavigationStackItemState {
     var navigationStackItemStateId: String { "CreatureEditView" }
     var navigationTitle: String {
         switch mode {
@@ -694,8 +698,8 @@ extension AbilityScores {
     }
 }
 
-extension CreatureEditViewState.CreatureType {
-    var requiredSections: Set<CreatureEditViewState.Section> {
+extension CreatureEditFeature.State.CreatureType {
+    var requiredSections: Set<CreatureEditFeature.State.Section> {
         switch self {
         case .monster: return [.basicMonster]
         case .character: return [.basicCharacter, .player]
@@ -703,34 +707,34 @@ extension CreatureEditViewState.CreatureType {
         }
     }
 
-    var initialSections: Set<CreatureEditViewState.Section> {
+    var initialSections: Set<CreatureEditFeature.State.Section> {
         switch self {
         case .monster, .character: return requiredSections
         case .adHocCombatant: return [.basicCharacter, .basicStats, .initiative, .player]
         }
     }
 
-    var compatibleSections: Set<CreatureEditViewState.Section> {
+    var compatibleSections: Set<CreatureEditFeature.State.Section> {
         switch self {
         case .monster: return Set(
             [.basicMonster, .basicStats, .abilities, .skillsAndSaves, .initiative]
-            + CreatureEditViewState.Section.allNamedContentItemCases
+            + CreatureEditFeature.State.Section.allNamedContentItemCases
         )
         case .character: return Set(
             [.basicCharacter, .basicStats, .abilities, .skillsAndSaves, .initiative]
-            + CreatureEditViewState.Section.allNamedContentItemCases
+            + CreatureEditFeature.State.Section.allNamedContentItemCases
             + [.player]
         )
         case .adHocCombatant: return Set(
             [.basicCharacter, .basicStats, .abilities, .skillsAndSaves, .initiative]
-            + CreatureEditViewState.Section.allNamedContentItemCases
+            + CreatureEditFeature.State.Section.allNamedContentItemCases
             + [.player]
         )
         }
     }
 }
 
-extension CreatureEditViewState.Section {
+extension CreatureEditFeature.State.Section {
     var localizedHeader: String? {
         switch self {
         case .basicMonster: return nil
@@ -761,7 +765,7 @@ extension CreatureEditViewState.Section {
     }
 }
 
-extension CreatureEditViewState {
+extension CreatureEditFeature.State {
     var result: Any? { // todo: do not use Any
         switch mode {
         case .create(let type):
@@ -858,7 +862,7 @@ extension CreatureEditViewState {
 }
 
 extension CompendiumItemType {
-    var creatureType: CreatureEditViewState.CreatureType? {
+    var creatureType: CreatureEditFeature.State.CreatureType? {
         switch self {
         case .monster: return .monster
         case .character: return .character
@@ -893,8 +897,8 @@ extension CreatureEditFormModel {
         )
     }
 
-    var sectionsWithData: Set<CreatureEditViewState.Section> {
-        var result = Set<CreatureEditViewState.Section>()
+    var sectionsWithData: Set<CreatureEditFeature.State.Section> {
+        var result = Set<CreatureEditFeature.State.Section>()
 
         if statBlock.statBlock.armorClass != nil || statBlock.statBlock.hitPoints != nil || statBlock.statBlock.movement != nil {
             result.insert(.basicStats)
@@ -922,8 +926,8 @@ extension CreatureEditFormModel {
     }
 }
 
-extension CreatureEditViewState {
-    static let nullInstance = CreatureEditViewState(create: .monster)
+extension CreatureEditFeature.State {
+    static let nullInstance = CreatureEditFeature.State(create: .monster)
 }
 
 enum CreatureEditResult: Equatable {
