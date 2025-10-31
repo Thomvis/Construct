@@ -289,7 +289,7 @@ extension CompendiumEntryDetailFeature.State.NextScreen: NavigationNode {
     }
 }
 
-extension CompendiumIndexState.NextScreen: NavigationNode {
+extension CompendiumIndexFeature.State.NextScreen: NavigationNode {
     var nodeId: String {
         navigationNode.nodeId
     }
@@ -305,7 +305,7 @@ extension CompendiumIndexState.NextScreen: NavigationNode {
 
         set {
             switch newValue {
-            case let v as CompendiumIndexState: self = .compendiumIndex(v)
+            case let v as CompendiumIndexFeature.State: self = .compendiumIndex(v)
             case let v as CompendiumEntryDetailFeature.State: self = .itemDetail(v)
             case let v as SafariViewState: self = .safariView(v)
             default: break
@@ -768,7 +768,7 @@ extension CompendiumEntryDetailFeature.State: NavigationNode {
         }
     }
 }
-extension CompendiumIndexState: NavigationNode {
+extension CompendiumIndexFeature.State: NavigationNode {
 
     var nodeId: String { 
         navigationStackItemStateId
@@ -803,7 +803,7 @@ extension CompendiumIndexState: NavigationNode {
         }
     }
 
-    var presentedNextCompendiumIndex: CompendiumIndexState? {
+    var presentedNextCompendiumIndex: CompendiumIndexFeature.State? {
         get { 
             if case .compendiumIndex(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -817,7 +817,7 @@ extension CompendiumIndexState: NavigationNode {
         }
     }
 
-    var presentedDetailCompendiumIndex: CompendiumIndexState? {
+    var presentedDetailCompendiumIndex: CompendiumIndexFeature.State? {
         get { 
             if case .compendiumIndex(let s) = presentedScreens[.detail] {
                 return s

@@ -39,7 +39,7 @@
 		E93CCC4B29153DFA001E35BA /* NamedStatBlockContentItemEditViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93CCC4A29153DFA001E35BA /* NamedStatBlockContentItemEditViewState.swift */; };
 		E93CCC4D29153E03001E35BA /* NamedStatBlockContentItemEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93CCC4C29153E03001E35BA /* NamedStatBlockContentItemEditView.swift */; };
 		E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */ = {isa = PBXBuildFile; productRef = E93FA1C924EC5B7F007441BF /* Parma */; };
-		E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA902477E56300F313D7 /* CompendiumIndexState.swift */; };
+		E942E00C247E8D7100170FAC /* CompendiumIndexFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA902477E56300F313D7 /* CompendiumIndexFeature.swift */; };
 		E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */; };
 		E942E010247EA5DE00170FAC /* AddCombatantState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA8E2477E50A00F313D7 /* AddCombatantState.swift */; };
 		E942E011247EA78200170FAC /* CompendiumIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E4700231D95A9005D1E6F /* CompendiumIndexView.swift */; };
@@ -161,6 +161,7 @@
 		E9B3B87528FC8824003764DD /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = E9B3B87428FC8824003764DD /* SnapshotTesting */; };
 		E9B432BB22AAF7540054324E /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B432BA22AAF7540054324E /* Environment.swift */; };
 		E9BE1C4F28B524FF00D80464 /* DiceRollerInvocation in Frameworks */ = {isa = PBXBuildFile; productRef = E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */; };
+		E9C19B242EB4EDE100431231 /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = E9C19B232EB4EDE100431231 /* ViewInspector */; };
 		E9C7F7862632C193000351AB /* NumberPadTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C7F7852632C193000351AB /* NumberPadTest.swift */; };
 		E9CFB30F2350515700CA0AF4 /* CampaignBrowserTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */; };
 		E9CFF64A2D8378DA00410796 /* CompendiumItemTransferSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFF6492D8378DA00410796 /* CompendiumItemTransferSheet.swift */; };
@@ -277,7 +278,7 @@
 		E96FC16823D3A5BE00A12F1E /* ogl.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ogl.md; sourceTree = "<group>"; };
 		E96FC16A23D3A64800A12F1E /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		E972BA8E2477E50A00F313D7 /* AddCombatantState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantState.swift; sourceTree = "<group>"; };
-		E972BA902477E56300F313D7 /* CompendiumIndexState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumIndexState.swift; sourceTree = "<group>"; };
+		E972BA902477E56300F313D7 /* CompendiumIndexFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumIndexFeature.swift; sourceTree = "<group>"; };
 		E972BA95247849A900F313D7 /* CombatantDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantDetailViewState.swift; sourceTree = "<group>"; };
 		E972BA9924784E3500F313D7 /* CombatantTagsViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagsViewState.swift; sourceTree = "<group>"; };
 		E972BA9B24784F1500F313D7 /* CombatantTagEditViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagEditViewState.swift; sourceTree = "<group>"; };
@@ -415,6 +416,7 @@
 			files = (
 				E9A84A6C2B2A535B008264D1 /* TestSupport in Frameworks */,
 				E9B3B87528FC8824003764DD /* SnapshotTesting in Frameworks */,
+				E9C19B242EB4EDE100431231 /* ViewInspector in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -451,7 +453,7 @@
 				E97A43B32338B5FC00A8B032 /* CompendiumEntryDetailView.swift */,
 				E978861B23BE8E5A003B2DA2 /* CompendiumFilterSheet.swift */,
 				E9F1287828EA0BF40040C90C /* CompendiumQuery.swift */,
-				E972BA902477E56300F313D7 /* CompendiumIndexState.swift */,
+				E972BA902477E56300F313D7 /* CompendiumIndexFeature.swift */,
 				E9CFF6492D8378DA00410796 /* CompendiumItemTransferSheet.swift */,
 			);
 			path = View;
@@ -898,6 +900,7 @@
 			packageProductDependencies = (
 				E9B3B87428FC8824003764DD /* SnapshotTesting */,
 				E9A84A6B2B2A535B008264D1 /* TestSupport */,
+				E9C19B232EB4EDE100431231 /* ViewInspector */,
 			);
 			productName = UnitTests;
 			productReference = E9F9EB482319694100A70D11 /* UnitTests.xctest */;
@@ -942,6 +945,7 @@
 				E9558B6E2757FBBC000837AB /* XCRemoteSwiftPackageReference "BetterSafariView" */,
 				E9B3B87328FC8824003764DD /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 				E911C31F2E7897AE0073DE9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				E9C19B222EB4EDE100431231 /* XCRemoteSwiftPackageReference "ViewInspector" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -1088,7 +1092,7 @@
 				E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */,
 				E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */,
 				E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */,
-				E942E00C247E8D7100170FAC /* CompendiumIndexState.swift in Sources */,
+				E942E00C247E8D7100170FAC /* CompendiumIndexFeature.swift in Sources */,
 				E9869F9925223EBB0098A166 /* ColumnNavigationViewState.swift in Sources */,
 				E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */,
 				E996919B247C411300A8B1A0 /* CompendiumEntryDetailViewState.swift in Sources */,
@@ -1576,6 +1580,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		E9C19B222EB4EDE100431231 /* XCRemoteSwiftPackageReference "ViewInspector" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nalexn/ViewInspector";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.10.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1662,6 +1674,11 @@
 		E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DiceRollerInvocation;
+		};
+		E9C19B232EB4EDE100431231 /* ViewInspector */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9C19B222EB4EDE100431231 /* XCRemoteSwiftPackageReference "ViewInspector" */;
+			productName = ViewInspector;
 		};
 		E9D1138A28AFBCA300CEF923 /* DiceRollerFeature */ = {
 			isa = XCSwiftPackageProductDependency;

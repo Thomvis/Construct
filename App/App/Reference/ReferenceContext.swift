@@ -128,7 +128,7 @@ extension ReferenceItemViewState {
     }
 }
 
-extension CompendiumIndexState {
+extension CompendiumIndexFeature.State {
     var referenceItemRequests: [ReferenceViewItemRequest] {
         return presentedNextItemDetail?.itemRequest.nonNilArray ??
             presentedNextCompendiumIndex?.referenceItemRequests ?? []

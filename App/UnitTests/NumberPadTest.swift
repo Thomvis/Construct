@@ -12,9 +12,9 @@ import XCTest
 
 class NumberPadTest: XCTestCase {
     func testInit() {
-        XCTAssertEqual(NumberPadViewState(value: 1).value, 1)
-        XCTAssertEqual(NumberPadViewState(value: 9).value, 9)
-        XCTAssertEqual(NumberPadViewState(value: 12).value, 12)
-        XCTAssertEqual(NumberPadViewState(value: 123).value, 123)
+        XCTAssertEqual(NumberPadFeature.State(value: 1).value, 1)
+        XCTAssertEqual(NumberPadFeature.State(value: 9).value, 9)
+        XCTAssertEqual(NumberPadFeature.State(value: 12).value, 12)
+        XCTAssertEqual(NumberPadFeature.State(value: 123).value, 123)
     }
 }

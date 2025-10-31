@@ -177,11 +177,7 @@ struct CompendiumItemGroupEditFeature: Reducer {
         }
     }
 
-    let environment: EnvironmentWithCompendium
-
-    init(environment: EnvironmentWithCompendium) {
-        self.environment = environment
-    }
+    @Dependency(\.compendium) var compendium
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -200,7 +196,7 @@ struct CompendiumItemGroupEditFeature: Reducer {
 
         Scope(state: \.allCharacters, action: /Action.allCharacters) {
             Async<[Character], EquatableError> {
-                try environment.compendium.fetchAll(search: nil, filters: .init(types: [.character]), order: .title, range: nil)
+                try compendium.fetchAll(search: nil, filters: .init(types: [.character]), order: .title, range: nil)
                     .compactMap {
                         $0.item as? Character
                     }

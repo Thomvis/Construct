@@ -43,7 +43,7 @@ public extension MapState {
                                 .cancellable(id: cancellationId)
 
             let previousCancellationId = resultReducerCancellationId
-            resultReducerCancellationId = cancellationId            
+            resultReducerCancellationId = cancellationId
 
             return .concatenate([
                 previousCancellationId.map { .cancel(id: $0) },

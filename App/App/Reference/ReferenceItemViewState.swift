@@ -124,7 +124,7 @@ struct ReferenceItemViewState: Equatable {
             }
             set {
                 switch newValue {
-                case let v as CompendiumIndexState:
+                case let v as CompendiumIndexFeature.State:
                     self.compendiumState?.compendium = v
                 case let v as CombatantDetailViewState:
                     self.combatantDetailState?.detailState = v
@@ -165,7 +165,7 @@ struct ReferenceItemViewState: Equatable {
             let navigationTitle: String = "Compendium"
 
             var context: ReferenceContext = .empty
-            var compendium = CompendiumIndexState(
+            var compendium = CompendiumIndexFeature.State(
                 title: "Compendium",
                 properties: .init(showImport: true, showAdd: true, typeRestriction: nil),
                 results: .initial
@@ -271,7 +271,7 @@ enum ReferenceItemViewAction: Equatable {
     case close // handled by ReferenceView
 
     enum Compendium: Equatable {
-        case compendium(CompendiumIndexAction)
+        case compendium(CompendiumIndexFeature.Action)
     }
 
     enum CombatantDetail: Equatable {

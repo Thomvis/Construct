@@ -326,7 +326,8 @@ struct CompendiumEntryDetailFeature: Reducer {
             CreatureEditFeature()
         }
         .ifLet(\.groupEditSheet, action: /Action.sheet..Action.SheetAction.groupEdit) {
-            CompendiumItemGroupEditFeature(environment: environment)
+            CompendiumItemGroupEditFeature()
+                .dependency(\.compendium, environment.compendium)
         }
         .ifLet(\.transferSheet, action: /Action.sheet..Action.SheetAction.transfer) {
             CompendiumItemTransferFeature()

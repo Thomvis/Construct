@@ -20,14 +20,14 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     @EnvironmentObject var env: Environment
     @State var isSearching = false
 
-    let store: Store<CompendiumIndexState, CompendiumIndexAction>
+    let store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
 
     let viewProvider: CompendiumIndexViewProvider
 
     let bottomBarButtons: () -> BottomBarButtons
 
     init(
-        store: Store<CompendiumIndexState, CompendiumIndexAction>,
+        store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>,
         viewProvider: CompendiumIndexViewProvider = .default,
         @ViewBuilder bottomBarButtons: @escaping () -> BottomBarButtons
     ) {
@@ -37,7 +37,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     }
 
     init(
-        store: Store<CompendiumIndexState, CompendiumIndexAction>,
+        store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>,
         viewProvider: CompendiumIndexViewProvider = .default,
         @ViewBuilder bottomBarButtons: @escaping () -> BottomBarButtons = { EmptyView() }
     ) where BottomBarButtons == EmptyView {
@@ -97,7 +97,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     }
 
     @ViewBuilder
-    func contentView(_ localViewStore: ViewStore<LocalState, CompendiumIndexAction>) -> some View {
+    func contentView(_ localViewStore: ViewStore<LocalState, CompendiumIndexFeature.Action>) -> some View {
         switch localViewStore.state.results {
         case .succeededWithoutResults:
             WithViewStore(store, observe: \.presentedNextSafariView) { safariViewStore in
@@ -127,7 +127,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     }
 
     @ViewBuilder
-    private func roundedButtonToolbar(_ localViewStore: ViewStore<LocalState, CompendiumIndexAction>) -> some View {
+    private func roundedButtonToolbar(_ localViewStore: ViewStore<LocalState, CompendiumIndexFeature.Action>) -> some View {
         RoundedButtonToolbar {
             bottomBarButtons()
 
@@ -220,14 +220,14 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         .padding([.leading, .trailing, .bottom], 8)
     }
 
-    private func loadResultsIfNeeded(_ localViewStore: ViewStore<LocalState, CompendiumIndexAction>) {
+    private func loadResultsIfNeeded(_ localViewStore: ViewStore<LocalState, CompendiumIndexFeature.Action>) {
         if !localViewStore.state.results.isSuccess {
             localViewStore.send(.results(.result(.didShowElementAtIndex(0)))) // kick-start search, fixme?
         }
     }
 
     @ViewBuilder
-    private func sheetView(_ sheet: CompendiumIndexState.Sheet) -> some View {
+    private func sheetView(_ sheet: CompendiumIndexFeature.State.Sheet) -> some View {
         IfLetStore(
             store.scope(state: replayNonNil({ $0.creatureEditSheet }), action: { .creatureEditSheet($0) }),
             then: { store in
@@ -312,11 +312,11 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         let showMenu: Bool
 
         @EqKey({ $0?.id })
-        var sheet: CompendiumIndexState.Sheet?
+        var sheet: CompendiumIndexFeature.State.Sheet?
         let isSelecting: Bool
         let selectedKeys: Set<CompendiumItemKey>
 
-        init(_ state: CompendiumIndexState) {
+        init(_ state: CompendiumIndexFeature.State) {
             if let resValues = state.results.entries {
                 self.results = resValues.isEmpty ? .succeededWithoutResults : .succeededWithResults
             } else if state.results.error != nil {
@@ -327,7 +327,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 
             itemTypeRestriction = state.properties.typeRestriction
             sourceRestriction = state.properties.sourceRestriction
-            itemTypeFilter = CompendiumIndexState.itemTypeFilter(input: state.results.input, properties: state.properties)
+            itemTypeFilter = CompendiumIndexFeature.State.itemTypeFilter(input: state.results.input, properties: state.properties)
             showAddButton = state.properties.showAdd
 
             title = state.title
@@ -360,7 +360,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 }
 
 struct CompendiumIndexViewProvider {
-    let row: (Store<CompendiumIndexState, CompendiumIndexAction>, CompendiumEntry) -> AnyView
+    let row: (Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>, CompendiumEntry) -> AnyView
     let detail: (Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>) -> AnyView
 
     /// Can be used by the view to invalidate itself if the state changes
@@ -385,7 +385,7 @@ struct CompendiumIndexViewProvider {
 ///
 /// Using searchable with `tokens` makes the issue more apparent.
 fileprivate struct CompendiumSearchableModifier: ViewModifier {
-    let store: Store<CompendiumIndexState, CompendiumIndexAction>
+    let store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
 
     @State var text: String = ""
     @State var tokens: [CompendiumItemType] = []
@@ -429,9 +429,9 @@ fileprivate struct CompendiumSearchableModifier: ViewModifier {
         let searchText: String?
         let itemTypeFilter: [CompendiumItemType]
 
-        init(_ parentState: CompendiumIndexState) {
+        init(_ parentState: CompendiumIndexFeature.State) {
             self.searchText = parentState.results.input.text
-            self.itemTypeFilter = CompendiumIndexState.itemTypeFilter(input: parentState.results.input, properties: parentState.properties) ?? []
+            self.itemTypeFilter = CompendiumIndexFeature.State.itemTypeFilter(input: parentState.results.input, properties: parentState.properties) ?? []
         }
     }
 }
@@ -450,12 +450,12 @@ private struct IsSearchingModifier: ViewModifier {
 
 fileprivate struct CompendiumItemList: View, Equatable {
 
-    var store: Store<CompendiumIndexState, CompendiumIndexAction>
-    @ObservedObject var viewStore: ViewStore<LocalState, CompendiumIndexAction>
+    var store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
+    @ObservedObject var viewStore: ViewStore<LocalState, CompendiumIndexFeature.Action>
 
     let viewProvider: CompendiumIndexViewProvider
 
-    init(store: Store<CompendiumIndexState, CompendiumIndexAction>, viewProvider: CompendiumIndexViewProvider) {
+    init(store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>, viewProvider: CompendiumIndexViewProvider) {
         self.store = store
         self.viewStore = ViewStore(store, observe: LocalState.init)
         self.viewProvider = viewProvider
@@ -521,8 +521,8 @@ fileprivate struct CompendiumItemList: View, Equatable {
             // programmatic navigation inside the reference view
             .stateDrivenNavigationLink(
                 store: store,
-                state: /CompendiumIndexState.NextScreen.itemDetail,
-                action: /CompendiumIndexAction.NextScreenAction.compendiumEntry,
+                state: /CompendiumIndexFeature.State.NextScreen.itemDetail,
+                action: /CompendiumIndexFeature.Action.NextScreenAction.compendiumEntry,
                 destination: { viewProvider.detail($0) }
             )
             .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _, _ in
@@ -601,7 +601,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
         let isSelecting: Bool
         let selectedKeys: Set<CompendiumItemKey>
 
-        init(_ state: CompendiumIndexState) {
+        init(_ state: CompendiumIndexFeature.State) {
             self.title = state.title
             self.entries = state.results.entries ?? []
 
@@ -612,7 +612,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
                 self.suggestions = nil
             }
 
-            let itemTypeFilter = CompendiumIndexState.itemTypeFilter(input: input, properties: state.properties)
+            let itemTypeFilter = CompendiumIndexFeature.State.itemTypeFilter(input: input, properties: state.properties)
             /// Returns allowed item types (as per type restriction), but only if the user has not
             /// added a query or changed the type filter. If that's the case, an empty array is returned.
             typeFilters = input?.text?.nonEmptyString == nil && itemTypeFilter == nil
@@ -643,7 +643,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
 fileprivate struct CompendiumEntryRow: View {
     @EnvironmentObject var env: Environment
 
-    fileprivate var store: Store<CompendiumIndexState, CompendiumIndexAction>
+    fileprivate var store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
 
     let entry: CompendiumEntry
 
@@ -681,7 +681,7 @@ fileprivate struct CompendiumEntryRow: View {
 struct FilterButton: View {
     @EnvironmentObject var env: Environment
 
-    @ObservedObject var viewStore: ViewStore<CompendiumIndexState.Query, CompendiumIndexAction>
+    @ObservedObject var viewStore: ViewStore<CompendiumIndexFeature.Query.State, CompendiumIndexFeature.Action>
     let allAllowedItemTypes: [CompendiumItemType]
     let sourceRestriction: CompendiumFilters.Source?
 
@@ -744,7 +744,7 @@ extension CompendiumFilterSheet: Identifiable {
 }
 
 extension CompendiumItem {
-    func localizedSummary(in context: CompendiumIndexState, env: Environment) -> Text? {
+    func localizedSummary(in context: CompendiumIndexFeature.State, env: Environment) -> Text? {
         let isTypeConstrained = context.results.input.filters?.types?.single != nil
 
         var components: [Text] = []
@@ -837,8 +837,8 @@ fileprivate extension CompendiumFilterSheetState {
     }
 }
 
-fileprivate extension CompendiumIndexState {
-    static func itemTypeFilter(input: Query?, properties: Properties) -> [CompendiumItemType]? {
+fileprivate extension CompendiumIndexFeature.State {
+    static func itemTypeFilter(input: CompendiumIndexFeature.Query.State?, properties: Properties) -> [CompendiumItemType]? {
         if Set(input?.filters?.types ?? []) == Set(properties.typeRestriction ?? CompendiumItemType.allCases) {
             return nil
         } else {

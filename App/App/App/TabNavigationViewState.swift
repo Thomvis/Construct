@@ -17,7 +17,7 @@ struct TabNavigationViewState: Equatable {
     var selectedTab: Tabs = .campaign
 
     var campaignBrowser: CampaignBrowseViewState = CampaignBrowseViewState(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)
-    var compendium: CompendiumIndexState = CompendiumIndexState(
+    var compendium: CompendiumIndexFeature.State = CompendiumIndexFeature.State(
         title: "Compendium",
         properties: .init(
             showImport: true,
@@ -45,7 +45,7 @@ struct TabNavigationViewState: Equatable {
 enum TabNavigationViewAction: Equatable {
     case selectedTab(TabNavigationViewState.Tabs)
     case campaignBrowser(CampaignBrowseViewAction)
-    case compendium(CompendiumIndexAction)
+    case compendium(CompendiumIndexFeature.Action)
     case diceRoller(DiceRollerFeature.Action)
 }
 

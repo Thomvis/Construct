@@ -62,12 +62,12 @@ struct AddCombatantCompendiumView: View {
 
     struct CombatantRowView: View {
         var parent: AddCombatantCompendiumView
-        var compendiumIndexStore: Store<CompendiumIndexState, CompendiumIndexAction>
-        @ObservedObject var compendiumIndexViewStore: ViewStore<CompendiumIndexState, CompendiumIndexAction>
+        var compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
+        @ObservedObject var compendiumIndexViewStore: ViewStore<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
         let entry: CompendiumEntry
         let combatant: CompendiumCombatant
 
-        init(parent: AddCombatantCompendiumView, compendiumIndexStore: Store<CompendiumIndexState, CompendiumIndexAction>, entry: CompendiumEntry, combatant: CompendiumCombatant) {
+        init(parent: AddCombatantCompendiumView, compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>, entry: CompendiumEntry, combatant: CompendiumCombatant) {
             self.parent = parent
             self.compendiumIndexStore = compendiumIndexStore
             self.compendiumIndexViewStore = ViewStore(compendiumIndexStore)
@@ -131,7 +131,7 @@ struct AddCombatantCompendiumView: View {
 
     struct GroupRowView: View {
         var parent: AddCombatantCompendiumView
-        var compendiumIndexStore: Store<CompendiumIndexState, CompendiumIndexAction>
+        var compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
         let entry: CompendiumEntry
         let group: CompendiumItemGroup
 

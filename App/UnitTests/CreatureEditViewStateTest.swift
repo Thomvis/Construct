@@ -152,7 +152,7 @@ class CreatureEditViewStateTest: XCTestCase {
         let coreSource = CompendiumFilters.Source(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)
         let testEnv = TestEnvironment()
         let store = TestStore(
-            initialState: CreatureEditViewState(create: .monster, sourceDocument: coreSource),
+            initialState: CreatureEditFeature.State(create: .monster, sourceDocument: coreSource),
             reducer: CreatureEditFeature()
         ) {
             $0.modifierFormatter = testEnv.modifierFormatter

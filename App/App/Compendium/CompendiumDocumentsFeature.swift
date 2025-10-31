@@ -248,7 +248,7 @@ struct EditDocument: ReducerProtocol {
             operation?.isLoading == true
         }
 
-        @PresentationState var contents: CompendiumIndexState?
+        @PresentationState var contents: CompendiumIndexFeature.State?
 
         var customSlug: String?
         var effectiveSlug: String {
@@ -315,7 +315,7 @@ struct EditDocument: ReducerProtocol {
         case onSlugChange(String)
 
         case onViewItemsInDocumentTap
-        case contents(PresentationAction<CompendiumIndexAction>)
+        case contents(PresentationAction<CompendiumIndexFeature.Action>)
 
         case binding(BindingAction<State>)
     }
@@ -379,7 +379,7 @@ struct EditDocument: ReducerProtocol {
             case .onViewItemsInDocumentTap:
                 guard let original = state.original else { break }
 
-                state.contents = CompendiumIndexState(
+                state.contents = CompendiumIndexFeature.State(
                     title: original.displayName,
                     properties: .init(showImport: false, showAdd: false, sourceRestriction: .init(
                         realm: original.realmId,
@@ -392,10 +392,7 @@ struct EditDocument: ReducerProtocol {
             return .none
         }
         .ifLet(\.$contents, action: /Action.contents) {
-            Reduce(
-                CompendiumIndexState.reducer,
-                environment: StandaloneCompendiumIndexEnvironment.fromDependencies()
-            )
+            CompendiumIndexFeature(environment: StandaloneCompendiumIndexEnvironment.fromDependencies())
         }
 
         BindingReducer()

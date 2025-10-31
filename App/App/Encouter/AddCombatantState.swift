@@ -18,7 +18,7 @@ import DiceRollerFeature
 typealias AddCombatantEnvironment = CompendiumIndexEnvironment & (EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase)
 
 struct AddCombatantState: Equatable {
-    var compendiumState: CompendiumIndexState
+    var compendiumState: CompendiumIndexFeature.State
 
     var encounter: Encounter {
         didSet {
@@ -64,14 +64,14 @@ struct AddCombatantState: Equatable {
 
     var localStateForDeduplication: Self {
         return AddCombatantState(
-            compendiumState: CompendiumIndexState.nullInstance,
+            compendiumState: CompendiumIndexFeature.State.nullInstance,
             encounter: self.encounter,
             creatureEditViewState: self.creatureEditViewState.map { _ in CreatureEditFeature.State.nullInstance }
         )
     }
 
     enum Action: Equatable {
-        case compendiumState(CompendiumIndexAction)
+        case compendiumState(CompendiumIndexFeature.Action)
         case quickCreate
         case creatureEditView(CreatureEditFeature.Action)
         case onCreatureEditViewDismiss
@@ -103,7 +103,9 @@ struct AddCombatantState: Equatable {
                 }
                 return .none
             },
-            CompendiumIndexState.reducer.pullback(
+            AnyReducer { env in
+                CompendiumIndexFeature(environment: env)
+            }.pullback(
                 state: \.compendiumState,
                 action: /Action.compendiumState,
                 environment: { $0 }
@@ -116,9 +118,9 @@ extension AddCombatantState {
     static let nullInstance = AddCombatantState(encounter: Encounter.nullInstance)
 
     init(
-        compendiumState: CompendiumIndexState = CompendiumIndexState(
+            compendiumState: CompendiumIndexFeature.State = CompendiumIndexFeature.State(
             title: "Add Combatant",
-            properties: CompendiumIndexState.Properties(
+            properties: CompendiumIndexFeature.State.Properties(
                 showImport: false,
                 showAdd: false,
                 typeRestriction: [.monster, .character, .group]

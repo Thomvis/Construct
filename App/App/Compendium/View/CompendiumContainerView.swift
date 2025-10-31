@@ -13,7 +13,7 @@ import GameModels
 
 struct CompendiumContainerView: View {
     @EnvironmentObject var environment: Environment
-    var store: Store<CompendiumIndexState, CompendiumIndexAction>
+    var store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
 
     var body: some View {
         NavigationStack {
@@ -22,7 +22,7 @@ struct CompendiumContainerView: View {
     }
 }
 
-let compendiumRootReducer: AnyReducer<CompendiumIndexState, CompendiumIndexAction, Environment> = AnyReducer.combine(
+let compendiumRootReducer: AnyReducer<CompendiumIndexFeature.State, CompendiumIndexFeature.Action, Environment> = AnyReducer.combine(
     AnyReducer { state, action, env in
         if let monster = action.onSaveMonsterAsNPCButtonMonster {
             return .run { send in
@@ -53,10 +53,13 @@ let compendiumRootReducer: AnyReducer<CompendiumIndexState, CompendiumIndexActio
         }
         return .none
     },
-    CompendiumIndexState.reducer.pullback(state: \.self, action: /CompendiumIndexAction.self, environment: { $0 })
+    AnyReducer { env in
+        CompendiumIndexFeature(environment: env)
+    }
+    .pullback(state: \.self, action: /CompendiumIndexFeature.Action.self, environment: { $0 })
 )
 
-extension CompendiumIndexAction {
+extension CompendiumIndexFeature.Action {
     var onSaveMonsterAsNPCButtonMonster: Monster? {
         switch self {
         case .nextScreen(.compendiumEntry(CompendiumEntryDetailFeature.Action.onSaveMonsterAsNPCButton(let m))),

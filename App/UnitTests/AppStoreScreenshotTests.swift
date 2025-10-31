@@ -142,7 +142,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     campaignBrowser: CampaignBrowseViewState(
                         node: CampaignNode.root,
                         mode: .browse,
-                        items: Async(result: .success([
+                        items: Async.State(result: .success([
                             CampaignNode(
                                 id: UUID().tagged(),
                                 title: "",
@@ -158,7 +158,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         presentedScreens: [
                             .nextInStack: .encounter(encounterDetailViewState)
                         ]),
-                    compendium: CompendiumIndexState.nullInstance,
+                    compendium: CompendiumIndexFeature.State.nullInstance,
                     diceRoller: DiceRollerFeature.State.nullInstance
                 )
             )
@@ -208,12 +208,12 @@ class AppStoreScreenshotTests: XCTestCase {
                     TabNavigationViewState(
                         selectedTab: .compendium,
                         campaignBrowser: CampaignBrowseViewState.nullInstance,
-                        compendium: await apply(CompendiumIndexState(
+                        compendium: await apply(CompendiumIndexFeature.State(
                             title: CompendiumItemType.monster.localizedScreenDisplayName,
                             properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                             results: .initial
                         )) { state in
-                            let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
+                            let store = Store(initialState: state, reducer: AnyReducer(CompendiumIndexFeature(environment: environment)), environment: environment)
                             await store.send(.query(.onTextDidChange("Dragon"))).finish()
                             state = ViewStore(store, observe: \.self).state
                         },
@@ -236,7 +236,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     campaignBrowser: CampaignBrowseViewState(
                         node: CampaignNode.root,
                         mode: .browse,
-                        items: Async(result: .success([
+                        items: Async.State(result: .success([
                             campaignBrowseViewState.node
                         ])),
                         showSettingsButton: false,
@@ -292,7 +292,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     campaignBrowse: CampaignBrowseViewState(
                         node: CampaignNode.root,
                         mode: .browse,
-                        items: Async(result: .success([
+                        items: Async.State(result: .success([
                             CampaignNode(
                                 id: UUID().tagged(),
                                 title: "",
@@ -468,7 +468,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         campaignBrowse: CampaignBrowseViewState(
                             node: CampaignNode.root,
                             mode: .browse,
-                            items: Async(result: .success([
+                            items: Async.State(result: .success([
                                 CampaignNode(
                                     id: UUID().tagged(),
                                     title: "",
@@ -502,13 +502,13 @@ class AppStoreScreenshotTests: XCTestCase {
                                         content: .addCombatant(
                                             ReferenceItemViewState.Content.AddCombatant(
                                                 addCombatantState: AddCombatantState(
-                                                    compendiumState: await apply(CompendiumIndexState(
+                                                    compendiumState: await apply(CompendiumIndexFeature.State(
                                                         title: "Monsters",
                                                         properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                                                         results: .initial
                                                     )) { @MainActor state in
                                                         state.results.input.order = .monsterChallengeRating
-                                                        let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
+                                                        let store = Store(initialState: state, reducer: AnyReducer(CompendiumIndexFeature(environment: environment)), environment: environment)
                                                         let filters = CompendiumFilters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4))
                                                         await store.send(.query(.onFiltersDidChange(filters))).finish()
                                                         let entry = ViewStore(store, observe: \.self).state.results.entries!.first!
@@ -551,12 +551,12 @@ class AppStoreScreenshotTests: XCTestCase {
                                     state: ReferenceItemViewState(
                                         content: .compendium(
                                             ReferenceItemViewState.Content.Compendium(
-                                                compendium: await apply(CompendiumIndexState(
+                                                compendium: await apply(CompendiumIndexFeature.State(
                                                     title: CompendiumItemType.monster.localizedScreenDisplayName,
                                                     properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                                                     results: .initial
                                                 )) { state in
-                                                    let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
+                                                    let store = Store(initialState: state, reducer: AnyReducer(CompendiumIndexFeature(environment: environment)), environment: environment)
                                                     await store.send(.query(.onTextDidChange("Dragon"))).finish()
                                                     state = ViewStore(store, observe: \.self).state
                                                 }
@@ -599,7 +599,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 parentKeyPrefix: nil
             ),
             mode: .browse,
-            items: Async(result: .success([
+            items: Async.State(result: .success([
                 CampaignNode(
                     id: UUID().tagged(),
                     title: "1. Ambush",
@@ -650,12 +650,12 @@ class AppStoreScreenshotTests: XCTestCase {
                                     state: ReferenceItemViewState(
                                         content: .compendium(
                                             ReferenceItemViewState.Content.Compendium(
-                                                compendium: await apply(CompendiumIndexState(
+                                                compendium: await apply(CompendiumIndexFeature.State(
                                                     title: CompendiumItemType.spell.localizedScreenDisplayName,
                                                     properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                                                     results: .initial(type: .spell)
                                                 )) { @MainActor state in
-                                                    let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
+                                                    let store = Store(initialState: state, reducer: AnyReducer(CompendiumIndexFeature(environment: environment)), environment: environment)
 
                                                     await store.send(.results(.result(.reload(.all)))).finish()
                                                     state = ViewStore(store, observe: \.self).state
@@ -716,12 +716,12 @@ class AppStoreScreenshotTests: XCTestCase {
                                     state: ReferenceItemViewState(
                                         content: .compendium(
                                             ReferenceItemViewState.Content.Compendium(
-                                                compendium: await apply(CompendiumIndexState(
+                                                compendium: await apply(CompendiumIndexFeature.State(
                                                     title: CompendiumItemType.monster.localizedScreenDisplayName,
                                                     properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                                                     results: .initial
                                                 )) { state in
-                                                    let store = Store(initialState: state, reducer: CompendiumIndexState.reducer, environment: environment)
+                                                    let store = Store(initialState: state, reducer: AnyReducer(CompendiumIndexFeature(environment: environment)), environment: environment)
                                                     await store.send(.query(.onTextDidChange("Dragon"))).finish()
                                                     state = ViewStore(store, observe: \.self).state
                                                 }
