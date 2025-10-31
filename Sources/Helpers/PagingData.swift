@@ -58,8 +58,6 @@ public struct PagingDataError: Swift.Error, Equatable {
     }
 }
 
-private enum CancelID { case load }
-
 public extension PagingData {
     struct FetchRequest {
         public let offset: Int
@@ -81,7 +79,7 @@ public extension PagingData {
                     let result = await fetch(request, env)
                     await send(.didLoadMore(result))
                 }
-                .cancellable(id: CancelID.load)
+                .cancellable(id: state.id)
             }
 
             func loadIfNeeded(for idx: Int, state: inout Self) -> EffectTask<PagingDataAction<Element>> {
@@ -104,7 +102,7 @@ public extension PagingData {
                 state.loadingState = .notLoading(didReachEnd: false)
 
                 return .concatenate(
-                    .cancel(id: CancelID.load),
+                    .cancel(id: state.id),
                     loadIfNeeded(for: 0, state: &state)
                 )
             case .reload(.currentCount):
@@ -114,12 +112,12 @@ public extension PagingData {
 
                 if count > 0 {
                     return .concatenate(
-                        .cancel(id: CancelID.load),
+                        .cancel(id: state.id),
                         load(FetchRequest(offset: 0, count: count), in: &state)
                     )
                 } else {
                     return .concatenate(
-                        .cancel(id: CancelID.load),
+                        .cancel(id: state.id),
                         loadIfNeeded(for: 0, state: &state)
                     )
                 }
@@ -128,7 +126,7 @@ public extension PagingData {
                 state.loadingState = .notLoading(didReachEnd: false)
 
                 return .concatenate(
-                    .cancel(id: CancelID.load),
+                    .cancel(id: state.id),
                     load(FetchRequest(offset: 0, count: nil), in: &state)
                 )
             }
