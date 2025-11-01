@@ -101,7 +101,7 @@ struct EncounterDetailViewState: Equatable {
         }
     }
 
-    var combatantDetailState: CombatantDetailViewState? {
+    var combatantDetailState: CombatantDetailFeature.State? {
         get {
             if case .combatant(let state)? = sheet {
                 return state
@@ -165,7 +165,7 @@ struct EncounterDetailViewState: Equatable {
         res.sheet = sheet.map {
             switch $0 {
             case .add: return .add(AddCombatantSheet.nullInstance)
-            case .combatant: return .combatant(CombatantDetailViewState.nullInstance)
+            case .combatant: return .combatant(CombatantDetailFeature.State.nullInstance)
             case .runningEncounterLog: return .runningEncounterLog(RunningEncounterLogViewState.nullInstance)
             case .selectedCombatantTags: return .selectedCombatantTags(CombatantTagsViewState.nullInstance)
             case .settings: return .settings
@@ -186,7 +186,7 @@ struct EncounterDetailViewState: Equatable {
 
     enum Sheet: Equatable {
         case add(AddCombatantSheet)
-        case combatant(CombatantDetailViewState)
+        case combatant(CombatantDetailFeature.State)
         case runningEncounterLog(RunningEncounterLogViewState)
         case selectedCombatantTags(CombatantTagsViewState)
         case settings
@@ -219,7 +219,7 @@ extension EncounterDetailViewState {
         case combatantInitiativePopover(NumberEntryFeature.Action)
         case addCombatant(AddCombatantState.Action)
         case addCombatantAction(AddCombatantView.Action, Bool)
-        case combatantDetail(CombatantDetailViewAction)
+        case combatantDetail(CombatantDetailFeature.Action)
         case resumableRunningEncounters(AsyncResumableRunningEncounters.Action)
         case removeResumableRunningEncounter(String) // key of the running encounter
         case resetEncounter(Bool) // false = clear monsters, true = clear all
@@ -371,7 +371,7 @@ extension EncounterDetailViewState {
                     if let combatantDetailState = state.combatantDetailState {
                         return .send(.encounter(.combatant(combatantDetailState.combatant.id, a)))
                     }
-                case .combatantDetail: break // handled by CombatantDetailViewState.reducer
+                case .combatantDetail: break // handled by CombatantDetailFeature reducer
                 case .popover(let p):
                     state.popover = p
                 case .combatantInitiativePopover: break // handled above
@@ -491,7 +491,10 @@ extension EncounterDetailViewState {
                     }
                 }.pullback(state: \.resumableRunningEncounters, action: /Action.resumableRunningEncounters)
             },
-            CombatantDetailViewState.reducer.optional().pullback(state: \.combatantDetailState, action: /Action.combatantDetail),
+            AnyReducer { env in
+                CombatantDetailFeature(environment: env)
+            }
+            .optional().pullback(state: \.combatantDetailState, action: /Action.combatantDetail),
             CombatantTagsViewState.reducer.optional().pullback(state: \.selectedCombatantTagsState, action: /Action.selectedCombatantTags)
         )
     }

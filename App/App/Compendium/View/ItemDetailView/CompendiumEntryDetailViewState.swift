@@ -343,14 +343,11 @@ struct CompendiumEntryDetailFeature: Reducer {
             CompendiumEntryDetailFeature(environment: environment)
         }
 
-        Reduce(
-            CompendiumItemReferenceTextAnnotation.handleTapReducer(
-                didTapAction: /Action.didTapCompendiumItemReferenceTextAnnotation,
-                requestItem: \.itemRequest,
-                internalAction: /Action.setNextScreen..State.NextScreen.compendiumItemDetailView,
-                externalAction: /Action.setNextScreen..State.NextScreen.safariView,
-                environment: { $0 }
-            ),
+        CompendiumItemReferenceTextAnnotation.handleTapReducer(
+            didTapAction: /Action.didTapCompendiumItemReferenceTextAnnotation,
+            requestItem: \.itemRequest,
+            internalAction: /Action.setNextScreen..State.NextScreen.compendiumItemDetailView,
+            externalAction: /Action.setNextScreen..State.NextScreen.safariView,
             environment: environment
         )
     }

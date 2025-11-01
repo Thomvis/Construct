@@ -13,8 +13,8 @@ import SharedViews
 import GameModels
 
 struct InlineCombatantTagsView: View {
-    var store: Store<CombatantDetailViewState, CombatantDetailViewAction>
-    var viewStore: ViewStore<CombatantDetailViewState, CombatantDetailViewAction>
+    var store: Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>
+    var viewStore: ViewStore<CombatantDetailFeature.State, CombatantDetailFeature.Action>
 
     var body: some View {
         if viewStore.state.combatant.tags.isEmpty {

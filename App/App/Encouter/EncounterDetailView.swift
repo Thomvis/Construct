@@ -440,7 +440,7 @@ struct CombatantSection: View {
                 .contentShape(Rectangle().scale(self.parent.viewStore.state.editMode.isEditing ? 0 : 1))
                 .onTapGesture {
                     if parent.appNavigation == .tab {
-                        self.parent.viewStore.send(.sheet(.combatant(CombatantDetailViewState(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
+                        self.parent.viewStore.send(.sheet(.combatant(CombatantDetailFeature.State(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
                     } else {
                         self.parent.viewStore.send(.showCombatantDetailReferenceItem(combatant))
                     }

@@ -23,7 +23,7 @@ struct CombatantDetailContainerView: View {
 
     @EnvironmentObject var env: Environment
 
-    let store: Store<CombatantDetailViewState, CombatantDetailViewAction>
+    let store: Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>
 
     var body: some View {
         NavigationStack {
@@ -43,10 +43,10 @@ struct CombatantDetailView: View {
     @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
-    var store: Store<CombatantDetailViewState, CombatantDetailViewAction>
-    @ObservedObject var viewStore: ViewStore<CombatantDetailViewState, CombatantDetailViewAction>
+    var store: Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>
+    @ObservedObject var viewStore: ViewStore<CombatantDetailFeature.State, CombatantDetailFeature.Action>
 
-    init(store: Store<CombatantDetailViewState, CombatantDetailViewAction>) {
+    init(store: Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>) {
         self.store = store
         self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
@@ -301,7 +301,7 @@ struct CombatantDetailView: View {
                     }
                 )
                 .popover(self.popover)
-                .alert(store.scope(state: { $0.alert }, action: { $0 }), dismiss: CombatantDetailViewAction.alert(nil))
+                .alert(store.scope(state: { $0.alert }, action: { $0 }), dismiss: CombatantDetailFeature.Action.alert(nil))
                 .onAppear {
                     viewStore.send(.onAppear)
                 }
@@ -321,38 +321,38 @@ struct CombatantDetailView: View {
         // END
         .stateDrivenNavigationLink(
             store: store,
-            state: /CombatantDetailViewState.NextScreen.combatantTagEditView,
-            action: /CombatantDetailViewAction.NextScreenAction.combatantTagEditView,
+            state: /CombatantDetailFeature.State.NextScreen.combatantTagEditView,
+            action: /CombatantDetailFeature.Action.NextScreenAction.combatantTagEditView,
             destination: CombatantTagEditView.init
         )
         .stateDrivenNavigationLink(
             store: store,
-            state: /CombatantDetailViewState.NextScreen.compendiumItemDetailView,
-            action: /CombatantDetailViewAction.NextScreenAction.compendiumItemDetailView,
+            state: /CombatantDetailFeature.State.NextScreen.compendiumItemDetailView,
+            action: /CombatantDetailFeature.Action.NextScreenAction.compendiumItemDetailView,
             destination: CompendiumEntryDetailView.init
         )
         .stateDrivenNavigationLink(
             store: store,
-            state: /CombatantDetailViewState.NextScreen.combatantTagsView,
-            action: /CombatantDetailViewAction.NextScreenAction.combatantTagsView,
+            state: /CombatantDetailFeature.State.NextScreen.combatantTagsView,
+            action: /CombatantDetailFeature.Action.NextScreenAction.combatantTagsView,
             destination: CombatantTagsView.init
         )
         .stateDrivenNavigationLink(
             store: store,
-            state: /CombatantDetailViewState.NextScreen.combatantResourcesView,
-            action: /CombatantDetailViewAction.NextScreenAction.combatantResourcesView,
+            state: /CombatantDetailFeature.State.NextScreen.combatantResourcesView,
+            action: /CombatantDetailFeature.Action.NextScreenAction.combatantResourcesView,
             destination: CombatantResourcesView.init
         )
         .stateDrivenNavigationLink(
             store: store,
-            state: /CombatantDetailViewState.NextScreen.creatureEditView,
-            action: /CombatantDetailViewAction.NextScreenAction.creatureEditView,
+            state: /CombatantDetailFeature.State.NextScreen.creatureEditView,
+            action: /CombatantDetailFeature.Action.NextScreenAction.creatureEditView,
             destination: CreatureEditView.init
         )
         .stateDrivenNavigationLink(
             store: store,
-            state: /CombatantDetailViewState.NextScreen.runningEncounterLogView,
-            action: /CombatantDetailViewAction.NextScreenAction.runningEncounterLogView,
+            state: /CombatantDetailFeature.State.NextScreen.runningEncounterLogView,
+            action: /CombatantDetailFeature.Action.NextScreenAction.runningEncounterLogView,
             destination: RunningEncounterLogView.init
         )
     }

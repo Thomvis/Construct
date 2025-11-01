@@ -126,7 +126,7 @@ struct ReferenceItemViewState: Equatable {
                 switch newValue {
                 case let v as CompendiumIndexFeature.State:
                     self.compendiumState?.compendium = v
-                case let v as CombatantDetailViewState:
+                case let v as CombatantDetailFeature.State:
                     self.combatantDetailState?.detailState = v
                 case let v as AddCombatantState:
                     self.addCombatantState?.addCombatantState = v
@@ -210,7 +210,7 @@ struct ReferenceItemViewState: Equatable {
 
             var pinToTurn: Bool
 
-            var detailState: CombatantDetailViewState
+            var detailState: CombatantDetailFeature.State
 
             init(encounter: Encounter, selectedCombatantId: Combatant.Id, runningEncounter: RunningEncounter?) {
                 self.encounter = encounter
@@ -222,7 +222,7 @@ struct ReferenceItemViewState: Equatable {
                 let combatant = runningEncounter?.current.combatant(for: selectedCombatantId)
                     ?? encounter.combatant(for: selectedCombatantId)
                     ?? Combatant.nullInstance
-                self.detailState = CombatantDetailViewState(runningEncounter: runningEncounter, combatant: combatant)
+                self.detailState = CombatantDetailFeature.State(runningEncounter: runningEncounter, combatant: combatant)
             }
 
             private mutating func updateDetailState() {
@@ -275,7 +275,7 @@ enum ReferenceItemViewAction: Equatable {
     }
 
     enum CombatantDetail: Equatable {
-        case detail(CombatantDetailViewAction)
+        case detail(CombatantDetailFeature.Action)
         case previousCombatantTapped
         case nextCombatantTapped
         case togglePinToTurnTapped
@@ -340,7 +340,10 @@ extension ReferenceItemViewState.Content.Compendium {
 
 extension ReferenceItemViewState.Content.CombatantDetail {
     static let reducer: AnyReducer<Self, ReferenceItemViewAction.CombatantDetail, Environment> = AnyReducer.combine(
-        CombatantDetailViewState.reducer.pullback(state: \.detailState, action: /ReferenceItemViewAction.CombatantDetail.detail),
+        AnyReducer { env in
+            CombatantDetailFeature(environment: env)
+        }
+        .pullback(state: \.detailState, action: /ReferenceItemViewAction.CombatantDetail.detail),
         AnyReducer { state, action, env in
             switch action {
             case .detail: break // handled above

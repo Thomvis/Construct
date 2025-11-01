@@ -18,13 +18,6 @@ import ActionResolutionFeature
 import Compendium
 
 struct CombatantDetailFeature: Reducer {
-
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
-
     struct State: NavigationStackSourceState, Equatable {
 
         var runningEncounter: RunningEncounter?
@@ -225,47 +218,18 @@ struct CombatantDetailFeature: Reducer {
         }
     }
 
-    var body: some ReducerOf<Self> {
-        Reduce { state, action in
-            Self.legacyReducer.run(&state, action, environment)
-        }
+    let environment: Environment
+
+    init(environment: Environment) {
+        self.environment = environment
     }
 
-    static let legacyReducer: AnyReducer<State, Action, Environment> = AnyReducer.combine(
-        CombatantTagEditViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagEditView, action: /Action.nextScreen..Action.NextScreenAction.combatantTagEditView),
-        AnyReducer { env in
-            DiceCalculator(environment: env)
-        }
-        .optional()
-        .pullback(
-            state: \.rollCheckDialogState,
-            action: /Action.rollCheckDialog,
-            environment: { $0 }
-        ),
-        AnyReducer { env in
-            ActionResolutionFeature(environment: env)
-        }
-        .optional()
-        .pullback(
-            state: \.diceActionPopoverState,
-            action: /Action.diceActionPopover,
-            environment: { $0 }
-        ),
-        AnyReducer { env in
-            NumberEntryFeature(environment: env)
-        }
-        .optional()
-        .pullback(state: \.initiativePopoverState, action: /Action.initiativePopover, environment: { $0 }),
-        AnyReducer { env in
-            CompendiumEntryDetailFeature(environment: env)
-        }
-        .optional()
-        .pullback(state: \.presentedNextCompendiumItemDetailView, action: /Action.nextScreen..Action.NextScreenAction.compendiumItemDetailView, environment: { $0 }),
-        AnyReducer { state, action, env in
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
             switch action {
             case .onAppear:
                 if let def = state.combatant.definition as? CompendiumCombatantDefinition {
-                    state.entry = try? env.compendium.get(def.item.key)
+                    state.entry = try? environment.compendium.get(def.item.key)
                 }
             case .combatant: break // should be handled by parent
             case .popover(let popover):
@@ -275,7 +239,7 @@ struct CombatantDetailFeature: Reducer {
             case .addLimitedResource(.onDoneTap):
                 guard case .addLimitedResource(let editState) = state.popover else { return .none }
                 return .run { send in
-                    env.dismissKeyboard()
+                    environment.dismissKeyboard()
                     await send(.popover(nil))
                     await send(.combatant(.addResource(editState.resource)))
                 }
@@ -286,7 +250,7 @@ struct CombatantDetailFeature: Reducer {
             case .initiativePopover: break // handled above
             case .editCreatureConfirmingUnlinkIfNeeded:
                 if let def = state.combatant.definition as? AdHocCombatantDefinition {
-                    return EffectTask(value: .setNextScreen(.creatureEditView(CreatureEditFeature.State(edit: def))))
+                    return .send(.setNextScreen(.creatureEditView(CreatureEditFeature.State(edit: def))))
                 }
 
                 if state.combatant.definition is CompendiumCombatantDefinition {
@@ -317,7 +281,7 @@ struct CombatantDetailFeature: Reducer {
                     origin: .created(def.original),
                     document: .init(CompendiumSourceDocument.homebrew)
                 )
-                try? env.compendium.put(entry)
+                try? environment.compendium.put(entry)
                 state.entry = entry
                 return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: CompendiumCombatantDefinition(item: item, persistent: false)))))
             case .unlinkFromCompendium:
@@ -328,14 +292,12 @@ struct CombatantDetailFeature: Reducer {
                 state.entry = nil
                 return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: definition))))
             case .unlinkAndEditCreature:
-                return .concatenate(
-                    [
-                        .send(.unlinkFromCompendium),
-                        .run { send in
-                            await Task.yield()
-                            await send(.editCreatureConfirmingUnlinkIfNeeded)
-                        }
-                    ]
+                return .merge(
+                    .send(.unlinkFromCompendium),
+                    .run { send in
+                        await Task.yield()
+                        await send(.editCreatureConfirmingUnlinkIfNeeded)
+                    }
                 )
             case .didTapCompendiumItemReferenceTextAnnotation: break // handled by CompendiumItemReferenceTextAnnotation.handleTapReducer
             case .setNextScreen(let next):
@@ -358,60 +320,72 @@ struct CombatantDetailFeature: Reducer {
                 }
             case .nextScreen(.creatureEditView(.didEdit(let result))):
                 if case let .adHoc(definition) = result {
-                    return .concatenate(
-                        [
-                            .send(.setNextScreen(nil)),
-                            .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: definition))))
-                        ]
+                    return .merge(
+                        .send(.setNextScreen(nil)),
+                        .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: definition))))
                     )
                 }
                 return .none
             case .nextScreen, .detailScreen: break // handled by reducers below
             }
             return .none
-        },
+        }
+        .ifLet(\.presentedNextCombatantTagEditView, action: /Action.nextScreen..Action.NextScreenAction.combatantTagEditView) {
+            Reduce(CombatantTagEditViewState.reducer, environment: environment)
+        }
+        .ifLet(\.rollCheckDialogState, action: /Action.rollCheckDialog) {
+            DiceCalculator(environment: environment)
+        }
+        .ifLet(\.diceActionPopoverState, action: /Action.diceActionPopover) {
+            ActionResolutionFeature(environment: environment)
+        }
+        .ifLet(\.initiativePopoverState, action: /Action.initiativePopover) {
+            NumberEntryFeature(environment: environment)
+        }
+        .ifLet(\.presentedNextCompendiumItemDetailView, action: /Action.nextScreen..Action.NextScreenAction.compendiumItemDetailView) {
+            CompendiumEntryDetailFeature(environment: environment)
+        }
+        .ifLet(\.presentedNextCombatantTagsView, action: /Action.nextScreen..Action.NextScreenAction.combatantTagsView) {
+            Reduce(CombatantTagsViewState.reducer, environment: environment)
+        }
+        .ifLet(\.presentedNextCombatantResourcesView, action: /Action.nextScreen..Action.NextScreenAction.combatantResourcesView) {
+            Reduce(CombatantResourcesViewState.reducer, environment: environment)
+        }
+        .ifLet(\.presentedNextCreatureEditView, action: /Action.nextScreen..Action.NextScreenAction.creatureEditView) {
+            CreatureEditFeature()
+        }
+        .ifLet(\.addLimitedResourceState, action: /Action.addLimitedResource) {
+            Reduce(CombatantTrackerEditViewState.reducer, environment: environment)
+        }
+        .ifLet(\.healthDialogState, action: /Action.healthDialog) {
+            HealthDialogFeature(environment: environment)
+        }
+
         CompendiumItemReferenceTextAnnotation.handleTapReducer(
             didTapAction: /Action.didTapCompendiumItemReferenceTextAnnotation,
             requestItem: \.itemRequest,
             internalAction: /Action.setNextScreen..State.NextScreen.compendiumItemDetailView,
             externalAction: /Action.setNextScreen..State.NextScreen.safariView,
-            environment: { $0 }
-        ),
-        CombatantTagsViewState.reducer.optional().pullback(state: \.presentedNextCombatantTagsView, action: /Action.nextScreen..Action.NextScreenAction.combatantTagsView),
-        CombatantResourcesViewState.reducer.optional().pullback(state: \.presentedNextCombatantResourcesView, action: /Action.nextScreen..Action.NextScreenAction.combatantResourcesView),
-        AnyReducer { _ in CreatureEditFeature() }
-            .optional().pullback(state: \.presentedNextCreatureEditView, action: /Action.nextScreen..Action.NextScreenAction.creatureEditView, environment: { $0 }),
-        CombatantTrackerEditViewState.reducer.optional().pullback(state: \.addLimitedResourceState, action: /Action.addLimitedResource),
-        AnyReducer { env in
-            HealthDialogFeature(environment: env)
-        }
-        .optional()
-        .pullback(state: \.healthDialogState, action: /Action.healthDialog)
-    )
+            environment: environment
+        )
+    }
 }
-
-typealias CombatantDetailViewState = CombatantDetailFeature.State
-typealias CombatantDetailViewAction = CombatantDetailFeature.Action
 
 extension CombatantDetailFeature.State {
     static let nullInstance = CombatantDetailFeature.State(combatant: Combatant.nullInstance)
-
-    static var reducer: AnyReducer<Self, CombatantDetailFeature.Action, Environment> {
-        CombatantDetailFeature.legacyReducer
-    }
 }
 
 extension CompendiumItemReferenceTextAnnotation {
     typealias HandleTapReducerEnvironment = EnvironmentWithCompendium & EnvironmentWithCrashReporter
 
-    static func handleTapReducer<State, Action, Environment>(
+    static func handleTapReducer<State, Action>(
         didTapAction: CasePath<Action, (CompendiumItemReferenceTextAnnotation, AppNavigation)>,
         requestItem: WritableKeyPath<State, ReferenceViewItemRequest?>,
         internalAction: CasePath<Action, CompendiumEntryDetailFeature.State>,
         externalAction: CasePath<Action, SafariViewState>,
-        environment: @escaping (Environment) -> HandleTapReducerEnvironment
-    ) -> AnyReducer<State, Action, Environment> {
-        AnyReducer { (state, action, env: HandleTapReducerEnvironment) in
+        environment env: HandleTapReducerEnvironment
+    ) -> some Reducer<State, Action> {
+        Reduce { state, action in
             if let (annotation, appNavigation) = didTapAction.extract(from: action) {
                 switch env.compendium.resolve(annotation: annotation) {
                 case .internal(let reference):
@@ -442,6 +416,6 @@ extension CompendiumItemReferenceTextAnnotation {
                 }
             }
             return .none
-        }.pullback(state: \.self, action: /Action.self, environment: environment)
+        }
     }
 }
