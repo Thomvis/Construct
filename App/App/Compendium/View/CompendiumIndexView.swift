@@ -718,13 +718,13 @@ struct FilterButton: View {
     }
 
     private func presentFilterSheet() {
-        let state = CompendiumFilterSheetState(
+        let state = CompendiumFilterSheetFeature.State(
             self.viewStore.state.filters,
             allAllowedItemTypes: allAllowedItemTypes,
             sourceRestriction: sourceRestriction
         )
 
-        self.sheet = CompendiumFilterSheet(store: Store(initialState: state, reducer: CompendiumFilterSheetState.reducer, environment: self.env)) { filterValues in
+        self.sheet = CompendiumFilterSheet(store: Store(initialState: state, reducer: AnyReducer { env in CompendiumFilterSheetFeature(environment: env) }, environment: self.env)) { filterValues in
             var filters = self.viewStore.state.filters ?? .init()
             filters.source = filterValues.source
             filters.types = filterValues.itemType.optionalArray
@@ -814,7 +814,7 @@ extension CompendiumItem {
 }
 
 // Used for communicating with the filter popover
-fileprivate extension CompendiumFilterSheetState {
+fileprivate extension CompendiumFilterSheetFeature.State {
     init(
         _ queryFilters: CompendiumFilters?,
         allAllowedItemTypes: [CompendiumItemType],

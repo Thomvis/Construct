@@ -17,12 +17,12 @@ import Combine
 import Tagged
 
 struct CompendiumFilterSheet: View {
-    var store: Store<CompendiumFilterSheetState, CompendiumFilterSheetAction>
-    @ObservedObject var viewStore: ViewStore<CompendiumFilterSheetState, CompendiumFilterSheetAction>
+    var store: Store<CompendiumFilterSheetFeature.State, CompendiumFilterSheetFeature.Action>
+    @ObservedObject var viewStore: ViewStore<CompendiumFilterSheetFeature.State, CompendiumFilterSheetFeature.Action>
 
-    let onApply: (CompendiumFilterSheetState.Values) -> Void
+    let onApply: (CompendiumFilterSheetFeature.State.Values) -> Void
 
-    init(store: Store<CompendiumFilterSheetState, CompendiumFilterSheetAction>, onApply: @escaping (CompendiumFilterSheetState.Values) -> Void) {
+    init(store: Store<CompendiumFilterSheetFeature.State, CompendiumFilterSheetFeature.Action>, onApply: @escaping (CompendiumFilterSheetFeature.State.Values) -> Void) {
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
         self.onApply = onApply
@@ -36,7 +36,7 @@ struct CompendiumFilterSheet: View {
                         CompendiumDocumentSelectionView(
                             store: store.scope(
                                 state: \.documentSelection,
-                                action: CompendiumFilterSheetAction.documentSelection
+                                action: CompendiumFilterSheetFeature.Action.documentSelection
                             ),
                             label: "Sources"
                         )
@@ -47,7 +47,7 @@ struct CompendiumFilterSheet: View {
 
                     SectionContainer {
                         LabeledContent {
-                            Picker("Type", selection: viewStore.binding(get: \.current.itemType, send: CompendiumFilterSheetAction.itemType).animation()) {
+                            Picker("Type", selection: viewStore.binding(get: \.current.itemType, send: CompendiumFilterSheetFeature.Action.itemType).animation()) {
                                 Text("All").tag(Optional<CompendiumItemType>.none)
                                 ForEach(viewStore.state.allAllowedItemTypes, id: \.rawValue) { type in
                                     Text("\(type.localizedScreenDisplayName)").tag(Optional.some(type))
@@ -64,7 +64,7 @@ struct CompendiumFilterSheet: View {
                         SectionContainer {
                             LabeledContent {
                                 Picker(
-                                    selection: viewStore.binding(get: \.monsterType, send: CompendiumFilterSheetAction.monsterType),
+                                    selection: viewStore.binding(get: \.monsterType, send: CompendiumFilterSheetFeature.Action.monsterType),
                                     label: Text("Monster Type")
                                 ) {
                                     Text("All").tag(Optional<MonsterType>.none)
@@ -131,13 +131,13 @@ struct CompendiumFilterSheet: View {
         }
     }
 
-    func onEditingChanged(_ filter: CompendiumFilterSheetState.Filter) -> (Bool) -> Void {
+    func onEditingChanged(_ filter: CompendiumFilterSheetFeature.State.Filter) -> (Bool) -> Void {
         return { b in
             self.viewStore.send(.editing(filter, b))
         }
     }
 
-    func clearButton(for filter: CompendiumFilterSheetState.Filter) -> some View {
+    func clearButton(for filter: CompendiumFilterSheetFeature.State.Filter) -> some View {
         Group {
             if viewStore.state.hasValue(for: filter) {
                 Button(action: {
@@ -154,8 +154,8 @@ struct CompendiumFilterSheet: View {
     }
 
     func needsDividerBefore(
-        _ source: (CompendiumFilterSheetState.Source),
-        in sources: [CompendiumFilterSheetState.Source]
+        _ source: (CompendiumFilterSheetFeature.State.Source),
+        in sources: [CompendiumFilterSheetFeature.State.Source]
     ) -> Bool {
         guard let idx = sources.firstIndex(where: { $0.document == source.document }) else {
             return false
@@ -164,120 +164,183 @@ struct CompendiumFilterSheet: View {
     }
 }
 
-struct CompendiumFilterSheetState: Equatable {
-    typealias Source = (document: CompendiumSourceDocument, realm: CompendiumRealm)
+typealias CompendiumFilterSheetEnvironment = EnvironmentWithCompendiumMetadata
 
-    let challengeRatings = crToXpMapping.keys.sorted()
-    let allAllowedItemTypes: [CompendiumItemType]
-    let sourceRestriction: CompendiumFilters.Source?
+struct CompendiumFilterSheetFeature: Reducer {
+    struct State: Equatable {
+        typealias Source = (document: CompendiumSourceDocument, realm: CompendiumRealm)
 
-    let initial: Values
-    var current: Values
+        let challengeRatings = crToXpMapping.keys.sorted()
+        let allAllowedItemTypes: [CompendiumItemType]
+        let sourceRestriction: CompendiumFilters.Source?
 
-    var documentSelection: CompendiumDocumentSelectionFeature.State
+        let initial: Values
+        var current: Values
 
-    typealias AsyncDocuments = Async<[CompendiumSourceDocument], EquatableError>
-    var documents: AsyncDocuments.State = .initial
-    typealias AsyncRealms = Async<[CompendiumRealm], EquatableError>
-    var realms: AsyncRealms.State = .initial
+        var documentSelection: CompendiumDocumentSelectionFeature.State
 
-    var currentDocument: CompendiumSourceDocument? {
-        guard let s = current.source else { return nil }
-        return documents.value?.first(where: { $0.realmId == s.realm && $0.id == s.document })
-    }
+        typealias AsyncDocuments = Async<[CompendiumSourceDocument], EquatableError>
+        var documents: AsyncDocuments.State = .initial
+        typealias AsyncRealms = Async<[CompendiumRealm], EquatableError>
+        var realms: AsyncRealms.State = .initial
 
-
-    public init(
-        allAllowedItemTypes: [CompendiumItemType] = CompendiumItemType.allCases,
-        sourceRestriction: CompendiumFilters.Source? = nil,
-        initial: CompendiumFilterSheetState.Values = .init(),
-        current: CompendiumFilterSheetState.Values = .init(),
-        documents: AsyncDocuments.State = .initial,
-        realms: AsyncRealms.State = .initial
-    ) {
-        self.allAllowedItemTypes = allAllowedItemTypes
-        self.sourceRestriction = sourceRestriction
-        self.initial = initial
-        self.current = current
-        self.documentSelection = .init(selectedSource: current.source)
-        self.documents = documents
-        self.realms = realms
-    }
-
-
-    init() {
-        self.allAllowedItemTypes = CompendiumItemType.allCases
-        self.sourceRestriction = nil
-        self.initial = Values()
-        self.current = Values()
-        self.documentSelection = CompendiumDocumentSelectionFeature.State()
-    }
-
-    var allSources: [Source]? {
-        guard let documents = documents.value, let realms = realms.value else {
-            return nil
+        var currentDocument: CompendiumSourceDocument? {
+            guard let s = current.source else { return nil }
+            return documents.value?.first(where: { $0.realmId == s.realm && $0.id == s.document })
         }
-        
-        return documents.compactMap { d in
-            realms.first(where: { $0.id == d.realmId }).map { r in
-                (document: d, realm: r)
+
+
+        public init(
+            allAllowedItemTypes: [CompendiumItemType] = CompendiumItemType.allCases,
+            sourceRestriction: CompendiumFilters.Source? = nil,
+            initial: Values = .init(),
+            current: Values = .init(),
+            documents: AsyncDocuments.State = .initial,
+            realms: AsyncRealms.State = .initial
+        ) {
+            self.allAllowedItemTypes = allAllowedItemTypes
+            self.sourceRestriction = sourceRestriction
+            self.initial = initial
+            self.current = current
+            self.documentSelection = .init(selectedSource: current.source)
+            self.documents = documents
+            self.realms = realms
+        }
+
+
+        init() {
+            self.allAllowedItemTypes = CompendiumItemType.allCases
+            self.sourceRestriction = nil
+            self.initial = Values()
+            self.current = Values()
+            self.documentSelection = CompendiumDocumentSelectionFeature.State()
+        }
+
+        var allSources: [Source]? {
+            guard let documents = documents.value, let realms = realms.value else {
+                return nil
+            }
+            
+            return documents.compactMap { d in
+                realms.first(where: { $0.id == d.realmId }).map { r in
+                    (document: d, realm: r)
+                }
+            }
+        }
+
+        struct Values: Equatable {
+            var source: CompendiumFilters.Source?
+            var itemType: CompendiumItemType?
+            var minMonsterCR: Fraction?
+            var maxMonsterCR: Fraction?
+            var monsterType: MonsterType?
+        }
+
+        var compatibleFilters: [Filter] {
+            var result: [Filter] = []
+            if (current.itemType == .monster) {
+                // monster is included or there is no filter at all
+                result.append(.minMonsterCR)
+                result.append(.maxMonsterCR)
+                result.append(.monsterType)
+            }
+            return result
+        }
+
+        /// Removes values that are not compatible with the currently selected type
+        var effectiveCurrentValues: Values {
+            let filters = compatibleFilters
+            return Values(
+                source: current.source,
+                itemType: current.itemType,
+                minMonsterCR: filters.contains(.minMonsterCR) ? current.minMonsterCR : nil,
+                maxMonsterCR: filters.contains(.maxMonsterCR) ? current.maxMonsterCR : nil,
+                monsterType: filters.contains(.monsterType) ? current.monsterType : nil
+            )
+        }
+
+        var sourcesSectionDisabled: Bool {
+            sourceRestriction != nil
+        }
+
+        typealias Filter = CompendiumFilters.Property
+    }
+
+    enum Action: Equatable {
+        case itemType(CompendiumItemType?)
+        case minMonsterCR(Double)
+        case maxMonsterCR(Double)
+        case monsterType(MonsterType?)
+        case editing(State.Filter, Bool)
+        case clear(State.Filter)
+        case clearAll
+
+        case documentSelection(CompendiumDocumentSelectionFeature.Action)
+    }
+
+    let environment: CompendiumFilterSheetEnvironment
+
+    init(environment: CompendiumFilterSheetEnvironment) {
+        self.environment = environment
+    }
+
+    var body: some ReducerOf<Self> {
+        CombineReducers {
+            Reduce { state, action in
+                switch action {
+                case .itemType(let type):
+                    state.current.itemType = type
+                case .minMonsterCR(let v):
+                    state.minMonsterCrDouble = v
+                case .maxMonsterCR(let v):
+                    state.maxMonsterCrDouble = v
+                case .monsterType(let t):
+                    state.monsterType = t
+                case .editing(.minMonsterCR, false):
+                    if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
+                        state.current.maxMonsterCR = max(minCr, maxCr)
+                    }
+                case .editing(.maxMonsterCR, false):
+                    if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
+                        state.current.minMonsterCR = min(minCr, maxCr)
+                    }
+                case .editing: break
+                case .clear(.source):
+                    state.documentSelection.selectedSource = nil // change picked up in onChange below
+                case .clear(.itemType):
+                    state.current.itemType = nil
+                case .clear(.minMonsterCR):
+                    state.current.minMonsterCR = nil
+                case .clear(.maxMonsterCR):
+                    state.current.maxMonsterCR = nil
+                case .clear(.monsterType):
+                    state.current.monsterType = nil
+                case .clearAll:
+                    return .merge(
+                        State.Filter.allCases.map { filter in
+                                .send(.clear(filter))
+                        }
+                    )
+                case .documentSelection:
+                    break
+                }
+                return .none
+            }
+            Scope(state: \.documentSelection, action: /Action.documentSelection) {
+                CompendiumDocumentSelectionFeature()
+                    .dependency(\.compendiumMetadata, environment.compendiumMetadata)
+            }
+        }.onChange(of: \.documentSelection.selectedSource) { oldValue, newValue in
+            Reduce { state, action in
+                // Update current.source when documentSelection.selectedSource changes
+                state.current.source = newValue
+                return .none
             }
         }
     }
-
-    struct Values: Equatable {
-        var source: CompendiumFilters.Source?
-        var itemType: CompendiumItemType?
-        var minMonsterCR: Fraction?
-        var maxMonsterCR: Fraction?
-        var monsterType: MonsterType?
-    }
-
-    var compatibleFilters: [Filter] {
-        var result: [Filter] = []
-        if (current.itemType == .monster) {
-            // monster is included or there is no filter at all
-            result.append(.minMonsterCR)
-            result.append(.maxMonsterCR)
-            result.append(.monsterType)
-        }
-        return result
-    }
-
-    /// Removes values that are not compatible with the currently selected type
-    var effectiveCurrentValues: Values {
-        let filters = compatibleFilters
-        return Values(
-            source: current.source,
-            itemType: current.itemType,
-            minMonsterCR: filters.contains(.minMonsterCR) ? current.minMonsterCR : nil,
-            maxMonsterCR: filters.contains(.maxMonsterCR) ? current.maxMonsterCR : nil,
-            monsterType: filters.contains(.monsterType) ? current.monsterType : nil
-        )
-    }
-
-    var sourcesSectionDisabled: Bool {
-        sourceRestriction != nil
-    }
-
-    typealias Filter = CompendiumFilters.Property
 }
 
-enum CompendiumFilterSheetAction {
-    case itemType(CompendiumItemType?)
-    case minMonsterCR(Double)
-    case maxMonsterCR(Double)
-    case monsterType(MonsterType?)
-    case editing(CompendiumFilterSheetState.Filter, Bool)
-    case clear(CompendiumFilterSheetState.Filter)
-    case clearAll
-
-    case documentSelection(CompendiumDocumentSelectionFeature.Action)
-}
-
-typealias CompendiumFilterSheetEnvironment = EnvironmentWithCompendiumMetadata
-
-extension CompendiumFilterSheetState {
+extension CompendiumFilterSheetFeature.State {
     var minMonsterCrDouble: Double {
         get {
             if let fraction = current.minMonsterCR, let idx = challengeRatings.firstIndex(of: fraction) {
@@ -341,72 +404,18 @@ extension CompendiumFilterSheetState {
     func hasChanges() -> Bool {
         initial != current
     }
-
-    static var reducer: AnyReducer<Self, CompendiumFilterSheetAction, CompendiumFilterSheetEnvironment> = AnyReducer.combine(
-        AnyReducer { env in 
-            CompendiumDocumentSelectionFeature()
-                .dependency(\.compendiumMetadata, env.compendiumMetadata)
-        }.pullback(
-            state: \CompendiumFilterSheetState.documentSelection,
-            action: /CompendiumFilterSheetAction.documentSelection
-        )
-        .onChange(of: \.documentSelection.selectedSource, perform: { s, state, action, env in
-            state.current.source = s
-            return .none
-        }),
-        AnyReducer { state, action, _ in
-            switch action {
-            case .itemType(let type):
-                state.current.itemType = type
-            case .minMonsterCR(let v):
-                state.minMonsterCrDouble = v
-            case .maxMonsterCR(let v):
-                state.maxMonsterCrDouble = v
-            case .monsterType(let t):
-                state.monsterType = t
-            case .editing(.minMonsterCR, false):
-                if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
-                    state.current.maxMonsterCR = max(minCr, maxCr)
-                }
-            case .editing(.maxMonsterCR, false):
-                if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
-                    state.current.minMonsterCR = min(minCr, maxCr)
-                }
-            case .editing: break
-            case .clear(.source):
-                state.current.source = nil
-            case .clear(.itemType):
-                state.current.itemType = nil
-            case .clear(.minMonsterCR):
-                state.current.minMonsterCR = nil
-            case .clear(.maxMonsterCR):
-                state.current.maxMonsterCR = nil
-            case .clear(.monsterType):
-                state.current.monsterType = nil
-            case .clearAll:
-                return .merge(
-                    Filter.allCases.map { filter in
-                        .send(.clear(filter))
-                    }
-                )
-            case .documentSelection:
-                break
-            }
-            return .none
-        }
-    )
 }
 
 #if DEBUG
 struct CompendiumFilterSheetPreview: PreviewProvider {
     static var previews: some View {
-        CompendiumFilterSheet(store: Store(
-            initialState: CompendiumFilterSheetState(),
-            reducer: CompendiumFilterSheetState.reducer,
-            environment: StandaloneCompendiumFilterSheetEnvironment(
-                compendiumMetadata: CompendiumMetadataKey.previewValue
-            )
-        )) { _ in
+        CompendiumFilterSheet(
+            store: Store(initialState: CompendiumFilterSheetFeature.State()) {
+                CompendiumFilterSheetFeature(environment: StandaloneCompendiumFilterSheetEnvironment(
+                    compendiumMetadata: CompendiumMetadataKey.previewValue
+                ))
+            }
+        ) { _ in
 
         }
     }
