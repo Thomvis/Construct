@@ -17,15 +17,15 @@ struct AddCombatantView: View {
     @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    var store: Store<AddCombatantState, AddCombatantState.Action>
-    @ObservedObject var viewStore: ViewStore<AddCombatantState, AddCombatantState.Action>
+    var store: Store<AddCombatantFeature.State, AddCombatantFeature.Action>
+    @ObservedObject var viewStore: ViewStore<AddCombatantFeature.State, AddCombatantFeature.Action>
 
     let externalNavigation: Bool
     let showEncounterDifficulty: Bool
     let onSelection: (Action, _ dismiss: Bool) -> Void
 
     init(
-        store: Store<AddCombatantState, AddCombatantState.Action>,
+        store: Store<AddCombatantFeature.State, AddCombatantFeature.Action>,
         externalNavigation: Bool = false,
         showEncounterDifficulty: Bool = true,
         onSelection: @escaping (Action, _ dismiss: Bool) -> Void

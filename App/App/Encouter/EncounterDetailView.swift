@@ -144,7 +144,7 @@ struct EncounterDetailView: View {
 
             Menu {
                 Button(action: {
-                    self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter:
+                    self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantFeature.State(encounter:
                         self.viewStore.state.encounter)))))
                     self.viewStore.send(.addCombatant(.quickCreate))
                 }) {
@@ -157,7 +157,7 @@ struct EncounterDetailView: View {
                 }
             } primaryAction: {
                 if appNavigation == .tab {
-                    self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter: self.viewStore.state.encounter)))))
+                    self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantFeature.State(encounter: self.viewStore.state.encounter)))))
                 } else {
                     self.viewStore.send(.showAddCombatantReferenceItem)
                 }

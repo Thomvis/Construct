@@ -1,11 +1,3 @@
-//
-//  AddCombatantState.swift
-//  Construct
-//
-//  Created by Thomas Visser on 22/05/2020.
-//  Copyright © 2020 Thomas Visser. All rights reserved.
-//
-
 import Foundation
 import ComposableArchitecture
 import Helpers
@@ -155,3 +147,4 @@ extension AddCombatantFeature.State: NavigationNode {
         compendiumState.popLastNavigationStackItem()
     }
 }
+

@@ -295,7 +295,7 @@ struct CreatureEditFeature: Reducer {
             case .creatureActionEditSheet(.onDoneButtonTap):
                 guard case let .actionEditor(editorState) = state.sheet else { break }
                 switch editorState.intent {
-                case .new(let t):
+                case .new:
                     var item = editorState.makeItem()
                     item.parseIfNeeded()
                     state.model.statBlock[itemsOfType: editorState.itemType].append(item)

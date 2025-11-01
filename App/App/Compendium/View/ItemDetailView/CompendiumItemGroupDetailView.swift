@@ -29,6 +29,6 @@ struct CompendiumItemGroupDetailView: View {
     }
 }
 
-extension AddCombatantState: Identifiable {
+extension AddCombatantFeature.State: Identifiable {
     var id: String { "" }
 }

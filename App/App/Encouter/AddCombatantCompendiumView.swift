@@ -15,8 +15,8 @@ import GameModels
 
 struct AddCombatantCompendiumView: View {
     @EnvironmentObject var env: Environment
-    var store: Store<AddCombatantState, AddCombatantState.Action>
-    var viewStore: ViewStore<AddCombatantState, AddCombatantState.Action>
+    var store: Store<AddCombatantFeature.State, AddCombatantFeature.Action>
+    var viewStore: ViewStore<AddCombatantFeature.State, AddCombatantFeature.Action>
 
     let onSelection: (AddCombatantView.Action, _ dismiss: Bool) -> Void
 
@@ -161,7 +161,7 @@ struct AddCombatantCompendiumView: View {
 
 extension AddCombatantCompendiumView {
     init(
-        store: Store<AddCombatantState, AddCombatantState.Action>,
+        store: Store<AddCombatantFeature.State, AddCombatantFeature.Action>,
         onSelection: @escaping (AddCombatantView.Action, _ dismiss: Bool) -> Void
     ) {
         self.store = store

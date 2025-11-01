@@ -87,7 +87,7 @@ struct EncounterDetailViewState: Equatable {
         }
     }
 
-    var addCombatantState: AddCombatantState? {
+    var addCombatantState: AddCombatantFeature.State? {
         get {
             if case .add(let sheet)? = sheet {
                 return sheet.state
@@ -217,7 +217,7 @@ extension EncounterDetailViewState {
         case sheet(Sheet?)
         case popover(Popover?)
         case combatantInitiativePopover(NumberEntryFeature.Action)
-        case addCombatant(AddCombatantState.Action)
+        case addCombatant(AddCombatantFeature.Action)
         case addCombatantAction(AddCombatantView.Action, Bool)
         case combatantDetail(CombatantDetailFeature.Action)
         case resumableRunningEncounters(AsyncResumableRunningEncounters.Action)
@@ -247,7 +247,10 @@ extension EncounterDetailViewState {
 
     static var reducer: AnyReducer<EncounterDetailViewState, Action, Environment> {
         return AnyReducer.combine(
-            AddCombatantState.reducer.optional().pullback(
+            AnyReducer { env in
+                AddCombatantFeature(environment: env)
+            }
+            .optional().pullback(
                 state: \.addCombatantState,
                 action: /Action.addCombatant,
                 environment: { $0 }
@@ -329,7 +332,7 @@ extension EncounterDetailViewState {
                     }
                 case .sheet(let s):
                     state.sheet = s
-                case .addCombatant(AddCombatantState.Action.onSelect(let combatants, let dismiss)):
+                case .addCombatant(AddCombatantFeature.Action.onSelect(let combatants, let dismiss)):
                     var effects: [EffectTask<Action>] = combatants.map { combatant in
                         .send(.encounter(.add(combatant)))
                     }
@@ -344,7 +347,7 @@ extension EncounterDetailViewState {
                     }
 
                     return .concatenate(effects)
-                case .addCombatant: break // handled by AddCombatantState.reducer
+                case .addCombatant: break // handled by AddCombatantFeature reducer
                 case .addCombatantAction(let action, let dismiss):
                     let state = state
                     return .run { send in
@@ -436,7 +439,7 @@ extension EncounterDetailViewState {
                 case .showAddCombatantReferenceItem:
                     state.addCombatantReferenceItemRequest = ReferenceViewItemRequest(
                         id: state.addCombatantReferenceItemRequest?.id ?? UUID().tagged(),
-                        state: ReferenceItemViewState(content: .addCombatant(ReferenceItemViewState.Content.AddCombatant(addCombatantState: AddCombatantState(encounter: state.encounter)))),
+                        state: ReferenceItemViewState(content: .addCombatant(ReferenceItemViewState.Content.AddCombatant(addCombatantState: AddCombatantFeature.State(encounter: state.encounter)))),
                         oneOff: false
                     )
                 case .didDismissReferenceItem(let id):
@@ -509,16 +512,16 @@ extension EncounterDetailViewState: NavigationStackItemState {
 
 struct AddCombatantSheet: Identifiable, Equatable {
     let id: UUID
-    var state: AddCombatantState
+    var state: AddCombatantFeature.State
 
-    init(id: UUID = UUID(), state: AddCombatantState) {
+    init(id: UUID = UUID(), state: AddCombatantFeature.State) {
         self.id = id
         self.state = state
     }
 }
 
 extension AddCombatantSheet {
-    static let nullInstance = AddCombatantSheet(state: AddCombatantState.nullInstance)
+    static let nullInstance = AddCombatantSheet(state: AddCombatantFeature.State.nullInstance)
 }
 
 extension EncounterDetailViewState {

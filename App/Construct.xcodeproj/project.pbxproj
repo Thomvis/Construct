@@ -41,7 +41,7 @@
 		E93FA1CA24EC5B7F007441BF /* Parma in Frameworks */ = {isa = PBXBuildFile; productRef = E93FA1C924EC5B7F007441BF /* Parma */; };
 		E942E00C247E8D7100170FAC /* CompendiumIndexFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA902477E56300F313D7 /* CompendiumIndexFeature.swift */; };
 		E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */; };
-		E942E010247EA5DE00170FAC /* AddCombatantState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA8E2477E50A00F313D7 /* AddCombatantState.swift */; };
+		E942E010247EA5DE00170FAC /* AddCombatantFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA8E2477E50A00F313D7 /* AddCombatantFeature.swift */; };
 		E942E011247EA78200170FAC /* CompendiumIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91E4700231D95A9005D1E6F /* CompendiumIndexView.swift */; };
 		E942E012247EAA2600170FAC /* CompendiumEntryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43B32338B5FC00A8B032 /* CompendiumEntryDetailView.swift */; };
 		E942E013247EABA900170FAC /* StatBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43B82338B7EA00A8B032 /* StatBlockView.swift */; };
@@ -277,7 +277,7 @@
 		E96FC16523D3976800A12F1E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E96FC16823D3A5BE00A12F1E /* ogl.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ogl.md; sourceTree = "<group>"; };
 		E96FC16A23D3A64800A12F1E /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
-		E972BA8E2477E50A00F313D7 /* AddCombatantState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantState.swift; sourceTree = "<group>"; };
+		E972BA8E2477E50A00F313D7 /* AddCombatantFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantFeature.swift; sourceTree = "<group>"; };
 		E972BA902477E56300F313D7 /* CompendiumIndexFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumIndexFeature.swift; sourceTree = "<group>"; };
 		E972BA95247849A900F313D7 /* CombatantDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantDetailViewState.swift; sourceTree = "<group>"; };
 		E972BA9924784E3500F313D7 /* CombatantTagsViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagsViewState.swift; sourceTree = "<group>"; };
@@ -770,7 +770,7 @@
 				E99BAB1623CE57300086D42E /* RunningEncounterLogView.swift */,
 				E9AB031923ECA9310091C908 /* HealthDialog.swift */,
 				E951BD9723FFD39400F890D5 /* CombatantRow.swift */,
-				E972BA8E2477E50A00F313D7 /* AddCombatantState.swift */,
+				E972BA8E2477E50A00F313D7 /* AddCombatantFeature.swift */,
 				E972BA95247849A900F313D7 /* CombatantDetailViewState.swift */,
 				E942E00E247EA3A300170FAC /* Combatant+SwiftUI.swift */,
 				E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */,
@@ -1126,7 +1126,7 @@
 				E96DC8A82E6458B20038E9B7 /* MechMuseCreatureGenerationFeature.swift in Sources */,
 				E92A41E4240D2F0C009AF440 /* WelcomeView.swift in Sources */,
 				E97651D8248AE9EC00C76865 /* CombatantTagsView.swift in Sources */,
-				E942E010247EA5DE00170FAC /* AddCombatantState.swift in Sources */,
+				E942E010247EA5DE00170FAC /* AddCombatantFeature.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

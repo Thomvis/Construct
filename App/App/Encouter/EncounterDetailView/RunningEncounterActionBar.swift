@@ -42,7 +42,7 @@ struct RunningEncounterActionBar: View {
                 }
 
                 Button(action: {
-                    viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantState(encounter: viewStore.state.encounter)))))
+                    viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantFeature.State(encounter: viewStore.state.encounter)))))
                 }) {
                     Label("Add combatants", systemImage: "plus")
                 }

@@ -128,7 +128,7 @@ struct ReferenceItemViewState: Equatable {
                     self.compendiumState?.compendium = v
                 case let v as CombatantDetailFeature.State:
                     self.combatantDetailState?.detailState = v
-                case let v as AddCombatantState:
+                case let v as AddCombatantFeature.State:
                     self.addCombatantState?.addCombatantState = v
                 default:
                     fatalError("Tried to set unexpected NavigationNode in a reference view item")
@@ -233,7 +233,7 @@ struct ReferenceItemViewState: Equatable {
         }
 
         struct AddCombatant: Equatable {
-            var addCombatantState: AddCombatantState
+            var addCombatantState: AddCombatantFeature.State
 
             var context: ReferenceContext = .empty {
                 didSet {
@@ -282,7 +282,7 @@ enum ReferenceItemViewAction: Equatable {
     }
 
     enum AddCombatant: Equatable {
-        case addCombatant(AddCombatantState.Action)
+        case addCombatant(AddCombatantFeature.Action)
         case onSelection(AddCombatantView.Action)
     }
 }
@@ -371,7 +371,10 @@ extension ReferenceItemViewState.Content.CombatantDetail {
 
 extension ReferenceItemViewState.Content.AddCombatant {
     static let reducer: AnyReducer<Self, ReferenceItemViewAction.AddCombatant, AddCombatantEnvironment> = AnyReducer.combine(
-        AddCombatantState.reducer.pullback(state: \.addCombatantState, action: /ReferenceItemViewAction.AddCombatant.addCombatant)
+        AnyReducer { env in
+            AddCombatantFeature(environment: env)
+        }
+        .pullback(state: \.addCombatantState, action: /ReferenceItemViewAction.AddCombatant.addCombatant)
     )
 }
 
