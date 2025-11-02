@@ -327,18 +327,23 @@ extension CampaignBrowseViewState {
                 }
                 return .none
             },
-            AnyReducer.withState({ $0.node.id != $1.node.id }) { state in
-                AnyReducer { env in
-                    CampaignBrowseViewState.AsyncItems {
-                        do {
-                            return try env.campaignBrowser.nodes(in: state.node)
-                        } catch {
-                            throw EquatableError(error)
+            AnyReducer { env in
+                WithValue(value: \.node) { node in
+                    Scope(state: \.items, action: /CampaignBrowseViewAction.items) {
+                        CampaignBrowseViewState.AsyncItems {
+                            do {
+                                return try env.campaignBrowser.nodes(in: node)
+                            } catch {
+                                throw EquatableError(error)
+                            }
                         }
                     }
-                }.pullback(state: \.items, action: /CampaignBrowseViewAction.items)
+                }
             },
-            AnyReducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.presentedNextCampaignBrowse, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.campaignBrowse($0)) }, extract: { $0.nextCampaignBrowse })),
+            AnyReducer { env in
+                Reduce(CampaignBrowseViewState.reducer, environment: env)
+            }
+            .optional().pullback(state: \.presentedNextCampaignBrowse, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.campaignBrowse($0)) }, extract: { $0.nextCampaignBrowse })),
             AnyReducer { env in
                 EncounterDetailFeature(environment: env)
             }
@@ -347,7 +352,10 @@ extension CampaignBrowseViewState {
                 EncounterDetailFeature(environment: env)
             }
             .optional().pullback(state: \.presentedDetailEncounter, action: CasePath(embed: { CampaignBrowseViewAction.detailScreen(.encounterDetail($0)) }, extract: { $0.detailEncounterDetail })),
-            AnyReducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.moveSheetState, action: CasePath(embed: { CampaignBrowseViewAction.moveSheet($0) }, extract: { $0.moveSheet }))
+            AnyReducer { env in
+                Reduce(CampaignBrowseViewState.reducer, environment: env)
+            }
+            .optional().pullback(state: \.moveSheetState, action: CasePath(embed: { CampaignBrowseViewAction.moveSheet($0) }, extract: { $0.moveSheet }))
         )
     }
 }

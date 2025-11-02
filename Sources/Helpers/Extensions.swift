@@ -154,37 +154,6 @@ extension Optional: OptionalProtocol {
 }
 
 public extension AnyReducer {
-    static func withState(_ changed: @escaping (State, State) -> Bool, _ reducer: @escaping (State) -> AnyReducer<State, Action, Environment>) -> AnyReducer<State, Action, Environment> {
-        var innerReducer: AnyReducer<State, Action, Environment>?
-        var innerReducerState: State?
-        return AnyReducer { state, action, environment in
-            if let innerReducerState = innerReducerState, !changed(innerReducerState, state) {
-                return innerReducer?(&state, action, environment) ?? .none
-            }
-
-            let newReducer = reducer(state)
-            innerReducer = newReducer
-            innerReducerState = state
-            return newReducer(&state, action, environment)
-        }
-    }
-
-    static func withState<Key>(_ key: @escaping (State) -> Key, _ reducer: @escaping (State) -> AnyReducer<State, Action, Environment>) -> AnyReducer<State, Action, Environment> where Key: Equatable {
-        withState({ lhs, rhs in key(lhs) != key(rhs) }, reducer)
-    }
-
-    static func lazy(_ reducer: @escaping @autoclosure () -> Self) -> AnyReducer<State, Action, Environment> {
-        var innerReducer: AnyReducer<State, Action, Environment>?
-        return AnyReducer { state, action, environment in
-            if let r = innerReducer {
-                return r(&state, action, environment)
-            } else {
-                let newReducer = reducer()
-                innerReducer = newReducer
-                return newReducer(&state, action, environment)
-            }
-        }
-    }
 
     func pullback<GlobalState, GlobalAction>(
         state toLocalState: WritableKeyPath<GlobalState, State>,
@@ -206,16 +175,6 @@ public extension AnyReducer {
             return previousLocalState != localState
             ? .merge(effects, additionalEffects(localState, &state, action, environment))
             : effects
-        }
-    }
-
-    /// Equivalent to TCA's `optional()` except that `ifSome()` silently does nothing if the state is nil
-    func ifSome() -> AnyReducer<State?, Action, Environment> {
-        .init { state, action, environment in
-            guard state != nil else {
-                return .none
-            }
-            return self(&state!, action, environment)
         }
     }
 

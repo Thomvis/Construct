@@ -503,21 +503,17 @@ struct EncounterDetailFeature: Reducer {
                 }
             }
 
-
-        Reduce(
-            AnyReducer.withState({ $0.building.id }) { state in
-                AnyReducer { env in
-                    State.AsyncResumableRunningEncounters {
-                        do {
-                            return try env.database.keyValueStore.fetchKeys(.keyPrefix(RunningEncounter.keyPrefix(for: state.building).rawValue))
-                        } catch {
-                            throw error.toEquatableError()
-                        }
+        WithValue(value: \.building.id) { id in
+            Scope(state: \.resumableRunningEncounters, action: /Action.resumableRunningEncounters) {
+                State.AsyncResumableRunningEncounters {
+                    do {
+                        return try environment.database.keyValueStore.fetchKeys(.keyPrefix(RunningEncounter.keyPrefix(for: id).rawValue))
+                    } catch {
+                        throw error.toEquatableError()
                     }
-                }.pullback(state: \.resumableRunningEncounters, action: /Action.resumableRunningEncounters)
-            },
-            environment: environment
-        )
+                }
+            }
+        }
     }
 }
 
