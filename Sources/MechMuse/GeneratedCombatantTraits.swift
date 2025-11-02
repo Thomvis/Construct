@@ -38,10 +38,12 @@ extension GenerateCombatantTraitsRequest: PromptConvertible {
 }
 
 @Schemable
+@ObjectOptions(.additionalProperties { false })
 public struct GenerateCombatantTraitsResponse: Codable {
     public let combatantTraits: [Traits]
 
     @Schemable
+    @ObjectOptions(.additionalProperties { false })
     public struct Traits: Codable, Equatable, Hashable {
         public let name: String
         public let physical: String
