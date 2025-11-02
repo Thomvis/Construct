@@ -173,18 +173,18 @@ struct CampaignBrowseView: View {
                     ) {
                         let runningEncounter: RunningEncounter? = encounter.runningEncounterKey
                             .flatMap { try? self.env.database.keyValueStore.get($0, crashReporter: self.env.crashReporter) }
-                        let detailState = EncounterDetailViewState(
+                        let detailState = EncounterDetailFeature.State(
                             building: encounter,
                             running: runningEncounter,
                             isMechMuseEnabled: self.env.preferences().mechMuse.enabled
                         )
                         nextScreen = .encounter(detailState)
                     } else {
-                        nextScreen = .encounter(EncounterDetailViewState.nullInstance)
+                        nextScreen = .encounter(EncounterDetailFeature.State.nullInstance)
                     }
                 case .other:
                     assertionFailure("Other item type is not supported")
-                    nextScreen = .encounter(EncounterDetailViewState.nullInstance)
+                    nextScreen = .encounter(EncounterDetailFeature.State.nullInstance)
                 }
             } else {
                 // group

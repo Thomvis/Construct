@@ -17,10 +17,10 @@ struct EncounterDetailView: View {
     @EnvironmentObject var environment: Environment
     @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
-    var store: Store<EncounterDetailViewState, EncounterDetailViewState.Action>
-    @ObservedObject var viewStore: ViewStore<EncounterDetailViewState, EncounterDetailViewState.Action>
+    var store: Store<EncounterDetailFeature.State, EncounterDetailFeature.Action>
+    @ObservedObject var viewStore: ViewStore<EncounterDetailFeature.State, EncounterDetailFeature.Action>
 
-    init(store: Store<EncounterDetailViewState, EncounterDetailViewState.Action>) {
+    init(store: Store<EncounterDetailFeature.State, EncounterDetailFeature.Action>) {
         self.store = store
         self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
@@ -144,7 +144,7 @@ struct EncounterDetailView: View {
 
             Menu {
                 Button(action: {
-                    self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantFeature.State(encounter:
+                    self.viewStore.send(.sheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter:
                         self.viewStore.state.encounter)))))
                     self.viewStore.send(.addCombatant(.quickCreate))
                 }) {
@@ -157,7 +157,7 @@ struct EncounterDetailView: View {
                 }
             } primaryAction: {
                 if appNavigation == .tab {
-                    self.viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantFeature.State(encounter: self.viewStore.state.encounter)))))
+                    self.viewStore.send(.sheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter: self.viewStore.state.encounter)))))
                 } else {
                     self.viewStore.send(.showAddCombatantReferenceItem)
                 }
@@ -296,7 +296,7 @@ struct EncounterDetailView: View {
         }
     }
 
-    func sheetView(_ sheet: EncounterDetailViewState.Sheet) -> some View {
+    func sheetView(_ sheet: EncounterDetailFeature.State.Sheet) -> some View {
         switch sheet {
         case .add:
             return IfLetStore(store.scope(state: replayNonNil({ $0.addCombatantState }), action: { .addCombatant($0) })) { store in
@@ -323,7 +323,7 @@ struct EncounterDetailView: View {
         case .settings:
             return EncounterSettingsView(store: self.store).environmentObject(self.environment).eraseToAnyView
         case .generateCombatantTraits:
-            return IfLetStore(store.scope(state: replayNonNil(\.generateCombatantTraitsState), action: EncounterDetailViewState.Action.generateCombatantTraits)) { store in
+            return IfLetStore(store.scope(state: replayNonNil(\.generateCombatantTraitsState), action: EncounterDetailFeature.Action.generateCombatantTraits)) { store in
                 SheetNavigationContainer {
                     GenerateCombatantTraitsView(store: store)
                 }
@@ -500,7 +500,7 @@ func FeedbackMenuButton(action: @escaping () -> Void) -> some View {
     }
 }
 
-extension EncounterDetailViewState.Sheet: Identifiable {
+extension EncounterDetailFeature.State.Sheet: Identifiable {
     static let settingsUUID = UUID()
     static let combatantsTraitsUUID = UUID()
 
@@ -516,7 +516,7 @@ extension EncounterDetailViewState.Sheet: Identifiable {
     }
 }
 
-extension EncounterDetailViewState {
+extension EncounterDetailFeature.State {
     var shouldShowEncounterDifficulty: Bool {
         running == nil
             && !encounter.combatants.isEmpty

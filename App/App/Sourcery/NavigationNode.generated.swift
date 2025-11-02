@@ -104,7 +104,7 @@ extension CreatureEditFeature.State: NavigationNode {
         // no-op
     }
 }
-extension EncounterDetailViewState: NavigationNode {
+extension EncounterDetailFeature.State: NavigationNode {
     var nodeId: String { 
         navigationStackItemStateId
     }
@@ -189,7 +189,7 @@ extension CampaignBrowseViewState.NextScreen: NavigationNode {
         set {
             switch newValue {
             case let v as CampaignBrowseViewState: self = .campaignBrowse(v)
-            case let v as EncounterDetailViewState: self = .encounter(v)
+            case let v as EncounterDetailFeature.State: self = .encounter(v)
             default: break
             }
         }
@@ -389,7 +389,7 @@ extension CampaignBrowseViewState: NavigationNode {
             }
         }
     }
-    var presentedNextEncounter: EncounterDetailViewState? {
+    var presentedNextEncounter: EncounterDetailFeature.State? {
         get { 
             if case .encounter(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -403,7 +403,7 @@ extension CampaignBrowseViewState: NavigationNode {
         }
     }
 
-    var presentedDetailEncounter: EncounterDetailViewState? {
+    var presentedDetailEncounter: EncounterDetailFeature.State? {
         get { 
             if case .encounter(let s) = presentedScreens[.detail] {
                 return s

@@ -16,7 +16,7 @@ struct RunningEncounterActionBar: View {
     @ScaledMetric(relativeTo: .body)
     private var verticalDividerHeight: CGFloat = 30
 
-    @ObservedObject var viewStore: ViewStore<EncounterDetailViewState, EncounterDetailViewState.Action>
+    @ObservedObject var viewStore: ViewStore<EncounterDetailFeature.State, EncounterDetailFeature.Action>
 
     var body: some View {
         HStack(spacing: 12) {
@@ -42,7 +42,7 @@ struct RunningEncounterActionBar: View {
                 }
 
                 Button(action: {
-                    viewStore.send(.sheet(.add(AddCombatantSheet(state: AddCombatantFeature.State(encounter: viewStore.state.encounter)))))
+                    viewStore.send(.sheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter: viewStore.state.encounter)))))
                 }) {
                     Label("Add combatants", systemImage: "plus")
                 }

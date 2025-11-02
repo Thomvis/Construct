@@ -17,7 +17,7 @@ class EncounterDetailTest: XCTestCase {
 
     @MainActor
     func testFlow_RemoveActiveCombatant() async throws {
-        let initialState = EncounterDetailViewState(building: Encounter(name: "", combatants: [
+        let initialState = EncounterDetailFeature.State(building: Encounter(name: "", combatants: [
             Combatant(adHoc: AdHocCombatantDefinition(
                         id: UUID().tagged(),
                         stats: apply(StatBlock.default) {
@@ -30,15 +30,17 @@ class EncounterDetailTest: XCTestCase {
                         })),
         ]))
 
+        let environment = try await apply(Environment.live()) {
+            $0.generateUUID = UUID.fakeGenerator()
+            $0.rng = AnyRandomNumberGenerator(wrapped: EverIncreasingRandomNumberGenerator())
+            $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+        }
+
         let store = await TestStore(
-            initialState: initialState,
-            reducer: EncounterDetailViewState.reducer,
-            environment: try apply(Environment.live()) {
-                $0.generateUUID = UUID.fakeGenerator()
-                $0.rng = AnyRandomNumberGenerator(wrapped: EverIncreasingRandomNumberGenerator())
-                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
-            }
-        )
+            initialState: initialState
+        ) {
+            EncounterDetailFeature(environment: environment)
+        }
 
         // start encounter
         await store.send(.run(nil)) {

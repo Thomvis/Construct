@@ -17,15 +17,15 @@ struct EncounterSettingsView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
     @EnvironmentObject var environment: Environment
-    var store: Store<EncounterDetailViewState, EncounterDetailViewState.Action>
-    @ObservedObject var viewStore: ViewStore<EncounterDetailViewState, EncounterDetailViewState.Action>
+    var store: Store<EncounterDetailFeature.State, EncounterDetailFeature.Action>
+    @ObservedObject var viewStore: ViewStore<EncounterDetailFeature.State, EncounterDetailFeature.Action>
 
     @State var popover: Popover?
 
     // Provide a stable date for the duration of this screen
     @State var now = Date()
 
-    init(store: Store<EncounterDetailViewState, EncounterDetailViewState.Action>) {
+    init(store: Store<EncounterDetailFeature.State, EncounterDetailFeature.Action>) {
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
     }

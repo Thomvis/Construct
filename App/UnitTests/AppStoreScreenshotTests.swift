@@ -189,11 +189,11 @@ class AppStoreScreenshotTests: XCTestCase {
 
     var tabNavigationCombatantDetail: some View {
         let encounterDetailViewState = encounterDetailRunningEncounterDetailState
-        let state = CombatantDetailViewState(
+        let state = CombatantDetailFeature.State(
             combatant: encounterDetailViewState.encounter.combatants[1]
         )
 
-        let store = Store<CombatantDetailViewState, CombatantDetailViewAction>(initialState: state, reducer: AnyReducer.empty, environment: ())
+        let store = Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return FakeSheetView(
             background: Color(UIColor.secondarySystemBackground),
             sheet: CombatantDetailContainerView(store: store)
@@ -259,7 +259,7 @@ class AppStoreScreenshotTests: XCTestCase {
             CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "Mage")
         )
 
-        let state = CombatantDetailViewState(
+        let state = CombatantDetailFeature.State(
             combatant: apply(Combatant(compendiumCombatant: entry?.item as! CompendiumCombatant)) { mage in
                 mage.initiative = 17
                 mage.hp?.current = 32
@@ -276,7 +276,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 mage.resources[position: 3].used = 1
             }
         )
-        let store = Store<CombatantDetailViewState, CombatantDetailViewAction>(initialState: state, reducer: AnyReducer.empty, environment: ())
+        let store = Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
         return FakeSheetView(
             background: Color(UIColor.secondarySystemBackground),
             sheet: CombatantDetailContainerView(store: store)
@@ -336,7 +336,7 @@ class AppStoreScreenshotTests: XCTestCase {
         return ConstructView(env: environment, store: store)
     }
 
-    var encounterDetailRunningEncounterDetailState: EncounterDetailViewState {
+    var encounterDetailRunningEncounterDetailState: EncounterDetailFeature.State {
         var encounter = SampleEncounter.createEncounter(with: environment)
         encounter.name = "The King's Crypt"
         // Mummy
@@ -445,7 +445,7 @@ class AppStoreScreenshotTests: XCTestCase {
             ]
         )
 
-        return EncounterDetailViewState(
+        return EncounterDetailFeature.State(
             building: encounter,
             running: runningEncounter,
             resumableRunningEncounters: .initial,
@@ -482,7 +482,7 @@ class AppStoreScreenshotTests: XCTestCase {
                             ])),
                             showSettingsButton: true,
                             presentedScreens: [
-                                .nextInStack: .encounter(EncounterDetailViewState(
+                                .nextInStack: .encounter(EncounterDetailFeature.State(
                                     building: encounter,
                                     running: nil,
                                     resumableRunningEncounters: .initial,
@@ -501,7 +501,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                     state: ReferenceItemViewState(
                                         content: .addCombatant(
                                             ReferenceItemViewState.Content.AddCombatant(
-                                                addCombatantState: AddCombatantState(
+                                                addCombatantState: AddCombatantFeature.State(
                                                     compendiumState: await apply(CompendiumIndexFeature.State(
                                                         title: "Monsters",
                                                         properties: .init(showImport: false, showAdd: true, typeRestriction: nil),

@@ -47,7 +47,7 @@
 		E942E013247EABA900170FAC /* StatBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43B82338B7EA00A8B032 /* StatBlockView.swift */; };
 		E942E014247EACA900170FAC /* CreatureEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9238C3023871C8A0023DFC3 /* CreatureEditView.swift */; };
 		E942E019247FE9E900170FAC /* CampaignBrowseViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB31323505B0F00CA0AF4 /* CampaignBrowseViewState.swift */; };
-		E942E01B247FEA6D00170FAC /* EncounterDetailViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC72354E4350085A72D /* EncounterDetailViewState.swift */; };
+		E942E01B247FEA6D00170FAC /* EncounterDetailFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC72354E4350085A72D /* EncounterDetailFeature.swift */; };
 		E942E01C2480090000170FAC /* CombatantDetailViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA95247849A900F313D7 /* CombatantDetailViewState.swift */; };
 		E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */; };
 		E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA9924784E3500F313D7 /* CombatantTagsViewState.swift */; };
@@ -367,7 +367,7 @@
 		E9F1287828EA0BF40040C90C /* CompendiumQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumQuery.swift; sourceTree = "<group>"; };
 		E9F56AC32350FA5D0085A72D /* CampaignBrowserContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowserContainerView.swift; sourceTree = "<group>"; };
 		E9F56AC5235483780085A72D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		E9F56AC72354E4350085A72D /* EncounterDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailViewState.swift; sourceTree = "<group>"; };
+		E9F56AC72354E4350085A72D /* EncounterDetailFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailFeature.swift; sourceTree = "<group>"; };
 		E9F7EB4C2D7B2D7000A0C19D /* CompendiumDocumentSelectionFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumDocumentSelectionFeature.swift; sourceTree = "<group>"; };
 		E9F9EB482319694100A70D11 /* UnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9F9EB4C2319694200A70D11 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -761,7 +761,7 @@
 				E931E54723396D6B00C3FE9A /* AddCombatantView.swift */,
 				E9A95171233B3BFF00141552 /* CombatantDetailView.swift */,
 				E93777F0233E4F5B00C9F41A /* EncounterSettingsView.swift */,
-				E9F56AC72354E4350085A72D /* EncounterDetailViewState.swift */,
+				E9F56AC72354E4350085A72D /* EncounterDetailFeature.swift */,
 				E999FBC2235B4A67000CCC8B /* CombatantResourceTrackerView.swift */,
 				E97A4FAE2362276B0044E424 /* EncounterDifficultyView.swift */,
 				E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */,
@@ -1119,7 +1119,7 @@
 				E97651D0248ADF5A00C76865 /* AddCombatantView.swift in Sources */,
 				E9819BE4248524AA005B898E /* CampaignBrowseView.swift in Sources */,
 				E9869F8D252203BA0098A166 /* TabNavigationView.swift in Sources */,
-				E942E01B247FEA6D00170FAC /* EncounterDetailViewState.swift in Sources */,
+				E942E01B247FEA6D00170FAC /* EncounterDetailFeature.swift in Sources */,
 				E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */,
 				E9819BE52485252A005B898E /* SheetNavigationContainer.swift in Sources */,
 				E97651CE248ADC9700C76865 /* InitiativeDialog.swift in Sources */,

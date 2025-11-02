@@ -209,7 +209,7 @@ struct AppState: Equatable {
             },
             Navigation.reducer.optional().pullback(state: \.navigation, action: /AppState.Action.navigation),
             AnyReducer { state, action, env in
-                if state.sceneIsActive, let edv = state.topNavigationItems.compactMap({ $0 as? EncounterDetailViewState }).first, edv.running != nil {
+                if state.sceneIsActive, let edv = state.topNavigationItems.compactMap({ $0 as? EncounterDetailFeature.State }).first, edv.running != nil {
                     env.isIdleTimerDisabled.wrappedValue = true
                 } else {
                     env.isIdleTimerDisabled.wrappedValue = false
@@ -232,13 +232,13 @@ extension AppState.Navigation {
         AnyReducer { state, action, env in
             switch (state, action) {
             case (.tab, .openEncounter(let e)):
-                let detailState = EncounterDetailViewState(
+                let detailState = EncounterDetailFeature.State(
                     building: e,
                     isMechMuseEnabled: env.preferences().mechMuse.enabled
                 )
                 return .send(.tab(.campaignBrowser(.setNextScreen(.encounter(detailState)))))
             case (.column, .openEncounter(let e)):
-                let detailState = EncounterDetailViewState(
+                let detailState = EncounterDetailFeature.State(
                     building: e,
                     isMechMuseEnabled: env.preferences().mechMuse.enabled
                 )
@@ -330,7 +330,7 @@ extension ColumnNavigationViewState {
                 return .diceRoller
             }
 
-            if campaignBrowse.topNavigationItems().contains(where: { $0 is EncounterDetailViewState }) {
+            if campaignBrowse.topNavigationItems().contains(where: { $0 is EncounterDetailFeature.State }) {
                 return .campaign
             }
 

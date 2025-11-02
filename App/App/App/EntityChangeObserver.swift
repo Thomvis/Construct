@@ -50,7 +50,7 @@ extension CampaignBrowseViewState.NextScreen: HavingEntities {
     }
 }
 
-extension EncounterDetailViewState: HavingEntities {
+extension EncounterDetailFeature.State: HavingEntities {
     var entities: [any KeyValueStoreEntity] {
         return [building, running.map { $0 as any KeyValueStoreEntity }].compactMap { $0 }
     }

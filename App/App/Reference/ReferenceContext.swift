@@ -83,7 +83,7 @@ extension CampaignBrowseViewState {
     }
 }
 
-extension EncounterDetailViewState {
+extension EncounterDetailFeature.State {
     var referenceContext: EncounterReferenceContext? {
         EncounterReferenceContext(building: building, running: running)
     }
@@ -92,7 +92,7 @@ extension EncounterDetailViewState {
         [combatantDetailReferenceItemRequest, addCombatantReferenceItemRequest].compactMap { $0 }
     }
 
-    var toReferenceContextAction: ((EncounterReferenceContextAction) -> EncounterDetailViewState.Action) {
+    var toReferenceContextAction: ((EncounterReferenceContextAction) -> EncounterDetailFeature.Action) {
         return { action in
             switch action {
             case .addCombatant(let a):

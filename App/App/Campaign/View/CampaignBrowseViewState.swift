@@ -40,7 +40,7 @@ struct CampaignBrowseViewState: NavigationStackSourceState, Equatable {
         res.presentedScreens = presentedScreens.mapValues {
             switch $0 {
             case .campaignBrowse: return .campaignBrowse(CampaignBrowseViewState.nullInstance)
-            case .encounter: return .encounter(EncounterDetailViewState.nullInstance)
+            case .encounter: return .encounter(EncounterDetailFeature.State.nullInstance)
             }
         }
         return res
@@ -74,7 +74,7 @@ struct CampaignBrowseViewState: NavigationStackSourceState, Equatable {
 
     indirect enum NextScreen: Equatable {
         case campaignBrowse(CampaignBrowseViewState)
-        case encounter(EncounterDetailViewState)
+        case encounter(EncounterDetailFeature.State)
     }
 }
 
@@ -137,12 +137,12 @@ enum CampaignBrowseViewAction: NavigationStackSourceAction, Equatable {
         return a
     }
 
-    var nextEncounterDetail: EncounterDetailViewState.Action? {
+    var nextEncounterDetail: EncounterDetailFeature.Action? {
         guard case .nextScreen(.encounterDetail(let a)) = self else { return nil }
         return a
     }
 
-    var detailEncounterDetail: EncounterDetailViewState.Action? {
+    var detailEncounterDetail: EncounterDetailFeature.Action? {
         guard case .detailScreen(.encounterDetail(let a)) = self else { return nil }
         return a
     }
@@ -168,7 +168,7 @@ enum CampaignBrowseViewAction: NavigationStackSourceAction, Equatable {
 
     enum NextScreenAction: Equatable {
         case campaignBrowse(CampaignBrowseViewAction)
-        case encounterDetail(EncounterDetailViewState.Action)
+        case encounterDetail(EncounterDetailFeature.Action)
     }
 }
 
@@ -339,8 +339,14 @@ extension CampaignBrowseViewState {
                 }.pullback(state: \.items, action: /CampaignBrowseViewAction.items)
             },
             AnyReducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.presentedNextCampaignBrowse, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.campaignBrowse($0)) }, extract: { $0.nextCampaignBrowse })),
-            EncounterDetailViewState.reducer.optional().pullback(state: \.presentedNextEncounter, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.encounterDetail($0)) }, extract: { $0.nextEncounterDetail })),
-            EncounterDetailViewState.reducer.optional().pullback(state: \.presentedDetailEncounter, action: CasePath(embed: { CampaignBrowseViewAction.detailScreen(.encounterDetail($0)) }, extract: { $0.detailEncounterDetail })),
+            AnyReducer { env in
+                EncounterDetailFeature(environment: env)
+            }
+            .optional().pullback(state: \.presentedNextEncounter, action: CasePath(embed: { CampaignBrowseViewAction.nextScreen(.encounterDetail($0)) }, extract: { $0.nextEncounterDetail })),
+            AnyReducer { env in
+                EncounterDetailFeature(environment: env)
+            }
+            .optional().pullback(state: \.presentedDetailEncounter, action: CasePath(embed: { CampaignBrowseViewAction.detailScreen(.encounterDetail($0)) }, extract: { $0.detailEncounterDetail })),
             AnyReducer.lazy(CampaignBrowseViewState.reducer).optional().pullback(state: \.moveSheetState, action: CasePath(embed: { CampaignBrowseViewAction.moveSheet($0) }, extract: { $0.moveSheet }))
         )
     }
