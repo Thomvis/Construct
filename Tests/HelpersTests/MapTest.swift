@@ -19,6 +19,7 @@ final class MapTest: XCTestCase {
             $0.result.count = 9
         }
 
+        // expect .add (the initial action for the input)
         await store.send(.result(.add))
         await clock.advance(by: .seconds(1))
 
@@ -27,8 +28,7 @@ final class MapTest: XCTestCase {
         }
     }
 
-    /// Test fails because Effect.cancel doesn't work as fast as I assumed
-    /// It does not cancel an effect that has been emitted but not yet subscribed to
+    // This test documents unexpected behavior (see comment)
     @MainActor
     func testImmediateCancellation() async {
         let clock = TestClock()
@@ -42,6 +42,7 @@ final class MapTest: XCTestCase {
             $0.counter.cancellationId = UUID(0)
         }
 
+        // expect .add (the initial action for the input)
         await store.receive(.counter(.result(.add)))
 
         await store.receive(.counter(.input(.string("5e")))) {
@@ -53,6 +54,13 @@ final class MapTest: XCTestCase {
         await store.receive(.counter(.result(.add)))
 
         await clock.advance(by: .seconds(1))
+
+        // Unexpected behavior: We expected the count not to become 18 because
+        // setting input to "5e" should have cancelled the .add from "Construct"
+        // while it was waiting 1 second.
+        await store.receive(.counter(.result(.count(18)))) {
+            $0.counter.result.count = 18
+        }
 
         await store.receive(.counter(.result(.count(4)))) {
             $0.counter.result.count = 4
