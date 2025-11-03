@@ -23,13 +23,13 @@ typealias CompendiumIndexEnvironment = EnvironmentWithDatabase & EnvironmentWith
 struct CompendiumIndexFeature: Reducer {
     struct State: NavigationStackSourceState, Equatable {
 
-        typealias MS = MapState<Query.State, PagingData<CompendiumEntry>>
-        typealias RS = RetainState<MS, LastResult>
+        typealias MappedResults = Map<Query, PagingData<CompendiumEntry>>
+        typealias RetainedMappedResults = Retain<MappedResults, LastResult>
 
         let title: String
         var properties: Properties
 
-        var results: RS
+        var results: RetainedMappedResults.State
         var suggestions: [CompendiumEntry]?
         
         var scrollTo: CompendiumEntry.Key? // the key of the entry to scroll to
@@ -42,20 +42,26 @@ struct CompendiumIndexFeature: Reducer {
         var alert: AlertState<Action>?
         var sheet: Sheet?
 
-        init(title: String, properties: State.Properties, results: State.RS, presentedScreens: [NavigationDestination: NextScreen] = [:], sheet: Sheet? = nil) {
-        self.title = title
-        self.properties = properties
-        self.results = results
-        self.presentedScreens = presentedScreens
-        self.sheet = sheet
+        init(
+            title: String,
+            properties: State.Properties,
+            results: RetainedMappedResults.State,
+            presentedScreens: [NavigationDestination: NextScreen] = [:],
+            sheet: Sheet? = nil
+        ) {
+            self.title = title
+            self.properties = properties
+            self.results = results
+            self.presentedScreens = presentedScreens
+            self.sheet = sheet
 
-        properties.apply(to: &self.results.input.filters)
-    }
+            properties.apply(to: &self.results.input.filters)
+        }
 
-    var localStateForDeduplication: Self {
-        var res = self
-        res.results.input = Query.State.nullInstance
-        res.results.retained?.input = Query.State.nullInstance
+        var localStateForDeduplication: Self {
+            var res = self
+            res.results.input = Query.State.nullInstance
+            res.results.retained?.input = Query.State.nullInstance
 
             res.presentedScreens = presentedScreens.mapValues {
                 switch $0 {
@@ -180,7 +186,7 @@ struct CompendiumIndexFeature: Reducer {
         }
 
         enum NextScreen: Equatable {
-            indirect case compendiumIndex(State)
+            indirect case compendiumIndex(CompendiumIndexFeature.State)
             case itemDetail(CompendiumEntryDetailFeature.State)
             case safariView(SafariViewState)
         }
@@ -207,7 +213,7 @@ struct CompendiumIndexFeature: Reducer {
 
     enum Action: NavigationStackSourceAction, Equatable {
 
-        typealias ResultsAction = MapAction<Query.State, Query.Action, PagingData<CompendiumEntry>, PagingDataAction<CompendiumEntry>>
+        typealias ResultsAction = Map<Query, PagingData<CompendiumEntry>>.Action
 
         case results(ResultsAction)
         case scrollTo(CompendiumEntry.Key?)
@@ -457,7 +463,7 @@ struct CompendiumIndexFeature: Reducer {
         }
 
         Scope(state: \.results, action: /Action.results) {
-            Reduce(resultsReducer, environment: environment)
+            resultsReducer
         }
         .onChange(of: \.results.entries, { _, entries in
             Reduce { state, action in
@@ -490,49 +496,46 @@ struct CompendiumIndexFeature: Reducer {
         }
     }
 
-    let resultsReducer: AnyReducer<CompendiumIndexFeature.State.RS, CompendiumIndexFeature.Action.ResultsAction, CompendiumIndexEnvironment> = CompendiumIndexFeature.State.MS.reducer(
-            inputReducer: AnyReducer { env in
-                CompendiumIndexFeature.Query()
-            }.pullback(
-                state: \.self,
-                action: /CompendiumIndexFeature.Query.Action.self,
-                environment: { _ in () } // ignore environment, CompendiumIndexState.Query.reducer doesn't need it
-            ),
-        initialResultStateForInput: { _ in PagingData() },
-        initialResultActionForInput: { _ in .didShowElementAtIndex(0) },
-        resultReducerForInput: { query in
-            return PagingData.reducer { (request, env: CompendiumIndexEnvironment) in
-                let entries: [CompendiumEntry]
-                do {
-                    entries = try env.compendium.fetchCatching(CompendiumFetchRequest(
-                        search: query.text?.nonEmptyString,
-                        filters: query.filters,
-                        order: query.order,
-                        range: request.range
-                    )).compactMap { result in
-                        switch result {
-                        case .success(let entry):
-                            return entry
-                        case .failure(DatabaseKeyValueStoreError.decodingError(_, let data, let error)):
-                            return CompendiumEntry.error(String(customDumping: error), data: data)
-                        case .failure: return nil
+    var resultsReducer: CompendiumIndexFeature.State.RetainedMappedResults {
+        CompendiumIndexFeature.State.MappedResults(
+            inputReducer: CompendiumIndexFeature.Query(),
+            initialResultStateForInput: { _ in PagingData.State() },
+            initialResultActionForInput: { _ in .didShowElementAtIndex(0) },
+            resultReducerForInput: { query in
+                PagingData { (request) in
+                    let entries: [CompendiumEntry]
+                    do {
+                        entries = try environment.compendium.fetchCatching(CompendiumFetchRequest(
+                            search: query.text?.nonEmptyString,
+                            filters: query.filters,
+                            order: query.order,
+                            range: request.range
+                        )).compactMap { result in
+                            switch result {
+                            case .success(let entry):
+                                return entry
+                            case .failure(DatabaseKeyValueStoreError.decodingError(_, let data, let error)):
+                                return CompendiumEntry.error(String(customDumping: error), data: data)
+                            case .failure: return nil
+                            }
                         }
+                    } catch {
+                        assertionFailure("compendium.fetchAll failed with error: \(error)")
+                        environment.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                        return .failure(PagingDataError(describing: error))
                     }
-                } catch {
-                    assertionFailure("compendium.fetchAll failed with error: \(error)")
-                    env.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
-                    return .failure(PagingDataError(describing: error))
-                }
 
-                let didReachEnd = request.count.map { entries.count < $0 } ?? true
-                return .success(.init(elements: entries, end: didReachEnd))
+                    let didReachEnd = request.count.map { entries.count < $0 } ?? true
+                    return .success(.init(elements: entries, end: didReachEnd))
+                }
             }
+        )
+        .retaining { mapState in
+            if let elements = mapState.result.elements {
+                return CompendiumIndexFeature.State.LastResult(input: mapState.input, entries: elements)
+            }
+            return nil
         }
-    ).retaining { mapState in
-        if let elements = mapState.result.elements {
-            return CompendiumIndexFeature.State.LastResult(input: mapState.input, entries: elements)
-        }
-        return nil
     }
 }
 
@@ -552,27 +555,17 @@ extension CompendiumIndexFeature.State {
     }
 }
 
-extension CompendiumIndexFeature.State.RS {
-    static let initial = CompendiumIndexFeature.State.RS(wrapped: MapState(input: CompendiumIndexFeature.Query.State(text: nil, filters: nil, order: .title), result: .init()))
+extension CompendiumIndexFeature.State.RetainedMappedResults.State {
+    static let initial = Self(wrapped: Map<CompendiumIndexFeature.Query, PagingData<CompendiumEntry>>.State(input: CompendiumIndexFeature.Query.State(text: nil, filters: nil, order: .title), result: .init()))
 
-    static func initial(types: [CompendiumItemType]) -> CompendiumIndexFeature.State.RS {
-        CompendiumIndexFeature.State.RS(wrapped: MapState(input: CompendiumIndexFeature.Query.State(text: nil, filters: CompendiumFilters(types: types), order: .title), result: .init()))
+    static func initial(types: [CompendiumItemType]) -> Self {
+        Self(wrapped: Map<CompendiumIndexFeature.Query, PagingData<CompendiumEntry>>.State(input: CompendiumIndexFeature.Query.State(text: nil, filters: CompendiumFilters(types: types), order: .title), result: .init()))
     }
 
-    static func initial(type: CompendiumItemType) -> CompendiumIndexFeature.State.RS {
+    static func initial(type: CompendiumItemType) -> Self {
         initial(types: [type])
     }
-}
 
-extension CompendiumIndexFeature.State: NavigationStackItemState {
-    var navigationStackItemStateId: String {
-        title
-    }
-
-    var navigationTitle: String { title }
-}
-
-extension CompendiumIndexFeature.State.RS {
     var entries: [CompendiumEntry]? {
         wrapped.result.elements ?? retained?.entries
     }
@@ -596,6 +589,14 @@ extension CompendiumIndexFeature.State.RS {
         }
         return nil
     }
+}
+
+extension CompendiumIndexFeature.State: NavigationStackItemState {
+    var navigationStackItemStateId: String {
+        title
+    }
+
+    var navigationTitle: String { title }
 }
 
 extension CompendiumImportFeature.State: NavigationStackItemState {

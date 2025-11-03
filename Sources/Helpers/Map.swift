@@ -8,91 +8,108 @@
 import Foundation
 import ComposableArchitecture
 
-public struct MapState<Input, Result> where Input: Equatable {
-    public var input: Input
-    public var result: Result
+public struct Map<Input, Result>: Reducer
+where Input: Reducer, Result: Reducer, Input.State: Equatable {
+    let inputReducer: Input
+    let initialResultStateForInput: (Input.State) -> Result.State
+    let initialResultActionForInput: (Input.State) -> Result.Action?
+    let resultReducerForInput: (Input.State) -> Result
 
-    public init(input: Input, result: Result) {
-        self.input = input
-        self.result = result
+    public init(
+        inputReducer: Input,
+        initialResultStateForInput: @escaping (Input.State) -> Result.State,
+        initialResultActionForInput: @escaping (Input.State) -> Result.Action?,
+        resultReducerForInput: @escaping (Input.State) -> Result
+    ) {
+        self.inputReducer = inputReducer
+        self.initialResultStateForInput = initialResultStateForInput
+        self.initialResultActionForInput = initialResultActionForInput
+        self.resultReducerForInput = resultReducerForInput
     }
-}
 
-public enum MapAction<Input, InputAction, Result, ResultAction> {
-    case input(InputAction)
-    case result(ResultAction)
-    case set(Input, Result?)
-}
+    public struct State {
+        public var input: Input.State
+        public var result: Result.State
+        var cancellationId: UUID?
 
-public extension MapState {
-    
-    static func reducer<InputAction, ResultAction, Environment>(
-        inputReducer: AnyReducer<Input, InputAction, Environment>,
-        initialResultStateForInput resultState: @escaping (Input) -> Result,
-        initialResultActionForInput resultAction: @escaping (Input) -> ResultAction?,
-        resultReducerForInput: @escaping (Input) -> AnyReducer<Result, ResultAction, Environment>
-    ) -> AnyReducer<Self, MapAction<Input, InputAction, Result, ResultAction>, Environment> {
-        var resultReducerCancellationId: UUID? = nil
-        var resultReducer: AnyReducer<Result, ResultAction, Environment>? = nil
+        public init(input: Input.State, result: Result.State) {
+            self.input = input
+            self.result = result
+            self.cancellationId = nil
+        }
+    }
 
-        func updateReducer(state: inout Self) -> EffectTask<MapAction<Input, InputAction, Result, ResultAction>> {
-            let cancellationId = UUID()
+    public enum Action {
+        case input(Input.Action)
+        case result(Result.Action)
+        case set(Input.State, Result.State?)
+    }
 
-            state.result = resultState(state.input)
-            resultReducer = resultReducerForInput(state.input)
-                                .cancellable(id: cancellationId)
+    @Dependency(\.uuid) var uuid
 
-            let previousCancellationId = resultReducerCancellationId
-            resultReducerCancellationId = cancellationId
+    public func reduce(into state: inout State, action: Action) -> Effect<Action> {
+        func updateReducer() -> Effect<Action> {
+            let previousCancellationId = state.cancellationId
+            let cancellationId = uuid()
 
-            return .concatenate([
-                previousCancellationId.map { .cancel(id: $0) },
-                resultAction(state.input).map { .send(.result($0)) }
-            ].compactMap { $0 })
+            state.result = initialResultStateForInput(state.input)
+            state.cancellationId = cancellationId
+
+            let resultAction = initialResultActionForInput(state.input)
+
+            return .merge(
+                previousCancellationId.map { .cancel(id: $0) } ?? .none,
+                resultAction.map { .send(.result($0)) } ?? .none
+            )
         }
 
-        return AnyReducer.combine(
-            inputReducer.pullback(state: \.input, action: /MapAction.input)
-                .onChange(of: \.input) { input, state, action, env in
-                    return updateReducer(state: &state)
-                },
-            AnyReducer { state, action, env in
-                switch action {
-                case .input: break // handled above
-                case .result(let a):
-                    if resultReducer == nil {
-                        _ = updateReducer(state: &state)
-                    }
+        switch action {
+        case .input(let inputAction):
+            let previousInput = state.input
+            
+            let inputEffect: Effect<Action> = inputReducer.reduce(into: &state.input, action: inputAction)
+                .map { Action.input($0) }
 
-                    if let reducer = resultReducer {
-                        return reducer(&state.result, a, env).map(MapAction.result)
-                    }
-                case .set(let input, nil):
-                    state.input = input
-                    return updateReducer(state: &state)
-                case .set(let input, let result?):
-                    state.input = input
-                    state.result = result
+            if previousInput != state.input {
+                return .merge(
+                    inputEffect,
+                    updateReducer()
+                )
+            } else {
+                return inputEffect
+            }
 
-                    // like updateReducer but without setting the result & emitting the initial action
-                    let cancellationId = UUID()
+        case .result(let resultAction):
+            if state.cancellationId == nil {
+                _ = updateReducer()
+            }
 
-                    resultReducer = resultReducerForInput(state.input)
-                                        .cancellable(id: cancellationId)
-
-                    let previousCancellationId = resultReducerCancellationId
-                    resultReducerCancellationId = cancellationId
-
-                    return .concatenate([
-                        previousCancellationId.map { .cancel(id: $0) },
-                    ].compactMap { $0 })
-                }
+            guard let cancellationId = state.cancellationId else {
                 return .none
             }
-        )
+
+            let resultReducer = resultReducerForInput(state.input)
+            return resultReducer.reduce(into: &state.result, action: resultAction)
+                .map { Action.result($0) }
+                .cancellable(id: cancellationId)
+
+        case .set(let input, nil):
+            state.input = input
+            return updateReducer()
+
+        case .set(let input, let result?):
+            state.input = input
+            state.result = result
+
+            let cancellationId = UUID()
+            let previousCancellationId = state.cancellationId
+            state.cancellationId = cancellationId
+
+            return previousCancellationId.map { .cancel(id: $0) } ?? .none
+        }
     }
 }
 
-extension MapState: Equatable where Result: Equatable { }
+extension Map.State: Equatable where Result.State: Equatable { }
 
-extension MapAction: Equatable where Input: Equatable, InputAction: Equatable, Result: Equatable, ResultAction: Equatable { }
+extension Map.Action: Equatable where Input.Action: Equatable, Result.State: Equatable, Result.Action: Equatable { }

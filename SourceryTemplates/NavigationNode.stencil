@@ -113,8 +113,8 @@ extension {{ type.name }}: NavigationNode {
 {% if nextScreenType.kind == "enum" %}
 {% for case in nextScreenType.cases %}
     {% set caseValueType case.associatedValues[0].type %}
-    var presentedNext{{ case.name|upperFirstLetter }}: {{ caseValueType.name }}? {
-        get { 
+    var presentedNext{{ case.name|upperFirstLetter }}: {{ caseValueType.globalName }}? {
+        get {
             if case .{{ case.name }}(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -127,7 +127,7 @@ extension {{ type.name }}: NavigationNode {
         }
     }
 
-    var presentedDetail{{ case.name|upperFirstLetter }}: {{ caseValueType.name }}? {
+    var presentedDetail{{ case.name|upperFirstLetter }}: {{ caseValueType.globalName }}? {
         get { 
             if case .{{ case.name }}(let s) = presentedScreens[.detail] {
                 return s

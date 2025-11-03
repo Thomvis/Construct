@@ -21,14 +21,14 @@ final class AsyncReduceTest: XCTestCase {
     @MainActor
     func test() async {
         let store = TestStore(
-            initialState: AsyncReduceState<Int, TestError>(value: 0),
-            reducer: AsyncReduceState.reducer(
+            initialState: AsyncReduce<Int, Int, TestError>.State(value: 0)
+        ) {
+            AsyncReduce<Int, Int, TestError>(
                 { [0, 1, 2, 3, 4, 5].async },
                 reduce: { res, val in res += val },
                 mapError: { TestError(description: String(describing: $0)) }
-            ),
-            environment: ()
-        )
+            )
+        }
 
         await store.send(.start(0)) {
             $0.state = .reducing
@@ -66,8 +66,9 @@ final class AsyncReduceTest: XCTestCase {
         let clock = TestClock()
 
         let store = TestStore(
-            initialState: AsyncReduceState<Int, TestError>(value: 0),
-            reducer: AsyncReduceState.reducer(
+            initialState: AsyncReduce<Int, Int, TestError>.State(value: 0)
+        ) {
+            AsyncReduce(
                 {
                     AsyncThrowingStream { continuation in
                         Task {
@@ -85,9 +86,8 @@ final class AsyncReduceTest: XCTestCase {
                 },
                 reduce: { res, val in res += val },
                 mapError: { TestError(description: String(describing: $0)) }
-            ),
-            environment: ()
-        )
+            )
+        }
 
         await store.send(.start(0)) {
             $0.state = .reducing

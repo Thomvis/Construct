@@ -363,7 +363,7 @@ extension CampaignBrowseViewState: NavigationNode {
     }
 
     var presentedNextCampaignBrowse: CampaignBrowseViewState? {
-        get { 
+        get {
             if case .campaignBrowse(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -390,7 +390,7 @@ extension CampaignBrowseViewState: NavigationNode {
         }
     }
     var presentedNextEncounter: EncounterDetailFeature.State? {
-        get { 
+        get {
             if case .encounter(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -453,7 +453,7 @@ extension CombatantDetailFeature.State: NavigationNode {
     }
 
     var presentedNextCombatantTagsView: CombatantTagsViewState? {
-        get { 
+        get {
             if case .combatantTagsView(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -480,7 +480,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
     var presentedNextCombatantTagEditView: CombatantTagEditViewState? {
-        get { 
+        get {
             if case .combatantTagEditView(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -507,7 +507,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
     var presentedNextCreatureEditView: CreatureEditFeature.State? {
-        get { 
+        get {
             if case .creatureEditView(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -534,7 +534,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
     var presentedNextCombatantResourcesView: CombatantResourcesViewState? {
-        get { 
+        get {
             if case .combatantResourcesView(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -561,7 +561,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
     var presentedNextRunningEncounterLogView: RunningEncounterLogViewState? {
-        get { 
+        get {
             if case .runningEncounterLogView(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -588,7 +588,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
     var presentedNextCompendiumItemDetailView: CompendiumEntryDetailFeature.State? {
-        get { 
+        get {
             if case .compendiumItemDetailView(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -615,7 +615,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
     var presentedNextSafariView: SafariViewState? {
-        get { 
+        get {
             if case .safariView(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -714,7 +714,7 @@ extension CompendiumEntryDetailFeature.State: NavigationNode {
     }
 
     var presentedNextCompendiumItemDetailView: CompendiumEntryDetailFeature.State? {
-        get { 
+        get {
             if case .compendiumItemDetailView(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -741,7 +741,7 @@ extension CompendiumEntryDetailFeature.State: NavigationNode {
         }
     }
     var presentedNextSafariView: SafariViewState? {
-        get { 
+        get {
             if case .safariView(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -804,7 +804,7 @@ extension CompendiumIndexFeature.State: NavigationNode {
     }
 
     var presentedNextCompendiumIndex: CompendiumIndexFeature.State? {
-        get { 
+        get {
             if case .compendiumIndex(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -831,7 +831,7 @@ extension CompendiumIndexFeature.State: NavigationNode {
         }
     }
     var presentedNextItemDetail: CompendiumEntryDetailFeature.State? {
-        get { 
+        get {
             if case .itemDetail(let s) = presentedScreens[.nextInStack] {
                 return s
             }
@@ -858,7 +858,7 @@ extension CompendiumIndexFeature.State: NavigationNode {
         }
     }
     var presentedNextSafariView: SafariViewState? {
-        get { 
+        get {
             if case .safariView(let s) = presentedScreens[.nextInStack] {
                 return s
             }

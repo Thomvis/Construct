@@ -10,56 +10,48 @@ import ComposableArchitecture
 
 public let PagingDataBatchSize = 40
 
-public struct PagingData<Element>: Equatable where Element: Equatable {
+public struct PagingData<Element>: Reducer where Element: Equatable {
 
-    private let id = UUID()
-    public var elements: [Element]?
-    public var loadingState: LoadingState
+    public struct State: Equatable {
+        fileprivate let id = UUID()
+        public var elements: [Element]?
+        public var loadingState: LoadingState
 
-    public init() {
-        self.elements = nil
-        self.loadingState = .notLoading(didReachEnd: false)
-    }
+        public init() {
+            self.elements = nil
+            self.loadingState = .notLoading(didReachEnd: false)
+        }
 
-    public enum LoadingState: Equatable {
-        case notLoading(didReachEnd: Bool)
-        case loading
-        case error(PagingDataError)
-    }
-}
-
-public enum PagingDataAction<Element>: Equatable where Element: Equatable {
-    case didShowElementAtIndex(Int)
-    case didLoadMore(Result<FetchResult, PagingDataError>)
-    case reload(ReloadScope)
-
-    public struct FetchResult: Equatable {
-        let elements: [Element]
-        let end: Bool
-
-        public init(elements: [Element], end: Bool) {
-            self.elements = elements
-            self.end = end
+        public enum LoadingState: Equatable {
+            case notLoading(didReachEnd: Bool)
+            case loading
+            case error(PagingDataError)
         }
     }
 
-    public enum ReloadScope: Equatable {
-        case initial // loads the initial batch
-        case currentCount // loads the same amount of items it currently has, but at least initial
-        case all // loads all elements at once
+    public enum Action: Equatable {
+        case didShowElementAtIndex(Int)
+        case didLoadMore(Result<FetchResult, PagingDataError>)
+        case reload(ReloadScope)
+
+        public struct FetchResult: Equatable {
+            let elements: [Element]
+            let end: Bool
+
+            public init(elements: [Element], end: Bool) {
+                self.elements = elements
+                self.end = end
+            }
+        }
+
+        public enum ReloadScope: Equatable {
+            case initial // loads the initial batch
+            case currentCount // loads the same amount of items it currently has, but at least initial
+            case all // loads all elements at once
+        }
     }
-}
 
-public struct PagingDataError: Swift.Error, Equatable {
-    public let description: String
-
-    public init(describing error: any Error) {
-        self.description = String(describing: error)
-    }
-}
-
-public extension PagingData {
-    struct FetchRequest {
+    public struct FetchRequest {
         public let offset: Int
         public let count: Int?
 
@@ -67,22 +59,27 @@ public extension PagingData {
             count.map { count in offset..<(offset+count) }
         }
     }
-    
-    static func reducer<Environment>(
-        _ fetch: @escaping (FetchRequest, Environment) async -> Result<PagingDataAction<Element>.FetchResult, PagingDataError>
-    ) -> AnyReducer<Self, PagingDataAction<Element>, Environment> {
-        return AnyReducer { state, action, env in
 
-            func load(_ request: FetchRequest, in state: inout Self) -> EffectTask<PagingDataAction<Element>> {
+    private let fetch: (FetchRequest) async -> Result<Action.FetchResult, PagingDataError>
+
+    public init(
+        _ fetch: @escaping (FetchRequest) async -> Result<Action.FetchResult, PagingDataError>
+    ) {
+        self.fetch = fetch
+    }
+
+    public var body: some ReducerOf<Self> {
+        Reduce { state, action in
+            func load(_ request: FetchRequest, in state: inout State) -> Effect<Action> {
                 state.loadingState = .loading
                 return .run { send in
-                    let result = await fetch(request, env)
+                    let result = await fetch(request)
                     await send(.didLoadMore(result))
                 }
                 .cancellable(id: state.id)
             }
 
-            func loadIfNeeded(for idx: Int, state: inout Self) -> EffectTask<PagingDataAction<Element>> {
+            func loadIfNeeded(for idx: Int, state: inout State) -> Effect<Action> {
                 let elementCount = state.elements?.count ?? 0
                 guard idx > elementCount - Int((Double(PagingDataBatchSize) * 1.5)) else { return .none }
                 guard state.loadingState == .notLoading(didReachEnd: false) else { return .none }
@@ -134,3 +131,12 @@ public extension PagingData {
         }
     }
 }
+
+public struct PagingDataError: Swift.Error, Equatable {
+    public let description: String
+
+    public init(describing error: any Error) {
+        self.description = String(describing: error)
+    }
+}
+

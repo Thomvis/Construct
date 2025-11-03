@@ -21,16 +21,18 @@ public struct ActionDescriptionFeature: Reducer {
     }
 
     public struct State: Equatable {
-        public typealias AsyncDescriptionReduceState = AsyncReduceState<String, MechMuseError>
-        public typealias AsyncDescriptionMapState = MapState<RequestInput?, AsyncDescriptionReduceState>
-        public typealias AsyncDescription = RetainState<AsyncDescriptionMapState, AsyncDescriptionReduceState>
+        public typealias _AsyncDescription_Reduce = AsyncReduce<String, String, MechMuseError>
+        public typealias _AsyncDescription_Map = Map<RequestInput, _AsyncDescription_Reduce>
+        public typealias AsyncDescription = Retain<_AsyncDescription_Map, _AsyncDescription_Reduce.State>
 
         let encounterContext: ActionResolutionFeature.State.EncounterContext?
         @BindingState var context: Context
         @BindingState var settings: Settings = .init(outcome: nil, impact: .average)
 
-        fileprivate var description: AsyncDescription = .init(wrapped: .init(input: nil, result: .init(value: "")))
-        fileprivate var cache: [RequestInput: AsyncReduceState<String, MechMuseError>] = [:]
+        fileprivate var description: AsyncDescription.State = .init(
+            wrapped: .init(input: .init(), result: .init(value: ""))
+        )
+        fileprivate var cache: [RequestInput.State: _AsyncDescription_Reduce.State] = [:]
         fileprivate var mechMuseIsConfigured = true
 
         init(
@@ -116,9 +118,19 @@ public struct ActionDescriptionFeature: Reducer {
                 case miss
             }
         }
+    }
 
-        public struct RequestInput: Hashable {
-            var request: CreatureActionDescriptionRequest
+    public struct RequestInput: Reducer {
+        public struct State: Hashable {
+            var request: CreatureActionDescriptionRequest? = nil
+        }
+
+        public enum Action: Equatable, BindableAction {
+            case binding(BindingAction<State>)
+        }
+
+        public var body: some ReducerOf<Self> {
+            BindingReducer()
         }
     }
 
@@ -129,101 +141,93 @@ public struct ActionDescriptionFeature: Reducer {
         case didRollDiceAction(DiceAction)
         case onDisappear
 
-        case description(MapAction<State.RequestInput?, RequestInputAction, State.AsyncDescriptionReduceState, AsyncReduceAction<String, MechMuseError, String>>)
+        case description(State.AsyncDescription.Action)
         case binding(BindingAction<State>)
     }
 
-    public enum RequestInputAction: Equatable, BindableAction {
-        case binding(BindingAction<State.RequestInput>)
-    }
-
     public var body: some ReducerOf<Self> {
-        Reduce { state, action in
-            Self.legacyReducer.run(&state, action, environment)
+        CombineReducers {
+            Reduce { state, action in
+                switch action {
+                case .onAppear:
+                    state.mechMuseIsConfigured = environment.mechMuse.isConfigured
+                case .onFeedbackButtonTap: break // handled by the parent
+                case .onReloadOrCancelButtonTap:
+                    if state.description.result.isReducing {
+                        return .send(.description(.result(.stop)))
+                    } else {
+                        return .send(.description(.set(state.input, nil)))
+                    }
+                case .didRollDiceAction(let action):
+                    state.context.diceAction = action
+                    if action.isCriticalHit {
+                        state.settings.outcome = .hit
+                    } else if action.isCriticalMiss {
+                        state.settings.outcome = .miss
+                    }
+                case .onDisappear:
+                    return .run { send in await send(.description(.result(.stop))) }
+                case .description: break // handled by child reducer
+                case .binding: break // handled by wrapper reducer
+                }
+                return .none
+            }
+
+            BindingReducer()
+                .onChange(of: \.context) { oldValue, newValue in
+                    Reduce { state, action in
+                        state.cache.removeAll()
+                        return .none
+                    }
+                }
+        }.onChange(of: \.input) { oldValue, newValue in
+            Reduce { state, action in
+                guard newValue.request != nil else { return .none }
+                if let cacheHit = state.cache[newValue] {
+                    return .send(.description(.set(newValue, cacheHit)))
+                } else {
+                    return .send(.description(.set(newValue, nil)))
+                }
+            }
         }
+
+        Scope(state: \.description, action: /Action.description) {
+            State._AsyncDescription_Map(
+                inputReducer: RequestInput(),
+                initialResultStateForInput: { _ in State._AsyncDescription_Reduce.State(value: "") },
+                initialResultActionForInput: { _ in State._AsyncDescription_Reduce.Action.start("") },
+                resultReducerForInput: { input in
+                    State._AsyncDescription_Reduce {
+                        guard let request = input.request else { throw ActionDescriptionFeatureError.missingInput }
+                        return try environment.mechMuse.describe(action: request)
+                    } reduce: { result, element in
+                        result += element
+                    } mapError: {
+                        ($0 as? MechMuseError) ?? .unspecified
+                    }
+
+                }
+            ).retaining { $0.result }
+        }
+        .onChange(of: \.description.result) { _, newValue in
+            Reduce { state, action in
+                if state.description.input.request != nil && newValue.isFinished {
+                    state.cache[state.input] = newValue
+                }
+                return .none
+            }
+        }
+
     }
 }
 
 public typealias ActionDescriptionEnvironment = EnvironmentWithMainQueue & EnvironmentWithMechMuse
 
-extension ActionDescriptionFeature.State.RequestInput {
-    static var reducer: AnyReducer<Self, ActionDescriptionFeature.RequestInputAction, ActionDescriptionEnvironment> = AnyReducer.combine().binding()
-}
-
-extension ActionDescriptionFeature {
-    private static let legacyReducer: AnyReducer<State, Action, ActionDescriptionEnvironment> = AnyReducer.combine(
-        AnyReducer { state, action, env in
-            switch action {
-            case .onAppear:
-                state.mechMuseIsConfigured = env.mechMuse.isConfigured
-            case .onFeedbackButtonTap: break // handled by the parent
-            case .onReloadOrCancelButtonTap:
-                if state.description.result.isReducing {
-                    return .send(.description(.result(.stop)))
-                } else {
-                    return .send(.description(.set(state.input, nil)))
-                }
-            case .didRollDiceAction(let action):
-                state.context.diceAction = action
-                if action.isCriticalHit {
-                    state.settings.outcome = .hit
-                } else if action.isCriticalMiss {
-                    state.settings.outcome = .miss
-                }
-            case .onDisappear:
-                return .task { .description(.result(.stop)) }
-            case .description: break // handled by child reducer
-            case .binding: break // handled by wrapper reducer
-            }
-            return .none
-        },
-        State.AsyncDescriptionMapState.reducer(
-            inputReducer: State.RequestInput.reducer.binding().optional(),
-            initialResultStateForInput: { _ in State.AsyncDescriptionReduceState(value: "") },
-            initialResultActionForInput: { _ in AsyncReduceAction<String, MechMuseError, String>.start("") },
-            resultReducerForInput: { input in
-                State.AsyncDescriptionReduceState.reducer({ (env: ActionDescriptionEnvironment) in
-                    guard let input else { throw ActionDescriptionFeatureError.missingInput }
-                    return try env.mechMuse.describe(
-                        action: input.request
-                    )
-                }, reduce: { result, element in
-                    result += element
-                }, mapError: {
-                    ($0 as? MechMuseError) ?? MechMuseError.unspecified
-                })
-            }
-        )
-        .retaining {
-            $0.result
-        }
-        .pullback(state: \State.description, action: /Action.description, environment: { $0 })
-    )
-    .binding()
-    .onChange(of: \.context, perform: { _, state, _, _ in
-        state.cache.removeAll()
-        return .none
-    })
-    .onChange(of: \.input, perform: { input, state, _, _ in
-        guard let input else { return .none }
-        if let cacheHit = state.cache[input] {
-            return EffectTask(value: .description(.set(input, cacheHit)))
-        } else {
-            return .task { .description(.set(input, nil)) }
-        }
-    })
-    .onChange(of: \.description.result, perform: { value, state, _, _ in
-        if let input = state.description.input, value.isFinished {
-            state.cache[input] = value
-        }
-        return .none
-    })
-}
 
 extension ActionDescriptionFeature.State {
-    fileprivate var input: RequestInput? {
+    fileprivate var input: ActionDescriptionFeature.RequestInput.State {
         return effectiveOutcome.map { outcome in
-            RequestInput(
+            ActionDescriptionFeature.RequestInput.State(
                 request: CreatureActionDescriptionRequest(
                     creatureName: encounterContext?.combatant.name ?? context.creature.name,
                     isUniqueCreature: false, // todo
@@ -237,7 +241,7 @@ extension ActionDescriptionFeature.State {
                     outcome: outcome
                 )
             )
-        }
+        } ?? .init()
     }
 }
 

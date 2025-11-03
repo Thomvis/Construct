@@ -8,48 +8,59 @@
 import Foundation
 import ComposableArchitecture
 
-@dynamicMemberLookup
-public struct RetainState<Wrapped, Value> where Value: Equatable {
+public struct Retain<Wrapped, Value>: Reducer where Wrapped: Reducer, Value: Equatable {
+    let wrappedReducer: Wrapped
+    let valueToRetain: (Wrapped.State) -> Value?
 
-    public var wrapped: Wrapped
-    public var retained: Value?
-
-    public init(wrapped: Wrapped, retained: Value? = nil) {
-        self.wrapped = wrapped
-        self.retained = retained
+    public init(
+        wrappedReducer: Wrapped,
+        valueToRetain: @escaping (Wrapped.State) -> Value?
+    ) {
+        self.wrappedReducer = wrappedReducer
+        self.valueToRetain = valueToRetain
     }
 
-    public subscript<T>(dynamicMember keyPath: KeyPath<Wrapped, T>) -> T {
-        wrapped[keyPath: keyPath]
+    @dynamicMemberLookup
+    public struct State {
+        public var wrapped: Wrapped.State
+        public var retained: Value?
+
+        public init(wrapped: Wrapped.State, retained: Value? = nil) {
+            self.wrapped = wrapped
+            self.retained = retained
+        }
+
+        public subscript<T>(dynamicMember keyPath: KeyPath<Wrapped.State, T>) -> T {
+            wrapped[keyPath: keyPath]
+        }
+
+        public subscript<T>(dynamicMember keyPath: WritableKeyPath<Wrapped.State, T>) -> T {
+            get { wrapped[keyPath: keyPath] }
+            set { wrapped[keyPath: keyPath] = newValue }
+        }
     }
 
-    public subscript<T>(dynamicMember keyPath: WritableKeyPath<Wrapped, T>) -> T {
-        get { wrapped[keyPath: keyPath] }
-        set { wrapped[keyPath: keyPath] = newValue }
-    }
-}
-
-public extension RetainState {
-    static func reducer<Action, Environment>(
-        wrappedReducer: AnyReducer<Wrapped, Action, Environment>,
-        valueToRetain: @escaping (Wrapped) -> Value?
-    ) -> AnyReducer<Self, Action, Environment> {
-        wrappedReducer
-            .pullback(state: \.wrapped, action: CasePath.`self`)
-            .onChange(of: { valueToRetain($0.wrapped) }) { value, state, action, env in
-                if let value {
-                    state.retained = value
-                }
-                return .none
+    public func reduce(into state: inout State, action: Wrapped.Action) -> Effect<Wrapped.Action> {
+        let previousValue = valueToRetain(state.wrapped)
+        let wrappedEffect = wrappedReducer.reduce(into: &state.wrapped, action: action)
+        let newValue = valueToRetain(state.wrapped)
+        
+        if previousValue != newValue {
+            if let newValue {
+                state.retained = newValue
             }
-
+        }
+        
+        return wrappedEffect
     }
 }
 
-public extension AnyReducer {
-    func retaining<Value>(valueToRetain: @escaping (State) -> Value?) -> AnyReducer<RetainState<State, Value>, Action, Environment> {
-        RetainState<State, Value>.reducer(wrappedReducer: self, valueToRetain: valueToRetain)
+public extension Reducer{
+    func retaining<Value>(
+        valueToRetain: @escaping (State) -> Value?
+    ) -> Retain<Self, Value> where Value: Equatable {
+        Retain(wrappedReducer: self, valueToRetain: valueToRetain)
     }
 }
 
-extension RetainState: Equatable where Wrapped: Equatable { }
+extension Retain.State: Equatable where Wrapped.State: Equatable { }

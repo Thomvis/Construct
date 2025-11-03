@@ -1,13 +1,6 @@
-//
-//  MapTest.swift
-//  
-//
-//  Created by Thomas Visser on 14/01/2023.
-//
-
 import Foundation
 import XCTest
-import Helpers
+@testable import Helpers
 import ComposableArchitecture
 import Clocks
 
@@ -19,6 +12,7 @@ final class MapTest: XCTestCase {
 
         await store.send(.input(.string("Construct"))) {
             $0.input.string = "Construct"
+            $0.cancellationId = UUID(0)
         }
 
         await store.receive(.result(.count(9))) {
@@ -45,6 +39,7 @@ final class MapTest: XCTestCase {
         await store.receive(.counter(.input(.string("Construct")))) {
             $0.counter.input.string = "Construct"
             $0.counter.result.count = 9
+            $0.counter.cancellationId = UUID(0)
         }
 
         await store.receive(.counter(.result(.add)))
@@ -52,6 +47,7 @@ final class MapTest: XCTestCase {
         await store.receive(.counter(.input(.string("5e")))) {
             $0.counter.input.string = "5e"
             $0.counter.result.count = 2
+            $0.counter.cancellationId = UUID(1)
         }
 
         await store.receive(.counter(.result(.add)))
@@ -70,6 +66,7 @@ final class MapTest: XCTestCase {
 
         await store.send(.input(.string("Construct"))) {
             $0.input.string = "Construct"
+            $0.cancellationId = UUID(0)
         }
 
         await store.receive(.result(.count(9))) {
@@ -84,6 +81,7 @@ final class MapTest: XCTestCase {
         await store.send(.input(.string("5e"))) {
             $0.input.string = "5e"
             $0.result.count = 0
+            $0.cancellationId = UUID(1)
         }
 
         await store.receive(.result(.count(2))) {
@@ -102,70 +100,88 @@ final class MapTest: XCTestCase {
 
     private func makeStore(
         clock: any Clock<Duration>
-    ) -> TestStore<MapState<Input, Result>, MapAction<Input, InputAction, Result, ResultAction>, MapState<Input, Result>, MapAction<Input, InputAction, Result, ResultAction>, Environment> {
+    ) -> TestStoreOf<Map<Input, Result>> {
         TestStore(
-            initialState: MapState(
-                input: Input(string: ""),
-                result: Result(count: 0)
-            ),
-            reducer: MapState.reducer(
-                inputReducer: Input.reducer,
-                initialResultStateForInput: { _ in Result(count: 0) },
-                initialResultActionForInput: { ResultAction.count($0.string.count) },
-                resultReducerForInput: { Result.reducer(count: $0.string.count) }
-            ),
-            environment: Environment(clock: clock)
-        )
+            initialState: Map<Input, Result>.State(
+                input: Input.State(string: ""),
+                result: Result.State(count: 0)
+            )
+        ) {
+            Map(
+                inputReducer: Input(),
+                initialResultStateForInput: { _ in Result.State(count: 0) },
+                initialResultActionForInput: { Result.Action.count($0.string.count) },
+                resultReducerForInput: { Result(count: $0.string.count, clock: clock) }
+            )
+        } withDependencies: { dependencies in
+            dependencies.uuid = UUIDGenerator.incrementing
+        }
     }
 
     private func makeStore2(
         clock: any Clock<Duration>
-    ) -> TestStore<Container, ContainerAction, Container, ContainerAction, Environment> {
+    ) -> TestStoreOf<Container> {
         TestStore(
-            initialState: Container(
-                counter: MapState(
-                    input: Input(string: ""),
-                    result: Result(count: 0)
+            initialState: Container.State(
+                counter: Map<Input, Result>.State(
+                    input: Input.State(string: ""),
+                    result: Result.State(count: 0)
                 )
-            ),
-            reducer: Container.reducer,
-            environment: Environment(clock: clock)
-        )
+            )
+        ) {
+            Container(clock: clock)
+        } withDependencies: { dependencies in
+            dependencies.uuid = UUIDGenerator.incrementing
+        }
     }
 
-    struct Container: Equatable {
-        var counter: MapState<Input, Result>
+    struct Container: Reducer {
+        let clock: any Clock<Duration>
 
-        static let reducer = AnyReducer.combine(
-            MapState.reducer(
-                inputReducer: Input.reducer,
-                initialResultStateForInput: { Result(count: $0.string.count) },
-                initialResultActionForInput: { _ in ResultAction.add },
-                resultReducerForInput: { Result.reducer(count: $0.string.count) }
-            ).pullback(state: \.counter, action: /ContainerAction.counter),
-            AnyReducer<Self, ContainerAction, Environment> { state, action, env in
+        struct State: Equatable {
+            var counter: Map<Input, Result>.State
+        }
+
+        enum Action: Equatable {
+            case triggerTwoInputChanges
+            case counter(Map<Input, Result>.Action)
+        }
+
+        var body: some ReducerOf<Self> {
+            Scope(state: \.counter, action: /Action.counter) {
+                Map(
+                    inputReducer: Input(),
+                    initialResultStateForInput: { Result.State(count: $0.string.count) },
+                    initialResultActionForInput: { _ in Result.Action.add },
+                    resultReducerForInput: { Result(count: $0.string.count, clock: clock) }
+                )
+            }
+
+            Reduce { state, action in
                 switch action {
                 case .triggerTwoInputChanges:
                     return .run { send in
-                        await send(ContainerAction.counter(.input(.string("Construct"))))
-                        await send(ContainerAction.counter(.input(.string("5e"))))
+                        await send(Action.counter(.input(.string("Construct"))))
+                        await send(Action.counter(.input(.string("5e"))))
                     }
-                default: break
+                case .counter: break
                 }
                 return .none
             }
-        )
+        }
     }
 
-    enum ContainerAction: Equatable {
-        case triggerTwoInputChanges
-        case counter(MapAction<Input, InputAction, Result, ResultAction>)
-    }
 
-    struct Input: Equatable {
-        var string: String
+    struct Input: Reducer {
+        struct State: Equatable {
+            var string: String
+        }
 
-        static let reducer = AnyReducer<Self, InputAction, Environment> { state, action, env in
+        enum Action: Equatable {
+            case string(String)
+        }
+
+        func reduce(into state: inout State, action: Action) -> Effect<Action> {
             switch action {
             case .string(let s):
                 state.string = s
@@ -174,43 +190,39 @@ final class MapTest: XCTestCase {
         }
     }
 
-    struct Result: Equatable {
-        var count: Int
+    struct Result: Reducer {
+        struct State: Equatable {
+            var count: Int
+        }
 
-        static func reducer(count: Int) -> AnyReducer<Self, ResultAction, Environment> {
-            AnyReducer { state, action, env in
-                switch action {
-                case .add:
-                    let res = state.count + count
-                    return .run { send in
-                        try await env.clock.sleep(for: .seconds(1))
-                        await send(.count(res))
-                    }
-                case .remove:
-                    let res = state.count - count
-                    return .run { send in
-                        try await env.clock.sleep(for: .seconds(1))
-                        await send(.count(res))
-                    }
-                case .count(let c):
-                    state.count = c
+        enum Action: Equatable {
+            case add
+            case remove
+            case count(Int)
+        }
+
+        let count: Int
+        let clock: any Clock<Duration>
+
+        func reduce(into state: inout State, action: Action) -> Effect<Action> {
+            switch action {
+            case .add:
+                let res = state.count + count
+                return .run { send in
+                    try await clock.sleep(for: .seconds(1))
+                    await send(.count(res))
                 }
-                return .none
+            case .remove:
+                let res = state.count - count
+                return .run { send in
+                    try await clock.sleep(for: .seconds(1))
+                    await send(.count(res))
+                }
+            case .count(let c):
+                state.count = c
             }
+            return .none
         }
     }
 
-    enum InputAction: Equatable {
-        case string(String)
-    }
-
-    enum ResultAction: Equatable {
-        case add
-        case remove
-        case count(Int)
-    }
-
-    struct Environment {
-        let clock: any Clock<Duration>
-    }
 }

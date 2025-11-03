@@ -103,23 +103,26 @@ final class PagingDataTest: XCTestCase {
     @MainActor
     func testIsolation() async {
         struct State: Equatable {
-            var left: PagingData<Int>
-            var right: PagingData<Int>
+            var left: PagingData<Int>.State
+            var right: PagingData<Int>.State
         }
         enum Action: Equatable {
-            case left(PagingDataAction<Int>)
-            case right(PagingDataAction<Int>)
+            case left(PagingData<Int>.Action)
+            case right(PagingData<Int>.Action)
         }
 
         let clock = TestClock()
-        let store = TestStore(
+        let store = TestStore<State, Action, State, Action, ()>(
             initialState: State(left: .init(), right: .init()),
-            reducer: AnyReducer<State, Action, Void>.combine(
-                pagingDataReducer(clock: clock).pullback(state: \.left, action: /Action.left),
-                pagingDataReducer(clock: clock).pullback(state: \.right, action: /Action.right),
-            ),
-            environment: ()
-        )
+        ) {
+            Scope(state: \.left, action: /Action.left) {
+                pagingData(clock: clock)
+            }
+
+            Scope(state: \.right, action: /Action.right) {
+                pagingData(clock: clock)
+            }
+        }
 
         await store.send(.left(.didShowElementAtIndex(0))) {
             $0.left.loadingState = .loading
@@ -143,22 +146,22 @@ final class PagingDataTest: XCTestCase {
     }
 
     private func makeStore(
-        state: PagingData<Int> = .init(),
+        state: PagingData<Int>.State = .init(),
         clock: any Clock<Duration> = ContinuousClock(),
         elements: [Int] = Array(0..<defaultItemCount)
-    ) -> TestStore<PagingData<Int>, PagingDataAction<Int>, PagingData<Int>, PagingDataAction<Int>, Void> {
+    ) -> TestStoreOf<PagingData<Int>> {
         TestStore(
             initialState: state,
-            reducer: pagingDataReducer(clock: clock, elements: elements),
-            environment: ()
-        )
+        ) {
+            pagingData(clock: clock, elements: elements)
+        }
     }
 
-    private func pagingDataReducer(
+    private func pagingData(
         clock: any Clock<Duration> = ContinuousClock(),
         elements: [Int] = Array(0..<defaultItemCount)
-    ) -> AnyReducer<PagingData<Int>, PagingDataAction<Int>, Void> {
-        PagingData<Int>.reducer { request, env in
+    ) -> PagingData<Int> {
+        PagingData<Int> { request in
             do {
                 try await clock.sleep(for: .seconds(1))
                 let offsetted = elements.dropFirst(request.offset)

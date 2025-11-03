@@ -14,42 +14,25 @@ import ComposableArchitecture
 
 final class RetainTest: XCTestCase {
 
-    func test() {
-        let store = TestStore(
-            initialState: RetainState(wrapped: Async.loaded(0)),
-            reducer: RetainState.reducer(
-                wrappedReducer: Async.reducer,
-                valueToRetain: \.value
-            ),
-            environment: ()
-        )
+    struct Async: Reducer {
+        enum State: Equatable {
+            case loaded(Int)
+            case loading
 
-        store.send(.startLoading) {
-            $0.wrapped = .loading
-        }
-
-        store.send(.didLoad(2)) {
-            $0.wrapped = .loaded(2)
-            $0.retained = 2
-        }
-
-        store.send(.startLoading) {
-            $0.wrapped = .loading
-        }
-    }
-
-    enum Async: Equatable {
-        case loaded(Int)
-        case loading
-
-        var value: Int? {
-            if case .loaded(let i) = self {
-                return i
+            var value: Int? {
+                if case .loaded(let i) = self {
+                    return i
+                }
+                return nil
             }
-            return nil
         }
 
-        static let reducer = AnyReducer<Self, AsyncAction, Void> { state, action, _ in
+        enum Action {
+            case startLoading
+            case didLoad(Int)
+        }
+
+        func reduce(into state: inout State, action: Action) -> Effect<Action> {
             switch action {
             case .startLoading:
                 state = .loading
@@ -60,9 +43,29 @@ final class RetainTest: XCTestCase {
         }
     }
 
-    enum AsyncAction {
-        case startLoading
-        case didLoad(Int)
+    @MainActor
+    func test() async {
+        let store = TestStore(
+            initialState: Retain<Async, Int>.State(wrapped: .loaded(0))
+        ) {
+            Retain<Async, Int>(
+                wrappedReducer: Async(),
+                valueToRetain: \.value
+            )
+        }
+
+        await store.send(.startLoading) {
+            $0.wrapped = .loading
+        }
+
+        await store.send(.didLoad(2)) {
+            $0.wrapped = .loaded(2)
+            $0.retained = 2
+        }
+
+        await store.send(.startLoading) {
+            $0.wrapped = .loading
+        }
     }
 
 }
