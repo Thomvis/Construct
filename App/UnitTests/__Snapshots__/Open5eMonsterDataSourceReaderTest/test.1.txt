@@ -641,7 +641,10 @@
             - some: "The dragon can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature\'s turn. The dragon regains spent legendary actions at the start of its turn."
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 2 key/value pairs
+        ▿ some: 3 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 30
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 80
@@ -838,7 +841,10 @@
             - some: "The dragon can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature\'s turn. The dragon regains spent legendary actions at the start of its turn."
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 2 key/value pairs
+        ▿ some: 3 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 40
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 80
@@ -2337,7 +2343,10 @@
             - some: "The dragon can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature\'s turn. The dragon regains spent legendary actions at the start of its turn."
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 3 key/value pairs
+        ▿ some: 4 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 30
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 80
@@ -2857,7 +2866,10 @@
             - some: "The dragon can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature\'s turn. The dragon regains spent legendary actions at the start of its turn."
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 2 key/value pairs
+        ▿ some: 3 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 40
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 80
@@ -3061,7 +3073,10 @@
             - some: "The dragon can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature\'s turn. The dragon regains spent legendary actions at the start of its turn."
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 2 key/value pairs
+        ▿ some: 3 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 40
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 80
@@ -4562,7 +4577,10 @@
             - some: "The dragon can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature\'s turn. The dragon regains spent legendary actions at the start of its turn."
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 3 key/value pairs
+        ▿ some: 4 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 40
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 80
@@ -5008,7 +5026,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 1 key/value pair
+        ▿ some: 2 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 10
           ▿ (2 elements)
             - key: MovementMode.walk
             - value: 30
@@ -5946,7 +5967,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 1 key/value pair
+        ▿ some: 2 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 5
           ▿ (2 elements)
             - key: MovementMode.walk
             - value: 20
@@ -7788,7 +7812,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 2 key/value pairs
+        ▿ some: 3 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 15
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 60
@@ -8182,7 +8209,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 2 key/value pairs
+        ▿ some: 3 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 15
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 60
@@ -8712,7 +8742,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 1 key/value pair
+        ▿ some: 2 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 40
           ▿ (2 elements)
             - key: MovementMode.walk
             - value: 40
@@ -13180,7 +13213,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 1 key/value pair
+        ▿ some: 2 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 30
           ▿ (2 elements)
             - key: MovementMode.walk
             - value: 30
@@ -15544,7 +15580,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 1 key/value pair
+        ▿ some: 2 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 10
           ▿ (2 elements)
             - key: MovementMode.walk
             - value: 30
@@ -29237,7 +29276,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 1 key/value pair
+        ▿ some: 2 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 30
           ▿ (2 elements)
             - key: MovementMode.walk
             - value: 50
@@ -30121,7 +30163,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 1 key/value pair
+        ▿ some: 2 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 20
           ▿ (2 elements)
             - key: MovementMode.walk
             - value: 30
@@ -34274,7 +34319,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 2 key/value pairs
+        ▿ some: 3 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 5
           ▿ (2 elements)
             - key: MovementMode.climb
             - value: 20
@@ -38291,7 +38339,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 3 key/value pairs
+        ▿ some: 4 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 15
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 60
@@ -39295,7 +39346,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 1 key/value pair
+        ▿ some: 2 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 20
           ▿ (2 elements)
             - key: MovementMode.walk
             - value: 20
@@ -39584,7 +39638,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 2 key/value pairs
+        ▿ some: 3 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 40
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 80
@@ -39735,7 +39792,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 2 key/value pairs
+        ▿ some: 3 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 20
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 80
@@ -40876,7 +40936,10 @@
       - legendary: Optional<Legendary>.none
       - level: Optional<Int>.none
       ▿ movement: Optional<Dictionary<MovementMode, Int>>
-        ▿ some: 3 key/value pairs
+        ▿ some: 4 key/value pairs
+          ▿ (2 elements)
+            - key: MovementMode.burrow
+            - value: 20
           ▿ (2 elements)
             - key: MovementMode.fly
             - value: 80
