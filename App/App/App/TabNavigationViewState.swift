@@ -16,7 +16,7 @@ struct TabNavigationViewState: Equatable {
 
     var selectedTab: Tabs = .campaign
 
-    var campaignBrowser: CampaignBrowseViewState = CampaignBrowseViewState(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)
+    var campaignBrowser: CampaignBrowseViewFeature.State = CampaignBrowseViewFeature.State(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)
     var compendium: CompendiumIndexFeature.State = CompendiumIndexFeature.State(
         title: "Compendium",
         properties: .init(
@@ -44,14 +44,17 @@ struct TabNavigationViewState: Equatable {
 
 enum TabNavigationViewAction: Equatable {
     case selectedTab(TabNavigationViewState.Tabs)
-    case campaignBrowser(CampaignBrowseViewAction)
+    case campaignBrowser(CampaignBrowseViewFeature.Action)
     case compendium(CompendiumIndexFeature.Action)
     case diceRoller(DiceRollerFeature.Action)
 }
 
 extension TabNavigationViewState {
     public static let reducer: AnyReducer<Self, TabNavigationViewAction, Environment> = AnyReducer.combine(
-        CampaignBrowseViewState.reducer.pullback(state: \.campaignBrowser, action: /TabNavigationViewAction.campaignBrowser),
+        AnyReducer { env in
+            CampaignBrowseViewFeature(environment: env)
+        }
+        .pullback(state: \.campaignBrowser, action: /TabNavigationViewAction.campaignBrowser),
         compendiumRootReducer.pullback(state: \.compendium, action: /TabNavigationViewAction.compendium),
         AnyReducer { env in
             DiceRollerFeature(environment: env)

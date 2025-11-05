@@ -46,7 +46,7 @@
 		E942E012247EAA2600170FAC /* CompendiumEntryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43B32338B5FC00A8B032 /* CompendiumEntryDetailView.swift */; };
 		E942E013247EABA900170FAC /* StatBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A43B82338B7EA00A8B032 /* StatBlockView.swift */; };
 		E942E014247EACA900170FAC /* CreatureEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9238C3023871C8A0023DFC3 /* CreatureEditView.swift */; };
-		E942E019247FE9E900170FAC /* CampaignBrowseViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB31323505B0F00CA0AF4 /* CampaignBrowseViewState.swift */; };
+		E942E019247FE9E900170FAC /* CampaignBrowseFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB31323505B0F00CA0AF4 /* CampaignBrowseFeature.swift */; };
 		E942E01B247FEA6D00170FAC /* EncounterDetailFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC72354E4350085A72D /* EncounterDetailFeature.swift */; };
 		E942E01C2480090000170FAC /* CombatantDetailViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E972BA95247849A900F313D7 /* CombatantDetailViewState.swift */; };
 		E942E01E248009C100170FAC /* RunningEncounterLogViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942E01D248009C100170FAC /* RunningEncounterLogViewState.swift */; };
@@ -352,7 +352,7 @@
 		E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowser.swift; sourceTree = "<group>"; };
 		E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowserTest.swift; sourceTree = "<group>"; };
 		E9CFB31123505AF400CA0AF4 /* CampaignBrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseView.swift; sourceTree = "<group>"; };
-		E9CFB31323505B0F00CA0AF4 /* CampaignBrowseViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseViewState.swift; sourceTree = "<group>"; };
+		E9CFB31323505B0F00CA0AF4 /* CampaignBrowseFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseFeature.swift; sourceTree = "<group>"; };
 		E9CFF6492D8378DA00410796 /* CompendiumItemTransferSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumItemTransferSheet.swift; sourceTree = "<group>"; };
 		E9D266B52756B75B00E83595 /* DndBeyondExternalCompendiumTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DndBeyondExternalCompendiumTest.swift; sourceTree = "<group>"; };
 		E9DF660C2313A98E005D4FE5 /* InitiativeDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitiativeDialog.swift; sourceTree = "<group>"; };
@@ -746,7 +746,7 @@
 			isa = PBXGroup;
 			children = (
 				E9CFB31123505AF400CA0AF4 /* CampaignBrowseView.swift */,
-				E9CFB31323505B0F00CA0AF4 /* CampaignBrowseViewState.swift */,
+				E9CFB31323505B0F00CA0AF4 /* CampaignBrowseFeature.swift */,
 				E9F56AC32350FA5D0085A72D /* CampaignBrowserContainerView.swift */,
 			);
 			path = View;
@@ -1031,7 +1031,7 @@
 				E942E013247EABA900170FAC /* StatBlockView.swift in Sources */,
 				E91C167D2405C5BB004B5C85 /* SafariView.swift in Sources */,
 				E9121E2925FA75D50048BE32 /* FloatingDiceRollerViewState.swift in Sources */,
-				E942E019247FE9E900170FAC /* CampaignBrowseViewState.swift in Sources */,
+				E942E019247FE9E900170FAC /* CampaignBrowseFeature.swift in Sources */,
 				E97651D3248AE11400C76865 /* HealthFractionView.swift in Sources */,
 				E963CCF7247AE5CD009863D7 /* CompendiumContainerView.swift in Sources */,
 				E996919C247C4C9200A8B1A0 /* CompendiumItemGroupEditView.swift in Sources */,

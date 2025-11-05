@@ -13,7 +13,7 @@ import Dice
 import GameModels
 
 struct ColumnNavigationViewState: Equatable {
-    var campaignBrowse = CampaignBrowseViewState(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)
+    var campaignBrowse = CampaignBrowseViewFeature.State(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)
     var referenceView = ReferenceViewState.defaultInstance
 
     var diceCalculator = FloatingDiceRollerViewState(diceCalculator: DiceCalculator.State(
@@ -36,14 +36,17 @@ struct ColumnNavigationViewState: Equatable {
 
 enum ColumnNavigationViewAction: Equatable {
     case diceCalculator(FloatingDiceRollerViewAction)
-    case campaignBrowse(CampaignBrowseViewAction)
+    case campaignBrowse(CampaignBrowseViewFeature.Action)
     case referenceView(ReferenceViewAction)
 }
 
 extension ColumnNavigationViewState {
     static let reducer: AnyReducer<Self, ColumnNavigationViewAction, Environment> = AnyReducer.combine(
         FloatingDiceRollerViewState.reducer.pullback(state: \.diceCalculator, action: /ColumnNavigationViewAction.diceCalculator),
-        CampaignBrowseViewState.reducer.pullback(state: \.campaignBrowse, action: /ColumnNavigationViewAction.campaignBrowse),
+        AnyReducer { env in
+            CampaignBrowseViewFeature(environment: env)
+        }
+        .pullback(state: \.campaignBrowse, action: /ColumnNavigationViewAction.campaignBrowse),
         ReferenceViewState.reducer.pullback(state: \.referenceView, action: /ColumnNavigationViewAction.referenceView),
         AnyReducer { state, action, env in
             switch action {

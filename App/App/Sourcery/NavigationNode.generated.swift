@@ -173,7 +173,7 @@ extension SafariViewState: NavigationNode {
     }
 }
 
-extension CampaignBrowseViewState.NextScreen: NavigationNode {
+extension CampaignBrowseViewFeature.State.NextScreen: NavigationNode {
     var nodeId: String {
         navigationNode.nodeId
     }
@@ -188,7 +188,7 @@ extension CampaignBrowseViewState.NextScreen: NavigationNode {
 
         set {
             switch newValue {
-            case let v as CampaignBrowseViewState: self = .campaignBrowse(v)
+            case let v as CampaignBrowseViewFeature.State: self = .campaignBrowse(v)
             case let v as EncounterDetailFeature.State: self = .encounter(v)
             default: break
             }
@@ -327,7 +327,7 @@ extension CompendiumIndexFeature.State.NextScreen: NavigationNode {
 }
 
 
-extension CampaignBrowseViewState: NavigationNode {
+extension CampaignBrowseViewFeature.State: NavigationNode {
 
     var nodeId: String { 
         navigationStackItemStateId
@@ -362,7 +362,7 @@ extension CampaignBrowseViewState: NavigationNode {
         }
     }
 
-    var presentedNextCampaignBrowse: CampaignBrowseViewState? {
+    var presentedNextCampaignBrowse: CampaignBrowseViewFeature.State? {
         get {
             if case .campaignBrowse(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -376,7 +376,7 @@ extension CampaignBrowseViewState: NavigationNode {
         }
     }
 
-    var presentedDetailCampaignBrowse: CampaignBrowseViewState? {
+    var presentedDetailCampaignBrowse: CampaignBrowseViewFeature.State? {
         get { 
             if case .campaignBrowse(let s) = presentedScreens[.detail] {
                 return s

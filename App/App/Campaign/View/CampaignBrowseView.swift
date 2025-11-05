@@ -18,10 +18,10 @@ struct CampaignBrowseView: View {
     @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.sheetPresentationMode) var sheetPresentationMode: SheetPresentationMode?
 
-    var store: Store<CampaignBrowseViewState, CampaignBrowseViewAction>
-    @ObservedObject var viewStore: ViewStore<CampaignBrowseViewState, CampaignBrowseViewAction>
+    var store: Store<CampaignBrowseViewFeature.State, CampaignBrowseViewFeature.Action>
+    @ObservedObject var viewStore: ViewStore<CampaignBrowseViewFeature.State, CampaignBrowseViewFeature.Action>
 
-    init(store: Store<CampaignBrowseViewState, CampaignBrowseViewAction>) {
+    init(store: Store<CampaignBrowseViewFeature.State, CampaignBrowseViewFeature.Action>) {
         self.store = store
         self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
@@ -54,14 +54,14 @@ struct CampaignBrowseView: View {
         .safeAreaInset(edge: .bottom) {
             RoundedButtonToolbar {
                 Button(action: {
-                    self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewState.NodeEditState(name: "", node: nil))))
+                    self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
                 }) {
                     Label("New group", systemImage: "folder")
                 }
 
                 if !viewStore.state.isMoveMode {
                     Button(action: {
-                        self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewState.NodeEditState(name: "", contentType: .encounter, node: nil))))
+                        self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", contentType: .encounter, node: nil))))
                     }) {
                         Label("New encounter", systemImage: "shield")
                     }
@@ -90,14 +90,14 @@ struct CampaignBrowseView: View {
         })
         .stateDrivenNavigationLink(
             store: store,
-            state: /CampaignBrowseViewState.NextScreen.campaignBrowse,
-            action: /CampaignBrowseViewAction.NextScreenAction.campaignBrowse,
+            state: /CampaignBrowseViewFeature.State.NextScreen.campaignBrowse,
+            action: /CampaignBrowseViewFeature.Action.NextScreenAction.campaignBrowse,
             destination: CampaignBrowseView.init
         )
         .stateDrivenNavigationLink(
             store: store,
-            state: /CampaignBrowseViewState.NextScreen.encounter,
-            action: /CampaignBrowseViewAction.NextScreenAction.encounterDetail,
+            state: /CampaignBrowseViewFeature.State.NextScreen.encounter,
+            action: /CampaignBrowseViewFeature.Action.NextScreenAction.encounterDetail,
             destination: EncounterDetailView.init
         )
         .onAppear {
@@ -117,7 +117,7 @@ struct CampaignBrowseView: View {
         func menu() -> some View {
             Group {
                 Button(action: {
-                    self.viewStore.send(.sheet(.move(CampaignBrowseViewState(node: .root, mode: .move([item]), items: .initial, showSettingsButton: false, sheet: nil))))
+                    self.viewStore.send(.sheet(.move(CampaignBrowseViewFeature.State(node: .root, mode: .move([item]), items: .initial, showSettingsButton: false, sheet: nil))))
                 }) {
                     Text("Move")
                     Image(systemName: "folder")
@@ -131,7 +131,7 @@ struct CampaignBrowseView: View {
                 }
 
                 Button(action: {
-                    self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewState.NodeEditState(name: item.title, contentType: item.contents?.type, node: item))))
+                    self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: item.title, contentType: item.contents?.type, node: item))))
                 }) {
                     Text("Rename")
                     Image(systemName: "plus.square.on.square")
@@ -163,7 +163,7 @@ struct CampaignBrowseView: View {
 
     func navigationLink<Label>(for item: CampaignNode, @ViewBuilder label: @escaping () -> Label) -> some View where Label: View {
         NavigationRowButton {
-            let nextScreen: CampaignBrowseViewState.NextScreen
+            let nextScreen: CampaignBrowseViewFeature.State.NextScreen
             if let contents = item.contents {
                 switch contents.type {
                 case .encounter:
@@ -188,7 +188,7 @@ struct CampaignBrowseView: View {
                 }
             } else {
                 // group
-                nextScreen = .campaignBrowse(CampaignBrowseViewState(node: item, mode: self.viewStore.state.mode, items: .initial, showSettingsButton: false))
+                nextScreen = .campaignBrowse(CampaignBrowseViewFeature.State(node: item, mode: self.viewStore.state.mode, items: .initial, showSettingsButton: false))
             }
 
             viewStore.send(.setNextScreen(nextScreen))
@@ -205,7 +205,7 @@ struct CampaignBrowseView: View {
     }
 
     @ViewBuilder
-    func sheetView(_ sheet: CampaignBrowseViewState.Sheet) -> some View {
+    func sheetView(_ sheet: CampaignBrowseViewFeature.State.Sheet) -> some View {
         switch sheet {
         case .settings:
             SettingsContainerView().environmentObject(env)
@@ -236,9 +236,9 @@ struct CampaignBrowseView: View {
 struct NodeEditView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    let onDoneTap: (CampaignBrowseViewState.NodeEditState, CampaignNode?, String) -> Void
+    let onDoneTap: (CampaignBrowseViewFeature.State.NodeEditState, CampaignNode?, String) -> Void
 
-    @Binding var state: CampaignBrowseViewState.NodeEditState
+    @Binding var state: CampaignBrowseViewFeature.State.NodeEditState
     @State var didFocusOnField = false
 
     var body: some View {

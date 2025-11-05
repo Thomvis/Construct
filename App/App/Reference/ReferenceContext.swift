@@ -38,7 +38,7 @@ enum EncounterReferenceContextAction: Equatable {
     case didDismiss(TabbedDocumentViewContentItem.Id)
 }
 
-extension CampaignBrowseViewState {
+extension CampaignBrowseViewFeature.State {
     var referenceContext: EncounterReferenceContext? {
         if let state = presentedNextCampaignBrowse {
             return state.referenceContext
@@ -61,7 +61,7 @@ extension CampaignBrowseViewState {
         return []
     }
 
-    var toReferenceContextAction: ((EncounterReferenceContextAction) -> CampaignBrowseViewAction)? {
+    var toReferenceContextAction: ((EncounterReferenceContextAction) -> CampaignBrowseViewFeature.Action)? {
         if let state = presentedNextCampaignBrowse {
             return { action in
                 if let action = state.toReferenceContextAction?(action) {

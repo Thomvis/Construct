@@ -35,13 +35,13 @@ extension ColumnNavigationViewState: HavingEntities {
     }
 }
 
-extension CampaignBrowseViewState: HavingEntities {
+extension CampaignBrowseViewFeature.State: HavingEntities {
     var entities: [any KeyValueStoreEntity] {
         return (nextScreen?.entities ?? []) + (detailScreen?.entities ?? [])
     }
 }
 
-extension CampaignBrowseViewState.NextScreen: HavingEntities {
+extension CampaignBrowseViewFeature.State.NextScreen: HavingEntities {
     var entities: [any KeyValueStoreEntity] {
         switch self {
         case .campaignBrowse(let state): return state.entities

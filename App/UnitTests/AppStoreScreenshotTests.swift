@@ -139,7 +139,7 @@ class AppStoreScreenshotTests: XCTestCase {
             navigation: .tab(
                 TabNavigationViewState(
                     selectedTab: .campaign,
-                    campaignBrowser: CampaignBrowseViewState(
+                    campaignBrowser: CampaignBrowseViewFeature.State(
                         node: CampaignNode.root,
                         mode: .browse,
                         items: Async.State(result: .success([
@@ -207,7 +207,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 navigation: .tab(
                     TabNavigationViewState(
                         selectedTab: .compendium,
-                        campaignBrowser: CampaignBrowseViewState.nullInstance,
+                        campaignBrowser: CampaignBrowseViewFeature.State.nullInstance,
                         compendium: await apply(CompendiumIndexFeature.State(
                             title: CompendiumItemType.monster.localizedScreenDisplayName,
                             properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
@@ -233,7 +233,7 @@ class AppStoreScreenshotTests: XCTestCase {
             navigation: .tab(
                 TabNavigationViewState(
                     selectedTab: .campaign,
-                    campaignBrowser: CampaignBrowseViewState(
+                    campaignBrowser: CampaignBrowseViewFeature.State(
                         node: CampaignNode.root,
                         mode: .browse,
                         items: Async.State(result: .success([
@@ -289,7 +289,7 @@ class AppStoreScreenshotTests: XCTestCase {
         let state = AppState(
             navigation: .column(
                 ColumnNavigationViewState(
-                    campaignBrowse: CampaignBrowseViewState(
+                    campaignBrowse: CampaignBrowseViewFeature.State(
                         node: CampaignNode.root,
                         mode: .browse,
                         items: Async.State(result: .success([
@@ -465,7 +465,7 @@ class AppStoreScreenshotTests: XCTestCase {
             let state = AppState(
                 navigation: .column(
                     ColumnNavigationViewState(
-                        campaignBrowse: CampaignBrowseViewState(
+                        campaignBrowse: CampaignBrowseViewFeature.State(
                             node: CampaignNode.root,
                             mode: .browse,
                             items: Async.State(result: .success([
@@ -589,8 +589,8 @@ class AppStoreScreenshotTests: XCTestCase {
         }
     }
 
-    var campaignBrowseViewState: CampaignBrowseViewState {
-        CampaignBrowseViewState(
+    var campaignBrowseViewState: CampaignBrowseViewFeature.State {
+        CampaignBrowseViewFeature.State(
             node: CampaignNode(
                 id: UUID().tagged(),
                 title: "Crowflat Keep",
