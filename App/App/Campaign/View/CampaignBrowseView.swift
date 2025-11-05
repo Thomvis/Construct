@@ -23,7 +23,7 @@ struct CampaignBrowseView: View {
 
     init(store: Store<CampaignBrowseViewFeature.State, CampaignBrowseViewFeature.Action>) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
+        self.viewStore = ViewStore(store, observe: \.self, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
 
     var body: some View {
@@ -35,59 +35,62 @@ struct CampaignBrowseView: View {
             }
         }
         .listStyle(InsetGroupedListStyle())
-        .safeAreaInset(edge: .top) {
-            if let movingNodesDescription = viewStore.state.movingNodesDescription {
-                Button(action: {
-                    self.viewStore.send(.didTapConfirmMoveButton)
-                }) {
-                    HStack {
-                        Image(systemName: "tray.and.arrow.down").frame(width: 30)
-                        Text("Move \(movingNodesDescription) here")
-                    }
-                }
-                .disabled(viewStore.state.isMoveOrigin)
-                .font(.footnote)
-                .padding(12)
-                .frame(maxWidth: .infinity).background(Color(UIColor.secondarySystemBackground))
-            }
-        }
         .safeAreaInset(edge: .bottom) {
             RoundedButtonToolbar {
-                Button(action: {
-                    self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
-                }) {
-                    Label("New group", systemImage: "folder")
-                }
-
                 if !viewStore.state.isMoveMode {
+                    Button(action: {
+                        self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
+                    }) {
+                        Label("New group", systemImage: "folder")
+                    }
+
                     Button(action: {
                         self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", contentType: .encounter, node: nil))))
                     }) {
                         Label("New encounter", systemImage: "shield")
                     }
+                } else if let movingNodesDescription = viewStore.state.movingNodesDescription {
+                    Button(action: {
+                        self.viewStore.send(.didTapConfirmMoveButton)
+                    }) {
+                        Label("Move \(movingNodesDescription) here", systemImage: "tray.and.arrow.down")
+                    }
+                    .disabled(viewStore.state.isMoveOrigin)
                 }
             }
             .padding(8)
         }
         .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, content: self.sheetView)
         .navigationBarTitle(viewStore.state.navigationBarTitle, displayMode: .inline)
-        .background(Group {
+        .toolbar {
             if viewStore.state.showSettingsButton {
-                EmptyView()
-                    .navigationBarItems(leading: Button(action: {
+                ToolbarItem(placement: .navigation) {
+                    Button(action: {
                         self.viewStore.send(.sheet(.settings))
                     }) {
                         Text("Settings")
-                    })
-            } else if viewStore.state.isMoveMode {
-                EmptyView()
-                    .navigationBarItems(trailing: Button(action: {
+                    }
+                }
+            }
+
+            if viewStore.state.isMoveMode {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(action: {
                         self.sheetPresentationMode?.dismiss()
                     }) {
                         Text("Cancel")
-                    })
+                    }
+                }
+
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
+                    }) {
+                        Image(systemName: "folder.badge.plus")
+                    }
+                }
             }
-        })
+        }
         .stateDrivenNavigationLink(
             store: store,
             state: /CampaignBrowseViewFeature.State.NextScreen.campaignBrowse,
