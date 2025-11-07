@@ -2,7 +2,7 @@
 // DO NOT EDIT
 import Helpers
 
-extension CombatantResourcesViewState: NavigationNode {
+extension CombatantResourcesFeature.State: NavigationNode {
     var nodeId: String { 
         navigationStackItemStateId
     }
@@ -19,7 +19,7 @@ extension CombatantResourcesViewState: NavigationNode {
         // no-op
     }
 }
-extension CombatantTagEditViewState: NavigationNode {
+extension CombatantTagEditFeature.State: NavigationNode {
     var nodeId: String { 
         navigationStackItemStateId
     }
@@ -36,7 +36,7 @@ extension CombatantTagEditViewState: NavigationNode {
         // no-op
     }
 }
-extension CombatantTrackerEditViewState: NavigationNode {
+extension CombatantTrackerEditFeature.State: NavigationNode {
     var nodeId: String { 
         navigationStackItemStateId
     }
@@ -121,7 +121,7 @@ extension EncounterDetailFeature.State: NavigationNode {
         // no-op
     }
 }
-extension ReferenceViewState: NavigationNode {
+extension ReferenceViewFeature.State: NavigationNode {
     var nodeId: String { 
         navigationStackItemStateId
     }
@@ -228,10 +228,10 @@ extension CombatantDetailFeature.State.NextScreen: NavigationNode {
 
         set {
             switch newValue {
-            case let v as CombatantTagsViewState: self = .combatantTagsView(v)
-            case let v as CombatantTagEditViewState: self = .combatantTagEditView(v)
+            case let v as CombatantTagsFeature.State: self = .combatantTagsView(v)
+            case let v as CombatantTagEditFeature.State: self = .combatantTagEditView(v)
             case let v as CreatureEditFeature.State: self = .creatureEditView(v)
-            case let v as CombatantResourcesViewState: self = .combatantResourcesView(v)
+            case let v as CombatantResourcesFeature.State: self = .combatantResourcesView(v)
             case let v as RunningEncounterLogViewState: self = .runningEncounterLogView(v)
             case let v as CompendiumEntryDetailFeature.State: self = .compendiumItemDetailView(v)
             case let v as SafariViewState: self = .safariView(v)
@@ -452,7 +452,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
 
-    var presentedNextCombatantTagsView: CombatantTagsViewState? {
+    var presentedNextCombatantTagsView: CombatantTagsFeature.State? {
         get {
             if case .combatantTagsView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -466,7 +466,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
 
-    var presentedDetailCombatantTagsView: CombatantTagsViewState? {
+    var presentedDetailCombatantTagsView: CombatantTagsFeature.State? {
         get { 
             if case .combatantTagsView(let s) = presentedScreens[.detail] {
                 return s
@@ -479,7 +479,7 @@ extension CombatantDetailFeature.State: NavigationNode {
             }
         }
     }
-    var presentedNextCombatantTagEditView: CombatantTagEditViewState? {
+    var presentedNextCombatantTagEditView: CombatantTagEditFeature.State? {
         get {
             if case .combatantTagEditView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -493,7 +493,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
 
-    var presentedDetailCombatantTagEditView: CombatantTagEditViewState? {
+    var presentedDetailCombatantTagEditView: CombatantTagEditFeature.State? {
         get { 
             if case .combatantTagEditView(let s) = presentedScreens[.detail] {
                 return s
@@ -533,7 +533,7 @@ extension CombatantDetailFeature.State: NavigationNode {
             }
         }
     }
-    var presentedNextCombatantResourcesView: CombatantResourcesViewState? {
+    var presentedNextCombatantResourcesView: CombatantResourcesFeature.State? {
         get {
             if case .combatantResourcesView(let s) = presentedScreens[.nextInStack] {
                 return s
@@ -547,7 +547,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
 
-    var presentedDetailCombatantResourcesView: CombatantResourcesViewState? {
+    var presentedDetailCombatantResourcesView: CombatantResourcesFeature.State? {
         get { 
             if case .combatantResourcesView(let s) = presentedScreens[.detail] {
                 return s
@@ -642,7 +642,7 @@ extension CombatantDetailFeature.State: NavigationNode {
         }
     }
 }
-extension CombatantTagsViewState: NavigationNode {
+extension CombatantTagsFeature.State: NavigationNode {
 
     var nodeId: String { 
         navigationStackItemStateId

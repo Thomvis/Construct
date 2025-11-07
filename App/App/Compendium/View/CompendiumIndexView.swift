@@ -724,7 +724,13 @@ struct FilterButton: View {
             sourceRestriction: sourceRestriction
         )
 
-        self.sheet = CompendiumFilterSheet(store: Store(initialState: state, reducer: AnyReducer { env in CompendiumFilterSheetFeature(environment: env) }, environment: self.env)) { filterValues in
+        self.sheet = CompendiumFilterSheet(
+            store: Store(
+                initialState: state
+            ) {
+                CompendiumFilterSheetFeature(environment: env)
+            }
+        ) { filterValues in
             var filters = self.viewStore.state.filters ?? .init()
             filters.source = filterValues.source
             filters.types = filterValues.itemType.optionalArray

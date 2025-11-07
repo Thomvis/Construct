@@ -106,13 +106,13 @@ extension EncounterDetailFeature.State {
     }
 }
 
-extension ReferenceViewState {
+extension ReferenceViewFeature.State {
     var referenceItemRequests: [ReferenceViewItemRequest] {
         items.flatMap { $0.state.referenceItemRequests }
     }
 }
 
-extension ReferenceItemViewState {
+extension ReferenceItem.State {
     // TODO: ensure all content types have their requests properly handled
     var referenceItemRequests: [ReferenceViewItemRequest] {
         switch content {

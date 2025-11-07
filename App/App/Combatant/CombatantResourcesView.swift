@@ -14,10 +14,10 @@ import SharedViews
 import GameModels
 
 struct CombatantResourcesView: View {
-    var store: Store<CombatantResourcesViewState, CombatantResourcesViewAction>
-    @ObservedObject var viewStore: ViewStore<CombatantResourcesViewState, CombatantResourcesViewAction>
+    var store: Store<CombatantResourcesFeature.State, CombatantResourcesFeature.Action>
+    @ObservedObject var viewStore: ViewStore<CombatantResourcesFeature.State, CombatantResourcesFeature.Action>
 
-    init(store: Store<CombatantResourcesViewState, CombatantResourcesViewAction>) {
+    init(store: Store<CombatantResourcesFeature.State, CombatantResourcesFeature.Action>) {
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
     }
@@ -52,7 +52,7 @@ struct CombatantResourcesView: View {
 
             HStack {
                 RoundedButton(action: {
-                    self.viewStore.send(.setEditState(CombatantTrackerEditViewState(resource: CombatantResource(id: UUID().tagged(), title: "", slots: [false]))))
+                    self.viewStore.send(.setEditState(CombatantTrackerEditFeature.State(resource: CombatantResource(id: UUID().tagged(), title: "", slots: [false]))))
                 }) {
                     Label("Add resource", systemImage: "plus.circle")
                 }

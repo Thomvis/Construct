@@ -35,64 +35,14 @@ enum CombatantAction: Equatable {
     }
 }
 
-let combatantReducer: AnyReducer<Combatant, CombatantAction, Void> = AnyReducer.combine(
-    AnyReducer { state, action, _ in
-    switch action {
-    case .initiative(let score): state.initiative = score
-    case .addResource(let r): state.resources.append(r)
-    case .removeResource(let r): state.resources.removeAll { $0.id == r.id }
-    case .addTag(let t): state.tags[id: t.id] = t
-    case .removeTag(let t): state.tags.removeAll { $0.id == t.id }
-    case .hp, .resource: break
-    case .reset(let hp, let initiative, let resources, let tags):
-        if initiative { state.initiative = nil }
-        if tags { state.tags.removeAll() }
-
-        return .run { [state] send in
-            if resources {
-                for r in state.resources {
-                    await send(CombatantAction.resource(r.id, .reset))
-                }
-            }
-
-            if hp {
-                await send(.hp(.reset))
-            }
-        }
-    case .setDefinition(let def):
-        if state.definition.definitionID != def.definition.definitionID {
-            state.discriminator = nil
-        }
-        state.definition = def.definition
-    case .removeTraits:
-        state.traits = nil
-    }
-    return .none
-},
-Hp.reducer.optional().pullback(state: \.hp, action: /CombatantAction.hp, environment: { $0 }),
-CombatantResource.reducer.forEach(state: \.resources, action: /CombatantAction.resource, environment: { $0 })
-)
-
 enum CombatantResourceAction: Equatable {
     case title(String)
     case reset
     case slot(Int, Bool)
 }
 
-extension Hp {
-    enum Action: Equatable {
-        case current(ModifyIntAction)
-        case maximum(ModifyIntAction)
-        case temporary(ModifyIntAction)
-        case reset
-    }
-
-    enum ModifyIntAction: Equatable {
-        case add(Int)
-        case set(Int)
-    }
-
-    static let reducer: AnyReducer<Hp, Action, Void> = AnyReducer { state, action, _ in
+struct HpReducer: Reducer {
+    func reduce(into state: inout Hp, action: Hp.Action) -> Effect<Hp.Action> {
         switch action {
         case .current(let m):
             switch m {
@@ -121,8 +71,22 @@ extension Hp {
     }
 }
 
-extension CombatantResource {
-    static let reducer: AnyReducer<CombatantResource, CombatantResourceAction, Void> = AnyReducer { state, action, _ in
+extension Hp {
+    enum Action: Equatable {
+        case current(ModifyIntAction)
+        case maximum(ModifyIntAction)
+        case temporary(ModifyIntAction)
+        case reset
+    }
+
+    enum ModifyIntAction: Equatable {
+        case add(Int)
+        case set(Int)
+    }
+}
+
+struct CombatantResourceReducer: Reducer {
+    func reduce(into state: inout CombatantResource, action: CombatantResourceAction) -> Effect<CombatantResourceAction> {
         switch action {
         case .title(let t):
             state.title = t
@@ -134,3 +98,51 @@ extension CombatantResource {
         return .none
     }
 }
+
+struct CombatantFeature: Reducer {
+    typealias State = Combatant
+    typealias Action = CombatantAction
+
+    var body: some Reducer<Combatant, CombatantAction> {
+        Reduce { state, action in
+            switch action {
+            case .initiative(let score): state.initiative = score
+            case .addResource(let r): state.resources.append(r)
+            case .removeResource(let r): state.resources.removeAll { $0.id == r.id }
+            case .addTag(let t): state.tags[id: t.id] = t
+            case .removeTag(let t): state.tags.removeAll { $0.id == t.id }
+            case .hp, .resource: break
+            case .reset(let hp, let initiative, let resources, let tags):
+                if initiative { state.initiative = nil }
+                if tags { state.tags.removeAll() }
+
+                return .run { [state] send in
+                    if resources {
+                        for r in state.resources {
+                            await send(CombatantAction.resource(r.id, .reset))
+                        }
+                    }
+
+                    if hp {
+                        await send(.hp(.reset))
+                    }
+                }
+            case .setDefinition(let def):
+                if state.definition.definitionID != def.definition.definitionID {
+                    state.discriminator = nil
+                }
+                state.definition = def.definition
+            case .removeTraits:
+                state.traits = nil
+            }
+            return .none
+        }
+        .ifLet(\.hp, action: /CombatantAction.hp) {
+            HpReducer()
+        }
+        .forEach(\.resources, action: /CombatantAction.resource) {
+            CombatantResourceReducer()
+        }
+    }
+}
+

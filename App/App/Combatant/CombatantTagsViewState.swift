@@ -14,77 +14,143 @@ import Tagged
 import Helpers
 import GameModels
 
-struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
-    var combatants: [Combatant]
-    var effectContext: EffectContext?
+struct CombatantTagsFeature: Reducer {
+    let environment: Environment
 
-    var presentedScreens: [NavigationDestination: CombatantTagEditViewState]
-
-    var navigationTitle: String { "Manage Tags" }
-    var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
-
-    init(combatants: [Combatant], effectContext: EffectContext?, presentedScreens: [NavigationDestination: CombatantTagEditViewState] = [:]) {
-        self.combatants = combatants
-        self.effectContext = effectContext
-        self.presentedScreens = presentedScreens
+    init(environment: Environment) {
+        self.environment = environment
     }
 
-    mutating func update(_ combatant: Combatant) {
-        if let idx = combatants.firstIndex(where: { $0.id == combatant.id }) {
-            combatants[idx] = combatant
+    struct State: Equatable, NavigationStackSourceState {
+        var combatants: [Combatant]
+        var effectContext: EffectContext?
+
+        var presentedScreens: [NavigationDestination: CombatantTagEditFeature.State]
+
+        var navigationTitle: String { "Manage Tags" }
+        var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
+
+        init(combatants: [Combatant], effectContext: EffectContext?, presentedScreens: [NavigationDestination: CombatantTagEditFeature.State] = [:]) {
+            self.combatants = combatants
+            self.effectContext = effectContext
+            self.presentedScreens = presentedScreens
         }
-    }
 
-    var activeSections: [ActiveSection] {
-        var tags: [TagId: Set<Combatant.Id>] = [:]
-        for c in combatants {
-            for t in c.tags {
-                tags[TagId(t), default: Set()].insert(c.id)
+        mutating func update(_ combatant: Combatant) {
+            if let idx = combatants.firstIndex(where: { $0.id == combatant.id }) {
+                combatants[idx] = combatant
             }
         }
 
-        var reverseTags: [Set<Combatant.Id>: [TagId]] = [:]
-        for (t, cs) in tags {
-            reverseTags[cs, default: []].append(t)
+        var activeSections: [ActiveSection] {
+            var tags: [TagId: Set<Combatant.Id>] = [:]
+            for c in combatants {
+                for t in c.tags {
+                    tags[TagId(t), default: Set()].insert(c.id)
+                }
+            }
+
+            var reverseTags: [Set<Combatant.Id>: [TagId]] = [:]
+            for (t, cs) in tags {
+                reverseTags[cs, default: []].append(t)
+            }
+
+            var result: [ActiveSection] = []
+            for (key, value) in reverseTags {
+                let cs = key.map { combatants[id: $0]! }
+                let tags = value.map { tid in cs.flatMap { $0.tags.filter { TagId($0) == tid } }}.compactMap { tags in
+                    tags.first.map { f in ActiveSection.TagGroup(tag: f, allTags: tags) }
+                }.sorted { $0.tag.title < $1.tag.title }
+
+                result.append(ActiveSection(combatants: cs, tagGroups: tags))
+            }
+
+            return result.sorted { ($0.combatants.count * 100 + $0.tagGroups.count) as Int > ($1.combatants.count  * 100 + $0.tagGroups.count) as Int }
         }
 
-        var result: [ActiveSection] = []
-        for (key, value) in reverseTags {
-            let cs = key.map { combatants[id: $0]! }
-            let tags = value.map { tid in cs.flatMap { $0.tags.filter { TagId($0) == tid } }}.compactMap { tags in
-                tags.first.map { f in ActiveSection.TagGroup(tag: f, allTags: tags) }
-            }.sorted { $0.tag.title < $1.tag.title }
-
-            result.append(ActiveSection(combatants: cs, tagGroups: tags))
+        var allCombatantsSection: ActiveSection? {
+            activeSections.first { $0.combatants.count == combatants.count }
         }
 
-        return result.sorted { ($0.combatants.count * 100 + $0.tagGroups.count) as Int > ($1.combatants.count  * 100 + $0.tagGroups.count) as Int }
+        var navigationStackItemStateId: String {
+            "\(combatants.map { $0.id.rawValue.uuidString }.joined()):CombatantTagsViewState"
+        }
+
+        fileprivate var nextCombatantTagEditViewState: CombatantTagEditFeature.State? {
+            get { nextScreen }
+            set {
+                nextScreen = newValue
+            }
+        }
+
+        struct TagId: Hashable {
+            let definition: CombatantTagDefinition
+            var note: String?
+
+            init(_ tag: CombatantTag) {
+                self.definition = tag.definition
+                self.note = tag.note
+            }
+        }
+
+        struct ActiveSection: Equatable {
+            var combatants: [Combatant]
+            var tagGroups: [TagGroup]
+
+            var id: String {
+                combatants.map { $0.id.rawValue.uuidString }.sorted().joined()
+            }
+
+            var title: String {
+                ListFormatter().string(from: combatants.map { $0.discriminatedName }).nonNilString
+            }
+
+            struct TagGroup: Equatable {
+                var tag: CombatantTag
+                var allTags: [CombatantTag]
+            }
+        }
+
+        static let nullInstance = State(combatants: [], effectContext: nil)
     }
 
-    var allCombatantsSection: ActiveSection? {
-        activeSections.first { $0.combatants.count == combatants.count }
-    }
+    enum Action: NavigationStackSourceAction, Equatable {
+        case addTag(CombatantTag)
+        case removeTag(State.TagId, State.ActiveSection)
+        case combatant(Combatant, CombatantAction) // should be handled by parent
+        case setNextScreen(CombatantTagEditFeature.State?)
+        case nextScreen(CombatantTagEditFeature.Action)
+        case setDetailScreen(CombatantTagEditFeature.State?)
+        case detailScreen(CombatantTagEditFeature.Action)
 
-    var navigationStackItemStateId: String {
-        "\(combatants.map { $0.id.rawValue.uuidString }.joined()):CombatantTagsViewState"
-    }
+        var nextCombatantTagEditViewAction: CombatantTagEditFeature.Action? {
+            guard case .nextScreen(let a) = self else { return nil }
+            return a
+        }
 
-    private var nextCombatantTagEditViewState: CombatantTagEditViewState? {
-        get { nextScreen }
-        set {
-            nextScreen = newValue
+        static func presentScreen(_ destination: NavigationDestination, _ screen: CombatantTagEditFeature.State?) -> Self {
+            switch destination {
+            case .nextInStack: return .setNextScreen(screen)
+            case .detail: return .setDetailScreen(screen)
+            }
+        }
+
+        static func presentedScreen(_ destination: NavigationDestination, _ action: CombatantTagEditFeature.Action) -> Self {
+            switch destination {
+            case .nextInStack: return .nextScreen(action)
+            case .detail: return .detailScreen(action)
+            }
         }
     }
 
-    static let reducer: AnyReducer<CombatantTagsViewState, CombatantTagsViewAction, Environment> = AnyReducer.combine(
-        CombatantTagEditViewState.reducer.optional().pullback(state: \.nextCombatantTagEditViewState, action: CasePath(embed: { CombatantTagsViewAction.nextScreen($0) }, extract: { $0.nextCombatantTagEditViewAction })),
-        AnyReducer { state, action, _ in
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
             switch action {
             case .addTag(let tag):
                 return .merge(
                     state.combatants.map { c in
                         .send(
-                            CombatantTagsViewAction.combatant(c, .addTag(CombatantTag(
+                            Action.combatant(c, .addTag(CombatantTag(
                                 id: UUID().tagged(), // make sure every tag has a unique id
                                 definition: tag.definition,
                                 note: tag.note,
@@ -96,8 +162,8 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
             case .removeTag(let tagId, let section):
                 return .merge(
                     section.combatants.compactMap { c in
-                        guard let tag = c.tags.first(where: { TagId($0) == tagId }) else { return nil }
-                        return .send(CombatantTagsViewAction.combatant(c, .removeTag(tag)))
+                        guard let tag = c.tags.first(where: { State.TagId($0) == tagId }) else { return nil }
+                        return .send(Action.combatant(c, .removeTag(tag)))
                     }
                 )
             case .combatant: break // should be handled by parent
@@ -122,66 +188,9 @@ struct CombatantTagsViewState: Equatable, NavigationStackSourceState {
             }
             return .none
         }
-    )
-
-    struct TagId: Hashable {
-        let definition: CombatantTagDefinition
-        var note: String?
-
-        init(_ tag: CombatantTag) {
-            self.definition = tag.definition
-            self.note = tag.note
-        }
-    }
-
-    struct ActiveSection: Equatable {
-        var combatants: [Combatant]
-        var tagGroups: [TagGroup]
-
-        var id: String {
-            combatants.map { $0.id.rawValue.uuidString }.sorted().joined()
-        }
-
-        var title: String {
-            ListFormatter().string(from: combatants.map { $0.discriminatedName }).nonNilString
-        }
-
-        struct TagGroup: Equatable {
-            var tag: CombatantTag
-            var allTags: [CombatantTag]
+        .ifLet(\.nextCombatantTagEditViewState, action: /Action.nextScreen) {
+            CombatantTagEditFeature(environment: environment)
         }
     }
 }
 
-enum CombatantTagsViewAction: NavigationStackSourceAction, Equatable {
-    case addTag(CombatantTag)
-    case removeTag(CombatantTagsViewState.TagId, CombatantTagsViewState.ActiveSection)
-    case combatant(Combatant, CombatantAction) // should be handled by parent
-    case setNextScreen(CombatantTagEditViewState?)
-    case nextScreen(CombatantTagEditViewAction)
-    case setDetailScreen(CombatantTagEditViewState?)
-    case detailScreen(CombatantTagEditViewAction)
-
-    var nextCombatantTagEditViewAction: CombatantTagEditViewAction? {
-        guard case .nextScreen(let a) = self else { return nil }
-        return a
-    }
-
-    static func presentScreen(_ destination: NavigationDestination, _ screen: CombatantTagEditViewState?) -> Self {
-            switch destination {
-            case .nextInStack: return .setNextScreen(screen)
-            case .detail: return .setDetailScreen(screen)
-            }
-        }
-
-        static func presentedScreen(_ destination: NavigationDestination, _ action: CombatantTagEditViewAction) -> Self {
-            switch destination {
-            case .nextInStack: return .nextScreen(action)
-            case .detail: return .detailScreen(action)
-            }
-        }
-}
-
-extension CombatantTagsViewState {
-    static let nullInstance = CombatantTagsViewState(combatants: [], effectContext: nil)
-}

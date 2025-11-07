@@ -16,9 +16,9 @@ import OpenAI
 import MechMuse
 
 struct GenerateCombatantTraitsView: View {
-    typealias State = GenerateCombatantTraitsViewState
-    typealias ThisStore = Store<State, GenerateCombatantTraitsViewAction>
-    typealias ThisViewStore = ViewStore<State, GenerateCombatantTraitsViewAction>
+    typealias State = GenerateCombatantTraitsFeature.State
+    typealias ThisStore = Store<State, GenerateCombatantTraitsFeature.Action>
+    typealias ThisViewStore = ViewStore<State, GenerateCombatantTraitsFeature.Action>
 
     let store: ThisStore
 
@@ -316,10 +316,10 @@ struct GenerateCombatantTraitsView_Preview: PreviewProvider {
                             ))
                         ]
                     )
-                ),
-                reducer: GenerateCombatantTraitsViewState.reducer,
-                environment: GenerateCombatantTraitsViewPreviewEnvironment()
-            ))
+                )
+            ) {
+                GenerateCombatantTraitsFeature(environment: GenerateCombatantTraitsViewPreviewEnvironment())
+            })
         }
     }
 }

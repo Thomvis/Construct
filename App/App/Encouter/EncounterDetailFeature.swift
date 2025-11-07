@@ -136,7 +136,7 @@ struct EncounterDetailFeature: Reducer {
             return state
         }
 
-        var selectedCombatantTagsState: CombatantTagsViewState? {
+        var selectedCombatantTagsState: CombatantTagsFeature.State? {
             get {
                 guard case .selectedCombatantTags(let state) = sheet else { return nil }
                 return state
@@ -161,7 +161,7 @@ struct EncounterDetailFeature: Reducer {
             }
         }
 
-        var generateCombatantTraitsState: GenerateCombatantTraitsViewState? {
+        var generateCombatantTraitsState: GenerateCombatantTraitsFeature.State? {
             get {
                 guard case .generateCombatantTraits(let s) = sheet else { return nil }
                 return s
@@ -180,9 +180,9 @@ struct EncounterDetailFeature: Reducer {
                 case .add: return .add(AddCombatantSheet.nullInstance)
                 case .combatant: return .combatant(CombatantDetailFeature.State.nullInstance)
                 case .runningEncounterLog: return .runningEncounterLog(RunningEncounterLogViewState.nullInstance)
-                case .selectedCombatantTags: return .selectedCombatantTags(CombatantTagsViewState.nullInstance)
+                case .selectedCombatantTags: return .selectedCombatantTags(CombatantTagsFeature.State.nullInstance)
                 case .settings: return .settings
-                case .generateCombatantTraits: return .generateCombatantTraits(GenerateCombatantTraitsViewState.nullInstance)
+                case .generateCombatantTraits: return .generateCombatantTraits(GenerateCombatantTraitsFeature.State.nullInstance)
                 }
             }
 
@@ -201,9 +201,9 @@ struct EncounterDetailFeature: Reducer {
             case add(AddCombatantSheet)
             case combatant(CombatantDetailFeature.State)
             case runningEncounterLog(RunningEncounterLogViewState)
-            case selectedCombatantTags(CombatantTagsViewState)
+            case selectedCombatantTags(CombatantTagsFeature.State)
             case settings
-            case generateCombatantTraits(GenerateCombatantTraitsViewState)
+            case generateCombatantTraits(GenerateCombatantTraitsFeature.State)
         }
 
         enum Popover: Equatable {
@@ -237,12 +237,12 @@ struct EncounterDetailFeature: Reducer {
         case resetEncounter(Bool) // false = clear monsters, true = clear all
         case editMode(EditMode)
         case selection(Set<Combatant.Id>)
-        case generateCombatantTraits(GenerateCombatantTraitsViewAction)
+        case generateCombatantTraits(GenerateCombatantTraitsFeature.Action)
 
         case selectionEncounterAction(SelectionEncounterAction)
         case selectionCombatantAction(CombatantAction)
 
-        case selectedCombatantTags(CombatantTagsViewAction)
+        case selectedCombatantTags(CombatantTagsFeature.Action)
 
         case showCombatantDetailReferenceItem(Combatant)
         case showAddCombatantReferenceItem
@@ -266,179 +266,180 @@ struct EncounterDetailFeature: Reducer {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case .onAppear:
-                return EffectTask.run { [state] send in
-                    if state.resumableRunningEncounters.result == nil {
-                        await send(.resumableRunningEncounters(.startLoading))
-                    }
+//            case .onAppear:
+//                return EffectTask.run { [state] send in
+//                    if state.resumableRunningEncounters.result == nil {
+//                        await send(.resumableRunningEncounters(.startLoading))
+//                    }
+//
+//                    await send(.buildingEncounter(.refreshCompendiumItems))
+//                }
+//            case .onResumeRunningEncounterTap(let resumableKey):
+//                return .run { send in
+//                    do {
+//                        if let runningEncounter: RunningEncounter = try environment.database.keyValueStore.get(
+//                            resumableKey,
+//                            crashReporter: environment.crashReporter
+//                        ) {
+//                            await send(.run(runningEncounter))
+//                        } else {
+//                            assertionFailure("Could not resume run: \(resumableKey) not found")
+//                        }
+//                    } catch {
+//                        assertionFailure("Could not resume run: \(error)")
+//                    }
+//                }.animation()
+//            case .run(let runningEncounter):
+//                let base = apply(state.building) {
+//                    $0.ensureStableDiscriminators = true
+//                }
+//                let re = runningEncounter
+//                    ?? RunningEncounter(
+//                        id: environment.generateUUID().tagged(),
+//                        base: base,
+//                        current: base,
+//                        turn: state.building.initiativeOrder.first.map { RunningEncounter.Turn(round: 1, combatantId: $0.id) }
+//                    )
+//                state.running = re
+//                // let's not use this until it's a setting
+//                // state.building.runningEncounterKey = re.key
+//            case .stop:
+//                state.running = nil
+//                state.encounter.runningEncounterKey = nil
+//                return .send(.resumableRunningEncounters(.startLoading))
+//            case .encounter(let a): // forward to the effective encounter
+//                if state.running != nil {
+//                    return .send(.runningEncounter(.current(a)))
+//                } else {
+//                    return .send(.buildingEncounter(a))
+//                }
+//            case .buildingEncounter: break
+//            case .runningEncounter: break
+//            case .resumableRunningEncounters: break // handled below
+//            case .removeResumableRunningEncounter(let key):
+//                return .run { send in
+//                    _ = try? environment.database.keyValueStore.remove(key)
+//                    await send(.resumableRunningEncounters(.startLoading))
+//                }
+//            case .sheet(let s):
+//                state.sheet = s
+//            case .addCombatant(AddCombatantFeature.Action.onSelect(let combatants, let dismiss)):
+//                var effects: [EffectTask<Action>] = combatants.map { combatant in
+//                    .send(.encounter(.add(combatant)))
+//                }
+//
+//                if dismiss {
+//                    effects.append(
+//                        .run { send in
+//                            await Task.yield()
+//                            await send(.sheet(nil))
+//                        }
+//                    )
+//                }
+//
+//                return .concatenate(effects)
+//            case .addCombatant: break // handled by AddCombatantFeature reducer
+//            case .addCombatantAction(let action, let dismiss):
+//                let state = state
+//                return .run { send in
+//                    switch action {
+//                    case .add(let combatants):
+//                        for c in combatants {
+//                            await send(.encounter(.add(c)))
+//                        }
+//                    case .addByKey(let keys, let party):
+//                        for key in keys {
+//                            await send(.encounter(.addByKey(key, party)))
+//                        }
+//                    case .remove(let definitionID, let quantity):
+//                        for c in state.encounter.combatants(with: definitionID).reversed().prefix(quantity) {
+//                            await send(.encounter(.remove(c)))
+//                        }
+//                    }
+//
+//                    if dismiss {
+//                        await send(.sheet(nil))
+//                    }
+//                }
+//            case .combatantDetail(.combatant(let a)):
+//                if let combatantDetailState = state.combatantDetailState {
+//                    return .send(.encounter(.combatant(combatantDetailState.combatant.id, a)))
+//                }
+//            case .combatantDetail: break // handled by CombatantDetailFeature reducer
+//            case .popover(let p):
+//                state.popover = p
+//            case .combatantInitiativePopover: break // handled below
 
-                    await send(.buildingEncounter(.refreshCompendiumItems))
-                }
-            case .onResumeRunningEncounterTap(let resumableKey):
-                return .run { send in
-                    do {
-                        if let runningEncounter: RunningEncounter = try environment.database.keyValueStore.get(
-                            resumableKey,
-                            crashReporter: environment.crashReporter
-                        ) {
-                            await send(.run(runningEncounter))
-                        } else {
-                            assertionFailure("Could not resume run: \(resumableKey) not found")
-                        }
-                    } catch {
-                        assertionFailure("Could not resume run: \(error)")
-                    }
-                }.animation()
-            case .run(let runningEncounter):
-                let base = apply(state.building) {
-                    $0.ensureStableDiscriminators = true
-                }
-                let re = runningEncounter
-                    ?? RunningEncounter(
-                        id: environment.generateUUID().tagged(),
-                        base: base,
-                        current: base,
-                        turn: state.building.initiativeOrder.first.map { RunningEncounter.Turn(round: 1, combatantId: $0.id) }
-                    )
-                state.running = re
-                // let's not use this until it's a setting
-                // state.building.runningEncounterKey = re.key
-            case .stop:
-                state.running = nil
-                state.encounter.runningEncounterKey = nil
-                return .send(.resumableRunningEncounters(.startLoading))
-            case .encounter(let a): // forward to the effective encounter
-                if state.running != nil {
-                    return .send(.runningEncounter(.current(a)))
-                } else {
-                    return .send(.buildingEncounter(a))
-                }
-            case .buildingEncounter: break
-            case .runningEncounter: break
-            case .resumableRunningEncounters: break // handled below
-            case .removeResumableRunningEncounter(let key):
-                return .run { send in
-                    _ = try? environment.database.keyValueStore.remove(key)
-                    await send(.resumableRunningEncounters(.startLoading))
-                }
-            case .sheet(let s):
-                state.sheet = s
-            case .addCombatant(AddCombatantFeature.Action.onSelect(let combatants, let dismiss)):
-                var effects: [EffectTask<Action>] = combatants.map { combatant in
-                    .send(.encounter(.add(combatant)))
-                }
-
-                if dismiss {
-                    effects.append(
-                        .run { send in
-                            await Task.yield()
-                            await send(.sheet(nil))
-                        }
-                    )
-                }
-
-                return .concatenate(effects)
-            case .addCombatant: break // handled by AddCombatantFeature reducer
-            case .addCombatantAction(let action, let dismiss):
-                let state = state
-                return .run { send in
-                    switch action {
-                    case .add(let combatants):
-                        for c in combatants {
-                            await send(.encounter(.add(c)))
-                        }
-                    case .addByKey(let keys, let party):
-                        for key in keys {
-                            await send(.encounter(.addByKey(key, party)))
-                        }
-                    case .remove(let definitionID, let quantity):
-                        for c in state.encounter.combatants(with: definitionID).reversed().prefix(quantity) {
-                            await send(.encounter(.remove(c)))
-                        }
-                    }
-
-                    if dismiss {
-                        await send(.sheet(nil))
-                    }
-                }
-            case .combatantDetail(.combatant(let a)):
-                if let combatantDetailState = state.combatantDetailState {
-                    return .send(.encounter(.combatant(combatantDetailState.combatant.id, a)))
-                }
-            case .combatantDetail: break // handled by CombatantDetailFeature reducer
-            case .popover(let p):
-                state.popover = p
-            case .combatantInitiativePopover: break // handled below
-            case .resetEncounter(let clearAll):
-                state.building.runningEncounterKey = nil
-                if clearAll {
-                    state.building.combatants = []
-                } else {
-                    state.building.combatants.removeAll { $0.party == nil && $0.definition.player == nil }
-                }
-
-                let runningEncounterPrefix = RunningEncounter.keyPrefix(for: state.building)
-                return .run { send in
-                    // remove all runs
-                    _ = try? environment.database.keyValueStore.removeAll(.keyPrefix(runningEncounterPrefix.rawValue))
-                    await send(.resumableRunningEncounters(.startLoading))
-                }
-            case .editMode(let mode):
-                state.editMode = mode
-                if mode == .inactive {
-                    state.selection.removeAll()
-                }
-            case .selection(let s):
-                state.selection = s
-            case .generateCombatantTraits(.onDoneButtonTap):
-                state.sheet = nil
-            case .generateCombatantTraits: break // handled below
-            case .selectionCombatantAction(let action):
-                return .merge(
-                    state.selection.map {
-                        .send(.encounter(.combatant($0, action)))
-                    }
-                )
-            case .selectionEncounterAction(let action):
-                let encounter = state.encounter
-                return .merge(
-                    state.selection.compactMap { id -> EffectTask<Action>? in
-                        guard let combatant = encounter.combatant(for: id) else { return nil }
-                        switch action {
-                        case .duplicate:
-                            return .send(.encounter(.duplicate(combatant)))
-                        case .remove:
-                            return .send(.encounter(.remove(combatant)))
-                        }
-                    }
-                )
-            case .selectedCombatantTags(.combatant(let c, let a)):
-                return .send(.encounter(.combatant(c.id, a)))
-            case .selectedCombatantTags: break // handled below
-            case .showCombatantDetailReferenceItem(let combatant):
-                let detailState = ReferenceItemViewState.Content.CombatantDetail(
-                    encounter: state.encounter,
-                    selectedCombatantId: combatant.id,
-                    runningEncounter: state.running
-                )
-
-                state.combatantDetailReferenceItemRequest = ReferenceViewItemRequest(
-                    id: state.combatantDetailReferenceItemRequest?.id ?? UUID().tagged(),
-                    state: ReferenceItemViewState(content: .combatantDetail(detailState)),
-                    oneOff: false
-                )
-            case .showAddCombatantReferenceItem:
-                state.addCombatantReferenceItemRequest = ReferenceViewItemRequest(
-                    id: state.addCombatantReferenceItemRequest?.id ?? UUID().tagged(),
-                    state: ReferenceItemViewState(content: .addCombatant(ReferenceItemViewState.Content.AddCombatant(addCombatantState: AddCombatantFeature.State(encounter: state.encounter)))),
-                    oneOff: false
-                )
-            case .didDismissReferenceItem(let id):
-                if state.addCombatantReferenceItemRequest?.id == id {
-                    state.addCombatantReferenceItemRequest = nil
-                } else if state.combatantDetailReferenceItemRequest?.id == id {
-                    state.combatantDetailReferenceItemRequest = nil
-                }
+//            case .resetEncounter(let clearAll):
+//                state.building.runningEncounterKey = nil
+//                if clearAll {
+//                    state.building.combatants = []
+//                } else {
+//                    state.building.combatants.removeAll { $0.party == nil && $0.definition.player == nil }
+//                }
+//
+//                let runningEncounterPrefix = RunningEncounter.keyPrefix(for: state.building)
+//                return .run { send in
+//                    // remove all runs
+//                    _ = try? environment.database.keyValueStore.removeAll(.keyPrefix(runningEncounterPrefix.rawValue))
+//                    await send(.resumableRunningEncounters(.startLoading))
+//                }
+//            case .editMode(let mode):
+//                state.editMode = mode
+//                if mode == .inactive {
+//                    state.selection.removeAll()
+//                }
+//            case .selection(let s):
+//                state.selection = s
+//            case .generateCombatantTraits(.onDoneButtonTap):
+//                state.sheet = nil
+//            case .generateCombatantTraits: break // handled below
+//            case .selectionCombatantAction(let action):
+//                return .merge(
+//                    state.selection.map {
+//                        .send(.encounter(.combatant($0, action)))
+//                    }
+//                )
+//            case .selectionEncounterAction(let action):
+//                let encounter = state.encounter
+//                return .merge(
+//                    state.selection.compactMap { id -> EffectTask<Action>? in
+//                        guard let combatant = encounter.combatant(for: id) else { return nil }
+//                        switch action {
+//                        case .duplicate:
+//                            return .send(.encounter(.duplicate(combatant)))
+//                        case .remove:
+//                            return .send(.encounter(.remove(combatant)))
+//                        }
+//                    }
+//                )
+//            case .selectedCombatantTags(.combatant(let c, let a)):
+//                return .send(.encounter(.combatant(c.id, a)))
+//            case .selectedCombatantTags: break // handled below
+//            case .showCombatantDetailReferenceItem(let combatant):
+//                let detailState = ReferenceItem.State.Content.CombatantDetail(
+//                    encounter: state.encounter,
+//                    selectedCombatantId: combatant.id,
+//                    runningEncounter: state.running
+//                )
+//
+//                state.combatantDetailReferenceItemRequest = ReferenceViewItemRequest(
+//                    id: state.combatantDetailReferenceItemRequest?.id ?? UUID().tagged(),
+//                    state: ReferenceItem.State(content: .combatantDetail(detailState)),
+//                    oneOff: false
+//                )
+//            case .showAddCombatantReferenceItem:
+//                state.addCombatantReferenceItemRequest = ReferenceViewItemRequest(
+//                    id: state.addCombatantReferenceItemRequest?.id ?? UUID().tagged(),
+//                    state: ReferenceItem.State(content: .addCombatant(ReferenceItem.State.Content.AddCombatant(addCombatantState: AddCombatantFeature.State(encounter: state.encounter)))),
+//                    oneOff: false
+//                )
+//            case .didDismissReferenceItem(let id):
+//                if state.addCombatantReferenceItemRequest?.id == id {
+//                    state.addCombatantReferenceItemRequest = nil
+//                } else if state.combatantDetailReferenceItemRequest?.id == id {
+//                    state.combatantDetailReferenceItemRequest = nil
+//                }
             case .onGenerateCombatantTraitsButtonTap:
                 state.sheet = .generateCombatantTraits(.init(
                     encounter: state.encounter
@@ -465,6 +466,7 @@ struct EncounterDetailFeature: Reducer {
                         })
                     ))
                 }
+            default: break
             }
             return .none
         }
@@ -475,21 +477,21 @@ struct EncounterDetailFeature: Reducer {
             NumberEntryFeature(environment: environment)
         }
         .ifLet(\.running, action: /Action.runningEncounter) {
-            Reduce(RunningEncounter.reducer, environment: environment)
+            RunningEncounter.Reducer(environment: environment)
         }
         .ifLet(\.combatantDetailState, action: /Action.combatantDetail) {
             CombatantDetailFeature(environment: environment)
         }
         .ifLet(\.selectedCombatantTagsState, action: /Action.selectedCombatantTags) {
-            Reduce(CombatantTagsViewState.reducer, environment: environment)
+            CombatantTagsFeature(environment: environment)
         }
         Scope(state: \.building, action: /Action.buildingEncounter) {
-            Reduce(Encounter.reducer, environment: environment)
+            Encounter.Reducer(environment: environment)
         }
 
         EmptyReducer()
             .ifLet(\.generateCombatantTraitsState, action: /Action.generateCombatantTraits) {
-                Reduce(GenerateCombatantTraitsViewState.reducer, environment: environment)
+                GenerateCombatantTraitsFeature(environment: environment)
             }
             .onChange(of: \.generateCombatantTraitsState?.traits) { _, _ in
                 Reduce { state, action in

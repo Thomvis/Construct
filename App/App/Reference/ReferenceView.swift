@@ -15,7 +15,7 @@ struct ReferenceView: View {
 
     static let maxItems = 8
 
-    let store: Store<ReferenceViewState, ReferenceViewAction>
+    let store: StoreOf<ReferenceViewFeature>
 
     var body: some View {
         WithViewStore(store, observe: \.self, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication }) { viewStore in
@@ -39,7 +39,7 @@ struct ReferenceView: View {
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 
-    func tabItems(_ viewStore: ViewStore<ReferenceViewState, ReferenceViewAction>) -> [TabbedDocumentViewContentItem] {
+    func tabItems(_ viewStore: ViewStoreOf<ReferenceViewFeature>) -> [TabbedDocumentViewContentItem] {
         viewStore.items.suffix(Self.maxItems).map { item in
             TabbedDocumentViewContentItem(
                 id: item.id,

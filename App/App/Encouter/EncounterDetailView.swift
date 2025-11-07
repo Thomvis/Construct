@@ -234,7 +234,7 @@ struct EncounterDetailView: View {
 
             Button(action: {
                 let selection = self.viewStore.state.selection.compactMap { self.viewStore.state.encounter.combatant(for: $0) }
-                let state = CombatantTagsViewState(
+                let state = CombatantTagsFeature.State(
                     combatants: selection,
                     effectContext: self.viewStore.state.running.map {
                         EffectContext(

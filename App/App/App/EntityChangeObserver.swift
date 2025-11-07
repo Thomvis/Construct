@@ -14,7 +14,7 @@ protocol HavingEntities {
     var entities: [any KeyValueStoreEntity] { get }
 }
 
-extension AppState: HavingEntities {
+extension AppFeature.State: HavingEntities {
     var entities: [any KeyValueStoreEntity] {
         return [
             navigation?.tabState?.entities,
@@ -23,13 +23,13 @@ extension AppState: HavingEntities {
     }
 }
 
-extension TabNavigationViewState: HavingEntities {
+extension TabNavigationFeature.State: HavingEntities {
     var entities: [any KeyValueStoreEntity] {
         return campaignBrowser.entities
     }
 }
 
-extension ColumnNavigationViewState: HavingEntities {
+extension ColumnNavigationFeature.State: HavingEntities {
     var entities: [any KeyValueStoreEntity] {
         return (campaignBrowse.nextScreen?.entities ?? [])
     }
@@ -61,8 +61,10 @@ extension DatabaseKeyValueStore {
 
     // Returns a middleware that saves changed entities to the db
     // fixme: naive implementation, might become very slow
-    func entityChangeObserver<Environment, State, Action>(initialState: State, reducer: AnyReducer<State, Action, Environment>) -> AnyReducer<State, Action, Environment> where State: HavingEntities {
-
+    func entityChangeObserver<State, Action>(
+        initialState: State,
+        reducer: any Reducer<State, Action>
+    ) -> some Reducer<State, Action> where State: HavingEntities {
 
         var cache: [String: Data] = [:]
 
@@ -72,9 +74,9 @@ extension DatabaseKeyValueStore {
             }
         }
 
-        return AnyReducer { state, action, environment in
+        return Reduce { state, action in
             // run the wrapped reducer
-            let effects = reducer.callAsFunction(&state, action, environment)
+            let effects = reducer.reduce(into: &state, action: action)
 
             // fixme: use effects for saving?
             state.entities.compactMap { e -> (any KeyValueStoreEntity, Data)? in

@@ -135,9 +135,9 @@ class AppStoreScreenshotTests: XCTestCase {
     var tabNavigationEncounterDetailRunning: ConstructView {
         let encounterDetailViewState = encounterDetailRunningEncounterDetailState
 
-        let state = AppState(
+        let state = AppFeature.State(
             navigation: .tab(
-                TabNavigationViewState(
+                TabNavigationFeature.State(
                     selectedTab: .campaign,
                     campaignBrowser: CampaignBrowseViewFeature.State(
                         node: CampaignNode.root,
@@ -164,14 +164,14 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
 
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
+        let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
         return ConstructView(env: environment, store: store)
     }
 
     var tabNavigationDiceRoller: ConstructView {
-        let state = AppState(
+        let state = AppFeature.State(
             navigation: .tab(
-                TabNavigationViewState(
+                TabNavigationFeature.State(
                     selectedTab: .diceRoller,
                     campaignBrowser: .nullInstance,
                     compendium: .nullInstance,
@@ -183,7 +183,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
 
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
+        let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
         return ConstructView(env: environment, store: store)
     }
 
@@ -193,7 +193,7 @@ class AppStoreScreenshotTests: XCTestCase {
             combatant: encounterDetailViewState.encounter.combatants[1]
         )
 
-        let store = Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
+        let store = StoreOf<CombatantDetailFeature>(initialState: state) { EmptyReducer() }
         return FakeSheetView(
             background: Color(UIColor.secondarySystemBackground),
             sheet: CombatantDetailContainerView(store: store)
@@ -203,9 +203,9 @@ class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     var tabNavigationCompendiumIndex: ConstructView {
         get async {
-            let state = AppState(
+            let state = AppFeature.State(
                 navigation: .tab(
-                    TabNavigationViewState(
+                    TabNavigationFeature.State(
                         selectedTab: .compendium,
                         campaignBrowser: CampaignBrowseViewFeature.State.nullInstance,
                         compendium: await apply(CompendiumIndexFeature.State(
@@ -213,7 +213,7 @@ class AppStoreScreenshotTests: XCTestCase {
                             properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                             results: .initial
                         )) { state in
-                            let store = Store(initialState: state, reducer: AnyReducer(CompendiumIndexFeature(environment: environment)), environment: environment)
+                            let store = Store(initialState: state) { CompendiumIndexFeature(environment: environment) }
                             await store.send(.query(.onTextDidChange("Dragon"))).finish()
                             state = ViewStore(store, observe: \.self).state
                         },
@@ -222,16 +222,16 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
 
-            let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
+            let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
             return ConstructView(env: environment, store: store)
         }
     }
 
     var tabNavigationCampaignBrowseView: ConstructView {
         let campaignBrowseViewState = self.campaignBrowseViewState
-        let state = AppState(
+        let state = AppFeature.State(
             navigation: .tab(
-                TabNavigationViewState(
+                TabNavigationFeature.State(
                     selectedTab: .campaign,
                     campaignBrowser: CampaignBrowseViewFeature.State(
                         node: CampaignNode.root,
@@ -250,7 +250,7 @@ class AppStoreScreenshotTests: XCTestCase {
             )
         )
 
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
+        let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
         return ConstructView(env: environment, store: store)
     }
 
@@ -276,7 +276,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 mage.resources[position: 3].used = 1
             }
         )
-        let store = Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
+        let store = StoreOf<CombatantDetailFeature>(initialState: state) { EmptyReducer() }
         return FakeSheetView(
             background: Color(UIColor.secondarySystemBackground),
             sheet: CombatantDetailContainerView(store: store)
@@ -286,9 +286,9 @@ class AppStoreScreenshotTests: XCTestCase {
     var columnNavigationEncounterDetailRunning: ConstructView {
         let encounterDetailViewState = encounterDetailRunningEncounterDetailState
 
-        let state = AppState(
+        let state = AppFeature.State(
             navigation: .column(
-                ColumnNavigationViewState(
+                ColumnNavigationFeature.State(
                     campaignBrowse: CampaignBrowseViewFeature.State(
                         node: CampaignNode.root,
                         mode: .browse,
@@ -309,14 +309,14 @@ class AppStoreScreenshotTests: XCTestCase {
                             .nextInStack: .encounter(encounterDetailViewState)
                         ]
                     ),
-                    referenceView: ReferenceViewState(
+                    referenceView: ReferenceViewFeature.State(
                         items: IdentifiedArray(arrayLiteral:
-                            ReferenceViewState.Item(
+                            ReferenceViewFeature.Item.State(
                                 id: UUID().tagged(),
                                 title: nil,
-                                state: ReferenceItemViewState(
+                                state: ReferenceItem.State(
                                     content: .combatantDetail(
-                                        ReferenceItemViewState.Content.CombatantDetail(
+                                        ReferenceItem.State.Content.CombatantDetail(
                                             encounter: encounterDetailViewState.running!.current,
                                             selectedCombatantId: encounterDetailViewState.encounter.combatants.elements[1].id,
                                             runningEncounter: encounterDetailViewState.running
@@ -325,14 +325,14 @@ class AppStoreScreenshotTests: XCTestCase {
                             )
                         )
                     ),
-                    diceCalculator: FloatingDiceRollerViewState(
+                    diceCalculator: FloatingDiceRollerFeature.State(
                         hidden: true,
                         diceCalculator: DiceCalculator.State.abilityCheck(3, rollOnAppear: false, prefilledResult: 22)
                     )
                 )
             )
         )
-        let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
+        let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
         return ConstructView(env: environment, store: store)
     }
 
@@ -462,9 +462,9 @@ class AppStoreScreenshotTests: XCTestCase {
             var encounter = SampleEncounter.createEncounter(with: environment)
             encounter.combatants.remove(at: 0)
 
-            let state = AppState(
+            let state = AppFeature.State(
                 navigation: .column(
-                    ColumnNavigationViewState(
+                    ColumnNavigationFeature.State(
                         campaignBrowse: CampaignBrowseViewFeature.State(
                             node: CampaignNode.root,
                             mode: .browse,
@@ -493,14 +493,14 @@ class AppStoreScreenshotTests: XCTestCase {
                                 ))
                             ]
                         ),
-                        referenceView: ReferenceViewState(
+                        referenceView: ReferenceViewFeature.State(
                             items: IdentifiedArray(
-                                arrayLiteral: ReferenceViewState.Item(
+                                arrayLiteral: ReferenceViewFeature.Item.State(
                                     id: UUID().tagged(),
                                     title: nil,
-                                    state: ReferenceItemViewState(
+                                    state: ReferenceItem.State(
                                         content: .addCombatant(
-                                            ReferenceItemViewState.Content.AddCombatant(
+                                            ReferenceItem.State.Content.AddCombatant(
                                                 addCombatantState: AddCombatantFeature.State(
                                                     compendiumState: await apply(CompendiumIndexFeature.State(
                                                         title: "Monsters",
@@ -508,7 +508,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                         results: .initial
                                                     )) { @MainActor state in
                                                         state.results.input.order = .monsterChallengeRating
-                                                        let store = Store(initialState: state, reducer: AnyReducer(CompendiumIndexFeature(environment: environment)), environment: environment)
+                                                        let store = Store(initialState: state) { CompendiumIndexFeature(environment: environment) }
                                                         let filters = CompendiumFilters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4))
                                                         await store.send(.query(.onFiltersDidChange(filters))).finish()
                                                         let entry = ViewStore(store, observe: \.self).state.results.entries!.first!
@@ -524,14 +524,14 @@ class AppStoreScreenshotTests: XCTestCase {
                                 )
                             )
                         ),
-                        diceCalculator: FloatingDiceRollerViewState(
+                        diceCalculator: FloatingDiceRollerFeature.State(
                             hidden: true,
                             diceCalculator: DiceCalculator.State.abilityCheck(3, rollOnAppear: false, prefilledResult: 22)
                         )
                     )
                 )
             )
-            let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
+            let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
             return ConstructView(env: environment, store: store)
         }
     }
@@ -539,24 +539,24 @@ class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     var columnNavigationCampaignBrowseView: ConstructView {
         get async {
-            let state = AppState(
+            let state = AppFeature.State(
                 navigation: .column(
-                    ColumnNavigationViewState(
+                    ColumnNavigationFeature.State(
                         campaignBrowse: campaignBrowseViewState,
-                        referenceView: ReferenceViewState(
+                        referenceView: ReferenceViewFeature.State(
                             items: IdentifiedArray(
-                                arrayLiteral: ReferenceViewState.Item(
+                                arrayLiteral: ReferenceViewFeature.Item.State(
                                     id: UUID().tagged(),
                                     title: nil,
-                                    state: ReferenceItemViewState(
+                                    state: ReferenceItem.State(
                                         content: .compendium(
-                                            ReferenceItemViewState.Content.Compendium(
+                                            ReferenceItem.State.Content.Compendium(
                                                 compendium: await apply(CompendiumIndexFeature.State(
                                                     title: CompendiumItemType.monster.localizedScreenDisplayName,
                                                     properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                                                     results: .initial
                                                 )) { state in
-                                                    let store = Store(initialState: state, reducer: AnyReducer(CompendiumIndexFeature(environment: environment)), environment: environment)
+                                                    let store = Store(initialState: state) { CompendiumIndexFeature(environment: environment) }
                                                     await store.send(.query(.onTextDidChange("Dragon"))).finish()
                                                     state = ViewStore(store, observe: \.self).state
                                                 }
@@ -564,27 +564,27 @@ class AppStoreScreenshotTests: XCTestCase {
                                         )
                                     )
                                 ),
-                                ReferenceViewState.Item(
+                                ReferenceViewFeature.Item.State(
                                     id: UUID().tagged(),
                                     title: "Kobold - Compendium",
-                                    state: ReferenceItemViewState(
-                                        content: .compendium(ReferenceItemViewState.Content.Compendium())
+                                    state: ReferenceItem.State(
+                                        content: .compendium(ReferenceItem.State.Content.Compendium())
                                     )
                                 ),
-                                ReferenceViewState.Item(
+                                ReferenceViewFeature.Item.State(
                                     id: UUID().tagged(),
                                     title: "Light - Compendium",
-                                    state: ReferenceItemViewState(
-                                        content: .compendium(ReferenceItemViewState.Content.Compendium())
+                                    state: ReferenceItem.State(
+                                        content: .compendium(ReferenceItem.State.Content.Compendium())
                                     )
                                 )
                             )
                         ),
-                        diceCalculator: FloatingDiceRollerViewState(hidden: true, diceCalculator: DiceCalculator.State.nullInstance)
+                        diceCalculator: FloatingDiceRollerFeature.State(hidden: true, diceCalculator: DiceCalculator.State.nullInstance)
                     )
                 )
             )
-            let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
+            let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
             return ConstructView(env: environment, store: store)
         }
     }
@@ -638,24 +638,24 @@ class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     var columnNavigationDiceCalculatorSpell: ConstructView {
         get async {
-            let state = AppState(
+            let state = AppFeature.State(
                 navigation: .column(
-                    ColumnNavigationViewState(
+                    ColumnNavigationFeature.State(
                         campaignBrowse: campaignBrowseViewState,
-                        referenceView: ReferenceViewState(
+                        referenceView: ReferenceViewFeature.State(
                             items: IdentifiedArray(
-                                arrayLiteral:ReferenceViewState.Item(
+                                arrayLiteral:ReferenceViewFeature.Item.State(
                                     id: UUID().tagged(),
                                     title: nil,
-                                    state: ReferenceItemViewState(
+                                    state: ReferenceItem.State(
                                         content: .compendium(
-                                            ReferenceItemViewState.Content.Compendium(
+                                            ReferenceItem.State.Content.Compendium(
                                                 compendium: await apply(CompendiumIndexFeature.State(
                                                     title: CompendiumItemType.spell.localizedScreenDisplayName,
                                                     properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                                                     results: .initial(type: .spell)
                                                 )) { @MainActor state in
-                                                    let store = Store(initialState: state, reducer: AnyReducer(CompendiumIndexFeature(environment: environment)), environment: environment)
+                                                    let store = Store(initialState: state) { CompendiumIndexFeature(environment: environment) }
 
                                                     await store.send(.results(.result(.reload(.all)))).finish()
                                                     state = ViewStore(store, observe: \.self).state
@@ -670,7 +670,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 )
                             )
                         ),
-                        diceCalculator:  FloatingDiceRollerViewState(
+                        diceCalculator:  FloatingDiceRollerFeature.State(
                             hidden: false,
                             diceCalculator: DiceCalculator.State(
                                 displayOutcomeExternally: false,
@@ -694,7 +694,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
 
-            let store = Store<AppState, AppState.Action>(initialState: state, reducer: AnyReducer.empty, environment: ())
+            let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
             return ConstructView(env: environment, store: store)
         }
     }
@@ -704,24 +704,24 @@ class AppStoreScreenshotTests: XCTestCase {
         get async {
             let encounter = SampleEncounter.createEncounter(with: environment)
 
-            let backgroundState = AppState(
+            let backgroundState = AppFeature.State(
                 navigation: .column(
-                    ColumnNavigationViewState(
+                    ColumnNavigationFeature.State(
                         campaignBrowse: campaignBrowseViewState,
-                        referenceView: ReferenceViewState(
+                        referenceView: ReferenceViewFeature.State(
                             items: IdentifiedArray(
-                                arrayLiteral: ReferenceViewState.Item(
+                                arrayLiteral: ReferenceViewFeature.Item.State(
                                     id: UUID().tagged(),
                                     title: nil,
-                                    state: ReferenceItemViewState(
+                                    state: ReferenceItem.State(
                                         content: .compendium(
-                                            ReferenceItemViewState.Content.Compendium(
+                                            ReferenceItem.State.Content.Compendium(
                                                 compendium: await apply(CompendiumIndexFeature.State(
                                                     title: CompendiumItemType.monster.localizedScreenDisplayName,
                                                     properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                                                     results: .initial
                                                 )) { state in
-                                                    let store = Store(initialState: state, reducer: AnyReducer(CompendiumIndexFeature(environment: environment)), environment: environment)
+                                                    let store = Store(initialState: state) { CompendiumIndexFeature(environment: environment) }
                                                     await store.send(.query(.onTextDidChange("Dragon"))).finish()
                                                     state = ViewStore(store, observe: \.self).state
                                                 }
@@ -731,25 +731,23 @@ class AppStoreScreenshotTests: XCTestCase {
                                 )
                             )
                         ),
-                        diceCalculator: FloatingDiceRollerViewState(
+                        diceCalculator: FloatingDiceRollerFeature.State(
                             hidden: true,
                             diceCalculator: DiceCalculator.State.nullInstance
                         )
                     )
                 )
             )
-            let backgroundStore = Store<AppState, AppState.Action>(initialState: backgroundState, reducer: AnyReducer.empty, environment: ())
+            let backgroundStore = StoreOf<AppFeature>(initialState: backgroundState) { EmptyReducer() }
             let backgroundView = ConstructView(env: environment, store: backgroundStore)
 
             let sheetView = SheetNavigationContainer {
                 CreatureEditView(
-                    store: Store(
+                    store: StoreOf<CreatureEditFeature>(
                         initialState: CreatureEditFeature.State(
                             edit: encounter.combatants[3].definition as! AdHocCombatantDefinition
-                        ),
-                        reducer: AnyReducer.empty,
-                        environment: ()
-                    )
+                        )
+                    ) { EmptyReducer() }
                 )
             }
 

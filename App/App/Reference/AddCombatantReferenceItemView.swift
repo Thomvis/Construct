@@ -11,8 +11,8 @@ import SwiftUI
 import ComposableArchitecture
 
 struct AddCombatantReferenceItemView: View {
-    let store: Store<ReferenceItemViewState.Content.AddCombatant, ReferenceItemViewAction.AddCombatant>
-    
+    let store: Store<ReferenceItem.State.Content.AddCombatant, ReferenceItem.Action.AddCombatant>
+
     var body: some View {
         AddCombatantView(
             store: store.scope(state: { $0.addCombatantState }, action: { .addCombatant($0) }),

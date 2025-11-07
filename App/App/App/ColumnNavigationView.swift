@@ -10,7 +10,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct ColumnNavigationView: View {
-    let store: Store<ColumnNavigationViewState, ColumnNavigationViewAction>
+    let store: Store<ColumnNavigationFeature.State, ColumnNavigationFeature.Action>
 
     var body: some View {
         return ZStack {

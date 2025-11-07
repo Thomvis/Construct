@@ -115,7 +115,7 @@ struct CreatureEditFeature: Reducer {
             }
         }
 
-        var actionEditor: NamedStatBlockContentItemEditViewState? {
+        var actionEditor: NamedStatBlockContentItemEditFeature.State? {
             get {
                 if case .actionEditor(let s) = sheet {
                     return s
@@ -152,7 +152,7 @@ struct CreatureEditFeature: Reducer {
             }
             res.sheet = sheet.map {
                 switch $0 {
-                case .actionEditor: return .actionEditor(.nullInstance)
+                case .actionEditor: return .actionEditor(NamedStatBlockContentItemEditFeature.State.nullInstance)
                 case .creatureGeneration: return .creatureGeneration(.nullInstance)
                 }
             }
@@ -237,7 +237,7 @@ struct CreatureEditFeature: Reducer {
         }
 
         enum Sheet: Equatable, Identifiable {
-            case actionEditor(NamedStatBlockContentItemEditViewState)
+            case actionEditor(NamedStatBlockContentItemEditFeature.State)
             case creatureGeneration(MechMuseCreatureGenerationFeature.State)
 
             var id: String {
@@ -255,7 +255,7 @@ struct CreatureEditFeature: Reducer {
         case popover(State.Popover?)
         case numberEntryPopover(NumberEntryFeature.Action)
         case sheet(State.Sheet?)
-        case creatureActionEditSheet(CreatureActionEditViewAction)
+        case creatureActionEditSheet(NamedStatBlockContentItemEditFeature.Action)
         case creatureGenerationSheet(MechMuseCreatureGenerationFeature.Action)
         case documentSelection(CompendiumDocumentSelectionFeature.Action)
         case onNamedContentItemTap(NamedStatBlockContentItemType, UUID)
@@ -314,7 +314,7 @@ struct CreatureEditFeature: Reducer {
             case .documentSelection: break // handled below
             case .onNamedContentItemTap(let t, let id):
                 if let item = state.model.statBlock[itemsOfType: t][id: id] {
-                    state.sheet = .actionEditor(NamedStatBlockContentItemEditViewState(editing: item))
+                    state.sheet = .actionEditor(NamedStatBlockContentItemEditFeature.State(editing: item))
                 }
             case .onNamedContentItemRemove(let t, let indices):
                 state.model.statBlock[itemsOfType: t].remove(atOffsets: indices)
@@ -401,7 +401,7 @@ struct CreatureEditFeature: Reducer {
             ))
         }
         .ifLet(\.actionEditor, action: /Action.creatureActionEditSheet) {
-            CreatureActionEditFeature()
+            NamedStatBlockContentItemEditFeature()
         }
         .ifLet(\.creatureGenerationSheet, action: /Action.creatureGenerationSheet) {
             MechMuseCreatureGenerationFeature()

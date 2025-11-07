@@ -11,19 +11,39 @@ import ComposableArchitecture
 import Helpers
 import GameModels
 
-struct CombatantResourcesViewState: NavigationStackItemState, Equatable {
-    var combatant: Combatant
-    var editState: CombatantTrackerEditViewState?
+struct CombatantResourcesFeature: Reducer {
+    let environment: Environment
 
-    var navigationStackItemStateId: String {
-        "\(combatant.id.rawValue.uuidString):CombatantResourcesViewState"
+    init(environment: Environment) {
+        self.environment = environment
     }
 
-    var navigationTitle: String { "Limited resources" }
+    struct State: NavigationStackItemState, Equatable {
+        var combatant: Combatant
+        var editState: CombatantTrackerEditFeature.State?
 
-    static let reducer: AnyReducer<Self, CombatantResourcesViewAction, Environment> = AnyReducer.combine(
-        CombatantTrackerEditViewState.reducer.optional().pullback(state: \.editState, action: /CombatantResourcesViewAction.editState),
-        AnyReducer { state, action, env in
+        var navigationStackItemStateId: String {
+            "\(combatant.id.rawValue.uuidString):CombatantResourcesViewState"
+        }
+
+        var navigationTitle: String { "Limited resources" }
+
+        static let nullInstance = State(combatant: Combatant.nullInstance, editState: nil)
+    }
+
+    enum Action: Equatable {
+        case combatant(CombatantAction)
+        case setEditState(CombatantTrackerEditFeature.State?)
+        case editState(CombatantTrackerEditFeature.Action)
+
+        var editStateAction: CombatantTrackerEditFeature.Action? {
+            guard case .editState(let a) = self else { return nil }
+            return a
+        }
+    }
+
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
             switch action {
             case .combatant: break // bubble-up
             case .setEditState(let s): state.editState = s
@@ -36,20 +56,9 @@ struct CombatantResourcesViewState: NavigationStackItemState, Equatable {
             }
             return .none
         }
-    )
-}
-
-enum CombatantResourcesViewAction: Equatable {
-    case combatant(CombatantAction)
-    case setEditState(CombatantTrackerEditViewState?)
-    case editState(CombatantTrackerEditViewAction)
-
-    var editStateAction: CombatantTrackerEditViewAction? {
-        guard case .editState(let a) = self else { return nil }
-        return a
+        .ifLet(\.editState, action: /Action.editState) {
+            CombatantTrackerEditFeature(environment: environment)
+        }
     }
 }
 
-extension CombatantResourcesViewState {
-    static let nullInstance = CombatantResourcesViewState(combatant: Combatant.nullInstance, editState: nil)
-}

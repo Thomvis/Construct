@@ -153,38 +153,6 @@ extension Optional: OptionalProtocol {
     public var optional: Optional<Wrapped> { self }
 }
 
-public extension AnyReducer {
-
-    func pullback<GlobalState, GlobalAction>(
-        state toLocalState: WritableKeyPath<GlobalState, State>,
-        action toLocalAction: CasePath<GlobalAction, Action>
-    ) -> AnyReducer<GlobalState, GlobalAction, Environment> {
-        pullback(state: toLocalState, action: toLocalAction, environment: { $0 })
-    }
-
-    // From https://github.com/pointfreeco/isowords/blob/244925184babddd477d637bdc216fb34d1d8f88d/Sources/TcaHelpers/OnChange.swift#L4
-    func onChange<LocalState>(
-        of toLocalState: @escaping (State) -> LocalState,
-        perform additionalEffects: @escaping (LocalState, inout State, Action, Environment) -> EffectTask<Action>
-    ) -> Self where LocalState: Equatable {
-        .init { state, action, environment in
-            let previousLocalState = toLocalState(state)
-            let effects = self.run(&state, action, environment)
-            let localState = toLocalState(state)
-
-            return previousLocalState != localState
-            ? .merge(effects, additionalEffects(localState, &state, action, environment))
-            : effects
-        }
-    }
-
-    func cancellable(id: AnyHashable) -> AnyReducer<State, Action, Environment> {
-        return AnyReducer { state, action, env in
-            self.run(&state, action, env).cancellable(id: id)
-        }
-    }
-}
-
 public extension CasePath {
     init(embed: CasePath<Root, Any>, extract: KeyPath<Root, Value?>) {
         self.init(embed: embed.embed, extract: { $0[keyPath: extract] })

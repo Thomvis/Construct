@@ -426,7 +426,7 @@ struct CreatureEditView: View {
             if case .namedContentItems(let t) = section {
                 FormSection(section, footer: HStack {
                     Button(action: {
-                        viewStore.send(.sheet(.actionEditor(NamedStatBlockContentItemEditViewState(newItemOfType: t))))
+                        viewStore.send(.sheet(.actionEditor(NamedStatBlockContentItemEditFeature.State(newItemOfType: t))))
                     }) {
                         Image(systemName: "plus.circle").font(Font.footnote.bold())
                         Text("Add \(t.localizedDisplayName)").bold()
@@ -688,7 +688,7 @@ extension CreatureEditView {
     }
 }
 
-extension NamedStatBlockContentItemEditViewState {
+extension NamedStatBlockContentItemEditFeature.State {
     var title: String {
         let verb: String
         switch intent {

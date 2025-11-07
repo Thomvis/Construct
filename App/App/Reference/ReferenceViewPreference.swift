@@ -13,7 +13,7 @@ import ComposableArchitecture
 struct ReferenceViewItemRequest: Equatable {
     let id: TabbedDocumentViewContentItem.Id
 
-    private(set) var state: ReferenceItemViewState
+    private(set) var state: ReferenceItem.State
     private(set) var stateGeneration = UUID() // when this changes, the item should update to use the current requested state
 
     private(set) var focusRequest = UUID() // when this changes, the item should gain focus again
@@ -29,7 +29,7 @@ struct ReferenceViewItemRequest: Equatable {
         focusRequest = UUID()
     }
 
-    mutating func updateState(_ state: ReferenceItemViewState) {
+    mutating func updateState(_ state: ReferenceItem.State) {
         self.state = state
         stateGeneration = UUID()
     }

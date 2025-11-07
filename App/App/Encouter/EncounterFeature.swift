@@ -13,6 +13,7 @@ import Helpers
 import Compendium
 
 extension Encounter {
+
     enum Action: Equatable {
         case name(String)
         case combatant(Combatant.Id, CombatantAction)
@@ -27,140 +28,156 @@ extension Encounter {
 
     typealias Environment = EnvironmentWithCrashReporter & EnvironmentWithCompendium & EnvironmentWithRandomNumberGenerator
 
-    static let reducer: AnyReducer<Encounter, Action, Environment> = AnyReducer.combine(
-        AnyReducer { state, action, env in
-            switch action {
-            case .name(let n):
-                state.name = n
-            case .combatant: break
-            case .initiative(let settings):
-                state.rollInitiative(settings: settings, rng: &env.rng.wrapped)
-            case .add(let combatant):
-                state.combatants.append(combatant)
-            case .addByKey(let key, let party):
-                return .run { send in
-                    do {
-                        if let entry = try env.compendium.get(key, crashReporter: env.crashReporter),
-                            let combatant = entry.item as? CompendiumCombatant
-                        {
-                            let combatant = Combatant(
-                                compendiumCombatant: combatant,
-                                party: party.map { CompendiumItemReference(itemTitle: $0.title, itemKey: $0.key) }
-                            )
-                            await send(.add(combatant))
-                        }
-                    } catch { }
-                }
-            case .remove(let combatant):
-                if let idx = state.combatants.firstIndex(where: { $0.id == combatant.id }) {
-                    state.combatants.remove(at: idx)
-                }
-            case .duplicate(let combatant):
-                let idx = state.combatants.firstIndex(where: { $0.id == combatant.id }) ?? (state.combatants.count-1)
-                state.combatants.insert(Combatant(discriminator: nil, definition: combatant.definition, hp: combatant.hp, resources: combatant.resources.elements, initiative: combatant.initiative), at: idx+1)
-            case .partyForDifficulty(let p):
-                state.partyForDifficulty = p
-            case .refreshCompendiumItems:
-                return .merge(
-                    state.combatants.compactMap { combatant in
-                        if var def = combatant.definition as? CompendiumCombatantDefinition {
-                            if let entry = try? env.compendium.get(def.item.key, crashReporter: env.crashReporter),
-                                let item = entry.item as? CompendiumCombatant
+    struct Reducer: ComposableArchitecture.Reducer {
+        typealias State = Encounter
+        typealias Action = Encounter.Action
+
+        let environment: Environment
+
+        var body: some ReducerOf<Self> {
+            Reduce { state, action in
+                switch action {
+                case .name(let n):
+                    state.name = n
+                case .combatant: break
+                case .initiative(let settings):
+                    state.rollInitiative(settings: settings, rng: &environment.rng.wrapped)
+                case .add(let combatant):
+                    state.combatants.append(combatant)
+                case .addByKey(let key, let party):
+                    return .run { send in
+                        do {
+                            if let entry = try environment.compendium.get(key, crashReporter: environment.crashReporter),
+                                let combatant = entry.item as? CompendiumCombatant
                             {
-                                def.item = item
-                                return .send(
-                                    .combatant(
-                                        combatant.id,
-                                        .setDefinition(Combatant.CodableCombatDefinition(definition: def))
-                                    )
+                                let combatant = Combatant(
+                                    compendiumCombatant: combatant,
+                                    party: party.map { CompendiumItemReference(itemTitle: $0.title, itemKey: $0.key) }
                                 )
+                                await send(.add(combatant))
                             }
-                        }
-                        return nil
+                        } catch { }
                     }
-                )
+                case .remove(let combatant):
+                    if let idx = state.combatants.firstIndex(where: { $0.id == combatant.id }) {
+                        state.combatants.remove(at: idx)
+                    }
+                case .duplicate(let combatant):
+                    let idx = state.combatants.firstIndex(where: { $0.id == combatant.id }) ?? (state.combatants.count-1)
+                    state.combatants.insert(Combatant(discriminator: nil, definition: combatant.definition, hp: combatant.hp, resources: combatant.resources.elements, initiative: combatant.initiative), at: idx+1)
+                case .partyForDifficulty(let p):
+                    state.partyForDifficulty = p
+                case .refreshCompendiumItems:
+                    return .merge(
+                        state.combatants.compactMap { combatant in
+                            if var def = combatant.definition as? CompendiumCombatantDefinition {
+                                if let entry = try? environment.compendium.get(def.item.key, crashReporter: environment.crashReporter),
+                                    let item = entry.item as? CompendiumCombatant
+                                {
+                                    def.item = item
+                                    return .send(
+                                        .combatant(
+                                            combatant.id,
+                                            .setDefinition(Combatant.CodableCombatDefinition(definition: def))
+                                        )
+                                    )
+                                }
+                            }
+                            return nil
+                        }
+                    )
+                }
+                return .none
             }
-            return .none
-        },
-        combatantReducer.forEach(
-            state: \.combatants,
-            action: /Action.combatant,
-            environment: { $0 }
-        )
-    )
+            .forEach(\.combatants, action: /Action.combatant) {
+                CombatantFeature()
+            }
+        }
+    }
 }
 
 extension RunningEncounter {
 
-    static let reducer: AnyReducer<RunningEncounter, Action, Environment> = AnyReducer.combine(
-        logReducer,
-        AnyReducer { state, action, _ in
-            switch action {
-            case .current(.remove(let c)):
-                if state.turn?.combatantId == c.id {
-                    state.nextTurn()
+    struct Reducer: ComposableArchitecture.Reducer {
+        typealias State = RunningEncounter
+        typealias Action = RunningEncounter.Action
+
+        let environment: Environment
+
+        var body: some ReducerOf<Self> {
+            // log reducer
+            Reduce { state, action in
+                guard let turn = state.turn else { return .none }
+
+                switch action {
+                case .current(.combatant(let uuid, let action)):
+                    guard let combatant = state.current.combatants[id: uuid] else { return .none }
+                    switch action {
+                    case .hp(.current(.add(let hp))):
+                        state.log.append(RunningEncounterEvent(
+                            id: UUID().tagged(),
+                            turn: turn,
+                            combatantEvent: RunningEncounterEvent.CombatantEvent(
+                                target: RunningEncounterEvent.CombatantReference(id: uuid, name: combatant.name, discriminator: combatant.discriminator),
+                                source: nil,
+                                effect: .init(currentHp: hp)
+                            )
+                        ))
+                    default: break
+                    }
+                default: break
+                }
+                return .none
+            }
+
+            Reduce { state, action in
+                switch action {
+                case .current(.remove(let c)):
                     if state.turn?.combatantId == c.id {
-                        // no other combatant to "turn" to
-                        state.turn = nil
+                        state.nextTurn()
+                        if state.turn?.combatantId == c.id {
+                            // no other combatant to "turn" to
+                            state.turn = nil
+                        }
+                    }
+                    break
+                default:
+                    break
+                }
+                return .none
+            }
+
+            Scope(state: \.current, action: /Action.current) {
+                Encounter.Reducer(environment: environment)
+            }
+
+            Reduce { state, action in
+                switch action {
+                case .current(.combatant(let uuid, .addTag(let tag))):
+                    // annotate added tag with current turn
+                    if state.current.combatants[id: uuid]?.tags[id: tag.id]?.addedIn == nil {
+                        state.current.combatants[id: uuid]?.tags[id: tag.id]?.addedIn = state.turn
+                    }
+                    break
+                case .current: // also handled by the reducer above
+                    if state.current.allCombatantsHaveInitiative, state.turn == nil {
+                        state.turn = state.current.initiativeOrder.first.map { Turn(round: 1, combatantId: $0.id) }
+                    }
+                case .nextTurn:
+                    if state.turn != nil {
+                        state.nextTurn()
+                    } else {
+                        state.turn = state.current.initiativeOrder.first.map { Turn(round: 1, combatantId: $0.id) }
+                    }
+                    break
+                case .previousTurn:
+                    if state.turn != nil {
+                        state.previousTurn()
                     }
                 }
-                break
-            default:
-                break
+                return .none
             }
-            return .none
-        },
-        Encounter.reducer.pullback(state: \.current, action: /Action.current, environment: { $0 }),
-        AnyReducer { state, action, _ in
-            switch action {
-            case .current(.combatant(let uuid, .addTag(let tag))):
-                // annotate added tag with current turn
-                if state.current.combatants[id: uuid]?.tags[id: tag.id]?.addedIn == nil {
-                    state.current.combatants[id: uuid]?.tags[id: tag.id]?.addedIn = state.turn
-                }
-                break
-            case .current(let action): // also handled by the reducer above
-                if state.current.allCombatantsHaveInitiative, state.turn == nil {
-                    state.turn = state.current.initiativeOrder.first.map { Turn(round: 1, combatantId: $0.id) }
-                }
-            case .nextTurn:
-                if state.turn != nil {
-                    state.nextTurn()
-                } else {
-                    state.turn = state.current.initiativeOrder.first.map { Turn(round: 1, combatantId: $0.id) }
-                }
-                break
-            case .previousTurn:
-                if state.turn != nil {
-                    state.previousTurn()
-                }
-            }
-            return .none
         }
-    )
-
-    private static let logReducer: AnyReducer<RunningEncounter, Action, Environment> = AnyReducer { state, action, _ in
-        guard let turn = state.turn else { return .none }
-
-        switch action {
-        case .current(.combatant(let uuid, let action)):
-            guard let combatant = state.current.combatants[id: uuid] else { return .none }
-            switch action {
-            case .hp(.current(.add(let hp))):
-                state.log.append(RunningEncounterEvent(
-                    id: UUID().tagged(),
-                    turn: turn,
-                    combatantEvent: RunningEncounterEvent.CombatantEvent(
-                        target: RunningEncounterEvent.CombatantReference(id: uuid, name: combatant.name, discriminator: combatant.discriminator),
-                        source: nil,
-                        effect: .init(currentHp: hp)
-                    )
-                ))
-            default: break
-            }
-        default: break
-        }
-        return .none
     }
 
     enum Action: Equatable {

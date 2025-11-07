@@ -13,7 +13,7 @@ import ComposableArchitecture
 struct NamedStatBlockContentItemEditView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    let store: Store<NamedStatBlockContentItemEditViewState, CreatureActionEditViewAction>
+    let store: StoreOf<NamedStatBlockContentItemEditFeature>
 
     // Note: this used to be implemented with a List, but autoSizingSheetContent stopped
     // working for it on iOS 17
@@ -97,7 +97,7 @@ struct NamedStatBlockContentItemEditView: View {
 
 
     @ViewBuilder
-    func editFields(_ viewStore: ViewStore<NamedStatBlockContentItemEditViewState, CreatureActionEditViewAction>) -> some View {
+    func editFields(_ viewStore: ViewStoreOf<NamedStatBlockContentItemEditFeature>) -> some View {
         VStack(spacing: 11) {
             TextField("Name", text: viewStore.$fields.name)
 

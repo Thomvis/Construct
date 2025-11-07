@@ -65,7 +65,7 @@ struct CombatantDetailFeature: Reducer {
             return nil
         }
 
-        var addLimitedResourceState: CombatantTrackerEditViewState? {
+        var addLimitedResourceState: CombatantTrackerEditFeature.State? {
             get {
                 guard case .addLimitedResource(let state) = popover else { return nil }
                 return state
@@ -129,10 +129,10 @@ struct CombatantDetailFeature: Reducer {
             var res = self
             res.presentedScreens = presentedScreens.mapValues {
                 switch $0 {
-                case .combatantTagsView: return .combatantTagsView(CombatantTagsViewState.nullInstance)
-                case .combatantTagEditView: return .combatantTagEditView(CombatantTagEditViewState.nullInstance)
+                case .combatantTagsView: return .combatantTagsView(CombatantTagsFeature.State.nullInstance)
+                case .combatantTagEditView: return .combatantTagEditView(CombatantTagEditFeature.State.nullInstance)
                 case .creatureEditView: return .creatureEditView(CreatureEditFeature.State.nullInstance)
-                case .combatantResourcesView: return .combatantResourcesView(CombatantResourcesViewState.nullInstance)
+                case .combatantResourcesView: return .combatantResourcesView(CombatantResourcesFeature.State.nullInstance)
                 case .runningEncounterLogView: return .runningEncounterLogView(RunningEncounterLogViewState.nullInstance)
                 case .compendiumItemDetailView: return .compendiumItemDetailView(CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance))
                 case .safariView: return .safariView(.nullInstance)
@@ -145,17 +145,17 @@ struct CombatantDetailFeature: Reducer {
                 case .rollCheck: return .rollCheck(DiceCalculator.State.nullInstance)
                 case .diceAction: return .diceAction(ActionResolutionFeature.State.nullInstance)
                 case .tagDetails: return .tagDetails(CombatantTag.nullInstance)
-                case .addLimitedResource: return .addLimitedResource(CombatantTrackerEditViewState.nullInstance)
+                case .addLimitedResource: return .addLimitedResource(CombatantTrackerEditFeature.State.nullInstance)
                 }
             }
             return res
         }
 
         enum NextScreen: Equatable {
-            case combatantTagsView(CombatantTagsViewState)
-            case combatantTagEditView(CombatantTagEditViewState)
+            case combatantTagsView(CombatantTagsFeature.State)
+            case combatantTagEditView(CombatantTagEditFeature.State)
             case creatureEditView(CreatureEditFeature.State)
-            case combatantResourcesView(CombatantResourcesViewState)
+            case combatantResourcesView(CombatantResourcesFeature.State)
             case runningEncounterLogView(RunningEncounterLogViewState)
             case compendiumItemDetailView(CompendiumEntryDetailFeature.State)
             case safariView(SafariViewState)
@@ -167,7 +167,7 @@ struct CombatantDetailFeature: Reducer {
             case rollCheck(DiceCalculator.State)
             case diceAction(ActionResolutionFeature.State)
             case tagDetails(CombatantTag)
-            case addLimitedResource(CombatantTrackerEditViewState)
+            case addLimitedResource(CombatantTrackerEditFeature.State)
         }
     }
 
@@ -176,7 +176,7 @@ struct CombatantDetailFeature: Reducer {
         case combatant(CombatantAction)
         case popover(State.Popover?)
         case alert(AlertState<Self>?)
-        case addLimitedResource(CombatantTrackerEditViewAction)
+        case addLimitedResource(CombatantTrackerEditFeature.Action)
         case healthDialog(HealthDialogFeature.Action)
         case rollCheckDialog(DiceCalculator.Action)
         case diceActionPopover(ActionResolutionFeature.Action)
@@ -208,10 +208,10 @@ struct CombatantDetailFeature: Reducer {
         }
 
         enum NextScreenAction: Equatable {
-            case combatantTagsView(CombatantTagsViewAction)
-            case combatantTagEditView(CombatantTagEditViewAction)
+            case combatantTagsView(CombatantTagsFeature.Action)
+            case combatantTagEditView(CombatantTagEditFeature.Action)
             case creatureEditView(CreatureEditFeature.Action)
-            case combatantResourcesView(CombatantResourcesViewAction)
+            case combatantResourcesView(CombatantResourcesFeature.Action)
             case runningEncounterLogView
             case compendiumItemDetailView(CompendiumEntryDetailFeature.Action)
             case safariView
@@ -331,7 +331,7 @@ struct CombatantDetailFeature: Reducer {
             return .none
         }
         .ifLet(\.presentedNextCombatantTagEditView, action: /Action.nextScreen..Action.NextScreenAction.combatantTagEditView) {
-            Reduce(CombatantTagEditViewState.reducer, environment: environment)
+            CombatantTagEditFeature(environment: environment)
         }
         .ifLet(\.rollCheckDialogState, action: /Action.rollCheckDialog) {
             DiceCalculator(environment: environment)
@@ -346,16 +346,16 @@ struct CombatantDetailFeature: Reducer {
             CompendiumEntryDetailFeature(environment: environment)
         }
         .ifLet(\.presentedNextCombatantTagsView, action: /Action.nextScreen..Action.NextScreenAction.combatantTagsView) {
-            Reduce(CombatantTagsViewState.reducer, environment: environment)
+            CombatantTagsFeature(environment: environment)
         }
         .ifLet(\.presentedNextCombatantResourcesView, action: /Action.nextScreen..Action.NextScreenAction.combatantResourcesView) {
-            Reduce(CombatantResourcesViewState.reducer, environment: environment)
+            CombatantResourcesFeature(environment: environment)
         }
         .ifLet(\.presentedNextCreatureEditView, action: /Action.nextScreen..Action.NextScreenAction.creatureEditView) {
             CreatureEditFeature()
         }
         .ifLet(\.addLimitedResourceState, action: /Action.addLimitedResource) {
-            Reduce(CombatantTrackerEditViewState.reducer, environment: environment)
+            CombatantTrackerEditFeature(environment: environment)
         }
         .ifLet(\.healthDialogState, action: /Action.healthDialog) {
             HealthDialogFeature(environment: environment)
@@ -395,7 +395,7 @@ extension CompendiumItemReferenceTextAnnotation {
                         case .column:
                             state[keyPath: requestItem] = ReferenceViewItemRequest(
                                 id: UUID().tagged(),
-                                state: ReferenceItemViewState(content: .compendiumItem(detailState)),
+                                state: ReferenceItem.State(content: .compendiumItem(detailState)),
                                 oneOff: true
                             )
                         case .tab: return .send(internalAction.embed(detailState))
@@ -407,7 +407,7 @@ extension CompendiumItemReferenceTextAnnotation {
                     case .column:
                         state[keyPath: requestItem] = ReferenceViewItemRequest(
                             id: UUID().tagged(),
-                            state: ReferenceItemViewState(content: .safari(externalState)),
+                            state: ReferenceItem.State(content: .safari(externalState)),
                             oneOff: true
                         )
                     case .tab: return .send(externalAction.embed(externalState))

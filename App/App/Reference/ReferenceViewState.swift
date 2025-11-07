@@ -11,126 +11,145 @@ import ComposableArchitecture
 import Helpers
 import GameModels
 
-struct ReferenceViewState: Equatable {
+struct ReferenceViewFeature: Reducer {
 
-    var encounterReferenceContext: EncounterReferenceContext? {
-        didSet {
-            for item in items {
-                items[id: item.id]?.state.content.context.encounterDetailView = encounterReferenceContext
-            }
-        }
-    }
+    let environment: Environment
 
-    var items: IdentifiedArray<TabbedDocumentViewContentItem.Id, Item>
-    var selectedItemId: TabbedDocumentViewContentItem.Id?
+    struct State: Equatable {
 
-    private(set) var itemRequests: [ReferenceViewItemRequest] = []
-
-    init(items: IdentifiedArray<TabbedDocumentViewContentItem.Id, Item>) {
-        self.items = items
-        self.selectedItemId = items.first?.id
-    }
-
-    var selectedItemNavigationNode: NavigationNode? {
-        get {
-            selectedItemId.flatMap { items[id: $0]?.state.content.navigationNode }
-        }
-        set {
-            guard let newValue = newValue else { return }
-            guard let id = selectedItemId else { return }
-            items[id: id]?.state.content.navigationNode = newValue
-        }
-    }
-
-    mutating func updateRequests(itemRequests: [ReferenceViewItemRequest]) {
-        var lastNewItem: TabbedDocumentViewContentItem.Id?
-
-        var unmatchedItemRequests = self.itemRequests
-        for req in itemRequests {
-            let existingItem = items[id: req.id]
-            let existingRequest = unmatchedItemRequests.first { $0.id == req.id }
-            unmatchedItemRequests.removeAll(where: { $0.id == req.id })
-            if !req.oneOff, existingItem != nil {
-                let previousRequest = self.itemRequests.first(where: { $0.id == req.id })
-
-                if previousRequest?.stateGeneration != req.stateGeneration {
-                    items[id: req.id]?.state = req.state
-                }
-
-                if previousRequest?.focusRequest != req.focusRequest {
-                    selectedItemId = req.id
-                }
-            } else if existingItem == nil && (!req.oneOff || existingRequest == nil) {
-                items.append(Item(id: req.id, state: req.state))
-                lastNewItem = req.id
-            }
-        }
-
-        // remove items that are no longer requested
-        for req in unmatchedItemRequests where !req.oneOff {
-            items.removeAll(where: { $0.id == req.id })
-        }
-
-        if let i = lastNewItem {
-            selectedItemId = i
-        }
-
-        self.itemRequests = itemRequests
-    }
-
-    fileprivate mutating func updateSelectionForRemovalOfCurrentItem() {
-        if let idx = items.firstIndex(where: { $0.id == selectedItemId }) {
-            if idx < items.count - 1 {
-                selectedItemId = items[idx+1].id
-            } else if idx > 0 {
-                selectedItemId = items[idx-1].id
-            } else {
-                selectedItemId = nil
-            }
-        }
-    }
-
-    fileprivate func itemContext(for item: Item) -> ReferenceContext {
-        itemContext(for: item, openCompendiumEntries: openCompendiumEntries())
-    }
-
-    fileprivate func itemContext(for item: Item, openCompendiumEntries: [(TabbedDocumentViewContentItem.Id, CompendiumEntry)]) -> ReferenceContext {
-        ReferenceContext(
-            encounterDetailView: encounterReferenceContext,
-            openCompendiumEntries: openCompendiumEntries.compactMap { (itemId, entry) -> CompendiumEntry? in
-                guard itemId != item.id else { return nil }
-                return entry
-            }
-        )
-    }
-
-    fileprivate func openCompendiumEntries() -> [(TabbedDocumentViewContentItem.Id, CompendiumEntry)] {
-        items
-            .flatMap { item -> [(TabbedDocumentViewContentItem.Id, Any)] in item.state.content.navigationNode.topNavigationItems().map { (item.id, $0) } }
-            .compactMap { (itemId, anyItem) -> (TabbedDocumentViewContentItem.Id, CompendiumEntry)? in
-                switch anyItem {
-                case let item as CompendiumEntryDetailFeature.State:
-                    return (itemId, item.entry)
-                default:
-                    return nil
+        var encounterReferenceContext: EncounterReferenceContext? {
+            didSet {
+                for item in items {
+                    items[id: item.id]?.state.content.context.encounterDetailView = encounterReferenceContext
                 }
             }
-    }
-
-    struct Item: Equatable, Identifiable {
-        let id: TabbedDocumentViewContentItem.Id
-        var title: String
-        var state: ReferenceItemViewState
-
-        init(id: TabbedDocumentViewContentItem.Id = UUID().tagged(), title: String? = nil, state: ReferenceItemViewState) {
-            self.id = id
-            self.title = title ?? state.content.tabItemTitle ?? "Untitled"
-            self.state = state
         }
 
-        static let reducer: AnyReducer<Item, ReferenceItemViewAction, Environment> = AnyReducer.combine(
-            ReferenceItemViewState.reducer.pullback(state: \.state, action: /ReferenceItemViewAction.self),
-            AnyReducer { state, action, env in
+        var items: IdentifiedArray<TabbedDocumentViewContentItem.Id, Item.State>
+        var selectedItemId: TabbedDocumentViewContentItem.Id?
+
+        private(set) var itemRequests: [ReferenceViewItemRequest] = []
+
+        init(items: IdentifiedArray<TabbedDocumentViewContentItem.Id, Item.State>) {
+            self.items = items
+            self.selectedItemId = items.first?.id
+        }
+
+        var selectedItemNavigationNode: NavigationNode? {
+            get {
+                selectedItemId.flatMap { items[id: $0]?.state.content.navigationNode }
+            }
+            set {
+                guard let newValue = newValue else { return }
+                guard let id = selectedItemId else { return }
+                items[id: id]?.state.content.navigationNode = newValue
+            }
+        }
+
+        mutating func updateRequests(itemRequests: [ReferenceViewItemRequest]) {
+            var lastNewItem: TabbedDocumentViewContentItem.Id?
+
+            var unmatchedItemRequests = self.itemRequests
+            for req in itemRequests {
+                let existingItem = items[id: req.id]
+                let existingRequest = unmatchedItemRequests.first { $0.id == req.id }
+                unmatchedItemRequests.removeAll(where: { $0.id == req.id })
+                if !req.oneOff, existingItem != nil {
+                    let previousRequest = self.itemRequests.first(where: { $0.id == req.id })
+
+                    if previousRequest?.stateGeneration != req.stateGeneration {
+                        items[id: req.id]?.state = req.state
+                    }
+
+                    if previousRequest?.focusRequest != req.focusRequest {
+                        selectedItemId = req.id
+                    }
+                } else if existingItem == nil && (!req.oneOff || existingRequest == nil) {
+                    items.append(Item.State(id: req.id, state: req.state))
+                    lastNewItem = req.id
+                }
+            }
+
+            // remove items that are no longer requested
+            for req in unmatchedItemRequests where !req.oneOff {
+                items.removeAll(where: { $0.id == req.id })
+            }
+
+            if let i = lastNewItem {
+                selectedItemId = i
+            }
+
+            self.itemRequests = itemRequests
+        }
+
+        fileprivate mutating func updateSelectionForRemovalOfCurrentItem() {
+            if let idx = items.firstIndex(where: { $0.id == selectedItemId }) {
+                if idx < items.count - 1 {
+                    selectedItemId = items[idx+1].id
+                } else if idx > 0 {
+                    selectedItemId = items[idx-1].id
+                } else {
+                    selectedItemId = nil
+                }
+            }
+        }
+
+        fileprivate func itemContext(for item: Item.State) -> ReferenceContext {
+            itemContext(for: item, openCompendiumEntries: openCompendiumEntries())
+        }
+
+        fileprivate func itemContext(for item: Item.State, openCompendiumEntries: [(TabbedDocumentViewContentItem.Id, CompendiumEntry)]) -> ReferenceContext {
+            ReferenceContext(
+                encounterDetailView: encounterReferenceContext,
+                openCompendiumEntries: openCompendiumEntries.compactMap { (itemId, entry) -> CompendiumEntry? in
+                    guard itemId != item.id else { return nil }
+                    return entry
+                }
+            )
+        }
+
+        fileprivate func openCompendiumEntries() -> [(TabbedDocumentViewContentItem.Id, CompendiumEntry)] {
+            items
+                .flatMap { item -> [(TabbedDocumentViewContentItem.Id, Any)] in item.state.content.navigationNode.topNavigationItems().map { (item.id, $0) } }
+                .compactMap { (itemId, anyItem) -> (TabbedDocumentViewContentItem.Id, CompendiumEntry)? in
+                    switch anyItem {
+                    case let item as CompendiumEntryDetailFeature.State:
+                        return (itemId, item.entry)
+                    default:
+                        return nil
+                    }
+                }
+        }
+    }
+
+    enum Action: Equatable {
+        case item(TabbedDocumentViewContentItem.Id, ReferenceItem.Action)
+        case onBackTapped
+        case onNewTabTapped
+        case removeTab(TabbedDocumentViewContentItem.Id)
+        case moveTab(Int, Int)
+        case selectItem(TabbedDocumentViewContentItem.Id?)
+
+        case itemRequests([ReferenceViewItemRequest])
+    }
+
+    struct Item: Reducer {
+        typealias Action = ReferenceItem.Action
+
+        struct State: Equatable, Identifiable {
+            let id: TabbedDocumentViewContentItem.Id
+            var title: String
+            var state: ReferenceItem.State
+
+            init(id: TabbedDocumentViewContentItem.Id = UUID().tagged(), title: String? = nil, state: ReferenceItem.State) {
+                self.id = id
+                self.title = title ?? state.content.tabItemTitle ?? "Untitled"
+                self.state = state
+            }
+        }
+
+        var body: some ReducerOf<Self> {
+            Reduce { state, action in
                 switch action {
                 case .contentCombatantDetail, .contentCompendium, .contentAddCombatant, .contentCompendiumItem, .contentSafari, .onBackTapped, .set:
                     if let title = state.state.content.tabItemTitle {
@@ -140,33 +159,18 @@ struct ReferenceViewState: Equatable {
                 }
                 return .none
             }
-        )
+        }
     }
 
-}
-
-enum ReferenceViewAction: Equatable {
-    case item(TabbedDocumentViewContentItem.Id, ReferenceItemViewAction)
-    case onBackTapped
-    case onNewTabTapped
-    case removeTab(TabbedDocumentViewContentItem.Id)
-    case moveTab(Int, Int)
-    case selectItem(TabbedDocumentViewContentItem.Id?)
-
-    case itemRequests([ReferenceViewItemRequest])
-}
-
-extension ReferenceViewState {
-    static let reducer: AnyReducer<Self, ReferenceViewAction, Environment> = AnyReducer.combine(
-        ReferenceViewState.Item.reducer.forEach(state: \.items, action: /ReferenceViewAction.item, environment: { $0 }),
-        AnyReducer { state, action, env in
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
             switch action {
             case .onBackTapped:
                 if let id = state.selectedItemId {
-                    return .init(value: .item(id, .onBackTapped))
+                    return .send(.item(id, .onBackTapped))
                 }
             case .onNewTabTapped:
-                var item = Item(state: ReferenceItemViewState(content: .compendium(ReferenceItemViewState.Content.Compendium())))
+                var item = Item.State(state: ReferenceItem.State(content: .compendium(ReferenceItem.State.Content.Compendium())))
                 item.state.content.context = state.itemContext(for: item)
                 state.items.append(item)
                 state.selectedItemId = item.id
@@ -194,8 +198,12 @@ extension ReferenceViewState {
             case .item: break // handled above
             }
             return .none
-        },
-        AnyReducer { state, action, env in
+        }
+        .forEach(\.items, action: /Action.item) {
+            Item()
+        }
+
+        Reduce { state, action in
             switch action {
             // actions that can affect the open compendium entries
             case .item, .onBackTapped, .removeTab, .itemRequests:
@@ -212,31 +220,32 @@ extension ReferenceViewState {
 
             return .none
         }
-    )
+    }
+
 }
 
-extension ReferenceViewState: NavigationStackItemState {
+extension ReferenceViewFeature.State: NavigationStackItemState {
     var navigationStackItemStateId: String { return "ReferenceViewState" }
     var navigationTitle: String {
         return "Reference"
     }
 }
 
-extension ReferenceViewState {
-    static let nullInstance = ReferenceViewState(items: [])
+extension ReferenceViewFeature.State {
+    static let nullInstance = Self(items: [])
 
-    static let defaultInstance = ReferenceViewState(items: [.init(state: defaultItemState)])
-    private static let defaultItemState = ReferenceItemViewState(content: .compendium(ReferenceItemViewState.Content.Compendium()))
+    static let defaultInstance = Self(items: [.init(state: defaultItemState)])
+    private static let defaultItemState = ReferenceItem.State(content: .compendium(ReferenceItem.State.Content.Compendium()))
 
     //Is this correct?
-    var localStateForDeduplication: (TabbedDocumentViewContentItem.Id?, [Item]) {
+    var localStateForDeduplication: (TabbedDocumentViewContentItem.Id?, [ReferenceViewFeature.Item.State]) {
         (selectedItemId, items.map { item in
             if item.id == selectedItemId {
                 var res = item
-                res.state = ReferenceItemViewState.nullInstance
+                res.state = ReferenceItem.State.nullInstance
                 return res
             } else {
-                return Item(id: item.id, title: "", state: ReferenceItemViewState.nullInstance)
+                return ReferenceViewFeature.Item.State(id: item.id, title: "", state: ReferenceItem.State.nullInstance)
             }
         })
     }

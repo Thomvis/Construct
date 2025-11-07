@@ -17,10 +17,10 @@ import GameModels
 struct CombatantTagsView: View {
     @SwiftUI.Environment(\.sheetPresentationMode) var sheetPresentationMode: SheetPresentationMode?
 
-    var store: Store<CombatantTagsViewState, CombatantTagsViewAction>
-    @ObservedObject var viewStore: ViewStore<CombatantTagsViewState, CombatantTagsViewAction>
+    var store: Store<CombatantTagsFeature.State, CombatantTagsFeature.Action>
+    @ObservedObject var viewStore: ViewStore<CombatantTagsFeature.State, CombatantTagsFeature.Action>
 
-    init(store: Store<CombatantTagsViewState, CombatantTagsViewAction>) {
+    init(store: Store<CombatantTagsFeature.State, CombatantTagsFeature.Action>) {
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
     }
@@ -34,7 +34,7 @@ struct CombatantTagsView: View {
                         Section(header: Text(section.title)) {
                             ForEach(section.tagGroups, id: \.tag.id) { group in
                                 NavigationRowButton(action: {
-                                    self.viewStore.send(.setNextScreen(CombatantTagEditViewState(mode: .edit, tag: group.tag, effectContext: self.viewStore.state.effectContext)))
+                                    self.viewStore.send(.setNextScreen(CombatantTagEditFeature.State(mode: .edit, tag: group.tag, effectContext: self.viewStore.state.effectContext)))
                                 }) {
                                     HStack {
                                         Text(group.tag.title)
@@ -42,7 +42,7 @@ struct CombatantTagsView: View {
                                         Spacer()
 
                                         SimpleAccentedButton(action: {
-                                            self.viewStore.send(.removeTag(CombatantTagsViewState.TagId(group.tag), section), animation: .default)
+                                            self.viewStore.send(.removeTag(CombatantTagsFeature.State.TagId(group.tag), section), animation: .default)
                                         }) {
                                             Image(systemName: "minus.circle").font(Font.title.weight(.light))
                                                 .foregroundColor(Color.white)
@@ -52,7 +52,7 @@ struct CombatantTagsView: View {
                                 }
                             }.onDelete { indices in
                                 for idx in indices {
-                                    self.viewStore.send(.removeTag(CombatantTagsViewState.TagId(section.tagGroups[idx].tag), section))
+                                    self.viewStore.send(.removeTag(CombatantTagsFeature.State.TagId(section.tagGroups[idx].tag), section))
                                 }
                             }
                         }
@@ -71,7 +71,7 @@ struct CombatantTagsView: View {
                                 ForEach(CombatantTagDefinition.all(in: category), id: \.name) { definition in
                                     NavigationRowButton(action: {
                                         let tag = CombatantTag(id: UUID().tagged(), definition: definition, note: nil, sourceCombatantId: self.viewStore.state.effectContext?.source?.id)
-                                        self.viewStore.send(.setNextScreen(CombatantTagEditViewState(mode: .create, tag: tag, effectContext: self.viewStore.state.effectContext)))
+                                        self.viewStore.send(.setNextScreen(CombatantTagEditFeature.State(mode: .create, tag: tag, effectContext: self.viewStore.state.effectContext)))
                                     }) {
                                         HStack {
                                             Text(definition.name)
@@ -84,7 +84,7 @@ struct CombatantTagsView: View {
                                                         if !groups.isEmpty {
                                                             SimpleAccentedButton(action: {
                                                                 if let group = groups.first, let section = section { // will be true because !group.isEmpty
-                                                                    self.viewStore.send(.removeTag(CombatantTagsViewState.TagId(group.tag), section), animation: .default)
+                                                                    self.viewStore.send(.removeTag(CombatantTagsFeature.State.TagId(group.tag), section), animation: .default)
                                                                 }
                                                             }) {
                                                                 Image(systemName: "minus.circle")

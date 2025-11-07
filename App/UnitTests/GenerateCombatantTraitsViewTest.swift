@@ -21,7 +21,7 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
     func testErrorReporting() async {
         let env = TestEnvironment()
         let store = TestStore(
-            initialState: GenerateCombatantTraitsViewState(
+            initialState: GenerateCombatantTraitsFeature.State(
                 encounter: Encounter(
                     name: "Test",
                     combatants: [
@@ -33,10 +33,10 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
                         ))
                     ]
                 )
-            ),
-            reducer: GenerateCombatantTraitsViewState.reducer,
-            environment: env
-        )
+            )
+        ) {
+            GenerateCombatantTraitsFeature(environment: env)
+        }
 
         let error = MechMuseError.interpretationFailed(text: "A", error: "B")
         env.describeCombatantsResult = AsyncThrowingStream { throw error }

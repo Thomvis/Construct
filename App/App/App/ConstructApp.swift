@@ -112,24 +112,27 @@ struct ConstructView: View {
     @SwiftUI.Environment(\.scenePhase) var scenePhase
 
     let env: Environment
-    let store: Store<AppState, AppState.Action>
+    let store: StoreOf<AppFeature>
 
     init(env: Environment) {
-        let state = AppState(
+        let state = AppFeature.State(
             navigation: nil
         )
 
         self.env = env
         self.store = Store(
-            initialState: state,
-            reducer: env.database.keyValueStore.entityChangeObserver(initialState: state, reducer: AppState.reducer),
-            environment: env
-        )
+            initialState: state
+        ) {
+            env.database.keyValueStore.entityChangeObserver(
+                initialState: state,
+                reducer: AppFeature(environment: env)
+            )
+        }
 
         setUpCrashReporter()
     }
 
-    init(env: Environment, store: Store<AppState, AppState.Action>) {
+    init(env: Environment, store: StoreOf<AppFeature>) {
         self.env = env
         self.store = store
 
@@ -213,8 +216,8 @@ struct ConstructView: View {
     }
 }
 
-extension AppState {
-    var crashReportingPermissionAlert: AlertState<AppState.Action>? {
+extension AppFeature.State {
+    var crashReportingPermissionAlert: AlertState<AppFeature.Action>? {
         guard presentation == .crashReportingPermissionAlert else { return nil }
         return AlertState(
             title: .init("Construct quit unexpectedly."),

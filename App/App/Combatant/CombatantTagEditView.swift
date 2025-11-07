@@ -17,10 +17,10 @@ struct CombatantTagEditView: View {
     @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    var store: Store<CombatantTagEditViewState, CombatantTagEditViewAction>
-    @ObservedObject var viewStore: ViewStore<CombatantTagEditViewState, CombatantTagEditViewAction>
+    var store: Store<CombatantTagEditFeature.State, CombatantTagEditFeature.Action>
+    @ObservedObject var viewStore: ViewStore<CombatantTagEditFeature.State, CombatantTagEditFeature.Action>
 
-    init(store: Store<CombatantTagEditViewState, CombatantTagEditViewAction>) {
+    init(store: Store<CombatantTagEditFeature.State, CombatantTagEditFeature.Action>) {
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
     }
@@ -103,7 +103,7 @@ struct CombatantTagEditView: View {
 
                     if let effectContext = self.viewStore.state.effectContext {
                         SimpleAccentedButton(action: {
-                            self.viewStore.send(.popover(.effectDuration(CombatantTagEditViewState.EffectDurationPopover(
+                            self.viewStore.send(.popover(.effectDuration(CombatantTagEditFeature.State.EffectDurationPopover(
                                 duration: self.tag.duration,
                                 context: effectContext
                             ))))

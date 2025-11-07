@@ -169,7 +169,7 @@ struct CombatantDetailView: View {
                     SectionContainer(
                         title: "Tags",
                         accessory: Button(action: {
-                            let state = CombatantTagsViewState(combatants: [self.combatant], effectContext: self.viewStore.state.runningEncounter.map {
+                            let state = CombatantTagsFeature.State(combatants: [self.combatant], effectContext: self.viewStore.state.runningEncounter.map {
                                 EffectContext(
                                     source: nil,
                                     targets: [self.viewStore.state.combatant],
@@ -188,7 +188,7 @@ struct CombatantDetailView: View {
                         SectionContainer(
                             title: "Limited resources",
                             accessory: Button(action: {
-                                let state = CombatantResourcesViewState(combatant: self.combatant)
+                                let state = CombatantResourcesFeature.State(combatant: self.combatant)
                                 viewStore.send(.setNextScreen(.combatantResourcesView(state)))
                             }, label: {
                                 Text("Manage")
@@ -230,7 +230,7 @@ struct CombatantDetailView: View {
                     SectionContainer(title: "Edit") {
                         VStack(alignment: .leading) {
                             Button(action: {
-                                self.viewStore.send(.popover(.addLimitedResource(CombatantTrackerEditViewState(resource: CombatantResource(id: UUID().tagged(), title: "", slots: [false])))))
+                                self.viewStore.send(.popover(.addLimitedResource(CombatantTrackerEditFeature.State(resource: CombatantResource(id: UUID().tagged(), title: "", slots: [false])))))
                             }) {
                                 Text("Add limited resource")
                             }
@@ -435,10 +435,10 @@ struct CombatantDetailView: View {
             case .tagDetails(let tag):
                 return CombatantTagPopover(running: self.viewStore.state.runningEncounter, combatant: self.combatant, tag: tag, onEditTap: {
                     self.viewStore.send(.popover(nil))
-                    self.viewStore.send(.setNextScreen(.combatantTagEditView(CombatantTagEditViewState(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.combatant], running: $0) }))))
+                    self.viewStore.send(.setNextScreen(.combatantTagEditView(CombatantTagEditFeature.State(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.combatant], running: $0) }))))
                 }).eraseToAnyView
             case .addLimitedResource:
-                return IfLetStore(self.store.scope(state: { state -> CombatantTrackerEditViewState? in
+                return IfLetStore(self.store.scope(state: { state -> CombatantTrackerEditFeature.State? in
                     guard case .addLimitedResource(let s)? = state.popover else { return nil }
                     return s
                 }, action: { .addLimitedResource($0) })) { store in

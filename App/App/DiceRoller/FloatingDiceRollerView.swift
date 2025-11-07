@@ -19,14 +19,14 @@ struct FloatingDiceRollerContainerView: View {
     static let innerPanelPadding: CGFloat = 12.0
     static let panelToolbarVerticalPadding: CGFloat = 6.0
 
-    let store: Store<FloatingDiceRollerViewState, FloatingDiceRollerViewAction>
-    @ObservedObject var viewStore: ViewStore<FloatingDiceRollerViewState, FloatingDiceRollerViewAction>
+    let store: Store<FloatingDiceRollerFeature.State, FloatingDiceRollerFeature.Action>
+    @ObservedObject var viewStore: ViewStore<FloatingDiceRollerFeature.State, FloatingDiceRollerFeature.Action>
 
     @State var alignment: SwiftUI.Alignment = .bottomTrailing
 
     @State var dragOffset: CGSize = .zero
 
-    init(store: Store<FloatingDiceRollerViewState, FloatingDiceRollerViewAction>) {
+    init(store: Store<FloatingDiceRollerFeature.State, FloatingDiceRollerFeature.Action>) {
         self.store = store
         self.viewStore = ViewStore(store, removeDuplicates: {
             ($0.hidden, $0.canCollapse, $0.content, $0.diceLog.entries.isEmpty) ==

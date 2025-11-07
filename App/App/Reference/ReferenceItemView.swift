@@ -15,7 +15,7 @@ private var AssociatedObjectHandle: UInt8 = 0
 struct ReferenceItemView: View {
     @SwiftUI.Environment(\.openURL) private var openURL
 
-    let store: Store<ReferenceItemViewState, ReferenceItemViewAction>
+    let store: StoreOf<ReferenceItem>
 
     var body: some View {
         // TODO: not all content should be presented in a NavigationView
@@ -53,7 +53,7 @@ struct ReferenceItemView: View {
     }
 
     struct CombatantDetailView: View {
-        let store: Store<ReferenceItemViewState.Content.CombatantDetail, ReferenceItemViewAction.CombatantDetail>
+        let store: Store<ReferenceItem.State.Content.CombatantDetail, ReferenceItem.Action.CombatantDetail>
 
         var body: some View {
             WithViewStore(store, observe: \.self) { viewStore in
