@@ -340,7 +340,7 @@ struct CompendiumImportFeature: ReducerProtocol {
             var isValid: Bool {
                 document != nil &&
                 (document != .new || !newDocumentName.isEmpty) &&
-                (realm != .new || !newRealmName.isEmpty) &&
+                (realmForExistingDocument != nil || realm != .new || !newRealmName.isEmpty) &&
                 (document != .new || existingDocumentMatchingNewSlug == nil) &&
                 (realm != .new || realmForExistingDocument != nil || existingRealmMatchingNewSlug == nil) &&
                 effectiveDataSourceReader != nil
