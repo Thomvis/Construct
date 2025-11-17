@@ -639,7 +639,7 @@ extension CreatureEditView {
                             }
 
                             Menu {
-                                ForEach(0...viewStore.state.maximumAbilityScore) { i in
+                                ForEach(0...viewStore.state.maximumAbilityScore, id: \.self) { i in
                                     Button(modifierFormatter.stringWithFallback(for: i)) {
                                         var model = viewStore.model
                                         setProficiency(&model.statBlock, .custom(Modifier(modifier: i)), proficiency.stat)
