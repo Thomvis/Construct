@@ -176,7 +176,7 @@ struct CombatantDetailView: View {
                                     running: $0
                                 )
                             })
-                            viewStore.send(.setNextScreen(.combatantTagsView(state)))
+                            viewStore.send(.setDestination(.combatantTagsView(state)))
                         }, label: {
                             Text("Manage")
                         })
@@ -189,7 +189,7 @@ struct CombatantDetailView: View {
                             title: "Limited resources",
                             accessory: Button(action: {
                                 let state = CombatantResourcesFeature.State(combatant: self.combatant)
-                                viewStore.send(.setNextScreen(.combatantResourcesView(state)))
+                                viewStore.send(.setDestination(.combatantResourcesView(state)))
                             }, label: {
                                 Text("Manage")
                             })
@@ -267,7 +267,7 @@ struct CombatantDetailView: View {
                                         guard let def = self.combatant.definition as? AdHocCombatantDefinition else { return CreatureEditFeature.State(create: .monster) }
                                         return CreatureEditFeature.State(edit: def)
                                     }()
-                                    viewStore.send(.setNextScreen(.creatureEditView(state)))
+                                    viewStore.send(.setDestination(.creatureEditView(state)))
                                 } label: {
                                     Text("Edit combatant")
                                 }
@@ -292,8 +292,8 @@ struct CombatantDetailView: View {
                 })
                 // Placing this (and .popover) inside the scrollview to work around https://github.com/stleamist/BetterSafariView/issues/23
                 .safariView(
-                    item: viewStore.binding(get: { $0.presentedNextSafariView }, send: { _ in .setNextScreen(nil) }),
-                    onDismiss: { viewStore.send(.setNextScreen(nil)) },
+                    item: viewStore.binding(get: \.safari, send: CombatantDetailFeature.Action.setSafari),
+                    onDismiss: { viewStore.send(.setSafari(nil)) },
                     content: { state in
                         BetterSafariView.SafariView(
                             url: state.url
@@ -319,42 +319,48 @@ struct CombatantDetailView: View {
             }
         })
         // END
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CombatantDetailFeature.State.NextScreen.combatantTagEditView,
-            action: /CombatantDetailFeature.Action.NextScreenAction.combatantTagEditView,
-            destination: CombatantTagEditView.init
-        )
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CombatantDetailFeature.State.NextScreen.compendiumItemDetailView,
-            action: /CombatantDetailFeature.Action.NextScreenAction.compendiumItemDetailView,
-            destination: CompendiumEntryDetailView.init
-        )
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CombatantDetailFeature.State.NextScreen.combatantTagsView,
-            action: /CombatantDetailFeature.Action.NextScreenAction.combatantTagsView,
-            destination: CombatantTagsView.init
-        )
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CombatantDetailFeature.State.NextScreen.combatantResourcesView,
-            action: /CombatantDetailFeature.Action.NextScreenAction.combatantResourcesView,
-            destination: CombatantResourcesView.init
-        )
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CombatantDetailFeature.State.NextScreen.creatureEditView,
-            action: /CombatantDetailFeature.Action.NextScreenAction.creatureEditView,
-            destination: CreatureEditView.init
-        )
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CombatantDetailFeature.State.NextScreen.runningEncounterLogView,
-            action: /CombatantDetailFeature.Action.NextScreenAction.runningEncounterLogView,
-            destination: RunningEncounterLogView.init
-        )
+        .navigationDestination(
+            store: store.scope(state: \.$destination, action: { .destination($0) }),
+            state: /CombatantDetailFeature.Destination.State.combatantTagEditView,
+            action: CombatantDetailFeature.Destination.Action.combatantTagEditView
+        ) { store in
+            CombatantTagEditView(store: store)
+        }
+        .navigationDestination(
+            store: store.scope(state: \.$destination, action: { .destination($0) }),
+            state: /CombatantDetailFeature.Destination.State.compendiumItemDetailView,
+            action: CombatantDetailFeature.Destination.Action.compendiumItemDetailView
+        ) { store in
+            CompendiumEntryDetailView(store: store)
+        }
+        .navigationDestination(
+            store: store.scope(state: \.$destination, action: { .destination($0) }),
+            state: /CombatantDetailFeature.Destination.State.combatantTagsView,
+            action: CombatantDetailFeature.Destination.Action.combatantTagsView
+        ) { store in
+            CombatantTagsView(store: store)
+        }
+        .navigationDestination(
+            store: store.scope(state: \.$destination, action: { .destination($0) }),
+            state: /CombatantDetailFeature.Destination.State.combatantResourcesView,
+            action: CombatantDetailFeature.Destination.Action.combatantResourcesView
+        ) { store in
+            CombatantResourcesView(store: store)
+        }
+        .navigationDestination(
+            store: store.scope(state: \.$destination, action: { .destination($0) }),
+            state: /CombatantDetailFeature.Destination.State.creatureEditView,
+            action: CombatantDetailFeature.Destination.Action.creatureEditView
+        ) { store in
+            CreatureEditView(store: store)
+        }
+        .navigationDestination(
+            store: store.scope(state: \.$destination, action: { .destination($0) }),
+            state: /CombatantDetailFeature.Destination.State.runningEncounterLogView,
+            action: CombatantDetailFeature.Destination.Action.runningEncounterLogView
+        ) { store in
+            RunningEncounterLogView(store: store)
+        }
     }
 
     func contentView(for combatant: Combatant) -> some View {
@@ -394,7 +400,7 @@ struct CombatantDetailView: View {
             if !log.isEmpty {
                 SectionContainer(title: "Latest", accessory: Button {
                     let state = RunningEncounterLogViewState(encounter: running, context: self.viewStore.state.combatant)
-                    viewStore.send(.setNextScreen(.runningEncounterLogView(state)))
+                    viewStore.send(.setDestination(.runningEncounterLogView(state)))
                 } label: {
                     Text("View all (\(log.count))")
                 }) {
@@ -435,7 +441,7 @@ struct CombatantDetailView: View {
             case .tagDetails(let tag):
                 return CombatantTagPopover(running: self.viewStore.state.runningEncounter, combatant: self.combatant, tag: tag, onEditTap: {
                     self.viewStore.send(.popover(nil))
-                    self.viewStore.send(.setNextScreen(.combatantTagEditView(CombatantTagEditFeature.State(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.combatant], running: $0) }))))
+                    self.viewStore.send(.setDestination(.combatantTagEditView(CombatantTagEditFeature.State(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.combatant], running: $0) }))))
                 }).eraseToAnyView
             case .addLimitedResource:
                 return IfLetStore(self.store.scope(state: { state -> CombatantTrackerEditFeature.State? in

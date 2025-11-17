@@ -282,13 +282,13 @@ struct AppFeature: Reducer {
                         building: e,
                         isMechMuseEnabled: environment.preferences().mechMuse.enabled
                     )
-                    return .send(.tab(.campaignBrowser(.setNextScreen(.encounter(detailState)))))
+                    return .send(.tab(.campaignBrowser(.setDestination(.encounter(detailState)))))
                 case (.column, .openEncounter(let e)):
                     let detailState = EncounterDetailFeature.State(
                         building: e,
                         isMechMuseEnabled: environment.preferences().mechMuse.enabled
                     )
-                    return .send(.column(.campaignBrowse(.setNextScreen(.encounter(detailState)))))
+                    return .send(.column(.campaignBrowse(.setDestination(.encounter(detailState)))))
                 default:
                     break
                 }
@@ -397,8 +397,8 @@ extension ColumnNavigationFeature.State {
             selectedTab: selectedTab,
             campaignBrowser: campaignBrowse,
             compendium: apply(def.compendium) {
-                if activeCompendiumReferenceItemTab != nil {
-                    $0.presentedNextCompendiumIndex = activeCompendiumReferenceItemTab
+                if let activeCompendiumReferenceItemTab {
+                    $0.destination = .compendiumIndex(activeCompendiumReferenceItemTab)
                 }
             },
             diceRoller: apply(def.diceRoller) {

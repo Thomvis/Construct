@@ -57,7 +57,7 @@ struct CompendiumRootFeature: Reducer {
                         await send(.query(.onTextDidChange(nil)))
                         await send(.results(.result(.reload(.all))))
                         await send(.scrollTo(entry.key))
-                        await send(.setNextScreen(nil))
+                        await send(.setDestination(nil))
                     } catch { }
                 }
             }
@@ -71,10 +71,9 @@ struct CompendiumRootFeature: Reducer {
 extension CompendiumIndexFeature.Action {
     var onSaveMonsterAsNPCButtonMonster: Monster? {
         switch self {
-        case .nextScreen(.compendiumEntry(CompendiumEntryDetailFeature.Action.onSaveMonsterAsNPCButton(let m))),
-             .detailScreen(.compendiumEntry(CompendiumEntryDetailFeature.Action.onSaveMonsterAsNPCButton(let m))):
+        case .destination(.presented(.itemDetail(.onSaveMonsterAsNPCButton(let m)))):
             return m
-        case .nextScreen(.compendiumIndex(let a)), .detailScreen(.compendiumIndex(let a)):
+        case .destination(.presented(.compendiumIndex(let a))):
             return a.onSaveMonsterAsNPCButtonMonster
         default:
             return nil

@@ -130,21 +130,8 @@ extension AddCombatantFeature.State {
     }
 }
 
-extension AddCombatantFeature.State: NavigationNode {
-    var nodeId: String {
-        "AddCombatantState"
-    }
-
-    func topNavigationItems() -> [Any] {
-        compendiumState.topNavigationItems()
-    }
-
-    func navigationStackSize() -> Int {
-        compendiumState.navigationStackSize()
-    }
-
-    mutating func popLastNavigationStackItem() {
-        compendiumState.popLastNavigationStackItem()
+extension AddCombatantFeature.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        compendiumState.navigationNodes
     }
 }
-

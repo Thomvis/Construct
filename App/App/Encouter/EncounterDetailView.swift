@@ -309,7 +309,12 @@ struct EncounterDetailView: View {
                 CombatantDetailContainerView(store: store).environmentObject(self.environment)
             }.eraseToAnyView
         case .runningEncounterLog:
-            return IfLetStore(store.scope(state: replayNonNil({ $0.runningEncounterLogState }), action: { fatalError() })) { store in
+            return IfLetStore(
+                store.scope(
+                    state: replayNonNil({ $0.runningEncounterLogState }),
+                    action: { (_: RunningEncounterLogViewAction) in fatalError("RunningEncounterLogViewAction should never be sent") }
+                )
+            ) { store in
                 SheetNavigationContainer {
                     RunningEncounterLogView(store: store).environmentObject(self.environment)
                 }

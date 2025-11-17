@@ -10,7 +10,6 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 import Combine
-import ComposableArchitecture
 import Helpers
 import DiceRollerFeature
 import GameModels
@@ -23,17 +22,29 @@ typealias CompendiumEntryDetailEnvironment = EnvironmentWithDatabase & Environme
     & EnvironmentWithCrashReporter & (EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase) & ActionResolutionEnvironment
 
 struct CompendiumEntryDetailFeature: Reducer {
-    struct State: NavigationStackSourceState, Equatable {
+    struct State: Equatable {
 
         var entry: CompendiumEntry
         var popover: Popover?
         var sheet: Sheet?
-
-        var presentedScreens: [NavigationDestination: NextScreen] = [:]
+        @PresentationState var destination: Destination.State?
+        var safari: SafariViewState?
         var itemRequest: ReferenceViewItemRequest?
 
-        init(entry: CompendiumEntry) {
+        init(
+            entry: CompendiumEntry,
+            popover: Popover? = nil,
+            sheet: Sheet? = nil,
+            destination: Destination.State? = nil,
+            safari: SafariViewState? = nil,
+            itemRequest: ReferenceViewItemRequest? = nil
+        ) {
             self.entry = entry
+            self.popover = popover
+            self.sheet = sheet
+            self._destination = PresentationState(wrappedValue: destination)
+            self.safari = safari
+            self.itemRequest = itemRequest
         }
 
         var item: CompendiumItem {
@@ -48,7 +59,7 @@ struct CompendiumEntryDetailFeature: Reducer {
             return nil
         }
 
-        var navigationStackItemStateId: String { entry.item.compendiumItemDetailViewStateId }
+        var navigationStackItemStateId: String { item.compendiumItemDetailViewStateId }
 
         var navigationTitle: String { item.title }
         var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
@@ -83,7 +94,7 @@ struct CompendiumEntryDetailFeature: Reducer {
 
         var creatureEditSheet: CreatureEditFeature.State? {
             get {
-                if case .creatureEdit(let s) = sheet {
+                if case .creatureEdit(let s)? = sheet {
                     return s
                 }
                 return nil
@@ -97,7 +108,7 @@ struct CompendiumEntryDetailFeature: Reducer {
 
         var groupEditSheet: CompendiumItemGroupEditFeature.State? {
             get {
-                if case .groupEdit(let s) = sheet {
+                if case .groupEdit(let s)? = sheet {
                     return s
                 }
                 return nil
@@ -111,7 +122,7 @@ struct CompendiumEntryDetailFeature: Reducer {
 
         var transferSheet: CompendiumItemTransferFeature.State? {
             get {
-                if case .transfer(let s) = sheet {
+                if case .transfer(let s)? = sheet {
                     return s
                 }
                 return nil
@@ -138,13 +149,13 @@ struct CompendiumEntryDetailFeature: Reducer {
                 case .transfer: return .transfer(.nullInstance)
                 }
             }
-            res.presentedScreens = presentedScreens.mapValues {
-                switch $0 {
-                case .compendiumItemDetailView: return .compendiumItemDetailView(CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance))
-                case .safariView: return .safariView(.nullInstance)
-                }
+            if let destination {
+                res.destination = destination.nullInstance
             }
-            return self
+            if safari != nil {
+                res.safari = .nullInstance
+            }
+            return res
         }
 
         enum Popover: Equatable, Identifiable {
@@ -173,13 +184,14 @@ struct CompendiumEntryDetailFeature: Reducer {
             }
         }
 
-        enum NextScreen: Equatable {
-            case compendiumItemDetailView(CompendiumEntryDetailFeature.State)
-            case safariView(SafariViewState)
+        enum SheetAction: Equatable {
+            case creatureEdit(CreatureEditFeature.Action)
+            case groupEdit(CompendiumItemGroupEditFeature.Action)
+            case transfer(CompendiumItemTransferFeature.Action)
         }
     }
 
-    enum Action: NavigationStackSourceAction, Equatable {
+    enum Action: Equatable {
         case onAppear
         case entry(CompendiumEntry)
         case onSaveMonsterAsNPCButton(Monster)
@@ -188,38 +200,29 @@ struct CompendiumEntryDetailFeature: Reducer {
         case creatureActionPopover(ActionResolutionFeature.Action)
         case rollCheckPopover(DiceCalculator.Action)
         case setSheet(State.Sheet?)
-        case sheet(SheetAction)
+        case sheet(State.SheetAction)
         case didRemoveItem
         case didAddCopy
+        case setDestination(Destination.State?)
+        case destination(PresentationAction<Destination.Action>)
+        case setSafari(SafariViewState?)
+    }
 
-        case setNextScreen(State.NextScreen?)
-        case nextScreen(NextScreenAction)
-        case setDetailScreen(State.NextScreen?)
-        case detailScreen(NextScreenAction)
+    struct Destination: Reducer {
+        let environment: CompendiumEntryDetailEnvironment
 
-        static func presentScreen(_ destination: NavigationDestination, _ screen: State.NextScreen?) -> Self {
-            switch destination {
-            case .nextInStack: return .setNextScreen(screen)
-            case .detail: return .setDetailScreen(screen)
+        indirect enum State: Equatable {
+            case compendiumItemDetailView(CompendiumEntryDetailFeature.State)
+        }
+
+        enum Action: Equatable {
+            case compendiumItemDetailView(CompendiumEntryDetailFeature.Action)
+        }
+
+        var body: some ReducerOf<Self> {
+            Scope(state: /State.compendiumItemDetailView, action: /Action.compendiumItemDetailView) {
+                CompendiumEntryDetailFeature(environment: environment)
             }
-        }
-
-        static func presentedScreen(_ destination: NavigationDestination, _ action: NextScreenAction) -> Self {
-            switch destination {
-            case .nextInStack: return .nextScreen(action)
-            case .detail: return .detailScreen(action)
-            }
-        }
-
-        enum SheetAction: Equatable {
-            case creatureEdit(CreatureEditFeature.Action)
-            case groupEdit(CompendiumItemGroupEditFeature.Action)
-            case transfer(CompendiumItemTransferFeature.Action)
-        }
-
-        enum NextScreenAction: Equatable {
-            indirect case compendiumItemDetailView(CompendiumEntryDetailFeature.Action)
-            case safariView
         }
     }
 
@@ -235,7 +238,6 @@ struct CompendiumEntryDetailFeature: Reducer {
             case .onAppear:
                 if let group = state.entry.item as? CompendiumItemGroup {
                     let entry = state.entry
-                    // refresh group members
                     return .run { [group, entry] send in
                         do {
                             let characters = try group.members.compactMap { member -> Character? in
@@ -258,30 +260,29 @@ struct CompendiumEntryDetailFeature: Reducer {
                         }
                     }
                 }
-            case .entry(let e): state.entry = e
+            case .entry(let e):
+                state.entry = e
             case .onSaveMonsterAsNPCButton: break // handled by the compendium container
             case .didTapCompendiumItemReferenceTextAnnotation: break // handled below
-            case .popover(let p): state.popover = p
-            case .creatureActionPopover: break // handled by a reducer below
-            case .rollCheckPopover: break // handled by a reducer below
-            case .setSheet(let s): state.sheet = s
+            case .popover(let p):
+                state.popover = p
+            case .creatureActionPopover, .rollCheckPopover: break // handled below
+            case .setSheet(let s):
+                state.sheet = s
             case .sheet(.creatureEdit(CreatureEditFeature.Action.didEdit(let result))):
                 if case let .compendium(entry) = result {
                     state.entry = entry
-                    return .send(.setSheet(nil))
                 }
                 return .send(.setSheet(nil))
             case .sheet(.creatureEdit(CreatureEditFeature.Action.didAdd(let result))):
-                // A copy was edited and added
                 if case let .compendium(entry) = result {
                     return .merge(
                         .send(.didAddCopy),
-                        .send(.setNextScreen(.compendiumItemDetailView(.init(entry: entry)))),
+                        .send(.setDestination(.compendiumItemDetailView(.init(entry: entry)))),
                         .send(.setSheet(nil))
                     )
-                } else {
-                    return .send(.setSheet(nil))
                 }
+                return .send(.setSheet(nil))
             case .sheet(.creatureEdit(CreatureEditFeature.Action.onRemoveTap)):
                 let entryKey = state.entry.key
                 return .run { send in
@@ -311,25 +312,32 @@ struct CompendiumEntryDetailFeature: Reducer {
                     // TODO: refresh screen (but how to know the new entry key if it moved realms)
                     await send(.setSheet(nil))
                 }
-            case .sheet: break // handled by the reducers below
-            case .didRemoveItem: break // handled by the compendium index reducer
-            case .didAddCopy: break // handled by the compendium index reducer
-            case .setNextScreen(let s):
-                state.presentedScreens[.nextInStack] = s
-            case .setDetailScreen(let s):
-                state.presentedScreens[.detail] = s
-            case .nextScreen, .detailScreen: break // handled by reducers below
+            case .sheet: break // handled by reducers below
+            case .didRemoveItem, .didAddCopy:
+                break
+            case .setDestination(let destination):
+                state.destination = destination
+            case .destination(.presented(.compendiumItemDetailView(.didRemoveItem))):
+                return .send(.didRemoveItem)
+            case .destination(.presented(.compendiumItemDetailView(.didAddCopy))):
+                return .send(.didAddCopy)
+            case .destination(.dismiss):
+                state.destination = nil
+            case .destination:
+                break
+            case .setSafari(let safari):
+                state.safari = safari
             }
             return .none
         }
-        .ifLet(\.creatureEditSheet, action: /Action.sheet..Action.SheetAction.creatureEdit) {
+        .ifLet(\.creatureEditSheet, action: /Action.sheet..State.SheetAction.creatureEdit) {
             CreatureEditFeature()
         }
-        .ifLet(\.groupEditSheet, action: /Action.sheet..Action.SheetAction.groupEdit) {
+        .ifLet(\.groupEditSheet, action: /Action.sheet..State.SheetAction.groupEdit) {
             CompendiumItemGroupEditFeature()
                 .dependency(\.compendium, environment.compendium)
         }
-        .ifLet(\.transferSheet, action: /Action.sheet..Action.SheetAction.transfer) {
+        .ifLet(\.transferSheet, action: /Action.sheet..State.SheetAction.transfer) {
             CompendiumItemTransferFeature()
                 .dependency(\.compendiumMetadata, environment.compendiumMetadata)
         }
@@ -339,21 +347,51 @@ struct CompendiumEntryDetailFeature: Reducer {
         .ifLet(\.rollCheckPopover, action: /Action.rollCheckPopover) {
             DiceCalculator(environment: environment)
         }
-        .ifLet(\.presentedNextCompendiumItemDetailView, action: /Action.nextScreen..Action.NextScreenAction.compendiumItemDetailView) {
-            CompendiumEntryDetailFeature(environment: environment)
+        .ifLet(\.$destination, action: /Action.destination) {
+            Destination(environment: environment)
         }
 
         CompendiumItemReferenceTextAnnotation.handleTapReducer(
             didTapAction: /Action.didTapCompendiumItemReferenceTextAnnotation,
             requestItem: \.itemRequest,
-            internalAction: /Action.setNextScreen..State.NextScreen.compendiumItemDetailView,
-            externalAction: /Action.setNextScreen..State.NextScreen.safariView,
+            internalAction: { .setDestination(.compendiumItemDetailView($0)) },
+            externalAction: { .setSafari($0) },
             environment: environment
         )
     }
 }
 
+extension CompendiumEntryDetailFeature.State {
+    static let nullInstance = CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance)
+}
+
+extension CompendiumEntryDetailFeature.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        guard let destination else { return [self] }
+        return [self] + destination.navigationNodes
+    }
+}
+
+extension CompendiumEntryDetailFeature.Destination.State {
+    var nullInstance: CompendiumEntryDetailFeature.Destination.State {
+        switch self {
+        case .compendiumItemDetailView:
+            return .compendiumItemDetailView(.nullInstance)
+        }
+    }
+}
+
+extension CompendiumEntryDetailFeature.Destination.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        switch self {
+        case .compendiumItemDetailView(let state):
+            return state.navigationNodes
+        }
+    }
+}
+
+extension CompendiumEntryDetailFeature.State: NavigationStackItemState {}
+
 extension CompendiumItem {
     var compendiumItemDetailViewStateId: String { key.keyString }
 }
-

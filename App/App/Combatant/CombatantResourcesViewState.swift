@@ -62,3 +62,4 @@ struct CombatantResourcesFeature: Reducer {
     }
 }
 
+extension CombatantResourcesFeature.State: NavigationTreeNode {}

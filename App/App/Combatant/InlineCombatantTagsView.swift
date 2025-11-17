@@ -26,7 +26,7 @@ struct InlineCombatantTagsView: View {
                         if tag.hasLongNote || tag.duration != nil {
                             self.viewStore.send(.popover(.tagDetails(tag)))
                         } else {
-                            self.viewStore.send(.setNextScreen(.combatantTagEditView(CombatantTagEditFeature.State(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.viewStore.state.combatant], running: $0) }))))
+                            self.viewStore.send(.setDestination(.combatantTagEditView(CombatantTagEditFeature.State(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.viewStore.state.combatant], running: $0) }))))
                         }
                     }, onRemoveTap: {
                         self.viewStore.send(.combatant(.removeTag(tag)), animation: .default)

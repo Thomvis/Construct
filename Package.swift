@@ -36,7 +36,6 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.5.0"),
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.8.0"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "0.0.4"),
-        .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.12.0"),
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.14.0"),
@@ -126,7 +125,6 @@ let package = Package(
                 .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Tagged", package: "swift-tagged"),
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-                .product(name: "SwiftUINavigation", package: "swiftui-navigation")
             ]
         ),
         .testTarget(

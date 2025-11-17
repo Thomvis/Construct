@@ -205,6 +205,8 @@ struct CompendiumItemGroupEditFeature: Reducer {
     }
 }
 
+extension CompendiumItemGroupEditFeature.State: NavigationTreeNode {}
+
 extension CompendiumItemGroupEditFeature.State: NavigationStackItemState {
     var navigationStackItemStateId: String { "CompendiumItemGroupEditView:\(group.id)" }
     var navigationTitle: String {

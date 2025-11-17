@@ -25,8 +25,8 @@ struct ColumnNavigationFeature: Reducer {
         var topNavigationItems: [Any] {
             var res = campaignBrowse.topNavigationItems()
 
-            if let ref = referenceView.selectedItemNavigationNode?.topNavigationItems() {
-                res.append(ref)
+            if let ref = referenceView.selectedItemNavigationNodes {
+                res.append(contentsOf: ref)
             }
             
             return res
@@ -95,4 +95,3 @@ struct ColumnNavigationFeature: Reducer {
         }
     }
 }
-

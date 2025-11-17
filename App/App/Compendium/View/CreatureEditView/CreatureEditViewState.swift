@@ -412,6 +412,8 @@ struct CreatureEditFeature: Reducer {
     }
 }
 
+extension CreatureEditFeature.State: NavigationTreeNode {}
+
 struct CreatureEditFormModel: Equatable {
     var statBlock: StatBlockFormModel
 

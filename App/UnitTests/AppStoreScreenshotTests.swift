@@ -536,7 +536,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                         let filters = CompendiumFilters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4))
                                                         await store.send(.query(.onFiltersDidChange(filters))).finish()
                                                         let entry = ViewStore(store, observe: \.self).state.results.entries!.first!
-                                                        store.send(.setNextScreen(.itemDetail(CompendiumEntryDetailFeature.State(entry: entry))))
+                                                        store.send(.setDestination(.itemDetail(CompendiumEntryDetailFeature.State(entry: entry))))
                                                         state = ViewStore(store, observe: \.self).state
                                                     },
                                                     encounter: encounter

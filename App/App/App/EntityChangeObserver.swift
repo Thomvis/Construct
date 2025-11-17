@@ -31,17 +31,18 @@ extension TabNavigationFeature.State: HavingEntities {
 
 extension ColumnNavigationFeature.State: HavingEntities {
     var entities: [any KeyValueStoreEntity] {
-        return (campaignBrowse.nextScreen?.entities ?? [])
+        return campaignBrowse.entities
     }
 }
 
 extension CampaignBrowseViewFeature.State: HavingEntities {
     var entities: [any KeyValueStoreEntity] {
-        return (nextScreen?.entities ?? []) + (detailScreen?.entities ?? [])
+        guard let destination else { return [] }
+        return destination.entities
     }
 }
 
-extension CampaignBrowseViewFeature.State.NextScreen: HavingEntities {
+extension CampaignBrowseViewFeature.Destination.State: HavingEntities {
     var entities: [any KeyValueStoreEntity] {
         switch self {
         case .campaignBrowse(let state): return state.entities

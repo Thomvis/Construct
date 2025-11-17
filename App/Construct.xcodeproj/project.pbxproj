@@ -123,7 +123,6 @@
 		E991F89425449E48006CE8E8 /* ReferenceItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89325449E48006CE8E8 /* ReferenceItemView.swift */; };
 		E991F89825449E63006CE8E8 /* ReferenceItemViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */; };
 		E991F89D2545A791006CE8E8 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = E991F89C2545A791006CE8E8 /* Introspect */; };
-		E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */; };
 		E996919A247C40E500A8B1A0 /* CreatureEditViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9238C3223881B4C0023DFC3 /* CreatureEditViewState.swift */; };
 		E996919B247C411300A8B1A0 /* CompendiumEntryDetailViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */; };
 		E996919C247C4C9200A8B1A0 /* CompendiumItemGroupEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978862323C2148B003B2DA2 /* CompendiumItemGroupEditView.swift */; };
@@ -183,7 +182,6 @@
 		E9F6D0232FB73FD100C551A7 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0222FB73FD100C551A7 /* Dependencies */; };
 		E9F6D02A2FB740F500C551A7 /* CombineSchedulers in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0272FB740F500C551A7 /* CombineSchedulers */; };
 		E9F6D02B2FB740F500C551A7 /* CustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0282FB740F500C551A7 /* CustomDump */; };
-		E9F6D02C2FB740F500C551A7 /* SwiftUINavigation in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0292FB740F500C551A7 /* SwiftUINavigation */; };
 		E9F6D0362FB74B2F00C551A7 /* IdentifiedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0342FB74B2F00C551A7 /* IdentifiedCollections */; };
 		E9F6D0372FB74B2F00C551A7 /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0352FB74B2F00C551A7 /* OrderedCollections */; };
 		E9F6D03A2FB7512200C551A7 /* ConcurrencyExtras in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0392FB7512200C551A7 /* ConcurrencyExtras */; };
@@ -326,7 +324,6 @@
 		E991F88F25449DA8006CE8E8 /* ReferenceViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceViewState.swift; sourceTree = "<group>"; };
 		E991F89325449E48006CE8E8 /* ReferenceItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemView.swift; sourceTree = "<group>"; };
 		E991F89725449E63006CE8E8 /* ReferenceItemViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceItemViewState.swift; sourceTree = "<group>"; };
-		E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NavigationNode.generated.swift; sourceTree = "<group>"; };
 		E999896022A6B4F20067BA25 /* Construct.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Construct.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E999896722A6B4F20067BA25 /* ConstructApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructApp.swift; sourceTree = "<group>"; };
 		E999896922A6B4F30067BA25 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -396,7 +393,6 @@
 				E9F6D03A2FB7512200C551A7 /* ConcurrencyExtras in Frameworks */,
 				E9F6D0372FB74B2F00C551A7 /* OrderedCollections in Frameworks */,
 				E9F6D0362FB74B2F00C551A7 /* IdentifiedCollections in Frameworks */,
-				E9F6D02C2FB740F500C551A7 /* SwiftUINavigation in Frameworks */,
 				E9F6D02B2FB740F500C551A7 /* CustomDump in Frameworks */,
 				E9F6D02A2FB740F500C551A7 /* CombineSchedulers in Frameworks */,
 				E9F6D0232FB73FD100C551A7 /* Dependencies in Frameworks */,
@@ -636,7 +632,6 @@
 		E991F8D9254B250B006CE8E8 /* Sourcery */ = {
 			isa = PBXGroup;
 			children = (
-				E991F8E6254F3818006CE8E8 /* NavigationNode.generated.swift */,
 			);
 			path = Sourcery;
 			sourceTree = "<group>";
@@ -844,7 +839,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E999897422A6B4F30067BA25 /* Build configuration list for PBXNativeTarget "Construct" */;
 			buildPhases = (
-				E991F8D8254B22E6006CE8E8 /* Sourcery */,
 				E999895C22A6B4F20067BA25 /* Sources */,
 				E999895D22A6B4F20067BA25 /* Frameworks */,
 				E999895E22A6B4F20067BA25 /* Resources */,
@@ -861,7 +855,6 @@
 				E9F6D0222FB73FD100C551A7 /* Dependencies */,
 				E9F6D0272FB740F500C551A7 /* CombineSchedulers */,
 				E9F6D0282FB740F500C551A7 /* CustomDump */,
-				E9F6D0292FB740F500C551A7 /* SwiftUINavigation */,
 				E9F6D0342FB74B2F00C551A7 /* IdentifiedCollections */,
 				E9F6D0352FB74B2F00C551A7 /* OrderedCollections */,
 				E9F6D0392FB7512200C551A7 /* ConcurrencyExtras */,
@@ -977,7 +970,6 @@
 				E9B3B87328FC8824003764DD /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 				E911C31F2E7897AE0073DE9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				E9C19B222EB4EDE100431231 /* XCRemoteSwiftPackageReference "ViewInspector" */,
-				E9F6D02D2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swiftui-navigation" */,
 				E9F6D02E2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swift-custom-dump" */,
 				E9F6D02F2FB740F500C551A7 /* XCRemoteSwiftPackageReference "combine-schedulers" */,
 				E9F6D0322FB74B2F00C551A7 /* XCRemoteSwiftPackageReference "swift-identified-collections" */,
@@ -1036,28 +1028,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		E991F8D8254B22E6006CE8E8 /* Sourcery */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = Sourcery;
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\n\nif which sourcery >/dev/null; then\n  cd ..\n  sh sourcery-gen.sh\nelse\n  echo \"warning: Sourcery not installed\"\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E999895C22A6B4F20067BA25 /* Sources */ = {
@@ -1134,7 +1104,6 @@
 				E942E01F24800C1700170FAC /* CombatantTagsViewState.swift in Sources */,
 				E996919B247C411300A8B1A0 /* CompendiumEntryDetailViewState.swift in Sources */,
 				E95E25A52EA6895D000B82BF /* StoreManager.swift in Sources */,
-				E991F8E7254F3819006CE8E8 /* NavigationNode.generated.swift in Sources */,
 				E9F1287528E9BA330040C90C /* EncounterFeature.swift in Sources */,
 				E97A4FB1236240EA0044E424 /* Checkbox.swift in Sources */,
 				E9F7EB4D2D7B2D7000A0C19D /* CompendiumDocumentSelectionFeature.swift in Sources */,
@@ -1625,14 +1594,6 @@
 				minimumVersion = 0.10.3;
 			};
 		};
-		E9F6D02D2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swiftui-navigation" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/pointfreeco/swiftui-navigation";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.8.0;
-			};
-		};
 		E9F6D02E2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swift-custom-dump" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-custom-dump";
@@ -1796,11 +1757,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E9F6D02E2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swift-custom-dump" */;
 			productName = CustomDump;
-		};
-		E9F6D0292FB740F500C551A7 /* SwiftUINavigation */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E9F6D02D2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swiftui-navigation" */;
-			productName = SwiftUINavigation;
 		};
 		E9F6D0342FB74B2F00C551A7 /* IdentifiedCollections */ = {
 			isa = XCSwiftPackageProductDependency;

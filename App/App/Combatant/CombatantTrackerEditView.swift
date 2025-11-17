@@ -116,3 +116,4 @@ struct CombatantTrackerEditFeature: Reducer {
     }
 }
 
+extension CombatantTrackerEditFeature.State: NavigationTreeNode {}

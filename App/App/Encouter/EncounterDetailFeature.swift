@@ -530,3 +530,5 @@ extension EncounterDetailFeature.State: NavigationStackItemState {
 extension EncounterDetailFeature.State {
     static let nullInstance = EncounterDetailFeature.State(building: Encounter.nullInstance, isMechMuseEnabled: false)
 }
+
+extension EncounterDetailFeature.State: NavigationTreeNode {}

@@ -34,3 +34,7 @@ extension RunningEncounterLogViewState: NavigationStackItemState {
 extension RunningEncounterLogViewState {
     static let nullInstance = RunningEncounterLogViewState(encounter: RunningEncounter.nullInstance, context: nil)
 }
+
+extension RunningEncounterLogViewState: NavigationTreeNode {}
+
+enum RunningEncounterLogViewAction: Equatable {}

@@ -21,19 +21,23 @@ struct CombatantTagsFeature: Reducer {
         self.environment = environment
     }
 
-    struct State: Equatable, NavigationStackSourceState {
+    struct State: Equatable {
         var combatants: [Combatant]
         var effectContext: EffectContext?
 
-        var presentedScreens: [NavigationDestination: CombatantTagEditFeature.State]
+        @PresentationState var destination: Destination.State?
 
         var navigationTitle: String { "Manage Tags" }
         var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
 
-        init(combatants: [Combatant], effectContext: EffectContext?, presentedScreens: [NavigationDestination: CombatantTagEditFeature.State] = [:]) {
+        init(
+            combatants: [Combatant],
+            effectContext: EffectContext?,
+            destination: Destination.State? = nil
+        ) {
             self.combatants = combatants
             self.effectContext = effectContext
-            self.presentedScreens = presentedScreens
+            self._destination = PresentationState(wrappedValue: destination)
         }
 
         mutating func update(_ combatant: Combatant) {
@@ -76,10 +80,17 @@ struct CombatantTagsFeature: Reducer {
             "\(combatants.map { $0.id.rawValue.uuidString }.joined()):CombatantTagsViewState"
         }
 
-        fileprivate var nextCombatantTagEditViewState: CombatantTagEditFeature.State? {
-            get { nextScreen }
+        var tagEditDestinationState: CombatantTagEditFeature.State? {
+            get {
+                guard case .tagEdit(let state) = destination else { return nil }
+                return state
+            }
             set {
-                nextScreen = newValue
+                if let newValue = newValue {
+                    destination = .tagEdit(newValue)
+                } else if case .tagEdit = destination {
+                    destination = nil
+                }
             }
         }
 
@@ -114,31 +125,28 @@ struct CombatantTagsFeature: Reducer {
         static let nullInstance = State(combatants: [], effectContext: nil)
     }
 
-    enum Action: NavigationStackSourceAction, Equatable {
+    enum Action: Equatable {
         case addTag(CombatantTag)
         case removeTag(State.TagId, State.ActiveSection)
         case combatant(Combatant, CombatantAction) // should be handled by parent
-        case setNextScreen(CombatantTagEditFeature.State?)
-        case nextScreen(CombatantTagEditFeature.Action)
-        case setDetailScreen(CombatantTagEditFeature.State?)
-        case detailScreen(CombatantTagEditFeature.Action)
+        case setDestination(Destination.State?)
+        case destination(PresentationAction<Destination.Action>)
+    }
 
-        var nextCombatantTagEditViewAction: CombatantTagEditFeature.Action? {
-            guard case .nextScreen(let a) = self else { return nil }
-            return a
+    struct Destination: Reducer {
+        let environment: Environment
+
+        enum State: Equatable {
+            case tagEdit(CombatantTagEditFeature.State)
         }
 
-        static func presentScreen(_ destination: NavigationDestination, _ screen: CombatantTagEditFeature.State?) -> Self {
-            switch destination {
-            case .nextInStack: return .setNextScreen(screen)
-            case .detail: return .setDetailScreen(screen)
-            }
+        enum Action: Equatable {
+            case tagEdit(CombatantTagEditFeature.Action)
         }
 
-        static func presentedScreen(_ destination: NavigationDestination, _ action: CombatantTagEditFeature.Action) -> Self {
-            switch destination {
-            case .nextInStack: return .nextScreen(action)
-            case .detail: return .detailScreen(action)
+        var body: some ReducerOf<Self> {
+            Scope(state: /State.tagEdit, action: /Action.tagEdit) {
+                CombatantTagEditFeature(environment: environment)
             }
         }
     }
@@ -167,13 +175,11 @@ struct CombatantTagsFeature: Reducer {
                     }
                 )
             case .combatant: break // should be handled by parent
-            case .setNextScreen(let s):
-                state.presentedScreens[.nextInStack] = s
-            case .setDetailScreen(let s):
-                state.presentedScreens[.detail] = s
-            case .nextScreen(.onDoneTap):
-                let tag = state.nextCombatantTagEditViewState?.tag
-                state.nextScreen = nil
+            case .setDestination(let destination):
+                state.destination = destination
+            case .destination(.presented(.tagEdit(.onDoneTap))):
+                let tag = state.tagEditDestinationState?.tag
+                state.destination = nil
 
                 let combatants = state.combatants
 
@@ -184,13 +190,28 @@ struct CombatantTagsFeature: Reducer {
                         }
                     )
                 }
-            case .nextScreen, .detailScreen: break// handled by next screen
+            case .destination: break
             }
             return .none
         }
-        .ifLet(\.nextCombatantTagEditViewState, action: /Action.nextScreen) {
-            CombatantTagEditFeature(environment: environment)
+        .ifLet(\.$destination, action: /Action.destination) {
+            Destination(environment: environment)
         }
     }
 }
 
+extension CombatantTagsFeature.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        guard let destination else { return [self] }
+        return [self] + destination.navigationNodes
+    }
+}
+
+extension CombatantTagsFeature.Destination.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        switch self {
+        case .tagEdit(let state):
+            return state.navigationNodes
+        }
+    }
+}

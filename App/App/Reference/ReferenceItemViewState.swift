@@ -116,34 +116,30 @@ struct ReferenceItem: Reducer {
                 }
             }
 
-            var navigationNode: NavigationNode {
-                get {
-                    switch self {
-                    case .compendium(let c): return c.compendium
-                    case .combatantDetail(let cd): return cd.detailState
-                    case .addCombatant(let ad): return ad.addCombatantState
-                    case .compendiumItem(let d): return d
-                    case .safari(let s): return s
-                    }
-                }
-                set {
-                    switch newValue {
-                    case let v as CompendiumIndexFeature.State:
-                        self.compendiumState?.compendium = v
-                    case let v as CombatantDetailFeature.State:
-                        self.combatantDetailState?.detailState = v
-                    case let v as AddCombatantFeature.State:
-                        self.addCombatantState?.addCombatantState = v
-                    default:
-                        fatalError("Tried to set unexpected NavigationNode in a reference view item")
-                    }
+            var navigationNodes: [Any] {
+                switch self {
+                case .compendium(let c):
+                    return c.compendium.navigationNodes
+                case .combatantDetail(let cd):
+                    return cd.detailState.navigationNodes
+                case .addCombatant(let ad):
+                    return ad.addCombatantState.navigationNodes
+                case .compendiumItem(let d):
+                    return d.navigationNodes
+                case .safari(let s):
+                    return s.navigationNodes
                 }
             }
 
             var tabItemTitle: String? {
                 switch self {
                 case .compendium(let compendium):
-                    let title = compendium.compendium.presentedNextItemDetail?.navigationTitle
+                    let title: String?
+                    if case .itemDetail(let detailState)? = compendium.compendium.destination {
+                        title = detailState.navigationTitle
+                    } else {
+                        title = nil
+                    }
 
                     return title.map { "\($0) - Compendium" } ?? compendium.compendium.title
                 case .addCombatant(let addCombatant):

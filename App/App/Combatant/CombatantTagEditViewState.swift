@@ -101,3 +101,4 @@ struct CombatantTagEditFeature: Reducer {
     }
 }
 
+extension CombatantTagEditFeature.State: NavigationTreeNode {}

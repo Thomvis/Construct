@@ -189,7 +189,7 @@ struct SettingsView: View {
         }
         .listStyle(InsetGroupedListStyle())
         .sheet(item: sheetDestination, content: sheetView)
-        .navigationDestination(unwrapping: pushDestination, destination: pushView)
+        .navigationDestination(item: pushDestination, destination: pushView)
         .navigationBarTitle("Settings", displayMode: .inline)
         .onAppear {
             if let preferences: Preferences = try? env.database.keyValueStore.get(Preferences.key) {
@@ -277,8 +277,8 @@ struct SettingsView: View {
     }
 
     @ViewBuilder
-    func pushView(destination: Binding<Destination>) -> some View {
-        switch destination.wrappedValue {
+    func pushView(destination: Destination) -> some View {
+        switch destination {
         case .ogl:
             ScrollView {
                 try? Parma(fromResource: "ogl", ofType: "md")?.padding()

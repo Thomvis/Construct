@@ -91,18 +91,20 @@ struct CampaignBrowseView: View {
                 }
             }
         }
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CampaignBrowseViewFeature.State.NextScreen.campaignBrowse,
-            action: /CampaignBrowseViewFeature.Action.NextScreenAction.campaignBrowse,
-            destination: CampaignBrowseView.init
-        )
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CampaignBrowseViewFeature.State.NextScreen.encounter,
-            action: /CampaignBrowseViewFeature.Action.NextScreenAction.encounterDetail,
-            destination: EncounterDetailView.init
-        )
+        .navigationDestination(
+            store: store.scope(state: \.$destination, action: { .destination($0) }),
+            state: /CampaignBrowseViewFeature.Destination.State.campaignBrowse,
+            action: CampaignBrowseViewFeature.Destination.Action.campaignBrowse
+        ) { store in
+            CampaignBrowseView(store: store)
+        }
+        .navigationDestination(
+            store: store.scope(state: \.$destination, action: { .destination($0) }),
+            state: /CampaignBrowseViewFeature.Destination.State.encounter,
+            action: CampaignBrowseViewFeature.Destination.Action.encounterDetail
+        ) { store in
+            EncounterDetailView(store: store)
+        }
         .onAppear {
             self.viewStore.send(.items(.startLoading))
         }
@@ -166,7 +168,7 @@ struct CampaignBrowseView: View {
 
     func navigationLink<Label>(for item: CampaignNode, @ViewBuilder label: @escaping () -> Label) -> some View where Label: View {
         NavigationRowButton {
-            let nextScreen: CampaignBrowseViewFeature.State.NextScreen
+            let nextScreen: CampaignBrowseViewFeature.Destination.State
             if let contents = item.contents {
                 switch contents.type {
                 case .encounter:
@@ -194,7 +196,7 @@ struct CampaignBrowseView: View {
                 nextScreen = .campaignBrowse(CampaignBrowseViewFeature.State(node: item, mode: self.viewStore.state.mode, items: .initial, showSettingsButton: false))
             }
 
-            viewStore.send(.setNextScreen(nextScreen))
+            viewStore.send(.setDestination(nextScreen))
         } label: {
             label()
         }

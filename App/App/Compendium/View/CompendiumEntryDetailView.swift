@@ -99,15 +99,16 @@ struct CompendiumEntryDetailView: View {
         .onAppear {
             viewStore.send(.onAppear)
         }
-        .stateDrivenNavigationLink(
-            store: store,
-            state: /CompendiumEntryDetailFeature.State.NextScreen.compendiumItemDetailView,
-            action: /CompendiumEntryDetailFeature.Action.NextScreenAction.compendiumItemDetailView,
-            destination: CompendiumEntryDetailView.init
-        )
+        .navigationDestination(
+            store: store.scope(state: \.$destination, action: { .destination($0) }),
+            state: /CompendiumEntryDetailFeature.Destination.State.compendiumItemDetailView,
+            action: CompendiumEntryDetailFeature.Destination.Action.compendiumItemDetailView
+        ) { store in
+            CompendiumEntryDetailView(store: store)
+        }
         .safariView(
-            item: viewStore.binding(get: { $0.presentedNextSafariView }, send: { _ in .setNextScreen(nil) }),
-            onDismiss: { viewStore.send(.setNextScreen(nil)) },
+            item: viewStore.binding(get: \.safari, send: CompendiumEntryDetailFeature.Action.setSafari),
+            onDismiss: { viewStore.send(.setSafari(nil)) },
             content: { state in
                 BetterSafariView.SafariView(
                     url: state.url

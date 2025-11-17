@@ -21,7 +21,7 @@ import DiceRollerFeature
 typealias CompendiumIndexEnvironment = EnvironmentWithDatabase & EnvironmentWithCrashReporter & EnvironmentWithUUIDGenerator & EnvironmentWithCompendiumMetadata & CompendiumEntryDetailEnvironment
 
 struct CompendiumIndexFeature: Reducer {
-    struct State: NavigationStackSourceState, Equatable {
+    struct State: Equatable {
 
         typealias MappedResults = Map<Query, PagingData<CompendiumEntry>>
         typealias RetainedMappedResults = Retain<MappedResults, LastResult>
@@ -38,7 +38,8 @@ struct CompendiumIndexFeature: Reducer {
         var isSelecting: Bool = false
         var selectedKeys: Set<CompendiumItemKey> = []
 
-        var presentedScreens: [NavigationDestination: NextScreen]
+        @PresentationState var destination: Destination.State?
+        var safari: SafariViewState?
         @PresentationState var alert: AlertState<Action.Alert>?
         var sheet: Sheet?
 
@@ -46,13 +47,15 @@ struct CompendiumIndexFeature: Reducer {
             title: String,
             properties: State.Properties,
             results: RetainedMappedResults.State,
-            presentedScreens: [NavigationDestination: NextScreen] = [:],
+            destination: Destination.State? = nil,
+            safari: SafariViewState? = nil,
             sheet: Sheet? = nil
         ) {
             self.title = title
             self.properties = properties
             self.results = results
-            self.presentedScreens = presentedScreens
+            self._destination = PresentationState(wrappedValue: destination)
+            self.safari = safari
             self.sheet = sheet
 
             properties.apply(to: &self.results.input.filters)
@@ -63,12 +66,11 @@ struct CompendiumIndexFeature: Reducer {
             res.results.input = Query.State.nullInstance
             res.results.retained?.input = Query.State.nullInstance
 
-            res.presentedScreens = presentedScreens.mapValues {
-                switch $0 {
-                case .compendiumIndex: return .compendiumIndex(State.nullInstance)
-                case .itemDetail: return .itemDetail(CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance))
-                case .safariView: return .safariView(.nullInstance)
-                }
+            if let destination {
+                res.destination = destination.nullInstance
+            }
+            if safari != nil {
+                res.safari = .nullInstance
             }
             res.sheet = sheet.map {
                 switch $0 {
@@ -185,12 +187,6 @@ struct CompendiumIndexFeature: Reducer {
             }
         }
 
-        enum NextScreen: Equatable {
-            indirect case compendiumIndex(CompendiumIndexFeature.State)
-            case itemDetail(CompendiumEntryDetailFeature.State)
-            case safariView(SafariViewState)
-        }
-
         enum Sheet: Equatable, Identifiable {
             // creatureEdit and groupEdit are used when adding a new creature/group
             case creatureEdit(CreatureEditFeature.State)
@@ -211,7 +207,7 @@ struct CompendiumIndexFeature: Reducer {
         }
     }
 
-    enum Action: NavigationStackSourceAction, Equatable {
+    enum Action: Equatable {
 
         typealias ResultsAction = Map<Query, PagingData<CompendiumEntry>>.Action
 
@@ -226,10 +222,9 @@ struct CompendiumIndexFeature: Reducer {
         case clearSelection
         case setSelectedKeys(Set<CompendiumItemKey>)
 
-        case setNextScreen(State.NextScreen?)
-        indirect case nextScreen(NextScreenAction)
-        case setDetailScreen(State.NextScreen?)
-        indirect case detailScreen(NextScreenAction)
+        case setDestination(Destination.State?)
+        case destination(PresentationAction<Destination.Action>)
+        case setSafari(SafariViewState?)
 
         case alert(PresentationAction<Alert>)
 
@@ -243,25 +238,6 @@ struct CompendiumIndexFeature: Reducer {
         case compendiumImportSheet(CompendiumImportFeature.Action)
         case documentsSheet(CompendiumDocumentsFeature.Action)
         case transferSheet(CompendiumItemTransferFeature.Action)
-
-        static func presentScreen(_ destination: NavigationDestination, _ screen: State.NextScreen?) -> Self {
-            switch destination {
-            case .nextInStack: return .setNextScreen(screen)
-            case .detail: return .setDetailScreen(screen)
-            }
-        }
-
-        static func presentedScreen(_ destination: NavigationDestination, _ action: NextScreenAction) -> Self {
-            switch destination {
-            case .nextInStack: return .nextScreen(action)
-            case .detail: return .detailScreen(action)
-            }
-        }
-
-        enum NextScreenAction: Equatable {
-            case compendiumIndex(Action)
-            case compendiumEntry(CompendiumEntryDetailFeature.Action)
-        }
 
         // Key-path support
         var results: ResultsAction? {
@@ -277,6 +253,29 @@ struct CompendiumIndexFeature: Reducer {
 
         static func query(_ a: Query.Action) -> Action {
             return .results(.input(a))
+        }
+    }
+
+    struct Destination: Reducer {
+        let environment: CompendiumIndexEnvironment
+
+        enum State: Equatable {
+            indirect case compendiumIndex(CompendiumIndexFeature.State)
+            case itemDetail(CompendiumEntryDetailFeature.State)
+        }
+
+        enum Action: Equatable {
+            case compendiumIndex(CompendiumIndexFeature.Action)
+            case itemDetail(CompendiumEntryDetailFeature.Action)
+        }
+
+        var body: some ReducerOf<Self> {
+            Scope(state: /State.compendiumIndex, action: /Action.compendiumIndex) {
+                CompendiumIndexFeature(environment: environment)
+            }
+            Scope(state: /State.itemDetail, action: /Action.itemDetail) {
+                CompendiumEntryDetailFeature(environment: environment)
+            }
         }
     }
 
@@ -323,7 +322,7 @@ struct CompendiumIndexFeature: Reducer {
 
                 case .onSearchOnWebButtonTap:
                     let externalCompendium = DndBeyondExternalCompendium()
-                    state.presentedNextSafariView = SafariViewState(
+                    state.safari = SafariViewState(
                         url: externalCompendium.searchPageUrl(
                             for: state.results.input.text ?? "",
                             types: state.results.input.filters?.types
@@ -345,23 +344,21 @@ struct CompendiumIndexFeature: Reducer {
                     } message: {
                         TextState("This action cannot be undone.")
                     }
-                case .setSelecting(let selecting):
-                    state.isSelecting = selecting
-                    if !selecting {
-                        state.selectedKeys.removeAll()
-                    }
-                case .clearSelection:
+            case .setSelecting(let selecting):
+                state.isSelecting = selecting
+                if !selecting {
                     state.selectedKeys.removeAll()
-                case .setSelectedKeys(let keys):
-                    state.selectedKeys = keys
-                case .setNextScreen(let n):
-                    state.presentedScreens[.nextInStack] = n
-                case .setDetailScreen(let s):
-                    state.presentedScreens[.detail] = s
-                case .creatureEditSheet(CreatureEditFeature.Action.didAdd(let result)):
-                    // adding a new creature (handled by CreatureEditView reducer)
-                    if case let .compendium(entry) = result {
-                        return .merge(
+                }
+            case .clearSelection:
+                state.selectedKeys.removeAll()
+            case .setSelectedKeys(let keys):
+                state.selectedKeys = keys
+            case .setDestination(let destination):
+                state.destination = destination
+            case .creatureEditSheet(CreatureEditFeature.Action.didAdd(let result)):
+                // adding a new creature (handled by CreatureEditView reducer)
+                if case let .compendium(entry) = result {
+                    return .merge(
                             .send(.scrollTo(entry.key)),
                             .send(.results(.result(.reload(.all)))),
                             .send(.setSheet(nil))
@@ -383,38 +380,38 @@ struct CompendiumIndexFeature: Reducer {
                         await send(.scrollTo(entry.key))
                         await send(.setSheet(nil))
                     }
-                case .compendiumImportSheet(.importDidFinish(.some)):
-                    return .send(.results(.result(.reload(.currentCount))))
-                case .transferSheet(.onTransferDidSucceed):
-                    return .merge(
-                        .send(.results(.result(.reload(.currentCount)))),
-                        .send(.setSheet(nil))
-                    )
-                case .nextScreen(.compendiumEntry(.didRemoveItem)),
-                     .detailScreen(.compendiumEntry(.didRemoveItem)):
-                    // creature removed
-                    return .run { send in
-                        await send(.setNextScreen(nil))
+            case .compendiumImportSheet(.importDidFinish(.some)):
+                return .send(.results(.result(.reload(.currentCount))))
+            case .transferSheet(.onTransferDidSucceed):
+                return .merge(
+                    .send(.results(.result(.reload(.currentCount)))),
+                    .send(.setSheet(nil))
+                )
+            case .destination(.presented(.itemDetail(.didRemoveItem))):
+                // creature removed
+                return .run { send in
+                    await send(.setDestination(nil))
 
-                        // Work-around: without the delay, `.setNextScreen(nil)` is not picked up
-                        // (probably because .reload makes the NavigationLink disappear)
-                        try await Task.sleep(for: .seconds(0.1))
-                        await send(.results(.result(.reload(.currentCount))))
-                    }
-                case .nextScreen(.compendiumEntry(.didAddCopy)),
-                     .detailScreen(.compendiumEntry(.didAddCopy)):
-                    // creature copied, edited & added
-                    return .send(.results(.result(.reload(.currentCount))))
-                case .nextScreen(.compendiumEntry(.sheet(.creatureEdit(.didEdit)))),
-                     .detailScreen(.compendiumEntry(.sheet(.creatureEdit(.didEdit)))):
-                    // done editing an existing creature
-                    return .send(.results(.result(.reload(.currentCount))))
-                case .nextScreen(.compendiumEntry(.entry)),
-                     .detailScreen(.compendiumEntry(.entry)):
-                    // creature on the detail screen changed
-                    return .send(.results(.result(.reload(.currentCount))))
-                case .nextScreen, .detailScreen:
-                    break
+                    // Work-around: without the delay, `.setDestination(nil)` is not picked up
+                    // (probably because .reload makes the NavigationLink disappear)
+                    try await Task.sleep(for: .seconds(0.1))
+                    await send(.results(.result(.reload(.currentCount))))
+                }
+            case .destination(.presented(.itemDetail(.didAddCopy))):
+                // creature copied, edited & added
+                return .send(.results(.result(.reload(.currentCount))))
+            case .destination(.presented(.itemDetail(.sheet(.creatureEdit(.didEdit))))):
+                // done editing an existing creature
+                return .send(.results(.result(.reload(.currentCount))))
+            case .destination(.presented(.itemDetail(.entry))):
+                // creature on the detail screen changed
+                return .send(.results(.result(.reload(.currentCount))))
+            case .destination(.dismiss):
+                state.destination = nil
+            case .destination:
+                break
+            case .setSafari(let safari):
+                state.safari = safari
                 case .alert(.presented(.onDeleteSelectedConfirmed)):
                     state.alert = nil
                     return .run { [keys=state.selectedKeys] send in
@@ -431,14 +428,8 @@ struct CompendiumIndexFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.presentedNextItemDetail, action: /Action.nextScreen..Action.NextScreenAction.compendiumEntry) {
-            CompendiumEntryDetailFeature(environment: environment)
-        }
-        .ifLet(\.presentedDetailItemDetail, action: /Action.detailScreen..Action.NextScreenAction.compendiumEntry) {
-            CompendiumEntryDetailFeature(environment: environment)
-        }
-        .ifLet(\.presentedNextCompendiumIndex, action: /Action.nextScreen..Action.NextScreenAction.compendiumIndex) {
-            CompendiumIndexFeature(environment: environment)
+        .ifLet(\.$destination, action: /Action.destination) {
+            Destination(environment: environment)
         }
         .ifLet(\.creatureEditSheet, action: /Action.creatureEditSheet) {
             CreatureEditFeature()
@@ -546,8 +537,7 @@ extension CompendiumIndexFeature.State {
     static let nullInstance = CompendiumIndexFeature.State(
         title: "",
         properties: Properties(showImport: false, showAdd: false),
-        results: .initial,
-        presentedScreens: [:]
+        results: .initial
     )
 }
 
@@ -591,6 +581,35 @@ extension CompendiumIndexFeature.State.RetainedMappedResults.State {
             return e
         }
         return nil
+    }
+}
+
+extension CompendiumIndexFeature.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        guard let destination else { return [self] }
+        return [self] + destination.navigationNodes
+    }
+}
+
+extension CompendiumIndexFeature.Destination.State {
+    var nullInstance: CompendiumIndexFeature.Destination.State {
+        switch self {
+        case .compendiumIndex:
+            return .compendiumIndex(CompendiumIndexFeature.State.nullInstance)
+        case .itemDetail:
+            return .itemDetail(CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance))
+        }
+    }
+}
+
+extension CompendiumIndexFeature.Destination.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        switch self {
+        case .compendiumIndex(let state):
+            return state.navigationNodes
+        case .itemDetail(let state):
+            return state.navigationNodes
+        }
     }
 }
 

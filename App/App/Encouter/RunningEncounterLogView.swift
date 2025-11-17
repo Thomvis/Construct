@@ -13,10 +13,10 @@ import ComposableArchitecture
 struct RunningEncounterLogView: View {
     @SwiftUI.Environment(\.sheetPresentationMode) var sheetPresentationMode: SheetPresentationMode?
 
-    var store: Store<RunningEncounterLogViewState, Void>
-    @ObservedObject var viewStore: ViewStore<RunningEncounterLogViewState, Void>
+    var store: Store<RunningEncounterLogViewState, RunningEncounterLogViewAction>
+    @ObservedObject var viewStore: ViewStore<RunningEncounterLogViewState, RunningEncounterLogViewAction>
 
-    init(store: Store<RunningEncounterLogViewState, Void>) {
+    init(store: Store<RunningEncounterLogViewState, RunningEncounterLogViewAction>) {
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
     }

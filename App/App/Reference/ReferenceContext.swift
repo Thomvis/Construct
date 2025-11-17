@@ -40,46 +40,40 @@ enum EncounterReferenceContextAction: Equatable {
 
 extension CampaignBrowseViewFeature.State {
     var referenceContext: EncounterReferenceContext? {
-        if let state = presentedNextCampaignBrowse {
+        guard let destination else { return nil }
+        switch destination {
+        case .campaignBrowse(let state):
             return state.referenceContext
-        } else if let state = presentedNextEncounter {
-            return state.referenceContext
-        } else if let state = presentedDetailEncounter {
+        case .encounter(let state):
             return state.referenceContext
         }
-        return nil
     }
 
     var referenceItemRequests: [ReferenceViewItemRequest] {
-        if let state = presentedNextCampaignBrowse {
+        guard let destination else { return [] }
+        switch destination {
+        case .campaignBrowse(let state):
             return state.referenceItemRequests
-        } else if let state = presentedNextEncounter {
-            return state.referenceItemRequests
-        } else if let state = presentedDetailEncounter {
+        case .encounter(let state):
             return state.referenceItemRequests
         }
-        return []
     }
 
     var toReferenceContextAction: ((EncounterReferenceContextAction) -> CampaignBrowseViewFeature.Action)? {
-        if let state = presentedNextCampaignBrowse {
+        guard let destination else { return nil }
+        switch destination {
+        case .campaignBrowse(let state):
             return { action in
                 if let action = state.toReferenceContextAction?(action) {
-                    return .nextScreen(.campaignBrowse(action))
+                    return .destination(.presented(.campaignBrowse(action)))
                 }
                 fatalError()
             }
-        } else if let state = presentedNextEncounter {
+        case .encounter(let state):
             return { action in
-                .nextScreen(.encounterDetail(state.toReferenceContextAction(action)))
-            }
-        } else if let state = presentedDetailEncounter {
-            return { action in
-                .detailScreen(.encounterDetail(state.toReferenceContextAction(action)))
+                .destination(.presented(.encounterDetail(state.toReferenceContextAction(action))))
             }
         }
-
-        return nil
     }
 }
 
@@ -130,7 +124,13 @@ extension ReferenceItem.State {
 
 extension CompendiumIndexFeature.State {
     var referenceItemRequests: [ReferenceViewItemRequest] {
-        return presentedNextItemDetail?.itemRequest.nonNilArray ??
-            presentedNextCompendiumIndex?.referenceItemRequests ?? []
+        switch destination {
+        case .itemDetail(let detail):
+            return detail.itemRequest.nonNilArray
+        case .compendiumIndex(let state):
+            return state.referenceItemRequests
+        case nil:
+            return []
+        }
     }
 }

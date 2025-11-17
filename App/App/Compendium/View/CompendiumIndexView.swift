@@ -100,7 +100,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     func contentView(_ localViewStore: ViewStore<LocalState, CompendiumIndexFeature.Action>) -> some View {
         switch localViewStore.state.results {
         case .succeededWithoutResults:
-            WithViewStore(store, observe: \.presentedNextSafariView) { safariViewStore in
+            WithViewStore(store, observe: \.safari) { safariViewStore in
                 VStack(spacing: 18) {
                     Text("No results").font(.title)
 
@@ -110,8 +110,8 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .safariView(
-                    item: safariViewStore.binding(get: { $0 }, send: { _ in .setNextScreen(nil) }),
-                    onDismiss: { localViewStore.send(.setNextScreen(nil)) },
+                    item: safariViewStore.binding(get: { $0 }, send: { _ in .setSafari(nil) }),
+                    onDismiss: { localViewStore.send(.setSafari(nil)) },
                     content: { state in
                         BetterSafariView.SafariView(
                             url: state.url
@@ -517,14 +517,13 @@ fileprivate struct CompendiumItemList: View, Equatable {
                 },
                 send: { .setSelecting($0 == .active) }
             ))
-            // Workaround: we use a single NavigationLink instead of one per row because that breaks
-            // programmatic navigation inside the reference view
-            .stateDrivenNavigationLink(
-                store: store,
-                state: /CompendiumIndexFeature.State.NextScreen.itemDetail,
-                action: /CompendiumIndexFeature.Action.NextScreenAction.compendiumEntry,
-                destination: { viewProvider.detail($0) }
-            )
+            .navigationDestination(
+                store: store.scope(state: \.$destination, action: { .destination($0) }),
+                state: /CompendiumIndexFeature.Destination.State.itemDetail,
+                action: CompendiumIndexFeature.Destination.Action.itemDetail
+            ) { destinationStore in
+                viewProvider.detail(destinationStore)
+            }
             .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _, _ in
                 // workaround: this closure is called with `self.entries` still out of date,
                 // that's why we access it from viewStore
@@ -546,7 +545,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
         Section(header: header) {
             ForEach(entries, id: \.item.key) { entry in
                 NavigationRowButton(action: {
-                    viewStore.send(.setNextScreen(.itemDetail(CompendiumEntryDetailFeature.State(entry: entry))))
+                    viewStore.send(.setDestination(.itemDetail(CompendiumEntryDetailFeature.State(entry: entry))))
                 }) {
                     let itemView = viewProvider.row(self.store, entry)
 
@@ -619,8 +618,11 @@ fileprivate struct CompendiumItemList: View, Equatable {
                     ? (state.properties.typeRestriction ?? CompendiumItemType.allCases)
                     : nil
 
-            self.presentedItemDetail = state.presentedNextItemDetail?.navigationStackItemStateId
-                ?? state.presentedDetailItemDetail?.navigationStackItemStateId
+            if case .itemDetail(let detailState)? = state.destination {
+                self.presentedItemDetail = detailState.navigationStackItemStateId
+            } else {
+                self.presentedItemDetail = nil
+            }
             self.isLoadingMoreEntries = state.results.isLoading
 
             self.scrollTo = state.scrollTo

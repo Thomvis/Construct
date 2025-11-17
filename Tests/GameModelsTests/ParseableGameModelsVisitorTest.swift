@@ -37,7 +37,7 @@ final class ParseableGameModelsVisitorTest: XCTestCase {
         let changed = sut.visit(spell: &spell)
         XCTAssertTrue(changed)
 
-        assertSnapshot(matching: spell, as: .dump)
+        assertSnapshot(of: spell, as: .dump)
 
         // visiting again should yield no change and return false
         XCTAssertFalse(sut.visit(spell: &spell))
@@ -83,7 +83,7 @@ final class ParseableGameModelsVisitorTest: XCTestCase {
         let changed = sut.visit(statBlock: &statBlock)
         XCTAssertTrue(changed)
 
-        assertSnapshot(matching: statBlock, as: .dump)
+        assertSnapshot(of: statBlock, as: .dump)
 
         // visiting again should yield no change and return false
         XCTAssertFalse(sut.visit(statBlock: &statBlock))

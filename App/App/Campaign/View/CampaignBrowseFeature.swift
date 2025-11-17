@@ -12,7 +12,7 @@ struct CampaignBrowseViewFeature: Reducer {
         self.environment = environment
     }
 
-    struct State: NavigationStackSourceState, Equatable {
+    struct State: Equatable {
         let node: CampaignNode
         var mode: Mode
 
@@ -23,24 +23,21 @@ struct CampaignBrowseViewFeature: Reducer {
 
         var sheet: Sheet?
 
-        var presentedScreens: [NavigationDestination: NextScreen]
+        @PresentationState var destination: Destination.State?
 
-        init(node: CampaignNode, mode: Mode, items: AsyncItems.State = .initial, showSettingsButton: Bool, sheet: Sheet? = nil, presentedScreens: [NavigationDestination: NextScreen] = [:]) {
+        init(node: CampaignNode, mode: Mode, items: AsyncItems.State = .initial, showSettingsButton: Bool, sheet: Sheet? = nil, destination: Destination.State? = nil) {
             self.node = node
             self.mode = mode
             self.items = items
             self.showSettingsButton = showSettingsButton
             self.sheet = sheet
-            self.presentedScreens = presentedScreens
+            self._destination = PresentationState(wrappedValue: destination)
         }
 
         var localStateForDeduplication: State {
             var res = self
-            res.presentedScreens = presentedScreens.mapValues {
-                switch $0 {
-                case .campaignBrowse: return .campaignBrowse(State.nullInstance)
-                case .encounter: return .encounter(EncounterDetailFeature.State.nullInstance)
-                }
+            if let destination {
+                res.destination = destination.nullInstance
             }
             return res
         }
@@ -69,11 +66,6 @@ struct CampaignBrowseViewFeature: Reducer {
             var name: String
             var contentType: CampaignNode.Contents.ContentType? // non-nil if new non-group node
             var node: CampaignNode? // nil if new node
-        }
-
-        indirect enum NextScreen: Equatable {
-            case campaignBrowse(State)
-            case encounter(EncounterDetailFeature.State)
         }
 
         var navigationBarTitle: String {
@@ -143,7 +135,7 @@ struct CampaignBrowseViewFeature: Reducer {
         static let nullInstance = State(node: CampaignNode.root, mode: .browse, showSettingsButton: false)
     }
 
-    enum Action: NavigationStackSourceAction, Equatable {
+    enum Action: Equatable {
         case items(State.AsyncItems.Action)
         case didTapNodeEditDone(State.NodeEditState, CampaignNode?, String)
         case didTapConfirmMoveButton
@@ -151,10 +143,8 @@ struct CampaignBrowseViewFeature: Reducer {
         case sheet(State.Sheet?)
         case performMove([CampaignNode], CampaignNode)
         indirect case moveSheet(Action)
-        case setNextScreen(State.NextScreen?)
-        indirect case nextScreen(NextScreenAction)
-        case setDetailScreen(State.NextScreen?)
-        indirect case detailScreen(NextScreenAction)
+        case setDestination(Destination.State?)
+        case destination(PresentationAction<Destination.Action>)
 
         // Key-path support
         var items: State.AsyncItems.Action? {
@@ -168,43 +158,33 @@ struct CampaignBrowseViewFeature: Reducer {
             }
         }
 
-        var nextCampaignBrowse: Action? {
-            guard case .nextScreen(.campaignBrowse(let a)) = self else { return nil }
-            return a
-        }
-
-        var nextEncounterDetail: EncounterDetailFeature.Action? {
-            guard case .nextScreen(.encounterDetail(let a)) = self else { return nil }
-            return a
-        }
-
-        var detailEncounterDetail: EncounterDetailFeature.Action? {
-            guard case .detailScreen(.encounterDetail(let a)) = self else { return nil }
-            return a
-        }
-
         var moveSheet: Action? {
             guard case .moveSheet(let a) = self else { return nil }
             return a
         }
 
-        static func presentScreen(_ destination: NavigationDestination, _ screen: State.NextScreen?) -> Self {
-            switch destination {
-            case .nextInStack: return .setNextScreen(screen)
-            case .detail: return .setDetailScreen(screen)
-            }
+    }
+
+    struct Destination: Reducer {
+        let environment: Environment
+
+        enum State: Equatable {
+            case campaignBrowse(CampaignBrowseViewFeature.State)
+            case encounter(EncounterDetailFeature.State)
         }
 
-        static func presentedScreen(_ destination: NavigationDestination, _ action: NextScreenAction) -> Self {
-            switch destination {
-            case .nextInStack: return .nextScreen(action)
-            case .detail: return .detailScreen(action)
-            }
-        }
-
-        enum NextScreenAction: Equatable {
-            case campaignBrowse(Action)
+        enum Action: Equatable {
+            case campaignBrowse(CampaignBrowseViewFeature.Action)
             case encounterDetail(EncounterDetailFeature.Action)
+        }
+
+        var body: some ReducerOf<Self> {
+            Scope(state: /State.campaignBrowse, action: /Action.campaignBrowse) {
+                CampaignBrowseViewFeature(environment: environment)
+            }
+            Scope(state: /State.encounter, action: /Action.encounterDetail) {
+                EncounterDetailFeature(environment: environment)
+            }
         }
     }
 
@@ -238,14 +218,14 @@ struct CampaignBrowseViewFeature: Reducer {
                 break
             case .sheet(let s):
                 state.sheet = s
-            case .setNextScreen(let s):
-                state.presentedScreens[.nextInStack] = s
-            case .setDetailScreen(let s):
-                state.presentedScreens[.detail] = s
-            case .nextScreen(.campaignBrowse(.performMove(let items, let destination))):
+            case .setDestination(let destination):
+                state.destination = destination
+            case .destination(.presented(.campaignBrowse(.performMove(let items, let destination)))):
                 // bubble-up
                 return .send(.performMove(items, destination))
-            case .nextScreen, .detailScreen:
+            case .destination(.dismiss):
+                state.destination = nil
+            case .destination:
                 break
             case .didTapNodeEditDone(_, let node?, let title):
                 // edit
@@ -322,14 +302,8 @@ struct CampaignBrowseViewFeature: Reducer {
                 }
             }
         }
-        .ifLet(\.presentedNextCampaignBrowse, action: /Action.nextScreen..Action.NextScreenAction.campaignBrowse) {
-            CampaignBrowseViewFeature(environment: environment)
-        }
-        .ifLet(\.presentedNextEncounter, action: /Action.nextScreen..Action.NextScreenAction.encounterDetail) {
-            EncounterDetailFeature(environment: environment)
-        }
-        .ifLet(\.presentedDetailEncounter, action: /Action.detailScreen..Action.NextScreenAction.encounterDetail) {
-            EncounterDetailFeature(environment: environment)
+        .ifLet(\.$destination, action: /Action.destination) {
+            Destination(environment: environment)
         }
         .ifLet(\.moveSheetState, action: /Action.moveSheet) {
             CampaignBrowseViewFeature(environment: environment)
@@ -347,4 +321,33 @@ extension CampaignBrowseViewFeature.State: NavigationStackItemState {
 
 extension CampaignBrowseViewFeature.State.NodeEditState {
     static let nullInstance = CampaignBrowseViewFeature.State.NodeEditState(name: "")
+}
+
+extension CampaignBrowseViewFeature.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        guard let destination else { return [self] }
+        return [self] + destination.navigationNodes
+    }
+}
+
+extension CampaignBrowseViewFeature.Destination.State {
+    var nullInstance: CampaignBrowseViewFeature.Destination.State {
+        switch self {
+        case .campaignBrowse:
+            return .campaignBrowse(CampaignBrowseViewFeature.State.nullInstance)
+        case .encounter:
+            return .encounter(EncounterDetailFeature.State.nullInstance)
+        }
+    }
+}
+
+extension CampaignBrowseViewFeature.Destination.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        switch self {
+        case .campaignBrowse(let state):
+            return state.navigationNodes
+        case .encounter(let state):
+            return state.navigationNodes
+        }
+    }
 }

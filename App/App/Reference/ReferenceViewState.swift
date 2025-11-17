@@ -35,15 +35,9 @@ struct ReferenceViewFeature: Reducer {
             self.selectedItemId = items.first?.id
         }
 
-        var selectedItemNavigationNode: NavigationNode? {
-            get {
-                selectedItemId.flatMap { items[id: $0]?.state.content.navigationNode }
-            }
-            set {
-                guard let newValue = newValue else { return }
-                guard let id = selectedItemId else { return }
-                items[id: id]?.state.content.navigationNode = newValue
-            }
+        var selectedItemNavigationNodes: [Any]? {
+            guard let id = selectedItemId else { return nil }
+            return items[id: id]?.state.content.navigationNodes
         }
 
         mutating func updateRequests(itemRequests: [ReferenceViewItemRequest]) {
@@ -110,7 +104,9 @@ struct ReferenceViewFeature: Reducer {
 
         fileprivate func openCompendiumEntries() -> [(TabbedDocumentViewContentItem.Id, CompendiumEntry)] {
             items
-                .flatMap { item -> [(TabbedDocumentViewContentItem.Id, Any)] in item.state.content.navigationNode.topNavigationItems().map { (item.id, $0) } }
+                .flatMap { item -> [(TabbedDocumentViewContentItem.Id, Any)] in
+                    item.state.content.navigationNodes.map { (item.id, $0) }
+                }
                 .compactMap { (itemId, anyItem) -> (TabbedDocumentViewContentItem.Id, CompendiumEntry)? in
                     switch anyItem {
                     case let item as CompendiumEntryDetailFeature.State:
@@ -230,6 +226,8 @@ extension ReferenceViewFeature.State: NavigationStackItemState {
         return "Reference"
     }
 }
+
+extension ReferenceViewFeature.State: NavigationTreeNode {}
 
 extension ReferenceViewFeature.State {
     static let nullInstance = Self(items: [])

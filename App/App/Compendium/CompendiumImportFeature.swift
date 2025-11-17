@@ -1351,3 +1351,5 @@ struct CompendiumImportPreview: PreviewProvider {
     }
 }
 #endif
+
+extension CompendiumImportFeature.State: NavigationTreeNode {}

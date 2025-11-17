@@ -34,7 +34,7 @@ struct CombatantTagsView: View {
                         Section(header: Text(section.title)) {
                             ForEach(section.tagGroups, id: \.tag.id) { group in
                                 NavigationRowButton(action: {
-                                    self.viewStore.send(.setNextScreen(CombatantTagEditFeature.State(mode: .edit, tag: group.tag, effectContext: self.viewStore.state.effectContext)))
+                                                                self.viewStore.send(.setDestination(.tagEdit(CombatantTagEditFeature.State(mode: .edit, tag: group.tag, effectContext: self.viewStore.state.effectContext))))
                                 }) {
                                     HStack {
                                         Text(group.tag.title)
@@ -71,7 +71,7 @@ struct CombatantTagsView: View {
                                 ForEach(CombatantTagDefinition.all(in: category), id: \.name) { definition in
                                     NavigationRowButton(action: {
                                         let tag = CombatantTag(id: UUID().tagged(), definition: definition, note: nil, sourceCombatantId: self.viewStore.state.effectContext?.source?.id)
-                                        self.viewStore.send(.setNextScreen(CombatantTagEditFeature.State(mode: .create, tag: tag, effectContext: self.viewStore.state.effectContext)))
+                                                                self.viewStore.send(.setDestination(.tagEdit(CombatantTagEditFeature.State(mode: .create, tag: tag, effectContext: self.viewStore.state.effectContext))))
                                     }) {
                                         HStack {
                                             Text(definition.name)
@@ -112,7 +112,13 @@ struct CombatantTagsView: View {
                 }
             }
         }
-        .stateDrivenNavigationLink(store: store, state: CasePath.`self`, action: CasePath.`self`, destination: CombatantTagEditView.init)
+        .navigationDestination(
+            store: store.scope(state: \.$destination, action: { .destination($0) }),
+            state: /CombatantTagsFeature.Destination.State.tagEdit,
+            action: CombatantTagsFeature.Destination.Action.tagEdit
+        ) { store in
+            CombatantTagEditView(store: store)
+        }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
         .navigationBarItems(trailing: Group {
             if self.sheetPresentationMode != nil {
