@@ -26,12 +26,17 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.58.0"),
+        .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "0.6.0"),
+        .package(url: "https://github.com/pointfreeco/combine-schedulers", from: "0.11.0"),
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.11.2"),
+        .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "0.7.1"),
+        .package(url: "https://github.com/apple/swift-collections", from: "1.0.4"),
+        .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "0.1.2"),
         .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
         .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.5.0"),
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.29.3"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.8.0"),
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "0.0.4"),
         .package(url: "https://github.com/pointfreeco/swiftui-navigation", from: "0.4.2"),
-        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.11.2"),
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.12.0"),
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.14.0"),
@@ -106,12 +111,19 @@ let package = Package(
             dependencies: [
                 "GameModels",
                 "TestSupport",
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")
             ]
         ),
         .target(
             name: "Helpers",
             dependencies: [
+                .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "CombineSchedulers", package: "combine-schedulers"),
+                .product(name: "CustomDump", package: "swift-custom-dump"),
+                .product(name: "IdentifiedCollections", package: "swift-identified-collections"),
+                .product(name: "OrderedCollections", package: "swift-collections"),
+                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
                 .product(name: "Tagged", package: "swift-tagged"),
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 .product(name: "SwiftUINavigation", package: "swiftui-navigation")
@@ -121,6 +133,8 @@ let package = Package(
             name: "HelpersTests",
             dependencies: [
                 "Helpers",
+                "TestSupport",
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 .product(name: "Clocks", package: "swift-clocks"),
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
             ]
@@ -163,6 +177,10 @@ let package = Package(
         ),
         .target(
             name: "TestSupport",
+            dependencies: [
+                .product(name: "Dependencies", package: "swift-dependencies"),
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            ],
             resources: [
                 .copy("Resources/initial.sqlite")
             ]

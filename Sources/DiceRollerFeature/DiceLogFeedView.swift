@@ -75,7 +75,7 @@ public struct DiceLogFeedView: View {
                         Color.clear.frame(height: 15).id("bottom") // for the bottom gradient (FIXME)
                     }
                 }
-                .onChange(of: entries.last) { _ in
+                .onChange(of: entries.last) {
                     DispatchQueue.main.async {
                         withAnimation(.spring()) {
                             if entries.last == nil {

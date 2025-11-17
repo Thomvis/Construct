@@ -3,10 +3,11 @@ import GameModels
 import XCTest
 import TestSupport
 import Helpers
+import ComposableArchitecture
 
 /// Shared fixtures for visitor tests
 struct VisitorTestFixtures {
-    let uuidGenerator = UUID.fakeGenerator()
+    let uuidGenerator = UUIDGenerator.fake()
 
     let realm: CompendiumRealm
     let document: CompendiumSourceDocument

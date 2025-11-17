@@ -18,6 +18,7 @@
 		E911C3272E789EF50073DE9C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E911C3262E789EF50073DE9C /* GoogleService-Info.plist */; };
 		E9121E2925FA75D50048BE32 /* FloatingDiceRollerFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9121E2825FA75D50048BE32 /* FloatingDiceRollerFeature.swift */; };
 		E91885CD23944A3F0094EC87 /* ddb_bass.json in Resources */ = {isa = PBXBuildFile; fileRef = E91885CC23944A3F0094EC87 /* ddb_bass.json */; };
+		E91B21E72ECB82E10037E5EB /* DiceRollerAppClip.app in Embed App Clips */ = {isa = PBXBuildFile; fileRef = E99C931528B1542800018518 /* DiceRollerAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E91B857F23DA355B009AF6D7 /* software_licenses.md in Resources */ = {isa = PBXBuildFile; fileRef = E91B857E23DA3552009AF6D7 /* software_licenses.md */; };
 		E91C167D2405C5BB004B5C85 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91C167C2405C5BB004B5C85 /* SafariView.swift */; };
 		E91CCC832614C4D200CB0527 /* Tagged in Frameworks */ = {isa = PBXBuildFile; productRef = E91CCC822614C4D200CB0527 /* Tagged */; };
@@ -145,7 +146,6 @@
 		E99C931A28B1542800018518 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E99C931928B1542800018518 /* ContentView.swift */; };
 		E99C931C28B1542900018518 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E99C931B28B1542900018518 /* Assets.xcassets */; };
 		E99C931F28B1542900018518 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E99C931E28B1542900018518 /* Preview Assets.xcassets */; };
-		E99C932528B1542A00018518 /* DiceRollerAppClip.app in Embed App Clips */ = {isa = PBXBuildFile; fileRef = E99C931528B1542800018518 /* DiceRollerAppClip.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E99C932928B1550A00018518 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E999896922A6B4F30067BA25 /* Assets.xcassets */; };
 		E99C932B28B1551F00018518 /* Dice in Frameworks */ = {isa = PBXBuildFile; productRef = E99C932A28B1551F00018518 /* Dice */; };
 		E99C932D28B1551F00018518 /* DiceRollerFeature in Frameworks */ = {isa = PBXBuildFile; productRef = E99C932C28B1551F00018518 /* DiceRollerFeature */; };
@@ -160,6 +160,7 @@
 		E9AEA49B24C62A9600ACB44C /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AEA49A24C62A9600ACB44C /* Helpers.swift */; };
 		E9B3B87528FC8824003764DD /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = E9B3B87428FC8824003764DD /* SnapshotTesting */; };
 		E9B432BB22AAF7540054324E /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B432BA22AAF7540054324E /* Environment.swift */; };
+		E9BA7F162ECA811A00E4F39E /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E9BA7F152ECA811A00E4F39E /* ComposableArchitecture */; };
 		E9BE1C4F28B524FF00D80464 /* DiceRollerInvocation in Frameworks */ = {isa = PBXBuildFile; productRef = E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */; };
 		E9C19B242EB4EDE100431231 /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = E9C19B232EB4EDE100431231 /* ViewInspector */; };
 		E9C7F7862632C193000351AB /* NumberPadTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C7F7852632C193000351AB /* NumberPadTest.swift */; };
@@ -179,24 +180,36 @@
 		E9F1287728E9BADB0040C90C /* CombatantFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1287628E9BADB0040C90C /* CombatantFeature.swift */; };
 		E9F1287928EA0BF40040C90C /* CompendiumQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F1287828EA0BF40040C90C /* CompendiumQuery.swift */; };
 		E9F56AC6235483780085A72D /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F56AC5235483780085A72D /* AppState.swift */; };
+		E9F6D0232FB73FD100C551A7 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0222FB73FD100C551A7 /* Dependencies */; };
+		E9F6D02A2FB740F500C551A7 /* CombineSchedulers in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0272FB740F500C551A7 /* CombineSchedulers */; };
+		E9F6D02B2FB740F500C551A7 /* CustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0282FB740F500C551A7 /* CustomDump */; };
+		E9F6D02C2FB740F500C551A7 /* SwiftUINavigation in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0292FB740F500C551A7 /* SwiftUINavigation */; };
+		E9F6D0362FB74B2F00C551A7 /* IdentifiedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0342FB74B2F00C551A7 /* IdentifiedCollections */; };
+		E9F6D0372FB74B2F00C551A7 /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0352FB74B2F00C551A7 /* OrderedCollections */; };
+		E9F6D03A2FB7512200C551A7 /* ConcurrencyExtras in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0392FB7512200C551A7 /* ConcurrencyExtras */; };
+		E9F6D03B2FB7576B00C551A7 /* Dependencies in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0222FB73FD100C551A7 /* Dependencies */; };
+		E9F6D03C2FB7576B00C551A7 /* CombineSchedulers in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0272FB740F500C551A7 /* CombineSchedulers */; };
+		E9F6D03D2FB7576B00C551A7 /* CustomDump in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0282FB740F500C551A7 /* CustomDump */; };
+		E9F6D03E2FB7576B00C551A7 /* IdentifiedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0342FB74B2F00C551A7 /* IdentifiedCollections */; };
+		E9F6D03F2FB7576B00C551A7 /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0352FB74B2F00C551A7 /* OrderedCollections */; };
 		E9F7EB4D2D7B2D7000A0C19D /* CompendiumDocumentSelectionFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F7EB4C2D7B2D7000A0C19D /* CompendiumDocumentSelectionFeature.swift */; };
 		E9F9EB532319696C00A70D11 /* RolledDiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F9EB522319696C00A70D11 /* RolledDiceExpressionTest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		E99C932228B1542900018518 /* PBXContainerItemProxy */ = {
+		E91B21E52ECB82D30037E5EB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E999895822A6B4F20067BA25 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E99C931428B1542800018518;
 			remoteInfo = DiceRollerAppClip;
 		};
-		E9F9EB4D2319694200A70D11 /* PBXContainerItemProxy */ = {
+		E93DB90D2EBF991E00023A2F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E999895822A6B4F20067BA25 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E999895F22A6B4F20067BA25;
-			remoteInfo = SwiftUITest;
+			remoteInfo = Construct;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -207,7 +220,7 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
 			dstSubfolderSpec = 16;
 			files = (
-				E99C932528B1542A00018518 /* DiceRollerAppClip.app in Embed App Clips */,
+				E91B21E72ECB82E10037E5EB /* DiceRollerAppClip.app in Embed App Clips */,
 			);
 			name = "Embed App Clips";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -380,6 +393,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9F6D03A2FB7512200C551A7 /* ConcurrencyExtras in Frameworks */,
+				E9F6D0372FB74B2F00C551A7 /* OrderedCollections in Frameworks */,
+				E9F6D0362FB74B2F00C551A7 /* IdentifiedCollections in Frameworks */,
+				E9F6D02C2FB740F500C551A7 /* SwiftUINavigation in Frameworks */,
+				E9F6D02B2FB740F500C551A7 /* CustomDump in Frameworks */,
+				E9F6D02A2FB740F500C551A7 /* CombineSchedulers in Frameworks */,
+				E9F6D0232FB73FD100C551A7 /* Dependencies in Frameworks */,
 				E99C930828B0189D00018518 /* Dice in Frameworks */,
 				E91CCC832614C4D200CB0527 /* Tagged in Frameworks */,
 				E911C3232E7897E80073DE9C /* FirebaseCore in Frameworks */,
@@ -406,6 +426,7 @@
 			files = (
 				E99C932D28B1551F00018518 /* DiceRollerFeature in Frameworks */,
 				E974889128B5231D004A5CFD /* DiceRollerInvocation in Frameworks */,
+				E9BA7F162ECA811A00E4F39E /* ComposableArchitecture in Frameworks */,
 				E99C932B28B1551F00018518 /* Dice in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -414,6 +435,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9F6D03F2FB7576B00C551A7 /* OrderedCollections in Frameworks */,
+				E9F6D03E2FB7576B00C551A7 /* IdentifiedCollections in Frameworks */,
+				E9F6D03D2FB7576B00C551A7 /* CustomDump in Frameworks */,
+				E9F6D03C2FB7576B00C551A7 /* CombineSchedulers in Frameworks */,
+				E9F6D03B2FB7576B00C551A7 /* Dependencies in Frameworks */,
 				E9A84A6C2B2A535B008264D1 /* TestSupport in Frameworks */,
 				E9B3B87528FC8824003764DD /* SnapshotTesting in Frameworks */,
 				E9C19B242EB4EDE100431231 /* ViewInspector in Frameworks */,
@@ -729,17 +755,9 @@
 			isa = PBXGroup;
 			children = (
 				E9CFB31023505AE700CA0AF4 /* View */,
-				E9CFB307234F9D1000CA0AF4 /* Models */,
 				E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */,
 			);
 			path = Campaign;
-			sourceTree = "<group>";
-		};
-		E9CFB307234F9D1000CA0AF4 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Models;
 			sourceTree = "<group>";
 		};
 		E9CFB31023505AE700CA0AF4 /* View */ = {
@@ -835,11 +853,18 @@
 			buildRules = (
 			);
 			dependencies = (
-				E99C932328B1542900018518 /* PBXTargetDependency */,
+				E91B21E62ECB82D30037E5EB /* PBXTargetDependency */,
 			);
 			name = Construct;
 			packageProductDependencies = (
 				E905E0BB246D83B800698C0A /* ComposableArchitecture */,
+				E9F6D0222FB73FD100C551A7 /* Dependencies */,
+				E9F6D0272FB740F500C551A7 /* CombineSchedulers */,
+				E9F6D0282FB740F500C551A7 /* CustomDump */,
+				E9F6D0292FB740F500C551A7 /* SwiftUINavigation */,
+				E9F6D0342FB74B2F00C551A7 /* IdentifiedCollections */,
+				E9F6D0352FB74B2F00C551A7 /* OrderedCollections */,
+				E9F6D0392FB7512200C551A7 /* ConcurrencyExtras */,
 				E93FA1C924EC5B7F007441BF /* Parma */,
 				E991F89C2545A791006CE8E8 /* Introspect */,
 				E91CCC822614C4D200CB0527 /* Tagged */,
@@ -878,6 +903,7 @@
 				E99C932A28B1551F00018518 /* Dice */,
 				E99C932C28B1551F00018518 /* DiceRollerFeature */,
 				E974889028B5231D004A5CFD /* DiceRollerInvocation */,
+				E9BA7F152ECA811A00E4F39E /* ComposableArchitecture */,
 			);
 			productName = DiceRollerAppClip;
 			productReference = E99C931528B1542800018518 /* DiceRollerAppClip.app */;
@@ -894,10 +920,15 @@
 			buildRules = (
 			);
 			dependencies = (
-				E9F9EB4E2319694200A70D11 /* PBXTargetDependency */,
+				E93DB90E2EBF991E00023A2F /* PBXTargetDependency */,
 			);
 			name = UnitTests;
 			packageProductDependencies = (
+				E9F6D0222FB73FD100C551A7 /* Dependencies */,
+				E9F6D0272FB740F500C551A7 /* CombineSchedulers */,
+				E9F6D0282FB740F500C551A7 /* CustomDump */,
+				E9F6D0342FB74B2F00C551A7 /* IdentifiedCollections */,
+				E9F6D0352FB74B2F00C551A7 /* OrderedCollections */,
 				E9B3B87428FC8824003764DD /* SnapshotTesting */,
 				E9A84A6B2B2A535B008264D1 /* TestSupport */,
 				E9C19B232EB4EDE100431231 /* ViewInspector */,
@@ -946,6 +977,12 @@
 				E9B3B87328FC8824003764DD /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 				E911C31F2E7897AE0073DE9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				E9C19B222EB4EDE100431231 /* XCRemoteSwiftPackageReference "ViewInspector" */,
+				E9F6D02D2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swiftui-navigation" */,
+				E9F6D02E2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swift-custom-dump" */,
+				E9F6D02F2FB740F500C551A7 /* XCRemoteSwiftPackageReference "combine-schedulers" */,
+				E9F6D0322FB74B2F00C551A7 /* XCRemoteSwiftPackageReference "swift-identified-collections" */,
+				E9F6D0332FB74B2F00C551A7 /* XCRemoteSwiftPackageReference "swift-collections" */,
+				E9F6D0382FB7512200C551A7 /* XCRemoteSwiftPackageReference "swift-concurrency-extras" */,
 			);
 			productRefGroup = E999896122A6B4F20067BA25 /* Products */;
 			projectDirPath = "";
@@ -1179,15 +1216,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E99C932328B1542900018518 /* PBXTargetDependency */ = {
+		E91B21E62ECB82D30037E5EB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = E99C931428B1542800018518 /* DiceRollerAppClip */;
-			targetProxy = E99C932228B1542900018518 /* PBXContainerItemProxy */;
+			targetProxy = E91B21E52ECB82D30037E5EB /* PBXContainerItemProxy */;
 		};
-		E9F9EB4E2319694200A70D11 /* PBXTargetDependency */ = {
+		E93DB90E2EBF991E00023A2F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = E999895F22A6B4F20067BA25 /* Construct */;
-			targetProxy = E9F9EB4D2319694200A70D11 /* PBXContainerItemProxy */;
+			targetProxy = E93DB90D2EBF991E00023A2F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1458,7 +1495,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = me.thomasvisser.UnitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Construct.app/Construct";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Construct.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Construct";
 			};
 			name = Debug;
 		};
@@ -1478,7 +1515,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = me.thomasvisser.UnitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Construct.app/Construct";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Construct.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Construct";
 			};
 			name = Release;
 		};
@@ -1588,6 +1625,54 @@
 				minimumVersion = 0.10.3;
 			};
 		};
+		E9F6D02D2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swiftui-navigation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swiftui-navigation";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.8.0;
+			};
+		};
+		E9F6D02E2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swift-custom-dump" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-custom-dump";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.11.2;
+			};
+		};
+		E9F6D02F2FB740F500C551A7 /* XCRemoteSwiftPackageReference "combine-schedulers" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/combine-schedulers";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.11.0;
+			};
+		};
+		E9F6D0322FB74B2F00C551A7 /* XCRemoteSwiftPackageReference "swift-identified-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-identified-collections";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.7.1;
+			};
+		};
+		E9F6D0332FB74B2F00C551A7 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.4;
+			};
+		};
+		E9F6D0382FB7512200C551A7 /* XCRemoteSwiftPackageReference "swift-concurrency-extras" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-concurrency-extras";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1671,6 +1756,11 @@
 			package = E9B3B87328FC8824003764DD /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
 			productName = SnapshotTesting;
 		};
+		E9BA7F152ECA811A00E4F39E /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E905E0BA246D83B800698C0A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
 		E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = DiceRollerInvocation;
@@ -1691,6 +1781,41 @@
 		E9F1286C28E6D6130040C90C /* Persistence */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Persistence;
+		};
+		E9F6D0222FB73FD100C551A7 /* Dependencies */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E905E0BA246D83B800698C0A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = Dependencies;
+		};
+		E9F6D0272FB740F500C551A7 /* CombineSchedulers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9F6D02F2FB740F500C551A7 /* XCRemoteSwiftPackageReference "combine-schedulers" */;
+			productName = CombineSchedulers;
+		};
+		E9F6D0282FB740F500C551A7 /* CustomDump */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9F6D02E2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swift-custom-dump" */;
+			productName = CustomDump;
+		};
+		E9F6D0292FB740F500C551A7 /* SwiftUINavigation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9F6D02D2FB740F500C551A7 /* XCRemoteSwiftPackageReference "swiftui-navigation" */;
+			productName = SwiftUINavigation;
+		};
+		E9F6D0342FB74B2F00C551A7 /* IdentifiedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9F6D0322FB74B2F00C551A7 /* XCRemoteSwiftPackageReference "swift-identified-collections" */;
+			productName = IdentifiedCollections;
+		};
+		E9F6D0352FB74B2F00C551A7 /* OrderedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9F6D0332FB74B2F00C551A7 /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = OrderedCollections;
+		};
+		E9F6D0392FB7512200C551A7 /* ConcurrencyExtras */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9F6D0382FB7512200C551A7 /* XCRemoteSwiftPackageReference "swift-concurrency-extras" */;
+			productName = ConcurrencyExtras;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

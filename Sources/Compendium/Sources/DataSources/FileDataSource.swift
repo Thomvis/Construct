@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Combine
 import Tagged
 
 public final class FileDataSource: CompendiumDataSource {

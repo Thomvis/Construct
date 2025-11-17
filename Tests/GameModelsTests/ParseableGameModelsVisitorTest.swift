@@ -10,6 +10,7 @@ import GameModels
 import XCTest
 import SnapshotTesting
 import TestSupport
+import ComposableArchitecture
 
 final class ParseableGameModelsVisitorTest: XCTestCase {
 
@@ -44,7 +45,7 @@ final class ParseableGameModelsVisitorTest: XCTestCase {
 
     func testVisitStatBlock() {
         let sut = ParseableGameModelsVisitor()
-        let uuidGenerator = UUID.fakeGenerator()
+        let uuidGenerator = UUIDGenerator.fake()
 
         var statBlock = StatBlock(
             name: "Test",

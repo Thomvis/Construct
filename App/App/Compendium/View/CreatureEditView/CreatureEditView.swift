@@ -29,7 +29,7 @@ struct CreatureEditView: View {
 
     init(store: Store<CreatureEditFeature.State, CreatureEditFeature.Action>) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
+        self.viewStore = ViewStore(store, observe: { $0 }, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
 
     var model: Binding<CreatureEditFormModel> {
@@ -735,9 +735,10 @@ struct CreatureEditView_Preview: PreviewProvider {
                             reactions: []
                         ),
                         challengeRating: Fraction(integer: 1)
-                    ), documentId: CompendiumSourceDocument.homebrew.id),
-                    reducer: CreatureEditFeature()
+                    ), documentId: CompendiumSourceDocument.homebrew.id)
                 ) {
+                    CreatureEditFeature()
+                } withDependencies: {
                     $0.modifierFormatter = modifierFormatter
                     $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
                     $0.diceLog = DiceLogPublisher()
@@ -755,9 +756,10 @@ struct CreatureEditView_Preview: PreviewProvider {
                 initialState: CreatureEditFeature.State(
                     create: .monster,
                     sourceDocument: .init(CompendiumSourceDocument.homebrew)
-                ),
-                reducer: CreatureEditFeature()
+                )
             ) {
+                CreatureEditFeature()
+            } withDependencies: {
                 $0.modifierFormatter = modifierFormatter
                 $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
                 $0.diceLog = DiceLogPublisher()

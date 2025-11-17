@@ -8,7 +8,7 @@
 
 import Foundation
 import SwiftUI
-import CasePaths
+import ComposableArchitecture
 import ComposableArchitecture
 import Tagged
 import BetterSafariView
@@ -48,7 +48,7 @@ struct CombatantDetailView: View {
 
     init(store: Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
+        self.viewStore = ViewStore(store, observe: { $0 }, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
 
     var combatant: Combatant {

@@ -14,7 +14,13 @@ final class UpdateEntryDocumentGameModelsVisitorTest: XCTestCase {
         super.setUp()
         self.fixtures = VisitorTestFixtures()
     }
-    
+
+    override func invokeTest() {
+        withSnapshotTesting(diffTool: .ksdiff) {
+            super.invokeTest()
+        }
+    }
+
     func testUpdateDocumentDisplayName() {
         let targetDocument = apply(fixtures.document) {
             $0.displayName = "Doc 2"

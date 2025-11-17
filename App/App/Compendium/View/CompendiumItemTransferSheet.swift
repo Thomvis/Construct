@@ -47,8 +47,6 @@ struct CompendiumItemTransferFeature: ReducerProtocol {
                 case .multipleKeys(let keys):
                     // If all keys share the same origin document, disable selecting it as target
                     if let first = keys.first {
-                        let realm = first.realm
-                        let doc = first.identifier.split(separator: ":").first
                         // Don't rely on identifier parsing; attempt via compendium metadata in onAppear
                         // Here, we leave it nil; onAppear will not depend on originDocument.
                         self.originDocument = nil

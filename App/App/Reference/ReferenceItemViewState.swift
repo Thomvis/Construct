@@ -8,7 +8,7 @@
 
 import Foundation
 import ComposableArchitecture
-import CasePaths
+import ComposableArchitecture
 import Helpers
 import GameModels
 

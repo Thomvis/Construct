@@ -197,7 +197,7 @@ struct SettingsView: View {
                 self.preferences = preferences
             }
         }
-        .onChange(of: preferences) { p in
+        .onChange(of: preferences) { _, p in
             if p != initialPreferences && p != Preferences() {
                 try? env.database.keyValueStore.put(p)
             }

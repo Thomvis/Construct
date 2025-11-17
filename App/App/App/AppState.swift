@@ -29,6 +29,8 @@ struct AppFeature: Reducer {
         var pendingPresentations: [Presentation] = []
 
         var sceneIsActive = false
+        
+        @PresentationState var crashReportingPermissionAlert: AlertState<Action.Alert>?
 
         var topNavigationItems: [Any] {
             guard presentation != .welcomeSheet else { return [] }
@@ -64,6 +66,13 @@ struct AppFeature: Reducer {
         case onOpenURL(URL)
 
         case onProcessRollForDiceLog(DiceLogEntry.Result, RollDescription)
+        
+        case alert(PresentationAction<Alert>)
+        
+        enum Alert: Equatable {
+            case send
+            case dontSend
+        }
     }
 
     var body: some ReducerOf<Self> {
@@ -100,6 +109,15 @@ struct AppFeature: Reducer {
 
                 if state.presentation == nil {
                     state.presentation = p
+                    if p == .crashReportingPermissionAlert {
+                        state.crashReportingPermissionAlert = AlertState(
+                            title: .init("Construct quit unexpectedly."),
+                            message: .init("Do you want to send an anonymous crash reports so I can fix the issue?"),
+                            buttons: [
+                                .cancel(.init("Don't send"), action: .send(.dontSend)),
+                                .default(.init("Send"), action: .send(.send)),
+                            ])
+                    }
                 } else {
                     state.pendingPresentations.append(p)
                 }
@@ -110,6 +128,9 @@ struct AppFeature: Reducer {
                 // precondition(state.presentation == p)
                 guard state.presentation == p else { break }
                 state.presentation = nil
+                if p == .crashReportingPermissionAlert {
+                    state.crashReportingPermissionAlert = nil
+                }
 
                 if let next = state.pendingPresentations.first {
                     state.pendingPresentations.removeFirst()
@@ -119,6 +140,15 @@ struct AppFeature: Reducer {
                         try await Task.sleep(for: .seconds(0.1))
                         await send(.requestPresentation(next))
                     }
+                }
+            case .alert(let presentationAction):
+                switch presentationAction {
+                case .presented(.send):
+                    return .send(.onReceiveCrashReportingUserPermission(.send))
+                case .presented(.dontSend):
+                    return .send(.onReceiveCrashReportingUserPermission(.dontSend))
+                case .dismiss:
+                    return .send(.dismissPresentation(.crashReportingPermissionAlert))
                 }
             case .onReceiveCrashReportingUserPermission(let permission):
                 environment.crashReporter.registerUserPermission(permission)

@@ -24,8 +24,16 @@ import Compendium
 /// Inspired by https://github.com/pointfreeco/isowords/tree/main/Tests/AppStoreSnapshotTests
 class AppStoreScreenshotTests: XCTestCase {
     static let phones: [(String, ViewImageConfig)] = [
-        ("iPhone65", apply(.iPhoneXsMax) { $0.traits = UITraitCollection(traitsFrom: [$0.traits, .init(displayScale: 3)]) }),
-        ("iPhone55", apply(.iPhone8Plus) { $0.traits = UITraitCollection(traitsFrom: [$0.traits, .init(displayScale: 3)]) })
+        ("iPhone65", apply(.iPhoneXsMax) {
+            $0.traits = UITraitCollection(mutations: {
+                $0.displayScale = 3
+            })
+        }),
+        ("iPhone55", apply(.iPhone8Plus) {
+            $0.traits = UITraitCollection(mutations: {
+                $0.displayScale = 3
+            })
+        })
     ]
 
     static let pads: [(String, ViewImageConfig)] = [
@@ -37,13 +45,17 @@ class AppStoreScreenshotTests: XCTestCase {
 
     override class func setUp() {
         super.setUp()
-//        SnapshotTesting.isRecording = true
-        SnapshotTesting.diffTool = "ksdiff"
 
         // Workaround for white unselected item icons in the tab bar
         UITabBar.appearance().unselectedItemTintColor = UIColor.systemGray2
         // Workaround for transparent tab bar
         UITabBar.appearance().backgroundColor = UIColor.systemBackground
+    }
+
+    override func invokeTest() {
+        withSnapshotTesting(diffTool: .ksdiff) {
+            super.invokeTest()
+        }
     }
 
     override func setUp() async throws {
@@ -119,7 +131,7 @@ class AppStoreScreenshotTests: XCTestCase {
 
             withTransaction(transaction) {
                 assertSnapshot(
-                    matching: FakeDeviceScreenView(imageConfig: device, content: view)
+                    of: FakeDeviceScreenView(imageConfig: device, content: view)
                         .environment(\.colorScheme, colorScheme)
                         .environmentObject(environment),
                     as: .imageAfterDelay(perceptualPrecision: 0.96, layout: .device(config: device), traits: device.traits),
@@ -213,7 +225,11 @@ class AppStoreScreenshotTests: XCTestCase {
                             properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                             results: .initial
                         )) { state in
-                            let store = Store(initialState: state) { CompendiumIndexFeature(environment: environment) }
+                            let store = Store(initialState: state) {
+                                CompendiumIndexFeature(environment: environment)
+                            } withDependencies: {
+                                $0.uuid = UUIDGenerator.fake()
+                            }
                             await store.send(.query(.onTextDidChange("Dragon"))).finish()
                             state = ViewStore(store, observe: \.self).state
                         },
@@ -222,7 +238,11 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
 
-            let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
+            let store = StoreOf<AppFeature>(initialState: state) {
+                EmptyReducer()
+            } withDependencies: {
+                $0.uuid = UUIDGenerator.fake()
+            }
             return ConstructView(env: environment, store: store)
         }
     }
@@ -508,7 +528,11 @@ class AppStoreScreenshotTests: XCTestCase {
                                                         results: .initial
                                                     )) { @MainActor state in
                                                         state.results.input.order = .monsterChallengeRating
-                                                        let store = Store(initialState: state) { CompendiumIndexFeature(environment: environment) }
+                                                        let store = Store(initialState: state) {
+                                                            CompendiumIndexFeature(environment: environment)
+                                                        } withDependencies: {
+                                                            $0.uuid = UUIDGenerator.fake()
+                                                        }
                                                         let filters = CompendiumFilters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4))
                                                         await store.send(.query(.onFiltersDidChange(filters))).finish()
                                                         let entry = ViewStore(store, observe: \.self).state.results.entries!.first!
@@ -531,7 +555,11 @@ class AppStoreScreenshotTests: XCTestCase {
                     )
                 )
             )
-            let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
+            let store = StoreOf<AppFeature>(initialState: state) {
+                EmptyReducer()
+            } withDependencies: {
+                $0.uuid = UUIDGenerator.fake()
+            }
             return ConstructView(env: environment, store: store)
         }
     }
@@ -556,7 +584,11 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                                                     results: .initial
                                                 )) { state in
-                                                    let store = Store(initialState: state) { CompendiumIndexFeature(environment: environment) }
+                                                    let store = Store(initialState: state) {
+                                                        CompendiumIndexFeature(environment: environment)
+                                                    } withDependencies: {
+                                                        $0.uuid = UUIDGenerator.fake()
+                                                    }
                                                     await store.send(.query(.onTextDidChange("Dragon"))).finish()
                                                     state = ViewStore(store, observe: \.self).state
                                                 }
@@ -584,7 +616,11 @@ class AppStoreScreenshotTests: XCTestCase {
                     )
                 )
             )
-            let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
+            let store = StoreOf<AppFeature>(initialState: state) {
+                EmptyReducer()
+            } withDependencies: {
+                $0.uuid = UUIDGenerator.fake()
+            }
             return ConstructView(env: environment, store: store)
         }
     }
@@ -655,7 +691,11 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                                                     results: .initial(type: .spell)
                                                 )) { @MainActor state in
-                                                    let store = Store(initialState: state) { CompendiumIndexFeature(environment: environment) }
+                                                    let store = Store(initialState: state) {
+                                                        CompendiumIndexFeature(environment: environment)
+                                                    } withDependencies: {
+                                                        $0.uuid = UUIDGenerator.fake()
+                                                    }
 
                                                     await store.send(.results(.result(.reload(.all)))).finish()
                                                     state = ViewStore(store, observe: \.self).state
@@ -694,7 +734,11 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
 
-            let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
+            let store = StoreOf<AppFeature>(initialState: state) {
+                EmptyReducer()
+            } withDependencies: {
+                $0.uuid = UUIDGenerator.fake()
+            }
             return ConstructView(env: environment, store: store)
         }
     }
@@ -721,7 +765,11 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
                                                     results: .initial
                                                 )) { state in
-                                                    let store = Store(initialState: state) { CompendiumIndexFeature(environment: environment) }
+                                                    let store = Store(initialState: state) {
+                                                        CompendiumIndexFeature(environment: environment)
+                                                    } withDependencies: {
+                                                        $0.uuid = UUIDGenerator.fake()
+                                                    }
                                                     await store.send(.query(.onTextDidChange("Dragon"))).finish()
                                                     state = ViewStore(store, observe: \.self).state
                                                 }
@@ -741,14 +789,18 @@ class AppStoreScreenshotTests: XCTestCase {
             let backgroundStore = StoreOf<AppFeature>(initialState: backgroundState) { EmptyReducer() }
             let backgroundView = ConstructView(env: environment, store: backgroundStore)
 
-            let sheetView = SheetNavigationContainer {
-                CreatureEditView(
-                    store: StoreOf<CreatureEditFeature>(
-                        initialState: CreatureEditFeature.State(
-                            edit: encounter.combatants[3].definition as! AdHocCombatantDefinition
-                        )
-                    ) { EmptyReducer() }
+            let store = StoreOf<CreatureEditFeature>(
+                initialState: CreatureEditFeature.State(
+                    edit: encounter.combatants[3].definition as! AdHocCombatantDefinition
                 )
+            ) {
+                EmptyReducer()
+            } withDependencies: {
+                $0.uuid = UUIDGenerator.fake()
+            }
+
+            let sheetView = SheetNavigationContainer {
+                CreatureEditView(store: store)
             }
 
             return FakeSheetView(background: backgroundView, sheet: sheetView)
@@ -813,10 +865,9 @@ struct FakeSheetView<Background, Modal>: View where Background: View, Modal: Vie
 
     private final class ElevatedHostingController<Content>: UIHostingController<Content> where Content: View {
         override func overrideTraitCollection(forChild childViewController: UIViewController) -> UITraitCollection? {
-            UITraitCollection(traitsFrom: [
-                traitCollection,
-                UITraitCollection(userInterfaceLevel: .elevated)
-            ])
+            traitCollection.modifyingTraits {
+                $0.userInterfaceLevel = .elevated
+            }
         }
     }
 }
@@ -1057,6 +1108,8 @@ func prepareView(
         viewController.view.bounds = view.bounds
         viewController.view.addSubview(view)
     }
+    // Note: this warning is hard to fix without changes to swift-snapshot-testing
+    // (we'd need to go all-in on UITraitCollection.TraitMutations)
     let traits = UITraitCollection(traitsFrom: [config.traits, traits])
     let window: UIWindow
     if drawHierarchyInKeyWindow {
@@ -1249,6 +1302,8 @@ private func add(traits: UITraitCollection, viewController: UIViewController, to
     } else {
         rootViewController = viewController
     }
+    // Note: this warning is hard to fix without changes to swift-snapshot-testing
+    // (we'd need to go all-in on UITraitCollection.TraitMutations)
     rootViewController.setOverrideTraitCollection(traits, forChild: viewController)
     viewController.didMove(toParent: rootViewController)
 

@@ -30,12 +30,6 @@ public extension NumberFormatter {
     }
 }
 
-extension State: Identifiable where Value: Identifiable {
-    public var id: Value.ID {
-        wrappedValue.id
-    }
-}
-
 public extension View {
     var eraseToAnyView: AnyView {
         AnyView(self)

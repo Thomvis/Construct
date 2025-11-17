@@ -1115,7 +1115,7 @@ public struct CompendiumImportView: View {
             .onAppear {
                 viewStore.send(.onAppear)
             }
-            .onChange(of: viewStore.state.dismiss) { dismiss in
+            .onChange(of: viewStore.state.dismiss) { _, dismiss in
                 if dismiss {
                     self.dismiss()
                 }

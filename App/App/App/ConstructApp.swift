@@ -62,6 +62,11 @@ struct RootView: View {
                 return
             }
 
+            guard ProcessInfo.processInfo.environment["XCTestSessionIdentifier"] == nil else {
+                print("Aborting launch because Construct is launched as a Test Host.")
+                return
+            }
+
             do {
                 let e = try await Environment.live()
                 withAnimation {
@@ -162,7 +167,7 @@ struct ConstructView: View {
                     }
                 }
             }
-            .alert(store.scope(state: { $0.crashReportingPermissionAlert }, action: { $0 }), dismiss: .dismissPresentation(.crashReportingPermissionAlert))
+            .alert(store: store.scope(state: \.$crashReportingPermissionAlert, action: { .alert($0) }))
             .task {
                 await viewStore.send(.onLaunch).finish()
             }
@@ -174,12 +179,12 @@ struct ConstructView: View {
 
                 viewStore.send(.onAppear)
             }
-            .onChange(of: horizontalSizeClass) { sizeClass in
+            .onChange(of: horizontalSizeClass) { _, sizeClass in
                 if let sizeClass = sizeClass {
                     viewStore.send(.onHorizontalSizeClassChange(sizeClass))
                 }
             }
-            .onChange(of: scenePhase) { phase in
+            .onChange(of: scenePhase) { _, phase in
                 viewStore.send(.scene(phase))
             }
             // Even though onOpenURL and onContinueUserActivity are added here and therefore are not in the view
@@ -213,18 +218,5 @@ struct ConstructView: View {
 
             store.send(.requestPresentation(.crashReportingPermissionAlert))
         }
-    }
-}
-
-extension AppFeature.State {
-    var crashReportingPermissionAlert: AlertState<AppFeature.Action>? {
-        guard presentation == .crashReportingPermissionAlert else { return nil }
-        return AlertState(
-            title: .init("Construct quit unexpectedly."),
-            message: .init("Do you want to send an anonymous crash reports so I can fix the issue?"),
-            buttons: [
-                .cancel(.init("Don't send")),
-                .default(.init("Send"), action: .send(.onReceiveCrashReportingUserPermission(.send))),
-            ])
     }
 }

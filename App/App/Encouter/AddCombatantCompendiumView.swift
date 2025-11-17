@@ -70,7 +70,7 @@ struct AddCombatantCompendiumView: View {
         init(parent: AddCombatantCompendiumView, compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>, entry: CompendiumEntry, combatant: CompendiumCombatant) {
             self.parent = parent
             self.compendiumIndexStore = compendiumIndexStore
-            self.compendiumIndexViewStore = ViewStore(compendiumIndexStore)
+            self.compendiumIndexViewStore = ViewStore(compendiumIndexStore, observe: { $0 })
             self.entry = entry
             self.combatant = combatant
         }
@@ -88,7 +88,7 @@ struct AddCombatantCompendiumView: View {
 
                 Spacer()
 
-                if ViewStore(compendiumIndexStore).properties.showSourceDocumentBadges {
+                if ViewStore(compendiumIndexStore, observe: { $0 }).properties.showSourceDocumentBadges {
                     Text(entry.document.id.rawValue.uppercased())
                         .font(.caption)
                         .foregroundStyle(Color(UIColor.systemBackground))

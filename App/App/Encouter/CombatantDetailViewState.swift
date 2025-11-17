@@ -10,7 +10,7 @@ import Foundation
 import ComposableArchitecture
 import SwiftUI
 import Combine
-import CasePaths
+import ComposableArchitecture
 import Helpers
 import DiceRollerFeature
 import GameModels

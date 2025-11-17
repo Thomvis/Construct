@@ -53,7 +53,7 @@ public struct TextFieldWithSlug: View {
                 .focused($focusOnSlug)
                 .disabled(!configuration.slugFieldEnabled)
         }
-        .onChange(of: requestFocusOnText) { newValue in
+        .onChange(of: requestFocusOnText) { _, newValue in
             if newValue {
                 focusOnText = true
                 requestFocusOnText = false
@@ -67,17 +67,17 @@ public struct TextFieldWithSlug: View {
             // populate local state with model
             localSlug = slug
         }
-        .onChange(of: localSlug) { newValue in
+        .onChange(of: localSlug) { _, newValue in
             // write every change to the model
             slug = localSlug
         }
-        .onChange(of: focusOnSlug) { newValue in
+        .onChange(of: focusOnSlug) { _, newValue in
             // update field with model when we lose focus
             if !newValue {
                 localSlug = slug
             }
         }
-        .onChange(of: slug) { newValue in
+        .onChange(of: slug) { _, newValue in
             // update field with model while we don't have focus
             if !focusOnSlug {
                 localSlug = slug

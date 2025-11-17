@@ -12,7 +12,7 @@ import URLRouting
 import Parsing
 import Helpers
 import Dice
-import CasePaths
+import ComposableArchitecture
 
 public enum DiceRollerInvocation {
     case unspecified

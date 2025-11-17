@@ -1,6 +1,6 @@
 import Foundation
 import ComposableArchitecture
-import CasePaths
+import ComposableArchitecture
 import DiceRollerFeature
 
 public struct DiceActionFeature: Reducer {

@@ -28,7 +28,7 @@ struct FloatingDiceRollerContainerView: View {
 
     init(store: Store<FloatingDiceRollerFeature.State, FloatingDiceRollerFeature.Action>) {
         self.store = store
-        self.viewStore = ViewStore(store, removeDuplicates: {
+        self.viewStore = ViewStore(store, observe: { $0 }, removeDuplicates: {
             ($0.hidden, $0.canCollapse, $0.content, $0.diceLog.entries.isEmpty) ==
             ($1.hidden, $1.canCollapse, $1.content, $1.diceLog.entries.isEmpty)
         })

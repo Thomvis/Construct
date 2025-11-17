@@ -12,7 +12,7 @@ import XCTest
 final class Open5eAPIDataSourceTest: XCTestCase {
     func test() async throws {
         let sut = Open5eAPIDataSource(itemType: .monster, document: "tob")
-        for try await data in try sut.read() {
+        for try await _ in try sut.read() {
 
         }
     }

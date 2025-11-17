@@ -10,7 +10,7 @@ import Foundation
 import GRDB
 import Helpers
 import GameModels
-import Dependencies
+import ComposableArchitecture
 
 public protocol KeyValueStore {
     func get<V>(_ type: V.Type, key: String) throws -> V? where V: Codable
@@ -23,6 +23,7 @@ public protocol KeyValueStore {
     func fetchAll<V>(_ request: KeyValueStoreRequest) throws -> [V] where V: Decodable
     func fetchAllCatching<V>(_ request: KeyValueStoreRequest) throws -> [Result<V, Error>] where V: Decodable
     func observeAll<V>(_ request: KeyValueStoreRequest) -> AsyncThrowingStream<[V], any Error> where V: Codable & Equatable
+    @discardableResult
     func removeAll(_ request: KeyValueStoreRequest) throws -> Int
     func count(_ request: KeyValueStoreRequest) throws -> Int
 

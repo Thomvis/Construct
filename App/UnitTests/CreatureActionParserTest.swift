@@ -14,6 +14,7 @@ import CustomDump
 import GameModels
 import Dice
 import Compendium
+import ComposableArchitecture
 
 class CreatureActionParserTest: XCTestCase {
 
@@ -356,7 +357,7 @@ class CreatureActionParserTest: XCTestCase {
     func testAllMonsterActions() async throws {
         let sut = Open5eDataSourceReader(
             dataSource: FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
-            generateUUID: UUID.fakeGenerator()
+            generateUUID: UUIDGenerator.fake().callAsFunction
         )
 
         let items = try await Array(sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item })
@@ -389,14 +390,14 @@ class CreatureActionParserTest: XCTestCase {
 //                    .filter { $0.remainder != "." && $0.remainder != "" }
             }
 
-        assertSnapshot(matching: actions, as: .dump, record: false)
+        assertSnapshot(of: actions, as: .dump, record: false)
     }
 
     @MainActor
     func testParsePerformance() async throws {
         let sut = Open5eDataSourceReader(
             dataSource: FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
-            generateUUID: UUID.fakeGenerator()
+            generateUUID: UUIDGenerator.fake().callAsFunction
         )
 
         let items = try await Array(sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item })

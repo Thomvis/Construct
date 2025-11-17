@@ -6,5 +6,6 @@
 -     id: Tagged(rawValue: "doc")
 +     id: Tagged(rawValue: "newdoc")
       displayName: "Doc"
-    )
+    ),
+    _error: CodableIgnored(wrappedValue: nil)
   )

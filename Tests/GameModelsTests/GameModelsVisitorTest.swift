@@ -14,11 +14,18 @@ import InlineSnapshotTesting
 import TestSupport
 import Helpers
 import CustomDump
+import ComposableArchitecture
 
 final class GameModelsVisitorTest: XCTestCase {
-    
+
+    override func invokeTest() {
+        withSnapshotTesting(diffTool: .ksdiff) {
+            super.invokeTest()
+        }
+    }
+
     func testVisitRunningEncounter() {
-        let uuidGenerator = UUID.fakeGenerator(offset: 5000)
+        let uuidGenerator = UUIDGenerator.fake(offset: 5000)
 
         let base = Encounter(
             id: uuidGenerator(),
@@ -74,7 +81,7 @@ final class GameModelsVisitorTest: XCTestCase {
     }
 
     func testVisitEntry() {
-        let uuidGenerator = UUID.fakeGenerator(offset: 5000)
+        let uuidGenerator = UUIDGenerator.fake(offset: 5000)
 
         let original = CompendiumEntry(
             Character(
@@ -97,7 +104,7 @@ final class GameModelsVisitorTest: XCTestCase {
     }
 
     final class TestVisitor: AbstractGameModelsVisitor {
-        let uuidGenerator = UUID.fakeGenerator()
+        let uuidGenerator = UUIDGenerator.fake()
 
         @VisitorBuilder
         override func visit(encounter: inout Encounter) -> Bool {

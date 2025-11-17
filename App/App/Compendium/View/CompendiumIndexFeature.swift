@@ -9,7 +9,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
-import CasePaths
+import ComposableArchitecture
 import Combine
 import Helpers
 import GameModels

@@ -4,7 +4,7 @@
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
-      buildImplicitDependencies = "YES">
+      buildImplicitDependencies = "NO">
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -22,10 +22,10 @@
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "YES"
+            buildForRunning = "NO"
             buildForProfiling = "NO"
             buildForArchiving = "NO"
-            buildForAnalyzing = "YES">
+            buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E9F9EB472319694100A70D11"
@@ -42,9 +42,9 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "GameModelsTests"
-               BuildableName = "GameModelsTests"
-               BlueprintName = "GameModelsTests"
+               BlueprintIdentifier = "HelpersTests"
+               BuildableName = "HelpersTests"
+               BlueprintName = "HelpersTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
@@ -69,10 +69,17 @@
                <Test
                   Identifier = "AppStoreScreenshotTests">
                </Test>
-               <Test
-                  Identifier = "DatabaseTest">
-               </Test>
             </SkippedTests>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "CompendiumTests"
+               BuildableName = "CompendiumTests"
+               BlueprintName = "CompendiumTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
          </TestableReference>
          <TestableReference
             skipped = "NO">
@@ -98,39 +105,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "MechMuseTests"
-               BuildableName = "MechMuseTests"
-               BlueprintName = "MechMuseTests"
-               ReferencedContainer = "container:..">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "OpenAIClientTests"
-               BuildableName = "OpenAIClientTests"
-               BlueprintName = "OpenAIClientTests"
-               ReferencedContainer = "container:..">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "PersistenceTests"
                BuildableName = "PersistenceTests"
                BlueprintName = "PersistenceTests"
-               ReferencedContainer = "container:..">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CompendiumTests"
-               BuildableName = "CompendiumTests"
-               BlueprintName = "CompendiumTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </TestableReference>

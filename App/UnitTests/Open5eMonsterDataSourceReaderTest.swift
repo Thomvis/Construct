@@ -13,6 +13,7 @@ import Combine
 import SnapshotTesting
 import Compendium
 import GameModels
+import ComposableArchitecture
 
 class Open5eMonsterDataSourceReaderTest: XCTestCase {
 
@@ -24,10 +25,10 @@ class Open5eMonsterDataSourceReaderTest: XCTestCase {
 
     @MainActor
     func test() async throws {
-        let sut = Open5eDataSourceReader(dataSource: dataSource, generateUUID: UUID.fakeGenerator())
+        let sut = Open5eDataSourceReader(dataSource: dataSource, generateUUID: UUIDGenerator.fake().callAsFunction)
 
         let items = try await Array(sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item })
-        assertSnapshot(matching: items, as: .dump)
+        assertSnapshot(of: items, as: .dump)
     }
 
     @MainActor
@@ -68,7 +69,7 @@ class Open5eMonsterDataSourceReaderTest: XCTestCase {
             dataSource: StringDataSource(string: monster)
                 .decode(type: [O5e.Monster].self)
                 .toOpen5eAPIResults(),
-            generateUUID: UUID.fakeGenerator()
+            generateUUID: UUIDGenerator.fake().callAsFunction
         )
 
         let item = try await Array(sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item }).first as! Monster

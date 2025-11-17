@@ -13,22 +13,23 @@ import Combine
 import SnapshotTesting
 import Compendium
 import GameModels
+import ComposableArchitecture
 
 class XMLCompendiumDataSourceReaderTest: XCTestCase {
 
     @MainActor
     func test() async throws {
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "compendium", ofType: "xml")!)
-        let sut = XMLCompendiumDataSourceReader(dataSource: dataSource, generateUUID: UUID.fakeGenerator())
+        let sut = XMLCompendiumDataSourceReader(dataSource: dataSource, generateUUID: UUIDGenerator.fake().callAsFunction)
 
 
         let items = try await Array(sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item })
-        assertSnapshot(matching: items, as: .dump)
+        assertSnapshot(of: items, as: .dump)
     }
 
     func testIncorrectFormat() async throws{
         let dataSource = FileDataSource(path: Bundle(for: Self.self).path(forResource: "ii_mm", ofType: "json")!)
-        let sut = XMLCompendiumDataSourceReader(dataSource: dataSource, generateUUID: UUID.fakeGenerator())
+        let sut = XMLCompendiumDataSourceReader(dataSource: dataSource, generateUUID: UUIDGenerator.fake().callAsFunction)
 
         do {
             _ = try await Array(sut.items(realmId: CompendiumRealm.core.id))

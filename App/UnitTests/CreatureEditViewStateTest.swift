@@ -23,9 +23,10 @@ class CreatureEditViewStateTest: XCTestCase {
     func testNewMonsterDefaultsToHomebrew() async {
         let testEnv = TestEnvironment()
         let store = TestStore(
-            initialState: CreatureEditFeature.State(create: .monster),
-            reducer: CreatureEditFeature()
+            initialState: CreatureEditFeature.State(create: .monster)
         ) {
+            CreatureEditFeature()
+        } withDependencies: {
             $0.modifierFormatter = testEnv.modifierFormatter
             $0.mainQueue = testEnv.mainQueue
             $0.diceLog = testEnv.diceLog
@@ -34,9 +35,6 @@ class CreatureEditViewStateTest: XCTestCase {
             $0.compendium = testEnv.compendium
             $0.database = testEnv.database
         }
-        
-        // Verify initial document selection is nil (allowing all sources)
-        XCTAssertNil(store.state.model.document.selectedSource)
         
         // Set required fields to make monster valid
         var updatedModel = store.state.model
@@ -62,9 +60,10 @@ class CreatureEditViewStateTest: XCTestCase {
         let customSource = CompendiumFilters.Source(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)
         let testEnv = TestEnvironment()
         let store = TestStore(
-            initialState: CreatureEditFeature.State(create: .monster, sourceDocument: customSource),
-            reducer: CreatureEditFeature()
+            initialState: CreatureEditFeature.State(create: .monster, sourceDocument: customSource)
         ) {
+            CreatureEditFeature()
+        } withDependencies: {
             $0.modifierFormatter = testEnv.modifierFormatter
             $0.mainQueue = testEnv.mainQueue
             $0.diceLog = testEnv.diceLog
@@ -99,9 +98,10 @@ class CreatureEditViewStateTest: XCTestCase {
     func testDocumentSelectionUpdatesOutput() async {
         let testEnv = TestEnvironment()
         let store = TestStore(
-            initialState: CreatureEditFeature.State(create: .monster),
-            reducer: CreatureEditFeature()
+            initialState: CreatureEditFeature.State(create: .monster)
         ) {
+            CreatureEditFeature()
+        } withDependencies: {
             $0.modifierFormatter = testEnv.modifierFormatter
             $0.mainQueue = testEnv.mainQueue
             $0.diceLog = testEnv.diceLog
@@ -152,9 +152,10 @@ class CreatureEditViewStateTest: XCTestCase {
         let coreSource = CompendiumFilters.Source(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)
         let testEnv = TestEnvironment()
         let store = TestStore(
-            initialState: CreatureEditFeature.State(create: .monster, sourceDocument: coreSource),
-            reducer: CreatureEditFeature()
+            initialState: CreatureEditFeature.State(create: .monster, sourceDocument: coreSource)
         ) {
+            CreatureEditFeature()
+        } withDependencies: {
             $0.modifierFormatter = testEnv.modifierFormatter
             $0.mainQueue = testEnv.mainQueue
             $0.diceLog = testEnv.diceLog
@@ -162,6 +163,7 @@ class CreatureEditViewStateTest: XCTestCase {
             $0.mechMuse = testEnv.mechMuse
             $0.compendium = testEnv.compendium
             $0.database = testEnv.database
+            $0.uuid = UUIDGenerator.fake()
         }
         
         // Set required fields

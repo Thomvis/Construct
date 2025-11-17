@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import IdentifiedCollections
+import ComposableArchitecture
 
 public func visitEach<Global, Element>(
     model: inout Global,

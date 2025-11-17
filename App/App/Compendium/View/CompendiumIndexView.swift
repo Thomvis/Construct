@@ -269,7 +269,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                                                 .toolbar {
                                                     ToolbarItem(placement: .confirmationAction) {
                                                         Button {
-                                                            ViewStore(self.store).send(.setSheet(nil))
+                                                            ViewStore(self.store, observe: { $0 }).send(.setSheet(nil))
                                                         } label: {
                                                             Text("Done").bold()
                                                         }
@@ -398,21 +398,21 @@ fileprivate struct CompendiumSearchableModifier: ViewModifier {
                 Text(type.localizedScreenDisplayName)
             }
         )
-        .onChange(of: text, perform: { t in
+        .onChange(of: text) { _, t in
             store.send(.query(.onTextDidChange(t.nonEmptyString)))
-        })
-        .onChange(of: tokens) { tokens in
+        }
+        .onChange(of: tokens) { _, tokens in
             store.send(.onQueryTypeFilterDidChange(tokens.nonEmptyArray))
         }
         .background {
             WithViewStore(store, observe: LocalState.init) { localViewStore in
                 Color.clear
-                    .onChange(of: localViewStore.state.searchText) { t in
+                    .onChange(of: localViewStore.state.searchText) { _, t in
                         if t.nonNilString != text {
                             text = t.nonNilString
                         }
                     }
-                    .onChange(of: localViewStore.state.itemTypeFilter) { filter in
+                    .onChange(of: localViewStore.state.itemTypeFilter) { _, filter in
                         if filter != tokens {
                             tokens = filter
                         }

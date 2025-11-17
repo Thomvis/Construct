@@ -522,27 +522,11 @@ struct MechMuseCreatureGenerationFeature_Preview: PreviewProvider {
                             ],
                             reactions: []
                         ),
-                        revisions: [
-//                            .init(
-//                                id: .init(),
-//                                prompt: "Make me stats for Acererak, but CR 5 and give it an Irish accent.",
-//                                result: .init(
-//                                    identifier: 0,
-//                                    isLoading: false,
-//                                    result: .success(SimpleStatBlock(statBlock: apply(.default) { stats in
-//                                        stats.name = "Acereraye"
-//                                    }))
-//                                )
-//                            ),
-//                            .init(
-//                                id: .init(),
-//                                prompt: "Make it more mysterious",
-//                                result: .init(isLoading: true)
-//                            )
-                        ]
-                    ),
-                    reducer: MechMuseCreatureGenerationFeature()
-                )
+                        revisions: IdentifiedArrayOf<MechMuseCreatureGenerationFeature.State.Revision>()
+                    )
+                ) {
+                    MechMuseCreatureGenerationFeature()
+                }
             )
         }
     }

@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import CasePaths
+import ComposableArchitecture
 import Helpers
 import Dice
 

@@ -8,7 +8,7 @@
 import Foundation
 import Compendium
 import GameModels
-import IdentifiedCollections
+import ComposableArchitecture
 import Helpers
 
 public protocol KeyValueStoreEntityVisitor {

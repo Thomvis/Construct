@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import IdentifiedCollections
+import ComposableArchitecture
 
 extension IdentifiedArray {
     public subscript(position position: Int) -> Element {

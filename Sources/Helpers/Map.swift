@@ -101,7 +101,7 @@ where Input: Reducer, Result: Reducer, Input.State: Equatable {
             state.input = input
             state.result = result
 
-            let cancellationId = UUID()
+            let cancellationId = uuid()
             let previousCancellationId = state.cancellationId
             state.cancellationId = cancellationId
 

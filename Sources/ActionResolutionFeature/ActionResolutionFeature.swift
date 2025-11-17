@@ -116,10 +116,10 @@ public struct ActionResolutionFeature: Reducer {
                     let imageData = await MainActor.run {
                         let renderer = ImageRenderer(
                             content: ActionResolutionView(store: Store(
-                                initialState: currentState,
-                                reducer: .empty,
-                                environment: environment
-                            ))
+                                initialState: currentState
+                            ) {
+                                EmptyReducer()
+                            })
                         )
 
                         return renderer.uiImage?.pngData()

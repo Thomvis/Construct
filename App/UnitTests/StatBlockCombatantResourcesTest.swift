@@ -61,7 +61,7 @@ class StatBlockCombatantResourcesTest: XCTestCase {
         var monster = Fixtures.monster
         monster.stats.features = []
         monster.stats.actions = [CreatureAction(id: UUID(), name: "Cold Breath (Recharge 5-6)", description: "The dragon exhales an icy blast of hail in a 15-foot cone. Each creature in that area must make a DC 12 Constitution saving throw, taking 22 (5d8) cold damage on a failed save, or half as much damage on a successful one.")]
-            .map { apply(ParseableCreatureAction(input: $0)) { $0.parseIfNeeded() } }
+            .map { apply(ParseableCreatureAction(input: $0)) { _ = $0.parseIfNeeded() } }
             .identified
 
         let resources = monster.stats.extractResources()

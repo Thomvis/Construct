@@ -30,23 +30,30 @@ class EncounterDetailTest: XCTestCase {
                         })),
         ]))
 
+
         let environment = try await apply(Environment.live()) {
-            $0.generateUUID = UUID.fakeGenerator()
+            let uuidGenerator = UUIDGenerator.fake()
+
+            $0.generateUUID = { uuidGenerator.callAsFunction() }
             $0.rng = AnyRandomNumberGenerator(wrapped: EverIncreasingRandomNumberGenerator())
             $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
         }
 
-        let store = await TestStore(
+        let store = TestStore(
             initialState: initialState
         ) {
             EncounterDetailFeature(environment: environment)
+        } withDependencies: {
+            let uuidGenerator = UUIDGenerator.fake()
+
+            $0.uuid = UUIDGenerator.fake()
         }
 
         // start encounter
         await store.send(.run(nil)) {
             var encounter = $0.building
             encounter.ensureStableDiscriminators = true
-            $0.running = RunningEncounter(id: UUID(fakeSeq: 0).tagged(), base: encounter, current: encounter)
+            $0.running = RunningEncounter(id: UUID(0).tagged(), base: encounter, current: encounter)
         }
         // roll initiative
         await store.send(.runningEncounter(.current(.initiative(InitiativeSettings.default)))) {

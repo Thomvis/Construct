@@ -12,5 +12,6 @@
     ),
     itemType: .monster,
     origin: .created(…),
-    document: CompendiumEntry.CompendiumSourceDocumentReference(…)
+    document: CompendiumEntry.CompendiumSourceDocumentReference(…),
+    _error: CodableIgnored(wrappedValue: nil)
   )

@@ -13,6 +13,7 @@ import Compendium
 import CustomDump
 import Helpers
 import TestSupport
+import ComposableArchitecture
 
 class DatabaseCompendiumTest: XCTestCase {
 
@@ -407,10 +408,10 @@ class DatabaseCompendiumTest: XCTestCase {
             }
 
             s.Entity(Encounter(
-                id: UUID(fakeSeq: 456),
+                id: UUID(456),
                 name: "Encounter",
                 combatants: [
-                    .init(id: UUID(fakeSeq: 123).tagged(), compendiumCombatant: entry1.item as! Character)
+                    .init(id: UUID(123).tagged(), compendiumCombatant: entry1.item as! Character)
                 ]
             ))
         }.insert(into: db)
@@ -458,10 +459,10 @@ class DatabaseCompendiumTest: XCTestCase {
             }
 
             s.Entity(Encounter(
-                id: UUID(fakeSeq: 456),
+                id: UUID(456),
                 name: "Encounter",
                 combatants: [
-                    .init(id: UUID(fakeSeq: 123).tagged(), compendiumCombatant: entry1.item as! Character)
+                    .init(id: UUID(123).tagged(), compendiumCombatant: entry1.item as! Character)
                 ]
             ))
         }.assert(db)
@@ -1207,7 +1208,7 @@ class DatabaseCompendiumTest: XCTestCase {
 
     private struct CompendiumDefinition {
         private var realms: [RealmDefinition] = []
-        var uuidGenerator = UUID.fakeGenerator()
+        var uuidGenerator = UUIDGenerator.fake()
 
         @discardableResult
         init(contents: (inout CompendiumDefinition) -> Void) {
