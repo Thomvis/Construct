@@ -301,7 +301,7 @@ struct CombatantDetailView: View {
                     }
                 )
                 .popover(self.popover)
-                .alert(store.scope(state: { $0.alert }, action: { $0 }), dismiss: CombatantDetailFeature.Action.alert(nil))
+                .alert(store: store.scope(state: \.$alert, action: { .alert($0) }))
                 .onAppear {
                     viewStore.send(.onAppear)
                 }

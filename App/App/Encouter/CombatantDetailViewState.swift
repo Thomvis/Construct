@@ -33,7 +33,7 @@ struct CombatantDetailFeature: Reducer {
         var entry: CompendiumEntry?
 
         var popover: Popover?
-        var alert: AlertState<Action>?
+        @PresentationState var alert: AlertState<Action.Alert>?
 
         var presentedScreens: [NavigationDestination: NextScreen] = [:]
 
@@ -175,7 +175,7 @@ struct CombatantDetailFeature: Reducer {
         case onAppear
         case combatant(CombatantAction)
         case popover(State.Popover?)
-        case alert(AlertState<Self>?)
+        case alert(PresentationAction<Alert>)
         case addLimitedResource(CombatantTrackerEditFeature.Action)
         case healthDialog(HealthDialogFeature.Action)
         case rollCheckDialog(DiceCalculator.Action)
@@ -216,6 +216,10 @@ struct CombatantDetailFeature: Reducer {
             case compendiumItemDetailView(CompendiumEntryDetailFeature.Action)
             case safariView
         }
+
+        enum Alert: Equatable {
+            case unlinkAndEditCreature
+        }
     }
 
     let environment: Environment
@@ -234,8 +238,11 @@ struct CombatantDetailFeature: Reducer {
             case .combatant: break // should be handled by parent
             case .popover(let popover):
                 state.popover = popover
-            case .alert(let alert):
-                state.alert = alert
+            case .alert(.presented(.unlinkAndEditCreature)):
+                state.alert = nil
+                return .send(.unlinkAndEditCreature)
+            case .alert(.dismiss):
+                state.alert = nil
             case .addLimitedResource(.onDoneTap):
                 guard case .addLimitedResource(let editState) = state.popover else { return .none }
                 return .run { send in
@@ -254,17 +261,18 @@ struct CombatantDetailFeature: Reducer {
                 }
 
                 if state.combatant.definition is CompendiumCombatantDefinition {
-                    state.alert = AlertState(
-                        title: TextState("Detach Combatant to Edit"),
-                        message: TextState("This combatant needs to be detached from the compendium to make changes just for this encounter."),
-                        primaryButton: .default(
-                            TextState("Detach & Edit"),
-                            action: .send(.unlinkAndEditCreature)
-                        ),
-                        secondaryButton: .cancel(
+                    state.alert = AlertState {
+                        TextState("Detach Combatant to Edit")
+                    } actions: {
+                        ButtonState(action: .unlinkAndEditCreature) {
+                            TextState("Detach & Edit")
+                        }
+                        ButtonState(role: .cancel) {
                             TextState("Cancel")
-                        )
-                    )
+                        }
+                    } message: {
+                        TextState("This combatant needs to be detached from the compendium to make changes just for this encounter.")
+                    }
                 }
             case .saveToCompendium:
                 guard let def = state.combatant.definition as? AdHocCombatantDefinition else { return .none }

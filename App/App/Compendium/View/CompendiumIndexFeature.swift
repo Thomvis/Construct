@@ -39,7 +39,7 @@ struct CompendiumIndexFeature: Reducer {
         var selectedKeys: Set<CompendiumItemKey> = []
 
         var presentedScreens: [NavigationDestination: NextScreen]
-        var alert: AlertState<Action>?
+        @PresentationState var alert: AlertState<Action.Alert>?
         var sheet: Sheet?
 
         init(
@@ -222,7 +222,6 @@ struct CompendiumIndexFeature: Reducer {
         case onSearchOnWebButtonTap
         case onTransferSelectedMenuItemTap(TransferMode)
         case onDeleteSelectedRequested
-        case onDeleteSelectedConfirmed
         case setSelecting(Bool)
         case clearSelection
         case setSelectedKeys(Set<CompendiumItemKey>)
@@ -232,7 +231,11 @@ struct CompendiumIndexFeature: Reducer {
         case setDetailScreen(State.NextScreen?)
         indirect case detailScreen(NextScreenAction)
 
-        indirect case alert(AlertState<Action>?)
+        case alert(PresentationAction<Alert>)
+
+        enum Alert {
+            case onDeleteSelectedConfirmed
+        }
 
         case setSheet(State.Sheet?)
         case creatureEditSheet(CreatureEditFeature.Action)
@@ -342,14 +345,6 @@ struct CompendiumIndexFeature: Reducer {
                     } message: {
                         TextState("This action cannot be undone.")
                     }
-                case .onDeleteSelectedConfirmed:
-                    return .run { [keys=state.selectedKeys] send in
-                        for key in keys {
-                            _ = try? environment.database.keyValueStore.remove(key)
-                        }
-                        await send(.results(.result(.reload(.currentCount))))
-                        await send(.alert(nil))
-                    }
                 case .setSelecting(let selecting):
                     state.isSelecting = selecting
                     if !selecting {
@@ -420,8 +415,16 @@ struct CompendiumIndexFeature: Reducer {
                     return .send(.results(.result(.reload(.currentCount))))
                 case .nextScreen, .detailScreen:
                     break
-                case .alert(let s):
-                    state.alert = s
+                case .alert(.presented(.onDeleteSelectedConfirmed)):
+                    state.alert = nil
+                    return .run { [keys=state.selectedKeys] send in
+                        for key in keys {
+                            _ = try? environment.database.keyValueStore.remove(key)
+                        }
+                        await send(.results(.result(.reload(.currentCount))))
+                    }
+                case .alert(.dismiss):
+                    state.alert = nil
                 case .setSheet(let s):
                     state.sheet = s
                 case .creatureEditSheet, .groupEditSheet, .compendiumImportSheet, .documentsSheet, .transferSheet: break // handled below

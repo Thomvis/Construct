@@ -51,24 +51,7 @@ struct CompendiumImportFeature: ReducerProtocol {
 
         // we use Async just for state storage, not its reducer
         var importResult: Async<CompendiumImporter.Result, Error>.State = .initial
-        var resultAlert: AlertState<Action>? {
-            guard let result = importResult.result else { return nil }
-
-            return switch result {
-            case .success(let result):
-                AlertState(title: {
-                    TextState("Import completed")
-                }, message: {
-                    TextState("\(result.newItemCount + result.overwrittenItemCount) item(s) imported (\(result.newItemCount ) new). \(result.invalidItemCount) item(s) skipped.")
-                })
-            case .failure(let failure):
-                AlertState(title: {
-                    TextState("Import failed")
-                }, message:  {
-                    TextState(failure.localizedDescription)
-                })
-            }
-        }
+        @PresentationState var alert: AlertState<Never>?
         var dismiss = false
 
         var isValid: Bool {
@@ -90,7 +73,7 @@ struct CompendiumImportFeature: ReducerProtocol {
         case importSettings(ImportSettings.Action)
         case didTapImportButton
         case importDidFinish(CompendiumImporter.Result?)
-        case didDismissImportResultAlert
+        case alert(PresentationAction<Never>)
 
         case binding(BindingAction<State>)
     }
@@ -161,10 +144,22 @@ struct CompendiumImportFeature: ReducerProtocol {
             case .importDidFinish(let result?):
                 state.importResult.result = .success(result)
                 state.importResult.isLoading = false
+
+                state.alert = AlertState {
+                    TextState("Import completed")
+                } message: {
+                    TextState("\(result.newItemCount + result.overwrittenItemCount) item(s) imported (\(result.newItemCount ) new). \(result.invalidItemCount) item(s) skipped.")
+                }
             case .importDidFinish(nil):
                 state.importResult.result = .failure(Error.importFailed)
                 state.importResult.isLoading = false
-            case .didDismissImportResultAlert:
+                state.alert = AlertState {
+                    TextState("Import failed")
+                } message: {
+                    TextState(Error.importFailed.localizedDescription)
+                }
+            case .alert(.dismiss):
+                state.alert = nil
                 if state.importResult.result?.value != nil {
                     state.dismiss = true
                 }
@@ -1121,7 +1116,7 @@ public struct CompendiumImportView: View {
                 }
             }
         }
-        .alert(store.scope(state: \.resultAlert, action: { $0 }), dismiss: .didDismissImportResultAlert)
+        .alert(store: store.scope(state: \.$alert, action: { .alert($0) }))
         .navigationTitle(Text("Import"))
     }
 }

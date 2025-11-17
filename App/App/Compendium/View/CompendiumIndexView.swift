@@ -20,7 +20,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     @EnvironmentObject var env: Environment
     @State var isSearching = false
 
-    let store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
+    let store: StoreOf<CompendiumIndexFeature>
 
     let viewProvider: CompendiumIndexViewProvider
 
@@ -93,7 +93,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         }
         .modifier(IsSearchingModifier(isSearching: $isSearching.animation(.default)))
         .modifier(CompendiumSearchableModifier(store: store))
-        .alert(store.scope(state: \.alert, action: { $0 }), dismiss: .alert(nil))
+        .alert(store: store.scope(state: \.$alert, action: { .alert($0) }))
     }
 
     @ViewBuilder
