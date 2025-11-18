@@ -38,7 +38,7 @@ struct EncounterDetailView: View {
             if viewStore.state.shouldShowEncounterDifficulty {
                 Section {
                     SimpleButton(action: {
-                        self.viewStore.send(.sheet(.settings))
+                        self.viewStore.send(.setSheet(.settings))
                     }) {
                         if let difficulty = EncounterDifficulty(
                             party: encounter.partyWithEntriesForDifficulty.1,
@@ -87,9 +87,62 @@ struct EncounterDetailView: View {
         .toolbar {
             toolbar()
         }
-        .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, onDismiss: {
-            self.viewStore.send(.sheet(nil))
-        }, content: self.sheetView)
+        .sheet(
+            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+            state: /EncounterDetailFeature.Sheet.State.add,
+            action: EncounterDetailFeature.Sheet.Action.add
+        ) { store in
+            AddCombatantView(
+                store: store.scope(state: \.state, action: { $0 }),
+                onSelection: { viewStore.send(.addCombatantAction($0, $1)) }
+            )
+            .environmentObject(self.environment)
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+            state: /EncounterDetailFeature.Sheet.State.combatant,
+            action: EncounterDetailFeature.Sheet.Action.combatant
+        ) { store in
+            CombatantDetailContainerView(store: store)
+                .environmentObject(self.environment)
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+            state: /EncounterDetailFeature.Sheet.State.runningEncounterLog,
+            action: EncounterDetailFeature.Sheet.Action.runningEncounterLog
+        ) { store in
+            SheetNavigationContainer {
+                RunningEncounterLogView(store: store)
+                    .environmentObject(self.environment)
+            }
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+            state: /EncounterDetailFeature.Sheet.State.selectedCombatantTags,
+            action: EncounterDetailFeature.Sheet.Action.selectedCombatantTags
+        ) { store in
+            SheetNavigationContainer {
+                CombatantTagsView(store: store)
+            }
+            .environmentObject(self.environment)
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+            state: /EncounterDetailFeature.Sheet.State.settings,
+            action: EncounterDetailFeature.Sheet.Action.settings
+        ) { _ in
+            EncounterSettingsView(store: self.store)
+                .environmentObject(self.environment)
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+            state: /EncounterDetailFeature.Sheet.State.generateCombatantTraits,
+            action: EncounterDetailFeature.Sheet.Action.generateCombatantTraits
+        ) { store in
+            SheetNavigationContainer {
+                GenerateCombatantTraitsView(store: store)
+            }
+        }
         .popover(popover)
         .onAppear {
             self.viewStore.send(.onAppear)
@@ -144,9 +197,9 @@ struct EncounterDetailView: View {
 
             Menu {
                 Button(action: {
-                    self.viewStore.send(.sheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter:
+                    self.viewStore.send(.setSheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter:
                         self.viewStore.state.encounter)))))
-                    self.viewStore.send(.addCombatant(.quickCreate))
+                    self.viewStore.send(.sheet(.presented(.add(.quickCreate))))
                 }) {
                     Text("Quick create")
                     Image(systemName: "plus.circle")
@@ -157,7 +210,7 @@ struct EncounterDetailView: View {
                 }
             } primaryAction: {
                 if appNavigation == .tab {
-                    self.viewStore.send(.sheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter: self.viewStore.state.encounter)))))
+                    self.viewStore.send(.setSheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter: self.viewStore.state.encounter)))))
                 } else {
                     self.viewStore.send(.showAddCombatantReferenceItem)
                 }
@@ -244,7 +297,7 @@ struct EncounterDetailView: View {
                         )
                     }
                 )
-                self.viewStore.send(.sheet(.selectedCombatantTags(state)))
+                self.viewStore.send(.setSheet(.selectedCombatantTags(state)))
             }) {
                 Label("Tags...", systemImage: "tag")
             }
@@ -279,7 +332,7 @@ struct EncounterDetailView: View {
                     }
 
                     Button {
-                        viewStore.send(.sheet(.settings))
+                        viewStore.send(.setSheet(.settings))
                     } label: {
                         Label("Settings", systemImage: "gear")
                     }
@@ -293,46 +346,6 @@ struct EncounterDetailView: View {
                     Label("Actions", systemImage: "ellipsis.circle")
                 }
             }
-        }
-    }
-
-    func sheetView(_ sheet: EncounterDetailFeature.State.Sheet) -> some View {
-        switch sheet {
-        case .add:
-            return IfLetStore(store.scope(state: replayNonNil({ $0.addCombatantState }), action: { .addCombatant($0) })) { store in
-                AddCombatantView(store: store, onSelection: {
-                    viewStore.send(.addCombatantAction($0, $1))
-                }).environmentObject(self.environment)
-            }.eraseToAnyView
-        case .combatant:
-            return IfLetStore(store.scope(state: replayNonNil({ $0.combatantDetailState }), action: { .combatantDetail($0) })) { store in
-                CombatantDetailContainerView(store: store).environmentObject(self.environment)
-            }.eraseToAnyView
-        case .runningEncounterLog:
-            return IfLetStore(
-                store.scope(
-                    state: replayNonNil({ $0.runningEncounterLogState }),
-                    action: { (_: RunningEncounterLogViewAction) in fatalError("RunningEncounterLogViewAction should never be sent") }
-                )
-            ) { store in
-                SheetNavigationContainer {
-                    RunningEncounterLogView(store: store).environmentObject(self.environment)
-                }
-            }.eraseToAnyView
-        case .selectedCombatantTags:
-            return IfLetStore(store.scope(state: replayNonNil({ $0.selectedCombatantTagsState }), action: { .selectedCombatantTags($0) })) { store in
-                SheetNavigationContainer {
-                    CombatantTagsView(store: store)
-                }.environmentObject(self.environment)
-            }.eraseToAnyView
-        case .settings:
-            return EncounterSettingsView(store: self.store).environmentObject(self.environment).eraseToAnyView
-        case .generateCombatantTraits:
-            return IfLetStore(store.scope(state: replayNonNil(\.generateCombatantTraitsState), action: EncounterDetailFeature.Action.generateCombatantTraits)) { store in
-                SheetNavigationContainer {
-                    GenerateCombatantTraitsView(store: store)
-                }
-            }.eraseToAnyView
         }
     }
 
@@ -356,7 +369,7 @@ struct EncounterDetailView: View {
             }
 
             if dismiss {
-                self.viewStore.send(.sheet(nil))
+                self.viewStore.send(.sheet(.dismiss))
             }
         }
     }
@@ -445,7 +458,7 @@ struct CombatantSection: View {
                 .contentShape(Rectangle().scale(self.parent.viewStore.state.editMode.isEditing ? 0 : 1))
                 .onTapGesture {
                     if parent.appNavigation == .tab {
-                        self.parent.viewStore.send(.sheet(.combatant(CombatantDetailFeature.State(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
+                        self.parent.viewStore.send(.setSheet(.combatant(CombatantDetailFeature.State(runningEncounter: self.parent.viewStore.state.running, combatant: combatant))))
                     } else {
                         self.parent.viewStore.send(.showCombatantDetailReferenceItem(combatant))
                     }

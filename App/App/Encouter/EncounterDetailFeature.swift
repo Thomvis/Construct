@@ -61,7 +61,7 @@ struct EncounterDetailFeature: Reducer {
         typealias AsyncResumableRunningEncounters = Async<[String], EquatableError>
         var resumableRunningEncounters: AsyncResumableRunningEncounters.State = .initial
 
-        var sheet: Sheet?
+        @PresentationState var sheet: Sheet.State?
         var popover: Popover?
 
         var editMode: EditMode = .inactive
@@ -73,7 +73,7 @@ struct EncounterDetailFeature: Reducer {
             building: Encounter,
             running: RunningEncounter? = nil,
             resumableRunningEncounters: AsyncResumableRunningEncounters.State = .initial,
-            sheet: Sheet? = nil,
+            sheet: Sheet.State? = nil,
             popover: Popover? = nil,
             editMode: EditMode = .inactive,
             selection: Set<Combatant.Id> = Set<Combatant.Id>(),
@@ -82,7 +82,7 @@ struct EncounterDetailFeature: Reducer {
             self.building = building
             self.running = running
             self.resumableRunningEncounters = resumableRunningEncounters
-            self.sheet = sheet
+            self._sheet = PresentationState(wrappedValue: sheet)
             self.popover = popover
             self.editMode = editMode
             self.selection = selection
@@ -175,7 +175,7 @@ struct EncounterDetailFeature: Reducer {
 
         var localStateForDeduplication: Self {
             var res = self
-            res.sheet = sheet.map {
+            res.sheet = res.sheet.map {
                 switch $0 {
                 case .add: return .add(AddCombatantSheet.nullInstance)
                 case .combatant: return .combatant(CombatantDetailFeature.State.nullInstance)
@@ -197,15 +197,6 @@ struct EncounterDetailFeature: Reducer {
             return res
         }
 
-        enum Sheet: Equatable {
-            case add(AddCombatantSheet)
-            case combatant(CombatantDetailFeature.State)
-            case runningEncounterLog(RunningEncounterLogViewState)
-            case selectedCombatantTags(CombatantTagsFeature.State)
-            case settings
-            case generateCombatantTraits(GenerateCombatantTraitsFeature.State)
-        }
-
         enum Popover: Equatable {
             case encounterInitiative
             case combatantInitiative(Combatant, NumberEntryFeature.State)
@@ -218,6 +209,51 @@ struct EncounterDetailFeature: Reducer {
         }
     }
 
+    struct Sheet: Reducer {
+        let environment: Environment
+
+        enum State: Equatable {
+            case add(AddCombatantSheet)
+            case combatant(CombatantDetailFeature.State)
+            case runningEncounterLog(RunningEncounterLogViewState)
+            case selectedCombatantTags(CombatantTagsFeature.State)
+            case settings
+            case generateCombatantTraits(GenerateCombatantTraitsFeature.State)
+        }
+
+        enum Action: Equatable {
+            case add(AddCombatantFeature.Action)
+            case combatant(CombatantDetailFeature.Action)
+            case runningEncounterLog(RunningEncounterLogViewAction)
+            case selectedCombatantTags(CombatantTagsFeature.Action)
+            case settings
+            case generateCombatantTraits(GenerateCombatantTraitsFeature.Action)
+        }
+
+        var body: some ReducerOf<Self> {
+            Scope(state: /State.add, action: /Action.add) {
+                AddCombatantFeature(environment: environment)
+            }
+            Scope(state: /State.combatant, action: /Action.combatant) {
+                CombatantDetailFeature(environment: environment)
+            }
+            Scope(state: /State.selectedCombatantTags, action: /Action.selectedCombatantTags) {
+                CombatantTagsFeature(environment: environment)
+            }
+            Scope(state: /State.generateCombatantTraits, action: /Action.generateCombatantTraits) {
+                GenerateCombatantTraitsFeature(environment: environment)
+            }
+            Reduce { _, action in
+                switch action {
+                case .runningEncounterLog, .settings:
+                    return .none
+                case .add, .combatant, .selectedCombatantTags, .generateCombatantTraits:
+                    return .none
+                }
+            }
+        }
+    }
+
     enum Action: Equatable {
         case onAppear
         case encounter(Encounter.Action) // forwarded to the effective encounter
@@ -226,23 +262,19 @@ struct EncounterDetailFeature: Reducer {
         case onResumeRunningEncounterTap(String) // key of the running encounter
         case run(RunningEncounter?)
         case stop
-        case sheet(State.Sheet?)
+        case setSheet(Sheet.State?)
+        case sheet(PresentationAction<Sheet.Action>)
         case popover(State.Popover?)
         case combatantInitiativePopover(NumberEntryFeature.Action)
-        case addCombatant(AddCombatantFeature.Action)
         case addCombatantAction(AddCombatantView.Action, Bool)
-        case combatantDetail(CombatantDetailFeature.Action)
         case resumableRunningEncounters(State.AsyncResumableRunningEncounters.Action)
         case removeResumableRunningEncounter(String) // key of the running encounter
         case resetEncounter(Bool) // false = clear monsters, true = clear all
         case editMode(EditMode)
         case selection(Set<Combatant.Id>)
-        case generateCombatantTraits(GenerateCombatantTraitsFeature.Action)
 
         case selectionEncounterAction(SelectionEncounterAction)
         case selectionCombatantAction(CombatantAction)
-
-        case selectedCombatantTags(CombatantTagsFeature.Action)
 
         case showCombatantDetailReferenceItem(Combatant)
         case showAddCombatantReferenceItem
@@ -321,9 +353,9 @@ struct EncounterDetailFeature: Reducer {
                     _ = try? environment.database.keyValueStore.remove(key)
                     await send(.resumableRunningEncounters(.startLoading))
                 }
-            case .sheet(let s):
+            case .setSheet(let s):
                 state.sheet = s
-            case .addCombatant(AddCombatantFeature.Action.onSelect(let combatants, let dismiss)):
+            case .sheet(.presented(.add(.onSelect(let combatants, let dismiss)))):
                 var effects: [Effect<Action>] = combatants.map { combatant in
                     .send(.encounter(.add(combatant)))
                 }
@@ -332,13 +364,12 @@ struct EncounterDetailFeature: Reducer {
                     effects.append(
                         .run { send in
                             await Task.yield()
-                            await send(.sheet(nil))
+                            await send(.sheet(.dismiss))
                         }
                     )
                 }
 
                 return .concatenate(effects)
-            case .addCombatant: break // handled by AddCombatantFeature reducer
             case .addCombatantAction(let action, let dismiss):
                 let state = state
                 return .run { send in
@@ -358,14 +389,13 @@ struct EncounterDetailFeature: Reducer {
                     }
 
                     if dismiss {
-                        await send(.sheet(nil))
+                        await send(.sheet(.dismiss))
                     }
                 }
-            case .combatantDetail(.combatant(let a)):
+            case .sheet(.presented(.combatant(.combatant(let a)))):
                 if let combatantDetailState = state.combatantDetailState {
                     return .send(.encounter(.combatant(combatantDetailState.combatant.id, a)))
                 }
-            case .combatantDetail: break // handled by CombatantDetailFeature reducer
             case .popover(let p):
                 state.popover = p
             case .combatantInitiativePopover: break // handled below
@@ -391,9 +421,8 @@ struct EncounterDetailFeature: Reducer {
                 }
             case .selection(let s):
                 state.selection = s
-            case .generateCombatantTraits(.onDoneButtonTap):
+            case .sheet(.presented(.generateCombatantTraits(.onDoneButtonTap))):
                 state.sheet = nil
-            case .generateCombatantTraits: break // handled below
             case .selectionCombatantAction(let action):
                 return .merge(
                     state.selection.map {
@@ -413,9 +442,8 @@ struct EncounterDetailFeature: Reducer {
                         }
                     }
                 )
-            case .selectedCombatantTags(.combatant(let c, let a)):
+            case .sheet(.presented(.selectedCombatantTags(.combatant(let c, let a)))):
                 return .send(.encounter(.combatant(c.id, a)))
-            case .selectedCombatantTags: break // handled below
             case .showCombatantDetailReferenceItem(let combatant):
                 let detailState = ReferenceItem.State.Content.CombatantDetail(
                     encounter: state.encounter,
@@ -468,9 +496,13 @@ struct EncounterDetailFeature: Reducer {
                 }
             }
             return .none
+        case .sheet(.dismiss):
+            state.sheet = nil
+        case .sheet:
+            break
         }
-        .ifLet(\.addCombatantState, action: /Action.addCombatant) {
-            AddCombatantFeature(environment: environment)
+        .ifLet(\.$sheet, action: /Action.sheet) {
+            Sheet(environment: environment)
         }
         .ifLet(\.combatantInitiativePopover, action: /Action.combatantInitiativePopover) {
             NumberEntryFeature(environment: environment)
@@ -478,20 +510,11 @@ struct EncounterDetailFeature: Reducer {
         .ifLet(\.running, action: /Action.runningEncounter) {
             RunningEncounter.Reducer(environment: environment)
         }
-        .ifLet(\.combatantDetailState, action: /Action.combatantDetail) {
-            CombatantDetailFeature(environment: environment)
-        }
-        .ifLet(\.selectedCombatantTagsState, action: /Action.selectedCombatantTags) {
-            CombatantTagsFeature(environment: environment)
-        }
         Scope(state: \.building, action: /Action.buildingEncounter) {
             Encounter.Reducer(environment: environment)
         }
 
         EmptyReducer()
-            .ifLet(\.generateCombatantTraitsState, action: /Action.generateCombatantTraits) {
-                GenerateCombatantTraitsFeature(environment: environment)
-            }
             .onChange(of: \.generateCombatantTraitsState?.traits) { _, _ in
                 Reduce { state, action in
                     guard let combatants = state.generateCombatantTraitsState?.combatants else { return .none }

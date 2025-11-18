@@ -28,7 +28,7 @@ struct RunningEncounterActionBar: View {
                 }
 
                 Button(action: {
-                    viewStore.send(.sheet(.runningEncounterLog(RunningEncounterLogViewState(encounter: viewStore.state.running!, context: nil))))
+                    viewStore.send(.setSheet(.runningEncounterLog(RunningEncounterLogViewState(encounter: viewStore.state.running!, context: nil))))
                 }) {
                     Label("Show log", systemImage: "doc.plaintext")
                 }
@@ -42,7 +42,7 @@ struct RunningEncounterActionBar: View {
                 }
 
                 Button(action: {
-                    viewStore.send(.sheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter: viewStore.state.encounter)))))
+                    viewStore.send(.setSheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter: viewStore.state.encounter)))))
                 }) {
                     Label("Add combatants", systemImage: "plus")
                 }
