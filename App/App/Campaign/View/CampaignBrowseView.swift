@@ -39,13 +39,13 @@ struct CampaignBrowseView: View {
             RoundedButtonToolbar {
                 if !viewStore.state.isMoveMode {
                     Button(action: {
-                        self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
+                        self.viewStore.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
                     }) {
                         Label("New group", systemImage: "folder")
                     }
 
                     Button(action: {
-                        self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", contentType: .encounter, node: nil))))
+                        self.viewStore.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", contentType: .encounter, node: nil))))
                     }) {
                         Label("New encounter", systemImage: "shield")
                     }
@@ -60,13 +60,12 @@ struct CampaignBrowseView: View {
             }
             .padding(8)
         }
-        .sheet(item: viewStore.binding(get: \.sheet) { _ in .sheet(nil) }, content: self.sheetView)
         .navigationBarTitle(viewStore.state.navigationBarTitle, displayMode: .inline)
         .toolbar {
             if viewStore.state.showSettingsButton {
                 ToolbarItem(placement: .navigation) {
                     Button(action: {
-                        self.viewStore.send(.sheet(.settings))
+                        self.viewStore.send(.setSheet(.settings))
                     }) {
                         Text("Settings")
                     }
@@ -84,7 +83,7 @@ struct CampaignBrowseView: View {
 
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: {
-                        self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
+                        self.viewStore.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
                     }) {
                         Image(systemName: "folder.badge.plus")
                     }
@@ -108,6 +107,38 @@ struct CampaignBrowseView: View {
         .onAppear {
             self.viewStore.send(.items(.startLoading))
         }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
+            state: /CampaignBrowseViewFeature.Sheet.State.settings,
+            action: CampaignBrowseViewFeature.Sheet.Action.settings
+        ) { _ in
+            SettingsContainerView().environmentObject(env)
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
+            state: /CampaignBrowseViewFeature.Sheet.State.nodeEdit,
+            action: CampaignBrowseViewFeature.Sheet.Action.nodeEdit
+        ) { store in
+            SheetNavigationContainer {
+                NodeEditView(
+                    store: store,
+                    onDoneTap: { state, node, title in
+                        viewStore.send(.didTapNodeEditDone(state, node, title))
+                    }
+                )
+            }
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
+            state: /CampaignBrowseViewFeature.Sheet.State.move,
+            action: CampaignBrowseViewFeature.Sheet.Action.move
+        ) { store in
+            SheetNavigationContainer {
+                CampaignBrowseView(store: store)
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+            .environmentObject(env)
+        }
     }
 
     func itemView(_ item: CampaignNode) -> some View {
@@ -122,7 +153,7 @@ struct CampaignBrowseView: View {
         func menu() -> some View {
             Group {
                 Button(action: {
-                    self.viewStore.send(.sheet(.move(CampaignBrowseViewFeature.State(node: .root, mode: .move([item]), items: .initial, showSettingsButton: false, sheet: nil))))
+                    self.viewStore.send(.setSheet(.move(CampaignBrowseViewFeature.State(node: .root, mode: .move([item]), items: .initial, showSettingsButton: false))))
                 }) {
                     Text("Move")
                     Image(systemName: "folder")
@@ -136,7 +167,7 @@ struct CampaignBrowseView: View {
                 }
 
                 Button(action: {
-                    self.viewStore.send(.sheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: item.title, contentType: item.contents?.type, node: item))))
+                    self.viewStore.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: item.title, contentType: item.contents?.type, node: item))))
                 }) {
                     Text("Rename")
                     Image(systemName: "plus.square.on.square")
@@ -209,87 +240,66 @@ struct CampaignBrowseView: View {
         }
     }
 
-    @ViewBuilder
-    func sheetView(_ sheet: CampaignBrowseViewFeature.State.Sheet) -> some View {
-        switch sheet {
-        case .settings:
-            SettingsContainerView().environmentObject(env)
-        case .nodeEdit(let s):
-            SheetNavigationContainer {
-                NodeEditView(onDoneTap: { (state, node, title) in
-                    viewStore.send(.didTapNodeEditDone(state, node, title))
-                }, state: Binding(get: {
-                    self.viewStore.state.nodeEditState ?? s
-                }, set: {
-                    if case .nodeEdit = viewStore.state.sheet {
-                        self.viewStore.send(.sheet(.nodeEdit($0)))
-                    }
-                }))
-            }
-        case .move:
-            SheetNavigationContainer {
-                IfLetStore(self.store.scope(state: { $0.moveSheetState }, action: { .moveSheet($0) })) { store in
-                    CampaignBrowseView(store: store)
-                }
-                .navigationBarTitleDisplayMode(.inline)
-            }.environmentObject(env)
-        }
-    }
-
 }
 
 struct NodeEditView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
+    let store: StoreOf<CampaignBrowseViewFeature.NodeEdit>
     let onDoneTap: (CampaignBrowseViewFeature.State.NodeEditState, CampaignNode?, String) -> Void
 
-    @Binding var state: CampaignBrowseViewFeature.State.NodeEditState
     @State var didFocusOnField = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 22) {
-                Image(systemName: state.contentType.iconName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200.0, height: 200.0)
+        WithViewStore(store, observe: { $0 }) { viewStore in
+            ScrollView {
+                VStack(spacing: 22) {
+                    Image(systemName: viewStore.state.contentType.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 200.0, height: 200.0)
 
-                HStack {
-                    ClearableTextField("Name", text: $state.name, onCommit: self.saveAndDismissIfValid)
-                        .disableAutocorrection(true)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .introspectTextField { textField in
-                            if !textField.isFirstResponder, !didFocusOnField {
-                                textField.becomeFirstResponder()
-                                didFocusOnField = true
+                    HStack {
+                        ClearableTextField("Name", text: viewStore.binding(\.$name), onCommit: {
+                            saveAndDismissIfValid(viewStore)
+                        })
+                            .disableAutocorrection(true)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .introspectTextField { textField in
+                                if !textField.isFirstResponder, !didFocusOnField {
+                                    textField.becomeFirstResponder()
+                                    didFocusOnField = true
+                                }
                             }
-                        }
-                        .submitLabel(.done)
+                            .submitLabel(.done)
+                    }
+                    .padding(8)
+                    .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
                 }
-                .padding(8)
-                .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
+                .padding(22)
             }
-            .padding(22)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(UIColor.systemBackground).opacity(0.90).edgesIgnoringSafeArea(.all))
+            .navigationBarTitle("\(viewStore.state.node != nil ? "Rename" : "Add") \(viewStore.state.contentType.displayName)", displayMode: .inline)
+            .navigationBarItems(
+                leading: Button(action: {
+                    self.presentationMode.wrappedValue.dismiss()
+                }) {
+                    Text("Cancel")
+                },
+                trailing: Button(action: {
+                    saveAndDismissIfValid(viewStore)
+                }) {
+                    Text("Done").bold()
+                }.disabled(viewStore.state.name.isEmpty)
+            )
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor.systemBackground).opacity(0.90).edgesIgnoringSafeArea(.all))
-        .navigationBarTitle("\(state.node != nil ? "Rename" : "Add") \(state.contentType.displayName)", displayMode: .inline)
-        .navigationBarItems(
-            leading: Button(action: {
-                self.presentationMode.wrappedValue.dismiss()
-            }) {
-                Text("Cancel")
-            },
-            trailing: Button(action: self.saveAndDismissIfValid) {
-                Text("Done").bold()
-            }.disabled(state.name.isEmpty)
-        )
     }
 
-    func saveAndDismissIfValid() {
-        guard !state.name.isEmpty else { return }
+    func saveAndDismissIfValid(_ viewStore: ViewStore<CampaignBrowseViewFeature.State.NodeEditState, CampaignBrowseViewFeature.NodeEdit.Action>) {
+        guard !viewStore.state.name.isEmpty else { return }
 
-        self.onDoneTap(self.state, self.state.node, self.state.name)
+        self.onDoneTap(viewStore.state, viewStore.state.node, viewStore.state.name)
         self.presentationMode.wrappedValue.dismiss()
     }
 }

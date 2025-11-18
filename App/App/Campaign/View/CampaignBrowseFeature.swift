@@ -21,16 +21,16 @@ struct CampaignBrowseViewFeature: Reducer {
 
         let showSettingsButton: Bool
 
-        var sheet: Sheet?
+        @PresentationState var sheet: Sheet.State?
 
         @PresentationState var destination: Destination.State?
 
-        init(node: CampaignNode, mode: Mode, items: AsyncItems.State = .initial, showSettingsButton: Bool, sheet: Sheet? = nil, destination: Destination.State? = nil) {
+        init(node: CampaignNode, mode: Mode, items: AsyncItems.State = .initial, showSettingsButton: Bool, sheet: Sheet.State? = nil, destination: Destination.State? = nil) {
             self.node = node
             self.mode = mode
             self.items = items
             self.showSettingsButton = showSettingsButton
-            self.sheet = sheet
+            self._sheet = PresentationState(wrappedValue: sheet)
             self._destination = PresentationState(wrappedValue: destination)
         }
 
@@ -47,24 +47,10 @@ struct CampaignBrowseViewFeature: Reducer {
             case move([CampaignNode])
         }
 
-        enum Sheet: Equatable, Identifiable {
-            case settings
-            case nodeEdit(NodeEditState)
-            indirect case move(State)
-
-            var id: String {
-                switch self {
-                case .settings: return "settings"
-                case .nodeEdit(let s): return s.id.uuidString
-                case .move: return "move"
-                }
-            }
-        }
-
-        struct NodeEditState: Equatable, Identifiable {
+        struct NodeEditState: Equatable, Identifiable, BindableState {
             var id = UUID()
-            var name: String
-            var contentType: CampaignNode.Contents.ContentType? // non-nil if new non-group node
+            @BindingState var name: String = ""
+            @BindingState var contentType: CampaignNode.Contents.ContentType? = nil // non-nil if new non-group node
             var node: CampaignNode? // nil if new node
         }
 
@@ -84,30 +70,6 @@ struct CampaignBrowseViewFeature: Reducer {
                 return item.contents != nil
             }
             return false
-        }
-
-        var nodeEditState: NodeEditState? {
-            get {
-                guard case .nodeEdit(let s)? = sheet else { return nil }
-                return s
-            }
-            set {
-                if let newValue = newValue {
-                    sheet = .nodeEdit(newValue)
-                }
-            }
-        }
-
-        var moveSheetState: State? {
-            get {
-                guard case .move(let s)? = sheet else { return nil }
-                return s
-            }
-            set {
-                if let newValue = newValue {
-                    sheet = .move(newValue)
-                }
-            }
         }
 
         var isMoveMode: Bool {
@@ -140,11 +102,11 @@ struct CampaignBrowseViewFeature: Reducer {
         case didTapNodeEditDone(State.NodeEditState, CampaignNode?, String)
         case didTapConfirmMoveButton
         case remove(CampaignNode)
-        case sheet(State.Sheet?)
+        case setSheet(Sheet.State?)
         case performMove([CampaignNode], CampaignNode)
-        indirect case moveSheet(Action)
         case setDestination(Destination.State?)
         case destination(PresentationAction<Destination.Action>)
+        case sheet(PresentationAction<Sheet.Action>)
 
         // Key-path support
         var items: State.AsyncItems.Action? {
@@ -156,11 +118,6 @@ struct CampaignBrowseViewFeature: Reducer {
                 guard case .items = self, let value = newValue else { return }
                 self = .items(value)
             }
-        }
-
-        var moveSheet: Action? {
-            guard case .moveSheet(let a) = self else { return nil }
-            return a
         }
 
     }
@@ -188,6 +145,49 @@ struct CampaignBrowseViewFeature: Reducer {
         }
     }
 
+    struct Sheet: Reducer {
+        let environment: Environment
+
+        enum State: Equatable {
+            case settings
+            case nodeEdit(CampaignBrowseViewFeature.State.NodeEditState)
+            indirect case move(CampaignBrowseViewFeature.State)
+        }
+
+        enum Action: Equatable {
+            case settings
+            case nodeEdit(CampaignBrowseViewFeature.NodeEdit.Action)
+            case move(CampaignBrowseViewFeature.Action)
+        }
+
+        var body: some ReducerOf<Self> {
+            Scope(state: /State.nodeEdit, action: /Action.nodeEdit) {
+                CampaignBrowseViewFeature.NodeEdit()
+            }
+            Scope(state: /State.move, action: /Action.move) {
+                CampaignBrowseViewFeature(environment: environment)
+            }
+            Reduce { _, action in
+                switch action {
+                case .settings, .nodeEdit, .move:
+                    return .none
+                }
+            }
+        }
+    }
+
+    struct NodeEdit: Reducer {
+        typealias State = CampaignBrowseViewFeature.State.NodeEditState
+
+        enum Action: BindableAction, Equatable {
+            case binding(BindingAction<State>)
+        }
+
+        var body: some ReducerOf<Self> {
+            BindingReducer()
+        }
+    }
+
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             let node = state.node
@@ -200,7 +200,7 @@ struct CampaignBrowseViewFeature: Reducer {
                 }
             case .performMove: // will bubble up below
                 break
-            case .moveSheet(.performMove(let items, let destination)):
+            case .sheet(.presented(.move(.performMove(let items, let destination)))):
                 return .run { send in
                     // perform move
                     for item in items {
@@ -210,13 +210,12 @@ struct CampaignBrowseViewFeature: Reducer {
                             environment.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                         }
                     }
-
-                    await send(.sheet(nil))
+                    await send(.sheet(.dismiss))
                     await send(.items(.startLoading))
                 }
-            case .moveSheet:
+            case .sheet(.presented(.move)):
                 break
-            case .sheet(let s):
+            case .setSheet(let s):
                 state.sheet = s
             case .setDestination(let destination):
                 state.destination = destination
@@ -287,6 +286,10 @@ struct CampaignBrowseViewFeature: Reducer {
 
                     await send(.items(.startLoading))
                 }
+            case .sheet(.dismiss):
+                state.sheet = nil
+            case .sheet:
+                break
             case .items: break // handled below
             }
             return .none
@@ -305,8 +308,8 @@ struct CampaignBrowseViewFeature: Reducer {
         .ifLet(\.$destination, action: /Action.destination) {
             Destination(environment: environment)
         }
-        .ifLet(\.moveSheetState, action: /Action.moveSheet) {
-            CampaignBrowseViewFeature(environment: environment)
+        .ifLet(\.$sheet, action: /Action.sheet) {
+            Sheet(environment: environment)
         }
     }
 }
