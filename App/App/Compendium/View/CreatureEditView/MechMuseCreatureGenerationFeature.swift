@@ -8,7 +8,7 @@ import MechMuse
 import CustomDump
 import Tagged
 
-struct MechMuseCreatureGenerationFeature: ReducerProtocol {
+struct MechMuseCreatureGenerationFeature: Reducer {
     struct State: Equatable, Identifiable {
         var id: UUID = UUID()
         @BindingState var prompt: String = ""
@@ -80,7 +80,7 @@ struct MechMuseCreatureGenerationFeature: ReducerProtocol {
 
     @Dependency(\.mechMuse) var mechMuse
 
-    var body: some ReducerProtocolOf<Self> {
+    var body: some ReducerOf<Self> {
         BindingReducer()
         Reduce { state, action in
             switch action {
@@ -348,7 +348,7 @@ struct MechMuseCreatureGenerationSheet: View {
 }
 
 extension MechMuseCreatureGenerationFeature {
-    struct Preview: ReducerProtocol {
+    struct Preview: Reducer {
         struct State: Equatable {
             let statBlock: StatBlock
             let diffWithPrevious: AttributedString?
@@ -397,7 +397,7 @@ extension MechMuseCreatureGenerationFeature {
             case binding(BindingAction<State>)
         }
 
-        var body: some ReducerProtocolOf<Self> {
+        var body: some ReducerOf<Self> {
             Reduce { state, action in
                 return .none
             }

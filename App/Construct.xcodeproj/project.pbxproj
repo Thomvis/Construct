@@ -1535,7 +1535,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.3;
+				minimumVersion = 1.0.0;
 			};
 		};
 		E911C31F2E7897AE0073DE9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
@@ -1599,7 +1599,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-custom-dump";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.11.2;
+				minimumVersion = 1.0.0;
 			};
 		};
 		E9F6D02F2FB740F500C551A7 /* XCRemoteSwiftPackageReference "combine-schedulers" */ = {
@@ -1607,7 +1607,7 @@
 			repositoryURL = "https://github.com/pointfreeco/combine-schedulers";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.11.0;
+				minimumVersion = 1.0.0;
 			};
 		};
 		E9F6D0322FB74B2F00C551A7 /* XCRemoteSwiftPackageReference "swift-identified-collections" */ = {
@@ -1615,7 +1615,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-identified-collections";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.7.1;
+				minimumVersion = 1.0.0;
 			};
 		};
 		E9F6D0332FB74B2F00C551A7 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
@@ -1631,7 +1631,7 @@
 			repositoryURL = "https://github.com/pointfreeco/swift-concurrency-extras";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.2;
+				minimumVersion = 1.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

@@ -267,7 +267,7 @@ struct EncounterDetailFeature: Reducer {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return EffectTask.run { [state] send in
+                return Effect.run { [state] send in
                     if state.resumableRunningEncounters.result == nil {
                         await send(.resumableRunningEncounters(.startLoading))
                     }
@@ -324,7 +324,7 @@ struct EncounterDetailFeature: Reducer {
             case .sheet(let s):
                 state.sheet = s
             case .addCombatant(AddCombatantFeature.Action.onSelect(let combatants, let dismiss)):
-                var effects: [EffectTask<Action>] = combatants.map { combatant in
+                var effects: [Effect<Action>] = combatants.map { combatant in
                     .send(.encounter(.add(combatant)))
                 }
 
@@ -403,7 +403,7 @@ struct EncounterDetailFeature: Reducer {
             case .selectionEncounterAction(let action):
                 let encounter = state.encounter
                 return .merge(
-                    state.selection.compactMap { id -> EffectTask<Action>? in
+                    state.selection.compactMap { id -> Effect<Action>? in
                         guard let combatant = encounter.combatant(for: id) else { return nil }
                         switch action {
                         case .duplicate:

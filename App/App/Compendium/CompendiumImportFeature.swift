@@ -18,7 +18,7 @@ import Persistence
 import Compendium
 import SharedViews
 
-struct CompendiumImportFeature: ReducerProtocol {
+struct CompendiumImportFeature: Reducer {
     struct State: Equatable {
         var phase: Phase = .dataSourcePreferences
 
@@ -86,7 +86,7 @@ struct CompendiumImportFeature: ReducerProtocol {
     @Dependency(\.compendium) var compendium
     @Dependency(\.compendiumMetadata) var compendiumMetadata
 
-    var body: some ReducerProtocol<State, Action> {
+    var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
             case .onAppear:
@@ -179,7 +179,7 @@ struct CompendiumImportFeature: ReducerProtocol {
         BindingReducer()
     }
 
-    struct DataSource: ReducerProtocol {
+    struct DataSource: Reducer {
         struct State: Equatable, Identifiable {
             let title: String
             let description: String
@@ -198,7 +198,7 @@ struct CompendiumImportFeature: ReducerProtocol {
             case onNextTapped
         }
 
-        var body: some ReducerProtocol<State, Action> {
+        var body: some Reducer<State, Action> {
             Reduce { state, action in
                 .none
             }
@@ -208,7 +208,7 @@ struct CompendiumImportFeature: ReducerProtocol {
         }
     }
 
-    struct ImportSettings: ReducerProtocol {
+    struct ImportSettings: Reducer {
         struct State: Equatable {
             typealias AsyncDocuments = Async<[CompendiumSourceDocument], EquatableError>
             var documents: AsyncDocuments.State = .initial
@@ -388,7 +388,7 @@ struct CompendiumImportFeature: ReducerProtocol {
 
         @Dependency(\.compendiumMetadata) var compendiumMetadata
 
-        var body: some ReducerProtocol<State, Action> {
+        var body: some Reducer<State, Action> {
             Reduce { state, action in
                 .none
             }
@@ -449,7 +449,7 @@ enum DataSourceIcon: Equatable {
     }
 }
 
-struct DataSourcePreferences: ReducerProtocol {
+struct DataSourcePreferences: Reducer {
     enum State: Equatable {
         case open5e(Open5e.State)
         case file(File.State)
@@ -513,7 +513,7 @@ struct DataSourcePreferences: ReducerProtocol {
         case network(Network.Action)
     }
 
-    var body: some ReducerProtocol<State, Action> {
+    var body: some Reducer<State, Action> {
         Reduce { state, action in
             .none
         }
@@ -528,7 +528,7 @@ struct DataSourcePreferences: ReducerProtocol {
         }
     }
 
-    struct Open5e: ReducerProtocol {
+    struct Open5e: Reducer {
         struct State: Equatable {
             typealias RemoteDocuments = Async<[Open5eAPI.Document], EquatableError>
             var remoteDocuments: RemoteDocuments.State = .initial
@@ -587,7 +587,7 @@ struct DataSourcePreferences: ReducerProtocol {
 
         @Dependency(\.open5eAPIClient) var open5eAPIClient
 
-        var body: some ReducerProtocol<State, Action> {
+        var body: some Reducer<State, Action> {
             Reduce { state, action in
                 switch action {
                 case .onAppear:
@@ -616,7 +616,7 @@ struct DataSourcePreferences: ReducerProtocol {
         }
     }
 
-    struct File: ReducerProtocol {
+    struct File: Reducer {
         struct State: Equatable {
             @BindingState var url: URL? = nil
             @BindingState var openPicker = false
@@ -626,12 +626,12 @@ struct DataSourcePreferences: ReducerProtocol {
             case binding(BindingAction<State>)
         }
 
-        var body: some ReducerProtocol<State, Action> {
+        var body: some Reducer<State, Action> {
             BindingReducer()
         }
     }
 
-    struct Network: ReducerProtocol {
+    struct Network: Reducer {
         struct State: Equatable {
             @BindingState var urlString: String = ""
 
@@ -644,7 +644,7 @@ struct DataSourcePreferences: ReducerProtocol {
             case binding(BindingAction<State>)
         }
 
-        var body: some ReducerProtocol<State, Action> {
+        var body: some Reducer<State, Action> {
             BindingReducer()
         }
     }

@@ -147,12 +147,6 @@ extension Optional: OptionalProtocol {
     public var optional: Optional<Wrapped> { self }
 }
 
-public extension CasePath {
-    init(embed: CasePath<Root, Any>, extract: KeyPath<Root, Value?>) {
-        self.init(embed: embed.embed, extract: { $0[keyPath: extract] })
-    }
-}
-
 public extension Result {
     var value: Success? {
         if case .success(let value) = self {

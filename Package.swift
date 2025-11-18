@@ -25,22 +25,22 @@ let package = Package(
         .executable(name: "db-tool", targets: ["DatabaseInitTool"])
     ],
     dependencies: [
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "0.58.0"),
-        .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "0.6.0"),
-        .package(url: "https://github.com/pointfreeco/combine-schedulers", from: "0.11.0"),
-        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.11.2"),
-        .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "0.7.1"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
+        .package(url: "https://github.com/pointfreeco/combine-schedulers", from: "1.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.1.1"),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.4"),
-        .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "0.1.2"),
-        .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.6.0"),
-        .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.5.0"),
+        .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.10.0"),
+        .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.6.2"),
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.8.0"),
-        .package(url: "https://github.com/apple/swift-async-algorithms", from: "0.0.4"),
-        .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.12.0"),
-        .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "0.2.0"),
+        .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.14.1"),
+        .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.14.0"),
-        .package(url: "https://github.com/ajevans99/swift-json-schema", from: "0.9.0"),
-        .package(url: "https://github.com/MacPaw/OpenAI.git", from: "0.4.6")
+        .package(url: "https://github.com/ajevans99/swift-json-schema", from: "0.10.0"),
+        .package(url: "https://github.com/MacPaw/OpenAI.git", from: "0.4.7")
     ],
     targets: [
         .target(

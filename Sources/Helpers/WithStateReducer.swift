@@ -18,7 +18,7 @@ where Body.State == ParentState, Body.Action == ParentAction {
     }
 
     @inlinable
-    public func reduce(into state: inout ParentState, action: ParentAction) -> EffectTask<ParentAction> {
+    public func reduce(into state: inout ParentState, action: ParentAction) -> Effect<ParentAction> {
         reducer(toValue(state)).reduce(into: &state, action: action)
     }
 

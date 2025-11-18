@@ -47,7 +47,7 @@ public struct DiceActionFeature: Reducer {
             switch action {
             case .rollAll:
                 return .merge(
-                    state.action.steps.compactMap { step -> EffectTask<Action>? in
+                    state.action.steps.compactMap { step -> Effect<Action>? in
                         guard case .roll = step.value else { return nil }
                         return .send(.stepAction(step.id, .value(.roll(.roll))))
                     }
@@ -124,7 +124,7 @@ public struct DiceActionFeature: Reducer {
             case .value(.roll(.roll)):
                 guard let rollValue = state.rollValue else { return .none }
 
-                var effects: [EffectTask<DiceActionFeature.StepAction>] = [
+                var effects: [Effect<DiceActionFeature.StepAction>] = [
                     .send(.value(.roll(.first(.roll(rollValue.expression)))))
                 ]
 

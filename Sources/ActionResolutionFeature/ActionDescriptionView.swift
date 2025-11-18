@@ -57,14 +57,14 @@ struct ActionDescriptionView: View {
 
                                 EqualWidthLayout(spacing: 20) {
                                     Button {
-                                        viewStore.send(.binding(.set(\.$settings.outcome, .hit)))
+                                        viewStore.$settings.outcome.wrappedValue = .hit
                                     } label: {
                                         Text("Hit").frame(maxWidth: .infinity)
                                     }
                                     .tint(hitOrMissTintHit)
 
                                     Button {
-                                        viewStore.send(.binding(.set(\.$settings.outcome, .miss)))
+                                        viewStore.$settings.outcome.wrappedValue = .miss
                                     } label: {
                                         Text("Miss").frame(maxWidth: .infinity)
                                     }

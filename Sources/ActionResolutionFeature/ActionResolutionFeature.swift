@@ -100,7 +100,7 @@ public struct ActionResolutionFeature: Reducer {
         case binding(BindingAction<State>)
     }
 
-    public var body: some ReducerProtocol<State, Action> {
+    public var body: some Reducer<State, Action> {
 
         Scope(state: \.muse, action: /Action.muse) {
             ActionDescriptionFeature(environment: environment)

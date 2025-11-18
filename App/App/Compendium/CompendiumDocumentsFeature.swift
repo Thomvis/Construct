@@ -15,7 +15,7 @@ import Persistence
 import Helpers
 import SharedViews
 
-struct CompendiumDocumentsFeature: ReducerProtocol {
+struct CompendiumDocumentsFeature: Reducer {
     struct State: Equatable {
         @BindingState var documents: [CompendiumSourceDocument] = []
         @BindingState var realms: [CompendiumRealm] = []
@@ -43,7 +43,7 @@ struct CompendiumDocumentsFeature: ReducerProtocol {
         case binding(BindingAction<State>)
     }
 
-    struct Sheet: ReducerProtocol {
+    struct Sheet: Reducer {
         enum State: Equatable {
             case editRealm(EditRealm.State)
             case editDocument(EditDocument.State)
@@ -54,7 +54,7 @@ struct CompendiumDocumentsFeature: ReducerProtocol {
             case editDocument(EditDocument.Action)
         }
 
-        var body: some ReducerProtocolOf<Self> {
+        var body: some ReducerOf<Self> {
             Scope(state: /State.editRealm, action: /Action.editRealm) {
                 EditRealm()
             }
@@ -67,7 +67,7 @@ struct CompendiumDocumentsFeature: ReducerProtocol {
 
     @Dependency(\.compendiumMetadata) var compendiumMetadata
 
-    var body: some ReducerProtocolOf<Self> {
+    var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
@@ -108,7 +108,7 @@ struct CompendiumDocumentsFeature: ReducerProtocol {
     }
 }
 
-struct EditRealm: ReducerProtocol {
+struct EditRealm: Reducer {
     struct State: Equatable {
         var original: CompendiumRealm? // nil for new realms, non-nil for editing
 
@@ -180,7 +180,7 @@ struct EditRealm: ReducerProtocol {
     @Dependency(\.dismiss) var dismiss
     @Dependency(\.compendiumMetadata) var compendiumMetadata
 
-    var body: some ReducerProtocolOf<Self> {
+    var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onCancelButtonTap:
@@ -233,7 +233,7 @@ struct EditRealm: ReducerProtocol {
     }
 }
 
-struct EditDocument: ReducerProtocol {
+struct EditDocument: Reducer {
     struct State: Equatable {
         var original: CompendiumSourceDocument? // nil for new documents, non-nil for editing
         let realms: [CompendiumRealm]
@@ -322,7 +322,7 @@ struct EditDocument: ReducerProtocol {
     @Dependency(\.dismiss) var dismiss
     @Dependency(\.compendiumMetadata) var compendiumMetadata
 
-    var body: some ReducerProtocolOf<Self> {
+    var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onCancelButtonTap:
@@ -402,7 +402,7 @@ struct EditDocument: ReducerProtocol {
         operation: @escaping () async throws -> Void,
         fileID: StaticString = #fileID,
         line: UInt = #line
-    ) -> EffectTask<Action> {
+    ) -> Effect<Action> {
         state.operation = State.AsyncOperation.State(isLoading: true)
         return .run(
             operation: { @MainActor send in

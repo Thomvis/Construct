@@ -7,7 +7,7 @@ import Persistence
 import SharedViews
 
 /// The UI that enables the user to move/copy compendium items between documents
-struct CompendiumItemTransferFeature: ReducerProtocol {
+struct CompendiumItemTransferFeature: Reducer {
     static let operationEffectId = "CompendiumItemTransferFeature.operationEffectId"
 
     struct State: Equatable {
@@ -90,7 +90,7 @@ struct CompendiumItemTransferFeature: ReducerProtocol {
     @Dependency(\.compendiumMetadata) var compendiumMetadata
     @Dependency(\.compendium) var compendium
 
-    var body: some ReducerProtocolOf<Self> {
+    var body: some ReducerOf<Self> {
         BindingReducer()
 
         Scope(state: \.documentSelection, action: /Action.documentSelection) {

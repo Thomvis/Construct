@@ -5,7 +5,7 @@ import GameModels
 import Compendium
 import Helpers
 
-struct CompendiumDocumentSelectionFeature: ReducerProtocol {
+struct CompendiumDocumentSelectionFeature: Reducer {
     struct State: Equatable {
 
         let unselectedLabel: String?
@@ -72,7 +72,7 @@ struct CompendiumDocumentSelectionFeature: ReducerProtocol {
         var compendiumMetadata: CompendiumMetadata
     }
 
-    var body: some ReducerProtocolOf<Self> {
+    var body: some ReducerOf<Self> {
         BindingReducer()
         
         Reduce { state, action in
