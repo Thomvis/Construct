@@ -387,11 +387,7 @@ extension ColumnNavigationFeature.State {
         return TabNavigationFeature.State(
             selectedTab: selectedTab,
             campaignBrowser: campaignBrowse,
-            compendium: apply(def.compendium) {
-                if let activeCompendiumReferenceItemTab {
-                    $0.destination = .compendiumIndex(activeCompendiumReferenceItemTab)
-                }
-            },
+            compendium: activeCompendiumReferenceItemTab ?? def.compendium,
             diceRoller: apply(def.diceRoller) {
                 $0.calculatorState.expression = diceCalculator.diceCalculator.expression
                 $0.calculatorState.result = diceCalculator.diceCalculator.result

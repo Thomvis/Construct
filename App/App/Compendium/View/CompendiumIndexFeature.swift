@@ -41,7 +41,7 @@ struct CompendiumIndexFeature: Reducer {
         @PresentationState var destination: Destination.State?
         var safari: SafariViewState?
         @PresentationState var alert: AlertState<Action.Alert>?
-        var sheet: Sheet?
+        @PresentationState var sheet: Sheet.State?
 
         init(
             title: String,
@@ -49,14 +49,14 @@ struct CompendiumIndexFeature: Reducer {
             results: RetainedMappedResults.State,
             destination: Destination.State? = nil,
             safari: SafariViewState? = nil,
-            sheet: Sheet? = nil
+            sheet: Sheet.State? = nil
         ) {
             self.title = title
             self.properties = properties
             self.results = results
             self._destination = PresentationState(wrappedValue: destination)
             self.safari = safari
-            self.sheet = sheet
+            self._sheet = PresentationState(wrappedValue: sheet)
 
             properties.apply(to: &self.results.input.filters)
         }
@@ -72,7 +72,7 @@ struct CompendiumIndexFeature: Reducer {
             if safari != nil {
                 res.safari = .nullInstance
             }
-            res.sheet = sheet.map {
+            res.sheet = res.sheet.map {
                 switch $0 {
                 case .creatureEdit: return .creatureEdit(CreatureEditFeature.State.nullInstance)
                 case .groupEdit: return .groupEdit(CompendiumItemGroupEditFeature.State.nullInstance)
@@ -83,76 +83,6 @@ struct CompendiumIndexFeature: Reducer {
             }
 
             return res
-        }
-
-        var creatureEditSheet: CreatureEditFeature.State? {
-            get {
-                if case .creatureEdit(let state)? = sheet {
-                    return state
-                }
-                return nil
-            }
-            set {
-                if let newValue = newValue {
-                    sheet = .creatureEdit(newValue)
-                }
-            }
-        }
-
-        var groupEditSheet: CompendiumItemGroupEditFeature.State? {
-            get {
-                if case .groupEdit(let state)? = sheet {
-                    return state
-                }
-                return nil
-            }
-            set {
-                if let newValue = newValue {
-                    sheet = .groupEdit(newValue)
-                }
-            }
-        }
-
-        var compendiumImportSheet: CompendiumImportFeature.State? {
-            get {
-                if case .compendiumImport(let state)? = sheet {
-                    return state
-                }
-                return nil
-            }
-            set {
-                if let newValue = newValue {
-                    sheet = .compendiumImport(newValue)
-                }
-            }
-        }
-
-        var documentsSheet: CompendiumDocumentsFeature.State? {
-            get {
-                if case .documents(let state)? = sheet {
-                    return state
-                }
-                return nil
-            }
-            set {
-                if let newValue = newValue {
-                    sheet = .documents(newValue)
-                }
-            }
-        }
-
-        var transferSheet: CompendiumItemTransferFeature.State? {
-            get {
-                if case .transfer(let state)? = sheet {
-                    return state
-                }
-                return nil
-            }
-            set {
-                if let newValue = newValue {
-                    sheet = .transfer(newValue)
-                }
-            }
         }
 
         struct Properties: Equatable {
@@ -187,24 +117,6 @@ struct CompendiumIndexFeature: Reducer {
             }
         }
 
-        enum Sheet: Equatable, Identifiable {
-            // creatureEdit and groupEdit are used when adding a new creature/group
-            case creatureEdit(CreatureEditFeature.State)
-            case groupEdit(CompendiumItemGroupEditFeature.State)
-            case compendiumImport(CompendiumImportFeature.State)
-            case documents(CompendiumDocumentsFeature.State)
-            case transfer(CompendiumItemTransferFeature.State)
-
-            var id: String {
-                switch self {
-                case .creatureEdit(let s): return s.navigationStackItemStateId
-                case .groupEdit(let s): return s.navigationStackItemStateId
-                case .compendiumImport: return "import"
-                case .documents: return "documents"
-                case .transfer: return "transfer"
-                }
-            }
-        }
     }
 
     enum Action: Equatable {
@@ -232,12 +144,8 @@ struct CompendiumIndexFeature: Reducer {
             case onDeleteSelectedConfirmed
         }
 
-        case setSheet(State.Sheet?)
-        case creatureEditSheet(CreatureEditFeature.Action)
-        case groupEditSheet(CompendiumItemGroupEditFeature.Action)
-        case compendiumImportSheet(CompendiumImportFeature.Action)
-        case documentsSheet(CompendiumDocumentsFeature.Action)
-        case transferSheet(CompendiumItemTransferFeature.Action)
+        case setSheet(Sheet.State?)
+        case sheet(PresentationAction<Sheet.Action>)
 
         // Key-path support
         var results: ResultsAction? {
@@ -260,7 +168,6 @@ struct CompendiumIndexFeature: Reducer {
         let environment: CompendiumIndexEnvironment
 
         enum State: Equatable {
-            indirect case compendiumIndex(CompendiumIndexFeature.State)
             case itemDetail(CompendiumEntryDetailFeature.State)
         }
 
@@ -270,11 +177,55 @@ struct CompendiumIndexFeature: Reducer {
         }
 
         var body: some ReducerOf<Self> {
-            Scope(state: /State.compendiumIndex, action: /Action.compendiumIndex) {
-                CompendiumIndexFeature(environment: environment)
-            }
             Scope(state: /State.itemDetail, action: /Action.itemDetail) {
                 CompendiumEntryDetailFeature(environment: environment)
+            }
+        }
+    }
+
+    struct Sheet: Reducer {
+        let environment: CompendiumIndexEnvironment
+
+        enum State: Equatable {
+            case creatureEdit(CreatureEditFeature.State)
+            case groupEdit(CompendiumItemGroupEditFeature.State)
+            case compendiumImport(CompendiumImportFeature.State)
+            case documents(CompendiumDocumentsFeature.State)
+            case transfer(CompendiumItemTransferFeature.State)
+        }
+
+        enum Action: Equatable {
+            case creatureEdit(CreatureEditFeature.Action)
+            case groupEdit(CompendiumItemGroupEditFeature.Action)
+            case compendiumImport(CompendiumImportFeature.Action)
+            case documents(CompendiumDocumentsFeature.Action)
+            case transfer(CompendiumItemTransferFeature.Action)
+        }
+
+        var body: some ReducerOf<Self> {
+            Scope(state: /State.creatureEdit, action: /Action.creatureEdit) {
+                CreatureEditFeature()
+            }
+            Scope(state: /State.groupEdit, action: /Action.groupEdit) {
+                CompendiumItemGroupEditFeature()
+            }
+            Scope(state: /State.compendiumImport, action: /Action.compendiumImport) {
+                CompendiumImportFeature()
+                    .dependency(\.database, environment.database)
+                    .dependency(\.compendium, environment.compendium)
+                    .dependency(\.compendiumMetadata, environment.compendiumMetadata)
+                    .dependency(\.uuid, UUIDGenerator(environment.generateUUID))
+            }
+            Scope(state: /State.documents, action: /Action.documents) {
+                CompendiumDocumentsFeature()
+                    .dependency(\.compendiumMetadata, environment.compendiumMetadata)
+                    .dependency(\.database, environment.database)
+            }
+            Scope(state: /State.transfer, action: /Action.transfer) {
+                CompendiumItemTransferFeature()
+                    .dependency(\.compendium, environment.compendium)
+                    .dependency(\.compendiumMetadata, environment.compendiumMetadata)
+                    .dependency(\.database, environment.database)
             }
         }
     }
@@ -355,20 +306,18 @@ struct CompendiumIndexFeature: Reducer {
                 state.selectedKeys = keys
             case .setDestination(let destination):
                 state.destination = destination
-            case .creatureEditSheet(CreatureEditFeature.Action.didAdd(let result)):
+            case .sheet(.presented(.creatureEdit(.didAdd(let result)))):
                 // adding a new creature (handled by CreatureEditView reducer)
+                state.sheet = nil
                 if case let .compendium(entry) = result {
                     return .merge(
                             .send(.scrollTo(entry.key)),
-                            .send(.results(.result(.reload(.all)))),
-                            .send(.setSheet(nil))
+                            .send(.results(.result(.reload(.all))))
                         )
-                    } else {
-                        return .send(.setSheet(nil))
-                    }
-                case .groupEditSheet(CompendiumItemGroupEditFeature.Action.onAddTap(let group)):
-                    // adding a group
-                    return .run { send in
+                }
+            case .sheet(.presented(.groupEdit(.onAddTap(let group)))):
+                // adding a group
+                return .run { send in
                         let entry = CompendiumEntry(
                             group,
                             origin: .created(nil),
@@ -378,14 +327,14 @@ struct CompendiumIndexFeature: Reducer {
 
                         await send(.results(.result(.reload(.all))))
                         await send(.scrollTo(entry.key))
-                        await send(.setSheet(nil))
+                        await send(.sheet(.dismiss))
                     }
-            case .compendiumImportSheet(.importDidFinish(.some)):
+            case .sheet(.presented(.compendiumImport(.importDidFinish(.some)))):
                 return .send(.results(.result(.reload(.currentCount))))
-            case .transferSheet(.onTransferDidSucceed):
+            case .sheet(.presented(.transfer(.onTransferDidSucceed))):
                 return .merge(
                     .send(.results(.result(.reload(.currentCount)))),
-                    .send(.setSheet(nil))
+                    .send(.sheet(.dismiss))
                 )
             case .destination(.presented(.itemDetail(.didRemoveItem))):
                 // creature removed
@@ -424,36 +373,18 @@ struct CompendiumIndexFeature: Reducer {
                     state.alert = nil
                 case .setSheet(let s):
                     state.sheet = s
-                case .creatureEditSheet, .groupEditSheet, .compendiumImportSheet, .documentsSheet, .transferSheet: break // handled below
+                case .sheet(.dismiss):
+                    state.sheet = nil
+                case .sheet:
+                    break
             }
             return .none
         }
         .ifLet(\.$destination, action: /Action.destination) {
             Destination(environment: environment)
         }
-        .ifLet(\.creatureEditSheet, action: /Action.creatureEditSheet) {
-            CreatureEditFeature()
-        }
-        .ifLet(\.groupEditSheet, action: /Action.groupEditSheet) {
-            CompendiumItemGroupEditFeature()
-        }
-        .ifLet(\.compendiumImportSheet, action: /Action.compendiumImportSheet) {
-            CompendiumImportFeature()
-                .dependency(\.database, environment.database)
-                .dependency(\.compendium, environment.compendium)
-                .dependency(\.compendiumMetadata, environment.compendiumMetadata)
-                .dependency(\.uuid, UUIDGenerator(environment.generateUUID))
-        }
-        .ifLet(\.documentsSheet, action: /Action.documentsSheet) {
-            CompendiumDocumentsFeature()
-                .dependency(\.compendiumMetadata, environment.compendiumMetadata)
-                .dependency(\.database, environment.database)
-        }
-        .ifLet(\.transferSheet, action: /Action.transferSheet) {
-            CompendiumItemTransferFeature()
-                .dependency(\.compendium, environment.compendium)
-                .dependency(\.compendiumMetadata, environment.compendiumMetadata)
-                .dependency(\.database, environment.database)
+        .ifLet(\.$sheet, action: /Action.sheet) {
+            Sheet(environment: environment)
         }
 
         Scope(state: \.results, action: /Action.results) {
@@ -589,8 +520,6 @@ extension CompendiumIndexFeature.State: DestinationTreeNode {}
 extension CompendiumIndexFeature.Destination.State {
     var nullInstance: CompendiumIndexFeature.Destination.State {
         switch self {
-        case .compendiumIndex:
-            return .compendiumIndex(CompendiumIndexFeature.State.nullInstance)
         case .itemDetail:
             return .itemDetail(CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance))
         }
@@ -600,8 +529,6 @@ extension CompendiumIndexFeature.Destination.State {
 extension CompendiumIndexFeature.Destination.State: NavigationTreeNode {
     var navigationNodes: [Any] {
         switch self {
-        case .compendiumIndex(let state):
-            return state.navigationNodes
         case .itemDetail(let state):
             return state.navigationNodes
         }

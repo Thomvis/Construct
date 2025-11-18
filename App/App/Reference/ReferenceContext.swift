@@ -127,8 +127,6 @@ extension CompendiumIndexFeature.State {
         switch destination {
         case .itemDetail(let detail):
             return detail.itemRequest.nonNilArray
-        case .compendiumIndex(let state):
-            return state.referenceItemRequests
         case nil:
             return []
         }

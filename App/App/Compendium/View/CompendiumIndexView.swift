@@ -89,10 +89,10 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
             .onAppear {
                 loadResultsIfNeeded(localViewStore)
             }
-            .sheet(item: localViewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
         }
         .modifier(IsSearchingModifier(isSearching: $isSearching.animation(.default)))
         .modifier(CompendiumSearchableModifier(store: store))
+        .modifier(Sheets(store: store))
         .alert(store: store.scope(state: \.$alert, action: { .alert($0) }))
     }
 
@@ -226,78 +226,79 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         }
     }
 
-    @ViewBuilder
-    private func sheetView(_ sheet: CompendiumIndexFeature.State.Sheet) -> some View {
-        IfLetStore(
-            store.scope(state: replayNonNil({ $0.creatureEditSheet }), action: { .creatureEditSheet($0) }),
-            then: { store in
-                SheetNavigationContainer(isModalInPresentation: true) {
-                    CreatureEditView(store: store)
-                }
-            },
-            else: {
-                IfLetStore(
-                    store.scope(state: replayNonNil({ $0.groupEditSheet }), action: { .groupEditSheet($0) }),
-                    then: { store in
-                        SheetNavigationContainer {
-                            CompendiumItemGroupEditView(store: store)
-                        }
-                    },
-                    else: {
-                        IfLetStore(
-                            store.scope(state: replayNonNil({ $0.compendiumImportSheet }), action: { .compendiumImportSheet($0) }),
-                            then: { store in
-                                SheetNavigationContainer {
-                                    CompendiumImportView(store: store)
-                                        .toolbar {
-                                            ToolbarItem(placement: .cancellationAction) {
-                                                Button {
-                                                    self.store.send(.setSheet(nil))
-                                                } label: {
-                                                    Text("Cancel")
-                                                }
-                                            }
-                                        }
-                                }
-                            },
-                            else: {
-                                IfLetStore(
-                                    store.scope(state: replayNonNil({ $0.documentsSheet }), action: { .documentsSheet($0) }),
-                                    then: { store in
-                                        SheetNavigationContainer {
-                                            CompendiumDocumentsView(store: store)
-                                                .toolbar {
-                                                    ToolbarItem(placement: .confirmationAction) {
-                                                        Button {
-                                                            ViewStore(self.store, observe: { $0 }).send(.setSheet(nil))
-                                                        } label: {
-                                                            Text("Done").bold()
-                                                        }
-                                                    }
-                                                }
-                                        }
-                                    },
-                                    else: {
-                                        IfLetStore(
-                                            store.scope(state: replayNonNil({ $0.transferSheet }), action: { .transferSheet($0) }),
-                                            then: { store in
-                                                AutoSizingSheetContainer {
-                                                    SheetNavigationContainer {
-                                                        CompendiumItemTransferSheet(store: store)
-                                                            .autoSizingSheetContent(constant: 40) // add 40 for the navigation bar
-                                                            .navigationBarTitleDisplayMode(.inline)
-                                                    }
-                                                }
-                                            }
-                                        )
-                                    }
-                                )
-                            }
-                        )
+    struct Sheets: ViewModifier {
+        let store: StoreOf<CompendiumIndexFeature>
+
+        func body(content: Content) -> some View {
+            content
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: CompendiumIndexFeature.Action.sheet),
+                    state: /CompendiumIndexFeature.Sheet.State.creatureEdit,
+                    action: CompendiumIndexFeature.Sheet.Action.creatureEdit
+                ) { store in
+                    SheetNavigationContainer(isModalInPresentation: true) {
+                        CreatureEditView(store: store)
                     }
-                )
-            }
-        )
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: CompendiumIndexFeature.Action.sheet),
+                    state: /CompendiumIndexFeature.Sheet.State.groupEdit,
+                    action: CompendiumIndexFeature.Sheet.Action.groupEdit
+                ) { store in
+                    SheetNavigationContainer {
+                        CompendiumItemGroupEditView(store: store)
+                    }
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: CompendiumIndexFeature.Action.sheet),
+                    state: /CompendiumIndexFeature.Sheet.State.compendiumImport,
+                    action: CompendiumIndexFeature.Sheet.Action.compendiumImport
+                ) { store in
+                    SheetNavigationContainer {
+                        CompendiumImportView(store: store)
+                            .toolbar {
+                                ToolbarItem(placement: .cancellationAction) {
+                                    Button {
+                                        self.store.send(.sheet(.dismiss))
+                                    } label: {
+                                        Text("Cancel")
+                                    }
+                                }
+                            }
+                    }
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: CompendiumIndexFeature.Action.sheet),
+                    state: /CompendiumIndexFeature.Sheet.State.documents,
+                    action: CompendiumIndexFeature.Sheet.Action.documents
+                ) { store in
+                    SheetNavigationContainer {
+                        CompendiumDocumentsView(store: store)
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) {
+                                    Button {
+                                        self.store.send(.sheet(.dismiss))
+                                    } label: {
+                                        Text("Done").bold()
+                                    }
+                                }
+                            }
+                    }
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: CompendiumIndexFeature.Action.sheet),
+                    state: /CompendiumIndexFeature.Sheet.State.transfer,
+                    action: CompendiumIndexFeature.Sheet.Action.transfer
+                ) { store in
+                    AutoSizingSheetContainer {
+                        SheetNavigationContainer {
+                            CompendiumItemTransferSheet(store: store)
+                                .autoSizingSheetContent(constant: 40) // add 40 for the navigation bar
+                                .navigationBarTitleDisplayMode(.inline)
+                        }
+                    }
+                }
+        }
     }
 
     struct LocalState: Equatable {
@@ -311,8 +312,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         let title: String
         let showMenu: Bool
 
-        @EqKey({ $0?.id })
-        var sheet: CompendiumIndexFeature.State.Sheet?
         let isSelecting: Bool
         let selectedKeys: Set<CompendiumItemKey>
 
@@ -335,7 +334,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 
             isSelecting = state.isSelecting
             selectedKeys = state.selectedKeys
-            sheet = state.sheet
         }
 
         var allAllowedItemTypes: [CompendiumItemType] {
