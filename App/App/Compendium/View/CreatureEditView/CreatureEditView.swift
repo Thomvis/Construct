@@ -193,32 +193,6 @@ struct CreatureEditView: View {
             }
         }
         .popover(popoverBinding)
-        .sheet(item: viewStore.binding(get: { $0.sheet }, send: { .sheet($0) })) { item in
-            IfLetStore(store.scope(state: replayNonNil({ $0.sheet }), action: { $0 })) { store in
-                SwitchStore(store) { sheet in
-                    switch sheet {
-                    case .actionEditor(let actionEditorState):
-                        CaseLet(
-                            /CreatureEditFeature.State.Sheet.actionEditor, action: CreatureEditFeature.Action.creatureActionEditSheet
-                        ) { store in
-                            AutoSizingSheetContainer {
-                                SheetNavigationContainer {
-                                    NamedStatBlockContentItemEditView(store: store)
-                                        .navigationTitle(actionEditorState.title)
-                                        .navigationBarTitleDisplayMode(.inline)
-                                }
-                            }
-                        }
-                    case .creatureGeneration:
-                        CaseLet(/CreatureEditFeature.State.Sheet.creatureGeneration, action: CreatureEditFeature.Action.creatureGenerationSheet) { store in
-                            SheetNavigationContainer {
-                                MechMuseCreatureGenerationSheet(store: store)
-                            }
-                        }
-                    }
-                }
-            }
-        }
         .background(Group {
             if viewStore.state.mode.isEdit {
                 EmptyView()
@@ -261,6 +235,30 @@ struct CreatureEditView: View {
                 }) {
                     Image(systemName: "quote.bubble")
                 }
+            }
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: CreatureEditFeature.Action.sheet),
+            state: /CreatureEditFeature.Sheet.State.actionEditor,
+            action: CreatureEditFeature.Sheet.Action.actionEditor
+        ) { store in
+            WithViewStore(store, observe: { $0 }) { sheetViewStore in
+                AutoSizingSheetContainer {
+                    SheetNavigationContainer {
+                        NamedStatBlockContentItemEditView(store: store)
+                            .navigationTitle(sheetViewStore.state.title)
+                            .navigationBarTitleDisplayMode(.inline)
+                    }
+                }
+            }
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: CreatureEditFeature.Action.sheet),
+            state: /CreatureEditFeature.Sheet.State.creatureGeneration,
+            action: CreatureEditFeature.Sheet.Action.creatureGeneration
+        ) { store in
+            SheetNavigationContainer {
+                MechMuseCreatureGenerationSheet(store: store)
             }
         }
     }
@@ -426,7 +424,7 @@ struct CreatureEditView: View {
             if case .namedContentItems(let t) = section {
                 FormSection(section, footer: HStack {
                     Button(action: {
-                        viewStore.send(.sheet(.actionEditor(NamedStatBlockContentItemEditFeature.State(newItemOfType: t))))
+                        viewStore.send(.setSheet(.actionEditor(NamedStatBlockContentItemEditFeature.State(newItemOfType: t))))
                     }) {
                         Image(systemName: "plus.circle").font(Font.footnote.bold())
                         Text("Add \(t.localizedDisplayName)").bold()

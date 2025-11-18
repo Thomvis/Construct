@@ -24,7 +24,7 @@ struct CreatureEditFeature: Reducer {
         var sections: Set<Section>
 
         var popover: Popover?
-        var sheet: Sheet? = nil
+        @PresentationState var sheet: Sheet.State? = nil
         var notice: Notice? = nil
 
         // Used to preserve attribution when creating new items (e.g. "Edit a copy")
@@ -115,34 +115,6 @@ struct CreatureEditFeature: Reducer {
             }
         }
 
-        var actionEditor: NamedStatBlockContentItemEditFeature.State? {
-            get {
-                if case .actionEditor(let s) = sheet {
-                    return s
-                }
-                return nil
-            }
-            set {
-                if let newValue = newValue {
-                    sheet = .actionEditor(newValue)
-                }
-            }
-        }
-
-        var creatureGenerationSheet: MechMuseCreatureGenerationFeature.State? {
-            get {
-                if case .creatureGeneration(let s) = sheet {
-                    return s
-                }
-                return nil
-            }
-            set {
-                if let newValue = newValue {
-                    sheet = .creatureGeneration(newValue)
-                }
-            }
-        }
-
         var localStateForDeduplication: Self {
             var res = self
             res.popover = popover.map {
@@ -150,7 +122,7 @@ struct CreatureEditFeature: Reducer {
                 case .numberEntry: return .numberEntry(.nullInstance)
                 }
             }
-            res.sheet = sheet.map {
+            res.sheet = res.sheet.map {
                 switch $0 {
                 case .actionEditor: return .actionEditor(NamedStatBlockContentItemEditFeature.State.nullInstance)
                 case .creatureGeneration: return .creatureGeneration(.nullInstance)
@@ -236,17 +208,6 @@ struct CreatureEditFeature: Reducer {
             case numberEntry(NumberEntryFeature.State)
         }
 
-        enum Sheet: Equatable, Identifiable {
-            case actionEditor(NamedStatBlockContentItemEditFeature.State)
-            case creatureGeneration(MechMuseCreatureGenerationFeature.State)
-
-            var id: String {
-                switch self {
-                case .actionEditor: return "actionEditor"
-                case .creatureGeneration: return "creatureGenerator"
-                }
-            }
-        }
     }
     
     enum Action: Equatable {
@@ -254,9 +215,8 @@ struct CreatureEditFeature: Reducer {
         case model(CreatureEditFormModel)
         case popover(State.Popover?)
         case numberEntryPopover(NumberEntryFeature.Action)
-        case sheet(State.Sheet?)
-        case creatureActionEditSheet(NamedStatBlockContentItemEditFeature.Action)
-        case creatureGenerationSheet(MechMuseCreatureGenerationFeature.Action)
+        case setSheet(Sheet.State?)
+        case sheet(PresentationAction<Sheet.Action>)
         case documentSelection(CompendiumDocumentSelectionFeature.Action)
         case onNamedContentItemTap(NamedStatBlockContentItemType, UUID)
         case onNamedContentItemRemove(NamedStatBlockContentItemType, IndexSet)
@@ -280,6 +240,27 @@ struct CreatureEditFeature: Reducer {
     @Dependency(\.compendium) var compendium
     @Dependency(\.database) var database
 
+    struct Sheet: Reducer {
+        enum State: Equatable {
+            case actionEditor(NamedStatBlockContentItemEditFeature.State)
+            case creatureGeneration(MechMuseCreatureGenerationFeature.State)
+        }
+
+        enum Action: Equatable {
+            case actionEditor(NamedStatBlockContentItemEditFeature.Action)
+            case creatureGeneration(MechMuseCreatureGenerationFeature.Action)
+        }
+
+        var body: some ReducerOf<Self> {
+            Scope(state: /State.actionEditor, action: /Action.actionEditor) {
+                NamedStatBlockContentItemEditFeature()
+            }
+            Scope(state: /State.creatureGeneration, action: /Action.creatureGeneration) {
+                MechMuseCreatureGenerationFeature()
+            }
+        }
+    }
+
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
@@ -291,8 +272,8 @@ struct CreatureEditFeature: Reducer {
             case .model(let m): state.model = m
             case .popover(let p): state.popover = p
             case .numberEntryPopover: break // handled below
-            case .sheet(let s): state.sheet = s
-            case .creatureActionEditSheet(.onDoneButtonTap):
+            case .setSheet(let s): state.sheet = s
+            case .sheet(.presented(.actionEditor(.onDoneButtonTap))):
                 guard case let .actionEditor(editorState) = state.sheet else { break }
                 switch editorState.intent {
                 case .new:
@@ -307,7 +288,7 @@ struct CreatureEditFeature: Reducer {
 
                 state.sheet = nil
                 state.sections.insert(.namedContentItems(editorState.itemType))
-            case .creatureActionEditSheet(.onRemoveButtonTap):
+            case .sheet(.presented(.actionEditor(.onRemoveButtonTap))):
                 guard case let .actionEditor(editorState) = state.sheet, case let .edit(i) = editorState.intent else { break }
                 state.model.statBlock[itemsOfType: editorState.itemType].remove(id: i.id)
                 state.sheet = nil
@@ -322,11 +303,11 @@ struct CreatureEditFeature: Reducer {
                 state.model.statBlock[itemsOfType: t].move(fromOffsets: indices, toOffset: offset)
             case .onCreatureGenerationButtonTap:
                 state.sheet = .creatureGeneration(.init(base: state.model.statBlock.statBlock))
-            case .creatureGenerationSheet(.onGenerationResultAccepted(let result)):
+            case .sheet(.presented(.creatureGeneration(.onGenerationResultAccepted(let result)))):
                 state.model.statBlock.statBlock = result
                 state.sheet = nil
-            case .creatureActionEditSheet: break // handled below
-            case .creatureGenerationSheet: break // handled below
+            case .sheet(.presented):
+                break
             case .addSection(let s): state.sections.insert(s)
             case .removeSection(let s): state.sections.remove(s)
             case .onAddTap:
@@ -390,6 +371,10 @@ struct CreatureEditFeature: Reducer {
             case .didEdit: break // bubbled up
             case .dismissNotice:
                 state.notice = nil
+            case .sheet(.dismiss):
+                state.sheet = nil
+            case .sheet:
+                break
             }
             return .none
         }
@@ -400,11 +385,8 @@ struct CreatureEditFeature: Reducer {
                 diceLog: diceLog
             ))
         }
-        .ifLet(\.actionEditor, action: /Action.creatureActionEditSheet) {
-            NamedStatBlockContentItemEditFeature()
-        }
-        .ifLet(\.creatureGenerationSheet, action: /Action.creatureGenerationSheet) {
-            MechMuseCreatureGenerationFeature()
+        .ifLet(\.$sheet, action: /Action.sheet) {
+            Sheet()
         }
         Scope(state: \.model.document, action: /Action.documentSelection) {
             CompendiumDocumentSelectionFeature()
