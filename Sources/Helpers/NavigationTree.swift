@@ -33,6 +33,24 @@ public protocol NavigationTreeNode {
 public extension NavigationTreeNode {
     var navigationNodes: [Any] { [self] }
 
-    /// Legacy convenience used throughout the app. Equivalent to `navigationNodes`.
-    func topNavigationItems() -> [Any] { navigationNodes }
+    func navigationNodes<T>(of type: T.Type) -> [T] {
+        navigationNodes.compactMap { $0 as? T }
+    }
+
+    func firstNavigationNode<T>(of type: T.Type) -> T? {
+        navigationNodes(of: type).first
+    }
+}
+
+/// Convenience for states that expose a single optional destination.
+public protocol DestinationTreeNode: NavigationTreeNode {
+    associatedtype DestinationState: NavigationTreeNode
+    var destination: DestinationState? { get }
+}
+
+public extension DestinationTreeNode {
+    var navigationNodes: [Any] {
+        guard let destination else { return [self] }
+        return [self] + destination.navigationNodes
+    }
 }

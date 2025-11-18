@@ -584,12 +584,7 @@ extension CompendiumIndexFeature.State.RetainedMappedResults.State {
     }
 }
 
-extension CompendiumIndexFeature.State: NavigationTreeNode {
-    var navigationNodes: [Any] {
-        guard let destination else { return [self] }
-        return [self] + destination.navigationNodes
-    }
-}
+extension CompendiumIndexFeature.State: DestinationTreeNode {}
 
 extension CompendiumIndexFeature.Destination.State {
     var nullInstance: CompendiumIndexFeature.Destination.State {

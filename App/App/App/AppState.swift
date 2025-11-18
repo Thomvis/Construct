@@ -32,15 +32,6 @@ struct AppFeature: Reducer {
         
         @PresentationState var crashReportingPermissionAlert: AlertState<Action.Alert>?
 
-        var topNavigationItems: [Any] {
-            guard presentation != .welcomeSheet else { return [] }
-            switch navigation {
-            case .tab(let s): return s.topNavigationItems
-            case .column(let s): return s.topNavigationItems
-            case nil: return []
-            }
-        }
-
         enum Presentation: Equatable {
             case welcomeSheet
             case crashReportingPermissionAlert
@@ -222,7 +213,7 @@ struct AppFeature: Reducer {
             Navigation(environment: environment)
         }
         Reduce { state, action in
-            if state.sceneIsActive, let edv = state.topNavigationItems.compactMap({ $0 as? EncounterDetailFeature.State }).first, edv.running != nil {
+            if state.sceneIsActive, let edv = state.firstNavigationNode(of: EncounterDetailFeature.State.self), edv.running != nil {
                 environment.isIdleTimerDisabled.wrappedValue = true
             } else {
                 environment.isIdleTimerDisabled.wrappedValue = false
@@ -382,7 +373,7 @@ extension ColumnNavigationFeature.State {
                 return .diceRoller
             }
 
-            if campaignBrowse.topNavigationItems().contains(where: { $0 is EncounterDetailFeature.State }) {
+            if !campaignBrowse.navigationNodes(of: EncounterDetailFeature.State.self).isEmpty {
                 return .campaign
             }
 
@@ -408,5 +399,23 @@ extension ColumnNavigationFeature.State {
                 $0.calculatorState.entryContext = diceCalculator.diceCalculator.entryContext
             }
         )
+    }
+}
+
+extension AppFeature.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        let nodes: [Any] = [self]
+        guard presentation != .welcomeSheet else { return nodes }
+        guard let navigation else { return nodes }
+        return nodes + navigation.navigationNodes
+    }
+}
+
+extension AppFeature.Navigation.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        switch self {
+        case .tab(let state): return [self] + state.navigationNodes
+        case .column(let state): return [self] + state.navigationNodes
+        }
     }
 }

@@ -200,12 +200,7 @@ struct CombatantTagsFeature: Reducer {
     }
 }
 
-extension CombatantTagsFeature.State: NavigationTreeNode {
-    var navigationNodes: [Any] {
-        guard let destination else { return [self] }
-        return [self] + destination.navigationNodes
-    }
-}
+extension CombatantTagsFeature.State: DestinationTreeNode {}
 
 extension CombatantTagsFeature.Destination.State: NavigationTreeNode {
     var navigationNodes: [Any] {

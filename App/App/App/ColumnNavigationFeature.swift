@@ -3,6 +3,7 @@ import ComposableArchitecture
 import DiceRollerFeature
 import Dice
 import GameModels
+import Helpers
 
 struct ColumnNavigationFeature: Reducer {
     let environment: Environment
@@ -21,16 +22,6 @@ struct ColumnNavigationFeature: Reducer {
             expression: .dice(count: 1, die: Die(sides: 20)),
             mode: .rollingExpression
         ))
-
-        var topNavigationItems: [Any] {
-            var res = campaignBrowse.topNavigationItems()
-
-            if let ref = referenceView.selectedItemNavigationNodes {
-                res.append(contentsOf: ref)
-            }
-            
-            return res
-        }
 
         static let nullInstance = State()
     }
@@ -93,5 +84,16 @@ struct ColumnNavigationFeature: Reducer {
         Scope(state: \.referenceView, action: /Action.referenceView) {
             ReferenceViewFeature(environment: environment)
         }
+    }
+}
+
+extension ColumnNavigationFeature.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        var nodes: [Any] = [self]
+        nodes.append(contentsOf: campaignBrowse.navigationNodes)
+        if let ref = referenceView.selectedItemNavigationNodes {
+            nodes.append(contentsOf: ref)
+        }
+        return nodes
     }
 }

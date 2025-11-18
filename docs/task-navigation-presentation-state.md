@@ -5,25 +5,25 @@ _Status: tree-based PresentationState navigation is now adopted across Campaign,
 ## Legacy helper stack (for reference)
 - `Sources/Helpers/Navigation.swift` introduces `NavigationStackItemState`, `NavigationStackSourceState`, and `NavigationStackSourceAction`. Every stack source keeps a `[NavigationDestination: NextScreen]` dictionary to represent both “push” (`.nextInStack`) and “detail`” destinations, plus helpers like `nextScreen`/`detailScreen`.
 - `stateDrivenNavigationLink` (same file) wraps `SwiftUINavigation.navigationDestination` to bind directly to `presentedScreens[.nextInStack]`. It scopes into the destination via `CasePath` lookups and dispatches `.presentScreen(.nextInStack, …)` and `.presentedScreen(.nextInStack, …)` actions.
-- `NavigationNode` (protocol + Sourcery helpers) lets parent features inspect and mutate child stacks (`topNavigationItems()`, `navigationStackSize()`, `popLastNavigationStackItem()`). This is consumed by the tab/column navigation reducers, `ReferenceView`, and `EntityChangeObserver`.
+- `NavigationNode` (protocol + Sourcery helpers) lets parent features inspect and mutate child stacks (`navigationNodes`, `navigationStackSize()`, `popLastNavigationStackItem()`). This is consumed by the tab/column navigation reducers, `ReferenceView`, and `EntityChangeObserver`.
 - There is no remaining `StateDrivenNavigationView`; only `NavigationRowButton` lives in `App/App/UI/StateDrivenNavigationView.swift`.
 
 ## Sourcery-generated navigation utilities
 - `SourceryTemplates/NavigationNode.stencil` + `sourcery-gen.sh` generate `App/App/Sourcery/NavigationNode.generated.swift` (~900 lines). That file adds:
   - `NavigationNode` conformances for every `NavigationStackItemState`.
   - Dozens of computed properties (`presentedNextEncounter`, `presentedDetailEncounter`, etc.) that map individual `NextScreen` enum cases into strongly-typed optional properties for both `.nextInStack` and `.detail`.
-  - Recursive implementations of `topNavigationItems()`, `navigationStackSize()`, and `popLastNavigationStackItem()` for every state that participates in navigation.
+  - Recursive implementations of `navigationNodes`, `navigationStackSize()`, and `popLastNavigationStackItem()` for every state that participates in navigation.
 - These generated accessors are used in multiple places today:
-  - `App/App/App/AppState.swift` chooses the active tab and updates crash-report prompts based on whether `EncounterDetailFeature.State` appears in `topNavigationItems()`.
-  - `App/App/App/ColumnNavigationFeature.swift` + `App/App/App/TabNavigationFeature.swift` rely on `campaignBrowse.topNavigationItems()` to bridge the UIKit/SwiftUI multi-column UI.
-  - `ReferenceContext`, `ReferenceViewFeature`, and `ReferenceItemViewState` walk `presentedNext…` / `topNavigationItems()` to keep the reference tabs in sync with the Campaign/Compendium stacks.
+- `App/App/App/AppState.swift` chooses the active tab and updates crash-report prompts based on whether `EncounterDetailFeature.State` appears in `navigationNodes`.
+- `App/App/App/ColumnNavigationFeature.swift` + `App/App/App/TabNavigationFeature.swift` rely on `campaignBrowse.navigationNodes` to bridge the UIKit/SwiftUI multi-column UI.
+- `ReferenceContext`, `ReferenceViewFeature`, and `ReferenceItemViewState` walk `presentedNext…` / `navigationNodes` to keep the reference tabs in sync with the Campaign/Compendium stacks.
   - `App/App/App/EntityChangeObserver.swift` pulls `nextScreen` and `detailScreen` to determine which entities to persist after every reducer pass.
 
 ## Inventory of `NavigationStackSourceState` conformers
 ### CampaignBrowseViewFeature.State (`App/App/Campaign/View/CampaignBrowseFeature.swift`)
 - `NextScreen` cases: `.campaignBrowse(State)` and `.encounter(EncounterDetailFeature.State)`.
 - `CampaignBrowseView` pushes nested campaign browsers and encounter detail screens via two `.stateDrivenNavigationLink` modifiers, using `NavigationRowButton` to set `.setNextScreen`.
-- `ReferenceContext` consumes `presentedNextCampaignBrowse` / `presentedNextEncounter` (and their `.detail` counterparts) to propagate encounter context to the floating Reference view. Column navigation also inspects `topNavigationItems()` here.
+- `ReferenceContext` consumes `presentedNextCampaignBrowse` / `presentedNextEncounter` (and their `.detail` counterparts) to propagate encounter context to the floating Reference view. Column navigation also inspects `navigationNodes` here.
 - `detailScreen` is wired through the reducer but there are **no** call sites that ever send `.setDetailScreen` or `.presentScreen(.detail, …)`; it appears to be vestigial.
 
 ### CompendiumIndexFeature.State (`App/App/Compendium/View/CompendiumIndexFeature.swift`)
@@ -50,7 +50,7 @@ _Status: tree-based PresentationState navigation is now adopted across Campaign,
 
 ## Other `NavigationStackItemState` participants
 - The generated file also covers every destination enum case referenced above: `EncounterDetailFeature.State`, `CreatureEditFeature.State`, `CombatantResourcesFeature.State`, `SafariViewState`, etc. Their only conformance requirements are `navigationStackItemStateId` and (optionally) `navigationTitle` / display mode.
-- `AddCombatantFeature.State` and `AddCombatantState` hand-roll `topNavigationItems()` to expose their nested compendium state to the Reference view; they do **not** rely on `NavigationStackSourceState` but still expect a type-erased navigation tree they can interrogate.
+- `AddCombatantFeature.State` and `AddCombatantState` hand-roll `navigationNodes` to expose their nested compendium state to the Reference view; they do **not** rely on `NavigationStackSourceState` but still expect a type-erased navigation tree they can interrogate.
 
 ## View-layer touch points
 - `.stateDrivenNavigationLink` currently appears in: `CampaignBrowseView` (twice), `CombatantTagsView`, `CompendiumIndexView`, `CompendiumEntryDetailView`, and six times inside `CombatantDetailView`.
@@ -63,7 +63,7 @@ _Status: tree-based PresentationState navigation is now adopted across Campaign,
 
 ## Follow-ups after this audit
 - Replace the dictionary-based navigation API with `@PresentationState` (stack + optional destinations) and migrate the reducers/views listed above.
-- Rework `topNavigationItems()` / reference-context plumbing to read from the new `StackState` rather than the Sourcery-generated dictionary.
+- Rework reference-context plumbing to read from the new `StackState` rather than the Sourcery-generated dictionary.
 - Remove `Sources/Helpers/Navigation.swift`, `SwiftUINavigation` usage, the Sourcery template/generation script, and all generated accessors once every feature is on the new stack.
 
 ## PresentationState architecture (implemented)
@@ -114,10 +114,10 @@ Following TCA’s tree-based guidance (`Articles/TreeBasedNavigation.md`), every
 
 ### Cleanup
 - Removed `Sources/Helpers/Navigation.swift`, Sourcery templates, generated `NavigationNode` output, and the `swiftui-navigation` package dependency.
-- Introduced `NavigationTreeNode` to keep `topNavigationItems()` introspection working for reference tabs and entity observers.
+- Introduced `NavigationTreeNode` to keep `navigationNodes` introspection working for reference tabs and entity observers.
 - Updated licenses/documentation to reflect the new setup.
 
-## 2025-11-18
 - Rebuilt the reverted `CombatantDetailFeature` reducer to its original shape and then re-applied the PresentationState migration so the debugging flow matches the user’s request (no extra helper reducers).
 - Reconstructed `CompendiumEntryDetailFeature` without `presentedScreens`, introducing a recursive `Destination` reducer that scopes into new presentation state while keeping Safari handling as a side-car optional state.
 - Updated `CompendiumItemReferenceTextAnnotation.handleTapReducer` to accept closures for the “internal” and “external” actions so call sites can drive `.setDestination` / `.setSafari` directly.
+- App root, tab navigation, and column navigation states now conform to `NavigationTreeNode`, and `DestinationTreeNode` provides the default `navigationNodes` implementation for any state with a single optional child.

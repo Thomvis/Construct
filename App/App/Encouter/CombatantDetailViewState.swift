@@ -396,12 +396,7 @@ extension CombatantDetailFeature.State {
     static let nullInstance = CombatantDetailFeature.State(combatant: Combatant.nullInstance)
 }
 
-extension CombatantDetailFeature.State: NavigationTreeNode {
-    var navigationNodes: [Any] {
-        guard let destination else { return [self] }
-        return [self] + destination.navigationNodes
-    }
-}
+extension CombatantDetailFeature.State: DestinationTreeNode {}
 
 extension CombatantDetailFeature.Destination.State {
     var nullInstance: CombatantDetailFeature.Destination.State {

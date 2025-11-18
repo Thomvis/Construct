@@ -365,12 +365,7 @@ extension CompendiumEntryDetailFeature.State {
     static let nullInstance = CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance)
 }
 
-extension CompendiumEntryDetailFeature.State: NavigationTreeNode {
-    var navigationNodes: [Any] {
-        guard let destination else { return [self] }
-        return [self] + destination.navigationNodes
-    }
-}
+extension CompendiumEntryDetailFeature.State: DestinationTreeNode {}
 
 extension CompendiumEntryDetailFeature.Destination.State {
     var nullInstance: CompendiumEntryDetailFeature.Destination.State {

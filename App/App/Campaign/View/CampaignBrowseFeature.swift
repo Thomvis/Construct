@@ -323,12 +323,7 @@ extension CampaignBrowseViewFeature.State.NodeEditState {
     static let nullInstance = CampaignBrowseViewFeature.State.NodeEditState(name: "")
 }
 
-extension CampaignBrowseViewFeature.State: NavigationTreeNode {
-    var navigationNodes: [Any] {
-        guard let destination else { return [self] }
-        return [self] + destination.navigationNodes
-    }
-}
+extension CampaignBrowseViewFeature.State: DestinationTreeNode {}
 
 extension CampaignBrowseViewFeature.Destination.State {
     var nullInstance: CampaignBrowseViewFeature.Destination.State {

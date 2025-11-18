@@ -25,14 +25,6 @@ struct TabNavigationFeature: Reducer {
         )
         var diceRoller: DiceRollerFeature.State = DiceRollerFeature.State()
 
-        var topNavigationItems: [Any] {
-            switch selectedTab {
-            case .campaign: return campaignBrowser.topNavigationItems()
-            case .compendium: return compendium.topNavigationItems()
-            case .diceRoller: return []
-            }
-        }
-
         enum Tabs: Int {
             case campaign
             case compendium
@@ -77,3 +69,17 @@ struct TabNavigationFeature: Reducer {
     }
 }
 
+extension TabNavigationFeature.State: NavigationTreeNode {
+    var navigationNodes: [Any] {
+        var nodes: [Any] = [self]
+        switch selectedTab {
+        case .campaign:
+            nodes.append(contentsOf: campaignBrowser.navigationNodes)
+        case .compendium:
+            nodes.append(contentsOf: compendium.navigationNodes)
+        case .diceRoller:
+            break
+        }
+        return nodes
+    }
+}
