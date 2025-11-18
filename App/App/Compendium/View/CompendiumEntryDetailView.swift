@@ -95,7 +95,6 @@ struct CompendiumEntryDetailView: View {
             }
         }
         .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-        .sheet(item: viewStore.binding(get: \.sheet) { _ in .setSheet(nil) }, content: self.sheetView)
         .onAppear {
             viewStore.send(.onAppear)
         }
@@ -115,6 +114,38 @@ struct CompendiumEntryDetailView: View {
                 )
             }
         )
+        .sheet(
+            store: store.scope(state: \.$sheet, action: CompendiumEntryDetailFeature.Action.sheet),
+            state: /CompendiumEntryDetailFeature.Sheet.State.creatureEdit,
+            action: CompendiumEntryDetailFeature.Sheet.Action.creatureEdit
+        ) { store in
+            SheetNavigationContainer(isModalInPresentation: true) {
+                CreatureEditView(store: store)
+            }
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: CompendiumEntryDetailFeature.Action.sheet),
+            state: /CompendiumEntryDetailFeature.Sheet.State.groupEdit,
+            action: CompendiumEntryDetailFeature.Sheet.Action.groupEdit
+        ) { store in
+            SheetNavigationContainer {
+                CompendiumItemGroupEditView(store: store)
+            }
+        }
+        .sheet(
+            store: store.scope(state: \.$sheet, action: CompendiumEntryDetailFeature.Action.sheet),
+            state: /CompendiumEntryDetailFeature.Sheet.State.transfer,
+            action: CompendiumEntryDetailFeature.Sheet.Action.transfer
+        ) { store in
+            AutoSizingSheetContainer {
+                SheetNavigationContainer {
+                    CompendiumItemTransferSheet(store: store)
+                        .autoSizingSheetContent(constant: 40)
+                        .navigationTitle("Move")
+                        .navigationBarTitleDisplayMode(.inline)
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -131,36 +162,6 @@ struct CompendiumEntryDetailView: View {
             }
         } else if let group = item as? CompendiumItemGroup {
             CompendiumItemGroupDetailView(group: group)
-        }
-    }
-
-    @ViewBuilder
-    func sheetView(_ sheet: CompendiumEntryDetailFeature.State.Sheet) -> some View {
-        switch viewStore.state.sheet {
-        case .creatureEdit:
-            IfLetStore(store.scope(state: replayNonNil({ $0.creatureEditSheet }), action: { .sheet(.creatureEdit($0)) })) { store in
-                SheetNavigationContainer(isModalInPresentation: true) {
-                    CreatureEditView(store: store)
-                }
-            }
-        case .groupEdit:
-            IfLetStore(store.scope(state: replayNonNil({ $0.groupEditSheet }), action: { .sheet(.groupEdit($0)) })) { store in
-                SheetNavigationContainer {
-                    CompendiumItemGroupEditView(store: store)
-                }
-            }
-        case .transfer:
-            IfLetStore(store.scope(state: replayNonNil({ $0.transferSheet }), action: { .sheet(.transfer($0)) })) { store in
-                AutoSizingSheetContainer {
-                    SheetNavigationContainer {
-                        CompendiumItemTransferSheet(store: store)
-                            .autoSizingSheetContent(constant: 40) // add 40 for the navigation bar
-                            .navigationTitle("Move")
-                            .navigationBarTitleDisplayMode(.inline)
-                    }
-                }
-            }
-        default: EmptyView()
         }
     }
 
