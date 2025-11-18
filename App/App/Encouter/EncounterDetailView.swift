@@ -87,65 +87,75 @@ struct EncounterDetailView: View {
         .toolbar {
             toolbar()
         }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-            state: /EncounterDetailFeature.Sheet.State.add,
-            action: EncounterDetailFeature.Sheet.Action.add
-        ) { store in
-            AddCombatantView(
-                store: store.scope(state: \.state, action: { $0 }),
-                onSelection: { viewStore.send(.addCombatantAction($0, $1)) }
-            )
-            .environmentObject(self.environment)
-        }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-            state: /EncounterDetailFeature.Sheet.State.combatant,
-            action: EncounterDetailFeature.Sheet.Action.combatant
-        ) { store in
-            CombatantDetailContainerView(store: store)
-                .environmentObject(self.environment)
-        }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-            state: /EncounterDetailFeature.Sheet.State.runningEncounterLog,
-            action: EncounterDetailFeature.Sheet.Action.runningEncounterLog
-        ) { store in
-            SheetNavigationContainer {
-                RunningEncounterLogView(store: store)
-                    .environmentObject(self.environment)
-            }
-        }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-            state: /EncounterDetailFeature.Sheet.State.selectedCombatantTags,
-            action: EncounterDetailFeature.Sheet.Action.selectedCombatantTags
-        ) { store in
-            SheetNavigationContainer {
-                CombatantTagsView(store: store)
-            }
-            .environmentObject(self.environment)
-        }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-            state: /EncounterDetailFeature.Sheet.State.settings,
-            action: EncounterDetailFeature.Sheet.Action.settings
-        ) { _ in
-            EncounterSettingsView(store: self.store)
-                .environmentObject(self.environment)
-        }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-            state: /EncounterDetailFeature.Sheet.State.generateCombatantTraits,
-            action: EncounterDetailFeature.Sheet.Action.generateCombatantTraits
-        ) { store in
-            SheetNavigationContainer {
-                GenerateCombatantTraitsView(store: store)
-            }
-        }
+        .modifier(Sheets(store: store, environment: environment))
         .popover(popover)
         .onAppear {
             self.viewStore.send(.onAppear)
+        }
+    }
+
+    struct Sheets: ViewModifier {
+        let store: StoreOf<EncounterDetailFeature>
+        let environment: Environment
+
+        func body(content: Content) -> some View {
+            content
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+                    state: /EncounterDetailFeature.Sheet.State.add,
+                    action: EncounterDetailFeature.Sheet.Action.add
+                ) { store in
+                    AddCombatantView(
+                        store: store.scope(state: \.state, action: { $0 }),
+                        onSelection: { self.store.send(.addCombatantAction($0, $1)) }
+                    )
+                    .environmentObject(self.environment)
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+                    state: /EncounterDetailFeature.Sheet.State.combatant,
+                    action: EncounterDetailFeature.Sheet.Action.combatant
+                ) { store in
+                    CombatantDetailContainerView(store: store)
+                        .environmentObject(self.environment)
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+                    state: /EncounterDetailFeature.Sheet.State.runningEncounterLog,
+                    action: EncounterDetailFeature.Sheet.Action.runningEncounterLog
+                ) { store in
+                    SheetNavigationContainer {
+                        RunningEncounterLogView(store: store)
+                            .environmentObject(self.environment)
+                    }
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+                    state: /EncounterDetailFeature.Sheet.State.selectedCombatantTags,
+                    action: EncounterDetailFeature.Sheet.Action.selectedCombatantTags
+                ) { store in
+                    SheetNavigationContainer {
+                        CombatantTagsView(store: store)
+                    }
+                    .environmentObject(self.environment)
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+                    state: /EncounterDetailFeature.Sheet.State.settings,
+                    action: EncounterDetailFeature.Sheet.Action.settings
+                ) { _ in
+                    EncounterSettingsView(store: self.store)
+                        .environmentObject(self.environment)
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
+                    state: /EncounterDetailFeature.Sheet.State.generateCombatantTraits,
+                    action: EncounterDetailFeature.Sheet.Action.generateCombatantTraits
+                ) { store in
+                    SheetNavigationContainer {
+                        GenerateCombatantTraitsView(store: store)
+                    }
+                }
         }
     }
 
@@ -518,7 +528,7 @@ func FeedbackMenuButton(action: @escaping () -> Void) -> some View {
     }
 }
 
-extension EncounterDetailFeature.State.Sheet: Identifiable {
+extension EncounterDetailFeature.Sheet.State: Identifiable {
     static let settingsUUID = UUID()
     static let combatantsTraitsUUID = UUID()
 

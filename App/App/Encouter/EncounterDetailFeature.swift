@@ -226,13 +226,15 @@ struct EncounterDetailFeature: Reducer {
             case combatant(CombatantDetailFeature.Action)
             case runningEncounterLog(RunningEncounterLogViewAction)
             case selectedCombatantTags(CombatantTagsFeature.Action)
-            case settings
+            case settings(Never)
             case generateCombatantTraits(GenerateCombatantTraitsFeature.Action)
         }
 
         var body: some ReducerOf<Self> {
             Scope(state: /State.add, action: /Action.add) {
-                AddCombatantFeature(environment: environment)
+                Scope(state: \.state, action: /AddCombatantFeature.Action.self) {
+                    AddCombatantFeature(environment: environment)
+                }
             }
             Scope(state: /State.combatant, action: /Action.combatant) {
                 CombatantDetailFeature(environment: environment)
@@ -494,12 +496,12 @@ struct EncounterDetailFeature: Reducer {
                         })
                     ))
                 }
+            case .sheet(.dismiss):
+                state.sheet = nil
+            case .sheet:
+                break
             }
             return .none
-        case .sheet(.dismiss):
-            state.sheet = nil
-        case .sheet:
-            break
         }
         .ifLet(\.$sheet, action: /Action.sheet) {
             Sheet(environment: environment)

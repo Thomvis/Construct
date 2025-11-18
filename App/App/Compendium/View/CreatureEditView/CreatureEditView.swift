@@ -237,29 +237,38 @@ struct CreatureEditView: View {
                 }
             }
         }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: CreatureEditFeature.Action.sheet),
-            state: /CreatureEditFeature.Sheet.State.actionEditor,
-            action: CreatureEditFeature.Sheet.Action.actionEditor
-        ) { store in
-            WithViewStore(store, observe: { $0 }) { sheetViewStore in
-                AutoSizingSheetContainer {
-                    SheetNavigationContainer {
-                        NamedStatBlockContentItemEditView(store: store)
-                            .navigationTitle(sheetViewStore.state.title)
-                            .navigationBarTitleDisplayMode(.inline)
+        .modifier(Sheets(store: store))
+    }
+
+    struct Sheets: ViewModifier {
+        let store: StoreOf<CreatureEditFeature>
+
+        func body(content: Content) -> some View {
+            content
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: CreatureEditFeature.Action.sheet),
+                    state: /CreatureEditFeature.Sheet.State.actionEditor,
+                    action: CreatureEditFeature.Sheet.Action.actionEditor
+                ) { store in
+                    WithViewStore(store, observe: { $0 }) { sheetViewStore in
+                        AutoSizingSheetContainer {
+                            SheetNavigationContainer {
+                                NamedStatBlockContentItemEditView(store: store)
+                                    .navigationTitle(sheetViewStore.state.title)
+                                    .navigationBarTitleDisplayMode(.inline)
+                            }
+                        }
                     }
                 }
-            }
-        }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: CreatureEditFeature.Action.sheet),
-            state: /CreatureEditFeature.Sheet.State.creatureGeneration,
-            action: CreatureEditFeature.Sheet.Action.creatureGeneration
-        ) { store in
-            SheetNavigationContainer {
-                MechMuseCreatureGenerationSheet(store: store)
-            }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: CreatureEditFeature.Action.sheet),
+                    state: /CreatureEditFeature.Sheet.State.creatureGeneration,
+                    action: CreatureEditFeature.Sheet.Action.creatureGeneration
+                ) { store in
+                    SheetNavigationContainer {
+                        MechMuseCreatureGenerationSheet(store: store)
+                    }
+                }
         }
     }
 

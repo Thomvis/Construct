@@ -47,7 +47,7 @@ struct CampaignBrowseViewFeature: Reducer {
             case move([CampaignNode])
         }
 
-        struct NodeEditState: Equatable, Identifiable, BindableState {
+        struct NodeEditState: Equatable, Identifiable {
             var id = UUID()
             @BindingState var name: String = ""
             @BindingState var contentType: CampaignNode.Contents.ContentType? = nil // non-nil if new non-group node
@@ -155,7 +155,7 @@ struct CampaignBrowseViewFeature: Reducer {
         }
 
         enum Action: Equatable {
-            case settings
+            case settings(Never)
             case nodeEdit(CampaignBrowseViewFeature.NodeEdit.Action)
             case move(CampaignBrowseViewFeature.Action)
         }
@@ -166,12 +166,6 @@ struct CampaignBrowseViewFeature: Reducer {
             }
             Scope(state: /State.move, action: /Action.move) {
                 CampaignBrowseViewFeature(environment: environment)
-            }
-            Reduce { _, action in
-                switch action {
-                case .settings, .nodeEdit, .move:
-                    return .none
-                }
             }
         }
     }

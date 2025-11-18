@@ -235,66 +235,66 @@ struct CompendiumIndexFeature: Reducer {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-                case .results: break
-                case .scrollTo(let id):
-                    state.scrollTo = id
-                case .onQueryTypeFilterDidChange(let typeFilter):
-                    if typeFilter == nil && state.properties.typeRestriction == nil {
-                        return .send(.query(.onFiltersDidChange(CompendiumFilters())))
-                    } else {
-                        let restrictions = state.properties.typeRestriction ?? CompendiumItemType.allCases
-                        let new = typeFilter ?? CompendiumItemType.allCases
-                        let withinRestrictions = new.filter { restrictions.contains($0 )}
-                        return .send(.query(.onTypeFilterDidChange(withinRestrictions)))
-                    }
-                case .onAddButtonTap(let type):
-                    let sourceDocument: CompendiumFilters.Source
-                    if let source = state.results.input.filters?.source {
-                        sourceDocument = source
-                    } else {
-                        sourceDocument = CompendiumFilters.Source(CompendiumSourceDocument.homebrew)
-                    }
-                    switch type {
-                    case .monster, .character:
-                        guard let creatureType = type.creatureType else {
-                            assertionFailure("Adding item of type \(type) is not supported yet")
-                            break
-                        }
-                        state.sheet = .creatureEdit(CreatureEditFeature.State(
-                            create: creatureType,
-                            sourceDocument: sourceDocument
-                        ))
-                    case .spell:
-                        assertionFailure("Adding spells is not supported")
+            case .results: break
+            case .scrollTo(let id):
+                state.scrollTo = id
+            case .onQueryTypeFilterDidChange(let typeFilter):
+                if typeFilter == nil && state.properties.typeRestriction == nil {
+                    return .send(.query(.onFiltersDidChange(CompendiumFilters())))
+                } else {
+                    let restrictions = state.properties.typeRestriction ?? CompendiumItemType.allCases
+                    let new = typeFilter ?? CompendiumItemType.allCases
+                    let withinRestrictions = new.filter { restrictions.contains($0 )}
+                    return .send(.query(.onTypeFilterDidChange(withinRestrictions)))
+                }
+            case .onAddButtonTap(let type):
+                let sourceDocument: CompendiumFilters.Source
+                if let source = state.results.input.filters?.source {
+                    sourceDocument = source
+                } else {
+                    sourceDocument = CompendiumFilters.Source(CompendiumSourceDocument.homebrew)
+                }
+                switch type {
+                case .monster, .character:
+                    guard let creatureType = type.creatureType else {
+                        assertionFailure("Adding item of type \(type) is not supported yet")
                         break
-                    case .group:
-                        state.sheet = .groupEdit(CompendiumItemGroupEditFeature.State(mode: .create, group: CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])))
                     }
-
-                case .onSearchOnWebButtonTap:
-                    let externalCompendium = DndBeyondExternalCompendium()
-                    state.safari = SafariViewState(
-                        url: externalCompendium.searchPageUrl(
-                            for: state.results.input.text ?? "",
-                            types: state.results.input.filters?.types
-                        )
-                    )
-                case .onTransferSelectedMenuItemTap(let mode):
-                    state.sheet = .transfer(CompendiumItemTransferFeature.State(
-                        mode: mode,
-                        selection: .multipleKeys(Array(state.selectedKeys))
+                    state.sheet = .creatureEdit(CreatureEditFeature.State(
+                        create: creatureType,
+                        sourceDocument: sourceDocument
                     ))
-                case .onDeleteSelectedRequested:
-                    let count = state.selectedKeys.count
-                    state.alert = AlertState {
-                        TextState("Delete \(count) item\(count == 1 ? "" : "s")?")
-                    } actions: {
-                        ButtonState(role: .destructive, action: .onDeleteSelectedConfirmed) {
-                            TextState("Delete")
-                        }
-                    } message: {
-                        TextState("This action cannot be undone.")
+                case .spell:
+                    assertionFailure("Adding spells is not supported")
+                    break
+                case .group:
+                    state.sheet = .groupEdit(CompendiumItemGroupEditFeature.State(mode: .create, group: CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])))
+                }
+
+            case .onSearchOnWebButtonTap:
+                let externalCompendium = DndBeyondExternalCompendium()
+                state.safari = SafariViewState(
+                    url: externalCompendium.searchPageUrl(
+                        for: state.results.input.text ?? "",
+                        types: state.results.input.filters?.types
+                    )
+                )
+            case .onTransferSelectedMenuItemTap(let mode):
+                state.sheet = .transfer(CompendiumItemTransferFeature.State(
+                    mode: mode,
+                    selection: .multipleKeys(Array(state.selectedKeys))
+                ))
+            case .onDeleteSelectedRequested:
+                let count = state.selectedKeys.count
+                state.alert = AlertState {
+                    TextState("Delete \(count) item\(count == 1 ? "" : "s")?")
+                } actions: {
+                    ButtonState(role: .destructive, action: .onDeleteSelectedConfirmed) {
+                        TextState("Delete")
                     }
+                } message: {
+                    TextState("This action cannot be undone.")
+                }
             case .setSelecting(let selecting):
                 state.isSelecting = selecting
                 if !selecting {
@@ -311,24 +311,24 @@ struct CompendiumIndexFeature: Reducer {
                 state.sheet = nil
                 if case let .compendium(entry) = result {
                     return .merge(
-                            .send(.scrollTo(entry.key)),
-                            .send(.results(.result(.reload(.all))))
-                        )
+                        .send(.scrollTo(entry.key)),
+                        .send(.results(.result(.reload(.all))))
+                    )
                 }
             case .sheet(.presented(.groupEdit(.onAddTap(let group)))):
                 // adding a group
                 return .run { send in
-                        let entry = CompendiumEntry(
-                            group,
-                            origin: .created(nil),
-                            document: .init(CompendiumSourceDocument.homebrew)
-                        )
-                        try? environment.compendium.put(entry)
+                    let entry = CompendiumEntry(
+                        group,
+                        origin: .created(nil),
+                        document: .init(CompendiumSourceDocument.homebrew)
+                    )
+                    try? environment.compendium.put(entry)
 
-                        await send(.results(.result(.reload(.all))))
-                        await send(.scrollTo(entry.key))
-                        await send(.sheet(.dismiss))
-                    }
+                    await send(.results(.result(.reload(.all))))
+                    await send(.scrollTo(entry.key))
+                    await send(.sheet(.dismiss))
+                }
             case .sheet(.presented(.compendiumImport(.importDidFinish(.some)))):
                 return .send(.results(.result(.reload(.currentCount))))
             case .sheet(.presented(.transfer(.onTransferDidSucceed))):
@@ -349,7 +349,7 @@ struct CompendiumIndexFeature: Reducer {
             case .destination(.presented(.itemDetail(.didAddCopy))):
                 // creature copied, edited & added
                 return .send(.results(.result(.reload(.currentCount))))
-            case .destination(.presented(.itemDetail(.sheet(.creatureEdit(.didEdit))))):
+            case .destination(.presented(.itemDetail(.sheet(.presented(.creatureEdit(.didEdit)))))):
                 // done editing an existing creature
                 return .send(.results(.result(.reload(.currentCount))))
             case .destination(.presented(.itemDetail(.entry))):
@@ -361,22 +361,22 @@ struct CompendiumIndexFeature: Reducer {
                 break
             case .setSafari(let safari):
                 state.safari = safari
-                case .alert(.presented(.onDeleteSelectedConfirmed)):
-                    state.alert = nil
-                    return .run { [keys=state.selectedKeys] send in
-                        for key in keys {
-                            _ = try? environment.database.keyValueStore.remove(key)
-                        }
-                        await send(.results(.result(.reload(.currentCount))))
+            case .alert(.presented(.onDeleteSelectedConfirmed)):
+                state.alert = nil
+                return .run { [keys=state.selectedKeys] send in
+                    for key in keys {
+                        _ = try? environment.database.keyValueStore.remove(key)
                     }
-                case .alert(.dismiss):
-                    state.alert = nil
-                case .setSheet(let s):
-                    state.sheet = s
-                case .sheet(.dismiss):
-                    state.sheet = nil
-                case .sheet:
-                    break
+                    await send(.results(.result(.reload(.currentCount))))
+                }
+            case .alert(.dismiss):
+                state.alert = nil
+            case .setSheet(let s):
+                state.sheet = s
+            case .sheet(.dismiss):
+                state.sheet = nil
+            case .sheet:
+                break
             }
             return .none
         }

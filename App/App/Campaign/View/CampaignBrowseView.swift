@@ -107,37 +107,47 @@ struct CampaignBrowseView: View {
         .onAppear {
             self.viewStore.send(.items(.startLoading))
         }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
-            state: /CampaignBrowseViewFeature.Sheet.State.settings,
-            action: CampaignBrowseViewFeature.Sheet.Action.settings
-        ) { _ in
-            SettingsContainerView().environmentObject(env)
-        }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
-            state: /CampaignBrowseViewFeature.Sheet.State.nodeEdit,
-            action: CampaignBrowseViewFeature.Sheet.Action.nodeEdit
-        ) { store in
-            SheetNavigationContainer {
-                NodeEditView(
-                    store: store,
-                    onDoneTap: { state, node, title in
-                        viewStore.send(.didTapNodeEditDone(state, node, title))
+        .modifier(Sheets(store: store, environment: env))
+    }
+
+    struct Sheets: ViewModifier {
+        let store: StoreOf<CampaignBrowseViewFeature>
+        let environment: Environment
+
+        func body(content: Content) -> some View {
+            content
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
+                    state: /CampaignBrowseViewFeature.Sheet.State.settings,
+                    action: CampaignBrowseViewFeature.Sheet.Action.settings
+                ) { _ in
+                    SettingsContainerView().environmentObject(environment)
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
+                    state: /CampaignBrowseViewFeature.Sheet.State.nodeEdit,
+                    action: CampaignBrowseViewFeature.Sheet.Action.nodeEdit
+                ) { store in
+                    SheetNavigationContainer {
+                        NodeEditView(
+                            store: store,
+                            onDoneTap: { state, node, title in
+                                self.store.send(.didTapNodeEditDone(state, node, title))
+                            }
+                        )
                     }
-                )
-            }
-        }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
-            state: /CampaignBrowseViewFeature.Sheet.State.move,
-            action: CampaignBrowseViewFeature.Sheet.Action.move
-        ) { store in
-            SheetNavigationContainer {
-                CampaignBrowseView(store: store)
-                    .navigationBarTitleDisplayMode(.inline)
-            }
-            .environmentObject(env)
+                }
+                .sheet(
+                    store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
+                    state: /CampaignBrowseViewFeature.Sheet.State.move,
+                    action: CampaignBrowseViewFeature.Sheet.Action.move
+                ) { store in
+                    SheetNavigationContainer {
+                        CampaignBrowseView(store: store)
+                            .navigationBarTitleDisplayMode(.inline)
+                    }
+                    .environmentObject(environment)
+                }
         }
     }
 
@@ -260,18 +270,18 @@ struct NodeEditView: View {
                         .frame(width: 200.0, height: 200.0)
 
                     HStack {
-                        ClearableTextField("Name", text: viewStore.binding(\.$name), onCommit: {
+                        ClearableTextField("Name", text: viewStore.$name, onCommit: {
                             saveAndDismissIfValid(viewStore)
                         })
-                            .disableAutocorrection(true)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .introspectTextField { textField in
-                                if !textField.isFirstResponder, !didFocusOnField {
-                                    textField.becomeFirstResponder()
-                                    didFocusOnField = true
-                                }
+                        .disableAutocorrection(true)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .introspectTextField { textField in
+                            if !textField.isFirstResponder, !didFocusOnField {
+                                textField.becomeFirstResponder()
+                                didFocusOnField = true
                             }
-                            .submitLabel(.done)
+                        }
+                        .submitLabel(.done)
                     }
                     .padding(8)
                     .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
