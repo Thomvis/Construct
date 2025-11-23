@@ -19,7 +19,10 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
 
     @MainActor
     func testErrorReporting() async {
-        let env = TestEnvironment()
+        let testEnv = TestEnvironment()
+        let error = MechMuseError.interpretationFailed(text: "A", error: "B")
+        testEnv.describeCombatantsResult = AsyncThrowingStream { throw error }
+        
         let store = TestStore(
             initialState: GenerateCombatantTraitsFeature.State(
                 encounter: Encounter(
@@ -35,11 +38,11 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
                 )
             )
         ) {
-            GenerateCombatantTraitsFeature(environment: env)
+            GenerateCombatantTraitsFeature()
+        } withDependencies: {
+            $0.mechMuse = testEnv.mechMuse
+            $0.crashReporter = testEnv.crashReporter
         }
-
-        let error = MechMuseError.interpretationFailed(text: "A", error: "B")
-        env.describeCombatantsResult = AsyncThrowingStream { throw error }
 
         await store.send(.onGenerateTap) {
             $0.isLoading = true
@@ -48,9 +51,9 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
             $0.isLoading = false
             $0.error = error
         }
-        XCTAssertEqual(env.trackedErrors.count, 1)
-        XCTAssert((env.trackedErrors.last?.error as? MechMuseError) == error)
-        XCTAssertEqual(env.trackedErrors.last?.attachments, [
+        XCTAssertEqual(testEnv.trackedErrors.count, 1)
+        XCTAssert((testEnv.trackedErrors.last?.error as? MechMuseError) == error)
+        XCTAssertEqual(testEnv.trackedErrors.last?.attachments, [
             "request": """
             GenerateCombatantTraitsRequest(
               combatantNames: [
@@ -61,7 +64,7 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
         ])
     }
 
-    class TestEnvironment: GenerateCombatantTraitsViewEnvironment {
+    class TestEnvironment {
         var mechMuse: MechMuse { _mechMuse }
         var crashReporter: CrashReporter { _crashReporter }
 

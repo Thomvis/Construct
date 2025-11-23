@@ -13,14 +13,7 @@ import Helpers
 import MechMuse
 import CustomDump
 
-typealias GenerateCombatantTraitsViewEnvironment = EnvironmentWithMechMuse & EnvironmentWithCrashReporter
-
 struct GenerateCombatantTraitsFeature: Reducer {
-    let environment: GenerateCombatantTraitsViewEnvironment
-
-    init(environment: GenerateCombatantTraitsViewEnvironment) {
-        self.environment = environment
-    }
 
     struct State: Equatable {
         fileprivate let encounter: Encounter
@@ -153,6 +146,9 @@ struct GenerateCombatantTraitsFeature: Reducer {
 
     private enum CancelID { case generateID }
 
+    @Dependency(\.crashReporter) var crashReporter
+    @Dependency(\.mechMuse) var mechMuse
+
     var body: some ReducerOf<Self> {
         BindingReducer()
         Reduce { state, action in
@@ -164,7 +160,7 @@ struct GenerateCombatantTraitsFeature: Reducer {
                 state.error = nil
                 return .run { send in
                     do {
-                        let response = try environment.mechMuse.describe(combatants: request)
+                        let response = try mechMuse.describe(combatants: request)
                         for try await traits in response {
                             await send(.onTraitGenerationDidReceiveTraits(traits))
                         }
@@ -180,7 +176,7 @@ struct GenerateCombatantTraitsFeature: Reducer {
 
             switch action {
             case .onAppear:
-                if !environment.mechMuse.isConfigured {
+                if !mechMuse.isConfigured {
                     state.error = .unconfigured
                 }
             case .onSmartSelectionGroupTap(let g):
@@ -244,7 +240,7 @@ struct GenerateCombatantTraitsFeature: Reducer {
                 var request = ""
                 customDump(state.request, to: &request)
 
-                environment.crashReporter.trackError(.init(error: error, properties: [:], attachments: [
+                crashReporter.trackError(.init(error: error, properties: [:], attachments: [
                     "request" : request
                 ]))
                 state.error = error

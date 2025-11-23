@@ -20,6 +20,7 @@ import Persistence
 struct CreatureEditView: View {
     static let iconColumnWidth: CGFloat = 30
 
+    @EnvironmentObject var modifierFormatter: ModifierFormatter
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     var store: Store<CreatureEditFeature.State, CreatureEditFeature.Action>
     @ObservedObject var viewStore: ViewStore<CreatureEditFeature.State, CreatureEditFeature.Action>
@@ -155,7 +156,7 @@ struct CreatureEditView: View {
                     }), in: 1...viewStore.state.maximumAbilityScore) {
                         Text("\(ability.localizedDisplayName): ")
                             + Text("\(self.model.statBlock.abilities.wrappedValue.score(for: ability).score)")
-                            + Text(" (\(modifierFormatter.stringWithFallback(for: self.model.statBlock.abilities.wrappedValue.score(for: ability).modifier.modifier)))").bold()
+                            + Text(" (\(modifierFormatter.string(from: self.model.statBlock.abilities.wrappedValue.score(for: ability).modifier.modifier)))").bold()
 
                     }
                 }
@@ -166,7 +167,7 @@ struct CreatureEditView: View {
             FormSection(.initiative) {
                 Stepper(value: model.statBlock.initiative.modifier.modifier, in: -10...10) {
                     Text("Initiative: ")
-                        + Text(modifierFormatter.stringWithFallback(for: model.wrappedValue.statBlock.initiative.modifier.modifier)).bold()
+                        + Text(modifierFormatter.string(from: model.wrappedValue.statBlock.initiative.modifier.modifier)).bold()
                 }
             }
 
@@ -647,7 +648,7 @@ extension CreatureEditView {
 
                             Menu {
                                 ForEach(0...viewStore.state.maximumAbilityScore, id: \.self) { i in
-                                    Button(modifierFormatter.stringWithFallback(for: i)) {
+                                    Button(modifierFormatter.string(from: i)) {
                                         var model = viewStore.model
                                         setProficiency(&model.statBlock, .custom(Modifier(modifier: i)), proficiency.stat)
                                         viewStore.send(.model(model))
@@ -676,7 +677,7 @@ extension CreatureEditView {
 
                                 Text(proficiency.stat[keyPath: statLabel])
 
-                                Text(modifierFormatter.stringWithFallback(for: proficiency.modifier.modifier))
+                                Text(modifierFormatter.string(from: proficiency.modifier.modifier))
                                     .padding(.leading, 4)
                                     .background(Color.primary.opacity(0.05).padding([.top, .trailing, .bottom], -10))
                             }
@@ -746,11 +747,9 @@ struct CreatureEditView_Preview: PreviewProvider {
                 ) {
                     CreatureEditFeature()
                 } withDependencies: {
-                    $0.modifierFormatter = modifierFormatter
                     $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
                     $0.diceLog = DiceLogPublisher()
                     $0.compendiumMetadata = CompendiumMetadataKey.previewValue
-                    $0.mechMuse = MechMuse.previewValue
                     $0.database = Database.uninitialized
                     $0.compendium = DatabaseCompendium(databaseAccess: Database.uninitialized.access)
                 }
@@ -767,11 +766,9 @@ struct CreatureEditView_Preview: PreviewProvider {
             ) {
                 CreatureEditFeature()
             } withDependencies: {
-                $0.modifierFormatter = modifierFormatter
                 $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
                 $0.diceLog = DiceLogPublisher()
                 $0.compendiumMetadata = CompendiumMetadataKey.previewValue
-                $0.mechMuse = MechMuse.previewValue
                 $0.database = Database.uninitialized
                 $0.compendium = DatabaseCompendium(databaseAccess: Database.uninitialized.access)
             }
@@ -779,13 +776,4 @@ struct CreatureEditView_Preview: PreviewProvider {
     }
 }
 
-struct CEVE: EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase {
-    var modifierFormatter: NumberFormatter
-    var mainQueue: AnySchedulerOf<DispatchQueue>
-    var diceLog: DiceLogPublisher
-    var compendiumMetadata: CompendiumMetadata
-    var mechMuse: MechMuse
-    var database: Database
-    var compendium: Compendium
-}
 #endif

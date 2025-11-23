@@ -10,16 +10,33 @@ import ComposableArchitecture
 
 /// The NumberFormatter that is to be used to display modifiers. It always
 /// includes the +/- sign.
-public let modifierFormatter: NumberFormatter = apply(NumberFormatter()) { f in
-    f.positivePrefix = f.plusSign
+public class ModifierFormatter: ObservableObject {
+    private let formatter: NumberFormatter
+
+    public init() {
+        formatter = NumberFormatter()
+        formatter.positivePrefix = formatter.plusSign
+    }
+
+    public func string(from modifier: Int) -> String {
+        if let str = formatter.string(for: modifier) {
+            return str
+        }
+
+        if modifier >= 0 {
+            return "+\(modifier)"
+        } else {
+            return "-\(modifier)"
+        }
+    }
 }
 
 enum ModifierFormatterKey: DependencyKey {
-    public static var liveValue: NumberFormatter = modifierFormatter
+    public static var liveValue: ModifierFormatter = ModifierFormatter()
 }
 
 public extension DependencyValues {
-    var modifierFormatter: NumberFormatter {
+    var modifierFormatter: ModifierFormatter {
         get { self[ModifierFormatterKey.self] }
         set { self[ModifierFormatterKey.self] = newValue }
     }

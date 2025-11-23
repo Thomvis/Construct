@@ -3,11 +3,6 @@ import ComposableArchitecture
 import DiceRollerFeature
 
 struct FloatingDiceRollerFeature: Reducer {
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
 
     struct State: Equatable {
         var hidden: Bool = false
@@ -39,7 +34,7 @@ struct FloatingDiceRollerFeature: Reducer {
 
     var body: some ReducerOf<Self> {
         Scope(state: \.diceCalculator, action: /Action.diceCalculator) {
-            DiceCalculator(environment: environment)
+            DiceCalculator()
         }
         Reduce { state, action in
             switch action {

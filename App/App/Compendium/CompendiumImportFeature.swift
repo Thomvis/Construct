@@ -405,10 +405,6 @@ struct CompendiumImportFeature: Reducer {
                 )
             }
         }
-
-        private struct AsyncDocumentsAndRealmsEnvironment: EnvironmentWithCompendiumMetadata {
-            var compendiumMetadata: CompendiumMetadata
-        }
     }
 
     enum DataSourceReader: String, CaseIterable {

@@ -65,11 +65,6 @@ struct CombatantTrackerEditView: View, Popover {
 }
 
 struct CombatantTrackerEditFeature: Reducer {
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
 
     struct State: NavigationStackItemState, Equatable {
         var resource: CombatantResource

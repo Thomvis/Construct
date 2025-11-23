@@ -7,8 +7,6 @@ import MechMuse
 import Persistence
 import DiceRollerFeature
 
-typealias AddCombatantEnvironment = CompendiumIndexEnvironment & (EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase)
-
 struct AddCombatantFeature: Reducer {
     struct State: Equatable {
         var compendiumState: CompendiumIndexFeature.State
@@ -72,12 +70,6 @@ struct AddCombatantFeature: Reducer {
         case onSelect([Combatant], dismiss: Bool)
     }
 
-    let environment: AddCombatantEnvironment
-
-    init(environment: AddCombatantEnvironment) {
-        self.environment = environment
-    }
-
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
@@ -100,7 +92,7 @@ struct AddCombatantFeature: Reducer {
             CreatureEditFeature()
         }
         Scope(state: \.compendiumState, action: /Action.compendiumState) {
-            CompendiumIndexFeature(environment: environment)
+            CompendiumIndexFeature()
         }
     }
 }

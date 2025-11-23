@@ -12,11 +12,6 @@ import Helpers
 import GameModels
 
 struct CombatantResourcesFeature: Reducer {
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
 
     struct State: NavigationStackItemState, Equatable {
         var combatant: Combatant
@@ -57,7 +52,7 @@ struct CombatantResourcesFeature: Reducer {
             return .none
         }
         .ifLet(\.editState, action: /Action.editState) {
-            CombatantTrackerEditFeature(environment: environment)
+            CombatantTrackerEditFeature()
         }
     }
 }

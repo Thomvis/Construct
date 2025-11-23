@@ -103,15 +103,9 @@ struct HealthDialogFeature: Reducer {
         case numberEntryView(NumberEntryFeature.Action)
     }
     
-    let environment: Environment
-    
-    init(environment: Environment) {
-        self.environment = environment
-    }
-    
     var body: some ReducerOf<Self> {
         Scope(state: \.numberEntryView, action: /Action.numberEntryView) {
-            NumberEntryFeature(environment: environment)
+            NumberEntryFeature()
         }
     }
 }
@@ -122,12 +116,12 @@ extension HealthDialog: Popover {
         eraseToAnyView
     }
 
-    init(environment: Environment, hp: Hp?, onCombatantAction: @escaping (CombatantAction) -> ()) {
+    init(hp: Hp?, onCombatantAction: @escaping (CombatantAction) -> ()) {
         self.init(
             store: Store(
                 initialState: HealthDialogFeature.State(numberEntryView: .pad(value: 0), hp: hp)
             ) {
-                HealthDialogFeature(environment: environment)
+                HealthDialogFeature()
             },
             onCombatantAction: onCombatantAction
         )

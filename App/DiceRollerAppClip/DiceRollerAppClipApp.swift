@@ -19,13 +19,9 @@ struct DiceRollerAppClipApp: App {
 
     init() {
         store = Store(initialState: AppFeature.State()) {
-            AppFeature(environment: StandaloneDiceRollerEnvironment(
-                mainQueue: DispatchQueue.main.eraseToAnyScheduler(),
-                diceLog: DiceLogPublisher(),
-                modifierFormatter: apply(NumberFormatter()) { f in
-                    f.positivePrefix = f.plusSign
-                }
-            ))
+            AppFeature()
+        } withDependencies: {
+            $0.diceLog = DiceLogPublisher()
         }
     }
 
@@ -51,11 +47,6 @@ struct DiceRollerAppClipApp: App {
 }
 
 struct AppFeature: Reducer {
-    let environment: DiceRollerEnvironment
-
-    init(environment: DiceRollerEnvironment) {
-        self.environment = environment
-    }
 
     struct State: Equatable {
         var diceRoller = DiceRollerFeature.State()
@@ -72,16 +63,18 @@ struct AppFeature: Reducer {
         case binding(BindingAction<State>)
     }
 
+    @Dependency(\.diceLog) var diceLog
+
     var body: some ReducerOf<Self> {
         Scope(state: \.diceRoller, action: /Action.diceRoller) {
-            DiceRollerFeature(environment: environment)
+            DiceRollerFeature()
         }
 
-        Reduce { state, action in
+        Reduce<State, Action> { state, action in
             switch action {
             case .onLaunch:
                 // Listen to dice rolls and forward them to the right place
-                let rolls = environment.diceLog.rolls
+                let rolls = diceLog.rolls
                 return .run { send in
                     for await (result, roll) in rolls.values {
                         await send(.diceRoller(.onProcessRollForDiceLog(result, roll)))

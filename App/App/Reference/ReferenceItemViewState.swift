@@ -14,8 +14,6 @@ import GameModels
 
 struct ReferenceItem: Reducer {
 
-    let environment: Environment
-
     struct State: Equatable {
 
         var content: Content
@@ -318,12 +316,12 @@ struct ReferenceItem: Reducer {
             EmptyReducer()
                 .ifCaseLet(/State.Content.compendium, action: /Action.contentCompendium) {
                     Scope(state: \.compendium, action: /Action.Compendium.compendium) {
-                        CompendiumRootFeature(environment: environment)
+                        CompendiumRootFeature()
                     }
                 }
                 .ifCaseLet(/State.Content.combatantDetail, action: /Action.contentCombatantDetail) {
                     Scope(state: \.detailState, action: /Action.CombatantDetail.detail) {
-                        CombatantDetailFeature(environment: environment)
+                        CombatantDetailFeature()
                     }
 
                     Reduce { state, action in
@@ -351,11 +349,11 @@ struct ReferenceItem: Reducer {
                 }
                 .ifCaseLet(/State.Content.addCombatant, action: /Action.contentAddCombatant) {
                     Scope(state: \.addCombatantState, action: /Action.AddCombatant.addCombatant) {
-                        AddCombatantFeature(environment: environment)
+                        AddCombatantFeature()
                     }
                 }
                 .ifCaseLet(/State.Content.compendiumItem, action: /Action.contentCompendiumItem) {
-                    CompendiumEntryDetailFeature(environment: environment)
+                    CompendiumEntryDetailFeature()
                 }
         }
     }

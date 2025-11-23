@@ -11,7 +11,6 @@ import SwiftUI
 import GameModels
 
 struct CompendiumItemGroupDetailView: View {
-    @EnvironmentObject var env: Environment
     let group: CompendiumItemGroup
 
     var body: some View {

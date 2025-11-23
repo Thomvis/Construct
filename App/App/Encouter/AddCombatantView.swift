@@ -14,7 +14,6 @@ import Helpers
 import SharedViews
 
 struct AddCombatantView: View {
-    @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
     var store: Store<AddCombatantFeature.State, AddCombatantFeature.Action>
@@ -78,7 +77,6 @@ struct AddCombatantView: View {
                     CreatureEditView(store: store)
                         .navigationBarTitle(Text("Quick create"), displayMode: .inline)
                 }
-                .environmentObject(self.env)
             }
         }
         .edgesIgnoringSafeArea(.bottom)

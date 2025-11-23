@@ -15,7 +15,6 @@ import SharedViews
 import GameModels
 
 struct CampaignBrowseView: View {
-    @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.sheetPresentationMode) var sheetPresentationMode: SheetPresentationMode?
 
     var store: Store<CampaignBrowseViewFeature.State, CampaignBrowseViewFeature.Action>
@@ -107,12 +106,11 @@ struct CampaignBrowseView: View {
         .onAppear {
             self.viewStore.send(.items(.startLoading))
         }
-        .modifier(Sheets(store: store, environment: env))
+        .modifier(Sheets(store: store))
     }
 
     struct Sheets: ViewModifier {
         let store: StoreOf<CampaignBrowseViewFeature>
-        let environment: Environment
 
         func body(content: Content) -> some View {
             content
@@ -121,7 +119,7 @@ struct CampaignBrowseView: View {
                     state: /CampaignBrowseViewFeature.Sheet.State.settings,
                     action: CampaignBrowseViewFeature.Sheet.Action.settings
                 ) { _ in
-                    SettingsContainerView().environmentObject(environment)
+                    SettingsContainerView()
                 }
                 .sheet(
                     store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
@@ -146,7 +144,6 @@ struct CampaignBrowseView: View {
                         CampaignBrowseView(store: store)
                             .navigationBarTitleDisplayMode(.inline)
                     }
-                    .environmentObject(environment)
                 }
         }
     }
@@ -209,20 +206,25 @@ struct CampaignBrowseView: View {
 
     func navigationLink<Label>(for item: CampaignNode, @ViewBuilder label: @escaping () -> Label) -> some View where Label: View {
         NavigationRowButton {
+            @Dependency(\.database) var database
+            @Dependency(\.crashReporter) var crashReporter
+            @Dependency(\.preferences) var preferencesClient
+            // FIXME: move logic to reducer
+
             let nextScreen: CampaignBrowseViewFeature.Destination.State
             if let contents = item.contents {
                 switch contents.type {
                 case .encounter:
-                    if let encounter: Encounter = try? self.env.database.keyValueStore.get(
+                    if let encounter: Encounter = try? database.keyValueStore.get(
                         contents.key,
-                        crashReporter: self.env.crashReporter
+                        crashReporter: crashReporter
                     ) {
                         let runningEncounter: RunningEncounter? = encounter.runningEncounterKey
-                            .flatMap { try? self.env.database.keyValueStore.get($0, crashReporter: self.env.crashReporter) }
+                            .flatMap { try? database.keyValueStore.get($0, crashReporter: crashReporter) }
                         let detailState = EncounterDetailFeature.State(
                             building: encounter,
                             running: runningEncounter,
-                            isMechMuseEnabled: self.env.preferences().mechMuse.enabled
+                            isMechMuseEnabled: preferencesClient.get().mechMuse.enabled
                         )
                         nextScreen = .encounter(detailState)
                     } else {

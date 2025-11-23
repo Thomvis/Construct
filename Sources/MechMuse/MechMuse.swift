@@ -348,7 +348,7 @@ extension MechMuseError: LocalizedError {
     }
 }
 
-extension MechMuse: DependencyKey {
+struct MechMuseDependencyKey: DependencyKey {
     public static var liveValue: MechMuse {
         @Dependency(\.database) var database
         return .live(db: database)
@@ -357,8 +357,8 @@ extension MechMuse: DependencyKey {
 
 public extension DependencyValues {
     var mechMuse: MechMuse {
-        get { self[MechMuse.self] }
-        set { self[MechMuse.self] = newValue }
+        get { self[MechMuseDependencyKey.self] }
+        set { self[MechMuseDependencyKey.self] = newValue }
     }
 }
 

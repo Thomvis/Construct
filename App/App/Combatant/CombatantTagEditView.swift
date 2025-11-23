@@ -12,9 +12,10 @@ import ComposableArchitecture
 import SharedViews
 import DiceRollerFeature
 import GameModels
+import Helpers
 
 struct CombatantTagEditView: View {
-    @EnvironmentObject var env: Environment
+    @EnvironmentObject var ordinalFormatter: OrdinalFormatter
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
     var store: Store<CombatantTagEditFeature.State, CombatantTagEditFeature.Action>
@@ -83,7 +84,7 @@ struct CombatantTagEditView: View {
 
                     tag.duration.flatMap { d in
                         self.viewStore.state.effectContext.flatMap { effectContext in
-                            d.description(ordinalFormatter: self.env.ordinalFormatter, context: effectContext)
+                            d.description(ordinalFormatter: ordinalFormatter, context: effectContext)
                         }
                     }.map { ds in
                         Text(ds)
@@ -143,7 +144,7 @@ struct CombatantTagEditView: View {
                         self.viewStore.send(.onDurationDidChange(duration))
                         self.viewStore.send(.popover(nil))
                     }
-                ).environmentObject(env).eraseToAnyView
+                ).eraseToAnyView
             case .numberEntry:
                 return IfLetStore(store.scope(state: { $0.numberEntryPopover }, action: { .numberEntryPopover($0) })) { store in
                     NumberEntryPopover(store: store) { outcome in

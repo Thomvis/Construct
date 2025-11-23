@@ -6,11 +6,6 @@ import GameModels
 import Helpers
 
 struct ColumnNavigationFeature: Reducer {
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
 
     struct State: Equatable {
         var campaignBrowse = CampaignBrowseViewFeature.State(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)
@@ -76,13 +71,13 @@ struct ColumnNavigationFeature: Reducer {
         }
 
         Scope(state: \.diceCalculator, action: /Action.diceCalculator) {
-            FloatingDiceRollerFeature(environment: environment)
+            FloatingDiceRollerFeature()
         }
         Scope(state: \.campaignBrowse, action: /Action.campaignBrowse) {
-            CampaignBrowseViewFeature(environment: environment)
+            CampaignBrowseViewFeature()
         }
         Scope(state: \.referenceView, action: /Action.referenceView) {
-            ReferenceViewFeature(environment: environment)
+            ReferenceViewFeature()
         }
     }
 }

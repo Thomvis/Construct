@@ -8,10 +8,14 @@
 import Foundation
 import Dice
 import GameModels
+import Helpers
+import ComposableArchitecture
 
 public extension RollDescription {
-    static func abilityCheck(_ modifier: Int, ability: Ability, skill: Skill? = nil, creatureName: String? = nil, environment: DiceRollerEnvironment) -> Self {
-        var title = AttributedString("\(environment.modifierFormatter.stringWithFallback(for: modifier))")
+    static func abilityCheck(_ modifier: Int, ability: Ability, skill: Skill? = nil, creatureName: String? = nil) -> Self {
+        @Dependency(\.modifierFormatter) var modifierFormatter
+
+        var title = AttributedString("\(modifierFormatter.string(from: modifier))")
 
         title += AttributedString(" \(ability.localizedDisplayName)")
 

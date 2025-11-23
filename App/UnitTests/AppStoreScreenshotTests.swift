@@ -41,7 +41,7 @@ class AppStoreScreenshotTests: XCTestCase {
         ("iPadPro129_3rd_gen", .iPadPro12_9)
     ]
 
-    var environment: Construct.Environment!
+    var database: Database!
 
     override class func setUp() {
         super.setUp()
@@ -59,21 +59,35 @@ class AppStoreScreenshotTests: XCTestCase {
     }
 
     override func setUp() async throws {
-        let db = try! await Database(path: nil, source: Database(path: InitialDatabase.path))
-
-        environment = try! await Environment.live(
-            database: db,
-            mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
-            backgroundQueue: DispatchQueue.immediate.eraseToAnyScheduler()
-        )
+        database = try! await Database(path: nil, source: Database(path: InitialDatabase.path))
+    }
+    
+    @MainActor
+    func createEnvironment() async throws -> Environment {
+        return try await withDependencies {
+            $0.database = database
+            $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+            $0.backgroundQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+            $0.diceLog = DiceLogPublisher()
+            $0.crashReporter = CrashReporter.firebase
+            $0.mechMuse = .live(db: database)
+        } operation: {
+            return try await Environment.live(
+                database: database,
+                mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                backgroundQueue: DispatchQueue.immediate.eraseToAnyScheduler()
+            )
+        }
     }
 
-    func test_iPhone_screenshot1() {
-        snapshot(view: tabNavigationEncounterDetailRunning, devices: Self.phones)
+    @MainActor
+    func test_iPhone_screenshot1() async {
+        await snapshot(view: await tabNavigationEncounterDetailRunning, devices: Self.phones)
     }
 
-    func test_iPhone_screenshot2() {
-        snapshot(view: tabNavigationCombatantDetail, devices: Self.phones)
+    @MainActor
+    func test_iPhone_screenshot2() async {
+        await snapshot(view: await tabNavigationCombatantDetail, devices: Self.phones)
     }
 
     @MainActor
@@ -81,20 +95,24 @@ class AppStoreScreenshotTests: XCTestCase {
         await snapshot(view: tabNavigationCompendiumIndex, devices: Self.phones)
     }
 
-    func test_iPhone_screenshot4() {
-        snapshot(view: tabNavigationCampaignBrowseView, devices: Self.phones)
+    @MainActor
+    func test_iPhone_screenshot4() async {
+        await snapshot(view: await tabNavigationCampaignBrowseView, devices: Self.phones)
     }
 
-    func test_iPhone_screenshot5() {
-        snapshot(view: tabNavigationCombatantDetailMage, devices: Self.phones, colorScheme: .dark)
+    @MainActor
+    func test_iPhone_screenshot5() async {
+        await snapshot(view: await tabNavigationCombatantDetailMage, devices: Self.phones, colorScheme: .dark)
     }
 
-    func test_iPhone_screenshot6() {
-        snapshot(view: tabNavigationDiceRoller, devices: Self.phones, colorScheme: .dark)
+    @MainActor
+    func test_iPhone_screenshot6() async {
+        await snapshot(view: await tabNavigationDiceRoller, devices: Self.phones, colorScheme: .dark)
     }
 
-    func test_iPad_screenshot1() {
-        snapshot(view: columnNavigationEncounterDetailRunning, devices: Self.pads)
+    @MainActor
+    func test_iPad_screenshot1() async {
+        await snapshot(view: await columnNavigationEncounterDetailRunning, devices: Self.pads)
     }
 
     @MainActor
@@ -117,6 +135,7 @@ class AppStoreScreenshotTests: XCTestCase {
         await snapshot(view: columnNavigationCreatureEdit, devices: Self.pads)
     }
 
+    @MainActor
     private func snapshot<View>(
         view: View,
         devices: [(String, ViewImageConfig)],
@@ -124,7 +143,7 @@ class AppStoreScreenshotTests: XCTestCase {
         file: StaticString = #file,
         testName: String = #function,
         line: UInt = #line
-    ) where View: SwiftUI.View {
+    ) async where View: SwiftUI.View {
         for (name, device) in devices {
             var transaction = Transaction(animation: nil)
             transaction.disablesAnimations = true
@@ -132,8 +151,7 @@ class AppStoreScreenshotTests: XCTestCase {
             withTransaction(transaction) {
                 assertSnapshot(
                     of: FakeDeviceScreenView(imageConfig: device, content: view)
-                        .environment(\.colorScheme, colorScheme)
-                        .environmentObject(environment),
+                        .environment(\.colorScheme, colorScheme),
                     as: .imageAfterDelay(perceptualPrecision: 0.96, layout: .device(config: device), traits: device.traits),
                     named: name,
                     file: file,
@@ -144,72 +162,109 @@ class AppStoreScreenshotTests: XCTestCase {
         }
     }
 
+    @MainActor
     var tabNavigationEncounterDetailRunning: ConstructView {
-        let encounterDetailViewState = encounterDetailRunningEncounterDetailState
+        get async {
+            let encounterDetailViewState = encounterDetailRunningEncounterDetailState
 
-        let state = AppFeature.State(
-            navigation: .tab(
-                TabNavigationFeature.State(
-                    selectedTab: .campaign,
-                    campaignBrowser: CampaignBrowseViewFeature.State(
-                        node: CampaignNode.root,
-                        mode: .browse,
-                        items: Async.State(result: .success([
-                            CampaignNode(
-                                id: UUID().tagged(),
-                                title: "",
-                                contents: CampaignNode.Contents(
-                                    key: encounterDetailViewState.encounter.key.rawValue,
-                                    type: .encounter
-                                ),
-                                special: nil,
-                                parentKeyPrefix: nil
-                            )
-                        ])),
-                        showSettingsButton: false,
-                        presentedScreens: [
-                            .nextInStack: .encounter(encounterDetailViewState)
-                        ]),
-                    compendium: CompendiumIndexFeature.State.nullInstance,
-                    diceRoller: DiceRollerFeature.State.nullInstance
+            let state = AppFeature.State(
+                navigation: .tab(
+                    TabNavigationFeature.State(
+                        selectedTab: .campaign,
+                        campaignBrowser: CampaignBrowseViewFeature.State(
+                            node: CampaignNode.root,
+                            mode: .browse,
+                            items: Async.State(result: .success([
+                                CampaignNode(
+                                    id: UUID().tagged(),
+                                    title: "",
+                                    contents: CampaignNode.Contents(
+                                        key: encounterDetailViewState.encounter.key.rawValue,
+                                        type: .encounter
+                                    ),
+                                    special: nil,
+                                    parentKeyPrefix: nil
+                                )
+                            ])),
+                            showSettingsButton: false,
+                            presentedScreens: [
+                                .nextInStack: .encounter(encounterDetailViewState)
+                            ]),
+                        compendium: CompendiumIndexFeature.State.nullInstance,
+                        diceRoller: DiceRollerFeature.State.nullInstance
+                    )
                 )
             )
-        )
 
-        let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
-        return ConstructView(env: environment, store: store)
+            return try! await withDependencies {
+                $0.database = database
+                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.backgroundQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.diceLog = DiceLogPublisher()
+                $0.crashReporter = CrashReporter.firebase
+                $0.mechMuse = .live(db: database)
+            } operation: {
+                let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
+                let env = try! await Environment.live(
+                    database: database,
+                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                    backgroundQueue: DispatchQueue.immediate.eraseToAnyScheduler()
+                )
+                return ConstructView(env: env, store: store)
+            }
+        }
     }
 
+    @MainActor
     var tabNavigationDiceRoller: ConstructView {
-        let state = AppFeature.State(
-            navigation: .tab(
-                TabNavigationFeature.State(
-                    selectedTab: .diceRoller,
-                    campaignBrowser: .nullInstance,
-                    compendium: .nullInstance,
-                    diceRoller: apply(DiceRollerFeature.State()) { state in
-                        state.calculatorState.expression = 1.d(20)+1.d(6)+2
-                        state.calculatorState.previousExpressions = [1.d(20)+1.d(6)]
-                    }
+        get async {
+            let state = AppFeature.State(
+                navigation: .tab(
+                    TabNavigationFeature.State(
+                        selectedTab: .diceRoller,
+                        campaignBrowser: .nullInstance,
+                        compendium: .nullInstance,
+                        diceRoller: apply(DiceRollerFeature.State()) { state in
+                            state.calculatorState.expression = 1.d(20)+1.d(6)+2
+                            state.calculatorState.previousExpressions = [1.d(20)+1.d(6)]
+                        }
+                    )
                 )
             )
-        )
 
-        let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
-        return ConstructView(env: environment, store: store)
+            return try! await withDependencies {
+                $0.database = database
+                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.backgroundQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.diceLog = DiceLogPublisher()
+                $0.crashReporter = CrashReporter.firebase
+                $0.mechMuse = .live(db: database)
+            } operation: {
+                let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
+                let env = try! await Environment.live(
+                    database: database,
+                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                    backgroundQueue: DispatchQueue.immediate.eraseToAnyScheduler()
+                )
+                return ConstructView(env: env, store: store)
+            }
+        }
     }
 
+    @MainActor
     var tabNavigationCombatantDetail: some View {
-        let encounterDetailViewState = encounterDetailRunningEncounterDetailState
-        let state = CombatantDetailFeature.State(
-            combatant: encounterDetailViewState.encounter.combatants[1]
-        )
+        get async {
+            let encounterDetailViewState = await encounterDetailRunningEncounterDetailState
+            let state = CombatantDetailFeature.State(
+                combatant: encounterDetailViewState.encounter.combatants[1]
+            )
 
-        let store = StoreOf<CombatantDetailFeature>(initialState: state) { EmptyReducer() }
-        return FakeSheetView(
-            background: Color(UIColor.secondarySystemBackground),
-            sheet: CombatantDetailContainerView(store: store)
-        )
+            let store = StoreOf<CombatantDetailFeature>(initialState: state) { EmptyReducer() }
+            return FakeSheetView(
+                background: Color(UIColor.secondarySystemBackground),
+                sheet: CombatantDetailContainerView(store: store)
+            )
+        }
     }
 
     @MainActor
@@ -226,7 +281,7 @@ class AppStoreScreenshotTests: XCTestCase {
                             results: .initial
                         )) { state in
                             let store = Store(initialState: state) {
-                                CompendiumIndexFeature(environment: environment)
+                                CompendiumIndexFeature()
                             } withDependencies: {
                                 $0.uuid = UUIDGenerator.fake()
                             }
@@ -238,126 +293,189 @@ class AppStoreScreenshotTests: XCTestCase {
                 )
             )
 
-            let store = StoreOf<AppFeature>(initialState: state) {
-                EmptyReducer()
-            } withDependencies: {
+            return try! await withDependencies {
+                $0.database = database
+                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.backgroundQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.diceLog = DiceLogPublisher()
+                $0.crashReporter = CrashReporter.firebase
+                $0.mechMuse = .live(db: database)
                 $0.uuid = UUIDGenerator.fake()
+            } operation: {
+                let store = StoreOf<AppFeature>(initialState: state) {
+                    EmptyReducer()
+                }
+                let env = try! await Environment.live(
+                    database: database,
+                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                    backgroundQueue: DispatchQueue.immediate.eraseToAnyScheduler()
+                )
+                return ConstructView(env: env, store: store)
             }
-            return ConstructView(env: environment, store: store)
         }
     }
 
+    @MainActor
     var tabNavigationCampaignBrowseView: ConstructView {
-        let campaignBrowseViewState = self.campaignBrowseViewState
-        let state = AppFeature.State(
-            navigation: .tab(
-                TabNavigationFeature.State(
-                    selectedTab: .campaign,
-                    campaignBrowser: CampaignBrowseViewFeature.State(
-                        node: CampaignNode.root,
-                        mode: .browse,
-                        items: Async.State(result: .success([
-                            campaignBrowseViewState.node
-                        ])),
-                        showSettingsButton: false,
-                        presentedScreens: [
-                            .nextInStack: .campaignBrowse(campaignBrowseViewState)
-                        ]
-                    ),
-                    compendium: .nullInstance,
-                    diceRoller: DiceRollerFeature.State.nullInstance
-                )
-            )
-        )
-
-        let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
-        return ConstructView(env: environment, store: store)
-    }
-
-    var tabNavigationCombatantDetailMage: some View {
-        let entry = try! environment.database.keyValueStore.get(
-            CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "Mage")
-        )
-
-        let state = CombatantDetailFeature.State(
-            combatant: apply(Combatant(compendiumCombatant: entry?.item as! CompendiumCombatant)) { mage in
-                mage.initiative = 17
-                mage.hp?.current = 32
-
-                mage.tags.append(
-                    CombatantTag(
-                        id: UUID().tagged(),
-                        definition: CombatantTagDefinition.all.first(where: { $0.name == "Concentrating" })!
+        get async {
+            let campaignBrowseViewState = self.campaignBrowseViewState
+            let state = AppFeature.State(
+                navigation: .tab(
+                    TabNavigationFeature.State(
+                        selectedTab: .campaign,
+                        campaignBrowser: CampaignBrowseViewFeature.State(
+                            node: CampaignNode.root,
+                            mode: .browse,
+                            items: Async.State(result: .success([
+                                campaignBrowseViewState.node
+                            ])),
+                            showSettingsButton: false,
+                            presentedScreens: [
+                                .nextInStack: .campaignBrowse(campaignBrowseViewState)
+                            ]
+                        ),
+                        compendium: .nullInstance,
+                        diceRoller: DiceRollerFeature.State.nullInstance
                     )
                 )
+            )
 
-                mage.resources[position: 0].used = 1
-                mage.resources[position: 1].used = 3
-                mage.resources[position: 3].used = 1
+            return try! await withDependencies {
+                $0.database = database
+                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.backgroundQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.diceLog = DiceLogPublisher()
+                $0.crashReporter = CrashReporter.firebase
+                $0.mechMuse = .live(db: database)
+            } operation: {
+                let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
+                let env = try! await Environment.live(
+                    database: database,
+                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                    backgroundQueue: DispatchQueue.immediate.eraseToAnyScheduler()
+                )
+                return ConstructView(env: env, store: store)
             }
-        )
-        let store = StoreOf<CombatantDetailFeature>(initialState: state) { EmptyReducer() }
-        return FakeSheetView(
-            background: Color(UIColor.secondarySystemBackground),
-            sheet: CombatantDetailContainerView(store: store)
-        )
+        }
     }
 
-    var columnNavigationEncounterDetailRunning: ConstructView {
-        let encounterDetailViewState = encounterDetailRunningEncounterDetailState
+    @MainActor
+    var tabNavigationCombatantDetailMage: some View {
+        get async {
+            return try! await withDependencies {
+                $0.database = database
+            } operation: {
+                @Dependency(\.database) var db
+                let entry = try! db.keyValueStore.get(
+                    CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "Mage")
+                )
 
-        let state = AppFeature.State(
-            navigation: .column(
-                ColumnNavigationFeature.State(
-                    campaignBrowse: CampaignBrowseViewFeature.State(
-                        node: CampaignNode.root,
-                        mode: .browse,
-                        items: Async.State(result: .success([
-                            CampaignNode(
+                let state = CombatantDetailFeature.State(
+                    combatant: apply(Combatant(compendiumCombatant: entry?.item as! CompendiumCombatant)) { mage in
+                        mage.initiative = 17
+                        mage.hp?.current = 32
+
+                        mage.tags.append(
+                            CombatantTag(
                                 id: UUID().tagged(),
-                                title: "",
-                                contents: CampaignNode.Contents(
-                                    key: encounterDetailViewState.encounter.key.rawValue,
-                                    type: .encounter
-                                ),
-                                special: nil,
-                                parentKeyPrefix: nil
-                            )
-                        ])),
-                        showSettingsButton: true,
-                        presentedScreens: [
-                            .nextInStack: .encounter(encounterDetailViewState)
-                        ]
-                    ),
-                    referenceView: ReferenceViewFeature.State(
-                        items: IdentifiedArray(arrayLiteral:
-                            ReferenceViewFeature.Item.State(
-                                id: UUID().tagged(),
-                                title: nil,
-                                state: ReferenceItem.State(
-                                    content: .combatantDetail(
-                                        ReferenceItem.State.Content.CombatantDetail(
-                                            encounter: encounterDetailViewState.running!.current,
-                                            selectedCombatantId: encounterDetailViewState.encounter.combatants.elements[1].id,
-                                            runningEncounter: encounterDetailViewState.running
-                                        ))
-                                )
+                                definition: CombatantTagDefinition.all.first(where: { $0.name == "Concentrating" })!
                             )
                         )
-                    ),
-                    diceCalculator: FloatingDiceRollerFeature.State(
-                        hidden: true,
-                        diceCalculator: DiceCalculator.State.abilityCheck(3, rollOnAppear: false, prefilledResult: 22)
+
+                        mage.resources[position: 0].used = 1
+                        mage.resources[position: 1].used = 3
+                        mage.resources[position: 3].used = 1
+                    }
+                )
+                let store = StoreOf<CombatantDetailFeature>(initialState: state) { EmptyReducer() }
+                return FakeSheetView(
+                    background: Color(UIColor.secondarySystemBackground),
+                    sheet: CombatantDetailContainerView(store: store)
+                )
+            }
+        }
+    }
+
+    @MainActor
+    var columnNavigationEncounterDetailRunning: ConstructView {
+        get async {
+            let encounterDetailViewState = await encounterDetailRunningEncounterDetailState
+
+            let state = AppFeature.State(
+                navigation: .column(
+                    ColumnNavigationFeature.State(
+                        campaignBrowse: CampaignBrowseViewFeature.State(
+                            node: CampaignNode.root,
+                            mode: .browse,
+                            items: Async.State(result: .success([
+                                CampaignNode(
+                                    id: UUID().tagged(),
+                                    title: "",
+                                    contents: CampaignNode.Contents(
+                                        key: encounterDetailViewState.encounter.key.rawValue,
+                                        type: .encounter
+                                    ),
+                                    special: nil,
+                                    parentKeyPrefix: nil
+                                )
+                            ])),
+                            showSettingsButton: true,
+                            presentedScreens: [
+                                .nextInStack: .encounter(encounterDetailViewState)
+                            ]
+                        ),
+                        referenceView: ReferenceViewFeature.State(
+                            items: IdentifiedArray(arrayLiteral:
+                                ReferenceViewFeature.Item.State(
+                                    id: UUID().tagged(),
+                                    title: nil,
+                                    state: ReferenceItem.State(
+                                        content: .combatantDetail(
+                                            ReferenceItem.State.Content.CombatantDetail(
+                                                encounter: encounterDetailViewState.running!.current,
+                                                selectedCombatantId: encounterDetailViewState.encounter.combatants.elements[1].id,
+                                                runningEncounter: encounterDetailViewState.running
+                                            ))
+                                    )
+                                )
+                            )
+                        ),
+                        diceCalculator: FloatingDiceRollerFeature.State(
+                            hidden: true,
+                            diceCalculator: DiceCalculator.State.abilityCheck(3, rollOnAppear: false, prefilledResult: 22)
+                        )
                     )
                 )
             )
-        )
-        let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
-        return ConstructView(env: environment, store: store)
+            return try! await withDependencies {
+                $0.database = database
+                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.backgroundQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.diceLog = DiceLogPublisher()
+                $0.crashReporter = CrashReporter.firebase
+                $0.mechMuse = .live(db: database)
+            } operation: {
+                let store = StoreOf<AppFeature>(initialState: state) { EmptyReducer() }
+                let env = try! await Environment.live(
+                    database: database,
+                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                    backgroundQueue: DispatchQueue.immediate.eraseToAnyScheduler()
+                )
+                return ConstructView(env: env, store: store)
+            }
+        }
     }
 
+    @MainActor
     var encounterDetailRunningEncounterDetailState: EncounterDetailFeature.State {
-        var encounter = SampleEncounter.createEncounter(with: environment)
+        get async {
+            return try! await withDependencies {
+                $0.database = database
+                $0.crashReporter = CrashReporter.firebase
+            } operation: {
+                @Dependency(\.database) var db
+                @Dependency(\.crashReporter) var crashReporter
+                var encounter = SampleEncounter.createEncounter(database: db, crashReporter: crashReporter)
         encounter.name = "The King's Crypt"
         // Mummy
         apply(&encounter.combatants[position: 0]) { mummy in
@@ -479,7 +597,13 @@ class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     var columnNavigationEncounterDetailBuilding: ConstructView {
         get async {
-            var encounter = SampleEncounter.createEncounter(with: environment)
+            return try! await withDependencies {
+                $0.database = database
+                $0.crashReporter = CrashReporter.firebase
+            } operation: {
+                @Dependency(\.database) var db
+                @Dependency(\.crashReporter) var crashReporter
+                var encounter = SampleEncounter.createEncounter(database: db, crashReporter: crashReporter)
             encounter.combatants.remove(at: 0)
 
             let state = AppFeature.State(
@@ -529,7 +653,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     )) { @MainActor state in
                                                         state.results.input.order = .monsterChallengeRating
                                                         let store = Store(initialState: state) {
-                                                            CompendiumIndexFeature(environment: environment)
+                                                            CompendiumIndexFeature()
                                                         } withDependencies: {
                                                             $0.uuid = UUIDGenerator.fake()
                                                         }
@@ -555,12 +679,25 @@ class AppStoreScreenshotTests: XCTestCase {
                     )
                 )
             )
-            let store = StoreOf<AppFeature>(initialState: state) {
-                EmptyReducer()
-            } withDependencies: {
+            return try! await withDependencies {
+                $0.database = database
+                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.backgroundQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.diceLog = DiceLogPublisher()
+                $0.crashReporter = CrashReporter.firebase
+                $0.mechMuse = .live(db: database)
                 $0.uuid = UUIDGenerator.fake()
+            } operation: {
+                let store = StoreOf<AppFeature>(initialState: state) {
+                    EmptyReducer()
+                }
+                let env = try! await Environment.live(
+                    database: database,
+                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                    backgroundQueue: DispatchQueue.immediate.eraseToAnyScheduler()
+                )
+                return ConstructView(env: env, store: store)
             }
-            return ConstructView(env: environment, store: store)
         }
     }
 
@@ -585,7 +722,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     results: .initial
                                                 )) { state in
                                                     let store = Store(initialState: state) {
-                                                        CompendiumIndexFeature(environment: environment)
+                                                        CompendiumIndexFeature()
                                                     } withDependencies: {
                                                         $0.uuid = UUIDGenerator.fake()
                                                     }
@@ -616,12 +753,25 @@ class AppStoreScreenshotTests: XCTestCase {
                     )
                 )
             )
-            let store = StoreOf<AppFeature>(initialState: state) {
-                EmptyReducer()
-            } withDependencies: {
+            return try! await withDependencies {
+                $0.database = database
+                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.backgroundQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.diceLog = DiceLogPublisher()
+                $0.crashReporter = CrashReporter.firebase
+                $0.mechMuse = .live(db: database)
                 $0.uuid = UUIDGenerator.fake()
+            } operation: {
+                let store = StoreOf<AppFeature>(initialState: state) {
+                    EmptyReducer()
+                }
+                let env = try! await Environment.live(
+                    database: database,
+                    mainQueue: DispatchQueue.immediate.eraseToAnyScheduler(),
+                    backgroundQueue: DispatchQueue.immediate.eraseToAnyScheduler()
+                )
+                return ConstructView(env: env, store: store)
             }
-            return ConstructView(env: environment, store: store)
         }
     }
 
@@ -692,7 +842,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     results: .initial(type: .spell)
                                                 )) { @MainActor state in
                                                     let store = Store(initialState: state) {
-                                                        CompendiumIndexFeature(environment: environment)
+                                                        CompendiumIndexFeature()
                                                     } withDependencies: {
                                                         $0.uuid = UUIDGenerator.fake()
                                                     }
@@ -766,7 +916,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     results: .initial
                                                 )) { state in
                                                     let store = Store(initialState: state) {
-                                                        CompendiumIndexFeature(environment: environment)
+                                                        CompendiumIndexFeature()
                                                     } withDependencies: {
                                                         $0.uuid = UUIDGenerator.fake()
                                                     }

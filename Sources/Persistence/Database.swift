@@ -264,16 +264,25 @@ enum DirectDatabaseAccessError: Error {
     case unsupportedOperation
 }
 
-extension Database: DependencyKey {
+public extension Database {
+    static func live() async throws -> Database {
+        let dbUrl = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appendingPathComponent("db.sqlite")
+
+        return try await Database(path: dbUrl.absoluteString)
+    }
+}
+
+struct DatabaseDependencyKey: DependencyKey {
     public static var liveValue: Database {
-//        assertionFailure("Database dependency is not configured")
+        assertionFailure("Database dependency is not configured")
         return .uninitialized
     }
 }
 
 public extension DependencyValues {
     var database: Database {
-        get { self[Database.self] }
-        set { self[Database.self] = newValue }
+        get { self[DatabaseDependencyKey.self] }
+        set { self[DatabaseDependencyKey.self] = newValue }
     }
 }

@@ -43,21 +43,13 @@ public struct NumberEntryFeature: Reducer {
         case dice(DiceCalculator.Action)
     }
 
-    typealias Environment = NumberEntryViewEnvironment
-
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
-
     public var body: some ReducerOf<Self> {
         Scope(state: \State.pad, action: /Action.pad) {
             NumberPadFeature()
         }
 
         Scope(state: \State.dice, action: /Action.dice) {
-            DiceCalculator(environment: environment)
+            DiceCalculator()
         }
 
         Reduce { state, action in
@@ -71,8 +63,6 @@ public struct NumberEntryFeature: Reducer {
         }
     }
 }
-
-typealias NumberEntryViewEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog
 
 public extension NumberEntryFeature.State {
     static func pad(value: Int, expression: DiceExpression? = nil) -> Self {

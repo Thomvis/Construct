@@ -18,8 +18,6 @@ import Persistence
 import MechMuse
 import DiceRollerFeature
 
-typealias CompendiumIndexEnvironment = EnvironmentWithDatabase & EnvironmentWithCrashReporter & EnvironmentWithUUIDGenerator & EnvironmentWithCompendiumMetadata & CompendiumEntryDetailEnvironment
-
 struct CompendiumIndexFeature: Reducer {
     struct State: Equatable {
 
@@ -165,8 +163,6 @@ struct CompendiumIndexFeature: Reducer {
     }
 
     struct Destination: Reducer {
-        let environment: CompendiumIndexEnvironment
-
         enum State: Equatable {
             case itemDetail(CompendiumEntryDetailFeature.State)
         }
@@ -178,14 +174,12 @@ struct CompendiumIndexFeature: Reducer {
 
         var body: some ReducerOf<Self> {
             Scope(state: /State.itemDetail, action: /Action.itemDetail) {
-                CompendiumEntryDetailFeature(environment: environment)
+                CompendiumEntryDetailFeature()
             }
         }
     }
 
     struct Sheet: Reducer {
-        let environment: CompendiumIndexEnvironment
-
         enum State: Equatable {
             case creatureEdit(CreatureEditFeature.State)
             case groupEdit(CompendiumItemGroupEditFeature.State)
@@ -211,26 +205,15 @@ struct CompendiumIndexFeature: Reducer {
             }
             Scope(state: /State.compendiumImport, action: /Action.compendiumImport) {
                 CompendiumImportFeature()
-                    .dependency(\.database, environment.database)
-                    .dependency(\.compendium, environment.compendium)
-                    .dependency(\.compendiumMetadata, environment.compendiumMetadata)
-                    .dependency(\.uuid, UUIDGenerator(environment.generateUUID))
             }
             Scope(state: /State.documents, action: /Action.documents) {
                 CompendiumDocumentsFeature()
-                    .dependency(\.compendiumMetadata, environment.compendiumMetadata)
-                    .dependency(\.database, environment.database)
             }
             Scope(state: /State.transfer, action: /Action.transfer) {
                 CompendiumItemTransferFeature()
-                    .dependency(\.compendium, environment.compendium)
-                    .dependency(\.compendiumMetadata, environment.compendiumMetadata)
-                    .dependency(\.database, environment.database)
             }
         }
     }
-
-    let environment: CompendiumIndexEnvironment
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -318,12 +301,13 @@ struct CompendiumIndexFeature: Reducer {
             case .sheet(.presented(.groupEdit(.onAddTap(let group)))):
                 // adding a group
                 return .run { send in
+                    @Dependency(\.compendium) var compendium
                     let entry = CompendiumEntry(
                         group,
                         origin: .created(nil),
                         document: .init(CompendiumSourceDocument.homebrew)
                     )
-                    try? environment.compendium.put(entry)
+                    try? compendium.put(entry)
 
                     await send(.results(.result(.reload(.all))))
                     await send(.scrollTo(entry.key))
@@ -364,8 +348,9 @@ struct CompendiumIndexFeature: Reducer {
             case .alert(.presented(.onDeleteSelectedConfirmed)):
                 state.alert = nil
                 return .run { [keys=state.selectedKeys] send in
+                    @Dependency(\.database) var database
                     for key in keys {
-                        _ = try? environment.database.keyValueStore.remove(key)
+                        _ = try? database.keyValueStore.remove(key)
                     }
                     await send(.results(.result(.reload(.currentCount))))
                 }
@@ -381,10 +366,10 @@ struct CompendiumIndexFeature: Reducer {
             return .none
         }
         .ifLet(\.$destination, action: /Action.destination) {
-            Destination(environment: environment)
+            Destination()
         }
         .ifLet(\.$sheet, action: /Action.sheet) {
-            Sheet(environment: environment)
+            Sheet()
         }
 
         Scope(state: \.results, action: /Action.results) {
@@ -428,9 +413,12 @@ struct CompendiumIndexFeature: Reducer {
             initialResultActionForInput: { _ in .didShowElementAtIndex(0) },
             resultReducerForInput: { query in
                 PagingData { (request) in
+                    @Dependency(\.compendium) var compendium
+                    @Dependency(\.crashReporter) var crashReporter
+                    
                     let entries: [CompendiumEntry]
                     do {
-                        entries = try environment.compendium.fetchCatching(CompendiumFetchRequest(
+                        entries = try compendium.fetchCatching(CompendiumFetchRequest(
                             search: query.text?.nonEmptyString,
                             filters: query.filters,
                             order: query.order,
@@ -446,7 +434,7 @@ struct CompendiumIndexFeature: Reducer {
                         }
                     } catch {
                         assertionFailure("compendium.fetchAll failed with error: \(error)")
-                        environment.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                        crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                         return .failure(PagingDataError(describing: error))
                     }
 
@@ -583,46 +571,5 @@ extension CompendiumEntry {
         )
         result.error = CompendiumEntry.Error(errorDump: errorDump, data: data)
         return result
-    }
-}
-
-public struct StandaloneCompendiumIndexEnvironment: CompendiumIndexEnvironment {
-    public var database: Database
-    public var crashReporter: CrashReporter
-    public var generateUUID: @Sendable () -> UUID
-    public var compendiumMetadata: CompendiumMetadata
-    public var compendium: Compendium
-    public var modifierFormatter: NumberFormatter
-    public var mainQueue: AnySchedulerOf<DispatchQueue>
-    public var diceLog: DiceLogPublisher
-    public var canSendMail: () -> Bool
-    public var sendMail: (FeedbackMailContents) -> Void
-    public var mechMuse: MechMuse
-
-    static func fromDependencies() -> Self {
-        @Dependency(\.database) var database
-        @Dependency(\.crashReporter) var crashReporter
-        @Dependency(\.uuid) var uuid
-        @Dependency(\.compendiumMetadata) var compendiumMetadata
-        @Dependency(\.compendium) var compendium
-        @Dependency(\.modifierFormatter) var modifierFormatter
-        @Dependency(\.mainQueue) var mainQueue
-        @Dependency(\.diceLog) var diceLog
-        @Dependency(\.mailer) var mailer
-        @Dependency(\.mechMuse) var mechMuse
-
-        return StandaloneCompendiumIndexEnvironment(
-            database: database,
-            crashReporter: crashReporter,
-            generateUUID: { uuid() },
-            compendiumMetadata: compendiumMetadata,
-            compendium: compendium,
-            modifierFormatter: modifierFormatter,
-            mainQueue: mainQueue,
-            diceLog: diceLog,
-            canSendMail: mailer.canSendMail,
-            sendMail: mailer.sendMail,
-            mechMuse: mechMuse
-        )
     }
 }

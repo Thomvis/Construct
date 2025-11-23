@@ -12,7 +12,6 @@ import ComposableArchitecture
 import GameModels
 
 struct CompendiumContainerView: View {
-    @EnvironmentObject var environment: Environment
     var store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
 
     var body: some View {
@@ -23,14 +22,10 @@ struct CompendiumContainerView: View {
 }
 
 struct CompendiumRootFeature: Reducer {
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
-
     typealias State = CompendiumIndexFeature.State
     typealias Action = CompendiumIndexFeature.Action
+
+    @Dependency(\.compendium) var compendium
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -50,7 +45,7 @@ struct CompendiumRootFeature: Reducer {
                                 displayName: CompendiumSourceDocument.homebrew.displayName
                             )
                         )
-                        try environment.compendium.put(entry)
+                        try compendium.put(entry)
 
                         // configure view to display the character
                         await send(.query(.onFiltersDidChange(.init(types: [.character]))))
@@ -63,7 +58,7 @@ struct CompendiumRootFeature: Reducer {
             }
             return .none
         }
-        CompendiumIndexFeature(environment: environment)
+        CompendiumIndexFeature()
     }
 }
 

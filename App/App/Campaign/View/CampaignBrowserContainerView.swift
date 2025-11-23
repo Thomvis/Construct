@@ -11,7 +11,6 @@ import SwiftUI
 import ComposableArchitecture
 
 struct CampaignBrowserContainerView: View {
-    @EnvironmentObject var env: Environment
     var store: Store<CampaignBrowseViewFeature.State, CampaignBrowseViewFeature.Action>
 
     var body: some View {

@@ -31,22 +31,16 @@ class EncounterDetailTest: XCTestCase {
         ]))
 
 
-        let environment = try await apply(Environment.live()) {
-            let uuidGenerator = UUIDGenerator.fake()
-
-            $0.generateUUID = { uuidGenerator.callAsFunction() }
-            $0.rng = AnyRandomNumberGenerator(wrapped: EverIncreasingRandomNumberGenerator())
-            $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
-        }
-
+        let uuidGenerator = UUIDGenerator.fake()
+        
         let store = TestStore(
             initialState: initialState
         ) {
-            EncounterDetailFeature(environment: environment)
+            EncounterDetailFeature()
         } withDependencies: {
-            let uuidGenerator = UUIDGenerator.fake()
-
-            $0.uuid = UUIDGenerator.fake()
+            $0.uuid = uuidGenerator
+            $0.randomNumberGenerator = AnyRandomNumberGenerator(wrapped: EverIncreasingRandomNumberGenerator())
+            $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
         }
 
         // start encounter

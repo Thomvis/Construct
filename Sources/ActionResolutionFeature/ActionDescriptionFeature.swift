@@ -13,12 +13,6 @@ import GameModels
 
 public struct ActionDescriptionFeature: Reducer {
 
-    let environment: ActionDescriptionEnvironment
-
-    public init(environment: ActionDescriptionEnvironment) {
-        self.environment = environment
-    }
-
     public struct State: Equatable {
         public typealias _AsyncDescription_Reduce = AsyncReduce<String, String, MechMuseError>
         public typealias _AsyncDescription_Map = Map<RequestInput, _AsyncDescription_Reduce>
@@ -144,12 +138,14 @@ public struct ActionDescriptionFeature: Reducer {
         case binding(BindingAction<State>)
     }
 
+    @Dependency(\.mechMuse) var mechMuse
+
     public var body: some ReducerOf<Self> {
         CombineReducers {
             Reduce { state, action in
                 switch action {
                 case .onAppear:
-                    state.mechMuseIsConfigured = environment.mechMuse.isConfigured
+                    state.mechMuseIsConfigured = mechMuse.isConfigured
                 case .onFeedbackButtonTap: break // handled by the parent
                 case .onReloadOrCancelButtonTap:
                     if state.description.result.isReducing {
@@ -198,7 +194,7 @@ public struct ActionDescriptionFeature: Reducer {
                 resultReducerForInput: { input in
                     State._AsyncDescription_Reduce {
                         guard let request = input.request else { throw ActionDescriptionFeatureError.missingInput }
-                        return try environment.mechMuse.describe(action: request)
+                        return try mechMuse.describe(action: request)
                     } reduce: { result, element in
                         result += element
                     } mapError: {
@@ -219,9 +215,6 @@ public struct ActionDescriptionFeature: Reducer {
 
     }
 }
-
-public typealias ActionDescriptionEnvironment = EnvironmentWithMainQueue & EnvironmentWithMechMuse
-
 
 extension ActionDescriptionFeature.State {
     fileprivate var input: ActionDescriptionFeature.RequestInput.State {

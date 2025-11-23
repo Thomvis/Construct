@@ -142,11 +142,7 @@ struct DiceRollerView_Preview: PreviewProvider {
             store: Store(
                 initialState: DiceRollerFeature.State()
             ) {
-                DiceRollerFeature(environment: StandaloneDiceRollerEnvironment(
-                    mainQueue: .main,
-                    diceLog: DiceLogPublisher(),
-                    modifierFormatter: NumberFormatter()
-                ))
+                DiceRollerFeature()
             }
         )
     }

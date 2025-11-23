@@ -12,11 +12,6 @@ import Helpers
 import GameModels
 
 struct CombatantTagEditFeature: Reducer {
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
 
     struct State: Equatable, NavigationStackItemState {
         var mode: Mode
@@ -96,7 +91,7 @@ struct CombatantTagEditFeature: Reducer {
             return .none
         }
         .ifLet(\.numberEntryPopover, action: /Action.numberEntryPopover) {
-            NumberEntryFeature(environment: environment)
+            NumberEntryFeature()
         }
     }
 }

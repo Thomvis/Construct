@@ -8,6 +8,11 @@
 import Foundation
 import Helpers
 
+// Helps with the definition of the mapping below
+private func / (lhs: Int, rhs: Int) -> Fraction {
+    Fraction(numenator: lhs, denominator: rhs)
+}
+
 public let crToProficiencyBonusMapping: [Fraction: Modifier] = [
     Fraction(integer: 0): 2,
     1 / 8: 2,

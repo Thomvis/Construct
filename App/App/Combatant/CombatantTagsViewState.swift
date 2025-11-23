@@ -15,11 +15,6 @@ import Helpers
 import GameModels
 
 struct CombatantTagsFeature: Reducer {
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
 
     struct State: Equatable {
         var combatants: [Combatant]
@@ -134,8 +129,6 @@ struct CombatantTagsFeature: Reducer {
     }
 
     struct Destination: Reducer {
-        let environment: Environment
-
         enum State: Equatable {
             case tagEdit(CombatantTagEditFeature.State)
         }
@@ -146,7 +139,7 @@ struct CombatantTagsFeature: Reducer {
 
         var body: some ReducerOf<Self> {
             Scope(state: /State.tagEdit, action: /Action.tagEdit) {
-                CombatantTagEditFeature(environment: environment)
+                CombatantTagEditFeature()
             }
         }
     }
@@ -195,7 +188,7 @@ struct CombatantTagsFeature: Reducer {
             return .none
         }
         .ifLet(\.$destination, action: /Action.destination) {
-            Destination(environment: environment)
+            Destination()
         }
     }
 }

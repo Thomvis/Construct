@@ -18,7 +18,6 @@ import Compendium
 import SharedViews
 
 struct CompendiumEntryDetailView: View {
-    @EnvironmentObject var env: Environment
     @SwiftUI.Environment(\.appNavigation) var appNavigation
 
     var store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
@@ -228,15 +227,14 @@ struct CompendiumEntryDetailView: View {
             switch target {
             case .ability(let a):
                 let modifier: Int = stats.abilityScores?.score(for: a).modifier.modifier ?? 0
-                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, creatureName: stats.name, environment: self.env), rollOnAppear: true))))
+                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, creatureName: stats.name), rollOnAppear: true))))
             case .skill(let s):
                 let modifier: Int = stats.skillModifier(s).modifier
-                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, creatureName: stats.name, environment: self.env), rollOnAppear: true))))
+                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, creatureName: stats.name), rollOnAppear: true))))
             case .action(let action):
                 let state = ActionResolutionFeature.State(
                     creatureStats: stats,
-                    action: action,
-                    preferences: env.preferences()
+                    action: action
                 )
                 self.viewStore.send(.popover(.creatureAction(state)))
             default:
@@ -311,7 +309,7 @@ struct CompendiumMonsterDetailView: View {
 }
 
 struct CompendiumSpellDetailView: View {
-    @EnvironmentObject var env: Environment
+    @EnvironmentObject var ordinalFormatter: OrdinalFormatter
     let spell: Spell
     let onTap: ((StatBlockView.TapTarget) -> Void)?
 
@@ -320,7 +318,7 @@ struct CompendiumSpellDetailView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Group {
                     Text(spell.name).font(.title).lineLimit(nil)
-                    Text(spell.subheading(env)).italic().lineLimit(nil)
+                    Text(spell.subheading(ordinalFormatter: ordinalFormatter)).italic().lineLimit(nil)
                 }
 
                 Divider()
@@ -378,10 +376,10 @@ struct CompendiumSpellDetailView: View {
 }
 
 extension Spell {
-    func subheading(_ env: Environment) -> String {
+    func subheading(ordinalFormatter: OrdinalFormatter) -> String {
         let levelText: String
         if let level = level {
-            levelText = "\(env.ordinalFormatter.stringWithFallback(for: level)) level"
+            levelText = "\(ordinalFormatter.string(from: level)) level"
         } else {
             levelText = "Cantrip"
         }

@@ -11,7 +11,6 @@ import SwiftUI
 import ComposableArchitecture
 
 struct RunningEncounterActionBar: View {
-    @EnvironmentObject var environment: Environment
 
     @ScaledMetric(relativeTo: .body)
     private var verticalDividerHeight: CGFloat = 30

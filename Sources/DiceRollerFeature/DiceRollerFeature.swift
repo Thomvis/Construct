@@ -13,11 +13,7 @@ import Helpers
 
 public struct DiceRollerFeature: Reducer {
 
-    let environment: DiceRollerEnvironment
-
-    public init(environment: DiceRollerEnvironment) {
-        self.environment = environment
-    }
+    public init() { }
 
     public struct State: Equatable {
         public var calculatorState: DiceCalculator.State
@@ -49,7 +45,7 @@ public struct DiceRollerFeature: Reducer {
 
     public var body: some ReducerOf<Self> {
         Scope(state: \.calculatorState, action: /Action.calculatorState) {
-            DiceCalculator(environment: environment)
+            DiceCalculator()
         }
 
         Reduce { state, action in
@@ -67,24 +63,6 @@ public struct DiceRollerFeature: Reducer {
             }
             return .none
         }
-    }
-}
-
-public protocol EnvironmentWithDiceLog {
-    var diceLog: DiceLogPublisher { get }
-}
-
-public typealias DiceRollerEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog
-
-public struct StandaloneDiceRollerEnvironment: DiceRollerEnvironment {
-    public let mainQueue: AnySchedulerOf<DispatchQueue>
-    public let diceLog: DiceLogPublisher
-    public let modifierFormatter: NumberFormatter
-
-    public init(mainQueue: AnySchedulerOf<DispatchQueue>, diceLog: DiceLogPublisher, modifierFormatter: NumberFormatter) {
-        self.mainQueue = mainQueue
-        self.diceLog = diceLog
-        self.modifierFormatter = modifierFormatter
     }
 }
 

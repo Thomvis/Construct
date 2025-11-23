@@ -16,7 +16,6 @@ import Persistence
 struct EncounterSettingsView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    @EnvironmentObject var environment: Environment
     var store: Store<EncounterDetailFeature.State, EncounterDetailFeature.Action>
     @ObservedObject var viewStore: ViewStore<EncounterDetailFeature.State, EncounterDetailFeature.Action>
 

@@ -187,8 +187,6 @@ struct DiceActionView: View {
 
 #if DEBUG
 struct DiceActionViewDebugHost: View {
-    var env: ActionResolutionEnvironment
-
     var body: some View {
         DiceActionView(store: Store(
             initialState: DiceActionFeature.State(
@@ -199,7 +197,7 @@ struct DiceActionViewDebugHost: View {
                 )!
             )
         ) {
-            DiceActionFeature(environment: env)
+            DiceActionFeature()
         })
     }
 }

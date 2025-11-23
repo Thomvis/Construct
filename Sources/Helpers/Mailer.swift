@@ -8,6 +8,48 @@ public struct Mailer {
     public var sendMail: (FeedbackMailContents) -> Void
 }
 
+public struct FeedbackMailContents {
+    public let subject: String
+    public let attachments: [Attachment]
+
+    public init(subject: String = "Construct Feedback", attachment: [Attachment] = []) {
+        self.subject = subject
+        self.attachments = attachment
+    }
+
+    public struct Attachment {
+        public let data: Data
+        public let mimeType: String
+        public let fileName: String
+
+        public init(data: Data, mimeType: String, fileName: String) {
+            self.data = data
+            self.mimeType = mimeType
+            self.fileName = fileName
+        }
+
+        public init?<C>(encoding value: C) where C: Encodable {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+
+            guard let data = try? encoder.encode(value) else { return nil }
+            self.data = data
+            self.mimeType = "application/json"
+            self.fileName = "\(type(of: value)).json"
+        }
+
+        public init?(customDump value: Any) {
+            var result = ""
+            customDump(value, to: &result)
+
+            guard let data = result.data(using: .utf8) else { return nil }
+            self.data = data
+            self.mimeType = "text/plain;charset=UTF-8"
+            self.fileName = "\(type(of: value)).txt"
+        }
+    }
+}
+
 private class MailComposeDelegate: NSObject, MFMailComposeViewControllerDelegate {
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
         controller.dismiss(animated: true, completion: nil)

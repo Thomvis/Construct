@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import FirebaseCrashlytics
 import SwiftUI
 import Combine
 import ComposableArchitecture
@@ -14,13 +15,9 @@ import DiceRollerFeature
 import Helpers
 import URLRouting
 import GameModels
+import Persistence
 
 struct AppFeature: Reducer {
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
 
     struct State: Equatable {
 
@@ -66,14 +63,38 @@ struct AppFeature: Reducer {
         }
     }
 
+    @Dependency(\.appReview) var appReview
+    @Dependency(\.campaignBrowser) var campaignBrowser
+    @Dependency(\.crashReporter) var crashReporter
+    @Dependency(\.database) var database
+    @Dependency(\.diceLog) var diceLog
+    @Dependency(\.idleTimer) var idleTimer
+    @Dependency(\.preferences) var preferencesClient
+    @Dependency(\.storeManager) var storeManager
+
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onLaunch:
                 return .merge(
+                    .run { send in
+                        // Check Crashlytics
+                        if Crashlytics.crashlytics().didCrashDuringPreviousExecution() {
+                            if preferencesClient.get().errorReportingEnabled == true {
+                                // user consent has been given, send reports
+                                crashReporter.registerUserPermission(.send)
+                            }
+
+                            await send(.requestPresentation(.crashReportingPermissionAlert))
+                        }
+                    },
+                    .run { _ in
+                        storeManager.beginObservingTransactionUpdates()
+                        await storeManager.checkForUnfinishedTransactions()
+                    },
                     // Listen to dice rolls and forward them to the right place
                     .run { send in
-                        for await (result, roll) in environment.diceLog.rolls.values {
+                        for await (result, roll) in diceLog.rolls.values {
                             await send(.onProcessRollForDiceLog(result, roll))
                         }
                     }
@@ -96,7 +117,7 @@ struct AppFeature: Reducer {
                     break
                 }
             case .requestPresentation(let p):
-                precondition(p != .welcomeSheet || !environment.database.needsPrepareForUse)
+                precondition(p != .welcomeSheet || !database.needsPrepareForUse)
 
                 if state.presentation == nil {
                     state.presentation = p
@@ -142,20 +163,19 @@ struct AppFeature: Reducer {
                     return .send(.dismissPresentation(.crashReportingPermissionAlert))
                 }
             case .onReceiveCrashReportingUserPermission(let permission):
-                environment.crashReporter.registerUserPermission(permission)
-                if var preferences: Preferences = try? environment.database.keyValueStore.get(Preferences.key) {
-                    if preferences.errorReportingEnabled != (permission == .send) {
-                        preferences.errorReportingEnabled = permission == .send
-                        try? environment.database.keyValueStore.put(preferences)
-                    }
+                crashReporter.registerUserPermission(permission)
+                var preferences = preferencesClient.get()
+                if preferences.errorReportingEnabled != (permission == .send) {
+                    preferences.errorReportingEnabled = permission == .send
+                    try? preferencesClient.update { $0.errorReportingEnabled = permission == .send }
                 }
             case .welcomeSheetSampleEncounterTapped:
                 return .run { send in
-                    SampleEncounter.create(with: environment)
+                    SampleEncounter.create(database: database, crashReporter: crashReporter)
 
-                    if let encounter: Encounter = try? environment.database.keyValueStore.get(
+                    if let encounter: Encounter = try? database.keyValueStore.get(
                         Encounter.key(Encounter.scratchPadEncounterId),
-                        crashReporter: environment.crashReporter
+                        crashReporter: crashReporter
                     ) {
                         await send(.navigation(.openEncounter(encounter)))
                     }
@@ -163,14 +183,14 @@ struct AppFeature: Reducer {
                     await send(.dismissPresentation(.welcomeSheet))
                 }
             case .onAppear:
-                if !environment.preferences().didShowWelcomeSheet {
+                if !preferencesClient.get().didShowWelcomeSheet {
                     return .send(.requestPresentation(.welcomeSheet))
-                } else if let nodeCount = try? environment.campaignBrowser.nodeCount(),
+                } else if let nodeCount = try? campaignBrowser.nodeCount(),
                           nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
                 {
                     // if the user created some campaign nodes
                     #if !DEBUG
-                    environment.requestAppStoreReview()
+                    appReview.requestAppStoreReview()
                     #endif
                 }
             case .scene(let phase):
@@ -202,7 +222,7 @@ struct AppFeature: Reducer {
         .onChange(of: \.presentation) { oldValue, newValue in
             Reduce { state, action in
                 if newValue == .welcomeSheet {
-                    try? environment.updatePreferences {
+                    try? preferencesClient.update {
                         $0.didShowWelcomeSheet = true
                     }
                 }
@@ -210,24 +230,19 @@ struct AppFeature: Reducer {
             }
         }
         .ifLet(\.navigation, action: /Action.navigation) {
-            Navigation(environment: environment)
+            Navigation()
         }
         Reduce { state, action in
             if state.sceneIsActive, let edv = state.firstNavigationNode(of: EncounterDetailFeature.State.self), edv.running != nil {
-                environment.isIdleTimerDisabled.wrappedValue = true
+                idleTimer.isIdleTimerDisabled.wrappedValue = true
             } else {
-                environment.isIdleTimerDisabled.wrappedValue = false
+                idleTimer.isIdleTimerDisabled.wrappedValue = false
             }
             return .none
         }
     }
 
     struct Navigation: Reducer {
-        let environment: Environment
-
-        init(environment: Environment) {
-            self.environment = environment
-        }
 
         enum State: Equatable {
             case tab(TabNavigationFeature.State)
@@ -265,19 +280,21 @@ struct AppFeature: Reducer {
             case column(ColumnNavigationFeature.Action)
         }
 
+        @Dependency(\.preferences) var preferencesClient
+
         var body: some ReducerOf<Self> {
-            Reduce { state, action in
+            Reduce<State, Action> { state, action in
                 switch (state, action) {
                 case (.tab, .openEncounter(let e)):
                     let detailState = EncounterDetailFeature.State(
                         building: e,
-                        isMechMuseEnabled: environment.preferences().mechMuse.enabled
+                        isMechMuseEnabled: preferencesClient.get().mechMuse.enabled
                     )
                     return .send(.tab(.campaignBrowser(.setDestination(.encounter(detailState)))))
                 case (.column, .openEncounter(let e)):
                     let detailState = EncounterDetailFeature.State(
                         building: e,
-                        isMechMuseEnabled: environment.preferences().mechMuse.enabled
+                        isMechMuseEnabled: preferencesClient.get().mechMuse.enabled
                     )
                     return .send(.column(.campaignBrowse(.setDestination(.encounter(detailState)))))
                 default:
@@ -286,10 +303,10 @@ struct AppFeature: Reducer {
                 return .none
             }
             .ifCaseLet(/State.tab, action: /Action.tab) {
-                TabNavigationFeature(environment: environment)
+                TabNavigationFeature()
             }
             .ifCaseLet(/State.column, action: /Action.column) {
-                ColumnNavigationFeature(environment: environment)
+                ColumnNavigationFeature()
             }
         }
     }

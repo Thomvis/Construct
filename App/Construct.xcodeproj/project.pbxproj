@@ -74,7 +74,6 @@
 		E96DC8A82E6458B20038E9B7 /* MechMuseCreatureGenerationFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96DC8A72E6458B20038E9B7 /* MechMuseCreatureGenerationFeature.swift */; };
 		E96FC16923D3A5BE00A12F1E /* ogl.md in Resources */ = {isa = PBXBuildFile; fileRef = E96FC16823D3A5BE00A12F1E /* ogl.md */; };
 		E96FC16B23D3A64800A12F1E /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96FC16A23D3A64800A12F1E /* WebView.swift */; };
-		E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */; };
 		E972BAA524793EFC00F313D7 /* NumberPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E978861723BDF4E5003B2DA2 /* NumberPadView.swift */; };
 		E974888F28B522B9004A5CFD /* AppInvocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E974888E28B522B9004A5CFD /* AppInvocation.swift */; };
 		E974889128B5231D004A5CFD /* DiceRollerInvocation in Frameworks */ = {isa = PBXBuildFile; productRef = E974889028B5231D004A5CFD /* DiceRollerInvocation */; };
@@ -158,7 +157,6 @@
 		E9AB031323EBF09B0091C908 /* EqualSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AB031223EBF09B0091C908 /* EqualSize.swift */; };
 		E9AEA49B24C62A9600ACB44C /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9AEA49A24C62A9600ACB44C /* Helpers.swift */; };
 		E9B3B87528FC8824003764DD /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = E9B3B87428FC8824003764DD /* SnapshotTesting */; };
-		E9B432BB22AAF7540054324E /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B432BA22AAF7540054324E /* Environment.swift */; };
 		E9BA7F162ECA811A00E4F39E /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E9BA7F152ECA811A00E4F39E /* ComposableArchitecture */; };
 		E9BE1C4F28B524FF00D80464 /* DiceRollerInvocation in Frameworks */ = {isa = PBXBuildFile; productRef = E9BE1C4E28B524FF00D80464 /* DiceRollerInvocation */; };
 		E9C19B242EB4EDE100431231 /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = E9C19B232EB4EDE100431231 /* ViewInspector */; };
@@ -357,9 +355,7 @@
 		E9AB031223EBF09B0091C908 /* EqualSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EqualSize.swift; sourceTree = "<group>"; };
 		E9AB031923ECA9310091C908 /* HealthDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDialog.swift; sourceTree = "<group>"; };
 		E9AEA49A24C62A9600ACB44C /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
-		E9B432BA22AAF7540054324E /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		E9C7F7852632C193000351AB /* NumberPadTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberPadTest.swift; sourceTree = "<group>"; };
-		E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowser.swift; sourceTree = "<group>"; };
 		E9CFB30E2350515700CA0AF4 /* CampaignBrowserTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowserTest.swift; sourceTree = "<group>"; };
 		E9CFB31123505AF400CA0AF4 /* CampaignBrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseView.swift; sourceTree = "<group>"; };
 		E9CFB31323505B0F00CA0AF4 /* CampaignBrowseFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignBrowseFeature.swift; sourceTree = "<group>"; };
@@ -514,7 +510,6 @@
 			children = (
 				E95E25A42EA6895D000B82BF /* StoreManager.swift */,
 				E9F1286E28E6D8510040C90C /* EntityChangeObserver.swift */,
-				E9B432BA22AAF7540054324E /* Environment.swift */,
 				E9F56AC5235483780085A72D /* AppState.swift */,
 				E999896722A6B4F20067BA25 /* ConstructApp.swift */,
 				E92A41E3240D2F0C009AF440 /* WelcomeView.swift */,
@@ -750,7 +745,6 @@
 			isa = PBXGroup;
 			children = (
 				E9CFB31023505AE700CA0AF4 /* View */,
-				E9CFB30C234FAB3000CA0AF4 /* CampaignBrowser.swift */,
 			);
 			path = Campaign;
 			sourceTree = "<group>";
@@ -1056,7 +1050,6 @@
 				E9819BE324852498005B898E /* CampaignBrowserContainerView.swift in Sources */,
 				E957C08125BB30580042ECF6 /* ReferenceContext.swift in Sources */,
 				E942E00F247EA3A300170FAC /* Combatant+SwiftUI.swift in Sources */,
-				E972BA8A2476AEC200F313D7 /* CampaignBrowser.swift in Sources */,
 				E98BF12B257E6D4900CBC174 /* ReferenceViewPreference.swift in Sources */,
 				E9819BE02482E478005B898E /* HealthDialog.swift in Sources */,
 				E97651D6248AE3C600C76865 /* CombatantResourceTrackerView.swift in Sources */,
@@ -1066,7 +1059,6 @@
 				E92B8FD823C904D70040E6C5 /* ActivityButton.swift in Sources */,
 				E97651DA248AEB9200C76865 /* EffectDurationEditView.swift in Sources */,
 				E9A71EBC239ADB400098317E /* Style.swift in Sources */,
-				E9B432BB22AAF7540054324E /* Environment.swift in Sources */,
 				E9CFF64A2D8378DA00410796 /* CompendiumItemTransferSheet.swift in Sources */,
 				E9AB031323EBF09B0091C908 /* EqualSize.swift in Sources */,
 				E9517FD9235F9547005A51FC /* SectionContainer.swift in Sources */,

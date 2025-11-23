@@ -68,10 +68,6 @@ struct CompendiumDocumentSelectionFeature: Reducer {
     
     @Dependency(\.compendiumMetadata) var compendiumMetadata
 
-    private struct AsyncDocumentsAndRealmsEnvironment: EnvironmentWithCompendiumMetadata {
-        var compendiumMetadata: CompendiumMetadata
-    }
-
     var body: some ReducerOf<Self> {
         BindingReducer()
         

@@ -9,35 +9,36 @@
 import Foundation
 import GameModels
 import Helpers
+import Persistence
 
 enum SampleEncounter {
 
     // Creates a sample encounter and sets it as the scratch pad
-    static func create(with env: Environment) {
+    static func create(database: Database, crashReporter: CrashReporter) {
         // create sample encounter and save to scratch pad
-        let spe: Encounter? = try? env.database.keyValueStore.get(
+        let spe: Encounter? = try? database.keyValueStore.get(
             Encounter.key(Encounter.scratchPadEncounterId),
-            crashReporter: env.crashReporter
+            crashReporter: crashReporter
         )
 
-        let encounter = createEncounter(with: env, existing: spe)
-        try? env.database.keyValueStore.put(encounter)
+        let encounter = createEncounter(database: database, crashReporter: crashReporter, existing: spe)
+        try? database.keyValueStore.put(encounter)
     }
 
-    static func createEncounter(with env: Environment, existing spe: Encounter? = nil) -> Encounter {
+    static func createEncounter(database: Database, crashReporter: CrashReporter, existing spe: Encounter? = nil) -> Encounter {
         var combatants: [Combatant] = []
-        if let entry = try? env.database.keyValueStore.get(
+        if let entry = try? database.keyValueStore.get(
             CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "Mummy"),
-            crashReporter: env.crashReporter
+            crashReporter: crashReporter
         ),
             let mummy = entry.item as? Monster
         {
             combatants.append(Combatant(monster: mummy))
         }
 
-        if let entry = try? env.database.keyValueStore.get(
+        if let entry = try? database.keyValueStore.get(
             CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "Giant Spider"),
-            crashReporter: env.crashReporter
+            crashReporter: crashReporter
         ),
             let spider = entry.item as? Monster
         {

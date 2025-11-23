@@ -6,11 +6,6 @@ import Helpers
 import GameModels
 
 struct CampaignBrowseViewFeature: Reducer {
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
 
     struct State: Equatable {
         let node: CampaignNode
@@ -123,8 +118,6 @@ struct CampaignBrowseViewFeature: Reducer {
     }
 
     struct Destination: Reducer {
-        let environment: Environment
-
         enum State: Equatable {
             case campaignBrowse(CampaignBrowseViewFeature.State)
             case encounter(EncounterDetailFeature.State)
@@ -137,17 +130,15 @@ struct CampaignBrowseViewFeature: Reducer {
 
         var body: some ReducerOf<Self> {
             Scope(state: /State.campaignBrowse, action: /Action.campaignBrowse) {
-                CampaignBrowseViewFeature(environment: environment)
+                CampaignBrowseViewFeature()
             }
             Scope(state: /State.encounter, action: /Action.encounterDetail) {
-                EncounterDetailFeature(environment: environment)
+                EncounterDetailFeature()
             }
         }
     }
 
     struct Sheet: Reducer {
-        let environment: Environment
-
         enum State: Equatable {
             case settings
             case nodeEdit(CampaignBrowseViewFeature.State.NodeEditState)
@@ -165,7 +156,7 @@ struct CampaignBrowseViewFeature: Reducer {
                 CampaignBrowseViewFeature.NodeEdit()
             }
             Scope(state: /State.move, action: /Action.move) {
-                CampaignBrowseViewFeature(environment: environment)
+                CampaignBrowseViewFeature()
             }
         }
     }
@@ -181,6 +172,10 @@ struct CampaignBrowseViewFeature: Reducer {
             BindingReducer()
         }
     }
+
+    @Dependency(\.campaignBrowser) var campaignBrowser
+    @Dependency(\.crashReporter) var crashReporter
+    @Dependency(\.uuid) var uuid
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -199,9 +194,9 @@ struct CampaignBrowseViewFeature: Reducer {
                     // perform move
                     for item in items {
                         do {
-                            try environment.campaignBrowser.move(item, to: destination)
+                            try campaignBrowser.move(item, to: destination)
                         } catch {
-                            environment.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                            crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                         }
                     }
                     await send(.sheet(.dismiss))
@@ -226,9 +221,9 @@ struct CampaignBrowseViewFeature: Reducer {
                     // rename content
                     if node.contents?.type == .encounter, let key = node.contents?.key {
                         do {
-                            if var encounter: Encounter = try environment.campaignBrowser.store.get(key) {
+                            if var encounter: Encounter = try campaignBrowser.store.get(key) {
                                 encounter.name = title
-                                try environment.campaignBrowser.store.put(encounter)
+                                try campaignBrowser.store.put(encounter)
                             }
                         } catch { assertionFailure("Could not rename encounter") }
                     }
@@ -236,9 +231,9 @@ struct CampaignBrowseViewFeature: Reducer {
                     var newNode = node
                     newNode.title = title
                     do {
-                        try environment.campaignBrowser.put(newNode)
+                        try campaignBrowser.put(newNode)
                     } catch {
-                        environment.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                        crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                     }
                     await send(.items(.startLoading))
                 }
@@ -249,33 +244,33 @@ struct CampaignBrowseViewFeature: Reducer {
                     if state.contentType == .encounter {
                         let encounter = Encounter(name: title, combatants: [])
                         do {
-                            try environment.campaignBrowser.store.put(encounter)
+                            try campaignBrowser.store.put(encounter)
                         } catch {
-                            environment.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                            crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                         }
 
                         contents = CampaignNode.Contents(key: encounter.key.rawValue, type: .encounter)
                     }
 
                     do {
-                        try environment.campaignBrowser.put(CampaignNode(
-                            id: UUID().tagged(),
+                        try campaignBrowser.put(CampaignNode(
+                            id: uuid().tagged(),
                             title: title,
                             contents: contents,
                             special: nil,
                             parentKeyPrefix: node.keyPrefixForChildren.rawValue
                         ))
                     } catch {
-                        environment.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                        crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                     }
                     await send(.items(.startLoading))
                 }
             case .remove(let n):
                 return .run { send in
                     do {
-                        try environment.campaignBrowser.remove(n)
+                        try campaignBrowser.remove(n)
                     } catch {
-                        environment.crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
+                        crashReporter.trackError(.init(error: error, properties: [:], attachments: [:]))
                     }
 
                     await send(.items(.startLoading))
@@ -292,7 +287,7 @@ struct CampaignBrowseViewFeature: Reducer {
             Scope(state: \.items, action: /Action.items) {
                 State.AsyncItems {
                     do {
-                        return try environment.campaignBrowser.nodes(in: node)
+                        return try campaignBrowser.nodes(in: node)
                     } catch {
                         throw EquatableError(error)
                     }
@@ -300,10 +295,10 @@ struct CampaignBrowseViewFeature: Reducer {
             }
         }
         .ifLet(\.$destination, action: /Action.destination) {
-            Destination(environment: environment)
+            Destination()
         }
         .ifLet(\.$sheet, action: /Action.sheet) {
-            Sheet(environment: environment)
+            Sheet()
         }
     }
 }

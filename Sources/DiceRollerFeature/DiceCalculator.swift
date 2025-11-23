@@ -14,11 +14,7 @@ import SharedViews
 
 public struct DiceCalculator: Reducer {
 
-    let environment: DiceRollerEnvironment
-
-    public init(environment: DiceRollerEnvironment) {
-        self.environment = environment
-    }
+    public init() { }
 
     public struct State: Hashable {
         public let displayOutcomeExternally: Bool
@@ -132,6 +128,8 @@ public struct DiceCalculator: Reducer {
         }
     }
 
+    @Dependency(\.diceLog) var diceLog
+
     public func reduce(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
         case .mode(let mode):
@@ -202,9 +200,9 @@ public struct DiceCalculator: Reducer {
 
                 if let result = state.result {
                     if let roll = state.roll, roll.expression == expression {
-                        environment.diceLog.didRoll(result, roll: roll)
+                        diceLog.didRoll(result, roll: roll)
                     } else {
-                        environment.diceLog.didRoll(result, roll: .custom(expression))
+                        diceLog.didRoll(result, roll: .custom(expression))
                     }
                 }
                 return .none

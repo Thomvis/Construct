@@ -59,6 +59,9 @@ public struct ActionResolutionView: View {
                 }
 
             }
+            .onAppear {
+                viewStore.send(.onAppear)
+            }
         }
     }
 }
@@ -89,11 +92,10 @@ struct ActionResolutionView_Preview: PreviewProvider {
                         description: description
                     ))) {
                         _ = $0.parseIfNeeded()
-                    },
-                    preferences: Preferences()
+                    }
                 )
             ) {
-                ActionResolutionFeature(environment: StandaloneActionResolutionEnvironment())
+                ActionResolutionFeature()
             })
             .padding(12)
             .background(Color(UIColor.secondarySystemBackground).cornerRadius(8))
@@ -111,45 +113,5 @@ struct ActionResolutionView_Preview: PreviewProvider {
 
         fromAction(name: "Versatile", description: "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 7 (1d8 + 3) bludgeoning damage, or 8 (1d10 + 3) bludgeoning damage if used with two hands to make a melee attack, plus 3 (1d6) fire damage.")
     }
-}
-
-struct StandaloneActionResolutionEnvironment: ActionResolutionEnvironment {
-    var modifierFormatter = Helpers.modifierFormatter
-    var mainQueue: AnySchedulerOf<DispatchQueue> = DispatchQueue.immediate.eraseToAnyScheduler()
-    var diceLog = DiceLogPublisher()
-    var mechMuse = MechMuse(
-        client: .constant(OpenAI(apiToken: "")),
-        describeAction: { client, request in
-            return AsyncThrowingStream { continuation in
-                Task {
-                    let tokens = "Here's a description for prompt: \(request.prompt())".split(separator: " ").map { "\($0) "}
-
-                    try await Task.sleep(for: .seconds(0.3))
-                    for t in tokens {
-                        try await Task.sleep(for: .seconds(Double.random(in: 0..<0.3)))
-                        continuation.yield(t)
-                    }
-                    continuation.finish()
-                }
-            }
-        },
-        describeCombatants: { _, _ in
-            AsyncThrowingStream { continuation in
-                Task {
-                    try await Task.sleep(for: .seconds(0.5))
-                    continuation.finish()
-                }
-            }
-        },
-        generateStatBlock: { _, _ in
-            try await Task.sleep(for: .seconds(0.5))
-            return nil
-        },
-        verifyAPIKey: { client in
-            try await Task.sleep(for: .seconds(1))
-        }
-    )
-    var canSendMail: () -> Bool  = { true }
-    var sendMail: (FeedbackMailContents) -> Void = { _ in }
 }
 #endif

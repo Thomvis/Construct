@@ -18,9 +18,6 @@ import Persistence
 import Compendium
 import MechMuse
 
-typealias CompendiumEntryDetailEnvironment = EnvironmentWithDatabase & EnvironmentWithCompendium & EnvironmentWithCompendiumMetadata
-    & EnvironmentWithCrashReporter & (EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase) & ActionResolutionEnvironment
-
 struct CompendiumEntryDetailFeature: Reducer {
     struct State: Equatable {
 
@@ -148,8 +145,6 @@ struct CompendiumEntryDetailFeature: Reducer {
     }
 
     struct Destination: Reducer {
-        let environment: CompendiumEntryDetailEnvironment
-
         indirect enum State: Equatable {
             case compendiumItemDetailView(CompendiumEntryDetailFeature.State)
         }
@@ -160,20 +155,12 @@ struct CompendiumEntryDetailFeature: Reducer {
 
         var body: some ReducerOf<Self> {
             Scope(state: /State.compendiumItemDetailView, action: /Action.compendiumItemDetailView) {
-                CompendiumEntryDetailFeature(environment: environment)
+                CompendiumEntryDetailFeature()
             }
         }
     }
 
-    let environment: CompendiumEntryDetailEnvironment
-
-    init(environment: CompendiumEntryDetailEnvironment) {
-        self.environment = environment
-    }
-
     struct Sheet: Reducer {
-        let environment: CompendiumEntryDetailEnvironment
-
         enum State: Equatable {
             case creatureEdit(CreatureEditFeature.State)
             case groupEdit(CompendiumItemGroupEditFeature.State)
@@ -192,14 +179,16 @@ struct CompendiumEntryDetailFeature: Reducer {
             }
             Scope(state: /State.groupEdit, action: /Action.groupEdit) {
                 CompendiumItemGroupEditFeature()
-                    .dependency(\.compendium, environment.compendium)
             }
             Scope(state: /State.transfer, action: /Action.transfer) {
                 CompendiumItemTransferFeature()
-                    .dependency(\.compendiumMetadata, environment.compendiumMetadata)
             }
         }
     }
+
+    @Dependency(\.compendium) var compendium
+    @Dependency(\.database) var database
+    @Dependency(\.crashReporter) var crashReporter
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -210,9 +199,9 @@ struct CompendiumEntryDetailFeature: Reducer {
                     return .run { [group, entry] send in
                         do {
                             let characters = try group.members.compactMap { member -> Character? in
-                                let item = try environment.database.keyValueStore.get(
+                                let item = try database.keyValueStore.get(
                                     member.itemKey,
-                                    crashReporter: environment.crashReporter
+                                    crashReporter: crashReporter
                                 )?.item
                                 return item as? Character
                             }
@@ -221,7 +210,7 @@ struct CompendiumEntryDetailFeature: Reducer {
                             if newGroup.updateMemberReferences(with: characters) {
                                 var newEntry = entry
                                 newEntry.item = newGroup
-                                try environment.database.keyValueStore.put(newEntry)
+                                try database.keyValueStore.put(newEntry)
                                 await send(.entry(newEntry))
                             }
                         } catch {
@@ -255,7 +244,7 @@ struct CompendiumEntryDetailFeature: Reducer {
             case .sheet(.presented(.creatureEdit(.onRemoveTap))):
                 let entryKey = state.entry.key
                 return .run { send in
-                    _ = try? environment.database.keyValueStore.remove(entryKey.rawValue)
+                    _ = try? database.keyValueStore.remove(entryKey.rawValue)
                     await send(.setSheet(nil))
 
                     try await Task.sleep(for: .seconds(0.1))
@@ -265,12 +254,12 @@ struct CompendiumEntryDetailFeature: Reducer {
                 let entry = CompendiumEntry(group, origin: state.entry.origin, document: state.entry.document)
                 state.entry = entry
                 return .run { send in
-                    try? environment.compendium.put(entry)
+                    try? compendium.put(entry)
                     await send(.setSheet(nil))
                 }
             case .sheet(.presented(.groupEdit(.onRemoveTap(let group)))):
                 return .run { send in
-                    _ = try? environment.database.keyValueStore.remove(group.key)
+                    _ = try? database.keyValueStore.remove(group.key)
                     await send(.setSheet(nil))
 
                     try await Task.sleep(for: .seconds(0.1))
@@ -305,24 +294,23 @@ struct CompendiumEntryDetailFeature: Reducer {
             return .none
         }
         .ifLet(\.$sheet, action: /Action.sheet) {
-            Sheet(environment: environment)
+            Sheet()
         }
         .ifLet(\.createActionPopover, action: /Action.creatureActionPopover) {
-            ActionResolutionFeature(environment: environment)
+            ActionResolutionFeature()
         }
         .ifLet(\.rollCheckPopover, action: /Action.rollCheckPopover) {
-            DiceCalculator(environment: environment)
+            DiceCalculator()
         }
         .ifLet(\.$destination, action: /Action.destination) {
-            Destination(environment: environment)
+            Destination()
         }
 
         CompendiumItemReferenceTextAnnotation.handleTapReducer(
             didTapAction: /Action.didTapCompendiumItemReferenceTextAnnotation,
             requestItem: \.itemRequest,
             internalAction: { .setDestination(.compendiumItemDetailView($0)) },
-            externalAction: { .setSafari($0) },
-            environment: environment
+            externalAction: { .setSafari($0) }
         )
     }
 }

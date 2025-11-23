@@ -5,11 +5,6 @@ import Helpers
 import GameModels
 
 struct TabNavigationFeature: Reducer {
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
 
     struct State: Equatable {
         var selectedTab: Tabs = .campaign
@@ -48,13 +43,13 @@ struct TabNavigationFeature: Reducer {
 
     var body: some ReducerOf<Self> {
         Scope(state: \.campaignBrowser, action: /Action.campaignBrowser) {
-            CampaignBrowseViewFeature(environment: environment)
+            CampaignBrowseViewFeature()
         }
         Scope(state: \.compendium, action: /Action.compendium) {
-            CompendiumRootFeature(environment: environment)
+            CompendiumRootFeature()
         }
         Scope(state: \.diceRoller, action: /Action.diceRoller) {
-            DiceRollerFeature(environment: environment)
+            DiceRollerFeature()
         }
         Reduce { state, action in
             switch action {

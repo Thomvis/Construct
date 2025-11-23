@@ -21,8 +21,6 @@ import ActionResolutionFeature
 struct CombatantDetailContainerView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode
 
-    @EnvironmentObject var env: Environment
-
     let store: Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>
 
     var body: some View {
@@ -40,7 +38,7 @@ struct CombatantDetailContainerView: View {
 }
 
 struct CombatantDetailView: View {
-    @EnvironmentObject var env: Environment
+    @EnvironmentObject var modifierFormatter: ModifierFormatter
     @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
     var store: Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>
@@ -110,12 +108,12 @@ struct CombatantDetailView: View {
                             VStack {
                                 Text("Initiative")
 
-                                combatant.initiative.map {
-                                    Text("\($0)")
-                                }.replaceNilWith {
-                                    combatant.definition.initiativeModifier.map {
-                                        Text(env.modifierFormatter.stringWithFallback(for: $0)).italic().opacity(0.6)
-                                    }.replaceNilWith {
+                                Group {
+                                    if let initiative = combatant.initiative {
+                                        Text("\(initiative)")
+                                    } else if let intMod = combatant.definition.initiativeModifier {
+                                        Text(modifierFormatter.string(from: intMod)).italic().opacity(0.6)
+                                    } else {
                                         Text("--").italic().foregroundColor(Color(UIColor.secondaryLabel))
                                     }
                                 }
@@ -369,10 +367,10 @@ struct CombatantDetailView: View {
             switch target {
             case .ability(let a):
                 let modifier: Int = stats.abilityScores?.score(for: a).modifier.modifier ?? 0
-                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, combatant: combatant, environment: self.env), rollOnAppear: true))))
+                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, combatant: combatant), rollOnAppear: true))))
             case .skill(let s):
                 let modifier: Int = stats.skillModifier(s).modifier
-                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, combatant: combatant, environment: self.env), rollOnAppear: true))))
+                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, combatant: combatant), rollOnAppear: true))))
             case .action(let action):
                 let state = ActionResolutionFeature.State(
                     encounterContext: .init(
@@ -382,8 +380,7 @@ struct CombatantDetailView: View {
                     creatureStats: apply(combatant.definition.stats) {
                         $0.name = combatant.discriminatedName
                     },
-                    action: action,
-                    preferences: env.preferences()
+                    action: action
                 )
                 self.viewStore.send(.popover(.diceAction(state)))
             case .rollCheck(let e):
@@ -419,7 +416,7 @@ struct CombatantDetailView: View {
             guard let popover = self.viewStore.state.popover else { return nil }
             switch popover {
             case .healthAction:
-                return HealthDialog(environment: self.env, hp: nil) {
+                return HealthDialog(hp: nil) {
                     viewStore.send(.combatant($0))
                     viewStore.send(.popover(nil))
                 }.eraseToAnyView

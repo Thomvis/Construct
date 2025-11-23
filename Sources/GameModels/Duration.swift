@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Helpers
 
 public enum EffectDuration: Hashable {
     case timeInterval(DateComponents)
@@ -147,7 +148,7 @@ extension EncounterMoment.Turn: Codable {
 }
 
 extension EffectDuration {
-    public func description(ordinalFormatter: NumberFormatter, context: EffectContext) -> String? {
+    public func description(ordinalFormatter: OrdinalFormatter, context: EffectContext) -> String? {
         switch self {
         case .timeInterval(let i):
             return DateComponentsFormatter().string(from: i)
@@ -168,7 +169,7 @@ extension EffectDuration {
         }
     }
 
-    public func ordinalTurnDescription(ordinalFormatter: NumberFormatter, context: EffectContext) -> String? {
+    public func ordinalTurnDescription(ordinalFormatter: OrdinalFormatter, context: EffectContext) -> String? {
         switch self {
         case .timeInterval:
             return nil
@@ -181,7 +182,7 @@ extension EffectDuration {
             switch turns {
             case 0: return "current turn"
             case 1: return "next turn"
-            default: return "\(ordinalFormatter.stringWithFallback(for: turns)) turn"
+            default: return "\(ordinalFormatter.string(from: turns)) turn"
             }
         }
     }

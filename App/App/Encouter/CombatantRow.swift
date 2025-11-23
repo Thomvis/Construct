@@ -10,9 +10,11 @@ import Foundation
 import SwiftUI
 import SharedViews
 import GameModels
+import Helpers
 
 struct CombatantRow: View {
-    @EnvironmentObject var env: Environment
+    @EnvironmentObject var modifierFormatter: ModifierFormatter
+
     let encounter: Encounter
     let running: RunningEncounter?
     let combatant: Combatant
@@ -64,8 +66,8 @@ struct CombatantRow: View {
                         .accessibility(label: Text("Initiative: \($0)"))
                 }.replaceNilWith {
                     combatant.definition.initiativeModifier.map {
-                        Text(env.modifierFormatter.stringWithFallback(for: $0)).italic().opacity(0.6)
-                            .accessibility(label: Text("Initiative modifier: \(env.modifierFormatter.stringWithFallback(for: $0))"))
+                        Text(modifierFormatter.string(from: $0)).italic().opacity(0.6)
+                            .accessibility(label: Text("Initiative modifier: \(modifierFormatter.string(from: $0))"))
                     }.replaceNilWith {
                         Text("--").italic().opacity(0.6)
                             .accessibility(hidden: true)

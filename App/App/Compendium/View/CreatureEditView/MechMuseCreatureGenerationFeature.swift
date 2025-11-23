@@ -82,7 +82,7 @@ struct MechMuseCreatureGenerationFeature: Reducer {
 
     var body: some ReducerOf<Self> {
         BindingReducer()
-        Reduce { state, action in
+        Reduce<State, Action> { state, action in
             switch action {
             case .onAppear:
                 state.mechMuseIsConfigured = mechMuse.isConfigured

@@ -10,9 +10,10 @@ import Foundation
 import SwiftUI
 import SharedViews
 import GameModels
+import Helpers
 
 struct EffectDurationEditView: View {
-    @EnvironmentObject var env: Environment
+    @EnvironmentObject var ordinalFormatter: OrdinalFormatter
 
     var effectContext: EffectContext
 
@@ -175,7 +176,7 @@ struct EffectDurationEditView: View {
     }
 
     var turnSkipString: String {
-        guard let string = result?.ordinalTurnDescription(ordinalFormatter: env.ordinalFormatter, context: effectContext) else { return "" }
+        guard let string = result?.ordinalTurnDescription(ordinalFormatter: ordinalFormatter, context: effectContext) else { return "" }
         return string.localizedCapitalized
     }
 

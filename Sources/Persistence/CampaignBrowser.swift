@@ -1,34 +1,26 @@
-//
-//  CampaignBrowser.swift
-//  Construct
-//
-//  Created by Thomas Visser on 10/10/2019.
-//  Copyright © 2019 Thomas Visser. All rights reserved.
-//
-
 import Foundation
-import Persistence
 import GameModels
+import ComposableArchitecture
 
-class CampaignBrowser {
+public class CampaignBrowser {
     /// The number of existing nodes (excluding root node) when the app is first opened
-    static let initialSpecialNodeCount = 1
+    public static let initialSpecialNodeCount = 1
 
-    let store: KeyValueStore
+    public let store: KeyValueStore
 
-    init(store: KeyValueStore) {
+    public init(store: KeyValueStore) {
         self.store = store
     }
 
-    func nodes(in node: CampaignNode) throws -> [CampaignNode] {
+    public func nodes(in node: CampaignNode) throws -> [CampaignNode] {
         return try store.fetchAll(.keyPrefix(node.keyPrefixForFetchingDirectChildren))
     }
 
-    func put(_ node: CampaignNode) throws {
+    public func put(_ node: CampaignNode) throws {
         try store.put(node)
     }
 
-    func remove(_ node: CampaignNode, recursive: Bool = true) throws {
+    public func remove(_ node: CampaignNode, recursive: Bool = true) throws {
         var nodes = [(node, false)]
         while let (next, didAddChildren) = nodes.popLast() {
             if !didAddChildren {
@@ -44,7 +36,7 @@ class CampaignBrowser {
         }
     }
 
-    func move(_ node: CampaignNode, to destination: CampaignNode) throws {
+    public func move(_ node: CampaignNode, to destination: CampaignNode) throws {
         var newNode = node
         newNode.parentKeyPrefix = destination.keyPrefixForChildren.rawValue
 
@@ -53,7 +45,22 @@ class CampaignBrowser {
     }
 
     /// Returns the total number of nodes
-    func nodeCount() throws -> Int {
+    public func nodeCount() throws -> Int {
         return try store.count(.keyPrefix(CampaignNode.keyPrefix))
     }
 }
+
+extension CampaignBrowser: DependencyKey {
+    public static var liveValue: CampaignBrowser {
+        @Dependency(\.database) var database
+        return CampaignBrowser(store: database.keyValueStore)
+    }
+}
+
+public extension DependencyValues {
+    var campaignBrowser: CampaignBrowser {
+        get { self[CampaignBrowser.self] }
+        set { self[CampaignBrowser.self] = newValue }
+    }
+}
+

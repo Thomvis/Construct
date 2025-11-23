@@ -69,7 +69,3 @@ public extension Fraction {
     static let oneQuarter = Fraction(numenator: 1, denominator: 4)
     static let half = Fraction(numenator: 1, denominator: 2)
 }
-
-public func / (lhs: Int, rhs: Int) -> Fraction {
-    Fraction(numenator: lhs, denominator: rhs)
-}

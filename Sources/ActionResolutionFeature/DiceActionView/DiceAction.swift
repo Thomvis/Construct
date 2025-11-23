@@ -161,6 +161,8 @@ public struct DiceAction: Hashable {
 
 extension DiceAction {
     init?(title: String, parsedAction: ParsedCreatureAction.Model) {
+        @Dependency(\.modifierFormatter) var modifierFormatter
+
         guard case .weaponAttack(let attack) = parsedAction else { return nil }
         self.init(
             title: title,
@@ -175,7 +177,7 @@ extension DiceAction {
             }(),
             steps: IdentifiedArray(uniqueElements: [
                 Step(
-                    title: "\(modifierFormatter.stringWithFallback(for: attack.hitModifier.modifier)) to hit",
+                    title: "\(modifierFormatter.string(from: attack.hitModifier.modifier)) to hit",
                     subtitle: nil,
                     value: .roll(Step.Value.RollValue(roll: .toHit(attack.hitModifier)))
                 )

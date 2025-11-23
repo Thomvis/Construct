@@ -26,28 +26,31 @@ extension Encounter {
         case refreshCompendiumItems
     }
 
-    typealias Environment = EnvironmentWithCrashReporter & EnvironmentWithCompendium & EnvironmentWithRandomNumberGenerator
-
     struct Reducer: ComposableArchitecture.Reducer {
         typealias State = Encounter
         typealias Action = Encounter.Action
 
-        let environment: Environment
-
         var body: some ReducerOf<Self> {
             Reduce { state, action in
+                @Dependency(\.compendium) var compendium
+                @Dependency(\.crashReporter) var crashReporter
+                
                 switch action {
                 case .name(let n):
                     state.name = n
                 case .combatant: break
                 case .initiative(let settings):
-                    state.rollInitiative(settings: settings, rng: &environment.rng.wrapped)
+                    var mutableRng = SystemRandomNumberGenerator()
+                    state.rollInitiative(settings: settings, rng: &mutableRng)
                 case .add(let combatant):
                     state.combatants.append(combatant)
                 case .addByKey(let key, let party):
                     return .run { send in
+                        @Dependency(\.compendium) var compendium
+                        @Dependency(\.crashReporter) var crashReporter
+                        
                         do {
-                            if let entry = try environment.compendium.get(key, crashReporter: environment.crashReporter),
+                            if let entry = try compendium.get(key, crashReporter: crashReporter),
                                 let combatant = entry.item as? CompendiumCombatant
                             {
                                 let combatant = Combatant(
@@ -71,7 +74,7 @@ extension Encounter {
                     return .merge(
                         state.combatants.compactMap { combatant in
                             if var def = combatant.definition as? CompendiumCombatantDefinition {
-                                if let entry = try? environment.compendium.get(def.item.key, crashReporter: environment.crashReporter),
+                                if let entry = try? compendium.get(def.item.key, crashReporter: crashReporter),
                                     let item = entry.item as? CompendiumCombatant
                                 {
                                     def.item = item
@@ -101,8 +104,6 @@ extension RunningEncounter {
     struct Reducer: ComposableArchitecture.Reducer {
         typealias State = RunningEncounter
         typealias Action = RunningEncounter.Action
-
-        let environment: Environment
 
         var body: some ReducerOf<Self> {
             // log reducer
@@ -148,7 +149,7 @@ extension RunningEncounter {
             }
 
             Scope(state: \.current, action: /Action.current) {
-                Encounter.Reducer(environment: environment)
+                Encounter.Reducer()
             }
 
             Reduce { state, action in

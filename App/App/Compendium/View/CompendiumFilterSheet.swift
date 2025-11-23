@@ -164,8 +164,6 @@ struct CompendiumFilterSheet: View {
     }
 }
 
-typealias CompendiumFilterSheetEnvironment = EnvironmentWithCompendiumMetadata
-
 struct CompendiumFilterSheetFeature: Reducer {
     struct State: Equatable {
         typealias Source = (document: CompendiumSourceDocument, realm: CompendiumRealm)
@@ -278,12 +276,6 @@ struct CompendiumFilterSheetFeature: Reducer {
         case documentSelection(CompendiumDocumentSelectionFeature.Action)
     }
 
-    let environment: CompendiumFilterSheetEnvironment
-
-    init(environment: CompendiumFilterSheetEnvironment) {
-        self.environment = environment
-    }
-
     var body: some ReducerOf<Self> {
         CombineReducers {
             Reduce { state, action in
@@ -328,7 +320,6 @@ struct CompendiumFilterSheetFeature: Reducer {
             }
             Scope(state: \.documentSelection, action: /Action.documentSelection) {
                 CompendiumDocumentSelectionFeature()
-                    .dependency(\.compendiumMetadata, environment.compendiumMetadata)
             }
         }.onChange(of: \.documentSelection.selectedSource) { oldValue, newValue in
             Reduce { state, action in
@@ -411,17 +402,11 @@ struct CompendiumFilterSheetPreview: PreviewProvider {
     static var previews: some View {
         CompendiumFilterSheet(
             store: Store(initialState: CompendiumFilterSheetFeature.State()) {
-                CompendiumFilterSheetFeature(environment: StandaloneCompendiumFilterSheetEnvironment(
-                    compendiumMetadata: CompendiumMetadataKey.previewValue
-                ))
+                CompendiumFilterSheetFeature()
             }
         ) { _ in
 
         }
     }
-}
-
-struct StandaloneCompendiumFilterSheetEnvironment: EnvironmentWithCompendiumMetadata {
-    let compendiumMetadata: CompendiumMetadata
 }
 #endif

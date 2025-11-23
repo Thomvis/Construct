@@ -10,8 +10,12 @@ import SwiftUI
 import Combine
 import ComposableArchitecture
 import FirebaseCore
-import FirebaseCrashlytics
 import GameModels
+import Persistence
+import MechMuse
+import DiceRollerFeature
+import CombineSchedulers
+import Helpers
 
 @main
 struct ConstructApp: App {
@@ -30,20 +34,20 @@ struct ConstructApp: App {
 
 /// Shows the loading view while the environment is loading, then proceeds to the content view
 struct RootView: View {
-    @State var env: Environment?
+    @State var dependencies: BaseDependencies?
     @State var loadingDuration: LoadingDuration = .instant
 
     var body: some View {
         ZStack {
-            if let env, loadingDuration != .short {
-                ConstructView(env: env).environmentObject(env)
+            if let dependencies, loadingDuration != .short {
+                ConstructView(dependencies: dependencies)
             } else {
                 AppLoadingView(duration: loadingDuration)
                     .task {
-                        assert(env == nil)
+                        assert(dependencies == nil)
                         do {
                             try await Task.sleep(until: .now + .milliseconds(100), clock: .suspending)
-                            guard env == nil else { return }
+                            guard dependencies == nil else { return }
                             withAnimation {
                                 loadingDuration = .short
                             }
@@ -56,7 +60,7 @@ struct RootView: View {
             }
         }
         .task {
-            guard env == nil else {
+            guard dependencies == nil else {
                 // I first thought this would never happen, but closing a (Better)SafariView
                 // causes this task to fire again
                 return
@@ -68,9 +72,9 @@ struct RootView: View {
             }
 
             do {
-                let e = try await Environment.live()
+                let deps = try await BaseDependencies.live()
                 withAnimation {
-                    env = e
+                    dependencies = deps
                 }
             } catch {
                 fatalError("Failed loading the environment")
@@ -116,32 +120,30 @@ struct ConstructView: View {
     @SwiftUI.Environment(\.horizontalSizeClass) var horizontalSizeClass
     @SwiftUI.Environment(\.scenePhase) var scenePhase
 
-    let env: Environment
+    let dependencies: BaseDependencies
+
     let store: StoreOf<AppFeature>
 
-    init(env: Environment) {
+    let storeManager = StoreManager()
+
+    init(dependencies: BaseDependencies) {
         let state = AppFeature.State(
             navigation: nil
         )
 
-        self.env = env
+        self.dependencies = dependencies
         self.store = Store(
             initialState: state
         ) {
-            env.database.keyValueStore.entityChangeObserver(
+            dependencies.database.keyValueStore.entityChangeObserver(
                 initialState: state,
-                reducer: AppFeature(environment: env)
+                reducer: AppFeature()
             )
+        } withDependencies: { deps in
+            deps.database = dependencies.database
+            deps.modifierFormatter = dependencies.modifierFormatter
+            deps.ordinalFormatter = dependencies.ordinalFormatter
         }
-
-        setUpCrashReporter()
-    }
-
-    init(env: Environment, store: StoreOf<AppFeature>) {
-        self.env = env
-        self.store = store
-
-        setUpCrashReporter()
     }
 
     var body: some View {
@@ -199,24 +201,21 @@ struct ConstructView: View {
                 guard let url = activity.webpageURL else { return }
                 viewStore.send(.onOpenURL(url))
             }
-            .task {
-                env.storeManager.beginObservingTransactionUpdates()
-                await env.storeManager.checkForUnfinishedTransactions()
-            }
+            .environmentObject(dependencies.modifierFormatter)
+            .environmentObject(dependencies.ordinalFormatter)
         }
     }
+}
 
-    private func setUpCrashReporter() {
-        if Crashlytics.crashlytics().didCrashDuringPreviousExecution() {
-            if let preferences: Preferences = try? env.database.keyValueStore.get(Preferences.key),
-                preferences.errorReportingEnabled == true
-            {
-                // user consent has been given, send reports
-                env.crashReporter.registerUserPermission(.send)
-                return
-            }
+/// A container for the dependencies that are needed at the base view
+struct BaseDependencies {
+    let database: Database
+    let modifierFormatter = ModifierFormatter()
+    let ordinalFormatter = OrdinalFormatter()
 
-            store.send(.requestPresentation(.crashReportingPermissionAlert))
-        }
+    static func live() async throws -> Self {
+        try await Self(
+            database: Database.live()
+        )
     }
 }

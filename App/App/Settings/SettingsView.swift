@@ -15,6 +15,7 @@ import Helpers
 import MechMuse
 import Introspect
 import Persistence
+import ComposableArchitecture
 
 struct SettingsContainerView: View {
 
@@ -38,7 +39,13 @@ struct SettingsContainerView: View {
 }
 
 struct SettingsView: View {
-    @EnvironmentObject var env: Environment
+    @Dependency(\.mailer) var mailer
+    @Dependency(\.appReview) var appReview
+    @Dependency(\.preferences) var preferencesClient
+    @Dependency(\.compendium) var compendium
+    @Dependency(\.compendiumMetadata) var compendiumMetadata
+    @Dependency(\.mechMuse) var mechMuse
+    
     @State var destination: Destination?
 
     @State var initialPreferences: Preferences?
@@ -54,9 +61,9 @@ struct SettingsView: View {
                     Text("Help center")
                 }
 
-                if self.env.canSendMail() {
+                if mailer.canSendMail() {
                     NavigationRowButton(action: {
-                        self.env.sendMail(.init())
+                        mailer.sendMail(.init())
                     }) {
                         VStack(alignment: .leading) {
                             Text("Send feedback").foregroundColor(Color.primary)
@@ -65,7 +72,7 @@ struct SettingsView: View {
                 }
 
                 NavigationRowButton(action: {
-                    env.rateInAppStore()
+                    appReview.rateInAppStore()
                 }) {
                     Text("Please rate Construct").foregroundColor(Color.primary)
                 }
@@ -151,14 +158,14 @@ struct SettingsView: View {
             #if DEBUG
             Section(header: Text("Debug options")) {
                 NavigationRowButton(action: {
-                    try? self.env.database.keyValueStore.put(Preferences())
+                    try? preferencesClient.update { _ in Preferences() }
                 }) {
                     Text("Reset all preferences").foregroundColor(Color.primary)
                 }
 
                 NavigationRowButton(action: {
                     Task {
-                        let importer = CompendiumImporter(compendium: env.compendium, metadata: env.compendiumMetadata)
+                        let importer = CompendiumImporter(compendium: compendium, metadata: compendiumMetadata)
                         try await importer.importDefaultContent()
                     }
                 }) {
@@ -192,14 +199,13 @@ struct SettingsView: View {
         .navigationDestination(item: pushDestination, destination: pushView)
         .navigationBarTitle("Settings", displayMode: .inline)
         .onAppear {
-            if let preferences: Preferences = try? env.database.keyValueStore.get(Preferences.key) {
-                self.initialPreferences = preferences
-                self.preferences = preferences
-            }
+            let prefs = preferencesClient.get()
+            self.initialPreferences = prefs
+            self.preferences = prefs
         }
         .onChange(of: preferences) { _, p in
             if p != initialPreferences && p != Preferences() {
-                try? env.database.keyValueStore.put(p)
+                try? preferencesClient.update { _ in p }
             }
         }
         .task(id: ["\(preferences.mechMuse.enabled)", preferences.mechMuse.apiKey]) { [mm=preferences.mechMuse] in
@@ -218,7 +224,7 @@ struct SettingsView: View {
                 try await Task.sleep(for: .milliseconds(100))
 
                 // verify API key
-                try await env.mechMuse.verifyAPIKey(key)
+                try await mechMuse.verifyAPIKey(key)
                 self.mechMuseVerificationResult.result = .success(key)
             } catch let error as MechMuseError {
                 self.mechMuseVerificationResult.result = .failure(error)

@@ -24,12 +24,6 @@ extension Optional where Wrapped: View {
     }
 }
 
-public extension NumberFormatter {
-    func stringWithFallback(for obj: Any) -> String {
-        return string(for: obj) ?? "\(obj)"
-    }
-}
-
 public extension View {
     var eraseToAnyView: AnyView {
         AnyView(self)

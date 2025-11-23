@@ -12,7 +12,6 @@ import ComposableArchitecture
 import DiceRollerFeature
 
 struct TabNavigationView: View {
-    @EnvironmentObject var env: Environment
     var store: Store<TabNavigationFeature.State, TabNavigationFeature.Action>
 
     var body: some View {

@@ -214,13 +214,12 @@ class CreatureEditViewStateTest: XCTestCase {
         XCTAssertEqual(editedMonster.realm.value, CompendiumRealm.core.id)
     }
     
-    // MARK: - Test Environment
-    
-    class TestEnvironment: EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithCompendiumMetadata & EnvironmentWithMechMuse & EnvironmentWithCompendium & EnvironmentWithDatabase {
-        var modifierFormatter: NumberFormatter = Helpers.modifierFormatter
-        var mainQueue: AnySchedulerOf<DispatchQueue> = DispatchQueue.immediate.eraseToAnyScheduler()
-        var diceLog: DiceLogPublisher = DiceLogPublisher()
-        var compendiumMetadata: CompendiumMetadata = CompendiumMetadata(
+    // MARK: - Test Dependencies
+    private func applyTestDependencies(_ inout dependencies deps: DependencyValues) {
+        deps.modifierFormatter = ModifierFormatter()
+        deps.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+        deps.diceLog = DiceLogPublisher()
+        deps.compendiumMetadata = CompendiumMetadata(
             sourceDocuments: { [.srd5_1, .homebrew] },
             observeSourceDocuments: { AsyncThrowingStream { _ in } },
             realms: { [CompendiumRealm.core, CompendiumRealm.homebrew] },
@@ -233,8 +232,9 @@ class CreatureEditViewStateTest: XCTestCase {
             updateDocument: { _, _, _ in },
             removeDocument: { _, _ in }
         )
-        var mechMuse: MechMuse = MechMuse.unconfigured
-        var database: Database = Database.uninitialized
-        var compendium: Compendium { DatabaseCompendium(databaseAccess: database.access) }
+        deps.mechMuse = MechMuse.unconfigured
+        deps.compendium = Compendium { DatabaseCompendium(databaseAccess: database.access) }
+        deps.database = Database.uninitialized
+        deps.uuid = UUIDGenerator.fake()
     }
 }

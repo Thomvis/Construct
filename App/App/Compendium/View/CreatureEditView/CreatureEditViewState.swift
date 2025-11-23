@@ -379,11 +379,7 @@ struct CreatureEditFeature: Reducer {
             return .none
         }
         .ifLet(\.numberEntryPopover, action: /Action.numberEntryPopover) {
-            NumberEntryFeature(environment: NumberEntryEnvironment(
-                modifierFormatter: modifierFormatter,
-                mainQueue: mainQueue,
-                diceLog: diceLog
-            ))
+            NumberEntryFeature()
         }
         .ifLet(\.$sheet, action: /Action.sheet) {
             Sheet()
@@ -622,7 +618,8 @@ struct StatBlockFormModel: Equatable {
     }
 
     var proficiencyBonusModifier: String {
-        modifierFormatter.stringWithFallback(for: statBlock.proficiencyBonus.modifier)
+        @Dependency(\.modifierFormatter) var modifierFormatter
+        return modifierFormatter.string(from: statBlock.proficiencyBonus.modifier)
     }
 
     var level: Int? {
@@ -642,19 +639,6 @@ struct StatBlockFormModel: Equatable {
         let proficiency: StatBlock.Proficiency
     }
 }
-
-private struct NumberEntryEnvironment: NumberEntryViewEnvironment {
-    let modifierFormatter: NumberFormatter
-    let mainQueue: AnySchedulerOf<DispatchQueue>
-    let diceLog: DiceLogPublisher
-
-    init(modifierFormatter: NumberFormatter, mainQueue: AnySchedulerOf<DispatchQueue>, diceLog: DiceLogPublisher) {
-        self.modifierFormatter = modifierFormatter
-        self.mainQueue = mainQueue
-        self.diceLog = diceLog
-    }
-}
-
 
 extension CreatureEditFeature.State: NavigationStackItemState {
     var navigationStackItemStateId: String { "CreatureEditView" }

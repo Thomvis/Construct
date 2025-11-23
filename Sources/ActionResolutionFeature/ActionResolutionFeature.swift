@@ -16,30 +16,24 @@ import SwiftUI
 
 public struct ActionResolutionFeature: Reducer {
 
-    let environment: ActionResolutionEnvironment
-
-    public init(environment: ActionResolutionEnvironment) {
-        self.environment = environment
-    }
+    public init() { }
 
     public struct State: Equatable {
         let encounterContext: EncounterContext?
         let action: ParseableCreatureAction
-        private let preferences: Preferences
 
         @BindingState var mode: Mode = .diceAction
         var diceAction: DiceActionFeature.State?
         var muse: ActionDescriptionFeature.State
+        var isMuseEnabled: Bool = false
 
         public init(
             encounterContext: EncounterContext? = nil,
             creatureStats: StatBlock,
             action: ParseableCreatureAction,
-            preferences: Preferences
         ) {
             self.encounterContext = encounterContext
             self.action = action
-            self.preferences = preferences
 
             self.diceAction = (action.result?.value?.action).flatMap {
                 DiceAction(title: action.name, parsedAction: $0)
@@ -58,10 +52,6 @@ public struct ActionResolutionFeature: Reducer {
 
         var subheading: String? {
             diceAction?.action.subtitle
-        }
-
-        var isMuseEnabled: Bool {
-            preferences.mechMuse.enabled
         }
 
         public struct EncounterContext: Equatable {
@@ -95,21 +85,28 @@ public struct ActionResolutionFeature: Reducer {
     }
 
     public enum Action: Equatable, BindableAction {
+        case onAppear
         case diceAction(DiceActionFeature.Action)
         case muse(ActionDescriptionFeature.Action)
         case binding(BindingAction<State>)
     }
 
+    @Dependency(\.mailer) var mailer
+    @Dependency(\.preferences) var preferencesClient
+    @Dependency(\.mechMuse) var mechMuse
+
     public var body: some Reducer<State, Action> {
 
         Scope(state: \.muse, action: /Action.muse) {
-            ActionDescriptionFeature(environment: environment)
+            ActionDescriptionFeature()
         }
 
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                state.isMuseEnabled = mechMuse.isConfigured
             case .diceAction(.onFeedbackButtonTap), .muse(.onFeedbackButtonTap):
-                guard environment.canSendMail() else { break }
+                guard mailer.canSendMail() else { break }
 
                 let currentState = state
                 return .run { send in
@@ -125,7 +122,7 @@ public struct ActionResolutionFeature: Reducer {
                         return renderer.uiImage?.pngData()
                     }
 
-                    environment.sendMail(.init(
+                    mailer.sendMail(.init(
                         subject: "Action Resolution Feedback",
                         attachment: Array(builder: {
                             FeedbackMailContents.Attachment(customDump: currentState)
@@ -140,7 +137,7 @@ public struct ActionResolutionFeature: Reducer {
             }
             return .none
         }.ifLet(\.diceAction, action: /Action.diceAction) {
-            DiceActionFeature(environment: environment)
+            DiceActionFeature()
         }
 
         BindingReducer()
@@ -155,14 +152,9 @@ public struct ActionResolutionFeature: Reducer {
     }
 }
 
-
-public typealias ActionResolutionEnvironment = EnvironmentWithModifierFormatter & EnvironmentWithMainQueue & EnvironmentWithDiceLog & EnvironmentWithMechMuse & EnvironmentWithSendMail
-
-
 public extension ActionResolutionFeature.State {
     static let nullInstance = Self(
         creatureStats: StatBlock.default,
-        action: ParseableCreatureAction(input: CreatureAction(id: UUID(), name: "", description: "")),
-        preferences: Preferences()
+        action: ParseableCreatureAction(input: CreatureAction(id: UUID(), name: "", description: ""))
     )
 }

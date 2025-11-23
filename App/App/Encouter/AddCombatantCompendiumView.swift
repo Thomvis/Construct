@@ -14,7 +14,6 @@ import Helpers
 import GameModels
 
 struct AddCombatantCompendiumView: View {
-    @EnvironmentObject var env: Environment
     var store: Store<AddCombatantFeature.State, AddCombatantFeature.Action>
     var viewStore: ViewStore<AddCombatantFeature.State, AddCombatantFeature.Action>
 
@@ -61,6 +60,8 @@ struct AddCombatantCompendiumView: View {
     }
 
     struct CombatantRowView: View {
+        @EnvironmentObject var ordinalFormatter: OrdinalFormatter
+
         var parent: AddCombatantCompendiumView
         var compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
         @ObservedObject var compendiumIndexViewStore: ViewStore<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
@@ -80,7 +81,7 @@ struct AddCombatantCompendiumView: View {
                 VStack(alignment: .leading) {
                     Text(combatant.title).foregroundColor(Color.primary).lineLimit(1)
 
-                    combatant.localizedSummary(in: compendiumIndexViewStore.state, env: parent.env)
+                    combatant.localizedSummary(in: compendiumIndexViewStore.state, ordinalFormatter: ordinalFormatter)
                         .font(.footnote)
                         .multilineTextAlignment(.leading)
                         .foregroundColor(Color(UIColor.secondaryLabel))

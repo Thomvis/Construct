@@ -5,12 +5,6 @@ import DiceRollerFeature
 
 public struct DiceActionFeature: Reducer {
 
-    let environment: ActionResolutionEnvironment
-
-    public init(environment: ActionResolutionEnvironment) {
-        self.environment = environment
-    }
-
     public struct State: Hashable {
         var creatureName: String
         var action: DiceAction
@@ -41,6 +35,8 @@ public struct DiceActionFeature: Reducer {
             }
         }
     }
+
+    @Dependency(\.diceLog) var diceLog
 
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -91,13 +87,13 @@ public struct DiceActionFeature: Reducer {
                     )
 
                     if roll.type == .normal {
-                        environment.diceLog.didRoll(
+                        diceLog.didRoll(
                             firstResult,
                             roll: description
                         )
                     } else if let second = roll.second {
                         guard let secondResult = second.result else { break }
-                        environment.diceLog.didRoll(
+                        diceLog.didRoll(
                             DiceLogEntry.Result(
                                 type: roll.type == .advantage ? .advantage : .disadvantage, // todo: unify enums
                                 first: firstResult,
@@ -163,7 +159,7 @@ public struct DiceActionFeature: Reducer {
                 AnimatedRoll()
             }
         }.ifLet(\.rollDetails, action: /DiceActionFeature.StepAction.rollDetails) {
-            DiceCalculator(environment: environment)
+            DiceCalculator()
         }
     }
 }

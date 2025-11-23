@@ -12,7 +12,6 @@ import ComposableArchitecture
 import GameModels
 
 struct AddCombatantDetailView: View {
-    @EnvironmentObject var env: Environment
     var parentStore: Store<AddCombatantFeature.State, AddCombatantFeature.Action>
     @ObservedObject var parentViewStore: ViewStore<AddCombatantFeature.State, AddCombatantFeature.Action>
     var store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
@@ -59,7 +58,7 @@ struct AddCombatantDetailView: View {
                                 self.popover = Store(
                                     initialState: NumberEntryFeature.State.dice(.editingExpression()),
                                 ) {
-                                    NumberEntryFeature(environment: env)
+                                    NumberEntryFeature()
                                 }
                             }) {
                                 Text("Roll")

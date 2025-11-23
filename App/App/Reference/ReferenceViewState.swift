@@ -13,8 +13,6 @@ import GameModels
 
 struct ReferenceViewFeature: Reducer {
 
-    let environment: Environment
-
     struct State: Equatable {
 
         var encounterReferenceContext: EncounterReferenceContext? {

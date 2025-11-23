@@ -318,40 +318,36 @@ struct GenerateCombatantTraitsView_Preview: PreviewProvider {
                     )
                 )
             ) {
-                GenerateCombatantTraitsFeature(environment: GenerateCombatantTraitsViewPreviewEnvironment())
+                GenerateCombatantTraitsFeature()
+            } withDependencies: {
+                $0.mechMuse = MechMuse(
+                    client: .constant(OpenAI(apiToken: "")),
+                    describeAction: { client, request in
+                        return AsyncThrowingStream { continuation in
+                            Task {
+                                try await Task.sleep(for: .seconds(0.5))
+                                continuation.yield("Here's a description for prompt: \(request.prompt())")
+                            }
+                        }
+                    },
+                    describeCombatants: { _, request in
+                        AsyncThrowingStream { continuation in
+                            Task {
+                                try await Task.sleep(for: .seconds(2))
+                                continuation.finish(throwing: MechMuseError.insufficientQuota)
+                            }
+                        }
+                    },
+                    generateStatBlock: { _, _ in
+                        try await Task.sleep(for: .seconds(0.5))
+                        return nil
+                    },
+                    verifyAPIKey: { client in
+                        try await Task.sleep(for: .seconds(1))
+                    }
+                )
             })
         }
     }
-}
-
-struct GenerateCombatantTraitsViewPreviewEnvironment: GenerateCombatantTraitsViewEnvironment {
-    var mechMuse = MechMuse(
-        client: .constant(OpenAI(apiToken: "")),
-        describeAction: { client, request in
-            return AsyncThrowingStream { continuation in
-                Task {
-                    try await Task.sleep(for: .seconds(0.5))
-                    continuation.yield("Here's a description for prompt: \(request.prompt())")
-                }
-            }
-        },
-        describeCombatants: { _, request in
-            AsyncThrowingStream { continuation in
-                Task {
-                    try await Task.sleep(for: .seconds(2))
-                    continuation.finish(throwing: MechMuseError.insufficientQuota)
-                }
-            }
-        },
-        generateStatBlock: { _, _ in
-            try await Task.sleep(for: .seconds(0.5))
-            return nil
-        },
-        verifyAPIKey: { client in
-            try await Task.sleep(for: .seconds(1))
-        }
-    )
-
-    var crashReporter = CrashReporter.init(registerUserPermission: { _ in }, trackError: { _ in })
 }
 #endif

@@ -11,11 +11,13 @@ import SwiftUI
 import GameModels
 import Dice
 import SharedViews
+import Helpers
+import ComposableArchitecture
 
 struct StatBlockView: View {
     static let urlSchema = "construct-stat-block"
 
-    @EnvironmentObject var env: Environment
+    @EnvironmentObject var modifierFormatter: ModifierFormatter
     @ScaledMetric(relativeTo: .body)
     private var rollIconSize: CGFloat = 20
 
@@ -75,11 +77,11 @@ struct StatBlockView: View {
                 }
 
                 if !stats.savingThrows.isEmpty {
-                    Self.line(title: "Saving Throws", text: stats.savingThrowsSummary(env))
+                    Self.line(title: "Saving Throws", text: stats.savingThrowsSummary())
                 }
 
                 if !stats.skills.isEmpty {
-                    Self.line(title: "Skills", text: stats.skillsSummary(env))
+                    Self.line(title: "Skills", text: stats.skillsSummary())
                 }
 
                 Group {
@@ -171,7 +173,7 @@ struct StatBlockView: View {
                     onTap?(.rollCheck(1.d(20)+modifier.modifier))
                 }) {
                     Label(
-                        "\(a.localizedDisplayName) save: \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))",
+                        "\(a.localizedDisplayName) save: \(modifierFormatter.string(from: modifier.modifier))",
                         systemImage: stats.savingThrows[a] != nil
                             ? "circlebadge.fill"
                             : "circlebadge"
@@ -192,7 +194,7 @@ struct StatBlockView: View {
                 onTap?(.skill(s))
             }) {
                 Label(title: {
-                    Text("\(title): \(env.modifierFormatter.stringWithFallback(for: modifier.modifier))")
+                    Text("\(title): \(modifierFormatter.string(from: modifier.modifier))")
                 }, icon: {
                     Image(systemName: stats.skills[s] != nil
                             ? "circlebadge.fill"
@@ -251,7 +253,6 @@ struct StatBlockView: View {
 }
 
 private struct AbilityScoresView: View {
-    @EnvironmentObject var env: Environment
     let scores: AbilityScores
     var onTap: ((Ability) -> Void)? = nil
 
@@ -265,7 +266,7 @@ private struct AbilityScoresView: View {
                         }) {
                             VStack {
                                 Text(ability.localizedAbbreviation.uppercased()).bold()
-                                Text(self.scores.valueString(for: ability, env: self.env))
+                                Text(self.scores.valueString(for: ability))
                             }
                             .frame(width: 80)
                         }
@@ -305,22 +306,26 @@ private extension StatBlock {
         return movements.joined(separator: ", ")
     }
 
-    func savingThrowsSummary(_ env: Environment) -> String {
-        Ability.allCases.compactMap { k in
+    func savingThrowsSummary() -> String {
+        @Dependency(\.modifierFormatter) var modifierFormatter
+
+        return Ability.allCases.compactMap { k in
             savingThrows[k].flatMap { _ in
                 savingThrowModifier(k)
             }.map { v in
-                "\(k.localizedAbbreviation.uppercased()) \(env.modifierFormatter.string(for: v.modifier) ?? "-")"
+                "\(k.localizedAbbreviation.uppercased()) \(modifierFormatter.string(from: v.modifier))"
             }
         }.joined(separator: ", ")
     }
 
-    func skillsSummary(_ env: Environment) -> String {
-        Skill.allCases.compactMap { k in
+    func skillsSummary() -> String {
+        @Dependency(\.modifierFormatter) var modifierFormatter
+
+        return Skill.allCases.compactMap { k in
             skills[k].flatMap { _ in
                 skillModifier(k)
             }.map { v in
-                "\(k.localizedDisplayName) \(env.modifierFormatter.string(for: v.modifier) ?? "-")"
+                "\(k.localizedDisplayName) \(modifierFormatter.string(from: v.modifier))"
             }
         }.joined(separator: ", ")
     }
@@ -331,11 +336,12 @@ private extension StatBlock {
 }
 
 private extension AbilityScores {
-    func valueString(for ability: Ability, env: Environment) -> String {
+    func valueString(for ability: Ability) -> String {
+        @Dependency(\.modifierFormatter) var modifierFormatter
+
         let score = self.score(for: ability)
-        guard let modifierString = env.modifierFormatter.string(for: score.modifier.modifier) else {
-            return "\(score.score)"
-        }
+        let modifierString = modifierFormatter.string(from: score.modifier.modifier)
+        
         return "\(score.score) (\(modifierString))"
     }
 }

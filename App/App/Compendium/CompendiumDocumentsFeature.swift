@@ -391,7 +391,7 @@ struct EditDocument: Reducer {
             return .none
         }
         .ifLet(\.$contents, action: /Action.contents) {
-            CompendiumIndexFeature(environment: StandaloneCompendiumIndexEnvironment.fromDependencies())
+            CompendiumIndexFeature()
         }
 
         BindingReducer()

@@ -17,7 +17,6 @@ import SharedViews
 import Compendium
 
 struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View {
-    @EnvironmentObject var env: Environment
     @State var isSearching = false
 
     let store: StoreOf<CompendiumIndexFeature>
@@ -641,8 +640,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
 }
 
 fileprivate struct CompendiumEntryRow: View {
-    @EnvironmentObject var env: Environment
-
+    @EnvironmentObject var ordinalFormatter: OrdinalFormatter
     fileprivate var store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
 
     let entry: CompendiumEntry
@@ -652,7 +650,7 @@ fileprivate struct CompendiumEntryRow: View {
             VStack(alignment: .leading) {
                 Text(entry.item.title).lineLimit(1)
 
-                entry.item.localizedSummary(in: ViewStore(store, observe: \.self).state, env: env)
+                entry.item.localizedSummary(in: ViewStore(store, observe: \.self).state, ordinalFormatter: ordinalFormatter)
                     .font(.footnote)
                     .foregroundColor(Color(UIColor.secondaryLabel))
                     .multilineTextAlignment(.leading)
@@ -679,8 +677,6 @@ fileprivate struct CompendiumEntryRow: View {
 }
 
 struct FilterButton: View {
-    @EnvironmentObject var env: Environment
-
     @ObservedObject var viewStore: ViewStore<CompendiumIndexFeature.Query.State, CompendiumIndexFeature.Action>
     let allAllowedItemTypes: [CompendiumItemType]
     let sourceRestriction: CompendiumFilters.Source?
@@ -728,7 +724,7 @@ struct FilterButton: View {
             store: Store(
                 initialState: state
             ) {
-                CompendiumFilterSheetFeature(environment: env)
+                CompendiumFilterSheetFeature()
             }
         ) { filterValues in
             var filters = self.viewStore.state.filters ?? .init()
@@ -750,7 +746,7 @@ extension CompendiumFilterSheet: Identifiable {
 }
 
 extension CompendiumItem {
-    func localizedSummary(in context: CompendiumIndexFeature.State, env: Environment) -> Text? {
+    func localizedSummary(in context: CompendiumIndexFeature.State, ordinalFormatter: OrdinalFormatter) -> Text? {
         let isTypeConstrained = context.results.input.filters?.types?.single != nil
 
         var components: [Text] = []
@@ -780,7 +776,7 @@ extension CompendiumItem {
             }
         case let s as Spell:
             if let level = s.level {
-                var text = "\(env.ordinalFormatter.stringWithFallback(for: level)) level"
+                var text = "\(ordinalFormatter.string(from: level)) level"
                 if !isTypeConstrained {
                     text = "Spell, \(text)"
                 }

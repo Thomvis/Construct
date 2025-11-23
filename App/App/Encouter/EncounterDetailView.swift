@@ -14,7 +14,6 @@ import Helpers
 import GameModels
 
 struct EncounterDetailView: View {
-    @EnvironmentObject var environment: Environment
     @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
     var store: Store<EncounterDetailFeature.State, EncounterDetailFeature.Action>
@@ -87,7 +86,7 @@ struct EncounterDetailView: View {
         .toolbar {
             toolbar()
         }
-        .modifier(Sheets(store: store, environment: environment))
+        .modifier(Sheets(store: store))
         .popover(popover)
         .onAppear {
             self.viewStore.send(.onAppear)
@@ -96,7 +95,6 @@ struct EncounterDetailView: View {
 
     struct Sheets: ViewModifier {
         let store: StoreOf<EncounterDetailFeature>
-        let environment: Environment
 
         func body(content: Content) -> some View {
             content
@@ -109,7 +107,6 @@ struct EncounterDetailView: View {
                         store: store.scope(state: \.state, action: { $0 }),
                         onSelection: { self.store.send(.addCombatantAction($0, $1)) }
                     )
-                    .environmentObject(self.environment)
                 }
                 .sheet(
                     store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
@@ -117,7 +114,6 @@ struct EncounterDetailView: View {
                     action: EncounterDetailFeature.Sheet.Action.combatant
                 ) { store in
                     CombatantDetailContainerView(store: store)
-                        .environmentObject(self.environment)
                 }
                 .sheet(
                     store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
@@ -126,7 +122,6 @@ struct EncounterDetailView: View {
                 ) { store in
                     SheetNavigationContainer {
                         RunningEncounterLogView(store: store)
-                            .environmentObject(self.environment)
                     }
                 }
                 .sheet(
@@ -137,7 +132,6 @@ struct EncounterDetailView: View {
                     SheetNavigationContainer {
                         CombatantTagsView(store: store)
                     }
-                    .environmentObject(self.environment)
                 }
                 .sheet(
                     store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
@@ -145,7 +139,6 @@ struct EncounterDetailView: View {
                     action: EncounterDetailFeature.Sheet.Action.settings
                 ) { _ in
                     EncounterSettingsView(store: self.store)
-                        .environmentObject(self.environment)
                 }
                 .sheet(
                     store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
@@ -401,7 +394,7 @@ struct EncounterDetailView: View {
                     viewStore.send(.popover(nil))
                 }.makeBody()
             case .health(let target):
-                return HealthDialog(environment: environment, hp: nil) { action in
+                return HealthDialog(hp: nil) { action in
                     switch target {
                     case .single(let combatant):
                         viewStore.send(.encounter(.combatant(combatant.id, action)))

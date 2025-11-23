@@ -210,8 +210,6 @@ struct EncounterDetailFeature: Reducer {
     }
 
     struct Sheet: Reducer {
-        let environment: Environment
-
         enum State: Equatable {
             case add(AddCombatantSheet)
             case combatant(CombatantDetailFeature.State)
@@ -233,17 +231,17 @@ struct EncounterDetailFeature: Reducer {
         var body: some ReducerOf<Self> {
             Scope(state: /State.add, action: /Action.add) {
                 Scope(state: \.state, action: /AddCombatantFeature.Action.self) {
-                    AddCombatantFeature(environment: environment)
+                    AddCombatantFeature()
                 }
             }
             Scope(state: /State.combatant, action: /Action.combatant) {
-                CombatantDetailFeature(environment: environment)
+                CombatantDetailFeature()
             }
             Scope(state: /State.selectedCombatantTags, action: /Action.selectedCombatantTags) {
-                CombatantTagsFeature(environment: environment)
+                CombatantTagsFeature()
             }
             Scope(state: /State.generateCombatantTraits, action: /Action.generateCombatantTraits) {
-                GenerateCombatantTraitsFeature(environment: environment)
+                GenerateCombatantTraitsFeature()
             }
             Reduce { _, action in
                 switch action {
@@ -291,14 +289,14 @@ struct EncounterDetailFeature: Reducer {
         }
     }
 
-    let environment: Environment
-
-    init(environment: Environment) {
-        self.environment = environment
-    }
+    @Dependency(\.database) var database
+    @Dependency(\.crashReporter) var crashReporter
+    @Dependency(\.mailer) var mailer
+    @Dependency(\.screenshot) var screenshotClient
+    @Dependency(\.uuid) var uuid
 
     var body: some ReducerOf<Self> {
-        Reduce { state, action in
+        Reduce<State, Action> { state, action in
             switch action {
             case .onAppear:
                 return Effect.run { [state] send in
@@ -311,9 +309,9 @@ struct EncounterDetailFeature: Reducer {
             case .onResumeRunningEncounterTap(let resumableKey):
                 return .run { send in
                     do {
-                        if let runningEncounter: RunningEncounter = try environment.database.keyValueStore.get(
+                        if let runningEncounter: RunningEncounter = try database.keyValueStore.get(
                             resumableKey,
-                            crashReporter: environment.crashReporter
+                            crashReporter: crashReporter
                         ) {
                             await send(.run(runningEncounter))
                         } else {
@@ -329,7 +327,7 @@ struct EncounterDetailFeature: Reducer {
                 }
                 let re = runningEncounter
                     ?? RunningEncounter(
-                        id: environment.generateUUID().tagged(),
+                        id: uuid().tagged(),
                         base: base,
                         current: base,
                         turn: state.building.initiativeOrder.first.map { RunningEncounter.Turn(round: 1, combatantId: $0.id) }
@@ -352,7 +350,7 @@ struct EncounterDetailFeature: Reducer {
             case .resumableRunningEncounters: break // handled below
             case .removeResumableRunningEncounter(let key):
                 return .run { send in
-                    _ = try? environment.database.keyValueStore.remove(key)
+                    _ = try? database.keyValueStore.remove(key)
                     await send(.resumableRunningEncounters(.startLoading))
                 }
             case .setSheet(let s):
@@ -413,7 +411,7 @@ struct EncounterDetailFeature: Reducer {
                 let runningEncounterPrefix = RunningEncounter.keyPrefix(for: state.building)
                 return .run { send in
                     // remove all runs
-                    _ = try? environment.database.keyValueStore.removeAll(.keyPrefix(runningEncounterPrefix.rawValue))
+                    _ = try? database.keyValueStore.removeAll(.keyPrefix(runningEncounterPrefix.rawValue))
                     await send(.resumableRunningEncounters(.startLoading))
                 }
             case .editMode(let mode):
@@ -475,17 +473,17 @@ struct EncounterDetailFeature: Reducer {
                     encounter: state.encounter
                 ))
             case .onFeedbackButtonTap:
-                guard environment.canSendMail() else { break }
+                guard mailer.canSendMail() else { break }
 
                 let currentState = state
                 return .run { send in
                     try await Task.sleep(for: .seconds(0.1)) // delay for a bit so the menu has disappeared
 
                     let imageData = await MainActor.run {
-                        environment.screenshot()?.pngData()
+                        screenshotClient.screenshot()?.pngData()
                     }
 
-                    environment.sendMail(.init(
+                    mailer.sendMail(.init(
                         subject: "Encounter Feedback",
                         attachment: Array(builder: {
                             FeedbackMailContents.Attachment(customDump: currentState)
@@ -504,16 +502,16 @@ struct EncounterDetailFeature: Reducer {
             return .none
         }
         .ifLet(\.$sheet, action: /Action.sheet) {
-            Sheet(environment: environment)
+            Sheet()
         }
         .ifLet(\.combatantInitiativePopover, action: /Action.combatantInitiativePopover) {
-            NumberEntryFeature(environment: environment)
+            NumberEntryFeature()
         }
         .ifLet(\.running, action: /Action.runningEncounter) {
-            RunningEncounter.Reducer(environment: environment)
+            RunningEncounter.Reducer()
         }
         Scope(state: \.building, action: /Action.buildingEncounter) {
-            Encounter.Reducer(environment: environment)
+            Encounter.Reducer()
         }
 
         EmptyReducer()
@@ -533,7 +531,7 @@ struct EncounterDetailFeature: Reducer {
             Scope(state: \.resumableRunningEncounters, action: /Action.resumableRunningEncounters) {
                 State.AsyncResumableRunningEncounters {
                     do {
-                        return try environment.database.keyValueStore.fetchKeys(.keyPrefix(RunningEncounter.keyPrefix(for: id).rawValue))
+                        return try database.keyValueStore.fetchKeys(.keyPrefix(RunningEncounter.keyPrefix(for: id).rawValue))
                     } catch {
                         throw error.toEquatableError()
                     }
