@@ -21,7 +21,7 @@ struct AddCombatantCompendiumView: View {
 
     var body: some View {
         CompendiumIndexView(
-            store: store.scope(state: { $0.compendiumState }, action: { .compendiumState($0) }),
+            store: store.scope(state: \.compendiumState, action: \.compendiumState),
             viewProvider: compendiumIndexViewProvider,
             bottomBarButtons: {
                 Button(action: {

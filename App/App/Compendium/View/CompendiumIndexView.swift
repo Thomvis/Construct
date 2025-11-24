@@ -92,7 +92,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         .modifier(IsSearchingModifier(isSearching: $isSearching.animation(.default)))
         .modifier(CompendiumSearchableModifier(store: store))
         .modifier(Sheets(store: store))
-        .alert(store: store.scope(state: \.$alert, action: { .alert($0) }))
+        .alert(store: store.scope(state: \.$alert, action: \.alert))
     }
 
     @ViewBuilder
@@ -231,27 +231,21 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         func body(content: Content) -> some View {
             content
                 .sheet(
-                    store: store.scope(state: \.$sheet, action: CompendiumIndexFeature.Action.sheet),
-                    state: /CompendiumIndexFeature.Sheet.State.creatureEdit,
-                    action: CompendiumIndexFeature.Sheet.Action.creatureEdit
+                    store: store.scope(state: \.$sheet.creatureEdit, action: \.sheet.creatureEdit)
                 ) { store in
                     SheetNavigationContainer(isModalInPresentation: true) {
                         CreatureEditView(store: store)
                     }
                 }
                 .sheet(
-                    store: store.scope(state: \.$sheet, action: CompendiumIndexFeature.Action.sheet),
-                    state: /CompendiumIndexFeature.Sheet.State.groupEdit,
-                    action: CompendiumIndexFeature.Sheet.Action.groupEdit
+                    store: store.scope(state: \.$sheet.groupEdit, action: \.sheet.groupEdit)
                 ) { store in
                     SheetNavigationContainer {
                         CompendiumItemGroupEditView(store: store)
                     }
                 }
                 .sheet(
-                    store: store.scope(state: \.$sheet, action: CompendiumIndexFeature.Action.sheet),
-                    state: /CompendiumIndexFeature.Sheet.State.compendiumImport,
-                    action: CompendiumIndexFeature.Sheet.Action.compendiumImport
+                    store: store.scope(state: \.$sheet.compendiumImport, action: \.sheet.compendiumImport)
                 ) { store in
                     SheetNavigationContainer {
                         CompendiumImportView(store: store)
@@ -267,9 +261,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                     }
                 }
                 .sheet(
-                    store: store.scope(state: \.$sheet, action: CompendiumIndexFeature.Action.sheet),
-                    state: /CompendiumIndexFeature.Sheet.State.documents,
-                    action: CompendiumIndexFeature.Sheet.Action.documents
+                    store: store.scope(state: \.$sheet.documents, action: \.sheet.documents)
                 ) { store in
                     SheetNavigationContainer {
                         CompendiumDocumentsView(store: store)
@@ -285,9 +277,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                     }
                 }
                 .sheet(
-                    store: store.scope(state: \.$sheet, action: CompendiumIndexFeature.Action.sheet),
-                    state: /CompendiumIndexFeature.Sheet.State.transfer,
-                    action: CompendiumIndexFeature.Sheet.Action.transfer
+                    store: store.scope(state: \.$sheet.transfer, action: \.sheet.transfer)
                 ) { store in
                     AutoSizingSheetContainer {
                         SheetNavigationContainer {
@@ -515,11 +505,12 @@ fileprivate struct CompendiumItemList: View, Equatable {
                 send: { .setSelecting($0 == .active) }
             ))
             .navigationDestination(
-                store: store.scope(state: \.$destination, action: { .destination($0) }),
-                state: /CompendiumIndexFeature.Destination.State.itemDetail,
-                action: CompendiumIndexFeature.Destination.Action.itemDetail
+                store: store.scope(state: \.$destination, action: \.destination)
             ) { destinationStore in
-                viewProvider.detail(destinationStore)
+                switch destinationStore.case {
+                case let .itemDetail(detailStore):
+                    viewProvider.detail(detailStore)
+                }
             }
             .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _, _ in
                 // workaround: this closure is called with `self.entries` still out of date,

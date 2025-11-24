@@ -19,30 +19,21 @@ struct FloatingDiceRollerContainerView: View {
     static let innerPanelPadding: CGFloat = 12.0
     static let panelToolbarVerticalPadding: CGFloat = 6.0
 
-    let store: Store<FloatingDiceRollerFeature.State, FloatingDiceRollerFeature.Action>
-    @ObservedObject var viewStore: ViewStore<FloatingDiceRollerFeature.State, FloatingDiceRollerFeature.Action>
+    @Bindable var store: StoreOf<FloatingDiceRollerFeature>
 
     @State var alignment: SwiftUI.Alignment = .bottomTrailing
 
     @State var dragOffset: CGSize = .zero
-
-    init(store: Store<FloatingDiceRollerFeature.State, FloatingDiceRollerFeature.Action>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: { $0 }, removeDuplicates: {
-            ($0.hidden, $0.canCollapse, $0.content, $0.diceLog.entries.isEmpty) ==
-            ($1.hidden, $1.canCollapse, $1.content, $1.diceLog.entries.isEmpty)
-        })
-    }
 
     var body: some View {
         GeometryReader { containerProxy in
             ZStack(alignment: alignment) {
                 Color.clear // to make the ZStack fill all available space
 
-                if viewStore.state.hidden {
+                if store.hidden {
                     Button(action: {
                         alignment = .bottomTrailing
-                        viewStore.send(.show, animation: .default)
+                        store.send(.show, animation: .default)
                     }) {
                         Image("tabbar_d20")
                             .padding(18)
@@ -57,7 +48,7 @@ struct FloatingDiceRollerContainerView: View {
                 }
 
                 panel(containerProxy)
-                    .opacity(viewStore.state.hidden ? 0 : 1)
+                    .opacity(store.hidden ? 0 : 1)
             }
             .coordinateSpace(name: Self.containerCoordinateSpaceName)
             .padding(EdgeInsets(top: 8, leading: 12, bottom: 50, trailing: 12))
@@ -88,31 +79,31 @@ struct FloatingDiceRollerContainerView: View {
         return VStack {
             HStack {
                 Button(action: {
-                    if viewStore.state.content == .log {
-                        viewStore.send(.content(.calculator), animation: .default)
+                    if store.content == .log {
+                        store.send(.content(.calculator), animation: .default)
                     } else {
-                        viewStore.send(.content(.log), animation: .default)
+                        store.send(.content(.log), animation: .default)
                     }
                 }) {
-                    if viewStore.state.content == .log {
+                    if store.content == .log {
                         Image("tabbar_d20")
                     } else {
                         Image(systemName: "clock.arrow.circlepath")
                     }
                 }
-                .disabled(viewStore.state.content == .calculator && viewStore.state.diceLog.entries.isEmpty)
+                .disabled(store.content == .calculator && store.diceLog.entries.isEmpty)
 
                 Spacer()
 
                 Button(action: {
-                    viewStore.send(.collapse, animation: .default)
+                    store.send(.collapse, animation: .default)
                 }) {
                     Image(systemName: "rectangle.arrowtriangle.2.inward")
                 }
-                .disabled(!viewStore.canCollapse)
+                .disabled(!store.canCollapse)
 
                 Button(action: {
-                    viewStore.send(.hide, animation: .default)
+                    store.send(.hide, animation: .default)
                 }) {
                     Image(systemName: "pip.remove")
                 }
@@ -126,18 +117,16 @@ struct FloatingDiceRollerContainerView: View {
             .padding([.top, .bottom], Self.panelToolbarVerticalPadding)
             .padding(.bottom, Self.panelToolbarVerticalPadding)
 
-            switch viewStore.state.content {
-            case .calculator: DiceCalculatorView(store: store.scope(state: { $0.diceCalculator }, action: { .diceCalculator($0) }))
+            switch store.content {
+            case .calculator: DiceCalculatorView(store: store.scope(state: \.diceCalculator, action: \.diceCalculator))
             case .log:
-                WithViewStore(store, observe: \.diceLog) { viewStore in
-                    DiceLogFeedView(
-                        entries: viewStore.state.entries,
-                        onClearButtonTap: {
-                            viewStore.send(.onClearDiceLog, animation: .default)
-                        }
-                    )
-                    .frame(height: 300)
-                }
+                DiceLogFeedView(
+                    entries: store.diceLog.entries,
+                    onClearButtonTap: {
+                        store.send(.onClearDiceLog, animation: .default)
+                    }
+                )
+                .frame(height: 300)
             }
         }
         .frame(width: 280)

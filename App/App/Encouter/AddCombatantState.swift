@@ -72,6 +72,7 @@ struct AddCombatantFeature: Reducer {
         }
     }
 
+    @CasePathable
     enum Action: Equatable {
         case compendiumState(CompendiumIndexFeature.Action)
         case quickCreate
@@ -98,10 +99,10 @@ struct AddCombatantFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.creatureEditViewState, action: /Action.creatureEditView) {
+        .ifLet(\.creatureEditViewState, action: \.creatureEditView) {
             CreatureEditFeature()
         }
-        Scope(state: \.compendiumState, action: /Action.compendiumState) {
+        Scope(state: \.compendiumState, action: \.compendiumState) {
             CompendiumIndexFeature()
         }
     }

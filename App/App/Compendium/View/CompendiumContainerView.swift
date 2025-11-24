@@ -68,8 +68,6 @@ extension CompendiumIndexFeature.Action {
         switch self {
         case .destination(.presented(.itemDetail(.onSaveMonsterAsNPCButton(let m)))):
             return m
-        case .destination(.presented(.compendiumIndex(let a))):
-            return a.onSaveMonsterAsNPCButtonMonster
         default:
             return nil
         }

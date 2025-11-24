@@ -27,7 +27,7 @@ public struct Combatant: Equatable, Codable, Identifiable {
         get { _hp ?? definition.hitPoints.map(Hp.init) }
         set { _hp = newValue }
     }
-    public var resources: IdentifiedArray<CombatantResource.Id, CombatantResource>
+    public var resources: IdentifiedArrayOf<CombatantResource>
 
     public var initiative: Int?
     public var tags: [CombatantTag] = []

@@ -3,6 +3,7 @@ import ComposableArchitecture
 import ComposableArchitecture
 import DiceRollerFeature
 
+@Reducer
 public struct DiceActionFeature: Reducer {
 
     public struct State: Hashable {
@@ -13,19 +14,16 @@ public struct DiceActionFeature: Reducer {
         var rollingSteps: [UUID] = []
     }
 
-    public enum Action: Hashable {
-        case rollAll
-        case onFeedbackButtonTap
-        case stepAction(DiceAction.Step.ID, DiceActionFeature.StepAction)
-    }
-
+    @CasePathable
     public enum StepAction: Hashable {
         case value(ValueAction)
         case rollDetails(DiceCalculator.Action)
 
+        @CasePathable
         public enum ValueAction: Hashable {
             case roll(RollAction)
 
+            @CasePathable
             public enum RollAction: Hashable {
                 case roll
                 case type(DiceAction.Step.Value.RollValue.RollType)
@@ -34,6 +32,71 @@ public struct DiceActionFeature: Reducer {
                 case details(DiceAction.Step.Value.RollValue.Details?)
             }
         }
+    }
+
+    @Reducer
+    public struct Step {
+        public typealias State = DiceAction.Step
+        public typealias Action = StepAction
+
+        public var body: some ReducerOf<Self> {
+            Reduce { state, action in
+                switch action {
+                case .value(.roll(.roll)):
+                    guard let rollValue = state.rollValue else { return .none }
+
+                    var effects: [Effect<Action>] = [
+                        .send(.value(.roll(.first(.roll(rollValue.expression)))))
+                    ]
+
+                    if rollValue.type != .normal {
+                        effects.append(.send(.value(.roll(.second(.roll(rollValue.expression))))))
+                    }
+
+                    return .merge(effects)
+                case .value(.roll(.type(let t))):
+                    guard let rollValue = state.rollValue else { return .none }
+
+                    state.rollValue?.type = t
+                    if t != .normal {
+                        if state.rollValue?.second == nil {
+                            state.rollValue?.second = AnimatedRoll.State(expression: rollValue.expression, result: nil, intermediaryResult: nil)
+                            if rollValue.first.result != nil {
+                                return .send(.value(.roll(.second(.roll(rollValue.expression)))))
+                            }
+                        }
+                    } else {
+                        state.rollValue?.second = nil
+                    }
+                case .value(.roll(.details(let d))):
+                    state.rollValue?.details = d
+                case .value(.roll): break
+                case .rollDetails: break // handled above
+                }
+                return .none
+            }
+            .ifLet(\.rollValue, action: \.value.roll) {
+                Scope(
+                    state: \.first,
+                    action: \.first
+                ) {
+                    AnimatedRoll()
+                }
+                .ifLet(\.second, action: \.second) {
+                    AnimatedRoll()
+                }
+            }
+            .ifLet(\.rollDetails, action: \.rollDetails) {
+                DiceCalculator()
+            }
+        }
+    }
+
+    @CasePathable
+    public enum Action: Hashable {
+        case rollAll
+        case onFeedbackButtonTap
+        case steps(IdentifiedActionOf<Step>)
     }
 
     @Dependency(\.diceLog) var diceLog
@@ -45,27 +108,28 @@ public struct DiceActionFeature: Reducer {
                 return .merge(
                     state.action.steps.compactMap { step -> Effect<Action>? in
                         guard case .roll = step.value else { return nil }
-                        return .send(.stepAction(step.id, .value(.roll(.roll))))
+                        return .send(.steps(.element(id: step.id, action: .value(.roll(.roll)))))
                     }
                 )
-            case .onFeedbackButtonTap: break // handled by the parent
-            case .stepAction(let id, .value(.roll(.details(_?)))):
+            case .onFeedbackButtonTap:
+                break // handled by the parent
+            case let .steps(.element(id, .value(.roll(.details(.some))))):
                 return .merge(
                     state.action.steps
                         .filter { $0.id != id && $0.rollDetails != nil }
                         .map { step in
-                            .send(.stepAction(step.id, .value(.roll(.details(nil)))))
+                            .send(.steps(.element(id: step.id, action: .value(.roll(.details(nil))))))
                         }
                 )
-            case .stepAction(let id, .value(.roll(.first(.roll)))),
-                    .stepAction(let id, .value(.roll(.second(.roll)))):
+            case let .steps(.element(id, .value(.roll(.first(.roll))))),
+                 let .steps(.element(id, .value(.roll(.second(.roll))))):
                 state.rollingSteps.append(id)
-            case .stepAction(let id, .rollDetails(DiceCalculator.Action.onResultDieTap)):
+            case let .steps(.element(id, .rollDetails(DiceCalculator.Action.onResultDieTap))):
                 state.rollingSteps.append(id)
                 fallthrough
-            case .stepAction(_, .value(.roll(.first(.rollIntermediary(_, 0))))),
-                    .stepAction(_, .value(.roll(.second(AnimatedRoll.Action.rollIntermediary(_, 0))))),
-                    .stepAction(_, .rollDetails(.intermediaryResultsStep(_, 0))):
+            case .steps(.element(id: _, action: .value(.roll(.first(.rollIntermediary(_, 0)))))),
+                 .steps(.element(id: _, action: .value(.roll(.second(AnimatedRoll.Action.rollIntermediary(_, 0)))))),
+                 .steps(.element(id: _, action: .rollDetails(.intermediaryResultsStep(_, 0)))):
 
                 // check if all rolling steps have finished
                 for id in state.rollingSteps {
@@ -105,61 +169,13 @@ public struct DiceActionFeature: Reducer {
                 }
 
                 state.rollingSteps.removeAll()
-            case .stepAction: break
+            case .steps:
+                break
             }
             return .none
-        }.forEach(\.action.steps, action: /Action.stepAction) {
-            stepReducer
         }
-    }
-
-    @ReducerBuilder<DiceAction.Step, DiceActionFeature.StepAction>
-    private var stepReducer: some Reducer<DiceAction.Step, DiceActionFeature.StepAction> {
-        Reduce { state, action in
-            switch action {
-            case .value(.roll(.roll)):
-                guard let rollValue = state.rollValue else { return .none }
-
-                var effects: [Effect<DiceActionFeature.StepAction>] = [
-                    .send(.value(.roll(.first(.roll(rollValue.expression)))))
-                ]
-
-                if rollValue.type != .normal {
-                    effects.append(.send(.value(.roll(.second(.roll(rollValue.expression))))))
-                }
-
-                return .merge(effects)
-            case .value(.roll(.type(let t))):
-                guard let rollValue = state.rollValue else { return .none }
-
-                state.rollValue?.type = t
-                if t != .normal {
-                    if state.rollValue?.second == nil {
-                        state.rollValue?.second = AnimatedRoll.State(expression: rollValue.expression, result: nil, intermediaryResult: nil)
-                        if rollValue.first.result != nil {
-                            return .send(.value(.roll(.second(.roll(rollValue.expression)))))
-                        }
-                    }
-                } else {
-                    state.rollValue?.second = nil
-                }
-            case .value(.roll(.details(let d))):
-                state.rollValue?.details = d
-            case .value(.roll): break
-            case .rollDetails: break // handled above
-            }
-            return .none
-        }.ifLet(\.rollValue, action: /DiceActionFeature.StepAction.value..DiceActionFeature.StepAction.ValueAction.roll) {
-            Scope(
-                state: \.first,
-                action: /DiceActionFeature.StepAction.ValueAction.RollAction.first
-            ) {
-                AnimatedRoll()
-            }.ifLet(\.second, action: /DiceActionFeature.StepAction.ValueAction.RollAction.second) {
-                AnimatedRoll()
-            }
-        }.ifLet(\.rollDetails, action: /DiceActionFeature.StepAction.rollDetails) {
-            DiceCalculator()
+        .forEach(\.action.steps, action: \.steps) {
+            Step()
         }
     }
 }

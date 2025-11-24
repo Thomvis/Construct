@@ -478,7 +478,7 @@ struct CreatureEditView: View {
         Binding(get: {
             switch self.viewStore.state.popover {
             case .numberEntry:
-                return IfLetStore(store.scope(state: { $0.numberEntryPopover }, action: { .numberEntryPopover($0) })) { store in
+                return IfLetStore(store.scope(state: \.numberEntryPopover, action: \.numberEntryPopover)) { store in
                     NumberEntryPopover(store: store) {
                         self.model.statBlock.hp.wrappedValue = "\($0)"
                         self.viewStore.send(.popover(nil))

@@ -10,24 +10,24 @@ import SwiftUI
 import ComposableArchitecture
 
 struct ColumnNavigationView: View {
-    let store: Store<ColumnNavigationFeature.State, ColumnNavigationFeature.Action>
+    let store: StoreOf<ColumnNavigationFeature>
 
     var body: some View {
         return ZStack {
             HStack(spacing: 0) {
-                CampaignBrowserContainerView(store: store.scope(state: { $0.campaignBrowse }, action: { .campaignBrowse($0) }))
+                CampaignBrowserContainerView(store: store.scope(state: \.campaignBrowse, action: \.campaignBrowse))
                     .frame(width: 360)
 
                 Divider().ignoresSafeArea()
 
-                ReferenceView(store: store.scope(state: { $0.referenceView }, action: { .referenceView($0) }))
+                ReferenceView(store: store.scope(state: \.referenceView, action: \.referenceView))
                     .zIndex(-1)
             }
             .environment(\.appNavigation, .column)
 
             FloatingDiceRollerContainerView(store: store.scope(
-                state: { $0.diceCalculator },
-                action: { .diceCalculator($0) }
+                state: \.diceCalculator,
+                action: \.diceCalculator
             ))
         }
     }

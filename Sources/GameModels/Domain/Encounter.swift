@@ -15,7 +15,7 @@ import Dice
 public struct Encounter: Equatable, Codable {
     public let id: Id
     public var name: String
-    public var combatants: IdentifiedArray<Combatant.Id, Combatant> {
+    public var combatants: IdentifiedArrayOf<Combatant> {
         didSet {
             updateCombatantDiscriminators()
         }

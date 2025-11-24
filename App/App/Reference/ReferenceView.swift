@@ -15,32 +15,38 @@ struct ReferenceView: View {
 
     static let maxItems = 8
 
-    let store: StoreOf<ReferenceViewFeature>
+    @Bindable var store: StoreOf<ReferenceViewFeature>
 
     var body: some View {
-        WithViewStore(store, observe: \.self, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication }) { viewStore in
-            TabbedDocumentView(
-                items: tabItems(viewStore),
-                content: { item in
-                    IfLetStore(store.scope(state: replayNonNil({ $0.items[id: item.id]?.state }), action: { .item(item.id, $0) }), then: ReferenceItemView.init)
-                },
-                selection: viewStore.binding(get: { $0.selectedItemId }, send: { .selectItem($0) }),
-                onAdd: {
-                    viewStore.send(.onNewTabTapped, animation: .default)
-                },
-                onDelete: { tab in
-                    viewStore.send(.removeTab(tab), animation: .default)
-                },
-                onMove: { from, to in
-                    viewStore.send(.moveTab(from, to))
+        TabbedDocumentView(
+            items: tabItems(),
+            content: { item in
+                Group {
+                    let itemStores = Array(store.scope(state: \.items, action: \.item))
+                    if let itemStore = itemStores.first(where: { $0.withState { $0.id } == item.id }) {
+                        ReferenceItemView(store: itemStore.scope(state: \.state, action: \.self))
+                    }
                 }
-            )
-        }
+            },
+            selection: Binding(
+                get: { store.selectedItemId },
+                set: { store.send(.selectItem($0)) }
+            ),
+            onAdd: {
+                store.send(.onNewTabTapped, animation: .default)
+            },
+            onDelete: { tab in
+                store.send(.removeTab(tab), animation: .default)
+            },
+            onMove: { from, to in
+                store.send(.moveTab(from, to))
+            }
+        )
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 
-    func tabItems(_ viewStore: ViewStoreOf<ReferenceViewFeature>) -> [TabbedDocumentViewContentItem] {
-        viewStore.items.suffix(Self.maxItems).map { item in
+    func tabItems() -> [TabbedDocumentViewContentItem] {
+        store.items.suffix(Self.maxItems).map { item in
             TabbedDocumentViewContentItem(
                 id: item.id,
                 label: Label(item.title, systemImage: "doc")

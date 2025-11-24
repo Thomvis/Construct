@@ -11,6 +11,7 @@ import Helpers
 import ComposableArchitecture
 import GameModels
 
+@Reducer
 public struct ActionDescriptionFeature: Reducer {
 
     public struct State: Equatable {
@@ -113,6 +114,7 @@ public struct ActionDescriptionFeature: Reducer {
         }
     }
 
+    @Reducer
     public struct RequestInput: Reducer {
         public struct State: Hashable {
             var request: CreatureActionDescriptionRequest? = nil
@@ -186,7 +188,7 @@ public struct ActionDescriptionFeature: Reducer {
             }
         }
 
-        Scope(state: \.description, action: /Action.description) {
+        Scope(state: \.description, action: \.description) {
             State._AsyncDescription_Map(
                 inputReducer: RequestInput(),
                 initialResultStateForInput: { _ in State._AsyncDescription_Reduce.State(value: "") },

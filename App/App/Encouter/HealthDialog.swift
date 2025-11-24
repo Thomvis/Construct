@@ -25,7 +25,7 @@ struct HealthDialog: View {
 
     var body: some View {
         VStack {
-            NumberEntryView(store: store.scope(state: { $0.numberEntryView }, action: { .numberEntryView($0) }))
+            NumberEntryView(store: store.scope(state: \.numberEntryView, action: \.numberEntryView))
             Divider()
             HStack {
                 Spacer()
@@ -99,12 +99,13 @@ struct HealthDialogFeature: Reducer {
         var hp: Hp?
     }
 
+    @CasePathable
     enum Action: Equatable {
         case numberEntryView(NumberEntryFeature.Action)
     }
     
     var body: some ReducerOf<Self> {
-        Scope(state: \.numberEntryView, action: /Action.numberEntryView) {
+        Scope(state: \.numberEntryView, action: \.numberEntryView) {
             NumberEntryFeature()
         }
     }

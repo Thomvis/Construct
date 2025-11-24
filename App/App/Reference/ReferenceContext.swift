@@ -71,7 +71,7 @@ extension CampaignBrowseViewFeature.State {
             }
         case .encounter(let state):
             return { action in
-                .destination(.presented(.encounterDetail(state.toReferenceContextAction(action))))
+                .destination(.presented(.encounter(state.toReferenceContextAction(action))))
             }
         }
     }
@@ -92,7 +92,7 @@ extension EncounterDetailFeature.State {
             case .addCombatant(let a):
                 return .addCombatantAction(a, false)
             case .combatantAction(let id, let a):
-                return .encounter(.combatant(id, a))
+                return .encounter(.combatant(.element(id: id, action: a)))
             case .didDismiss(let id):
                 return .didDismissReferenceItem(id)
             }

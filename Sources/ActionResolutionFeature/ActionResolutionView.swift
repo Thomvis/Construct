@@ -17,51 +17,49 @@ import Persistence
 import SharedViews
 
 public struct ActionResolutionView: View {
-    public let store: StoreOf<ActionResolutionFeature>
+    @Bindable public var store: StoreOf<ActionResolutionFeature>
 
     public init(store: StoreOf<ActionResolutionFeature>) {
         self.store = store
     }
 
     public var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            VStack {
-                HStack {
-                    Image(systemName: "quote.bubble").opacity(0) // for symmetry
+        VStack {
+            HStack {
+                Image(systemName: "quote.bubble").opacity(0) // for symmetry
 
-                    Spacer()
+                Spacer()
 
-                    VStack {
-                        Text(viewStore.state.heading).bold()
-                        viewStore.state.subheading.map(Text.init)?.italic()
-                            .multilineTextAlignment(.center)
-                    }
-
-                    Spacer()
-
-                    if viewStore.state.isMuseEnabled {
-                        Button {
-                            viewStore.send(.binding(.set(\.$mode, viewStore.state.mode.toggled)), animation: .default)
-                        } label: {
-                            Image(systemName: viewStore.state.mode.isMuse ? "quote.bubble.fill" : "quote.bubble")
-                        }
-                    }
-                }
-                Divider()
-
-                switch viewStore.state.mode {
-                case .diceAction:
-                    IfLetStore(store.scope(state: \.diceAction, action: ActionResolutionFeature.Action.diceAction)) { store in
-                        DiceActionView(store: store)
-                    }
-                case .muse:
-                    ActionDescriptionView(store: store.scope(state: \.muse, action: ActionResolutionFeature.Action.muse))
+                VStack {
+                    Text(store.heading).bold()
+                    store.subheading.map(Text.init)?.italic()
+                        .multilineTextAlignment(.center)
                 }
 
+                Spacer()
+
+                if store.isMuseEnabled {
+                    Button {
+                        store.send(.setMode(store.mode.toggled), animation: .default)
+                    } label: {
+                        Image(systemName: store.mode.isMuse ? "quote.bubble.fill" : "quote.bubble")
+                    }
+                }
             }
-            .onAppear {
-                viewStore.send(.onAppear)
+            Divider()
+
+            switch store.mode {
+            case .diceAction:
+                if let diceStore = store.scope(state: \.diceAction, action: \.diceAction) {
+                    DiceActionView(store: diceStore)
+                }
+            case .muse:
+                ActionDescriptionView(store: store.scope(state: \.muse, action: \.muse))
             }
+
+        }
+        .onAppear {
+            store.send(.onAppear)
         }
     }
 }

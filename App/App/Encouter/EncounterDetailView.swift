@@ -97,58 +97,99 @@ struct EncounterDetailView: View {
         let store: StoreOf<EncounterDetailFeature>
 
         func body(content: Content) -> some View {
-            content
-                .sheet(
-                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-                    state: /EncounterDetailFeature.Sheet.State.add,
-                    action: EncounterDetailFeature.Sheet.Action.add
-                ) { store in
-                    AddCombatantView(
-                        store: store.scope(state: \.state, action: { $0 }),
-                        onSelection: { self.store.send(.addCombatantAction($0, $1)) }
-                    )
+            let sheetStore = store.scope(state: \.$sheet, action: \.sheet)
+            let addState: (EncounterDetailFeature.Sheet.State) -> EncounterDetailFeature.AddCombatantSheet? = { state in
+                guard case let .add(value) = state else { return nil }
+                return value
+            }
+            let addAction: (AddCombatantFeature.Action) -> EncounterDetailFeature.Sheet.Action = { .add($0) }
+
+            let combatantState: (EncounterDetailFeature.Sheet.State) -> CombatantDetailFeature.State? = { state in
+                guard case let .combatant(value) = state else { return nil }
+                return value
+            }
+            let combatantAction: (CombatantDetailFeature.Action) -> EncounterDetailFeature.Sheet.Action = { .combatant($0) }
+
+            let runningLogState: (EncounterDetailFeature.Sheet.State) -> RunningEncounterLogViewState? = { state in
+                guard case let .runningEncounterLog(value) = state else { return nil }
+                return value
+            }
+            let runningLogAction: (RunningEncounterLogViewAction) -> EncounterDetailFeature.Sheet.Action = { .runningEncounterLog($0) }
+
+            let selectedTagsState: (EncounterDetailFeature.Sheet.State) -> CombatantTagsFeature.State? = { state in
+                guard case let .selectedCombatantTags(value) = state else { return nil }
+                return value
+            }
+            let selectedTagsAction: (CombatantTagsFeature.Action) -> EncounterDetailFeature.Sheet.Action = { .selectedCombatantTags($0) }
+
+            let settingsState: (EncounterDetailFeature.Sheet.State) -> Void? = { state in
+                guard case .settings = state else { return nil }
+                return ()
+            }
+            let settingsAction: (Never) -> EncounterDetailFeature.Sheet.Action = { .settings($0) }
+
+            let generateTraitsState: (EncounterDetailFeature.Sheet.State) -> GenerateCombatantTraitsFeature.State? = { state in
+                guard case let .generateCombatantTraits(value) = state else { return nil }
+                return value
+            }
+            let generateTraitsAction: (GenerateCombatantTraitsFeature.Action) -> EncounterDetailFeature.Sheet.Action = { .generateCombatantTraits($0) }
+
+            let add = content.sheet(
+                store: sheetStore,
+                state: addState,
+                action: addAction
+            ) { store in
+                AddCombatantView(
+                    store: store.scope(state: \.state, action: \.self),
+                    onSelection: { self.store.send(.addCombatantAction($0, $1)) }
+                )
+            }
+
+            let combatant = add.sheet(
+                store: sheetStore,
+                state: combatantState,
+                action: combatantAction
+            ) { store in
+                CombatantDetailContainerView(store: store)
+            }
+
+            let runningLog = combatant.sheet(
+                store: sheetStore,
+                state: runningLogState,
+                action: runningLogAction
+            ) { store in
+                SheetNavigationContainer {
+                    RunningEncounterLogView(store: store)
                 }
-                .sheet(
-                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-                    state: /EncounterDetailFeature.Sheet.State.combatant,
-                    action: EncounterDetailFeature.Sheet.Action.combatant
-                ) { store in
-                    CombatantDetailContainerView(store: store)
+            }
+
+            let selectedTags = runningLog.sheet(
+                store: sheetStore,
+                state: selectedTagsState,
+                action: selectedTagsAction
+            ) { store in
+                SheetNavigationContainer {
+                    CombatantTagsView(store: store)
                 }
-                .sheet(
-                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-                    state: /EncounterDetailFeature.Sheet.State.runningEncounterLog,
-                    action: EncounterDetailFeature.Sheet.Action.runningEncounterLog
-                ) { store in
-                    SheetNavigationContainer {
-                        RunningEncounterLogView(store: store)
-                    }
+            }
+
+            let settings = selectedTags.sheet(
+                store: sheetStore,
+                state: settingsState,
+                action: settingsAction
+            ) { _ in
+                EncounterSettingsView(store: self.store)
+            }
+
+            return settings.sheet(
+                store: sheetStore,
+                state: generateTraitsState,
+                action: generateTraitsAction
+            ) { store in
+                SheetNavigationContainer {
+                    GenerateCombatantTraitsView(store: store)
                 }
-                .sheet(
-                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-                    state: /EncounterDetailFeature.Sheet.State.selectedCombatantTags,
-                    action: EncounterDetailFeature.Sheet.Action.selectedCombatantTags
-                ) { store in
-                    SheetNavigationContainer {
-                        CombatantTagsView(store: store)
-                    }
-                }
-                .sheet(
-                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-                    state: /EncounterDetailFeature.Sheet.State.settings,
-                    action: EncounterDetailFeature.Sheet.Action.settings
-                ) { _ in
-                    EncounterSettingsView(store: self.store)
-                }
-                .sheet(
-                    store: store.scope(state: \.$sheet, action: EncounterDetailFeature.Action.sheet),
-                    state: /EncounterDetailFeature.Sheet.State.generateCombatantTraits,
-                    action: EncounterDetailFeature.Sheet.Action.generateCombatantTraits
-                ) { store in
-                    SheetNavigationContainer {
-                        GenerateCombatantTraitsView(store: store)
-                    }
-                }
+            }
         }
     }
 
@@ -382,9 +423,9 @@ struct EncounterDetailView: View {
             guard let popover = viewStore.popover else { return nil }
             switch popover {
             case .combatantInitiative(let combatant, _):
-                return IfLetStore(store.scope(state: { $0.combatantInitiativePopover }, action: { .combatantInitiativePopover($0) })) { store in
+                return IfLetStore(store.scope(state: \.combatantInitiativePopover, action: \.combatantInitiativePopover)) { store in
                     NumberEntryPopover(store: store) { value in
-                        viewStore.send(.encounter(.combatant(combatant.id, .initiative(value))))
+                        viewStore.send(.encounter(.combatant(.element(id: combatant.id, action: .initiative(value)))))
                         viewStore.send(.popover(nil))
                     }
                 }.eraseToAnyView
@@ -397,7 +438,7 @@ struct EncounterDetailView: View {
                 return HealthDialog(hp: nil) { action in
                     switch target {
                     case .single(let combatant):
-                        viewStore.send(.encounter(.combatant(combatant.id, action)))
+                        viewStore.send(.encounter(.combatant(.element(id: combatant.id, action: action))))
                     case .selection:
                         viewStore.send(.selectionCombatantAction(action))
                     }
@@ -486,7 +527,7 @@ struct CombatantSection: View {
 
                     if !combatant.isDead {
                         Button(action: {
-                            self.parent.viewStore.send(.encounter(.combatant(combatant.id, .hp(.current(.set(0))))))
+                            self.parent.viewStore.send(.encounter(.combatant(.element(id: combatant.id, action: .hp(.current(.set(0)))))))
                         }) {
                             Text("Eliminate")
                             Image(systemName: "heart.slash")
@@ -494,7 +535,7 @@ struct CombatantSection: View {
                     }
 
                     Button(action: {
-                        self.parent.viewStore.send(.encounter(.combatant(combatant.id, .reset(hp: true, initiative: true, resources: true, tags: true))))
+                        self.parent.viewStore.send(.encounter(.combatant(.element(id: combatant.id, action: .reset(hp: true, initiative: true, resources: true, tags: true)))))
                     }) {
                         Text("Reset")
                         Image(systemName: "arrow.counterclockwise")

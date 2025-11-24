@@ -76,6 +76,7 @@ struct CompendiumItemTransferFeature: Reducer {
         static let nullInstance = State(mode: .copy, selection: .single(CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "")), originDocument: nil)
     }
 
+    @CasePathable
     enum Action: BindableAction, Equatable {
         case onAppear
         case onTransferButtonTap
@@ -93,7 +94,7 @@ struct CompendiumItemTransferFeature: Reducer {
     var body: some ReducerOf<Self> {
         BindingReducer()
 
-        Scope(state: \.documentSelection, action: /Action.documentSelection) {
+        Scope(state: \.documentSelection, action: \.documentSelection) {
             CompendiumDocumentSelectionFeature()
         }
 
@@ -169,7 +170,7 @@ struct CompendiumItemTransferSheet: View {
                     CompendiumDocumentSelectionView(
                         store: store.scope(
                             state: \.documentSelection,
-                            action: CompendiumItemTransferFeature.Action.documentSelection
+                            action: \.documentSelection
                         ),
                         label: "Destination"
                     )

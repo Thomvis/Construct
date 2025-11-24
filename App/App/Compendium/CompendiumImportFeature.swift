@@ -64,10 +64,11 @@ struct CompendiumImportFeature: Reducer {
         }
     }
 
+    @CasePathable
     enum Action: Equatable, BindableAction {
         case onAppear
         case didSelectDataSource(DataSource.State.Id)
-        case dataSource(DataSource.State.Id, DataSource.Action)
+        case dataSources(IdentifiedActionOf<DataSource>)
         case didTapNextButton
         case didTapClearDataSourceSelectionButton
         case importSettings(ImportSettings.Action)
@@ -86,8 +87,8 @@ struct CompendiumImportFeature: Reducer {
     @Dependency(\.compendium) var compendium
     @Dependency(\.compendiumMetadata) var compendiumMetadata
 
-    var body: some Reducer<State, Action> {
-        Reduce { state, action in
+    var body: some ReducerOf<Self> {
+        Reduce<State, Action> { state, action in
             switch action {
             case .onAppear:
                 return .run { send in
@@ -97,7 +98,7 @@ struct CompendiumImportFeature: Reducer {
             case .didSelectDataSource(let id):
                 state.selectedDataSourceId = id
                 state.phase = .dataSourcePreferences
-            case .dataSource: break
+            case .dataSources: break
             case .didTapNextButton:
                 guard state.isDataSourceConfigured else { break }
 
@@ -148,7 +149,7 @@ struct CompendiumImportFeature: Reducer {
                 state.alert = AlertState {
                     TextState("Import completed")
                 } message: {
-                    TextState("\(result.newItemCount + result.overwrittenItemCount) item(s) imported (\(result.newItemCount ) new). \(result.invalidItemCount) item(s) skipped.")
+                    TextState("\\(result.newItemCount + result.overwrittenItemCount) item(s) imported (\\(result.newItemCount ) new). \\(result.invalidItemCount) item(s) skipped.")
                 }
             case .importDidFinish(nil):
                 state.importResult.result = .failure(Error.importFailed)
@@ -168,11 +169,11 @@ struct CompendiumImportFeature: Reducer {
             }
             return .none
         }
-        .forEach(\.dataSources, action: /Action.dataSource) {
+        .forEach(\.dataSources, action: \.dataSources) {
             DataSource()
         }
 
-        Scope(state: \.importSettings, action: /Action.importSettings) {
+        Scope(state: \.importSettings, action: \.importSettings) {
             ImportSettings()
         }
 
@@ -192,6 +193,7 @@ struct CompendiumImportFeature: Reducer {
             typealias Id = Tagged<DataSource, String>
         }
 
+        @CasePathable
         enum Action: Equatable {
             case preferences(DataSourcePreferences.Action)
 
@@ -202,7 +204,7 @@ struct CompendiumImportFeature: Reducer {
             Reduce { state, action in
                 .none
             }
-            Scope(state: \.preferences, action: /Action.preferences) {
+            Scope(state: \.preferences, action: \.preferences) {
                 DataSourcePreferences()
             }
         }
@@ -380,6 +382,7 @@ struct CompendiumImportFeature: Reducer {
             }
         }
 
+        @CasePathable
         enum Action: BindableAction, Equatable {
             case binding(BindingAction<State>)
             case documents(State.AsyncDocuments.Action)
@@ -393,13 +396,13 @@ struct CompendiumImportFeature: Reducer {
                 .none
             }
 
-            Scope(state: \.documents, action: /Action.documents) {
+            Scope(state: \.documents, action: \.documents) {
                 Reduce(
                     State.AsyncDocuments(compendiumMetadata: compendiumMetadata),
                 )
             }
 
-            Scope(state: \.realms, action: /Action.realms) {
+            Scope(state: \.realms, action: \.realms) {
                 Reduce(
                     State.AsyncRealms(compendiumMetadata: compendiumMetadata),
                 )
@@ -445,7 +448,8 @@ enum DataSourceIcon: Equatable {
     }
 }
 
-struct DataSourcePreferences: Reducer {
+    struct DataSourcePreferences: Reducer {
+    @CasePathable
     enum State: Equatable {
         case open5e(Open5e.State)
         case file(File.State)
@@ -454,8 +458,11 @@ struct DataSourcePreferences: Reducer {
         var isValid: Bool {
             switch self {
             case .open5e(let o5e):
-                return /Open5e.State.SelectedOpen5eDocument.known ~= o5e.document
-                    || (o5e.document == .other && !o5e.other.isEmpty)
+                switch o5e.document {
+                case .known: return true
+                case .other: return !o5e.other.isEmpty
+                case .none: return false
+                }
             case .file(let file):
                 return file.url != nil
             case .network(let network):
@@ -503,6 +510,7 @@ struct DataSourcePreferences: Reducer {
         }
     }
 
+    @CasePathable
     enum Action: Equatable {
         case open5e(Open5e.Action)
         case file(File.Action)
@@ -513,13 +521,13 @@ struct DataSourcePreferences: Reducer {
         Reduce { state, action in
             .none
         }
-        .ifCaseLet(/State.open5e, action: /Action.open5e) {
+        .ifCaseLet(\.open5e, action: \.open5e) {
             Open5e()
         }
-        .ifCaseLet(/State.file, action: /Action.file) {
+        .ifCaseLet(\.file, action: \.file) {
             File()
         }
-        .ifCaseLet(/State.network, action: /Action.network) {
+        .ifCaseLet(\.network, action: \.network) {
             Network()
         }
     }
@@ -575,6 +583,7 @@ struct DataSourcePreferences: Reducer {
             }
         }
 
+        @CasePathable
         enum Action: BindableAction, Equatable {
             case onAppear
             case remoteDocuments(State.RemoteDocuments.Action)
@@ -584,7 +593,7 @@ struct DataSourcePreferences: Reducer {
         @Dependency(\.open5eAPIClient) var open5eAPIClient
 
         var body: some Reducer<State, Action> {
-            Reduce { state, action in
+            Reduce<State, Action> { state, action in
                 switch action {
                 case .onAppear:
                     if state.remoteDocuments.result == nil && !state.remoteDocuments.isLoading {
@@ -597,7 +606,7 @@ struct DataSourcePreferences: Reducer {
                 return .none
             }
 
-            Scope(state: \.remoteDocuments, action: /Action.remoteDocuments) {
+            Scope(state: \.remoteDocuments, action: \.remoteDocuments) {
                 State.RemoteDocuments {
                     do {
                         return try await Array(open5eAPIClient.fetchDocuments().all)
@@ -876,12 +885,15 @@ public struct CompendiumImportView: View {
                             .font(.headline)
                     }
 
-                    ForEachStore(store.scope(
-                        state: \.visibleDataSources,
-                        action: CompendiumImportFeature.Action.dataSource
-                    )) { dataSourceStore in
+                    ForEachStore(
+                        store.scope(
+                            state: \.visibleDataSources,
+                            action: CompendiumImportFeature.Action.dataSources
+                        )
+                    ) { dataSourceStore in
                         WithViewStore(dataSourceStore, observe: \.self) { dataSourceViewStore in
-                            let unselected = viewStore.state.selectedDataSourceId != nil && viewStore.state.selectedDataSourceId != dataSourceViewStore.state.id
+                            let unselected = viewStore.state.selectedDataSourceId != nil
+                                && viewStore.state.selectedDataSourceId != dataSourceViewStore.state.id
                             SectionContainer {
                                 VStack(alignment: .leading) {
                                     Button {
@@ -909,7 +921,10 @@ public struct CompendiumImportView: View {
                                     if viewStore.state.shouldShowPreferences(for: dataSourceViewStore.state) {
                                         Divider()
 
-                                        dataSourceStore.scope(state: \.preferences, action: CompendiumImportFeature.DataSource.Action.preferences).view
+                                        dataSourceStore.scope(
+                                            state: \.preferences,
+                                            action: CompendiumImportFeature.DataSource.Action.preferences
+                                        ).view
 
                                         Button("Configure...") {
                                             viewStore.send(.didTapNextButton, animation: .default)
@@ -1112,7 +1127,7 @@ public struct CompendiumImportView: View {
                 }
             }
         }
-        .alert(store: store.scope(state: \.$alert, action: { .alert($0) }))
+        .alert(store: store.scope(state: \.$alert, action: \.alert))
         .navigationTitle(Text("Import"))
     }
 }

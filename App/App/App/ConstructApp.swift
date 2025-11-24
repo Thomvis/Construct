@@ -122,9 +122,29 @@ struct ConstructView: View {
 
     let dependencies: BaseDependencies
 
-    let store: StoreOf<AppFeature>
+    @Bindable var store: StoreOf<AppFeature>
 
     let storeManager = StoreManager()
+
+    @ViewBuilder
+    private var navigationView: some View {
+        if let tabStore = store.scope(state: \.navigation?.tab, action: \.navigation.tab) {
+            TabNavigationView(store: tabStore)
+        } else if let columnStore = store.scope(state: \.navigation?.column, action: \.navigation.column) {
+            ColumnNavigationView(store: columnStore)
+        }
+    }
+
+    private var welcomeSheetBinding: Binding<Bool> {
+        Binding(
+            get: { store.presentation == .welcomeSheet },
+            set: { isPresented in
+                if !isPresented {
+                    store.send(.dismissPresentation(.welcomeSheet))
+                }
+            }
+        )
+    }
 
     init(dependencies: BaseDependencies) {
         let state = AppFeature.State(
@@ -147,63 +167,53 @@ struct ConstructView: View {
     }
 
     var body: some View {
-        WithViewStore(store, observe: \.self, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication }) { viewStore in
-            ZStack {
-                IfLetStore(store.scope(state: { $0.navigation?.tabState }, action: { .navigation(.tab($0)) }), then: { store in
-                    TabNavigationView(store: store)
-                }, else: {
-                    IfLetStore(store.scope(state: { $0.navigation?.columnState }, action: {.navigation(.column($0)) })) { store in
-                        ColumnNavigationView(store: store)
-                    }
-                })
-            }
-            .sheet(isPresented: viewStore.binding(get: { $0.presentation == .welcomeSheet }, send: { _ in
-                .dismissPresentation(.welcomeSheet) }
-            )) {
-                WelcomeView { tap in
-                    switch tap {
-                    case .sampleEncounter:
-                        viewStore.send(.welcomeSheetSampleEncounterTapped)
-                    case .dismiss:
-                        viewStore.send(.dismissPresentation(.welcomeSheet))
-                    }
-                }
-            }
-            .alert(store: store.scope(state: \.$crashReportingPermissionAlert, action: { .alert($0) }))
-            .task {
-                await viewStore.send(.onLaunch).finish()
-            }
-            .onAppear {
-                if let sizeClass = horizontalSizeClass {
-                    viewStore.send(.onHorizontalSizeClassChange(sizeClass))
-                }
-                viewStore.send(.scene(scenePhase))
-
-                viewStore.send(.onAppear)
-            }
-            .onChange(of: horizontalSizeClass) { _, sizeClass in
-                if let sizeClass = sizeClass {
-                    viewStore.send(.onHorizontalSizeClassChange(sizeClass))
-                }
-            }
-            .onChange(of: scenePhase) { _, phase in
-                viewStore.send(.scene(phase))
-            }
-            // Even though onOpenURL and onContinueUserActivity are added here and therefore are not in the view
-            // hierarchy from the moment the app launches, they are still being called
-            .onOpenURL { url in
-                // This is called for universal links
-                viewStore.send(.onOpenURL(url))
-            }
-            .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
-                // This is called when launching an advanced App Clip experience (e.g. QR code)
-                // while the main app is installed
-                guard let url = activity.webpageURL else { return }
-                viewStore.send(.onOpenURL(url))
-            }
-            .environmentObject(dependencies.modifierFormatter)
-            .environmentObject(dependencies.ordinalFormatter)
+        ZStack {
+            navigationView
         }
+        .sheet(isPresented: welcomeSheetBinding) {
+            WelcomeView { tap in
+                switch tap {
+                case .sampleEncounter:
+                    store.send(.welcomeSheetSampleEncounterTapped)
+                case .dismiss:
+                    store.send(.dismissPresentation(.welcomeSheet))
+                }
+            }
+        }
+        .alert(store: store.scope(state: \.$crashReportingPermissionAlert, action: \.alert))
+        .task {
+            await store.send(.onLaunch).finish()
+        }
+        .onAppear {
+            if let sizeClass = horizontalSizeClass {
+                store.send(.onHorizontalSizeClassChange(sizeClass))
+            }
+            store.send(.scene(scenePhase))
+
+            store.send(.onAppear)
+        }
+        .onChange(of: horizontalSizeClass) { _, sizeClass in
+            if let sizeClass = sizeClass {
+                store.send(.onHorizontalSizeClassChange(sizeClass))
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            store.send(.scene(phase))
+        }
+        // Even though onOpenURL and onContinueUserActivity are added here and therefore are not in the view
+        // hierarchy from the moment the app launches, they are still being called
+        .onOpenURL { url in
+            // This is called for universal links
+            store.send(.onOpenURL(url))
+        }
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+            // This is called when launching an advanced App Clip experience (e.g. QR code)
+            // while the main app is installed
+            guard let url = activity.webpageURL else { return }
+            store.send(.onOpenURL(url))
+        }
+        .environmentObject(dependencies.modifierFormatter)
+        .environmentObject(dependencies.ordinalFormatter)
     }
 }
 

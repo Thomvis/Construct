@@ -17,8 +17,10 @@ import URLRouting
 import GameModels
 import Persistence
 
+@Reducer
 struct AppFeature: Reducer {
 
+    @ObservableState
     struct State: Equatable {
 
         var navigation: Navigation.State?
@@ -27,7 +29,7 @@ struct AppFeature: Reducer {
 
         var sceneIsActive = false
         
-        @PresentationState var crashReportingPermissionAlert: AlertState<Action.Alert>?
+        @Presents var crashReportingPermissionAlert: AlertState<Action.Alert>?
 
         enum Presentation: Equatable {
             case welcomeSheet
@@ -122,13 +124,18 @@ struct AppFeature: Reducer {
                 if state.presentation == nil {
                     state.presentation = p
                     if p == .crashReportingPermissionAlert {
-                        state.crashReportingPermissionAlert = AlertState(
-                            title: .init("Construct quit unexpectedly."),
-                            message: .init("Do you want to send an anonymous crash reports so I can fix the issue?"),
-                            buttons: [
-                                .cancel(.init("Don't send"), action: .send(.dontSend)),
-                                .default(.init("Send"), action: .send(.send)),
-                            ])
+                        state.crashReportingPermissionAlert = AlertState {
+                            TextState("Construct quit unexpectedly.")
+                        } actions: {
+                            ButtonState(role: .cancel, action: .send(.dontSend)) {
+                                TextState("Don't send")
+                            }
+                            ButtonState(action: .send(.send)) {
+                                TextState("Send")
+                            }
+                        } message: {
+                            TextState("Do you want to send an anonymous crash reports so I can fix the issue?")
+                        }
                     }
                 } else {
                     state.pendingPresentations.append(p)
@@ -229,7 +236,7 @@ struct AppFeature: Reducer {
                 return .none
             }
         }
-        .ifLet(\.navigation, action: /Action.navigation) {
+        .ifLet(\.navigation, action: \.navigation) {
             Navigation()
         }
         Reduce { state, action in
@@ -242,8 +249,10 @@ struct AppFeature: Reducer {
         }
     }
 
+    @Reducer
     struct Navigation: Reducer {
 
+        @ObservableState
         enum State: Equatable {
             case tab(TabNavigationFeature.State)
             case column(ColumnNavigationFeature.State)
@@ -302,10 +311,10 @@ struct AppFeature: Reducer {
                 }
                 return .none
             }
-            .ifCaseLet(/State.tab, action: /Action.tab) {
+            .ifCaseLet(\.tab, action: \.tab) {
                 TabNavigationFeature()
             }
-            .ifCaseLet(/State.column, action: /Action.column) {
+            .ifCaseLet(\.column, action: \.column) {
                 ColumnNavigationFeature()
             }
         }

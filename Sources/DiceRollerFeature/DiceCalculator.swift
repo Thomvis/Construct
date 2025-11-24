@@ -12,10 +12,12 @@ import ComposableArchitecture
 import Dice
 import SharedViews
 
+@Reducer
 public struct DiceCalculator: Reducer {
 
     public init() { }
 
+    @ObservableState
     public struct State: Hashable {
         public let displayOutcomeExternally: Bool
         public let rollOnAppear: Bool
@@ -223,27 +225,28 @@ public struct DiceCalculator: Reducer {
 public struct DiceCalculatorView: View {
     public static let buttonSpacing: CGFloat = 10
 
-    var store: StoreOf<DiceCalculator>
+    @Bindable var store: StoreOf<DiceCalculator>
 
     public init(store: StoreOf<DiceCalculator>) {
         self.store = store
     }
 
     public var body: some View {
-        WithViewStore(store, observe: \.self, removeDuplicates: { $0.showDicePad == $1.showDicePad }) { viewStore in
-            VStack {
-                DiceExpressionView(store: self.store)
-                Divider()
+        VStack {
+            DiceExpressionView(store: store)
+            Divider()
 
-                if viewStore.showDicePad {
-                    DicePadView(store: ViewStore(store, observe: \.self)).transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
-                } else {
-                    OutcomeView(store: store).transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
-                }
-            }.onAppear {
-                if viewStore.state.rollOnAppear && viewStore.state.result == nil {
-                    viewStore.send(.onRerollButtonTap)
-                }
+            if store.showDicePad {
+                DicePadView(store: store)
+                    .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
+            } else {
+                OutcomeView(store: store)
+                    .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .onAppear {
+            if store.rollOnAppear && store.result == nil {
+                store.send(.onRerollButtonTap)
             }
         }
     }
@@ -343,32 +346,30 @@ extension DiceCalculator.State {
 }
 
 fileprivate struct DiceExpressionView: View {
-    var store: StoreOf<DiceCalculator>
+    @Bindable var store: StoreOf<DiceCalculator>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            HStack {
-                viewStore.state.expression.text
-                    .font(viewStore.state.showMinimizedExpressionView ? .body : .largeTitle)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .onTapGesture {
-                        viewStore.send(.onExpressionEditButtonTap, animation: .spring())
-                    }
-                    .animation(nil, value: viewStore.state.expression)
+        HStack {
+            store.expression.text
+                .font(store.showMinimizedExpressionView ? .body : .largeTitle)
+                .fixedSize(horizontal: false, vertical: true)
+                .onTapGesture {
+                    store.send(.onExpressionEditButtonTap, animation: .spring())
+                }
+                .animation(nil, value: store.expression)
 
-                Spacer()
-                if viewStore.state.showExpressionEditUndoButton {
-                    SwiftUI.Button(action: { viewStore.send(.onExpressionEditUndoButtonTap) }) {
-                        Image(systemName: "arrow.uturn.left").font(.title)
-                    }
-                    .accentColor(Color(UIColor.systemRed))
-                    .keyboardShortcut(.delete, modifiers: [])
-                } else if viewStore.state.showExpressionEditButton {
-                    Button(action: {
-                        viewStore.send(.onExpressionEditButtonTap, animation: .spring())
-                    }) {
-                        Text("Edit")
-                    }
+            Spacer()
+            if store.showExpressionEditUndoButton {
+                Button(action: { store.send(.onExpressionEditUndoButtonTap) }) {
+                    Image(systemName: "arrow.uturn.left").font(.title)
+                }
+                .accentColor(Color(UIColor.systemRed))
+                .keyboardShortcut(.delete, modifiers: [])
+            } else if store.showExpressionEditButton {
+                Button(action: {
+                    store.send(.onExpressionEditButtonTap, animation: .spring())
+                }) {
+                    Text("Edit")
                 }
             }
         }
@@ -376,63 +377,59 @@ fileprivate struct DiceExpressionView: View {
 }
 
 struct OutcomeView: View {
-    let store: StoreOf<DiceCalculator>
+    @Bindable var store: StoreOf<DiceCalculator>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            ZStack {
-                if viewStore.state.showDice && viewStore.state.showDiceSummary {
-                    IfLetStore(store.scope(state: { $0.result(includingIntermediary: true) }, action: { $0 })) { store in
-                        ResultDetailView(store: store)
+        ZStack {
+            if store.showDice && store.showDiceSummary, let result = store.intermediaryResult ?? store.result {
+                ResultDetailView(result: result) {
+                    store.send(.onResultDieTap($0), animation: .spring())
+                }
+            } else if let result = store.intermediaryResult ?? store.result {
+                VStack {
+                    if store.showDiceSummary {
+                        diceSummary(result).animation(nil, value: result)
                     }
-                } else {
-                    if let result = viewStore.state.result(includingIntermediary: true) {
-                        VStack {
-                            if viewStore.state.showDiceSummary {
-                                diceSummary(result).animation(nil, value: result)
-                            }
-                            HStack {
-                                if viewStore.state.shouldCelebrateRoll && !viewStore.state.resultIsIntermediary {
-                                    Throphy()
-                                }
-
-                                Text("\(result.total)").font(.largeTitle)
-                                    .animation(nil, value: result)
-
-                                if viewStore.state.shouldCelebrateRoll && !viewStore.state.resultIsIntermediary {
-                                    Throphy()
-                                }
-                            }
-                            if viewStore.state.showDiceSummary {
-                                diceSummary(result).opacity(0.0) // just to reserve space for symmetry
-                            }
+                    HStack {
+                        if store.shouldCelebrateRoll && !store.resultIsIntermediary {
+                            Throphy()
                         }
-                        .opacity(viewStore.state.resultIsIntermediary ? 0.50 : 1.0)
-                    } else {
-                        Button(action: {
-                            viewStore.send(.onRerollButtonTap, animation: .spring())
-                        }) {
-                            Text("Roll").font(.largeTitle)
+
+                        Text("\(result.total)").font(.largeTitle)
+                            .animation(nil, value: result)
+
+                        if store.shouldCelebrateRoll && !store.resultIsIntermediary {
+                            Throphy()
                         }
-                        .transition(.identity)
+                    }
+                    if store.showDiceSummary {
+                        diceSummary(result).opacity(0.0) // just to reserve space for symmetry
                     }
                 }
-            }
-            .frame(maxWidth: .infinity)
-            .overlay(
-                TrailingButtons(store: viewStore)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            )
-            .overlay(Group {
+                .opacity(store.resultIsIntermediary ? 0.50 : 1.0)
+            } else {
                 Button(action: {
-                    viewStore.send(.onShowDiceButtonTap, animation: .default)
+                    store.send(.onRerollButtonTap, animation: .spring())
                 }) {
-                    Text(viewStore.state.showDice && viewStore.state.showDiceSummary ? "Hide dice" : "Show dice").font(.footnote)
+                    Text("Roll").font(.largeTitle)
                 }
-                .disabled(!viewStore.state.showDiceSummary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            })
+                .transition(.identity)
+            }
         }
+        .frame(maxWidth: .infinity)
+        .overlay(
+            TrailingButtons(store: store)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        )
+        .overlay(Group {
+            Button(action: {
+                store.send(.onShowDiceButtonTap, animation: .default)
+            }) {
+                Text(store.showDice && store.showDiceSummary ? "Hide dice" : "Show dice").font(.footnote)
+            }
+            .disabled(!store.showDiceSummary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        })
     }
 
     func Throphy() -> some View {
@@ -445,51 +442,52 @@ struct OutcomeView: View {
     }
 
     struct TrailingButtons: View {
-        @ObservedObject var store: ViewStore<DiceCalculator.State, DiceCalculator.Action>
+        @Bindable var store: StoreOf<DiceCalculator>
 
         var body: some View {
             VStack {
                 Button(action: {
-                    self.store.send(.onRerollButtonTap, animation: .default)
+                    store.send(.onRerollButtonTap, animation: .default)
                 }) {
                     Text("Re-roll").font(.footnote)
-                }.disabled(!self.store.canRerollResult)
+                }
+                .disabled(!store.canRerollResult)
             }
         }
     }
 }
 
 public struct ResultDetailView: View {
-    let store: Store<RolledDiceExpression, DiceCalculator.Action>
+    let result: RolledDiceExpression
+    let onDieTap: (Int) -> Void
 
-    public init(store: Store<RolledDiceExpression, DiceCalculator.Action>) {
-        self.store = store
+    public init(result: RolledDiceExpression, onDieTap: @escaping (Int) -> Void) {
+        self.result = result
+        self.onDieTap = onDieTap
     }
 
     public var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            VStack {
-                LazyVGrid(
-                    columns: gridColumns(viewStore.state),
-                    spacing: 8
-                ) {
-                    ForEach(Array(viewStore.state.dice.enumerated()), id: \.0) { (idx, die) in
-                        SimpleButton(action: {
-                            viewStore.send(.onResultDieTap(idx), animation: .spring())
-                        }) {
-                            self.view(die, index: idx)
-                        }
+        VStack {
+            LazyVGrid(
+                columns: gridColumns(result),
+                spacing: 8
+            ) {
+                ForEach(Array(result.dice.enumerated()), id: \.0) { (idx, die) in
+                    SimpleButton(action: {
+                        onDieTap(idx)
+                    }) {
+                        self.view(die, index: idx)
                     }
+                }
 
-                    if viewStore.state.modifier > 0 {
-                        Text("+ \(viewStore.state.modifier)").bold()
-                    } else if viewStore.state.modifier < 0 {
-                        Text("- \(viewStore.state.modifier * -1)").bold()
-                    }
-                }.padding(10)
+                if result.modifier > 0 {
+                    Text("+ \(result.modifier)").bold()
+                } else if result.modifier < 0 {
+                    Text("- \(result.modifier * -1)").bold()
+                }
+            }.padding(10)
 
-                Text("Tap a die to re-roll").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
-            }
+            Text("Tap a die to re-roll").font(.footnote).foregroundColor(Color(UIColor.secondaryLabel))
         }
     }
 
@@ -512,16 +510,16 @@ public struct ResultDetailView: View {
 }
 
 fileprivate struct DicePadView: View {
-    @ObservedObject var store: ViewStore<DiceCalculator.State, DiceCalculator.Action>
+    @Bindable var store: StoreOf<DiceCalculator>
 
     var body: some View {
         VStack(spacing: DiceCalculatorView.buttonSpacing) {
             HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                CycleColorButton(action: { self.store.send(.onColorCycleButtonTap) }, color: self.store.entryContext.color).buttonStyle(FnButtonStyle())
+                CycleColorButton(action: { store.send(.onColorCycleButtonTap) }, color: store.entryContext.color).buttonStyle(FnButtonStyle())
                 PlusMinusToggleButton(subtract: store.entryContext.subtract, toggle: {
-                    self.store.send(.onPlusMinusButtonTap)
+                    store.send(.onPlusMinusButtonTap)
                 }).buttonStyle(FnButtonStyle())
-                makeFnButton(action: { self.store.send(.clearExpression)}, "Clear")
+                makeFnButton(action: { store.send(.clearExpression)}, "Clear")
             }
 
             HStack(spacing: DiceCalculatorView.buttonSpacing) {
@@ -545,19 +543,19 @@ fileprivate struct DicePadView: View {
                 makeButton("1d2", .dice(count: 1, die: .d2))
                 makeButton("1d4", .dice(count: 1, die: .d4))
                 Button(action: {
-                    self.store.send(.onExpressionEditRollButtonTap, animation: .spring())
+                    store.send(.onExpressionEditRollButtonTap, animation: .spring())
                 }) {
                     Text("Roll")
                 }
                 .buttonStyle(DiceCalculator.ButtonStyle(color: Color(UIColor.systemBlue).opacity(0.5)))
-                .disabled(store.state.expression.diceCount == 0)
-                .opacity(store.state.expression.diceCount == 0 ? 0.33 : 1.0)
+                .disabled(store.expression.diceCount == 0)
+                .opacity(store.expression.diceCount == 0 ? 0.33 : 1.0)
             }
         }
     }
 
     func makeButton(_ text: String, _ expression: DiceExpression) -> some View {
-        Button(action: { self.store.send(.appendExpression(expression)) }) {
+        Button(action: { store.send(.appendExpression(expression)) }) {
             Text(text)
         }.buttonStyle(DiceCalculator.ButtonStyle())
     }

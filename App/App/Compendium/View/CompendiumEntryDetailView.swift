@@ -41,7 +41,11 @@ struct CompendiumEntryDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
+        content
+    }
+
+    private var content: some View {
+        let scroll = ScrollView {
             VStack {
                 contentView()
                 
@@ -56,7 +60,6 @@ struct CompendiumEntryDetailView: View {
             // Placing .popover inside ScrollView to work around https://github.com/stleamist/BetterSafariView/issues/23
             .popover(popoverBinding)
         }
-        // Handle taps from the attribution
         .environment(\.openURL, OpenURLAction { url in
             guard url.scheme == StatBlockView.urlSchema,
                   let host = url.host,
@@ -68,83 +71,81 @@ struct CompendiumEntryDetailView: View {
             self.onTap(target)
             return .handled
         })
-        .toolbar {
-            ToolbarItemGroup(placement: .primaryAction) {
-                with(menuItems) { items in
-                    if let only = items.single {
-                        Button(action: only.action) {
-                            Text(only.text)
-                        }
-                    } else if items.count > 1 {
-                        Menu(content: {
-                            ForEach(menuItems, id: \.text) { item in
-                                if item.text == MenuItem.divider.text {
-                                    Divider()
-                                } else {
-                                    Button(action: item.action) {
-                                        Label(item.text, systemImage: item.systemImage)
+
+        let base = scroll
+            .toolbar {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    with(menuItems) { items in
+                        if let only = items.single {
+                            Button(action: only.action) {
+                                Text(only.text)
+                            }
+                        } else if items.count > 1 {
+                            Menu(content: {
+                                ForEach(menuItems, id: \.text) { item in
+                                    if item.text == MenuItem.divider.text {
+                                        Divider()
+                                    } else {
+                                        Button(action: item.action) {
+                                            Label(item.text, systemImage: item.systemImage)
+                                        }
                                     }
                                 }
+                            }) {
+                                Image(systemName: "ellipsis.circle").frame(width: 30, height: 30, alignment: .trailing)
                             }
-                        }) {
-                            Image(systemName: "ellipsis.circle").frame(width: 30, height: 30, alignment: .trailing)
                         }
                     }
                 }
             }
-        }
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
-        .onAppear {
-            viewStore.send(.onAppear)
-        }
-        .navigationDestination(
-            store: store.scope(state: \.$destination, action: { .destination($0) }),
-            state: /CompendiumEntryDetailFeature.Destination.State.compendiumItemDetailView,
-            action: CompendiumEntryDetailFeature.Destination.Action.compendiumItemDetailView
-        ) { store in
-            CompendiumEntryDetailView(store: store)
-        }
-        .safariView(
-            item: viewStore.binding(get: \.safari, send: CompendiumEntryDetailFeature.Action.setSafari),
-            onDismiss: { viewStore.send(.setSafari(nil)) },
-            content: { state in
-                BetterSafariView.SafariView(
-                    url: state.url
-                )
+            .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+
+        let navigation = base
+            .onAppear {
+                viewStore.send(.onAppear)
             }
-        )
-        .sheet(
-            store: store.scope(state: \.$sheet, action: CompendiumEntryDetailFeature.Action.sheet),
-            state: /CompendiumEntryDetailFeature.Sheet.State.creatureEdit,
-            action: CompendiumEntryDetailFeature.Sheet.Action.creatureEdit
-        ) { store in
-            SheetNavigationContainer(isModalInPresentation: true) {
-                CreatureEditView(store: store)
-            }
-        }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: CompendiumEntryDetailFeature.Action.sheet),
-            state: /CompendiumEntryDetailFeature.Sheet.State.groupEdit,
-            action: CompendiumEntryDetailFeature.Sheet.Action.groupEdit
-        ) { store in
-            SheetNavigationContainer {
-                CompendiumItemGroupEditView(store: store)
-            }
-        }
-        .sheet(
-            store: store.scope(state: \.$sheet, action: CompendiumEntryDetailFeature.Action.sheet),
-            state: /CompendiumEntryDetailFeature.Sheet.State.transfer,
-            action: CompendiumEntryDetailFeature.Sheet.Action.transfer
-        ) { store in
-            AutoSizingSheetContainer {
-                SheetNavigationContainer {
-                    CompendiumItemTransferSheet(store: store)
-                        .autoSizingSheetContent(constant: 40)
-                        .navigationTitle("Move")
-                        .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(
+                store: store.scope(state: \.$destination, action: \.destination)
+            ) { destinationStore in
+                switch destinationStore.case {
+                case let .compendiumItemDetailView(store):
+                    CompendiumEntryDetailView(store: store)
                 }
             }
-        }
+
+        return navigation
+            .safariView(
+                item: viewStore.binding(get: \.safari, send: CompendiumEntryDetailFeature.Action.setSafari),
+                onDismiss: { viewStore.send(.setSafari(nil)) },
+                content: { state in
+                    BetterSafariView.SafariView(
+                        url: state.url
+                    )
+                }
+            )
+            .sheet(
+                store: store.scope(state: \.$sheet, action: \.sheet)
+            ) { sheetStore in
+                switch sheetStore.case {
+                case let .creatureEdit(store):
+                    SheetNavigationContainer(isModalInPresentation: true) {
+                        CreatureEditView(store: store)
+                    }
+                case let .groupEdit(store):
+                    SheetNavigationContainer {
+                        CompendiumItemGroupEditView(store: store)
+                    }
+                case let .transfer(store):
+                    AutoSizingSheetContainer {
+                        SheetNavigationContainer {
+                            CompendiumItemTransferSheet(store: store)
+                                .autoSizingSheetContent(constant: 40)
+                                .navigationTitle("Move")
+                                .navigationBarTitleDisplayMode(.inline)
+                        }
+                    }
+                }
+            }
     }
 
     @ViewBuilder
@@ -260,13 +261,13 @@ struct CompendiumEntryDetailView: View {
         Binding(get: {
             switch viewStore.state.popover {
             case .creatureAction:
-                return IfLetStore(store.scope(state: { $0.createActionPopover }, action: { .creatureActionPopover($0) })) { store in
+                return IfLetStore(store.scope(state: \.createActionPopover, action: \.creatureActionPopover)) { store in
                     ActionResolutionView(
                         store: store
                     )
                 }.eraseToAnyView
             case .rollCheck:
-                return IfLetStore(store.scope(state: { $0.rollCheckPopover }, action: { .rollCheckPopover($0) })) { store in
+                return IfLetStore(store.scope(state: \.rollCheckPopover, action: \.rollCheckPopover)) { store in
                     DiceCalculatorView(store: store)
                 }.eraseToAnyView
             case nil: return nil

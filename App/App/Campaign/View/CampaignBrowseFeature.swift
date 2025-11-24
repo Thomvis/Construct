@@ -92,6 +92,7 @@ struct CampaignBrowseViewFeature: Reducer {
         static let nullInstance = State(node: CampaignNode.root, mode: .browse, showSettingsButton: false)
     }
 
+    @CasePathable
     enum Action: Equatable {
         case items(State.AsyncItems.Action)
         case didTapNodeEditDone(State.NodeEditState, CampaignNode?, String)
@@ -117,34 +118,21 @@ struct CampaignBrowseViewFeature: Reducer {
 
     }
 
-    struct Destination: Reducer {
-        enum State: Equatable {
-            case campaignBrowse(CampaignBrowseViewFeature.State)
-            case encounter(EncounterDetailFeature.State)
-        }
-
-        enum Action: Equatable {
-            case campaignBrowse(CampaignBrowseViewFeature.Action)
-            case encounterDetail(EncounterDetailFeature.Action)
-        }
-
-        var body: some ReducerOf<Self> {
-            Scope(state: /State.campaignBrowse, action: /Action.campaignBrowse) {
-                CampaignBrowseViewFeature()
-            }
-            Scope(state: /State.encounter, action: /Action.encounterDetail) {
-                EncounterDetailFeature()
-            }
-        }
+    @Reducer
+    enum Destination {
+        case campaignBrowse(CampaignBrowseViewFeature)
+        case encounter(EncounterDetailFeature)
     }
 
     struct Sheet: Reducer {
+        @CasePathable
         enum State: Equatable {
             case settings
             case nodeEdit(CampaignBrowseViewFeature.State.NodeEditState)
             indirect case move(CampaignBrowseViewFeature.State)
         }
 
+        @CasePathable
         enum Action: Equatable {
             case settings(Never)
             case nodeEdit(CampaignBrowseViewFeature.NodeEdit.Action)
@@ -152,10 +140,10 @@ struct CampaignBrowseViewFeature: Reducer {
         }
 
         var body: some ReducerOf<Self> {
-            Scope(state: /State.nodeEdit, action: /Action.nodeEdit) {
+            Scope(state: \.nodeEdit, action: \.nodeEdit) {
                 CampaignBrowseViewFeature.NodeEdit()
             }
-            Scope(state: /State.move, action: /Action.move) {
+            Scope(state: \.move, action: \.move) {
                 CampaignBrowseViewFeature()
             }
         }
@@ -164,6 +152,7 @@ struct CampaignBrowseViewFeature: Reducer {
     struct NodeEdit: Reducer {
         typealias State = CampaignBrowseViewFeature.State.NodeEditState
 
+        @CasePathable
         enum Action: BindableAction, Equatable {
             case binding(BindingAction<State>)
         }
@@ -284,7 +273,7 @@ struct CampaignBrowseViewFeature: Reducer {
             return .none
         }
         WithValue(value: \.node) { node in
-            Scope(state: \.items, action: /Action.items) {
+            Scope(state: \.items, action: \.items) {
                 State.AsyncItems {
                     do {
                         return try campaignBrowser.nodes(in: node)
@@ -294,10 +283,8 @@ struct CampaignBrowseViewFeature: Reducer {
                 }
             }
         }
-        .ifLet(\.$destination, action: /Action.destination) {
-            Destination()
-        }
-        .ifLet(\.$sheet, action: /Action.sheet) {
+        .ifLet(\.$destination, action: \.destination)
+        .ifLet(\.$sheet, action: \.sheet) {
             Sheet()
         }
     }
@@ -338,3 +325,6 @@ extension CampaignBrowseViewFeature.Destination.State: NavigationTreeNode {
         }
     }
 }
+
+extension CampaignBrowseViewFeature.Destination.State: Equatable {}
+extension CampaignBrowseViewFeature.Destination.Action: Equatable {}

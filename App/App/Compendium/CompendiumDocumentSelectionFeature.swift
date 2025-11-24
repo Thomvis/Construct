@@ -57,6 +57,7 @@ struct CompendiumDocumentSelectionFeature: Reducer {
 
     }
     
+    @CasePathable
     enum Action: BindableAction, Equatable {
         case onAppear
         case source(CompendiumSourceDocument, CompendiumRealm)
@@ -89,11 +90,11 @@ struct CompendiumDocumentSelectionFeature: Reducer {
             }
         }
 
-        Scope(state: \.documents, action: /Action.documents) {
+        Scope(state: \.documents, action: \.documents) {
             State.AsyncDocuments(compendiumMetadata: compendiumMetadata)
         }
 
-        Scope(state: \.realms, action: /Action.realms) {
+        Scope(state: \.realms, action: \.realms) {
             State.AsyncRealms(compendiumMetadata: compendiumMetadata)
         }
     }

@@ -27,6 +27,7 @@ struct CompendiumDocumentsFeature: Reducer {
         }
     }
 
+    @CasePathable
     enum Action: BindableAction, Equatable {
         case onAppear
 
@@ -43,26 +44,10 @@ struct CompendiumDocumentsFeature: Reducer {
         case binding(BindingAction<State>)
     }
 
-    struct Sheet: Reducer {
-        enum State: Equatable {
-            case editRealm(EditRealm.State)
-            case editDocument(EditDocument.State)
-        }
-
-        enum Action: Equatable {
-            case editRealm(EditRealm.Action)
-            case editDocument(EditDocument.Action)
-        }
-
-        var body: some ReducerOf<Self> {
-            Scope(state: /State.editRealm, action: /Action.editRealm) {
-                EditRealm()
-            }
-
-            Scope(state: /State.editDocument, action: /Action.editDocument) {
-                EditDocument()
-            }
-        }
+    @Reducer
+    enum Sheet {
+        case editRealm(EditRealm)
+        case editDocument(EditDocument)
     }
 
     @Dependency(\.compendiumMetadata) var compendiumMetadata
@@ -100,8 +85,7 @@ struct CompendiumDocumentsFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.$sheet, action: /Action.sheet) {
-            Sheet()
+        .ifLet(\.$sheet, action: \.sheet) {
         }
 
         BindingReducer()
@@ -305,6 +289,7 @@ struct EditDocument: Reducer {
         }
     }
 
+    @CasePathable
     enum Action: BindableAction, Equatable {
         case onCancelButtonTap
         case onDoneButtonTap
@@ -390,7 +375,7 @@ struct EditDocument: Reducer {
             }
             return .none
         }
-        .ifLet(\.$contents, action: /Action.contents) {
+        .ifLet(\.$contents, action: \.contents) {
             CompendiumIndexFeature()
         }
 
@@ -435,69 +420,91 @@ struct CompendiumDocumentsView: View {
     let store: StoreOf<CompendiumDocumentsFeature>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            ScrollView {
-                VStack(spacing: 20) {
-                    ForEach(viewStore.state.realms, id: \.id) { realm in
-                        let documents = viewStore.state.documents(for: realm)
+        WithViewStore(store, observe: ViewState.init) { viewStore in
+            content(viewStore: viewStore)
+                .onAppear {
+                    viewStore.send(.onAppear)
+                }
+                .navigationTitle("Documents")
+        }
+    }
 
-                        SectionContainer(
-                            title: realm.displayName,
-                            accessory: Menu(content: {
+    @ViewBuilder
+    private func realmSection(
+        viewStore: ViewStore<ViewState, CompendiumDocumentsFeature.Action>,
+        realm: CompendiumRealm,
+        documents: [CompendiumSourceDocument]
+    ) -> some View {
+        SectionContainer(
+            title: realm.displayName,
+            accessory: Menu(content: {
+                Button(action: {
+                    viewStore.send(.onEditRealmTap(realm))
+                }, label: {
+                    Label("Edit realm", systemImage: "pencil")
+                })
 
-                                Button(action: {
-                                    viewStore.send(.onEditRealmTap(realm))
-                                }, label: {
-                                    Label("Edit realm", systemImage: "pencil")
-                                })
+                Divider()
 
-                                Divider()
+                Button(action: {
+                    viewStore.send(.onAddDocumentToRealmTap(realm))
+                }, label: {
+                    Label("Add document", systemImage: "doc.badge.plus")
+                })
 
-                                Button(action: {
-                                    viewStore.send(.onAddDocumentToRealmTap(realm))
-                                }, label: {
-                                    Label("Add document", systemImage: "doc.badge.plus")
-                                })
-
-                                Button(role: .destructive, action: {
-                                    viewStore.send(.onRemoveEmptyRealmTap(realm))
-                                }, label: {
-                                    Label("Remove empty realm", systemImage: "trash")
-                                })
-                                .disabled(!documents.isEmpty)
-                            }, label: {
-                                Image(systemName: "ellipsis.circle")
-                            })
-                        ) {
-                            if documents.isEmpty {
-                                Text("No documents").italic()
-                                    .frame(minHeight: 35)
-                            } else {
-                                VStack {
-                                    ForEach(documents, id: \.id) { document in
-                                        NavigationRowButton {
-                                            viewStore.send(.onDocumentTap(document))
-                                        } label: {
-                                            HStack {
-                                                Text(document.displayName)
-                                                Spacer()
-                                                Text(document.id.rawValue)
-                                                    .foregroundStyle(.secondary)
-                                            }
-                                        }
-                                        .frame(minHeight: 35)
-
-                                        if document != documents.last {
-                                            Divider()
-                                        }
-                                    }
-                                }
+                Button(role: .destructive, action: {
+                    viewStore.send(.onRemoveEmptyRealmTap(realm))
+                }, label: {
+                    Label("Remove empty realm", systemImage: "trash")
+                })
+                .disabled(!documents.isEmpty)
+            }, label: {
+                Image(systemName: "ellipsis.circle")
+            })
+        ) {
+            if documents.isEmpty {
+                Text("No documents").italic()
+                    .frame(minHeight: 35)
+            } else {
+                VStack {
+                    ForEach(documents, id: \.id) { document in
+                        NavigationRowButton {
+                            viewStore.send(.onDocumentTap(document))
+                        } label: {
+                            HStack {
+                                Text(document.displayName)
+                                Spacer()
+                                Text(document.id.rawValue)
+                                    .foregroundStyle(.secondary)
                             }
+                        }
+                        .frame(minHeight: 35)
+
+                        if document != documents.last {
+                            Divider()
                         }
                     }
                 }
-                .padding()
             }
+        }
+    }
+
+    @ViewBuilder
+    private func content(viewStore: ViewStore<ViewState, CompendiumDocumentsFeature.Action>) -> some View {
+        let sheetStore = store.scope(state: \.$sheet, action: \.sheet)
+
+        let documents = ScrollView {
+            VStack(spacing: 20) {
+                ForEach(viewStore.state.realms, id: \.id) { realm in
+                    let documents = viewStore.state.documents(for: realm)
+
+                    realmSection(viewStore: viewStore, realm: realm, documents: documents)
+                }
+            }
+            .padding()
+        }
+
+        documents
             .safeAreaInset(edge: .bottom) {
                 RoundedButtonToolbar {
                     Button(action: {
@@ -515,36 +522,42 @@ struct CompendiumDocumentsView: View {
                 .padding(8)
             }
             .sheet(
-                store: store.scope(state: \.$sheet, action: CompendiumDocumentsFeature.Action.sheet),
-                state: /CompendiumDocumentsFeature.Sheet.State.editRealm,
-                action: CompendiumDocumentsFeature.Sheet.Action.editRealm
-            ) { store in
-                AutoSizingSheetContainer {
-                    SheetNavigationContainer {
-                        EditRealmView(store: store)
+                store: sheetStore
+            ) { sheetStore in
+                switch sheetStore.case {
+                case let .editRealm(store):
+                    AutoSizingSheetContainer {
+                        SheetNavigationContainer {
+                            EditRealmView(store: store)
+                        }
                     }
-//                    .autoSizingSheetContent(constant: ViewStore(store).state)
+                case let .editDocument(store):
+                    AutoSizingSheetContainer {
+                        SheetNavigationContainer {
+                            CompendiumDocumentEditView(store: store)
+                        }
+                    }
                 }
             }
-            .sheet(
-                store: store.scope(state: \.$sheet, action: CompendiumDocumentsFeature.Action.sheet),
-                state: /CompendiumDocumentsFeature.Sheet.State.editDocument,
-                action: CompendiumDocumentsFeature.Sheet.Action.editDocument
-            ) { store in
-                AutoSizingSheetContainer {
-                    SheetNavigationContainer {
-                        CompendiumDocumentEditView(store: store)
-                    }
-//                    .autoSizingSheetContent(constant: ViewStore(store).state)
-                }
-            }
-            .onAppear {
-                viewStore.send(.onAppear)
-            }
-            .navigationTitle("Documents")
+    }
+
+    struct ViewState: Equatable {
+        let realms: [CompendiumRealm]
+        let documents: [CompendiumSourceDocument]
+
+        init(state: CompendiumDocumentsFeature.State) {
+            self.realms = state.realms
+            self.documents = state.documents
+        }
+
+        func documents(for realm: CompendiumRealm) -> [CompendiumSourceDocument] {
+            documents.filter { $0.realmId == realm.id }
         }
     }
 }
+
+extension CompendiumDocumentsFeature.Sheet.State: Equatable {}
+extension CompendiumDocumentsFeature.Sheet.Action: Equatable {}
 
 struct CompendiumDocumentEditView: View {
 
@@ -635,7 +648,7 @@ struct CompendiumDocumentEditView: View {
                 .autoSizingSheetContent(constant: 100)
             }
             .navigationDestination(
-                store: store.scope(state: \.$contents, action: EditDocument.Action.contents),
+                store: store.scope(state: \.$contents, action: \.contents),
                 destination: { store in
                     CompendiumIndexView(store: store)
                 }

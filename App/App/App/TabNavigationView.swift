@@ -12,38 +12,36 @@ import ComposableArchitecture
 import DiceRollerFeature
 
 struct TabNavigationView: View {
-    var store: Store<TabNavigationFeature.State, TabNavigationFeature.Action>
+    @Bindable var store: StoreOf<TabNavigationFeature>
 
     var body: some View {
-        WithViewStore(store, observe: \.self, removeDuplicates: { $0.selectedTab == $1.selectedTab }) { viewStore in
-            TabView(
-                selection: viewStore.binding(
-                    get: { $0.selectedTab },
-                    send: { TabNavigationFeature.Action.selectedTab($0) }
-                )
-            ) {
-                CampaignBrowserContainerView(store: store.scope(state: { $0.campaignBrowser }, action: { .campaignBrowser($0) }))
-                    .tabItem {
-                        Image(systemName: "shield")
-                        Text("Adventure")
-                    }
-                    .tag(TabNavigationFeature.State.Tabs.campaign)
+        TabView(
+            selection: Binding(
+                get: { store.selectedTab },
+                set: { store.send(.selectedTab($0)) }
+            )
+        ) {
+            CampaignBrowserContainerView(store: store.scope(state: \.campaignBrowser, action: \.campaignBrowser))
+                .tabItem {
+                    Image(systemName: "shield")
+                    Text("Adventure")
+                }
+                .tag(TabNavigationFeature.State.Tabs.campaign)
 
-                CompendiumContainerView(store: store.scope(state: { $0.compendium }, action: { .compendium($0) }))
-                    .tabItem {
-                        Image(systemName: "book")
-                        Text("Compendium")
-                    }
-                    .tag(TabNavigationFeature.State.Tabs.compendium)
+            CompendiumContainerView(store: store.scope(state: \.compendium, action: \.compendium))
+                .tabItem {
+                    Image(systemName: "book")
+                    Text("Compendium")
+                }
+                .tag(TabNavigationFeature.State.Tabs.compendium)
 
-                DiceRollerView(store: self.store.scope(state: { $0.diceRoller }, action: { .diceRoller($0) }))
-                    .tabItem {
-                        Image("tabbar_d20")
-                        Text("Dice")
-                    }
-                    .tag(TabNavigationFeature.State.Tabs.diceRoller)
-            }
-            .environment(\.appNavigation, .tab)
+            DiceRollerView(store: store.scope(state: \.diceRoller, action: \.diceRoller))
+                .tabItem {
+                    Image("tabbar_d20")
+                    Text("Dice")
+                }
+                .tag(TabNavigationFeature.State.Tabs.diceRoller)
         }
+        .environment(\.appNavigation, .tab)
     }
 }

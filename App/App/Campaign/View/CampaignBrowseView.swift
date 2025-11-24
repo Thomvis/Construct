@@ -90,18 +90,14 @@ struct CampaignBrowseView: View {
             }
         }
         .navigationDestination(
-            store: store.scope(state: \.$destination, action: { .destination($0) }),
-            state: /CampaignBrowseViewFeature.Destination.State.campaignBrowse,
-            action: CampaignBrowseViewFeature.Destination.Action.campaignBrowse
-        ) { store in
-            CampaignBrowseView(store: store)
-        }
-        .navigationDestination(
-            store: store.scope(state: \.$destination, action: { .destination($0) }),
-            state: /CampaignBrowseViewFeature.Destination.State.encounter,
-            action: CampaignBrowseViewFeature.Destination.Action.encounterDetail
-        ) { store in
-            EncounterDetailView(store: store)
+            store: store.scope(state: \.$destination, action: \.destination)
+        ) { destinationStore in
+            switch destinationStore.case {
+            case let .campaignBrowse(store):
+                CampaignBrowseView(store: store)
+            case let .encounter(store):
+                EncounterDetailView(store: store)
+            }
         }
         .onAppear {
             self.viewStore.send(.items(.startLoading))
@@ -115,16 +111,12 @@ struct CampaignBrowseView: View {
         func body(content: Content) -> some View {
             content
                 .sheet(
-                    store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
-                    state: /CampaignBrowseViewFeature.Sheet.State.settings,
-                    action: CampaignBrowseViewFeature.Sheet.Action.settings
+                    store: store.scope(state: \.$sheet.settings, action: \.sheet.settings)
                 ) { _ in
                     SettingsContainerView()
                 }
                 .sheet(
-                    store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
-                    state: /CampaignBrowseViewFeature.Sheet.State.nodeEdit,
-                    action: CampaignBrowseViewFeature.Sheet.Action.nodeEdit
+                    store: store.scope(state: \.$sheet.nodeEdit, action: \.sheet.nodeEdit)
                 ) { store in
                     SheetNavigationContainer {
                         NodeEditView(
@@ -136,9 +128,7 @@ struct CampaignBrowseView: View {
                     }
                 }
                 .sheet(
-                    store: store.scope(state: \.$sheet, action: CampaignBrowseViewFeature.Action.sheet),
-                    state: /CampaignBrowseViewFeature.Sheet.State.move,
-                    action: CampaignBrowseViewFeature.Sheet.Action.move
+                    store: store.scope(state: \.$sheet.move, action: \.sheet.move)
                 ) { store in
                     SheetNavigationContainer {
                         CampaignBrowseView(store: store)

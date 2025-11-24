@@ -20,10 +20,8 @@ struct DiceActionView: View {
         WithViewStore(store, observe: \.self) { viewStore in
             VStack {
 
-                VStack {
-                    ForEachStore(store.scope(state: { $0.action.steps }, action: { .stepAction($0, $1) })) { store in
-                        StepView(store: store)
-                    }
+                ForEachStore(store.scope(state: \.action.steps, action: \.steps)) { store in
+                    StepView(store: store)
                 }
 
                 HStack {
@@ -70,7 +68,7 @@ struct DiceActionView: View {
                         }
                         Spacer()
 
-                        IfLetStore(store.scope(state: { $0.rollValue }, action: { .value(.roll($0)) })) { store in
+                        IfLetStore(store.scope(state: \.rollValue, action: \.value.roll)) { store in
                             RollValueView(step: viewStore.state, store: store)
                         }
                     }
@@ -115,14 +113,16 @@ struct DiceActionView: View {
                             }
                         }
 
-                        SimpleButton(action: {
-                            viewStore.send(.details(viewStore.state.details.toggled(.firstRoll)), animation: .default)
-                        }) {
-                            rollView(ViewStore(store, observe: { $0.first }), step, viewStore.state, .firstRoll)
-                                .opacity(viewStore.state.details == .secondRoll ? 0.33 : 1.0)
+                        WithViewStore(store.scope(state: \.first, action: \.first), observe: \.self) { firstViewStore in
+                            SimpleButton(action: {
+                                viewStore.send(.details(viewStore.state.details.toggled(.firstRoll)), animation: .default)
+                            }) {
+                                rollView(firstViewStore, step, viewStore.state, .firstRoll)
+                                    .opacity(viewStore.state.details == .secondRoll ? 0.33 : 1.0)
+                            }
                         }
 
-                        IfLetStore(store.scope(state: { $0.second }, action: { $0 })) { store in
+                        IfLetStore(store.scope(state: \.second, action: \.second)) { store in
                             WithViewStore(store, observe: \.self) { secondViewStore in
                                 SimpleButton(action: {
                                     viewStore.send(.details(viewStore.state.details.toggled(.secondRoll)), animation: .default)
@@ -136,7 +136,7 @@ struct DiceActionView: View {
                 }
             }
 
-            private func rollView(_ viewStore: ViewStore<AnimatedRoll.State, DiceActionFeature.StepAction.ValueAction.RollAction>, _ step: DiceAction.Step, _ rollValue: DiceAction.Step.Value.RollValue, _ roll: DiceAction.Step.Value.RollValue.Details) -> some View {
+            private func rollView(_ viewStore: ViewStore<AnimatedRoll.State, AnimatedRoll.Action>, _ step: DiceAction.Step, _ rollValue: DiceAction.Step.Value.RollValue, _ roll: DiceAction.Step.Value.RollValue.Details) -> some View {
                 AnimatedRollView(roll: viewStore.binding(send: { _ in fatalError() })) { res, final in
                     Text("\(res?.total ?? 0)")
                         .underline(res != nil && res?.total == res?.unroll.maximum)
@@ -171,13 +171,15 @@ struct DiceActionView: View {
 
             var body: some View {
                 WithViewStore(store, observe: \.self) { viewStore in
-                    IfLetStore(self.store.scope(state: { $0.rollDetails?.result(includingIntermediary: true) }, action: { .rollDetails($0) })) { store in
-                        ResultDetailView(store: store)
-                            .padding(10)
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                Color(UIColor.systemGray6).cornerRadius(4)
-                            )
+                    if let result = viewStore.state.rollDetails?.result(includingIntermediary: true) {
+                        ResultDetailView(result: result) { idx in
+                            viewStore.send(.rollDetails(.onResultDieTap(idx)), animation: .spring())
+                        }
+                        .padding(10)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            Color(UIColor.systemGray6).cornerRadius(4)
+                        )
                     }
                 }
             }

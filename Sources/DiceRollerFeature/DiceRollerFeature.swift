@@ -11,10 +11,12 @@ import ComposableArchitecture
 import Dice
 import Helpers
 
+@Reducer
 public struct DiceRollerFeature: Reducer {
 
     public init() { }
 
+    @ObservableState
     public struct State: Equatable {
         public var calculatorState: DiceCalculator.State
         public var diceLog: DiceLog
@@ -44,7 +46,7 @@ public struct DiceRollerFeature: Reducer {
     }
 
     public var body: some ReducerOf<Self> {
-        Scope(state: \.calculatorState, action: /Action.calculatorState) {
+        Scope(state: \.calculatorState, action: \.calculatorState) {
             DiceCalculator()
         }
 

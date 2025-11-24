@@ -120,6 +120,7 @@ struct CombatantTagsFeature: Reducer {
         static let nullInstance = State(combatants: [], effectContext: nil)
     }
 
+    @CasePathable
     enum Action: Equatable {
         case addTag(CombatantTag)
         case removeTag(State.TagId, State.ActiveSection)
@@ -129,16 +130,18 @@ struct CombatantTagsFeature: Reducer {
     }
 
     struct Destination: Reducer {
+        @CasePathable
         enum State: Equatable {
             case tagEdit(CombatantTagEditFeature.State)
         }
 
+        @CasePathable
         enum Action: Equatable {
             case tagEdit(CombatantTagEditFeature.Action)
         }
 
         var body: some ReducerOf<Self> {
-            Scope(state: /State.tagEdit, action: /Action.tagEdit) {
+            Scope(state: \.tagEdit, action: \.tagEdit) {
                 CombatantTagEditFeature()
             }
         }
@@ -187,7 +190,7 @@ struct CombatantTagsFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.$destination, action: /Action.destination) {
+        .ifLet(\.$destination, action: \.destination) {
             Destination()
         }
     }

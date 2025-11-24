@@ -117,6 +117,7 @@ struct CompendiumIndexFeature: Reducer {
 
     }
 
+    @CasePathable
     enum Action: Equatable {
 
         typealias ResultsAction = Map<Query, PagingData<CompendiumEntry>>.Action
@@ -162,24 +163,13 @@ struct CompendiumIndexFeature: Reducer {
         }
     }
 
-    struct Destination: Reducer {
-        enum State: Equatable {
-            case itemDetail(CompendiumEntryDetailFeature.State)
-        }
-
-        enum Action: Equatable {
-            case compendiumIndex(CompendiumIndexFeature.Action)
-            case itemDetail(CompendiumEntryDetailFeature.Action)
-        }
-
-        var body: some ReducerOf<Self> {
-            Scope(state: /State.itemDetail, action: /Action.itemDetail) {
-                CompendiumEntryDetailFeature()
-            }
-        }
+    @Reducer
+    enum Destination {
+        case itemDetail(CompendiumEntryDetailFeature)
     }
 
     struct Sheet: Reducer {
+        @CasePathable
         enum State: Equatable {
             case creatureEdit(CreatureEditFeature.State)
             case groupEdit(CompendiumItemGroupEditFeature.State)
@@ -188,6 +178,7 @@ struct CompendiumIndexFeature: Reducer {
             case transfer(CompendiumItemTransferFeature.State)
         }
 
+        @CasePathable
         enum Action: Equatable {
             case creatureEdit(CreatureEditFeature.Action)
             case groupEdit(CompendiumItemGroupEditFeature.Action)
@@ -197,19 +188,19 @@ struct CompendiumIndexFeature: Reducer {
         }
 
         var body: some ReducerOf<Self> {
-            Scope(state: /State.creatureEdit, action: /Action.creatureEdit) {
+            Scope(state: \.creatureEdit, action: \.creatureEdit) {
                 CreatureEditFeature()
             }
-            Scope(state: /State.groupEdit, action: /Action.groupEdit) {
+            Scope(state: \.groupEdit, action: \.groupEdit) {
                 CompendiumItemGroupEditFeature()
             }
-            Scope(state: /State.compendiumImport, action: /Action.compendiumImport) {
+            Scope(state: \.compendiumImport, action: \.compendiumImport) {
                 CompendiumImportFeature()
             }
-            Scope(state: /State.documents, action: /Action.documents) {
+            Scope(state: \.documents, action: \.documents) {
                 CompendiumDocumentsFeature()
             }
-            Scope(state: /State.transfer, action: /Action.transfer) {
+            Scope(state: \.transfer, action: \.transfer) {
                 CompendiumItemTransferFeature()
             }
         }
@@ -365,14 +356,12 @@ struct CompendiumIndexFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.$destination, action: /Action.destination) {
-            Destination()
-        }
-        .ifLet(\.$sheet, action: /Action.sheet) {
+        .ifLet(\.$destination, action: \.destination)
+        .ifLet(\.$sheet, action: \.sheet) {
             Sheet()
         }
 
-        Scope(state: \.results, action: /Action.results) {
+        Scope(state: \.results, action: \.results) {
             resultsReducer
         }
         .onChange(of: \.results.entries, { _, entries in
@@ -522,6 +511,9 @@ extension CompendiumIndexFeature.Destination.State: NavigationTreeNode {
         }
     }
 }
+
+extension CompendiumIndexFeature.Destination.State: Equatable {}
+extension CompendiumIndexFeature.Destination.Action: Equatable {}
 
 extension CompendiumIndexFeature.State: NavigationStackItemState {
     var navigationStackItemStateId: String {

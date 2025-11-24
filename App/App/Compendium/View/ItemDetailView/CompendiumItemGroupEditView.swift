@@ -160,6 +160,7 @@ struct CompendiumItemGroupEditFeature: Reducer {
         }
     }
 
+    @CasePathable
     enum Action: Equatable {
         case groupTitle(String)
         case allCharacters(State.AsyncAllCharacers.Action)
@@ -194,7 +195,7 @@ struct CompendiumItemGroupEditFeature: Reducer {
             return .none
         }
 
-        Scope(state: \.allCharacters, action: /Action.allCharacters) {
+        Scope(state: \.allCharacters, action: \.allCharacters) {
             Async<[Character], EquatableError> {
                 try compendium.fetchAll(search: nil, filters: .init(types: [.character]), order: .title, range: nil)
                     .compactMap {

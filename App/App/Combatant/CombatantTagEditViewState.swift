@@ -67,6 +67,7 @@ struct CombatantTagEditFeature: Reducer {
         static let nullInstance = State(mode: .create, tag: CombatantTag.nullInstance, effectContext: nil, popover: nil)
     }
 
+    @CasePathable
     enum Action: Equatable {
         case onNoteTextDidChange(String)
         case onDurationDidChange(EffectDuration?)
@@ -90,7 +91,7 @@ struct CombatantTagEditFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.numberEntryPopover, action: /Action.numberEntryPopover) {
+        .ifLet(\.numberEntryPopover, action: \.numberEntryPopover) {
             NumberEntryFeature()
         }
     }

@@ -11,14 +11,18 @@ import ComposableArchitecture
 import Helpers
 import GameModels
 
-struct ReferenceViewFeature: Reducer {
+@Reducer
+struct ReferenceViewFeature {
 
+    @ObservableState
     struct State: Equatable {
 
         var encounterReferenceContext: EncounterReferenceContext? {
             didSet {
-                for item in items {
-                    items[id: item.id]?.state.content.context.encounterDetailView = encounterReferenceContext
+                for index in items.indices {
+                    var item = items[index]
+                    item.state.content.context.encounterDetailView = encounterReferenceContext
+                    items[index] = item
                 }
             }
         }
@@ -117,7 +121,7 @@ struct ReferenceViewFeature: Reducer {
     }
 
     enum Action: Equatable {
-        case item(TabbedDocumentViewContentItem.Id, ReferenceItem.Action)
+        case item(IdentifiedActionOf<Item>)
         case onBackTapped
         case onNewTabTapped
         case removeTab(TabbedDocumentViewContentItem.Id)
@@ -143,7 +147,7 @@ struct ReferenceViewFeature: Reducer {
         }
 
         var body: some ReducerOf<Self> {
-            Reduce { state, action in
+            Reduce<State, Action> { state, action in
                 switch action {
                 case .contentCombatantDetail, .contentCompendium, .contentAddCombatant, .contentCompendiumItem, .contentSafari, .onBackTapped, .set:
                     if let title = state.state.content.tabItemTitle {
@@ -157,11 +161,11 @@ struct ReferenceViewFeature: Reducer {
     }
 
     var body: some ReducerOf<Self> {
-        Reduce { state, action in
+        Reduce<State, Action> { state, action in
             switch action {
             case .onBackTapped:
                 if let id = state.selectedItemId {
-                    return .send(.item(id, .onBackTapped))
+                    return .send(.item(.element(id: id, action: .onBackTapped)))
                 }
             case .onNewTabTapped:
                 var item = Item.State(state: ReferenceItem.State(content: .compendium(ReferenceItem.State.Content.Compendium())))
@@ -187,17 +191,17 @@ struct ReferenceViewFeature: Reducer {
                 if !state.items.contains(where: { $0.id == state.selectedItemId }) {
                     state.selectedItemId = state.items.first?.id
                 }
-            case .item(let id, .close):
+            case .item(.element(id: let id, action: .close)):
                 return .send(.removeTab(id))
             case .item: break // handled above
             }
             return .none
         }
-        .forEach(\.items, action: /Action.item) {
+        .forEach(\.items, action: \.item) {
             Item()
         }
 
-        Reduce { state, action in
+        Reduce<State, Action> { state, action in
             switch action {
             // actions that can affect the open compendium entries
             case .item, .onBackTapped, .removeTab, .itemRequests:

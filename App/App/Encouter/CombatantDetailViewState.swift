@@ -175,6 +175,7 @@ struct CombatantDetailFeature: Reducer {
         }
     }
 
+    @CasePathable
     enum Action: Equatable {
         case onAppear
         case combatant(CombatantAction)
@@ -201,45 +202,14 @@ struct CombatantDetailFeature: Reducer {
         }
     }
 
-    struct Destination: Reducer {
-        enum State: Equatable {
-            case combatantTagsView(CombatantTagsFeature.State)
-            case combatantTagEditView(CombatantTagEditFeature.State)
-            case creatureEditView(CreatureEditFeature.State)
-            case combatantResourcesView(CombatantResourcesFeature.State)
-            case runningEncounterLogView(RunningEncounterLogViewState)
-            case compendiumItemDetailView(CompendiumEntryDetailFeature.State)
-        }
-
-        enum Action: Equatable {
-            case combatantTagsView(CombatantTagsFeature.Action)
-            case combatantTagEditView(CombatantTagEditFeature.Action)
-            case creatureEditView(CreatureEditFeature.Action)
-            case combatantResourcesView(CombatantResourcesFeature.Action)
-            case runningEncounterLogView(RunningEncounterLogViewAction)
-            case compendiumItemDetailView(CompendiumEntryDetailFeature.Action)
-        }
-
-        var body: some ReducerOf<Self> {
-            Scope(state: /State.combatantTagsView, action: /Action.combatantTagsView) {
-                CombatantTagsFeature()
-            }
-            Scope(state: /State.combatantTagEditView, action: /Action.combatantTagEditView) {
-                CombatantTagEditFeature()
-            }
-            Scope(state: /State.creatureEditView, action: /Action.creatureEditView) {
-                CreatureEditFeature()
-            }
-            Scope(state: /State.combatantResourcesView, action: /Action.combatantResourcesView) {
-                CombatantResourcesFeature()
-            }
-            Scope(state: /State.runningEncounterLogView, action: /Action.runningEncounterLogView) {
-                EmptyReducer()
-            }
-            Scope(state: /State.compendiumItemDetailView, action: /Action.compendiumItemDetailView) {
-                CompendiumEntryDetailFeature()
-            }
-        }
+    @Reducer
+    enum Destination {
+        case combatantTagsView(CombatantTagsFeature)
+        case combatantTagEditView(CombatantTagEditFeature)
+        case creatureEditView(CreatureEditFeature)
+        case combatantResourcesView(CombatantResourcesFeature)
+        case runningEncounterLogView(EmptyReducer<RunningEncounterLogViewState, RunningEncounterLogViewAction>)
+        case compendiumItemDetailView(CompendiumEntryDetailFeature)
     }
 
     @Dependency(\.compendium) var compendium
@@ -247,134 +217,147 @@ struct CombatantDetailFeature: Reducer {
     @Dependency(\.uuid) var uuid
 
     var body: some ReducerOf<Self> {
-        Reduce { state, action in
-            switch action {
-            case .onAppear:
-                if let def = state.combatant.definition as? CompendiumCombatantDefinition {
-                    state.entry = try? compendium.get(def.item.key)
-                }
-            case .combatant: break // should be handled by parent
-            case .popover(let popover):
-                state.popover = popover
-            case .alert(.presented(.unlinkAndEditCreature)):
-                state.alert = nil
-                return .send(.unlinkAndEditCreature)
-            case .alert(.dismiss):
-                state.alert = nil
-            case .addLimitedResource(.onDoneTap):
-                guard case .addLimitedResource(let editState) = state.popover else { return .none }
-                return .run { send in
-                    keyboard.dismissKeyboard()
-                    await send(.popover(nil))
-                    await send(.combatant(.addResource(editState.resource)))
-                }
-            case .addLimitedResource: break // handled below
-            case .healthDialog: break // handled below
-            case .rollCheckDialog: break // handled above
-            case .diceActionPopover: break // handled above
-            case .initiativePopover: break // handled above
-            case .editCreatureConfirmingUnlinkIfNeeded:
-                if let def = state.combatant.definition as? AdHocCombatantDefinition {
-                    return .send(.setDestination(.creatureEditView(CreatureEditFeature.State(edit: def))))
-                }
+        mainReducer
+        tapHandlingReducer
+    }
 
-                if state.combatant.definition is CompendiumCombatantDefinition {
-                    state.alert = AlertState {
-                        TextState("Detach Combatant to Edit")
-                    } actions: {
-                        ButtonState(action: .unlinkAndEditCreature) {
-                            TextState("Detach & Edit")
-                        }
-                        ButtonState(role: .cancel) {
-                            TextState("Cancel")
-                        }
-                    } message: {
-                        TextState("This combatant needs to be detached from the compendium to make changes just for this encounter.")
-                    }
-                }
-            case .saveToCompendium:
-                guard let def = state.combatant.definition as? AdHocCombatantDefinition else { return .none }
-
-                let item: CompendiumCombatant
-                if def.isUnique {
-                    item = Character(id: uuid().tagged(), realm: .init(CompendiumRealm.homebrew.id), level: def.level, stats: def.stats, player: def.player)
-                } else {
-                    item = Monster(realm: .init(CompendiumRealm.homebrew.id), stats: def.stats, challengeRating: def.stats.challengeRating ?? Fraction(integer: 0))
-                }
-            case .unlinkFromCompendium:
-                let currentDefinition = state.combatant.definition
-
-                let original = (currentDefinition as? CompendiumCombatantDefinition).map { CompendiumItemReference(itemTitle: $0.name, itemKey: $0.item.key) }
-                let definition = AdHocCombatantDefinition(id: uuid().tagged(), stats: currentDefinition.stats, player: currentDefinition.player, level: currentDefinition.level, original: original)
-                state.entry = nil
-                return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: definition))))
-            case .unlinkAndEditCreature:
-                return .merge(
-                    .send(.unlinkFromCompendium),
-                    .run { send in
-                        await Task.yield()
-                        await send(.editCreatureConfirmingUnlinkIfNeeded)
-                    }
-                )
-            case .didTapCompendiumItemReferenceTextAnnotation: break // handled by CompendiumItemReferenceTextAnnotation.handleTapReducer
-            case .setDestination(let destination):
-                state.destination = destination
-            case .destination(.presented(.combatantTagsView(.combatant(let combatant, let combatantAction)))):
-                guard combatant.id == state.combatant.id else { return .none }
-                // bubble-up action
-                return .send(.combatant(combatantAction))
-            case .destination(.presented(.combatantResourcesView(.combatant(let combatantAction)))):
-                // bubble-up action
-                return .send(.combatant(combatantAction))
-            case .destination(.presented(.combatantTagEditView(.onDoneTap))):
-                let tag = state.currentTagEditState?.tag
-                state.destination = nil
-
-                if let tag {
-                    return .send(.combatant(.addTag(tag)))
-                }
-            case .destination(.presented(.creatureEditView(.didEdit(let result)))):
-                if case let .adHoc(definition) = result {
-                    return .merge(
-                        .send(.setDestination(nil)),
-                        .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: definition))))
-                    )
-                }
-                return .none
-            case .destination(.dismiss):
-                state.destination = nil
-            case .destination:
-                break
-            case .setSafari(let safari):
-                state.safari = safari
+    private var mainReducer: some ReducerOf<Self> {
+        Reduce(self.reduce)
+            .ifLet(\.$destination, action: \.destination)
+            .ifLet(\.rollCheckDialogState, action: \.rollCheckDialog) {
+                DiceCalculator()
             }
-            return .none
-        }
-        .ifLet(\.$destination, action: /Action.destination) {
-            Destination()
-        }
-        .ifLet(\.rollCheckDialogState, action: /Action.rollCheckDialog) {
-            DiceCalculator()
-        }
-        .ifLet(\.diceActionPopoverState, action: /Action.diceActionPopover) {
-            ActionResolutionFeature()
-        }
-        .ifLet(\.initiativePopoverState, action: /Action.initiativePopover) {
-            NumberEntryFeature()
-        }
-        .ifLet(\.addLimitedResourceState, action: /Action.addLimitedResource) {
-            CombatantTrackerEditFeature()
-        }
-        .ifLet(\.healthDialogState, action: /Action.healthDialog) {
-            HealthDialogFeature()
-        }
+            .ifLet(\.diceActionPopoverState, action: \.diceActionPopover) {
+                ActionResolutionFeature()
+            }
+            .ifLet(\.initiativePopoverState, action: \.initiativePopover) {
+                NumberEntryFeature()
+            }
+            .ifLet(\.addLimitedResourceState, action: \.addLimitedResource) {
+                CombatantTrackerEditFeature()
+            }
+            .ifLet(\.healthDialogState, action: \.healthDialog) {
+                HealthDialogFeature()
+            }
+    }
 
+    private var tapHandlingReducer: some ReducerOf<Self> {
         CompendiumItemReferenceTextAnnotation.handleTapReducer(
-            didTapAction: /Action.didTapCompendiumItemReferenceTextAnnotation,
+            didTapAction: { action in
+                guard case let .didTapCompendiumItemReferenceTextAnnotation(annotation, navigation) = action else {
+                    return nil
+                }
+                return (annotation, navigation)
+            },
             requestItem: \.itemRequest,
             internalAction: { .setDestination(.compendiumItemDetailView($0)) },
             externalAction: { .setSafari($0) }
         )
+    }
+
+    private func reduce(state: inout State, action: Action) -> Effect<Action> {
+        switch action {
+        case .onAppear:
+            if let def = state.combatant.definition as? CompendiumCombatantDefinition {
+                state.entry = try? compendium.get(def.item.key)
+            }
+        case .combatant: break // should be handled by parent
+        case .popover(let popover):
+            state.popover = popover
+        case .alert(.presented(.unlinkAndEditCreature)):
+            state.alert = nil
+            return .send(.unlinkAndEditCreature)
+        case .alert(.dismiss):
+            state.alert = nil
+        case .addLimitedResource(.onDoneTap):
+            guard case .addLimitedResource(let editState) = state.popover else { return .none }
+            return .run { send in
+                keyboard.dismissKeyboard()
+                await send(.popover(nil))
+                await send(.combatant(.addResource(editState.resource)))
+            }
+        case .addLimitedResource: break // handled below
+        case .healthDialog: break // handled below
+        case .rollCheckDialog: break // handled above
+        case .diceActionPopover: break // handled above
+        case .initiativePopover: break // handled above
+        case .editCreatureConfirmingUnlinkIfNeeded:
+            if let def = state.combatant.definition as? AdHocCombatantDefinition {
+                return .send(.setDestination(.creatureEditView(CreatureEditFeature.State(edit: def))))
+            }
+
+            if state.combatant.definition is CompendiumCombatantDefinition {
+                state.alert = AlertState {
+                    TextState("Detach Combatant to Edit")
+                } actions: {
+                    ButtonState(action: .unlinkAndEditCreature) {
+                        TextState("Detach & Edit")
+                    }
+                    ButtonState(role: .cancel) {
+                        TextState("Cancel")
+                    }
+                } message: {
+                    TextState("This combatant needs to be detached from the compendium to make changes just for this encounter.")
+                }
+            }
+        case .saveToCompendium:
+            guard let def = state.combatant.definition as? AdHocCombatantDefinition else { return .none }
+
+            let item: CompendiumCombatant
+            if def.isUnique {
+                item = Character(id: uuid().tagged(), realm: .init(CompendiumRealm.homebrew.id), level: def.level, stats: def.stats, player: def.player)
+            } else {
+                item = Monster(realm: .init(CompendiumRealm.homebrew.id), stats: def.stats, challengeRating: def.stats.challengeRating ?? Fraction(integer: 0))
+            }
+            _ = item
+        case .unlinkFromCompendium:
+            let currentDefinition = state.combatant.definition
+
+            let original = (currentDefinition as? CompendiumCombatantDefinition).map { CompendiumItemReference(itemTitle: $0.name, itemKey: $0.item.key) }
+            let definition = AdHocCombatantDefinition(id: uuid().tagged(), stats: currentDefinition.stats, player: currentDefinition.player, level: currentDefinition.level, original: original)
+            state.entry = nil
+            return .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: definition))))
+        case .unlinkAndEditCreature:
+            return .merge(
+                .send(.unlinkFromCompendium),
+                .run { send in
+                    await Task.yield()
+                    await send(.editCreatureConfirmingUnlinkIfNeeded)
+                }
+            )
+        case .didTapCompendiumItemReferenceTextAnnotation: break // handled by CompendiumItemReferenceTextAnnotation.handleTapReducer
+        case .setDestination(let destination):
+            state.destination = destination
+        case .destination(.presented(.combatantTagsView(.combatant(let combatant, let combatantAction)))):
+            guard combatant.id == state.combatant.id else { return .none }
+            // bubble-up action
+            return .send(.combatant(combatantAction))
+        case .destination(.presented(.combatantResourcesView(.combatant(let combatantAction)))):
+            // bubble-up action
+            return .send(.combatant(combatantAction))
+        case .destination(.presented(.combatantTagEditView(.onDoneTap))):
+            let tag = state.currentTagEditState?.tag
+            state.destination = nil
+
+            if let tag {
+                return .send(.combatant(.addTag(tag)))
+            }
+        case .destination(.presented(.creatureEditView(.didEdit(let result)))):
+            if case let .adHoc(definition) = result {
+                return .merge(
+                    .send(.setDestination(nil)),
+                    .send(.combatant(.setDefinition(Combatant.CodableCombatDefinition(definition: definition))))
+                )
+            }
+            return .none
+        case .destination(.dismiss):
+            state.destination = nil
+        case .destination:
+            break
+        case .setSafari(let safari):
+            state.safari = safari
+        }
+        return .none
     }
 }
 
@@ -403,6 +386,9 @@ extension CombatantDetailFeature.Destination.State {
     }
 }
 
+extension CombatantDetailFeature.Destination.State: Equatable {}
+extension CombatantDetailFeature.Destination.Action: Equatable {}
+
 extension CombatantDetailFeature.Destination.State: NavigationTreeNode {
     var navigationNodes: [Any] {
         switch self {
@@ -424,7 +410,7 @@ extension CombatantDetailFeature.Destination.State: NavigationTreeNode {
 
 extension CompendiumItemReferenceTextAnnotation {
     static func handleTapReducer<State, Action>(
-        didTapAction: CasePath<Action, (CompendiumItemReferenceTextAnnotation, AppNavigation)>,
+        didTapAction: @escaping (Action) -> (CompendiumItemReferenceTextAnnotation, AppNavigation)?,
         requestItem: WritableKeyPath<State, ReferenceViewItemRequest?>,
         internalAction: @escaping (CompendiumEntryDetailFeature.State) -> Action,
         externalAction: @escaping (SafariViewState) -> Action
@@ -433,7 +419,7 @@ extension CompendiumItemReferenceTextAnnotation {
             @Dependency(\.compendium) var compendium
             @Dependency(\.crashReporter) var crashReporter
             
-            if let (annotation, appNavigation) = didTapAction.extract(from: action) {
+            if let (annotation, appNavigation) = didTapAction(action) {
                 switch compendium.resolve(annotation: annotation) {
                 case .internal(let reference):
                     if let entry = try? compendium.get(reference.itemKey, crashReporter: crashReporter) {

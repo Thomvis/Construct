@@ -385,14 +385,18 @@ extension DatabaseKeyValueStore {
     }
 }
 
+fileprivate struct KeyValueStoreDatabaseValue: @unchecked Sendable {
+    var database: GRDB.Database?
+}
+
 fileprivate enum KeyValueStoreDatabase: DependencyKey {
-    static var liveValue: GRDB.Database? = nil
+    static var liveValue = KeyValueStoreDatabaseValue(database: nil)
 }
 
 fileprivate extension DependencyValues {
     var keyValueStoreDatabase: GRDB.Database? {
-        get { self[KeyValueStoreDatabase.self] }
-        set { self[KeyValueStoreDatabase.self] = newValue }
+        get { self[KeyValueStoreDatabase.self].database }
+        set { self[KeyValueStoreDatabase.self].database = newValue }
     }
 }
 

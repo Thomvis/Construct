@@ -5,8 +5,10 @@ import Dice
 import GameModels
 import Helpers
 
-struct ColumnNavigationFeature: Reducer {
+@Reducer
+struct ColumnNavigationFeature {
 
+    @ObservableState
     struct State: Equatable {
         var campaignBrowse = CampaignBrowseViewFeature.State(node: CampaignNode.root, mode: .browse, items: .initial, showSettingsButton: true)
         var referenceView = ReferenceViewFeature.State.defaultInstance
@@ -28,19 +30,29 @@ struct ColumnNavigationFeature: Reducer {
     }
 
     var body: some ReducerOf<Self> {
-        Reduce { state, action in
-            switch action {
-            case .campaignBrowse, .referenceView:
-                if state.diceCalculator.canCollapse {
-                    return .send(.diceCalculator(.collapse), animation: .default)
-                }
-            default: break
-            }
-            return .none
+        Scope(state: \.diceCalculator, action: \.diceCalculator) {
+            FloatingDiceRollerFeature()
+        }
+        Scope(state: \.campaignBrowse, action: \.campaignBrowse) {
+            CampaignBrowseViewFeature()
+        }
+        Scope(state: \.referenceView, action: \.referenceView) {
+            ReferenceViewFeature()
         }
 
         Reduce { state, action in
-            var actions: [Action] = []
+            var effects: [Effect<Action>] = []
+
+            switch action {
+            case .campaignBrowse, .referenceView:
+                if state.diceCalculator.canCollapse {
+                    effects.append(.send(.diceCalculator(.collapse), animation: .default))
+                }
+            default:
+                break
+            }
+
+            var followUpActions: [Action] = []
 
             let encounterContext = state.campaignBrowse.referenceContext
             if encounterContext != state.referenceView.encounterReferenceContext {
@@ -49,35 +61,27 @@ struct ColumnNavigationFeature: Reducer {
 
             let itemRequests = state.campaignBrowse.referenceItemRequests + state.referenceView.referenceItemRequests
             if itemRequests != state.referenceView.itemRequests {
-                actions.append(.referenceView(.itemRequests(itemRequests)))
+                followUpActions.append(.referenceView(.itemRequests(itemRequests)))
             }
 
-            if case .referenceView(.item(_, .inEncounterDetailContext(let action))) = action {
-                // forward to context
+            if case .referenceView(.item(.element(id: _, action: .inEncounterDetailContext(let action)))) = action {
                 if let toContext = state.campaignBrowse.toReferenceContextAction {
-                    actions.append(.campaignBrowse(toContext(action)))
+                    followUpActions.append(.campaignBrowse(toContext(action)))
                 }
             }
 
             if case .referenceView(.removeTab(let id)) = action,
                state.referenceView.itemRequests.contains(where: { $0.id == id }) {
-                // inform context of removal
                 if let toContext = state.campaignBrowse.toReferenceContextAction {
-                    actions.append(.campaignBrowse(toContext(.didDismiss(id))))
+                    followUpActions.append(.campaignBrowse(toContext(.didDismiss(id))))
                 }
             }
 
-            return .merge(actions.map { .send($0) })
-        }
+            if !followUpActions.isEmpty {
+                effects.append(.merge(followUpActions.map { .send($0) }))
+            }
 
-        Scope(state: \.diceCalculator, action: /Action.diceCalculator) {
-            FloatingDiceRollerFeature()
-        }
-        Scope(state: \.campaignBrowse, action: /Action.campaignBrowse) {
-            CampaignBrowseViewFeature()
-        }
-        Scope(state: \.referenceView, action: /Action.referenceView) {
-            ReferenceViewFeature()
+            return .merge(effects)
         }
     }
 }

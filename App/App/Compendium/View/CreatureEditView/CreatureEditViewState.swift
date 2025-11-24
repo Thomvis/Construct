@@ -210,6 +210,7 @@ struct CreatureEditFeature: Reducer {
 
     }
     
+    @CasePathable
     enum Action: Equatable {
         case setCreateModeCreatureType(State.CreatureType)
         case model(CreatureEditFormModel)
@@ -241,21 +242,23 @@ struct CreatureEditFeature: Reducer {
     @Dependency(\.database) var database
 
     struct Sheet: Reducer {
+        @CasePathable
         enum State: Equatable {
             case actionEditor(NamedStatBlockContentItemEditFeature.State)
             case creatureGeneration(MechMuseCreatureGenerationFeature.State)
         }
 
+        @CasePathable
         enum Action: Equatable {
             case actionEditor(NamedStatBlockContentItemEditFeature.Action)
             case creatureGeneration(MechMuseCreatureGenerationFeature.Action)
         }
 
         var body: some ReducerOf<Self> {
-            Scope(state: /State.actionEditor, action: /Action.actionEditor) {
+            Scope(state: \.actionEditor, action: \.actionEditor) {
                 NamedStatBlockContentItemEditFeature()
             }
-            Scope(state: /State.creatureGeneration, action: /Action.creatureGeneration) {
+            Scope(state: \.creatureGeneration, action: \.creatureGeneration) {
                 MechMuseCreatureGenerationFeature()
             }
         }
@@ -378,13 +381,13 @@ struct CreatureEditFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.numberEntryPopover, action: /Action.numberEntryPopover) {
+        .ifLet(\.numberEntryPopover, action: \.numberEntryPopover) {
             NumberEntryFeature()
         }
-        .ifLet(\.$sheet, action: /Action.sheet) {
+        .ifLet(\.$sheet, action: \.sheet) {
             Sheet()
         }
-        Scope(state: \.model.document, action: /Action.documentSelection) {
+        Scope(state: \.model.document, action: \.documentSelection) {
             CompendiumDocumentSelectionFeature()
         }
     }

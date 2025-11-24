@@ -63,6 +63,7 @@ struct MechMuseCreatureGenerationFeature: Reducer {
         }
     }
 
+    @CasePathable
     enum Action: BindableAction, Equatable {
         case onAppear
         case binding(BindingAction<State>)
@@ -175,7 +176,7 @@ struct MechMuseCreatureGenerationFeature: Reducer {
             case .binding: return .none
             }
         }
-        .ifLet(\.$preview, action: /Action.preview) {
+        .ifLet(\.$preview, action: \.preview) {
             Preview()
         }
     }

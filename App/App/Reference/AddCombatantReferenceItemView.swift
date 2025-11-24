@@ -15,7 +15,7 @@ struct AddCombatantReferenceItemView: View {
 
     var body: some View {
         AddCombatantView(
-            store: store.scope(state: { $0.addCombatantState }, action: { .addCombatant($0) }),
+            store: store.scope(state: \.addCombatantState, action: \.addCombatant),
             externalNavigation: true,
             showEncounterDifficulty: false,
             onSelection: { action, _ in

@@ -14,15 +14,17 @@ import MechMuse
 import Persistence
 import SwiftUI
 
+@Reducer
 public struct ActionResolutionFeature: Reducer {
 
     public init() { }
 
+    @ObservableState
     public struct State: Equatable {
         let encounterContext: EncounterContext?
         let action: ParseableCreatureAction
 
-        @BindingState var mode: Mode = .diceAction
+        var mode: Mode = .diceAction
         var diceAction: DiceActionFeature.State?
         var muse: ActionDescriptionFeature.State
         var isMuseEnabled: Bool = false
@@ -64,7 +66,7 @@ public struct ActionResolutionFeature: Reducer {
             }
         }
 
-        enum Mode: Equatable {
+        public enum Mode: Equatable {
             case diceAction
             case muse
 
@@ -84,11 +86,11 @@ public struct ActionResolutionFeature: Reducer {
         }
     }
 
-    public enum Action: Equatable, BindableAction {
+    public enum Action: Equatable {
         case onAppear
+        case setMode(State.Mode)
         case diceAction(DiceActionFeature.Action)
         case muse(ActionDescriptionFeature.Action)
-        case binding(BindingAction<State>)
     }
 
     @Dependency(\.mailer) var mailer
@@ -97,7 +99,7 @@ public struct ActionResolutionFeature: Reducer {
 
     public var body: some Reducer<State, Action> {
 
-        Scope(state: \.muse, action: /Action.muse) {
+        Scope(state: \.muse, action: \.muse) {
             ActionDescriptionFeature()
         }
 
@@ -105,6 +107,11 @@ public struct ActionResolutionFeature: Reducer {
             switch action {
             case .onAppear:
                 state.isMuseEnabled = mechMuse.isConfigured
+            case .setMode(let mode):
+                state.mode = mode
+                if state.mode == .muse, state.isMuseEnabled, let action = state.diceAction?.action {
+                    return .send(.muse(.didRollDiceAction(action)))
+                }
             case .diceAction(.onFeedbackButtonTap), .muse(.onFeedbackButtonTap):
                 guard mailer.canSendMail() else { break }
 
@@ -136,19 +143,9 @@ public struct ActionResolutionFeature: Reducer {
             default: break
             }
             return .none
-        }.ifLet(\.diceAction, action: /Action.diceAction) {
+        }.ifLet(\.diceAction, action: \.diceAction) {
             DiceActionFeature()
         }
-
-        BindingReducer()
-            .onChange(of: \.mode) { oldValue, newValue in
-                Reduce { state, action in
-                    if state.mode == .muse, state.isMuseEnabled, let action = state.diceAction?.action {
-                        return .send(.muse(.didRollDiceAction(action)))
-                    }
-                    return .none
-                }
-            }
     }
 }
 

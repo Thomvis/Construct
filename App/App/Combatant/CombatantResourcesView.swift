@@ -62,7 +62,7 @@ struct CombatantResourcesView: View {
         }
         .popover(Binding(get: { () -> AnyView? in
             if viewStore.state.editState != nil {
-                return IfLetStore(store.scope(state: { $0.editState }, action: { .editState($0) })) { store in
+                return IfLetStore(store.scope(state: \.editState, action: \.editState)) { store in
                     CombatantTrackerEditView(store: store)
                 }.eraseToAnyView
             }

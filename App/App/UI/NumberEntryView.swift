@@ -37,6 +37,7 @@ public struct NumberEntryFeature: Reducer {
         }
     }
 
+    @CasePathable
     public enum Action: Equatable {
         case mode(State.Mode)
         case pad(NumberPadFeature.Action)
@@ -44,11 +45,11 @@ public struct NumberEntryFeature: Reducer {
     }
 
     public var body: some ReducerOf<Self> {
-        Scope(state: \State.pad, action: /Action.pad) {
+        Scope(state: \.pad, action: \.pad) {
             NumberPadFeature()
         }
 
-        Scope(state: \State.dice, action: /Action.dice) {
+        Scope(state: \.dice, action: \.dice) {
             DiceCalculator()
         }
 
@@ -126,9 +127,9 @@ struct NumberEntryView: View {
                 .pickerStyle(.segmented)
 
                 if viewStore.state.mode == .dice {
-                    DiceCalculatorView(store: store.scope(state: \.dice, action: NumberEntryFeature.Action.dice))
+                    DiceCalculatorView(store: store.scope(state: \.dice, action: \.dice))
                 } else {
-                    NumberPadView(store: store.scope(state: \.pad, action: NumberEntryFeature.Action.pad))
+                    NumberPadView(store: store.scope(state: \.pad, action: \.pad))
                 }
             }
         }

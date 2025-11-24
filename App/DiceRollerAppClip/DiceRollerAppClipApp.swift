@@ -15,7 +15,7 @@ import StoreKit
 
 @main
 struct DiceRollerAppClipApp: App {
-    let store: StoreOf<AppFeature>
+    @Bindable var store: StoreOf<AppFeature>
 
     init() {
         store = Store(initialState: AppFeature.State()) {
@@ -27,46 +27,49 @@ struct DiceRollerAppClipApp: App {
 
     var body: some Scene {
         WindowGroup {
-            WithViewStore(store, observe: \.self) { viewStore in
-                ContentView(store: store.scope(state: \.diceRoller, action: AppFeature.Action.diceRoller))
-                    .onAppear {
-                        viewStore.send(.onLaunch)
+            ContentView(store: store.scope(state: \.diceRoller, action: \.diceRoller))
+                .task {
+                    await store.send(.onLaunch).finish()
+                }
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+                    store.send(.onContinueUserActivity(activity))
+                }
+                .appStoreOverlay(
+                    isPresented: Binding(
+                        get: { store.showAppStoreOverlay },
+                        set: { store.send(.setShowAppStoreOverlay($0)) }
+                    ),
+                    configuration: {
+                        SKOverlay.AppClipConfiguration(position: .bottom)
                     }
-                    .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
-                        viewStore.send(.onContinueUserActivity(activity))
-                    }
-                    .appStoreOverlay(
-                        isPresented: viewStore.$showAppStoreOverlay,
-                        configuration: {
-                            return SKOverlay.AppClipConfiguration(position: .bottom)
-                        }
-                    )
-            }
+                )
         }
     }
 }
 
+@Reducer
 struct AppFeature: Reducer {
 
+    @ObservableState
     struct State: Equatable {
         var diceRoller = DiceRollerFeature.State()
 
-        @BindingState var showAppStoreOverlay: Bool = false
+        var showAppStoreOverlay: Bool = false
         var didShowAppStoreOverlay: Bool = false
     }
 
-    enum Action: Equatable, BindableAction {
+    enum Action: Equatable {
         case onLaunch
         case onContinueUserActivity(NSUserActivity)
         case diceRoller(DiceRollerFeature.Action)
 
-        case binding(BindingAction<State>)
+        case setShowAppStoreOverlay(Bool)
     }
 
     @Dependency(\.diceLog) var diceLog
 
     var body: some ReducerOf<Self> {
-        Scope(state: \.diceRoller, action: /Action.diceRoller) {
+        Scope(state: \.diceRoller, action: \.diceRoller) {
             DiceRollerFeature()
         }
 
@@ -95,11 +98,10 @@ struct AppFeature: Reducer {
                     state.didShowAppStoreOverlay = true
                 }
             case .diceRoller: break
-            case .binding: break
+            case .setShowAppStoreOverlay(let show):
+                state.showAppStoreOverlay = show
             }
             return .none
         }
-
-        BindingReducer()
     }
 }

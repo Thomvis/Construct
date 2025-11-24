@@ -158,7 +158,9 @@ struct SettingsView: View {
             #if DEBUG
             Section(header: Text("Debug options")) {
                 NavigationRowButton(action: {
-                    try? preferencesClient.update { _ in Preferences() }
+                    try? preferencesClient.update { prefs in
+                        prefs = Preferences()
+                    }
                 }) {
                     Text("Reset all preferences").foregroundColor(Color.primary)
                 }
@@ -205,7 +207,9 @@ struct SettingsView: View {
         }
         .onChange(of: preferences) { _, p in
             if p != initialPreferences && p != Preferences() {
-                try? preferencesClient.update { _ in p }
+                try? preferencesClient.update { prefs in
+                    prefs = p
+                }
             }
         }
         .task(id: ["\(preferences.mechMuse.enabled)", preferences.mechMuse.apiKey]) { [mm=preferences.mechMuse] in

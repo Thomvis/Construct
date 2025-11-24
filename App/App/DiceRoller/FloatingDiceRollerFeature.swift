@@ -2,8 +2,10 @@ import Foundation
 import ComposableArchitecture
 import DiceRollerFeature
 
-struct FloatingDiceRollerFeature: Reducer {
+@Reducer
+struct FloatingDiceRollerFeature {
 
+    @ObservableState
     struct State: Equatable {
         var hidden: Bool = false
         var content: Content = .calculator
@@ -33,7 +35,7 @@ struct FloatingDiceRollerFeature: Reducer {
     }
 
     var body: some ReducerOf<Self> {
-        Scope(state: \.diceCalculator, action: /Action.diceCalculator) {
+        Scope(state: \.diceCalculator, action: \.diceCalculator) {
             DiceCalculator()
         }
         Reduce { state, action in
@@ -59,4 +61,3 @@ struct FloatingDiceRollerFeature: Reducer {
         }
     }
 }
-

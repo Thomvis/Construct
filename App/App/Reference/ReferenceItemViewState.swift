@@ -12,12 +12,15 @@ import ComposableArchitecture
 import Helpers
 import GameModels
 
+@Reducer
 struct ReferenceItem: Reducer {
 
+    @ObservableState
     struct State: Equatable {
 
         var content: Content
 
+        @CasePathable
         indirect enum Content: Equatable {
             case compendium(Compendium)
             case combatantDetail(CombatantDetail)
@@ -157,6 +160,7 @@ struct ReferenceItem: Reducer {
 
             /// Provides access to the compendium to be used as reference material
             /// or to build an encounter
+            @ObservableState
             struct Compendium: Equatable {
 
                 let navigationStackItemStateId: String = "compendium"
@@ -171,6 +175,7 @@ struct ReferenceItem: Reducer {
             }
 
             /// Displays the details of combatants in the encounter, one at a time
+            @ObservableState
             struct CombatantDetail: Equatable {
                 var context: ReferenceContext = .empty {
                     didSet {
@@ -230,6 +235,7 @@ struct ReferenceItem: Reducer {
                 }
             }
 
+            @ObservableState
             struct AddCombatant: Equatable {
                 var addCombatantState: AddCombatantFeature.State
 
@@ -253,6 +259,7 @@ struct ReferenceItem: Reducer {
         }
     }
 
+    @CasePathable
     enum Action: Equatable {
         case contentCompendium(Compendium)
         case contentCombatantDetail(CombatantDetail)
@@ -268,10 +275,12 @@ struct ReferenceItem: Reducer {
         case set(State)
         case close // handled by ReferenceView
 
+        @CasePathable
         enum Compendium: Equatable {
             case compendium(CompendiumIndexFeature.Action)
         }
 
+        @CasePathable
         enum CombatantDetail: Equatable {
             case detail(CombatantDetailFeature.Action)
             case previousCombatantTapped
@@ -279,6 +288,7 @@ struct ReferenceItem: Reducer {
             case togglePinToTurnTapped
         }
 
+        @CasePathable
         enum AddCombatant: Equatable {
             case addCombatant(AddCombatantFeature.Action)
             case onSelection(AddCombatantView.Action)
@@ -286,41 +296,24 @@ struct ReferenceItem: Reducer {
     }
 
     var body: some ReducerOf<Self> {
-//        Reduce { state, action in
-//            switch action {
-//            case .onBackTapped:
-//                state.content.navigationNode.popLastNavigationStackItem()
-//            case .set(let s): state = s
-//            // lift actions that need to be executed in the EncounterReferenceContext to .inContext
-//            case .contentAddCombatant(.addCombatant(.onSelect(let combatants, dismiss: _))):
-//                return .send(.inEncounterDetailContext(.addCombatant(.add(combatants))))
-//            case .contentAddCombatant(.onSelection(let a)):
-//                return .send(.inEncounterDetailContext(.addCombatant(a)))
-//            case .contentCombatantDetail(.detail(.combatant(let a))):
-//                guard let combatant = state.content.combatantDetailState?.detailState.combatant
-//                else {
-//                    return .none
-//                }
-//                return .send(.inEncounterDetailContext(.combatantAction(combatant.id, a)))
-//            case .contentCombatantDetail, .contentCompendium, .contentAddCombatant,
-//                .contentCompendiumItem:
-//                break  // handled above
-//            case .contentSafari: break  // does not occur
-//            case .inEncounterDetailContext: break  // handled by parent
-//            case .close: break  // handled by parent
-//            }
-//            return .none
-//        }
-        
-        Scope(state: \.content, action: /.`self`) {
+        Scope(state: \.content, action: \.self) {
+            ContentReducer()
+        }
+    }
+
+    struct ContentReducer: Reducer {
+        typealias State = ReferenceItem.State.Content
+        typealias Action = ReferenceItem.Action
+
+        var body: some ReducerOf<Self> {
             EmptyReducer()
-                .ifCaseLet(/State.Content.compendium, action: /Action.contentCompendium) {
-                    Scope(state: \.compendium, action: /Action.Compendium.compendium) {
+                .ifCaseLet(\.compendium, action: \.contentCompendium) {
+                    Scope(state: \.compendium, action: \.compendium) {
                         CompendiumRootFeature()
                     }
                 }
-                .ifCaseLet(/State.Content.combatantDetail, action: /Action.contentCombatantDetail) {
-                    Scope(state: \.detailState, action: /Action.CombatantDetail.detail) {
+                .ifCaseLet(\.combatantDetail, action: \.contentCombatantDetail) {
+                    Scope(state: \.detailState, action: \.detail) {
                         CombatantDetailFeature()
                     }
 
@@ -347,12 +340,12 @@ struct ReferenceItem: Reducer {
                         return .none
                     }
                 }
-                .ifCaseLet(/State.Content.addCombatant, action: /Action.contentAddCombatant) {
-                    Scope(state: \.addCombatantState, action: /Action.AddCombatant.addCombatant) {
+                .ifCaseLet(\.addCombatant, action: \.contentAddCombatant) {
+                    Scope(state: \.addCombatantState, action: \.addCombatant) {
                         AddCombatantFeature()
                     }
                 }
-                .ifCaseLet(/State.Content.compendiumItem, action: /Action.contentCompendiumItem) {
+                .ifCaseLet(\.compendiumItem, action: \.contentCompendiumItem) {
                     CompendiumEntryDetailFeature()
                 }
         }

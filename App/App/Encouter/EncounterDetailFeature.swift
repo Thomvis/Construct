@@ -210,6 +210,7 @@ struct EncounterDetailFeature: Reducer {
     }
 
     struct Sheet: Reducer {
+        @CasePathable
         enum State: Equatable {
             case add(AddCombatantSheet)
             case combatant(CombatantDetailFeature.State)
@@ -219,6 +220,7 @@ struct EncounterDetailFeature: Reducer {
             case generateCombatantTraits(GenerateCombatantTraitsFeature.State)
         }
 
+        @CasePathable
         enum Action: Equatable {
             case add(AddCombatantFeature.Action)
             case combatant(CombatantDetailFeature.Action)
@@ -229,18 +231,18 @@ struct EncounterDetailFeature: Reducer {
         }
 
         var body: some ReducerOf<Self> {
-            Scope(state: /State.add, action: /Action.add) {
-                Scope(state: \.state, action: /AddCombatantFeature.Action.self) {
+            Scope(state: \.add, action: \.add) {
+                Scope(state: \.state, action: \.self) {
                     AddCombatantFeature()
                 }
             }
-            Scope(state: /State.combatant, action: /Action.combatant) {
+            Scope(state: \.combatant, action: \.combatant) {
                 CombatantDetailFeature()
             }
-            Scope(state: /State.selectedCombatantTags, action: /Action.selectedCombatantTags) {
+            Scope(state: \.selectedCombatantTags, action: \.selectedCombatantTags) {
                 CombatantTagsFeature()
             }
-            Scope(state: /State.generateCombatantTraits, action: /Action.generateCombatantTraits) {
+            Scope(state: \.generateCombatantTraits, action: \.generateCombatantTraits) {
                 GenerateCombatantTraitsFeature()
             }
             Reduce { _, action in
@@ -254,10 +256,11 @@ struct EncounterDetailFeature: Reducer {
         }
     }
 
+    @CasePathable
     enum Action: Equatable {
         case onAppear
-        case encounter(Encounter.Action) // forwarded to the effective encounter
-        case buildingEncounter(Encounter.Action)
+        case encounter(EncounterFeature.Action) // forwarded to the effective encounter
+        case buildingEncounter(EncounterFeature.Action)
         case runningEncounter(RunningEncounter.Action)
         case onResumeRunningEncounterTap(String) // key of the running encounter
         case run(RunningEncounter?)
@@ -394,7 +397,7 @@ struct EncounterDetailFeature: Reducer {
                 }
             case .sheet(.presented(.combatant(.combatant(let a)))):
                 if let combatantDetailState = state.combatantDetailState {
-                    return .send(.encounter(.combatant(combatantDetailState.combatant.id, a)))
+                    return .send(.encounter(.combatant(.element(id: combatantDetailState.combatant.id, action: a))))
                 }
             case .popover(let p):
                 state.popover = p
@@ -426,7 +429,7 @@ struct EncounterDetailFeature: Reducer {
             case .selectionCombatantAction(let action):
                 return .merge(
                     state.selection.map {
-                        .send(.encounter(.combatant($0, action)))
+                        .send(.encounter(.combatant(.element(id: $0, action: action))))
                     }
                 )
             case .selectionEncounterAction(let action):
@@ -443,7 +446,7 @@ struct EncounterDetailFeature: Reducer {
                     }
                 )
             case .sheet(.presented(.selectedCombatantTags(.combatant(let c, let a)))):
-                return .send(.encounter(.combatant(c.id, a)))
+                return .send(.encounter(.combatant(.element(id: c.id, action: a))))
             case .showCombatantDetailReferenceItem(let combatant):
                 let detailState = ReferenceItem.State.Content.CombatantDetail(
                     encounter: state.encounter,
@@ -501,17 +504,17 @@ struct EncounterDetailFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.$sheet, action: /Action.sheet) {
+        .ifLet(\.$sheet, action: \.sheet) {
             Sheet()
         }
-        .ifLet(\.combatantInitiativePopover, action: /Action.combatantInitiativePopover) {
+        .ifLet(\.combatantInitiativePopover, action: \.combatantInitiativePopover) {
             NumberEntryFeature()
         }
-        .ifLet(\.running, action: /Action.runningEncounter) {
+        .ifLet(\.running, action: \.runningEncounter) {
             RunningEncounter.Reducer()
         }
-        Scope(state: \.building, action: /Action.buildingEncounter) {
-            Encounter.Reducer()
+        Scope(state: \.building, action: \.buildingEncounter) {
+            EncounterFeature()
         }
 
         EmptyReducer()
@@ -528,7 +531,7 @@ struct EncounterDetailFeature: Reducer {
             }
 
         WithValue(value: \.building.id) { id in
-            Scope(state: \.resumableRunningEncounters, action: /Action.resumableRunningEncounters) {
+            Scope(state: \.resumableRunningEncounters, action: \.resumableRunningEncounters) {
                 State.AsyncResumableRunningEncounters {
                     do {
                         return try database.keyValueStore.fetchKeys(.keyPrefix(RunningEncounter.keyPrefix(for: id).rawValue))

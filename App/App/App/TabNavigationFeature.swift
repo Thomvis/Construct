@@ -4,8 +4,10 @@ import DiceRollerFeature
 import Helpers
 import GameModels
 
+@Reducer
 struct TabNavigationFeature: Reducer {
 
+    @ObservableState
     struct State: Equatable {
         var selectedTab: Tabs = .campaign
 
@@ -42,13 +44,13 @@ struct TabNavigationFeature: Reducer {
     }
 
     var body: some ReducerOf<Self> {
-        Scope(state: \.campaignBrowser, action: /Action.campaignBrowser) {
+        Scope(state: \.campaignBrowser, action: \.campaignBrowser) {
             CampaignBrowseViewFeature()
         }
-        Scope(state: \.compendium, action: /Action.compendium) {
+        Scope(state: \.compendium, action: \.compendium) {
             CompendiumRootFeature()
         }
-        Scope(state: \.diceRoller, action: /Action.diceRoller) {
+        Scope(state: \.diceRoller, action: \.diceRoller) {
             DiceRollerFeature()
         }
         Reduce { state, action in

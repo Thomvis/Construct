@@ -583,7 +583,7 @@ extension DatabaseMigrator {
     mutating func registerMigration(
         _ identifier: Database.Migration,
         foreignKeyChecks: ForeignKeyChecks = .deferred,
-        migrate: @escaping (GRDB.Database) throws -> Void
+        migrate: @Sendable @escaping (GRDB.Database) throws -> Void
     ) {
         registerMigration(identifier.rawValue, foreignKeyChecks: foreignKeyChecks, migrate: migrate)
     }

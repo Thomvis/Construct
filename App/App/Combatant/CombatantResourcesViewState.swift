@@ -26,6 +26,7 @@ struct CombatantResourcesFeature: Reducer {
         static let nullInstance = State(combatant: Combatant.nullInstance, editState: nil)
     }
 
+    @CasePathable
     enum Action: Equatable {
         case combatant(CombatantAction)
         case setEditState(CombatantTrackerEditFeature.State?)
@@ -51,7 +52,7 @@ struct CombatantResourcesFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.editState, action: /Action.editState) {
+        .ifLet(\.editState, action: \.editState) {
             CombatantTrackerEditFeature()
         }
     }

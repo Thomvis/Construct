@@ -11,10 +11,11 @@ import GameModels
 import ComposableArchitecture
 import Combine
 
+@CasePathable
 enum CombatantAction: Equatable {
     case hp(Hp.Action)
     case initiative(Int)
-    case resource(CombatantResource.Id, CombatantResourceAction)
+    case resources(IdentifiedActionOf<CombatantResourceReducer>)
     case addResource(CombatantResource)
     case removeResource(CombatantResource)
     case addTag(CombatantTag)
@@ -104,14 +105,14 @@ struct CombatantFeature: Reducer {
     typealias Action = CombatantAction
 
     var body: some Reducer<Combatant, CombatantAction> {
-        Reduce { state, action in
+        Reduce<State, Action> { state, action in
             switch action {
             case .initiative(let score): state.initiative = score
             case .addResource(let r): state.resources.append(r)
             case .removeResource(let r): state.resources.removeAll { $0.id == r.id }
             case .addTag(let t): state.tags[id: t.id] = t
             case .removeTag(let t): state.tags.removeAll { $0.id == t.id }
-            case .hp, .resource: break
+            case .hp, .resources: break
             case .reset(let hp, let initiative, let resources, let tags):
                 if initiative { state.initiative = nil }
                 if tags { state.tags.removeAll() }
@@ -119,7 +120,7 @@ struct CombatantFeature: Reducer {
                 return .run { [state] send in
                     if resources {
                         for r in state.resources {
-                            await send(CombatantAction.resource(r.id, .reset))
+                            await send(CombatantAction.resources(.element(id: r.id, action: .reset)))
                         }
                     }
 
@@ -137,12 +138,11 @@ struct CombatantFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.hp, action: /CombatantAction.hp) {
+        .ifLet(\.hp, action: \.hp) {
             HpReducer()
         }
-        .forEach(\.resources, action: /CombatantAction.resource) {
+        .forEach(\.resources, action: \.resources) {
             CombatantResourceReducer()
         }
     }
 }
-

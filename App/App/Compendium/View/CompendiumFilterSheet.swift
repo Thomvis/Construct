@@ -36,7 +36,7 @@ struct CompendiumFilterSheet: View {
                         CompendiumDocumentSelectionView(
                             store: store.scope(
                                 state: \.documentSelection,
-                                action: CompendiumFilterSheetFeature.Action.documentSelection
+                                action: \.documentSelection
                             ),
                             label: "Sources"
                         )
@@ -264,6 +264,7 @@ struct CompendiumFilterSheetFeature: Reducer {
         typealias Filter = CompendiumFilters.Property
     }
 
+    @CasePathable
     enum Action: Equatable {
         case itemType(CompendiumItemType?)
         case minMonsterCR(Double)
@@ -318,7 +319,7 @@ struct CompendiumFilterSheetFeature: Reducer {
                 }
                 return .none
             }
-            Scope(state: \.documentSelection, action: /Action.documentSelection) {
+            Scope(state: \.documentSelection, action: \.documentSelection) {
                 CompendiumDocumentSelectionFeature()
             }
         }.onChange(of: \.documentSelection.selectedSource) { oldValue, newValue in

@@ -127,6 +127,7 @@ struct CompendiumEntryDetailFeature: Reducer {
 
     }
 
+    @CasePathable
     enum Action: Equatable {
         case onAppear
         case entry(CompendiumEntry)
@@ -144,46 +145,16 @@ struct CompendiumEntryDetailFeature: Reducer {
         case setSafari(SafariViewState?)
     }
 
-    struct Destination: Reducer {
-        indirect enum State: Equatable {
-            case compendiumItemDetailView(CompendiumEntryDetailFeature.State)
-        }
-
-        enum Action: Equatable {
-            case compendiumItemDetailView(CompendiumEntryDetailFeature.Action)
-        }
-
-        var body: some ReducerOf<Self> {
-            Scope(state: /State.compendiumItemDetailView, action: /Action.compendiumItemDetailView) {
-                CompendiumEntryDetailFeature()
-            }
-        }
+    @Reducer
+    enum Destination {
+        case compendiumItemDetailView(CompendiumEntryDetailFeature)
     }
 
-    struct Sheet: Reducer {
-        enum State: Equatable {
-            case creatureEdit(CreatureEditFeature.State)
-            case groupEdit(CompendiumItemGroupEditFeature.State)
-            case transfer(CompendiumItemTransferFeature.State)
-        }
-
-        enum Action: Equatable {
-            case creatureEdit(CreatureEditFeature.Action)
-            case groupEdit(CompendiumItemGroupEditFeature.Action)
-            case transfer(CompendiumItemTransferFeature.Action)
-        }
-
-        var body: some ReducerOf<Self> {
-            Scope(state: /State.creatureEdit, action: /Action.creatureEdit) {
-                CreatureEditFeature()
-            }
-            Scope(state: /State.groupEdit, action: /Action.groupEdit) {
-                CompendiumItemGroupEditFeature()
-            }
-            Scope(state: /State.transfer, action: /Action.transfer) {
-                CompendiumItemTransferFeature()
-            }
-        }
+    @Reducer
+    enum Sheet {
+        case creatureEdit(CreatureEditFeature)
+        case groupEdit(CompendiumItemGroupEditFeature)
+        case transfer(CompendiumItemTransferFeature)
     }
 
     @Dependency(\.compendium) var compendium
@@ -191,123 +162,133 @@ struct CompendiumEntryDetailFeature: Reducer {
     @Dependency(\.crashReporter) var crashReporter
 
     var body: some ReducerOf<Self> {
-        Reduce { state, action in
-            switch action {
-            case .onAppear:
-                if let group = state.entry.item as? CompendiumItemGroup {
-                    let entry = state.entry
-                    return .run { [group, entry] send in
-                        do {
-                            let characters = try group.members.compactMap { member -> Character? in
-                                let item = try database.keyValueStore.get(
-                                    member.itemKey,
-                                    crashReporter: crashReporter
-                                )?.item
-                                return item as? Character
-                            }
+        mainReducer
+        tapHandlingReducer
+    }
 
-                            var newGroup = group
-                            if newGroup.updateMemberReferences(with: characters) {
-                                var newEntry = entry
-                                newEntry.item = newGroup
-                                try database.keyValueStore.put(newEntry)
-                                await send(.entry(newEntry))
-                            }
-                        } catch {
-                            // failed
-                        }
-                    }
-                }
-            case .entry(let e):
-                state.entry = e
-            case .onSaveMonsterAsNPCButton: break // handled by the compendium container
-            case .didTapCompendiumItemReferenceTextAnnotation: break // handled below
-            case .popover(let p):
-                state.popover = p
-            case .creatureActionPopover, .rollCheckPopover: break // handled below
-            case .setSheet(let s):
-                state.sheet = s
-            case .sheet(.presented(.creatureEdit(.didEdit(let result)))):
-                if case let .compendium(entry) = result {
-                    state.entry = entry
-                }
-                return .send(.setSheet(nil))
-            case .sheet(.presented(.creatureEdit(.didAdd(let result)))):
-                if case let .compendium(entry) = result {
-                    return .merge(
-                        .send(.didAddCopy),
-                        .send(.setDestination(.compendiumItemDetailView(.init(entry: entry)))),
-                        .send(.setSheet(nil))
-                    )
-                }
-                return .send(.setSheet(nil))
-            case .sheet(.presented(.creatureEdit(.onRemoveTap))):
-                let entryKey = state.entry.key
-                return .run { send in
-                    _ = try? database.keyValueStore.remove(entryKey.rawValue)
-                    await send(.setSheet(nil))
-
-                    try await Task.sleep(for: .seconds(0.1))
-                    await send(.didRemoveItem)
-                }
-            case .sheet(.presented(.groupEdit(.onDoneTap(let group)))):
-                let entry = CompendiumEntry(group, origin: state.entry.origin, document: state.entry.document)
-                state.entry = entry
-                return .run { send in
-                    try? compendium.put(entry)
-                    await send(.setSheet(nil))
-                }
-            case .sheet(.presented(.groupEdit(.onRemoveTap(let group)))):
-                return .run { send in
-                    _ = try? database.keyValueStore.remove(group.key)
-                    await send(.setSheet(nil))
-
-                    try await Task.sleep(for: .seconds(0.1))
-                    await send(.didRemoveItem)
-                }
-            case .sheet(.presented(.transfer(.onTransferDidSucceed))):
-                return .run { send in
-                    // TODO: refresh screen (but how to know the new entry key if it moved realms)
-                    await send(.setSheet(nil))
-                }
-            case .sheet(.presented):
-                break
-            case .didRemoveItem, .didAddCopy:
-                break
-            case .setDestination(let destination):
-                state.destination = destination
-            case .destination(.presented(.compendiumItemDetailView(.didRemoveItem))):
-                return .send(.didRemoveItem)
-            case .destination(.presented(.compendiumItemDetailView(.didAddCopy))):
-                return .send(.didAddCopy)
-            case .destination(.dismiss):
-                state.destination = nil
-            case .destination:
-                break
-            case .sheet(.dismiss):
-                state.sheet = nil
-            case .sheet:
-                break
-            case .setSafari(let safari):
-                state.safari = safari
-            }
-            return .none
-        }
-        .ifLet(\.$sheet, action: /Action.sheet) {
-            Sheet()
-        }
-        .ifLet(\.createActionPopover, action: /Action.creatureActionPopover) {
+    private var mainReducer: some ReducerOf<Self> {
+        Reduce(self.reduce)
+        .ifLet(\.$sheet, action: \.sheet)
+        .ifLet(\.createActionPopover, action: \.creatureActionPopover) {
             ActionResolutionFeature()
         }
-        .ifLet(\.rollCheckPopover, action: /Action.rollCheckPopover) {
+        .ifLet(\.rollCheckPopover, action: \.rollCheckPopover) {
             DiceCalculator()
         }
-        .ifLet(\.$destination, action: /Action.destination) {
-            Destination()
-        }
+        .ifLet(\.$destination, action: \.destination)
+    }
 
+    private func reduce(state: inout State, action: Action) -> Effect<Action> {
+        switch action {
+        case .onAppear:
+            if let group = state.entry.item as? CompendiumItemGroup {
+                let entry = state.entry
+                return .run { [group, entry] send in
+                    do {
+                        let characters = try group.members.compactMap { member -> Character? in
+                            let item = try database.keyValueStore.get(
+                                member.itemKey,
+                                crashReporter: crashReporter
+                            )?.item
+                            return item as? Character
+                        }
+
+                        var newGroup = group
+                        if newGroup.updateMemberReferences(with: characters) {
+                            var newEntry = entry
+                            newEntry.item = newGroup
+                            try database.keyValueStore.put(newEntry)
+                            await send(.entry(newEntry))
+                        }
+                    } catch {
+                        // failed
+                    }
+                }
+            }
+        case .entry(let e):
+            state.entry = e
+        case .onSaveMonsterAsNPCButton: break // handled by the compendium container
+        case .didTapCompendiumItemReferenceTextAnnotation: break // handled below
+        case .popover(let p):
+            state.popover = p
+        case .creatureActionPopover, .rollCheckPopover: break // handled below
+        case .setSheet(let s):
+            state.sheet = s
+        case .sheet(.presented(.creatureEdit(.didEdit(let result)))):
+            if case let .compendium(entry) = result {
+                state.entry = entry
+            }
+            return .send(.setSheet(nil))
+        case .sheet(.presented(.creatureEdit(.didAdd(let result)))):
+            if case let .compendium(entry) = result {
+                return .merge(
+                    .send(.didAddCopy),
+                    .send(.setDestination(.compendiumItemDetailView(.init(entry: entry)))),
+                    .send(.setSheet(nil))
+                )
+            }
+            return .send(.setSheet(nil))
+        case .sheet(.presented(.creatureEdit(.onRemoveTap))):
+            let entryKey = state.entry.key
+            return .run { send in
+                _ = try? database.keyValueStore.remove(entryKey.rawValue)
+                await send(.setSheet(nil))
+
+                try await Task.sleep(for: .seconds(0.1))
+                await send(.didRemoveItem)
+            }
+        case .sheet(.presented(.groupEdit(.onDoneTap(let group)))):
+            let entry = CompendiumEntry(group, origin: state.entry.origin, document: state.entry.document)
+            state.entry = entry
+            return .run { send in
+                try? compendium.put(entry)
+                await send(.setSheet(nil))
+            }
+        case .sheet(.presented(.groupEdit(.onRemoveTap(let group)))):
+            return .run { send in
+                _ = try? database.keyValueStore.remove(group.key)
+                await send(.setSheet(nil))
+
+                try await Task.sleep(for: .seconds(0.1))
+                await send(.didRemoveItem)
+            }
+        case .sheet(.presented(.transfer(.onTransferDidSucceed))):
+            return .run { send in
+                // TODO: refresh screen (but how to know the new entry key if it moved realms)
+                await send(.setSheet(nil))
+            }
+        case .sheet(.presented):
+            break
+        case .didRemoveItem, .didAddCopy:
+            break
+        case .setDestination(let destination):
+            state.destination = destination
+        case .destination(.presented(.compendiumItemDetailView(.didRemoveItem))):
+            return .send(.didRemoveItem)
+        case .destination(.presented(.compendiumItemDetailView(.didAddCopy))):
+            return .send(.didAddCopy)
+        case .destination(.dismiss):
+            state.destination = nil
+        case .destination:
+            break
+        case .sheet(.dismiss):
+            state.sheet = nil
+        case .sheet:
+            break
+        case .setSafari(let safari):
+            state.safari = safari
+        }
+        return .none
+    }
+
+    private var tapHandlingReducer: some ReducerOf<Self> {
         CompendiumItemReferenceTextAnnotation.handleTapReducer(
-            didTapAction: /Action.didTapCompendiumItemReferenceTextAnnotation,
+            didTapAction: { action in
+                guard case let .didTapCompendiumItemReferenceTextAnnotation(annotation, navigation) = action else {
+                    return nil
+                }
+                return (annotation, navigation)
+            },
             requestItem: \.itemRequest,
             internalAction: { .setDestination(.compendiumItemDetailView($0)) },
             externalAction: { .setSafari($0) }
@@ -329,6 +310,11 @@ extension CompendiumEntryDetailFeature.Destination.State {
         }
     }
 }
+
+extension CompendiumEntryDetailFeature.Destination.State: Equatable {}
+extension CompendiumEntryDetailFeature.Destination.Action: Equatable {}
+extension CompendiumEntryDetailFeature.Sheet.State: Equatable {}
+extension CompendiumEntryDetailFeature.Sheet.Action: Equatable {}
 
 extension CompendiumEntryDetailFeature.Destination.State: NavigationTreeNode {
     var navigationNodes: [Any] {

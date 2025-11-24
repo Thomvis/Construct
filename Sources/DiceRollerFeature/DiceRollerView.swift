@@ -15,13 +15,11 @@ import Dice
 public struct DiceRollerView: View {
     public static let outcomePopoverId = UUID()
 
-    let store: StoreOf<DiceRollerFeature>
-    @ObservedObject var viewStore: ViewStoreOf<DiceRollerFeature>
+    @Bindable var store: StoreOf<DiceRollerFeature>
     @State var rot: Double = 0
 
     public init(store: StoreOf<DiceRollerFeature>) {
         self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
     }
 
     public var body: some View {
@@ -55,44 +53,44 @@ public struct DiceRollerView: View {
                     ]), startPoint: .top, endPoint: .bottom)
 
                     DiceLogFeedView(
-                        entries: viewStore.state.diceLog.entries,
+                        entries: store.diceLog.entries,
                         onClearButtonTap: {
-                            viewStore.send(.onClearDiceLog, animation: .default)
+                            store.send(.onClearDiceLog, animation: .default)
                         }
                     )
-                        .padding(.trailing, 12)
-                        .mask(alignment: .top) {
-                            VStack(spacing: 0) {
-                                Color.clear
-                                    .frame(height: 22)
+                    .padding(.trailing, 12)
+                    .mask(alignment: .top) {
+                        VStack(spacing: 0) {
+                            Color.clear
+                                .frame(height: 22)
 
-                                LinearGradient(
-                                    stops: [
-                                        Gradient.Stop(color: .clear, location: .zero),
-                                        Gradient.Stop(color: .black, location: 1.0)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                                .frame(height: 100)
+                            LinearGradient(
+                                stops: [
+                                    Gradient.Stop(color: .clear, location: .zero),
+                                    Gradient.Stop(color: .black, location: 1.0)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            .frame(height: 100)
 
-                                Color.black
+                            Color.black
 
-                                LinearGradient(
-                                    stops: [
-                                        Gradient.Stop(color: .black, location: .zero),
-                                        Gradient.Stop(color: .clear, location: 1.0)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                                .frame(height: 20)
-                            }
+                            LinearGradient(
+                                stops: [
+                                    Gradient.Stop(color: .black, location: .zero),
+                                    Gradient.Stop(color: .clear, location: 1.0)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            .frame(height: 20)
                         }
+                    }
                 }
             }
 
-            DiceCalculatorView(store: store.scope(state: { $0.calculatorState }, action: { .calculatorState($0) }))
+            DiceCalculatorView(store: store.scope(state: \.calculatorState, action: \.calculatorState))
                 .padding(12)
                 .background(Color(UIColor.systemBackground).opacity(0.9))
         }
@@ -106,11 +104,11 @@ public struct DiceRollerView: View {
 
     var outcomePopover: Binding<Popover?> {
         return Binding(get: {
-            guard self.viewStore.state.showOutcome && self.viewStore.state.calculatorState.result != nil else { return nil }
-            return OutcomePopover(popoverId: Self.outcomePopoverId, store: self.store.scope(state: { $0.calculatorState }, action: { .calculatorState($0) }))
+            guard store.showOutcome && store.calculatorState.result != nil else { return nil }
+            return OutcomePopover(popoverId: Self.outcomePopoverId, store: store.scope(state: \.calculatorState, action: \.calculatorState))
         }, set: {
             if $0 == nil {
-                self.viewStore.send(.hideOutcome)
+                store.send(.hideOutcome)
             }
         })
     }
@@ -118,15 +116,13 @@ public struct DiceRollerView: View {
 
 struct OutcomePopover: View, Popover {
     let popoverId: AnyHashable
-    var store: StoreOf<DiceCalculator>
+    @Bindable var store: StoreOf<DiceCalculator>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            VStack(alignment: .leading) {
-                (Text("Rolling: ") + Text(viewStore.state.expression.description)).bold()
-                Divider()
-                OutcomeView(store: store)
-            }
+        VStack(alignment: .leading) {
+            (Text("Rolling: ") + Text(store.expression.description)).bold()
+            Divider()
+            OutcomeView(store: store)
         }
     }
 
