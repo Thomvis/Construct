@@ -383,20 +383,20 @@ struct EncounterDetailView: View {
                 store.state.popover.flatMap { popover in
                     switch popover {
                     case .combatantInitiative(let combatant, _):
-                        return IfLetStore(
-                            store.scope(
-                                state: \.combatantInitiativePopover,
+                        if store.combatantInitiativePopover != nil {
+                            let popoverStore = store.scope(
+                                state: \.combatantInitiativePopover!,
                                 action: \.combatantInitiativePopover)
-                        ) { popoverStore in
-                            NumberEntryPopover(store: popoverStore) { value in
+                            return NumberEntryPopover(store: popoverStore) { value in
                                 self.store.send(
                                     .encounter(
                                         .combatant(
                                             .element(id: combatant.id, action: .initiative(value))))
                                 )
                                 self.store.send(.popover(nil))
-                            }
-                        }.eraseToAnyView
+                            }.eraseToAnyView
+                        }
+                        return nil
                     case .encounterInitiative:
                         return InitiativePopover { settings in
                             store.send(.encounter(.initiative(settings)))
