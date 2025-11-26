@@ -5,7 +5,8 @@ import ComposableArchitecture
 import Helpers
 import GameModels
 
-struct CampaignBrowseViewFeature: Reducer {
+@Reducer
+struct CampaignBrowseViewFeature {
 
     @ObservableState
     struct State: Equatable {
@@ -43,10 +44,11 @@ struct CampaignBrowseViewFeature: Reducer {
             case move([CampaignNode])
         }
 
+        @ObservableState
         struct NodeEditState: Equatable, Identifiable {
             var id = UUID()
-            @BindingState var name: String = ""
-            @BindingState var contentType: CampaignNode.Contents.ContentType? = nil // non-nil if new non-group node
+            var name: String = ""
+            var contentType: CampaignNode.Contents.ContentType? = nil // non-nil if new non-group node
             var node: CampaignNode? // nil if new node
         }
 

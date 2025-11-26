@@ -242,61 +242,59 @@ struct CampaignBrowseView: View {
 struct NodeEditView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    let store: StoreOf<CampaignBrowseViewFeature.NodeEdit>
+    @Bindable var store: StoreOf<CampaignBrowseViewFeature.NodeEdit>
     let onDoneTap: (CampaignBrowseViewFeature.State.NodeEditState, CampaignNode?, String) -> Void
 
     @State var didFocusOnField = false
 
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
-            ScrollView {
-                VStack(spacing: 22) {
-                    Image(systemName: viewStore.state.contentType.iconName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 200.0, height: 200.0)
+        ScrollView {
+            VStack(spacing: 22) {
+                Image(systemName: store.contentType.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 200.0, height: 200.0)
 
-                    HStack {
-                        ClearableTextField("Name", text: viewStore.$name, onCommit: {
-                            saveAndDismissIfValid(viewStore)
-                        })
-                        .disableAutocorrection(true)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .introspectTextField { textField in
-                            if !textField.isFirstResponder, !didFocusOnField {
-                                textField.becomeFirstResponder()
-                                didFocusOnField = true
-                            }
+                HStack {
+                    ClearableTextField("Name", text: $store.name.sending(\.binding.name), onCommit: {
+                        saveAndDismissIfValid()
+                    })
+                    .disableAutocorrection(true)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .introspectTextField { textField in
+                        if !textField.isFirstResponder, !didFocusOnField {
+                            textField.becomeFirstResponder()
+                            didFocusOnField = true
                         }
-                        .submitLabel(.done)
                     }
-                    .padding(8)
-                    .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
+                    .submitLabel(.done)
                 }
-                .padding(22)
+                .padding(8)
+                .background(Color(UIColor.secondarySystemBackground).cornerRadius(4))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(UIColor.systemBackground).opacity(0.90).edgesIgnoringSafeArea(.all))
-            .navigationBarTitle("\(viewStore.state.node != nil ? "Rename" : "Add") \(viewStore.state.contentType.displayName)", displayMode: .inline)
-            .navigationBarItems(
-                leading: Button(action: {
-                    self.presentationMode.wrappedValue.dismiss()
-                }) {
-                    Text("Cancel")
-                },
-                trailing: Button(action: {
-                    saveAndDismissIfValid(viewStore)
-                }) {
-                    Text("Done").bold()
-                }.disabled(viewStore.state.name.isEmpty)
-            )
+            .padding(22)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(UIColor.systemBackground).opacity(0.90).edgesIgnoringSafeArea(.all))
+        .navigationBarTitle("\(store.node != nil ? "Rename" : "Add") \(store.contentType.displayName)", displayMode: .inline)
+        .navigationBarItems(
+            leading: Button(action: {
+                self.presentationMode.wrappedValue.dismiss()
+            }) {
+                Text("Cancel")
+            },
+            trailing: Button(action: {
+                saveAndDismissIfValid()
+            }) {
+                Text("Done").bold()
+            }.disabled(store.name.isEmpty)
+        )
     }
 
-    func saveAndDismissIfValid(_ viewStore: ViewStore<CampaignBrowseViewFeature.State.NodeEditState, CampaignBrowseViewFeature.NodeEdit.Action>) {
-        guard !viewStore.state.name.isEmpty else { return }
+    func saveAndDismissIfValid() {
+        guard !store.name.isEmpty else { return }
 
-        self.onDoneTap(viewStore.state, viewStore.state.node, viewStore.state.name)
+        self.onDoneTap(store.state, store.node, store.name)
         self.presentationMode.wrappedValue.dismiss()
     }
 }
