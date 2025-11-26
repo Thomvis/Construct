@@ -27,10 +27,25 @@
 - Converted EncounterDetail (including subviews: AddCombatant flow, CombatantDetail, running action bar, resource tracker, generate traits) to `@ObservableState`/`@Presents` + bindable stores; removed `WithViewStore`/`IfLetStore` usage there.
 - CampaignBrowse migrated to observation/key-path scoping; Compendium import preferences, Combatant tags view, and MechMuse creature generation preview now compile with key-path-based sheets/navigation.
 - Compendium documents/entry detail and parts of Compendium index are on key-path scoping; warning cleanup remains for remaining slash scopes/legacy navigation helpers.
+- Migrated ReferenceItemView to observation: replaced `WithViewStore`/`IfLetStore` with `if let store.scope()` pattern.
+- Migrated NumberPadFeature, NumberEntryFeature and views to `@Reducer` + `@ObservableState` + `@Bindable` stores.
+- Migrated CampaignBrowseViewFeature's NodeEditView to observation; added `@Reducer` macro, `@ObservableState` to NodeEditState.
+- Migrated CompendiumItemTransferFeature to `@Reducer` + `@ObservableState`; replaced binding state mutations from effects with explicit actions.
+- Migrated CompendiumDocumentSelectionFeature to `@Reducer` + `@ObservableState`; removed `WithViewStore` wrappers.
+
+## Remaining (15 deprecated usages across 8 files)
+
+- `CompendiumIndexView.swift` (5): Multiple `WithViewStore` usages; feature needs `@Reducer` macro and `@ObservableState`.
+- `CompendiumDocumentsFeature.swift` (3): `WithViewStore` usages; needs `@Reducer` + `@ObservableState`.
+- `CompendiumEntryDetailView.swift` (2): `IfLetStore` usages.
+- `CreatureEditView.swift` (1): `IfLetStore` usage.
+- `CombatantTagEditView.swift` (1): `IfLetStore` usage.
+- `CombatantResourcesView.swift` (1): `IfLetStore` usage.
+- `EncounterDetailView.swift` (1): `IfLetStore` usage.
+- `CombatantDetailView.swift` (1): `ForEachStore` usage.
 
 ## Next steps
 
-- Continue migrating remaining features (ActionResolution, Compendium, Encounter, etc.) off `/CasePath` and closure-based scoping to case key paths.
-- Replace remaining `WithViewStore`/`IfLetStore`/`ForEachStore` and slash-based scopes across Compendium/Reference with observation-based patterns + key-path scoping; finish sheet/navigation migration.
-- Sweep remaining TCA deprecation warnings (notably Compendium import/index/detail, CreatureEdit, ReferenceItem) to key-path APIs and ensure `@ObservableState/@Presents` are in place.
-- Once warnings are clear, rerun `xcodebuild build -project App/Construct.xcodeproj -scheme Construct -destination "platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2"` to confirm a clean build; expand to `xcodebuild test` if time allows.
+- Continue migrating CompendiumDocumentsFeature, CompendiumIndexView.
+- Replace remaining `IfLetStore`/`ForEachStore` with `if let store.scope()`/`ForEach` patterns.
+- Once all deprecated APIs are removed, verify clean build.
