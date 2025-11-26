@@ -66,12 +66,11 @@ struct AddCombatantCompendiumView: View {
                 }.eraseToAnyView
             },
             detail: { store in
-                let viewStore = ViewStore(store, observe: \.self)
-                guard viewStore.state.item is Monster else { return CompendiumIndexViewProvider.default.detail(store).eraseToAnyView }
+                guard store.item is Monster else { return CompendiumIndexViewProvider.default.detail(store).eraseToAnyView }
                 return AddCombatantDetailView(parentStore: self.store, store: store, onSelection: { action in
                     self.onSelection(action, false)
                 })
-                .navigationBarTitle(Text(viewStore.state.item.title), displayMode: .inline)
+                .navigationBarTitle(Text(store.item.title), displayMode: .inline)
                 .eraseToAnyView
             },
             state: { store.combatantsByDefinitionCache }
@@ -82,34 +81,18 @@ struct AddCombatantCompendiumView: View {
         @EnvironmentObject var ordinalFormatter: OrdinalFormatter
 
         @Bindable var addCombatantStore: StoreOf<AddCombatantFeature>
-        var compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
-        @ObservedObject var compendiumIndexViewStore: ViewStore<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
+        let compendiumIndexStore: StoreOf<CompendiumIndexFeature>
         let entry: CompendiumEntry
         let combatant: CompendiumCombatant
 
         let onSelection: (AddCombatantView.Action, Bool) -> Void
-
-        init(
-            addCombatantStore: StoreOf<AddCombatantFeature>,
-            compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>,
-            entry: CompendiumEntry,
-            combatant: CompendiumCombatant,
-            onSelection: @escaping (AddCombatantView.Action, Bool) -> Void
-        ) {
-            self.addCombatantStore = addCombatantStore
-            self.compendiumIndexStore = compendiumIndexStore
-            self.compendiumIndexViewStore = ViewStore(compendiumIndexStore, observe: { $0 })
-            self.entry = entry
-            self.combatant = combatant
-            self.onSelection = onSelection
-        }
 
         var body: some View {
             HStack {
                 VStack(alignment: .leading) {
                     Text(combatant.title).foregroundColor(Color.primary).lineLimit(1)
 
-                    combatant.localizedSummary(in: compendiumIndexViewStore.state, ordinalFormatter: ordinalFormatter)
+                    combatant.localizedSummary(in: compendiumIndexStore.state, ordinalFormatter: ordinalFormatter)
                         .font(.footnote)
                         .multilineTextAlignment(.leading)
                         .foregroundColor(Color(UIColor.secondaryLabel))
@@ -117,7 +100,7 @@ struct AddCombatantCompendiumView: View {
 
                 Spacer()
 
-                if ViewStore(compendiumIndexStore, observe: { $0 }).properties.showSourceDocumentBadges {
+                if compendiumIndexStore.properties.showSourceDocumentBadges {
                     Text(entry.document.id.rawValue.uppercased())
                         .font(.caption)
                         .foregroundStyle(Color(UIColor.systemBackground))

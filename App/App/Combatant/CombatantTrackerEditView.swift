@@ -14,15 +14,9 @@ import Helpers
 import GameModels
 
 struct CombatantTrackerEditView: View, Popover {
+    let store: StoreOf<CombatantTrackerEditFeature>
 
-    var popoverId: AnyHashable { viewStore.state.resource.id }
-    var store: Store<CombatantTrackerEditFeature.State, CombatantTrackerEditFeature.Action>
-    @ObservedObject var viewStore: ViewStore<CombatantTrackerEditFeature.State, CombatantTrackerEditFeature.Action>
-
-    init(store: Store<CombatantTrackerEditFeature.State, CombatantTrackerEditFeature.Action>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
-    }
+    var popoverId: AnyHashable { store.resource.id }
 
     var body: some View {
         VStack {
@@ -30,33 +24,27 @@ struct CombatantTrackerEditView: View, Popover {
             Divider()
 
             VStack(spacing: 16) {
-                ClearableTextField("Name", text: viewStore.binding(get: \.resource.title, send: { .resource(.title($0)) }))
+                ClearableTextField("Name", text: Binding(
+                    get: { store.resource.title },
+                    set: { store.send(.resource(.title($0))) }
+                ))
                     .disableAutocorrection(true)
                 Stepper(value: Binding<Int>(get: {
-                    self.viewStore.state.resource.slots.count
+                    store.resource.slots.count
                 }, set: {
-                    self.viewStore.send(.resource(.slots($0)))
+                    store.send(.resource(.slots($0)))
                 }), in: 1...10) {
-                    Text(viewStore.state.resource.slots.count == 1 ? "1 use" : "\(viewStore.state.resource.slots.count) uses")
+                    Text(store.resource.slots.count == 1 ? "1 use" : "\(store.resource.slots.count) uses")
                 }
             }
 
             Divider()
             Button(action: {
-                self.viewStore.send(.onDoneTap)
+                store.send(.onDoneTap)
             }) {
                 Text("Done").bold()
-            }.disabled(!viewStore.state.isValid)
+            }.disabled(!store.isValid)
         }
-//        .navigationBarItems(leading: Button(action: {
-//            self.store.perform(.onCancelTap)
-//        }) {
-//            Text("Cancel")
-//        }, trailing: Button(action: {
-//            self.store.perform(.onDoneTap)
-//        }) {
-//            Text("Done").bold()
-//        }.disabled(!store.value.isValid))
     }
 
     func makeBody() -> AnyView {
@@ -64,8 +52,10 @@ struct CombatantTrackerEditView: View, Popover {
     }
 }
 
-struct CombatantTrackerEditFeature: Reducer {
+@Reducer
+struct CombatantTrackerEditFeature {
 
+    @ObservableState
     struct State: NavigationStackItemState, Equatable {
         var resource: CombatantResource
 

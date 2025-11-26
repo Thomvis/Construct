@@ -9,7 +9,9 @@
 import Foundation
 import Helpers
 import GameModels
+import ComposableArchitecture
 
+@ObservableState
 struct RunningEncounterLogViewState: Equatable {
     var encounter: RunningEncounter
     var context: Combatant?

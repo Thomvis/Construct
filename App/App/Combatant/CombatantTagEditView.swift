@@ -18,23 +18,17 @@ struct CombatantTagEditView: View {
     @EnvironmentObject var ordinalFormatter: OrdinalFormatter
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    var store: Store<CombatantTagEditFeature.State, CombatantTagEditFeature.Action>
-    @ObservedObject var viewStore: ViewStore<CombatantTagEditFeature.State, CombatantTagEditFeature.Action>
-
-    init(store: Store<CombatantTagEditFeature.State, CombatantTagEditFeature.Action>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
-    }
+    let store: StoreOf<CombatantTagEditFeature>
 
     var tag: CombatantTag {
-        viewStore.state.tag
+        store.tag
     }
 
     var note: Binding<String> {
         return Binding(get: {
-            self.viewStore.state.tag.note ?? ""
+            store.tag.note ?? ""
         }, set: {
-            self.viewStore.send(.onNoteTextDidChange($0))
+            store.send(.onNoteTextDidChange($0))
         })
     }
 
@@ -55,17 +49,17 @@ struct CombatantTagEditView: View {
 
                     if note.wrappedValue.isEmpty {
                         SimpleAccentedButton(action: {
-                            if self.viewStore.state.effectContext?.targets.single?.definition.player != nil {
-                                self.viewStore.send(.popover(.numberEntry(.pad(value: 0))))
+                            if store.effectContext?.targets.single?.definition.player != nil {
+                                store.send(.popover(.numberEntry(.pad(value: 0))))
                             } else {
-                                self.viewStore.send(.popover(.numberEntry(.dice(.editingExpression(1.d(20))))))
+                                store.send(.popover(.numberEntry(.dice(.editingExpression(1.d(20))))))
                             }
                         }) {
                             Text("Set DC")
                         }
                     } else {
                         SimpleAccentedButton(action: {
-                            self.viewStore.send(.onNoteTextDidChange(""))
+                            store.send(.onNoteTextDidChange(""))
                         }) {
                             Text("Clear")
                         }
@@ -75,7 +69,7 @@ struct CombatantTagEditView: View {
 
 
             Section(footer: Group {
-                if self.viewStore.state.effectContext == nil {
+                if store.effectContext == nil {
                     Text("Tags can only have a duration while running an encounter.")
                 }
             }) {
@@ -83,7 +77,7 @@ struct CombatantTagEditView: View {
                     Image(systemName: "stopwatch")
 
                     tag.duration.flatMap { d in
-                        self.viewStore.state.effectContext.flatMap { effectContext in
+                        store.effectContext.flatMap { effectContext in
                             d.description(ordinalFormatter: ordinalFormatter, context: effectContext)
                         }
                     }.map { ds in
@@ -96,16 +90,16 @@ struct CombatantTagEditView: View {
 
                     if tag.duration != nil {
                         SimpleAccentedButton(action: {
-                            self.viewStore.send(.onDurationDidChange(nil))
+                            store.send(.onDurationDidChange(nil))
                         }) {
                             Text("Clear")
                         }
                     }
 
-                    if let effectContext = self.viewStore.state.effectContext {
+                    if let effectContext = store.effectContext {
                         SimpleAccentedButton(action: {
-                            self.viewStore.send(.popover(.effectDuration(CombatantTagEditFeature.State.EffectDurationPopover(
-                                duration: self.tag.duration,
+                            store.send(.popover(.effectDuration(CombatantTagEditFeature.State.EffectDurationPopover(
+                                duration: tag.duration,
                                 context: effectContext
                             ))))
                         }) {
@@ -119,14 +113,14 @@ struct CombatantTagEditView: View {
                 }
             }
         }
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+        .navigationBarTitle(Text(store.navigationTitle), displayMode: .inline)
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: Button(action: {
-            self.presentationMode.wrappedValue.dismiss()
+            presentationMode.wrappedValue.dismiss()
         }) {
             Text("Cancel")
         }, trailing: Button(action: {
-            self.viewStore.send(.onDoneTap)
+            store.send(.onDoneTap)
         }) {
             Text("Done").bold()
         })
@@ -135,22 +129,21 @@ struct CombatantTagEditView: View {
 
     var popoverBinding: Binding<AnyView?> {
         Binding(get: {
-            switch viewStore.state.popover {
+            switch store.popover {
             case .effectDuration(let popover):
                 return EffectDurationEditView(
                     effectDuration: popover.duration,
                     effectContext: popover.context,
                     onSelection: { duration in
-                        self.viewStore.send(.onDurationDidChange(duration))
-                        self.viewStore.send(.popover(nil))
+                        store.send(.onDurationDidChange(duration))
+                        store.send(.popover(nil))
                     }
                 ).eraseToAnyView
             case .numberEntry:
-                if store.numberEntryPopover != nil {
-                    let popoverStore = store.scope(state: \.numberEntryPopover!, action: \.numberEntryPopover)
+                if let popoverStore = store.scope(state: \.numberEntryPopover, action: \.numberEntryPopover) {
                     return NumberEntryPopover(store: popoverStore) { outcome in
-                        self.viewStore.send(.onNoteTextDidChange("DC \(outcome)"))
-                        self.viewStore.send(.popover(nil))
+                        store.send(.onNoteTextDidChange("DC \(outcome)"))
+                        store.send(.popover(nil))
                     }.eraseToAnyView
                 }
                 return nil
@@ -158,7 +151,7 @@ struct CombatantTagEditView: View {
             }
         }, set: {
             assert($0 == nil)
-            self.viewStore.send(.popover(nil))
+            store.send(.popover(nil))
         })
     }
 }

@@ -13,19 +13,13 @@ import ComposableArchitecture
 struct RunningEncounterLogView: View {
     @SwiftUI.Environment(\.sheetPresentationMode) var sheetPresentationMode: SheetPresentationMode?
 
-    var store: Store<RunningEncounterLogViewState, RunningEncounterLogViewAction>
-    @ObservedObject var viewStore: ViewStore<RunningEncounterLogViewState, RunningEncounterLogViewAction>
-
-    init(store: Store<RunningEncounterLogViewState, RunningEncounterLogViewAction>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
-    }
+    let store: Store<RunningEncounterLogViewState, RunningEncounterLogViewAction>
 
     var body: some View {
         List {
             Section {
-                ForEach(viewStore.state.events, id: \.id) { event in
-                    RunningEncounterEventRow(encounter: self.viewStore.state.encounter.current, event: event, context: self.viewStore.state.context)
+                ForEach(store.events, id: \.id) { event in
+                    RunningEncounterEventRow(encounter: store.encounter.current, event: event, context: store.context)
                 }
 
                 HStack {
@@ -35,11 +29,11 @@ struct RunningEncounterLogView: View {
             }
         }
         .listStyle(InsetGroupedListStyle())
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+        .navigationBarTitle(Text(store.navigationTitle), displayMode: .inline)
         .navigationBarItems(trailing: Group {
-            if self.sheetPresentationMode != nil {
+            if sheetPresentationMode != nil {
                 Button(action: {
-                    self.sheetPresentationMode?.dismiss()
+                    sheetPresentationMode?.dismiss()
                 }) {
                     Text("Done").bold()
                 }

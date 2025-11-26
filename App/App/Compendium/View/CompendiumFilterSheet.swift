@@ -17,16 +17,9 @@ import Combine
 import Tagged
 
 struct CompendiumFilterSheet: View {
-    var store: Store<CompendiumFilterSheetFeature.State, CompendiumFilterSheetFeature.Action>
-    @ObservedObject var viewStore: ViewStore<CompendiumFilterSheetFeature.State, CompendiumFilterSheetFeature.Action>
+    let store: StoreOf<CompendiumFilterSheetFeature>
 
     let onApply: (CompendiumFilterSheetFeature.State.Values) -> Void
-
-    init(store: Store<CompendiumFilterSheetFeature.State, CompendiumFilterSheetFeature.Action>, onApply: @escaping (CompendiumFilterSheetFeature.State.Values) -> Void) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
-        self.onApply = onApply
-    }
 
     var body: some View {
         NavigationStack {
@@ -40,16 +33,19 @@ struct CompendiumFilterSheet: View {
                             ),
                             label: "Sources"
                         )
-                        .disabled(viewStore.state.sourcesSectionDisabled)
+                        .disabled(store.sourcesSectionDisabled)
                     }
                     .bold()
                     .padding(8)
 
                     SectionContainer {
                         LabeledContent {
-                            Picker("Type", selection: viewStore.binding(get: \.current.itemType, send: CompendiumFilterSheetFeature.Action.itemType).animation()) {
+                            Picker("Type", selection: Binding(
+                                get: { store.current.itemType },
+                                set: { store.send(.itemType($0)) }
+                            ).animation()) {
                                 Text("All").tag(Optional<CompendiumItemType>.none)
-                                ForEach(viewStore.state.allAllowedItemTypes, id: \.rawValue) { type in
+                                ForEach(store.allAllowedItemTypes, id: \.rawValue) { type in
                                     Text("\(type.localizedScreenDisplayName)").tag(Optional.some(type))
                                 }
                             }
@@ -60,11 +56,14 @@ struct CompendiumFilterSheet: View {
                     .bold()
                     .padding(8)
 
-                    if viewStore.state.compatibleFilters.contains(.monsterType) {
+                    if store.compatibleFilters.contains(.monsterType) {
                         SectionContainer {
                             LabeledContent {
                                 Picker(
-                                    selection: viewStore.binding(get: \.monsterType, send: CompendiumFilterSheetFeature.Action.monsterType),
+                                    selection: Binding(
+                                        get: { store.monsterType },
+                                        set: { store.send(.monsterType($0)) }
+                                    ),
                                     label: Text("Monster Type")
                                 ) {
                                     Text("All").tag(Optional<MonsterType>.none)
@@ -80,22 +79,28 @@ struct CompendiumFilterSheet: View {
                         .padding(8)
                     }
 
-                    with(Double(viewStore.state.challengeRatings.count-1)) { crRangeMax in
-                        if viewStore.state.compatibleFilters.contains(.minMonsterCR) {
+                    with(Double(store.challengeRatings.count-1)) { crRangeMax in
+                        if store.compatibleFilters.contains(.minMonsterCR) {
                             SectionContainer(title: "Minimum CR", accessory: clearButton(for: .minMonsterCR)) {
                                 HStack {
-                                    Text(viewStore.state.minMonsterCrString).frame(width: 30)
-                                    Slider(value: viewStore.binding(get: \.minMonsterCrDouble, send: { .minMonsterCR($0) }), in: 0.0...crRangeMax, step: 1.0, onEditingChanged: onEditingChanged(.minMonsterCR))
+                                    Text(store.minMonsterCrString).frame(width: 30)
+                                    Slider(value: Binding(
+                                        get: { store.minMonsterCrDouble },
+                                        set: { store.send(.minMonsterCR($0)) }
+                                    ), in: 0.0...crRangeMax, step: 1.0, onEditingChanged: onEditingChanged(.minMonsterCR))
                                         .environment(\.layoutDirection, .rightToLeft)
                                 }
                             }
                         }
 
-                        if viewStore.state.compatibleFilters.contains(.maxMonsterCR) {
+                        if store.compatibleFilters.contains(.maxMonsterCR) {
                             SectionContainer(title: "Maximum CR", accessory: clearButton(for: .maxMonsterCR)) {
                                 HStack {
-                                    Text(viewStore.state.maxMonsterCrString).frame(width: 30)
-                                    Slider(value: viewStore.binding(get: \.maxMonsterCrDouble, send: { .maxMonsterCR($0) }), in: 0.0...crRangeMax, step: 1.0, onEditingChanged: onEditingChanged(.maxMonsterCR))
+                                    Text(store.maxMonsterCrString).frame(width: 30)
+                                    Slider(value: Binding(
+                                        get: { store.maxMonsterCrDouble },
+                                        set: { store.send(.maxMonsterCR($0)) }
+                                    ), in: 0.0...crRangeMax, step: 1.0, onEditingChanged: onEditingChanged(.maxMonsterCR))
                                 }
                             }
                         }
@@ -106,13 +111,13 @@ struct CompendiumFilterSheet: View {
             }
             .safeAreaInset(edge: .bottom) {
                 Button(action: {
-                    self.onApply(self.viewStore.state.effectiveCurrentValues)
+                    onApply(store.effectiveCurrentValues)
                 }) {
                     Text("Apply").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(!viewStore.state.hasChanges())
+                .disabled(!store.state.hasChanges())
                 .padding(8)
                 .autoSizingSheetContent(constant: 100)
             }
@@ -121,11 +126,11 @@ struct CompendiumFilterSheet: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: {
-                        self.viewStore.send(.clearAll)
+                        store.send(.clearAll)
                     }) {
                         Text("Clear all")
                     }
-                    .disabled(viewStore.effectiveCurrentValues == .init())
+                    .disabled(store.effectiveCurrentValues == .init())
                 }
             }
         }
@@ -133,15 +138,15 @@ struct CompendiumFilterSheet: View {
 
     func onEditingChanged(_ filter: CompendiumFilterSheetFeature.State.Filter) -> (Bool) -> Void {
         return { b in
-            self.viewStore.send(.editing(filter, b))
+            store.send(.editing(filter, b))
         }
     }
 
     func clearButton(for filter: CompendiumFilterSheetFeature.State.Filter) -> some View {
         Group {
-            if viewStore.state.hasValue(for: filter) {
+            if store.state.hasValue(for: filter) {
                 Button(action: {
-                    self.viewStore.send(.clear(filter))
+                    store.send(.clear(filter))
                 }) {
                     Text("Clear").font(.footnote)
                 }
@@ -164,7 +169,9 @@ struct CompendiumFilterSheet: View {
     }
 }
 
-struct CompendiumFilterSheetFeature: Reducer {
+@Reducer
+struct CompendiumFilterSheetFeature {
+    @ObservableState
     struct State: Equatable {
         typealias Source = (document: CompendiumSourceDocument, realm: CompendiumRealm)
 

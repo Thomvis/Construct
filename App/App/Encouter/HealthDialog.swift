@@ -15,12 +15,11 @@ import GameModels
 struct HealthDialog: View {
     var popoverId: AnyHashable { "HealthDialog" } // fine unless a view tries to replace one health dialog with another
 
-    var store: StoreOf<HealthDialogFeature>
-    @ObservedObject var viewStore: ViewStoreOf<HealthDialogFeature>
+    let store: StoreOf<HealthDialogFeature>
     let onOutcomeSelected: (Hp.Action) -> Void
 
     var outcome: Int {
-        viewStore.state.numberEntryView.value ?? 0
+        store.numberEntryView.value ?? 0
     }
 
     var body: some View {
@@ -30,7 +29,7 @@ struct HealthDialog: View {
             HStack {
                 Spacer()
                 SwiftUI.Button(action: {
-                    self.onOutcomeSelected(.current(.add(-self.outcome)))
+                    onOutcomeSelected(.current(.add(-outcome)))
                 }) {
                     HStack {
                         Image(systemName: "shield.lefthalf.fill")
@@ -39,7 +38,7 @@ struct HealthDialog: View {
                 }.disabled(outcome == 0)
                 Spacer()
                 SwiftUI.Button(action: {
-                    self.onOutcomeSelected(.current(.add(self.outcome)))
+                    onOutcomeSelected(.current(.add(outcome)))
                 }) {
                     HStack {
                         Image(systemName: "heart.fill")
@@ -50,15 +49,15 @@ struct HealthDialog: View {
 
                 Menu(content: {
                     Button(action: {
-                        self.onOutcomeSelected(.current(.set(self.outcome)))
+                        onOutcomeSelected(.current(.set(outcome)))
                     }) {
-                        Text("Set current hp to \(self.outcome)")
+                        Text("Set current hp to \(outcome)")
                     }
 
                     Button(action: {
-                        self.onOutcomeSelected(.temporary(.set(self.outcome)))
+                        onOutcomeSelected(.temporary(.set(outcome)))
                     }) {
-                        Text("Set temporary hp to \(self.outcome)")
+                        Text("Set temporary hp to \(outcome)")
                     }
                 }) {
                     SwiftUI.Button(action: { }) {
@@ -72,8 +71,8 @@ struct HealthDialog: View {
     }
 
     var hitButtonLabel: String {
-        if var hp = viewStore.state.hp, self.outcome > 0, hp.effective > 0 {
-            hp.hit(self.outcome)
+        if var hp = store.hp, outcome > 0, hp.effective > 0 {
+            hp.hit(outcome)
             if hp.unboundedEffective == 0 {
                 return "Hit (dead)"
             } else if hp.unboundedEffective < 0 {
@@ -84,8 +83,8 @@ struct HealthDialog: View {
     }
 
     var healButtonLabel: String {
-        if let hp = viewStore.state.hp, self.outcome > 0, hp.effective < hp.maximum {
-            if hp.current + self.outcome >= hp.maximum {
+        if let hp = store.hp, outcome > 0, hp.effective < hp.maximum {
+            if hp.current + outcome >= hp.maximum {
                 return "Heal (full)"
             }
         }
@@ -93,7 +92,9 @@ struct HealthDialog: View {
     }
 }
 
-struct HealthDialogFeature: Reducer {
+@Reducer
+struct HealthDialogFeature {
+    @ObservableState
     struct State: Equatable {
         var numberEntryView: NumberEntryFeature.State
         var hp: Hp?
@@ -128,9 +129,8 @@ extension HealthDialog: Popover {
         )
     }
 
-    init(store: Store<HealthDialogFeature.State, HealthDialogFeature.Action>, onCombatantAction: @escaping (CombatantAction) -> ()) {
+    init(store: StoreOf<HealthDialogFeature>, onCombatantAction: @escaping (CombatantAction) -> ()) {
         self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
         self.onOutcomeSelected = { a in
             onCombatantAction(.hp(a))
         }

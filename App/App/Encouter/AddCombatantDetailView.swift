@@ -13,28 +13,20 @@ import GameModels
 
 struct AddCombatantDetailView: View {
     @Bindable var parentStore: StoreOf<AddCombatantFeature>
-    var store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
-    @ObservedObject var viewStore: ViewStore<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
+    let store: StoreOf<CompendiumEntryDetailFeature>
 
     let onSelection: (AddCombatantView.Action) -> Void
-
-    init(parentStore: StoreOf<AddCombatantFeature>, store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>, onSelection: @escaping (AddCombatantView.Action) -> Void) {
-        self.parentStore = parentStore
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
-        self.onSelection = onSelection
-    }
 
     @State var amount: Int?
     var effectiveAmount: Binding<Int> {
         Binding(get: {
-            if let monster = self.monster {
-                return self.amount ?? self.parentStore.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: monster)]?.count ?? 1
+            if let monster = monster {
+                return amount ?? parentStore.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: monster)]?.count ?? 1
             } else {
-                return self.amount ?? 1
+                return amount ?? 1
             }
         }, set: {
-            self.amount = $0
+            amount = $0
         })
     }
 
@@ -42,7 +34,7 @@ struct AddCombatantDetailView: View {
     @State var popover: StoreOf<NumberEntryFeature>? // fixme: should be part of the view state
 
     var monster: Monster? {
-        viewStore.state.item as? Monster
+        store.item as? Monster
     }
 
     var body: some View {

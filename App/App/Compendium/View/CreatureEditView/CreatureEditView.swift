@@ -22,29 +22,26 @@ struct CreatureEditView: View {
 
     @EnvironmentObject var modifierFormatter: ModifierFormatter
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    var store: Store<CreatureEditFeature.State, CreatureEditFeature.Action>
-    @ObservedObject var viewStore: ViewStore<CreatureEditFeature.State, CreatureEditFeature.Action>
+    let store: StoreOf<CreatureEditFeature>
 
     @ScaledMetric(relativeTo: .body)
     var bodyMetric: CGFloat = 14
 
-    init(store: Store<CreatureEditFeature.State, CreatureEditFeature.Action>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: { $0 }, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
-    }
-
     var model: Binding<CreatureEditFormModel> {
-        viewStore.binding(get: { $0.model }, send: { .model($0) })
+        Binding(
+            get: { store.model },
+            set: { store.send(.model($0)) }
+        )
     }
 
     @ViewBuilder
     var noticeBanner: some View {
-        if let notice = viewStore.state.notice {
+        if let notice = store.notice {
             NoticeView(
                 notice: notice,
                 backgroundColor: Color(UIColor.systemBackground),
                 onDismiss: {
-                    viewStore.send(.dismissNotice, animation: .default)
+                    store.send(.dismissNotice, animation: .default)
                 }
             )
             .listRowBackground(Color.clear)
@@ -64,7 +61,7 @@ struct CreatureEditView: View {
                 }
                 characterFields
 
-                if viewStore.state.mode != .create(.adHocCombatant) {
+                if store.mode != .create(.adHocCombatant) {
                     compendiumDocumentField
                 }
             }
@@ -73,14 +70,14 @@ struct CreatureEditView: View {
                 HStack {
                     ClearableTextField("Name", text: model.statBlock.name)
                         .disableAutocorrection(true)
-                        .disabled(!viewStore.state.canEditName)
-                        .foregroundColor(viewStore.state.canEditName ? Color(UIColor.label) : Color(UIColor.secondaryLabel))
+                        .disabled(!store.canEditName)
+                        .foregroundColor(store.canEditName ? Color(UIColor.label) : Color(UIColor.secondaryLabel))
 
                     creatureTypeAccessoryControl
                 }
                 monsterFields
 
-                if viewStore.state.mode != .create(.adHocCombatant) {
+                if store.mode != .create(.adHocCombatant) {
                     compendiumDocumentField
                 }
             }
@@ -103,7 +100,7 @@ struct CreatureEditView: View {
                     ClearableTextField("Hit Points (Optional)", text: model.statBlock.hp)
                         .keyboardType(.numberPad)
                     Button(action: {
-                        self.viewStore.send(.popover(.numberEntry(NumberEntryFeature.State.dice(.editingExpression()))))
+                        self.store.send(.popover(.numberEntry(NumberEntryFeature.State.dice(.editingExpression()))))
                     }) {
                         Text("Roll")
                     }
@@ -118,11 +115,14 @@ struct CreatureEditView: View {
 
                         Menu(mode.localizedDisplayName) {
                             Picker(
-                                selection: viewStore.binding(get: { _ in mode }, send: {
-                                    var model = viewStore.model
-                                    model.statBlock.change(mode: mode, to: $0)
-                                    return .model(model)
-                                }),
+                                selection: Binding(
+                                    get: { mode },
+                                    set: { newMode in
+                                        var model = store.model
+                                        model.statBlock.change(mode: mode, to: newMode)
+                                        store.send(.model(model))
+                                    }
+                                ),
                                 label: EmptyView()
                             ) {
                                 ForEach(MovementMode.allCases, id: \.hashValue) { option in
@@ -153,7 +153,7 @@ struct CreatureEditView: View {
                         self.model.statBlock.abilities.wrappedValue.score(for: ability).score
                     }, set: {
                         self.model.statBlock.abilities.wrappedValue.set(ability, to: $0)
-                    }), in: 1...viewStore.state.maximumAbilityScore) {
+                    }), in: 1...store.maximumAbilityScore) {
                         Text("\(ability.localizedDisplayName): ")
                             + Text("\(self.model.statBlock.abilities.wrappedValue.score(for: ability).score)")
                             + Text(" (\(modifierFormatter.string(from: self.model.statBlock.abilities.wrappedValue.score(for: ability).modifier.modifier)))").bold()
@@ -182,12 +182,12 @@ struct CreatureEditView: View {
                 }
             }
 
-            if viewStore.state.mode.isEdit {
+            if store.mode.isEdit {
                 Section {
                     Button(action: {
-                        self.viewStore.send(.onRemoveTap(self.viewStore.state))
+                        self.store.send(.onRemoveTap(self.store.state))
                     }) {
-                        Text("Remove \(viewStore.state.creatureType.localizedDisplayName)")
+                        Text("Remove \(store.creatureType.localizedDisplayName)")
                             .foregroundColor(Color(UIColor.systemRed))
                     }
                 }
@@ -195,7 +195,7 @@ struct CreatureEditView: View {
         }
         .popover(popoverBinding)
         .background(Group {
-            if viewStore.state.mode.isEdit {
+            if store.mode.isEdit {
                 EmptyView()
                     .navigationBarItems(
                         leading: Button(action: {
@@ -204,11 +204,11 @@ struct CreatureEditView: View {
                             Text("Cancel")
                         },
                         trailing: Button(action: {
-                            self.viewStore.send(.onDoneTap(self.viewStore.state))
+                            self.store.send(.onDoneTap(self.store.state))
                         }) {
                             Text("Done").bold()
                         }
-                        .disabled(!self.viewStore.state.isValid)
+                        .disabled(!self.store.isValid)
                     )
                     .navigationBarBackButtonHidden(true)
             } else {
@@ -220,19 +220,19 @@ struct CreatureEditView: View {
                             Text("Cancel")
                         },
                         trailing: Button(action: {
-                            self.viewStore.send(.onAddTap(self.viewStore.state), animation: .default)
+                            self.store.send(.onAddTap(self.store.state), animation: .default)
                         }) {
                             Text("Add").bold()
                         }
-                        .disabled(!self.viewStore.state.isValid)
+                        .disabled(!self.store.isValid)
                     )
             }
         })
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+        .navigationBarTitle(Text(store.navigationTitle), displayMode: .inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
-                    viewStore.send(.onCreatureGenerationButtonTap)
+                    store.send(.onCreatureGenerationButtonTap)
                 }) {
                     Image(systemName: "quote.bubble")
                 }
@@ -252,7 +252,7 @@ struct CreatureEditView: View {
                         AutoSizingSheetContainer {
                             SheetNavigationContainer {
                                 NamedStatBlockContentItemEditView(store: store)
-                                    .navigationTitle(store.state.title)
+                                    .navigationTitle(store.title)
                                     .navigationBarTitleDisplayMode(.inline)
                             }
                         }
@@ -267,14 +267,15 @@ struct CreatureEditView: View {
 
     @ViewBuilder
     var creatureTypeAccessoryControl: some View {
-        let editableCreatureType = !viewStore.state.mode.isEdit
+        let editableCreatureType = !store.mode.isEdit
 
         Menu {
             if editableCreatureType {
                 Picker(
-                    selection: viewStore.binding(get: \.creatureType, send: {
-                        .setCreateModeCreatureType($0)
-                    }),
+                    selection: Binding(
+                        get: { store.creatureType },
+                        set: { store.send(.setCreateModeCreatureType($0)) }
+                    ),
                     label: EmptyView()
                 ) {
                     ForEach(CreatureEditFeature.State.CreatureType.allCases, id: \.rawValue) { type in
@@ -283,11 +284,11 @@ struct CreatureEditView: View {
                 }
             } else {
                 Text("Type cannot be edited.")
-                Text("Choose “Edit a Copy” instead.")
+                Text("Choose \"Edit a Copy\" instead.")
             }
         } label: {
             HStack(alignment: .firstTextBaseline) {
-                Text(viewStore.state.creatureType.localizedDisplayName)
+                Text(store.creatureType.localizedDisplayName)
 
                 if editableCreatureType {
                     Image(systemName: "chevron.down")
@@ -306,7 +307,7 @@ struct CreatureEditView: View {
     var compendiumDocumentField: some View {
         let documentSelectionStore = store.scope(state: \.model.document, action: \.documentSelection)
         LabeledContent {
-            if !viewStore.state.mode.isEdit {
+            if !store.mode.isEdit {
                 CompendiumDocumentSelectionView.menu(
                     store: documentSelectionStore,
                     label: { name in
@@ -358,11 +359,14 @@ struct CreatureEditView: View {
             LabeledContent {
                 Menu {
                     Picker(
-                        selection: viewStore.binding(get: { $0.model.statBlock.challengeRating }, send: {
-                            var model = viewStore.model
-                            model.statBlock.challengeRating = $0
-                            return .model(model)
-                        }),
+                        selection: Binding(
+                            get: { store.model.statBlock.challengeRating },
+                            set: { newValue in
+                                var model = store.model
+                                model.statBlock.challengeRating = newValue
+                                store.send(.model(model))
+                            }
+                        ),
                         label: EmptyView()
                     ) {
                         ForEach(Array(crToXpMapping.keys).sorted(), id: \.hashValue) { option in
@@ -396,12 +400,12 @@ struct CreatureEditView: View {
     var skillsAndSavesSection: some View {
         // Mockup
         FormSection(.skillsAndSaves, footer: Group {
-            Text("The proficiency bonus for a \(viewStore.state.model.statBlock.difficultyDescription) \(viewStore.state.creatureType.localizedDisplayName) is \(viewStore.state.model.statBlock.proficiencyBonusModifier).")
+            Text("The proficiency bonus for a \(store.model.statBlock.difficultyDescription) \(store.creatureType.localizedDisplayName) is \(store.model.statBlock.proficiencyBonusModifier).")
         }) {
             ProficiencyMultiPicker(
                 fieldName: "Skill proficiencies",
                 allValues: Skill.allCases,
-                proficiencies: viewStore.state.model.statBlock.skillProficiencies,
+                proficiencies: store.model.statBlock.skillProficiencies,
                 statLabel: \.localizedDisplayName,
                 setProficiency: { $0.setProficiency($1, for: $2) },
                 removeProficiency: { $0.removeProficiency(for: $1) },
@@ -411,7 +415,7 @@ struct CreatureEditView: View {
             ProficiencyMultiPicker(
                 fieldName: "Saving throw proficiencies",
                 allValues: Ability.allCases,
-                proficiencies: viewStore.state.model.statBlock.savingThrowProficiencies,
+                proficiencies: store.model.statBlock.savingThrowProficiencies,
                 statLabel: \.localizedAbbreviation.localizedUppercase,
                 setProficiency: { $0.setProficiency($1, for: $2) },
                 removeProficiency: { $0.removeProficiency(for: $1) },
@@ -426,7 +430,7 @@ struct CreatureEditView: View {
             if case .namedContentItems(let t) = section {
                 FormSection(section, footer: HStack {
                     Button(action: {
-                        viewStore.send(.setSheet(.actionEditor(NamedStatBlockContentItemEditFeature.State(newItemOfType: t))))
+                        store.send(.setSheet(.actionEditor(NamedStatBlockContentItemEditFeature.State(newItemOfType: t))))
                     }) {
                         Image(systemName: "plus.circle").font(Font.footnote.bold())
                         Text("Add \(t.localizedDisplayName)").bold()
@@ -438,7 +442,7 @@ struct CreatureEditView: View {
                 }) {
                     ForEach(model.wrappedValue.statBlock[itemsOfType: t], id: \.id) { item in
                         NavigationRowButton {
-                            viewStore.send(.onNamedContentItemTap(t, item.id))
+                            store.send(.onNamedContentItemTap(t, item.id))
                         } label: {
                             VStack(alignment: .leading) {
                                 Text(item.attributedName)
@@ -452,10 +456,10 @@ struct CreatureEditView: View {
                         }
                     }
                     .onDelete { indices in
-                        viewStore.send(.onNamedContentItemRemove(t, indices))
+                        store.send(.onNamedContentItemRemove(t, indices))
                     }
                     .onMove { indices, offset in
-                        viewStore.send(.onNamedContentItemMove(t, indices, offset))
+                        store.send(.onNamedContentItemMove(t, indices, offset))
                     }
 
                     if model.wrappedValue.statBlock[itemsOfType: t].isEmpty {
@@ -468,12 +472,12 @@ struct CreatureEditView: View {
 
     var popoverBinding: Binding<AnyView?> {
         Binding(get: {
-            switch self.viewStore.state.popover {
+            switch self.store.popover {
             case .numberEntry:
                 if let popoverStore = store.scope(state: \.numberEntryPopover, action: \.numberEntryPopover) {
                     return NumberEntryPopover(store: popoverStore) {
                         self.model.statBlock.hp.wrappedValue = "\($0)"
-                        self.viewStore.send(.popover(nil))
+                        self.store.send(.popover(nil))
                     }.eraseToAnyView
                 }
                 return nil
@@ -481,7 +485,7 @@ struct CreatureEditView: View {
                 return nil
             }
         }, set: { _ in
-            self.viewStore.send(.popover(nil))
+            self.store.send(.popover(nil))
         })
     }
 }
@@ -493,23 +497,23 @@ extension CreatureEditView {
 
     @ViewBuilder
     fileprivate func FormSection<Footer, Content>(_ section: CreatureEditFeature.State.Section, footer: Footer, @ViewBuilder content: @escaping () -> Content) -> some View where Footer: View, Content: View {
-        if viewStore.state.addableSections.contains(section) || viewStore.state.sections.contains(section) {
+        if store.addableSections.contains(section) || store.sections.contains(section) {
             Section(footer: Group {
-                if viewStore.state.sections.contains(section) {
+                if store.sections.contains(section) {
                     footer
                 }
             }) {
-                if !viewStore.state.creatureType.requiredSections.contains(section) {
+                if !store.creatureType.requiredSections.contains(section) {
                     Toggle(isOn: Binding(get: {
-                        viewStore.state.sections.contains(section)
+                        store.sections.contains(section)
                     }, set: { b in
-                        self.viewStore.send(b ? .addSection(section) : .removeSection(section), animation: .default)
+                        self.store.send(b ? .addSection(section) : .removeSection(section), animation: .default)
                     })) {
                         Text(section.localizedHeader ?? "").bold()
                     }
                 }
 
-                if viewStore.state.sections.contains(section) {
+                if store.sections.contains(section) {
                     content()
                 }
             }
@@ -524,11 +528,14 @@ extension CreatureEditView {
         LabeledContent {
             Menu {
                 Picker(
-                    selection: viewStore.binding(get: { $0.model.statBlock[keyPath: path] }, send: {
-                        var model = viewStore.model
-                        model.statBlock[keyPath: path] = $0
-                        return .model(model)
-                    }),
+                    selection: Binding(
+                        get: { store.model.statBlock[keyPath: path] },
+                        set: { newValue in
+                            var model = store.model
+                            model.statBlock[keyPath: path] = newValue
+                            store.send(.model(model))
+                        }
+                    ),
                     label: EmptyView()
                 ) {
                     Text("None").tag(Optional<M>.none)
@@ -538,7 +545,7 @@ extension CreatureEditView {
                     }
                 }
             } label: {
-                let string = viewStore.state.model.statBlock[keyPath: path].map(valueLabel) ?? "Select (Optional)"
+                let string = store.model.statBlock[keyPath: path].map(valueLabel) ?? "Select (Optional)"
                 Text(string)
                     .foregroundColor(Color.secondary)
 
@@ -566,9 +573,9 @@ extension CreatureEditView {
                 Menu {
                     if !proficiencies.isEmpty {
                         Button(role: .destructive) {
-                            var model = viewStore.model
+                            var model = store.model
                             removeAllProficiencies(&model.statBlock)
-                            viewStore.send(.model(model))
+                            store.send(.model(model))
                         } label: {
                             Label("Remove all", systemImage: "clear")
                         }
@@ -579,13 +586,13 @@ extension CreatureEditView {
                     ForEach(allValues, id: \.rawValue) { stat in
                         let proficiency = proficiencies.first(where: { $0.stat == stat })
                         Button {
-                            var model = viewStore.model
+                            var model = store.model
                             if proficiency != nil {
                                 removeProficiency(&model.statBlock, stat)
                             } else {
                                 setProficiency(&model.statBlock, .times(1), stat)
                             }
-                            viewStore.send(.model(model))
+                            store.send(.model(model))
                         } label: {
                             let image = proficiency?.proficiency.systemImageName(filled: true)
                                             ?? StatBlock.Proficiency.times(1).systemImageName(filled: false)
@@ -618,9 +625,9 @@ extension CreatureEditView {
                         Menu {
                             let times = proficiency.proficiency[case: \.times]
                             Button {
-                                var model = viewStore.model
+                                var model = store.model
                                 setProficiency(&model.statBlock, .times(1), proficiency.stat)
-                                viewStore.send(.model(model))
+                                store.send(.model(model))
                             } label: {
                                 Label(
                                     "Single proficiency",
@@ -629,9 +636,9 @@ extension CreatureEditView {
                             }
 
                             Button {
-                                var model = viewStore.model
+                                var model = store.model
                                 setProficiency(&model.statBlock, .times(2), proficiency.stat)
-                                viewStore.send(.model(model))
+                                store.send(.model(model))
                             } label: {
                                 Label(
                                     "Double proficiency",
@@ -640,11 +647,11 @@ extension CreatureEditView {
                             }
 
                             Menu {
-                                ForEach(0...viewStore.state.maximumAbilityScore, id: \.self) { i in
+                                ForEach(0...store.maximumAbilityScore, id: \.self) { i in
                                     Button(modifierFormatter.string(from: i)) {
-                                        var model = viewStore.model
+                                        var model = store.model
                                         setProficiency(&model.statBlock, .custom(Modifier(modifier: i)), proficiency.stat)
-                                        viewStore.send(.model(model))
+                                        store.send(.model(model))
                                     }
                                 }
                             } label: {
@@ -657,9 +664,9 @@ extension CreatureEditView {
                             Divider()
 
                             Button(role: .destructive) {
-                                var model = viewStore.model
+                                var model = store.model
                                 removeProficiency(&model.statBlock, proficiency.stat)
-                                viewStore.send(.model(model))
+                                store.send(.model(model))
                             } label: {
                                 Label("Remove", systemImage: "trash")
                             }

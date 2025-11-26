@@ -14,24 +14,18 @@ import SharedViews
 import GameModels
 
 struct CombatantResourcesView: View {
-    var store: Store<CombatantResourcesFeature.State, CombatantResourcesFeature.Action>
-    @ObservedObject var viewStore: ViewStore<CombatantResourcesFeature.State, CombatantResourcesFeature.Action>
-
-    init(store: Store<CombatantResourcesFeature.State, CombatantResourcesFeature.Action>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
-    }
+    let store: StoreOf<CombatantResourcesFeature>
 
     var body: some View {
         ZStack {
             List {
-                if viewStore.state.combatant.resources.isEmpty {
+                if store.combatant.resources.isEmpty {
                     Text("No resources")
                 } else {
-                    ForEach(viewStore.state.combatant.resources, id: \.id) { resource in
+                    ForEach(store.combatant.resources, id: \.id) { resource in
                         HStack {
                             SimpleButton(action: {
-                                self.viewStore.send(.combatant(.removeResource(resource)))
+                                store.send(.combatant(.removeResource(resource)))
                             }) {
                                 Image(systemName: "minus.circle").font(Font.title.weight(.light)).foregroundColor(Color(UIColor.systemRed))
                             }
@@ -40,9 +34,9 @@ struct CombatantResourcesView: View {
                         }
                     }
                     .onDelete { indices in
-                        let resources = self.viewStore.state.combatant.resources
+                        let resources = store.combatant.resources
                         for i in indices {
-                            self.viewStore.send(.combatant(.removeResource(resources[i])))
+                            store.send(.combatant(.removeResource(resources[i])))
                         }
                     }
                 }
@@ -52,7 +46,7 @@ struct CombatantResourcesView: View {
 
             HStack {
                 RoundedButton(action: {
-                    self.viewStore.send(.setEditState(CombatantTrackerEditFeature.State(resource: CombatantResource(id: UUID().tagged(), title: "", slots: [false]))))
+                    store.send(.setEditState(CombatantTrackerEditFeature.State(resource: CombatantResource(id: UUID().tagged(), title: "", slots: [false]))))
                 }) {
                     Label("Add resource", systemImage: "plus.circle")
                 }
@@ -61,16 +55,15 @@ struct CombatantResourcesView: View {
             .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
         }
         .popover(Binding(get: { () -> AnyView? in
-            if store.editState != nil {
-                let editStore = store.scope(state: \.editState!, action: \.editState)
+            if let editStore = store.scope(state: \.editState, action: \.editState) {
                 return CombatantTrackerEditView(store: editStore).eraseToAnyView
             }
             return nil
         }, set: {
             if $0 == nil {
-                self.viewStore.send(.setEditState(nil))
+                store.send(.setEditState(nil))
             }
         }))
-        .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+        .navigationBarTitle(Text(store.navigationTitle), displayMode: .inline)
     }
 }
