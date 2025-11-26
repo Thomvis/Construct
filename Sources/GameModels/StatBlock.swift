@@ -130,6 +130,7 @@ public struct StatBlock: Codable, Hashable {
         }
     }
 
+    @CasePathable
     public enum Proficiency: Hashable {
         case times(Int) // the bonus is equal to one or more times the proficiency bonus
         case custom(Modifier) // the bonus is equal to a custom modifier

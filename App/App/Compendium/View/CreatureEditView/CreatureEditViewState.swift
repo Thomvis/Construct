@@ -18,13 +18,14 @@ import Persistence
 import SharedViews
 
 struct CreatureEditFeature: Reducer {
+    @ObservableState
     struct State: Equatable {
         var mode: Mode
         var model: CreatureEditFormModel
         var sections: Set<Section>
 
         var popover: Popover?
-        @PresentationState var sheet: Sheet.State? = nil
+        @Presents var sheet: Sheet.State? = nil
         var notice: Notice? = nil
 
         // Used to preserve attribution when creating new items (e.g. "Edit a copy")
@@ -52,24 +53,27 @@ struct CreatureEditFeature: Reducer {
 
         init(edit monster: Monster, documentId: CompendiumSourceDocument.Id, origin: CompendiumEntry.Origin = .created(nil)) {
             self.mode = .editMonster(monster)
-            self.model = CreatureEditFormModel(monster: monster, documentId: documentId)
-            self.sections = CreatureType.monster.initialSections.union(self.model.sectionsWithData)
+            let model = CreatureEditFormModel(monster: monster, documentId: documentId)
+            self.model = model
+            self.sections = CreatureType.monster.initialSections.union(model.sectionsWithData)
             self.popover = nil
             self.originalOrigin = origin
         }
 
         init(edit character: Character, documentId: CompendiumSourceDocument.Id, origin: CompendiumEntry.Origin = .created(nil)) {
             self.mode = .editCharacter(character)
-            self.model = CreatureEditFormModel(character: character, documentId: documentId)
-            self.sections = CreatureType.character.initialSections.union(self.model.sectionsWithData)
+            let model = CreatureEditFormModel(character: character, documentId: documentId)
+            self.model = model
+            self.sections = CreatureType.character.initialSections.union(model.sectionsWithData)
             self.popover = nil
             self.originalOrigin = origin
         }
 
         init(edit combatant: AdHocCombatantDefinition) {
             self.mode = .editAdHocCombatant(combatant)
-            self.model = CreatureEditFormModel(combatant: combatant)
-            self.sections = CreatureType.character.initialSections.union(self.model.sectionsWithData)
+            let model = CreatureEditFormModel(combatant: combatant)
+            self.model = model
+            self.sections = CreatureType.character.initialSections.union(model.sectionsWithData)
             self.popover = nil
         }
 
@@ -241,27 +245,10 @@ struct CreatureEditFeature: Reducer {
     @Dependency(\.compendium) var compendium
     @Dependency(\.database) var database
 
-    struct Sheet: Reducer {
-        @CasePathable
-        enum State: Equatable {
-            case actionEditor(NamedStatBlockContentItemEditFeature.State)
-            case creatureGeneration(MechMuseCreatureGenerationFeature.State)
-        }
-
-        @CasePathable
-        enum Action: Equatable {
-            case actionEditor(NamedStatBlockContentItemEditFeature.Action)
-            case creatureGeneration(MechMuseCreatureGenerationFeature.Action)
-        }
-
-        var body: some ReducerOf<Self> {
-            Scope(state: \.actionEditor, action: \.actionEditor) {
-                NamedStatBlockContentItemEditFeature()
-            }
-            Scope(state: \.creatureGeneration, action: \.creatureGeneration) {
-                MechMuseCreatureGenerationFeature()
-            }
-        }
+    @Reducer
+    enum Sheet {
+        case actionEditor(NamedStatBlockContentItemEditFeature)
+        case creatureGeneration(MechMuseCreatureGenerationFeature)
     }
 
     var body: some ReducerOf<Self> {
@@ -384,9 +371,8 @@ struct CreatureEditFeature: Reducer {
         .ifLet(\.numberEntryPopover, action: \.numberEntryPopover) {
             NumberEntryFeature()
         }
-        .ifLet(\.$sheet, action: \.sheet) {
-            Sheet()
-        }
+        .ifLet(\.$sheet, action: \.sheet)
+
         Scope(state: \.model.document, action: \.documentSelection) {
             CompendiumDocumentSelectionFeature()
         }
@@ -394,6 +380,9 @@ struct CreatureEditFeature: Reducer {
 }
 
 extension CreatureEditFeature.State: NavigationTreeNode {}
+
+extension CreatureEditFeature.Sheet.State: Equatable {}
+extension CreatureEditFeature.Sheet.Action: Equatable {}
 
 struct CreatureEditFormModel: Equatable {
     var statBlock: StatBlockFormModel

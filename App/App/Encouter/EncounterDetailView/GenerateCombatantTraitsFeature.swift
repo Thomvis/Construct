@@ -15,6 +15,7 @@ import CustomDump
 
 struct GenerateCombatantTraitsFeature: Reducer {
 
+    @ObservableState
     struct State: Equatable {
         fileprivate let encounter: Encounter
         // contains an entry for each combatant that got new traits or got its traits removed
@@ -254,5 +255,4 @@ struct GenerateCombatantTraitsFeature: Reducer {
         }
     }
 }
-
 

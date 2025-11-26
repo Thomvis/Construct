@@ -17,12 +17,14 @@ import MechMuse
 import Persistence
 
 struct NamedStatBlockContentItemEditFeature: Reducer {
+
+    @ObservableState
     struct State: Equatable {
         let intent: Intent
-        @BindingState var mode: Mode = .edit
-        @BindingState var fields = Fields(name: "", description: "")
+        var mode: Mode = .edit
+        var fields = Fields(name: "", description: "")
 
-        @BindingState var preview: NamedStatBlockContentItem?
+        var preview: NamedStatBlockContentItem?
 
         init(editing item: NamedStatBlockContentItem) {
             self.intent = .edit(item)
@@ -97,7 +99,7 @@ struct NamedStatBlockContentItemEditFeature: Reducer {
                     if state.mode == .preview, state.preview?.name != state.fields.name || state.preview?.description != state.fields.description {
                         var preview = state.makeItem()
                         preview.parseIfNeeded()
-                        return .send(.binding(.set(\.$preview, preview)), animation: .easeInOut)
+                        return .send(.binding(.set(\.preview, preview)), animation: .easeInOut)
                     }
                     return .none
                 }

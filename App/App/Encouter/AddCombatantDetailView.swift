@@ -12,16 +12,14 @@ import ComposableArchitecture
 import GameModels
 
 struct AddCombatantDetailView: View {
-    var parentStore: Store<AddCombatantFeature.State, AddCombatantFeature.Action>
-    @ObservedObject var parentViewStore: ViewStore<AddCombatantFeature.State, AddCombatantFeature.Action>
+    @Bindable var parentStore: StoreOf<AddCombatantFeature>
     var store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
     @ObservedObject var viewStore: ViewStore<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
 
     let onSelection: (AddCombatantView.Action) -> Void
 
-    init(parentStore: Store<AddCombatantFeature.State, AddCombatantFeature.Action>, store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>, onSelection: @escaping (AddCombatantView.Action) -> Void) {
+    init(parentStore: StoreOf<AddCombatantFeature>, store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>, onSelection: @escaping (AddCombatantView.Action) -> Void) {
         self.parentStore = parentStore
-        self.parentViewStore = ViewStore(parentStore, observe: \.self)
         self.store = store
         self.viewStore = ViewStore(store, observe: \.self)
         self.onSelection = onSelection
@@ -31,7 +29,7 @@ struct AddCombatantDetailView: View {
     var effectiveAmount: Binding<Int> {
         Binding(get: {
             if let monster = self.monster {
-                return self.amount ?? self.parentViewStore.state.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: monster)]?.count ?? 1
+                return self.amount ?? self.parentStore.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: monster)]?.count ?? 1
             } else {
                 return self.amount ?? 1
             }
@@ -109,7 +107,7 @@ struct AddCombatantDetailView: View {
 
     var combatantQuantityDifference: Int {
         guard let monster = monster else { return 0 }
-        let combatantsInEncounterCount: Int = parentViewStore.state.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: monster)]?.count ?? 0
+        let combatantsInEncounterCount: Int = parentStore.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: monster)]?.count ?? 0
 
         return effectiveAmount.wrappedValue - combatantsInEncounterCount
     }

@@ -13,23 +13,22 @@ import SharedViews
 import GameModels
 
 struct InlineCombatantTagsView: View {
-    var store: Store<CombatantDetailFeature.State, CombatantDetailFeature.Action>
-    var viewStore: ViewStore<CombatantDetailFeature.State, CombatantDetailFeature.Action>
+    @Bindable var store: StoreOf<CombatantDetailFeature>
 
     var body: some View {
-        if viewStore.state.combatant.tags.isEmpty {
+        if store.combatant.tags.isEmpty {
             Text("No tags").italic()
         } else {
             FlowLayout {
-                ForEach(viewStore.state.combatant.tags, id: \.definition.name) { tag in
-                    TagView(tag: tag, combatant: self.viewStore.state.combatant, runningEncounter: self.viewStore.state.runningEncounter, onDetailTap: {
+                ForEach(store.combatant.tags, id: \.definition.name) { tag in
+                    TagView(tag: tag, combatant: store.combatant, runningEncounter: store.runningEncounter, onDetailTap: {
                         if tag.hasLongNote || tag.duration != nil {
-                            self.viewStore.send(.popover(.tagDetails(tag)))
+                            store.send(.popover(.tagDetails(tag)))
                         } else {
-                            self.viewStore.send(.setDestination(.combatantTagEditView(CombatantTagEditFeature.State(mode: .edit, tag: tag, effectContext: self.viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [self.viewStore.state.combatant], running: $0) }))))
+                            store.send(.setDestination(.combatantTagEditView(CombatantTagEditFeature.State(mode: .edit, tag: tag, effectContext: store.runningEncounter.map { EffectContext(source: nil, targets: [store.combatant], running: $0) }))))
                         }
                     }, onRemoveTap: {
-                        self.viewStore.send(.combatant(.removeTag(tag)), animation: .default)
+                        store.send(.combatant(.removeTag(tag)), animation: .default)
                     })
                 }
             }

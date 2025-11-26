@@ -37,22 +37,20 @@ struct CombatantDetailView: View {
     @EnvironmentObject var modifierFormatter: ModifierFormatter
     @SwiftUI.Environment(\.appNavigation) var appNavigation: AppNavigation
 
-    let store: StoreOf<CombatantDetailFeature>
-    @ObservedObject var viewStore: ViewStore<CombatantDetailFeature.State, CombatantDetailFeature.Action>
+    @Bindable var store: StoreOf<CombatantDetailFeature>
 
     init(store: StoreOf<CombatantDetailFeature>) {
         self.store = store
-        viewStore = ViewStore(store, observe: { $0 }, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
     }
 
     var combatant: Combatant {
-        viewStore.state.combatant
+        store.combatant
     }
 
     var body: some View {
         navigationDestinations(
             baseContent
-                .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+                .navigationBarTitle(Text(store.navigationTitle), displayMode: .inline)
                 // START: work-around for https://forums.swift.org/t/14-5-beta3-navigationlink-unexpected-pop/45279/27
                 .background(VStack {
                     NavigationLink(destination: EmptyView()) {
@@ -80,14 +78,17 @@ struct CombatantDetailView: View {
                     }
 
                     if case .compendiumItemReferenceTextAnnotation(let annotation) = target {
-                        viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(annotation, appNavigation))
+                        store.send(.didTapCompendiumItemReferenceTextAnnotation(annotation, appNavigation))
                     }
                     return .handled
                 })
                 // Placing this (and .popover) inside the scrollview to work around https://github.com/stleamist/BetterSafariView/issues/23
                 .safariView(
-                    item: viewStore.binding(get: \.safari, send: CombatantDetailFeature.Action.setSafari),
-                    onDismiss: { viewStore.send(.setSafari(nil)) },
+                    item: Binding(
+                        get: { store.safari },
+                        set: { store.send(.setSafari($0)) }
+                    ),
+                    onDismiss: { store.send(.setSafari(nil)) },
                     content: { state in
                         BetterSafariView.SafariView(
                             url: state.url
@@ -97,7 +98,7 @@ struct CombatantDetailView: View {
                 .popover(popover)
                 .alert(store: store.scope(state: \.$alert, action: \.alert))
                 .onAppear {
-                    viewStore.send(.onAppear)
+                    store.send(.onAppear)
                 }
         }
     }
@@ -115,7 +116,7 @@ struct CombatantDetailView: View {
             tagsSection
             resourcesSection
             statsSection
-            if let running = viewStore.state.runningEncounter {
+            if let running = store.runningEncounter {
                 latestEvents(running)
             }
             editSection
@@ -150,7 +151,7 @@ struct CombatantDetailView: View {
     private var header: some View {
         HStack {
             SimpleButton(action: {
-                viewStore.send(.popover(.healthAction(HealthDialogFeature.State(numberEntryView: NumberEntryFeature.State.pad(value: 0), hp: combatant.hp))))
+                store.send(.popover(.healthAction(HealthDialogFeature.State(numberEntryView: NumberEntryFeature.State.pad(value: 0), hp: combatant.hp))))
             }) {
                 VStack {
                     Text("Hit Points")
@@ -194,7 +195,7 @@ struct CombatantDetailView: View {
                 .padding(10)
 
             SimpleButton(action: {
-                viewStore.send(.popover(.initiative(NumberEntryFeature.State.initiative(combatant: combatant))))
+                store.send(.popover(.initiative(NumberEntryFeature.State.initiative(combatant: combatant))))
             }) {
                 VStack {
                     Text("Initiative")
@@ -224,7 +225,7 @@ struct CombatantDetailView: View {
                 title: "Traits",
                 accessory: Menu("Manage", content: {
                     Button(role: .destructive) {
-                        viewStore.send(.combatant(.removeTraits), animation: .default)
+                        store.send(.combatant(.removeTraits), animation: .default)
                     } label: {
                         Label("Remove", systemImage: "clear")
                     }
@@ -264,19 +265,19 @@ struct CombatantDetailView: View {
         SectionContainer(
             title: "Tags",
             accessory: Button(action: {
-                let state = CombatantTagsFeature.State(combatants: [combatant], effectContext: viewStore.state.runningEncounter.map {
+                let state = CombatantTagsFeature.State(combatants: [combatant], effectContext: store.runningEncounter.map {
                     EffectContext(
                         source: nil,
-                        targets: [viewStore.state.combatant],
+                        targets: [store.combatant],
                         running: $0
                     )
                 })
-                viewStore.send(.setDestination(.combatantTagsView(state)))
+                store.send(.setDestination(.combatantTagsView(state)))
             }, label: {
                 Text("Manage")
             })
         ) {
-            InlineCombatantTagsView(store: store, viewStore: viewStore)
+            InlineCombatantTagsView(store: store)
         }
     }
 
@@ -288,7 +289,7 @@ struct CombatantDetailView: View {
                 title: "Limited resources",
                 accessory: Button(action: {
                     let state = CombatantResourcesFeature.State(combatant: combatant)
-                    viewStore.send(.setDestination(.combatantResourcesView(state)))
+                    store.send(.setDestination(.combatantResourcesView(state)))
                 }, label: {
                     Text("Manage")
                 })
@@ -308,7 +309,7 @@ struct CombatantDetailView: View {
             SectionContainer(
                 title: "Stats",
                 accessory: Button {
-                    viewStore.send(.editCreatureConfirmingUnlinkIfNeeded)
+                    store.send(.editCreatureConfirmingUnlinkIfNeeded)
                 } label: {
                     Text("Edit")
                 }
@@ -316,7 +317,7 @@ struct CombatantDetailView: View {
                 contentView(for: combatant)
             }
 
-            if let attribution = viewStore.state.attribution {
+            if let attribution = store.attribution {
                 Text(attribution)
                     .font(.footnote).italic()
                     .foregroundColor(Color(UIColor.secondaryLabel))
@@ -330,7 +331,7 @@ struct CombatantDetailView: View {
         SectionContainer(title: "Edit") {
             VStack(alignment: .leading) {
                 Button(action: {
-                    viewStore.send(.popover(.addLimitedResource(CombatantTrackerEditFeature.State(resource: CombatantResource(id: UUID().tagged(), title: "", slots: [false])))))
+                    store.send(.popover(.addLimitedResource(CombatantTrackerEditFeature.State(resource: CombatantResource(id: UUID().tagged(), title: "", slots: [false])))))
                 }) {
                     Text("Add limited resource")
                 }
@@ -340,7 +341,7 @@ struct CombatantDetailView: View {
 
                     VStack(alignment: .leading) {
                         Button(action: {
-                            viewStore.send(.unlinkFromCompendium)
+                            store.send(.unlinkFromCompendium)
                         }) {
                             Text("Detach from compendium")
                         }
@@ -353,7 +354,7 @@ struct CombatantDetailView: View {
 
                     VStack(alignment: .leading) {
                         Button(action: {
-                            viewStore.send(.saveToCompendium)
+                            store.send(.saveToCompendium)
                         }) {
                             Text("Save to compendium")
                         }
@@ -367,7 +368,7 @@ struct CombatantDetailView: View {
                             guard let def = combatant.definition as? AdHocCombatantDefinition else { return CreatureEditFeature.State(create: .monster) }
                             return CreatureEditFeature.State(edit: def)
                         }()
-                        viewStore.send(.setDestination(.creatureEditView(state)))
+                        store.send(.setDestination(.creatureEditView(state)))
                     } label: {
                         Text("Edit combatant")
                     }
@@ -382,14 +383,14 @@ struct CombatantDetailView: View {
             switch target {
             case .ability(let a):
                 let modifier: Int = stats.abilityScores?.score(for: a).modifier.modifier ?? 0
-                viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, combatant: combatant), rollOnAppear: true))))
+                store.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, combatant: combatant), rollOnAppear: true))))
             case .skill(let s):
                 let modifier: Int = stats.skillModifier(s).modifier
-                viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, combatant: combatant), rollOnAppear: true))))
+                store.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, combatant: combatant), rollOnAppear: true))))
             case .action(let action):
                 let state = ActionResolutionFeature.State(
                     encounterContext: .init(
-                        encounter: viewStore.state.runningEncounter?.current,
+                        encounter: store.runningEncounter?.current,
                         combatant: combatant
                     ),
                     creatureStats: apply(combatant.definition.stats) {
@@ -397,28 +398,28 @@ struct CombatantDetailView: View {
                     },
                     action: action
                 )
-                viewStore.send(.popover(.diceAction(state)))
+                store.send(.popover(.diceAction(state)))
             case .rollCheck(let e):
-                viewStore.send(.popover(.rollCheck(DiceCalculator.State.rollingExpression(e, rollOnAppear: true))))
+                store.send(.popover(.rollCheck(DiceCalculator.State.rollingExpression(e, rollOnAppear: true))))
             case .compendiumItemReferenceTextAnnotation(let annotation):
-                viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(annotation, appNavigation))
+                store.send(.didTapCompendiumItemReferenceTextAnnotation(annotation, appNavigation))
             }
         })
     }
 
     func latestEvents(_ running: RunningEncounter) -> some View {
-        let log = running.log.filter { $0.involves(viewStore.state.combatant) }.reversed()
+        let log = running.log.filter { $0.involves(store.combatant) }.reversed()
         return Group {
             if !log.isEmpty {
                 SectionContainer(title: "Latest", accessory: Button {
-                    let state = RunningEncounterLogViewState(encounter: running, context: viewStore.state.combatant)
-                    viewStore.send(.setDestination(.runningEncounterLogView(state)))
+                    let state = RunningEncounterLogViewState(encounter: running, context: store.combatant)
+                    store.send(.setDestination(.runningEncounterLogView(state)))
                 } label: {
                     Text("View all (\(log.count))")
                 }) {
                     VStack {
                         SimpleList(data: log.prefix(3), id: \.id) { event in
-                            RunningEncounterEventRow(encounter: running.current, event: event, context: viewStore.state.combatant)
+                            RunningEncounterEventRow(encounter: running.current, event: event, context: store.combatant)
                         }
                     }
                 }
@@ -429,41 +430,43 @@ struct CombatantDetailView: View {
     var popover: Binding<AnyView?> {
         Binding<AnyView?>(
             get: { () -> AnyView? in
-                guard let currentPopover = viewStore.state.popover else { return nil }
+                guard let currentPopover = store.popover else { return nil }
                 switch currentPopover {
                 case .healthAction:
                     return HealthDialog(hp: nil) {
-                        viewStore.send(.combatant($0))
-                        viewStore.send(.popover(nil))
+                        store.send(.combatant($0))
+                        store.send(.popover(nil))
                     }.eraseToAnyView
                 case .initiative:
-                    return IfLetStore(store.scope(state: \.initiativePopoverState, action: \.initiativePopover)) { store in
-                        NumberEntryPopover(store: store) { p in
-                            viewStore.send(.combatant(.initiative(p)))
-                            viewStore.send(.popover(nil))
+                    if let initiativeStore = store.scope(state: \.initiativePopoverState, action: \.initiativePopover) {
+                        return NumberEntryPopover(store: initiativeStore) { p in
+                            store.send(.combatant(.initiative(p)))
+                            store.send(.popover(nil))
                         }
-                    }.eraseToAnyView
+                        .eraseToAnyView
+                    }
                 case .rollCheck:
-                    return IfLetStore(store.scope(state: \.rollCheckDialogState, action: \.rollCheckDialog)) { store in
-                        DiceCalculatorView(store: store)
-                    }.eraseToAnyView
+                    if let rollCheckStore = store.scope(state: \.rollCheckDialogState, action: \.rollCheckDialog) {
+                        return DiceCalculatorView(store: rollCheckStore).eraseToAnyView
+                    }
                 case .diceAction:
-                    return IfLetStore(store.scope(state: \.diceActionPopoverState, action: \.diceActionPopover)) { store in
-                        ActionResolutionView(store: store)
-                    }.eraseToAnyView
+                    if let diceActionStore = store.scope(state: \.diceActionPopoverState, action: \.diceActionPopover) {
+                        return ActionResolutionView(store: diceActionStore).eraseToAnyView
+                    }
                 case .tagDetails(let tag):
-                    return CombatantTagPopover(running: viewStore.state.runningEncounter, combatant: combatant, tag: tag, onEditTap: {
-                        viewStore.send(.popover(nil))
-                        viewStore.send(.setDestination(.combatantTagEditView(CombatantTagEditFeature.State(mode: .edit, tag: tag, effectContext: viewStore.state.runningEncounter.map { EffectContext(source: nil, targets: [combatant], running: $0) }))))
+                    return CombatantTagPopover(running: store.runningEncounter, combatant: combatant, tag: tag, onEditTap: {
+                        store.send(.popover(nil))
+                        store.send(.setDestination(.combatantTagEditView(CombatantTagEditFeature.State(mode: .edit, tag: tag, effectContext: store.runningEncounter.map { EffectContext(source: nil, targets: [combatant], running: $0) }))))
                     }).eraseToAnyView
                 case .addLimitedResource:
-                    return IfLetStore(store.scope(state: \.addLimitedResourceState, action: \.addLimitedResource)) { store in
-                        CombatantTrackerEditView(store: store)
-                    }.eraseToAnyView
+                    if let addLimitedResourceStore = store.scope(state: \.addLimitedResourceState, action: \.addLimitedResource) {
+                        return CombatantTrackerEditView(store: addLimitedResourceStore).eraseToAnyView
+                    }
                 }
+                return nil
             },
             set: { _ in
-                viewStore.send(.popover(nil))
+                store.send(.popover(nil))
             }
         )
     }

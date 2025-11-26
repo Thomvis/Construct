@@ -17,79 +17,46 @@ import MechMuse
 
 struct GenerateCombatantTraitsView: View {
     typealias State = GenerateCombatantTraitsFeature.State
-    typealias ThisStore = Store<State, GenerateCombatantTraitsFeature.Action>
-    typealias ThisViewStore = ViewStore<State, GenerateCombatantTraitsFeature.Action>
 
-    let store: ThisStore
+    @Bindable var store: StoreOf<GenerateCombatantTraitsFeature>
+
+    init(store: StoreOf<GenerateCombatantTraitsFeature>) {
+        self.store = store
+    }
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            list(viewStore)
-                .safeAreaInset(edge: .top) {
-                    topMessage(viewStore)
-                }
-                .safeAreaInset(edge: .bottom) {
+        list
+            .safeAreaInset(edge: .top) {
+                topMessage
+            }
+            .safeAreaInset(edge: .bottom) {
+                generateButton
+            }
+            .environment(\.editMode, .constant(.active))
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
                     Button {
-                        viewStore.send(.onGenerateTap, animation: .default)
+                        store.send(.onDoneButtonTap)
                     } label: {
-                        HStack(spacing: 0) {
-                            Spacer()
-
-                            if viewStore.state.isLoading {
-                                ProgressView()
-                                    .padding(.trailing, 10)
-                                    .controlSize(.regular)
-                            }
-                            Text("Generat")
-
-                            if viewStore.state.isLoading {
-                                Text("ing…")
-                                    .transition(.asymmetric(
-                                        insertion: .opacity.animation(.default.delay(0.15)),
-                                        removal: .opacity
-                                    ))
-                            } else {
-                                Text("e traits")
-                                    .transition(.asymmetric(
-                                        insertion: .opacity.animation(.default.delay(0.15)),
-                                        removal: .opacity
-                                    ))
-                            }
-
-                            Spacer()
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .disabled(viewStore.state.disableInteractions || viewStore.state.selectedCombatants().isEmpty)
-                    .padding()
-                }
-                .environment(\.editMode, .constant(.active))
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            viewStore.send(.onDoneButtonTap)
-                        } label: {
-                            Text("Done").bold()
-                        }
+                        Text("Done").bold()
                     }
                 }
-                .onAppear {
-                    viewStore.send(.onAppear)
-                }
-        }
-        .navigationTitle("Combatant Traits")
-        .navigationBarTitleDisplayMode(.inline)
+            }
+            .onAppear {
+                store.send(.onAppear)
+            }
+            .navigationTitle("Combatant Traits")
+            .navigationBarTitleDisplayMode(.inline)
     }
 
     @ViewBuilder
-    private func topMessage(_ viewStore: ThisViewStore) -> some View {
-        if let error = viewStore.state.error {
-            let bg = viewStore.state.isMechMuseUnconfigured
+    private var topMessage: some View {
+        if let error = store.error {
+            let bg = store.isMechMuseUnconfigured
                 ? Color(UIColor.systemBlue).gradient
                 : Color(UIColor.systemRed).gradient
 
-            let image = viewStore.state.isMechMuseUnconfigured
+            let image = store.isMechMuseUnconfigured
                 ? Image("tabbar_d20")
                 : Image(systemName: "exclamationmark.circle.fill")
 
@@ -113,17 +80,16 @@ struct GenerateCombatantTraitsView: View {
         }
     }
 
-    @ViewBuilder
-    private func list(_ viewStore: ThisViewStore) -> some View {
+    private var list: some View {
         List {
             Section {
-                ForEach(viewStore.state.combatants) { combatant in
-                    row(combatant: combatant, viewStore: viewStore)
+                ForEach(store.combatants) { combatant in
+                    row(combatant: combatant)
                 }
             } header: {
-                listHeader(viewStore)
+                listHeader
             }
-            .disabled(viewStore.state.disableInteractions)
+            .disabled(store.disableInteractions)
 
             VStack(spacing: 10) {
                 Text("Powered by Mechanical Muse").bold()
@@ -132,48 +98,85 @@ struct GenerateCombatantTraitsView: View {
         }
     }
 
+    private var generateButton: some View {
+        Button {
+            store.send(.onGenerateTap, animation: .default)
+        } label: {
+            HStack(spacing: 0) {
+                Spacer()
+
+                if store.isLoading {
+                    ProgressView()
+                        .padding(.trailing, 10)
+                        .controlSize(.regular)
+                }
+                Text("Generat")
+
+                if store.isLoading {
+                    Text("ing…")
+                        .transition(.asymmetric(
+                            insertion: .opacity.animation(.default.delay(0.15)),
+                            removal: .opacity
+                        ))
+                } else {
+                    Text("e traits")
+                        .transition(.asymmetric(
+                            insertion: .opacity.animation(.default.delay(0.15)),
+                            removal: .opacity
+                        ))
+                }
+
+                Spacer()
+            }
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .disabled(store.disableInteractions || store.state.selectedCombatants().isEmpty)
+        .padding()
+    }
+
     @ViewBuilder
-    private func listHeader(_ viewStore: ThisViewStore) -> some View {
+    private var listHeader: some View {
         HStack {
             FlowLayout(spacing: 4) {
                 Button("Monsters") {
-                    viewStore.send(.onSmartSelectionGroupTap(.monsters))
+                    store.send(.onSmartSelectionGroupTap(.monsters))
                 }
-                .tint(viewStore.state.selection == .smart(.monsters) ? Color(UIColor.systemBlue) : nil)
+                .tint(store.selection == .smart(.monsters) ? Color(UIColor.systemBlue) : nil)
 
                 Button("Mobs") {
-                    viewStore.send(.onSmartSelectionGroupTap(.mobs))
+                    store.send(.onSmartSelectionGroupTap(.mobs))
                 }
-                .tint(viewStore.state.selection == .smart(.mobs) ? Color(UIColor.systemBlue) : nil)
+                .tint(store.selection == .smart(.mobs) ? Color(UIColor.systemBlue) : nil)
             }
 
             Spacer()
 
             Button {
-                viewStore.send(.onOverwriteButtonTap, animation: .default.speed(2))
+                store.send(.onOverwriteButtonTap, animation: .default.speed(2))
             } label: {
-                if viewStore.overwriteEnabled {
+                if store.overwriteEnabled {
                     Text("Overwrite on")
                 } else {
                     Text("Overwrite off")
                 }
             }
-            .tint(Color(viewStore.overwriteEnabled ? UIColor.systemRed : UIColor.systemGreen))
-            .animation(nil, value: viewStore.overwriteEnabled)
+            .tint(Color(store.overwriteEnabled ? UIColor.systemRed : UIColor.systemGreen))
+            .animation(nil, value: store.overwriteEnabled)
 
-            if viewStore.state.showRemoveAllTraits || viewStore.state.showUndoAllChanges {
+            if store.showRemoveAllTraits || store.showUndoAllChanges {
                 Menu {
-                    if viewStore.state.showRemoveAllTraits {
+                    if store.showRemoveAllTraits {
                         Button {
-                            viewStore.send(.onRemoveAllTraitsTap, animation: .default)
+                            store.send(.onRemoveAllTraitsTap, animation: .default)
                         } label: {
                             Label("Remove all traits", systemImage: "clear")
                         }
                     }
 
-                    if viewStore.state.showUndoAllChanges {
+                    if store.showUndoAllChanges {
                         Button(role: .destructive) {
-                            viewStore.send(.onUndoAllChangesTap, animation: .default)
+                            store.send(.onUndoAllChangesTap, animation: .default)
                         } label: {
                             Label("Undo all changes", systemImage: "arrow.uturn.backward.square")
                         }
@@ -197,49 +200,49 @@ struct GenerateCombatantTraitsView: View {
     }
 
     @ViewBuilder
-    private func row(combatant: State.CombatantModel, viewStore: ThisViewStore) -> some View {
+    private func row(combatant: State.CombatantModel) -> some View {
         VStack(alignment: .leading) {
-            let canSelect = viewStore.state.canSelect(combatant: combatant)
-            let isSelected = viewStore.state.isSelected(combatant: combatant)
+            let canSelect = store.state.canSelect(combatant: combatant)
+            let isSelected = store.state.isSelected(combatant: combatant)
 
             let checkbox = Image(systemName: canSelect ? (isSelected ? "checkmark.circle.fill" : "circle") : "slash.circle")
                 .symbolRenderingMode(.monochrome)
                 .font(Font.title3)
-                .foregroundColor((isSelected && !viewStore.state.disableInteractions) ? Color(UIColor.systemBlue) : Color(UIColor.systemGray2))
+                .foregroundColor((isSelected && !store.disableInteractions) ? Color(UIColor.systemBlue) : Color(UIColor.systemGray2))
 
             HStack {
                 Button {
-                    viewStore.send(.onToggleCombatantSelection(combatant.id), animation: .default.speed(2))
+                    store.send(.onToggleCombatantSelection(combatant.id), animation: .default.speed(2))
                 } label: {
                     HStack {
-                        checkbox.opacity(viewStore.state.canSelect(combatant: combatant) ? 1.0 : 0.33)
+                        checkbox.opacity(store.state.canSelect(combatant: combatant) ? 1.0 : 0.33)
                         Combatant.discriminatedNameText(name: combatant.name, discriminator: combatant.discriminator)
                             .foregroundColor(Color.primary)
 
                         Spacer()
                     }
                 }
-                .disabled(!viewStore.state.canSelect(combatant: combatant))
+                .disabled(!store.state.canSelect(combatant: combatant))
 
-                if combatant.traits != nil || viewStore.state.combatantHasChanges(combatant) {
+                if combatant.traits != nil || store.state.combatantHasChanges(combatant) {
                     Menu {
                         if combatant.traits != nil {
                             Button {
-                                viewStore.send(.onRemoveCombatantTraitsTap(combatant.id), animation: .default)
+                                store.send(.onRemoveCombatantTraitsTap(combatant.id), animation: .default)
                             } label: {
                                 Label("Remove traits", systemImage: "clear")
                             }
 
                             Button {
-                                viewStore.send(.onRegenerateCombatantTraitsTap(combatant.id), animation: .default)
+                                store.send(.onRegenerateCombatantTraitsTap(combatant.id), animation: .default)
                             } label: {
                                 Label("Regenerate traits", systemImage: "arrow.clockwise")
                             }
                         }
 
-                        if viewStore.state.combatantHasChanges(combatant) {
+                        if store.state.combatantHasChanges(combatant) {
                             Button {
-                                viewStore.send(.onUndoCombatantTraitsChangesTap(combatant.id), animation: .default)
+                                store.send(.onUndoCombatantTraitsChangesTap(combatant.id), animation: .default)
                             } label: {
                                 Label("Undo changes", systemImage: "arrow.uturn.backward.square")
                             }

@@ -24,15 +24,13 @@
 - Removed `WithPerceptionTracking` from dice views; views now rely on `@Bindable` stores.
 - Converted column/tab navigation and floating dice roller to `@Reducer` + observation; modernized Construct app root to key-path scoping, `@Presents` alerts, and observation-based navigation; build succeeds after changes.
 - Modernized ReferenceView feature to `@Reducer` with `IdentifiedAction` scoping; reworked ColumnNavigationFeature reducer for the new builder; App Clip now uses bindable store/tasks instead of `WithViewStore` and binding reducer.
-- Converted EncounterDetail, Compendium documents, Compendium entry detail, and parts of Compendium index/Campaign browse to key-path scoping with `@CasePathable` sheets/destinations; ongoing warning cleanup remains, especially for Compendium index sheets/destinations, Combatant detail, and ReferenceItem.
+- Converted EncounterDetail (including subviews: AddCombatant flow, CombatantDetail, running action bar, resource tracker, generate traits) to `@ObservableState`/`@Presents` + bindable stores; removed `WithViewStore`/`IfLetStore` usage there.
+- CampaignBrowse migrated to observation/key-path scoping; Compendium import preferences, Combatant tags view, and MechMuse creature generation preview now compile with key-path-based sheets/navigation.
+- Compendium documents/entry detail and parts of Compendium index are on key-path scoping; warning cleanup remains for remaining slash scopes/legacy navigation helpers.
 
 ## Next steps
 
 - Continue migrating remaining features (ActionResolution, Compendium, Encounter, etc.) off `/CasePath` and closure-based scoping to case key paths.
-- Replace `WithViewStore`/`IfLetStore`/`ForEachStore` and navigation helpers across the app with observation-based patterns and SwiftUI navigation + `@Presents`.
-- Tackle binding/presentation patterns (`@Presents`, `alert`/`sheet` modifiers) and reduce warning surface; revisit AppClip once broader patterns settle.
-- Pick up pending warning cleanup:
-  - `CompendiumIndexView`: sheets and navigation already using single-`store` sheet modifier; ensure reducer enums stay `@CasePathable` and finish any lingering slash scopes in `CompendiumIndexFeature`/`CompendiumEntryDetailViewState`.
-  - `CampaignBrowseView`: convert navigationDestination and sheets to key-path scoping (or slash as stopgap) aligned with the `@CasePathable` Destination/Sheet enums.
-  - `CombatantDetailViewState`, `CompendiumEntryDetailViewState`: replace slash `Scope`/`ifLet` with case key paths.
-  - ReferenceItem deferred: move to case key-path scoping once other warnings are cleared.
+- Replace remaining `WithViewStore`/`IfLetStore`/`ForEachStore` and slash-based scopes across Compendium/Reference with observation-based patterns + key-path scoping; finish sheet/navigation migration.
+- Sweep remaining TCA deprecation warnings (notably Compendium import/index/detail, CreatureEdit, ReferenceItem) to key-path APIs and ensure `@ObservableState/@Presents` are in place.
+- Once warnings are clear, rerun `xcodebuild build -project App/Construct.xcodeproj -scheme Construct -destination "platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2"` to confirm a clean build; expand to `xcodebuild test` if time allows.

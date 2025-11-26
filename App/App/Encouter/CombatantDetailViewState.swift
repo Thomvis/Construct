@@ -18,6 +18,7 @@ import ActionResolutionFeature
 import Compendium
 
 struct CombatantDetailFeature: Reducer {
+    @ObservableState
     struct State: Equatable {
 
         var runningEncounter: RunningEncounter?
@@ -31,9 +32,29 @@ struct CombatantDetailFeature: Reducer {
         var entry: CompendiumEntry?
 
         var popover: Popover?
-        @PresentationState var alert: AlertState<Action.Alert>?
-        @PresentationState var destination: Destination.State?
+        @Presents var alert: AlertState<Action.Alert>?
+        @Presents var destination: Destination.State?
         var safari: SafariViewState?
+
+        init(
+            runningEncounter: RunningEncounter? = nil,
+            combatant: Combatant,
+            entry: CompendiumEntry? = nil,
+            popover: Popover? = nil,
+            alert: AlertState<Action.Alert>? = nil,
+            destination: Destination.State? = nil,
+            safari: SafariViewState? = nil,
+            itemRequest: ReferenceViewItemRequest? = nil
+        ) {
+            self.runningEncounter = runningEncounter
+            self.combatant = combatant
+            self.entry = entry
+            self.popover = popover
+            self._alert = .init(wrappedValue: alert)
+            self._destination = .init(wrappedValue: destination)
+            self.safari = safari
+            self.itemRequest = itemRequest
+        }
 
         var navigationStackItemStateId: String {
             combatant.id.rawValue.uuidString

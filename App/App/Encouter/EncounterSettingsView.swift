@@ -16,28 +16,22 @@ import Persistence
 struct EncounterSettingsView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    var store: Store<EncounterDetailFeature.State, EncounterDetailFeature.Action>
-    @ObservedObject var viewStore: ViewStore<EncounterDetailFeature.State, EncounterDetailFeature.Action>
+    @Bindable var store: StoreOf<EncounterDetailFeature>
 
     @State var popover: Popover?
 
     // Provide a stable date for the duration of this screen
     @State var now = Date()
 
-    init(store: Store<EncounterDetailFeature.State, EncounterDetailFeature.Action>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
-    }
-
     var encounter: Encounter {
-        viewStore.state.building
+        store.building
     }
 
     var party: Binding<Encounter.Party> {
         Binding(get: {
-            self.viewStore.state.building.partyWithEntriesForDifficulty.0
+            store.building.partyWithEntriesForDifficulty.0
         }) {
-            self.viewStore.send(.buildingEncounter(.partyForDifficulty($0)))
+            store.send(.buildingEncounter(.partyForDifficulty($0)))
         }
     }
 
@@ -105,10 +99,10 @@ struct EncounterSettingsView: View {
                 }
 
                 Section(header: Text("Saved runs")) {
-                    if (viewStore.state.resumableRunningEncounters.value ?? []).isEmpty {
+                    if (store.resumableRunningEncounters.value ?? []).isEmpty {
                         Text("No runs found")
                     } else {
-                        ForEach(viewStore.state.resumableRunningEncounters.value ?? [], id: \.self) { run in
+                        ForEach(store.resumableRunningEncounters.value ?? [], id: \.self) { run in
                             Text(self.titleForRawRunningEncounter(run)).lineLimit(1)
                         }.onDelete(perform: self.onDeleteResumableRunningEncounter)
                     }
@@ -178,9 +172,9 @@ struct EncounterSettingsView: View {
     }
 
     func onDeleteResumableRunningEncounter(_ indices: IndexSet) {
-        let keys = indices.compactMap { viewStore.state.resumableRunningEncounters.value?[$0] }
+        let keys = indices.compactMap { store.resumableRunningEncounters.value?[$0] }
         for key in keys {
-            viewStore.send(.removeResumableRunningEncounter(key))
+            store.send(.removeResumableRunningEncounter(key))
         }
     }
 

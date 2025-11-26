@@ -16,11 +16,12 @@ import GameModels
 
 struct CombatantTagsFeature: Reducer {
 
+    @ObservableState
     struct State: Equatable {
         var combatants: [Combatant]
         var effectContext: EffectContext?
 
-        @PresentationState var destination: Destination.State?
+        @Presents var destination: Destination.State?
 
         var navigationTitle: String { "Manage Tags" }
         var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
@@ -129,22 +130,9 @@ struct CombatantTagsFeature: Reducer {
         case destination(PresentationAction<Destination.Action>)
     }
 
-    struct Destination: Reducer {
-        @CasePathable
-        enum State: Equatable {
-            case tagEdit(CombatantTagEditFeature.State)
-        }
-
-        @CasePathable
-        enum Action: Equatable {
-            case tagEdit(CombatantTagEditFeature.Action)
-        }
-
-        var body: some ReducerOf<Self> {
-            Scope(state: \.tagEdit, action: \.tagEdit) {
-                CombatantTagEditFeature()
-            }
-        }
+    @Reducer
+    enum Destination {
+        case tagEdit(CombatantTagEditFeature)
     }
 
     var body: some ReducerOf<Self> {
@@ -190,13 +178,14 @@ struct CombatantTagsFeature: Reducer {
             }
             return .none
         }
-        .ifLet(\.$destination, action: \.destination) {
-            Destination()
-        }
+        .ifLet(\.$destination, action: \.destination)
     }
 }
 
 extension CombatantTagsFeature.State: DestinationTreeNode {}
+
+extension CombatantTagsFeature.Destination.State: Equatable {}
+extension CombatantTagsFeature.Destination.Action: Equatable {}
 
 extension CombatantTagsFeature.Destination.State: NavigationTreeNode {
     var navigationNodes: [Any] {

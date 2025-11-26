@@ -17,61 +17,56 @@ import GameModels
 struct CampaignBrowseView: View {
     @SwiftUI.Environment(\.sheetPresentationMode) var sheetPresentationMode: SheetPresentationMode?
 
-    var store: Store<CampaignBrowseViewFeature.State, CampaignBrowseViewFeature.Action>
-    @ObservedObject var viewStore: ViewStore<CampaignBrowseViewFeature.State, CampaignBrowseViewFeature.Action>
-
-    init(store: Store<CampaignBrowseViewFeature.State, CampaignBrowseViewFeature.Action>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
-    }
+    @Bindable var store: StoreOf<CampaignBrowseViewFeature>
 
     var body: some View {
         List {
-            viewStore.state.sortedItems.map { items in
+            if let items = store.sortedItems {
                 ForEach(items, id: \.id) { item in
-                    self.itemView(item).disabled(viewStore.state.isItemDisabled(item))
-                }.onDelete(perform:self.onDelete)
+                    self.itemView(item).disabled(store.state.isItemDisabled(item))
+                }
+                .onDelete(perform: self.onDelete)
             }
         }
         .listStyle(InsetGroupedListStyle())
         .safeAreaInset(edge: .bottom) {
             RoundedButtonToolbar {
-                if !viewStore.state.isMoveMode {
+                if !store.state.isMoveMode {
                     Button(action: {
-                        self.viewStore.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
+                        store.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
                     }) {
                         Label("New group", systemImage: "folder")
                     }
 
                     Button(action: {
-                        self.viewStore.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", contentType: .encounter, node: nil))))
+                        store.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", contentType: .encounter, node: nil))))
                     }) {
                         Label("New encounter", systemImage: "shield")
                     }
-                } else if let movingNodesDescription = viewStore.state.movingNodesDescription {
+                } else if let movingNodesDescription = store.state.movingNodesDescription {
                     Button(action: {
-                        self.viewStore.send(.didTapConfirmMoveButton)
+                        store.send(.didTapConfirmMoveButton)
                     }) {
                         Label("Move \(movingNodesDescription) here", systemImage: "tray.and.arrow.down")
                     }
-                    .disabled(viewStore.state.isMoveOrigin)
+                    .disabled(store.state.isMoveOrigin)
                 }
             }
             .padding(8)
         }
-        .navigationBarTitle(viewStore.state.navigationBarTitle, displayMode: .inline)
+        .navigationBarTitle(store.state.navigationBarTitle, displayMode: .inline)
         .toolbar {
-            if viewStore.state.showSettingsButton {
+            if store.state.showSettingsButton {
                 ToolbarItem(placement: .navigation) {
                     Button(action: {
-                        self.viewStore.send(.setSheet(.settings))
+                        store.send(.setSheet(.settings))
                     }) {
                         Text("Settings")
                     }
                 }
             }
 
-            if viewStore.state.isMoveMode {
+            if store.state.isMoveMode {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(action: {
                         self.sheetPresentationMode?.dismiss()
@@ -82,7 +77,7 @@ struct CampaignBrowseView: View {
 
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: {
-                        self.viewStore.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
+                        store.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: "", node: nil))))
                     }) {
                         Image(systemName: "folder.badge.plus")
                     }
@@ -100,7 +95,7 @@ struct CampaignBrowseView: View {
             }
         }
         .onAppear {
-            self.viewStore.send(.items(.startLoading))
+            store.send(.items(.startLoading))
         }
         .modifier(Sheets(store: store))
     }
@@ -150,21 +145,21 @@ struct CampaignBrowseView: View {
         func menu() -> some View {
             Group {
                 Button(action: {
-                    self.viewStore.send(.setSheet(.move(CampaignBrowseViewFeature.State(node: .root, mode: .move([item]), items: .initial, showSettingsButton: false))))
+                    store.send(.setSheet(.move(CampaignBrowseViewFeature.State(node: .root, mode: .move([item]), items: .initial, showSettingsButton: false))))
                 }) {
                     Text("Move")
                     Image(systemName: "folder")
                 }
 
                 Button(action: {
-                    self.viewStore.send(.remove(item))
+                    store.send(.remove(item))
                 }) {
                     Text("Remove")
                     Image(systemName: "trash")
                 }
 
                 Button(action: {
-                    self.viewStore.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: item.title, contentType: item.contents?.type, node: item))))
+                    store.send(.setSheet(.nodeEdit(CampaignBrowseViewFeature.State.NodeEditState(name: item.title, contentType: item.contents?.type, node: item))))
                 }) {
                     Text("Rename")
                     Image(systemName: "plus.square.on.square")
@@ -177,8 +172,8 @@ struct CampaignBrowseView: View {
                 self.navigationLink(for: item) {
                     content().font(Font.body.weight(.semibold))
                 }
-            } else if self.viewStore.state.isMoveMode {
-                if self.viewStore.state.isBeingMoved(item) {
+            } else if store.state.isMoveMode {
+                if store.state.isBeingMoved(item) {
                     content().foregroundColor(Color(UIColor.secondaryLabel))
                 } else {
                     self.navigationLink(for: item) {
@@ -191,7 +186,7 @@ struct CampaignBrowseView: View {
                 }
             }
         }
-        .deleteDisabled(self.viewStore.state.isMoveMode || item.special != nil)
+        .deleteDisabled(store.state.isMoveMode || item.special != nil)
     }
 
     func navigationLink<Label>(for item: CampaignNode, @ViewBuilder label: @escaping () -> Label) -> some View where Label: View {
@@ -226,19 +221,19 @@ struct CampaignBrowseView: View {
                 }
             } else {
                 // group
-                nextScreen = .campaignBrowse(CampaignBrowseViewFeature.State(node: item, mode: self.viewStore.state.mode, items: .initial, showSettingsButton: false))
+                nextScreen = .campaignBrowse(CampaignBrowseViewFeature.State(node: item, mode: store.mode, items: .initial, showSettingsButton: false))
             }
 
-            viewStore.send(.setDestination(nextScreen))
+            store.send(.setDestination(nextScreen))
         } label: {
             label()
         }
     }
 
     func onDelete(_ indices: IndexSet) {
-        guard let items = viewStore.state.sortedItems else { return }
+        guard let items = store.sortedItems else { return }
         for i in indices {
-            viewStore.send(.remove(items[i]))
+            store.send(.remove(items[i]))
         }
     }
 

@@ -8,6 +8,7 @@ import Persistence
 import DiceRollerFeature
 
 struct AddCombatantFeature: Reducer {
+    @ObservableState
     struct State: Equatable {
         var compendiumState: CompendiumIndexFeature.State
 
@@ -17,7 +18,7 @@ struct AddCombatantFeature: Reducer {
                 updateSuggestedCombatants()
             }
         }
-        var creatureEditViewState: CreatureEditFeature.State?
+        @Presents var creatureEditViewState: CreatureEditFeature.State?
 
         var combatantsByDefinitionCache: [String: [Combatant]] = [:] // computed from the encounter
 
@@ -52,22 +53,13 @@ struct AddCombatantFeature: Reducer {
 
             compendiumState.suggestions = compendiumState.suggestions.map { $0 + newSuggestions } ?? newSuggestions.nonEmptyArray
         }
-
-        var localStateForDeduplication: Self {
-            return State(
-                compendiumState: CompendiumIndexFeature.State.nullInstance,
-                encounter: self.encounter,
-                creatureEditViewState: self.creatureEditViewState.map { _ in CreatureEditFeature.State.nullInstance }
-            )
-        }
     }
 
     @CasePathable
     enum Action: Equatable {
         case compendiumState(CompendiumIndexFeature.Action)
         case quickCreate
-        case creatureEditView(CreatureEditFeature.Action)
-        case onCreatureEditViewDismiss
+        case creatureEditView(PresentationAction<CreatureEditFeature.Action>)
         case onSelect([Combatant], dismiss: Bool)
     }
 
@@ -76,20 +68,23 @@ struct AddCombatantFeature: Reducer {
             switch action {
             case .quickCreate:
                 state.creatureEditViewState = CreatureEditFeature.State(create: .adHocCombatant)
-            case .creatureEditView(.didAdd(let result)):
+            case let .creatureEditView(.presented(.didAdd(result))):
                 state.creatureEditViewState = nil
                 if case let .adHoc(def) = result {
                     return .send(.onSelect([Combatant(adHoc: def)], dismiss: true))
                 }
-            case .creatureEditView: break // handled below
-            case .onCreatureEditViewDismiss:
+            case .creatureEditView(.dismiss):
                 state.creatureEditViewState = nil
-            case .compendiumState: break
-            case .onSelect: break // should be handled by parent
+            case .creatureEditView:
+                break // handled below
+            case .compendiumState:
+                break
+            case .onSelect:
+                break // should be handled by parent
             }
             return .none
         }
-        .ifLet(\.creatureEditViewState, action: \.creatureEditView) {
+        .ifLet(\.$creatureEditViewState, action: \.creatureEditView) {
             CreatureEditFeature()
         }
         Scope(state: \.compendiumState, action: \.compendiumState) {
@@ -102,7 +97,7 @@ extension AddCombatantFeature.State {
     static let nullInstance = AddCombatantFeature.State(encounter: Encounter.nullInstance)
 
     init(
-            compendiumState: CompendiumIndexFeature.State = CompendiumIndexFeature.State(
+        compendiumState: CompendiumIndexFeature.State = CompendiumIndexFeature.State(
             title: "Add Combatant",
             properties: CompendiumIndexFeature.State.Properties(
                 showImport: false,
@@ -116,8 +111,7 @@ extension AddCombatantFeature.State {
     ) {
         self.compendiumState = compendiumState
         self.encounter = encounter
-        self.creatureEditViewState = creatureEditViewState
-
+        self._creatureEditViewState = .init(wrappedValue: creatureEditViewState)
         updateCombatantsByDefinitionCache()
         updateSuggestedCombatants()
     }

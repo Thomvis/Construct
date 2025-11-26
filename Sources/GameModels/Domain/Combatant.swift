@@ -205,6 +205,7 @@ extension Combatant.CodableCombatDefinition: Codable {
     }
 }
 
+@ObservableState
 public struct CombatantResource: Codable, Hashable, Identifiable {
     public let id: Id
     public var title: String

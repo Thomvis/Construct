@@ -13,43 +13,41 @@ import GameModels
 
 struct CombatantResourceTrackerView: View {
 
-    var store: Store<CombatantResource, CombatantResourceAction>
+    @Bindable var store: StoreOf<CombatantResourceReducer>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            VStack(alignment: .leading) {
-                HStack {
-                    Text(viewStore.state.title).font(.footnote).bold()
-                    Spacer()
+        VStack(alignment: .leading) {
+            HStack {
+                Text(store.title).font(.footnote).bold()
+                Spacer()
 
-                    Menu(content: {
-                        Button(action: {
-                            viewStore.send(.reset)
-                        }) {
-                            Label("Reset", systemImage: "arrow.counterclockwise")
-                        }
-                    }, label: {
-                        HStack {
-                            Text("Used \(viewStore.state.slots.filter { $0 }.count) of \(viewStore.state.slots.count)")
-                                .foregroundColor(Color(UIColor.label))
-
-                            Image(systemName: "ellipsis.circle")
-                        }
-                        .font(.footnote)
-
-                    })
-                }
-
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 30, maximum: 80))], spacing: 8) {
-                    ForEach(0..<viewStore.state.slots.count, id: \.self) { i in
-                        SlotView(used: Binding(get: { viewStore.state.slots[i] }, set: {
-                            viewStore.send(.slot(i, $0))
-                        }))
+                Menu(content: {
+                    Button(action: {
+                        store.send(.reset)
+                    }) {
+                        Label("Reset", systemImage: "arrow.counterclockwise")
                     }
+                }, label: {
+                    HStack {
+                        Text("Used \(store.slots.filter { $0 }.count) of \(store.slots.count)")
+                            .foregroundColor(Color(UIColor.label))
+
+                        Image(systemName: "ellipsis.circle")
+                    }
+                    .font(.footnote)
+
+                })
+            }
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 30, maximum: 80))], spacing: 8) {
+                ForEach(Array(store.slots.enumerated()), id: \.offset) { i, _ in
+                    SlotView(used: Binding(get: { store.slots[i] }, set: {
+                        store.send(.slot(i, $0))
+                    }))
                 }
             }
-            .padding(.bottom, 4)
         }
+        .padding(.bottom, 4)
     }
 }
 

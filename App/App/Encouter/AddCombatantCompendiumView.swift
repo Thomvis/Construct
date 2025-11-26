@@ -14,10 +14,17 @@ import Helpers
 import GameModels
 
 struct AddCombatantCompendiumView: View {
-    var store: Store<AddCombatantFeature.State, AddCombatantFeature.Action>
-    var viewStore: ViewStore<AddCombatantFeature.State, AddCombatantFeature.Action>
+    @Bindable var store: StoreOf<AddCombatantFeature>
 
     let onSelection: (AddCombatantView.Action, _ dismiss: Bool) -> Void
+
+    init(
+        store: StoreOf<AddCombatantFeature>,
+        onSelection: @escaping (AddCombatantView.Action, _ dismiss: Bool) -> Void
+    ) {
+        self.store = store
+        self.onSelection = onSelection
+    }
 
     var body: some View {
         CompendiumIndexView(
@@ -25,7 +32,7 @@ struct AddCombatantCompendiumView: View {
             viewProvider: compendiumIndexViewProvider,
             bottomBarButtons: {
                 Button(action: {
-                    self.viewStore.send(.quickCreate)
+                    store.send(.quickCreate)
                 }) {
                     Label("Quick create", systemImage: "plus.circle")
                 }
@@ -37,10 +44,22 @@ struct AddCombatantCompendiumView: View {
         CompendiumIndexViewProvider(
             row: { store, entry in
                 (entry.item as? CompendiumCombatant).map { combatant in
-                    CombatantRowView(parent: self, compendiumIndexStore: store, entry: entry, combatant: combatant)
+                    CombatantRowView(
+                        addCombatantStore: self.store,
+                        compendiumIndexStore: store,
+                        entry: entry,
+                        combatant: combatant,
+                        onSelection: onSelection
+                    )
                 }.replaceNilWith {
                     (entry.item as? CompendiumItemGroup).map { group in
-                        GroupRowView(parent: self, compendiumIndexStore: store, entry: entry, group: group)
+                        GroupRowView(
+                            addCombatantStore: self.store,
+                            compendiumIndexStore: store,
+                            entry: entry,
+                            group: group,
+                            onSelection: onSelection
+                        )
                     }.replaceNilWith {
                         CompendiumIndexViewProvider.default.row(store, entry)
                     }
@@ -55,25 +74,34 @@ struct AddCombatantCompendiumView: View {
                 .navigationBarTitle(Text(viewStore.state.item.title), displayMode: .inline)
                 .eraseToAnyView
             },
-            state: { [state=viewStore.state] in state.combatantsByDefinitionCache }
+            state: { store.combatantsByDefinitionCache }
         )
     }
 
     struct CombatantRowView: View {
         @EnvironmentObject var ordinalFormatter: OrdinalFormatter
 
-        var parent: AddCombatantCompendiumView
+        @Bindable var addCombatantStore: StoreOf<AddCombatantFeature>
         var compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
         @ObservedObject var compendiumIndexViewStore: ViewStore<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
         let entry: CompendiumEntry
         let combatant: CompendiumCombatant
 
-        init(parent: AddCombatantCompendiumView, compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>, entry: CompendiumEntry, combatant: CompendiumCombatant) {
-            self.parent = parent
+        let onSelection: (AddCombatantView.Action, Bool) -> Void
+
+        init(
+            addCombatantStore: StoreOf<AddCombatantFeature>,
+            compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>,
+            entry: CompendiumEntry,
+            combatant: CompendiumCombatant,
+            onSelection: @escaping (AddCombatantView.Action, Bool) -> Void
+        ) {
+            self.addCombatantStore = addCombatantStore
             self.compendiumIndexStore = compendiumIndexStore
             self.compendiumIndexViewStore = ViewStore(compendiumIndexStore, observe: { $0 })
             self.entry = entry
             self.combatant = combatant
+            self.onSelection = onSelection
         }
 
         var body: some View {
@@ -98,11 +126,11 @@ struct AddCombatantCompendiumView: View {
                 }
 
                 HStack(spacing: 6) {
-                    with(parent.viewStore.state.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: combatant)]) { def in
+                    with(addCombatantStore.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: combatant)]) { def in
                         if def != nil {
                             SimpleAccentedButton(action: {
                                 withAnimation {
-                                    self.parent.onSelection(.remove(CompendiumCombatantDefinition.definitionID(for: self.combatant), 1), false)
+                                    self.onSelection(.remove(CompendiumCombatantDefinition.definitionID(for: self.combatant), 1), false)
                                 }
                             }) {
                                 Image(systemName: "minus.circle")
@@ -117,7 +145,7 @@ struct AddCombatantCompendiumView: View {
 
                         SimpleAccentedButton(action: {
                             withAnimation {
-                                self.parent.onSelection(.add([Combatant(compendiumCombatant: self.combatant)]), false)
+                                self.onSelection(.add([Combatant(compendiumCombatant: self.combatant)]), false)
                             }
                         }) {
                             Image(systemName: "plus.circle")
@@ -131,10 +159,11 @@ struct AddCombatantCompendiumView: View {
     }
 
     struct GroupRowView: View {
-        var parent: AddCombatantCompendiumView
+        @Bindable var addCombatantStore: StoreOf<AddCombatantFeature>
         var compendiumIndexStore: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
         let entry: CompendiumEntry
         let group: CompendiumItemGroup
+        let onSelection: (AddCombatantView.Action, Bool) -> Void
 
         var body: some View {
             HStack {
@@ -143,7 +172,7 @@ struct AddCombatantCompendiumView: View {
 
                 with(combatantsNotInEncounter) { combatants in
                     SimpleAccentedButton(action: {
-                        self.parent.onSelection(.addByKey(combatants, self.group), false)
+                        self.onSelection(.addByKey(combatants, self.group), false)
                     }) {
                         Image(systemName: "plus.circle")
                             .font(Font.title.weight(.light))
@@ -154,19 +183,8 @@ struct AddCombatantCompendiumView: View {
 
         var combatantsNotInEncounter: [CompendiumItemKey] {
             group.members.filter { member in
-                parent.viewStore.state.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: member.itemKey)] == nil
+                addCombatantStore.combatantsByDefinitionCache[CompendiumCombatantDefinition.definitionID(for: member.itemKey)] == nil
             }.map { $0.itemKey }
         }
-    }
-}
-
-extension AddCombatantCompendiumView {
-    init(
-        store: Store<AddCombatantFeature.State, AddCombatantFeature.Action>,
-        onSelection: @escaping (AddCombatantView.Action, _ dismiss: Bool) -> Void
-    ) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self)
-        self.onSelection = onSelection
     }
 }

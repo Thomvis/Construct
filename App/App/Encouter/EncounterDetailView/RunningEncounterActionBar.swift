@@ -15,33 +15,34 @@ struct RunningEncounterActionBar: View {
     @ScaledMetric(relativeTo: .body)
     private var verticalDividerHeight: CGFloat = 30
 
-    @ObservedObject var viewStore: ViewStore<EncounterDetailFeature.State, EncounterDetailFeature.Action>
+    @Bindable var store: StoreOf<EncounterDetailFeature>
 
     var body: some View {
         HStack(spacing: 12) {
             Menu(content: {
                 Button(action: {
-                    viewStore.send(.runningEncounter(.previousTurn), animation: .default)
+                    store.send(.runningEncounter(.previousTurn), animation: .default)
                 }) {
                     Label("Previous turn", systemImage: "backward.frame")
                 }
 
                 Button(action: {
-                    viewStore.send(.setSheet(.runningEncounterLog(RunningEncounterLogViewState(encounter: viewStore.state.running!, context: nil))))
+                    guard let running = store.running else { return }
+                    store.send(.setSheet(.runningEncounterLog(RunningEncounterLogViewState(encounter: running, context: nil))))
                 }) {
                     Label("Show log", systemImage: "doc.plaintext")
                 }
 
-                if !viewStore.state.encounter.initiativeOrder.isEmpty {
+                if !store.encounter.initiativeOrder.isEmpty {
                     Button(action: {
-                        viewStore.send(.popover(.encounterInitiative))
+                        store.send(.popover(.encounterInitiative))
                     }) {
                         Label("Re-roll initiative…", systemImage: "hare")
                     }
                 }
 
                 Button(action: {
-                    viewStore.send(.setSheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter: viewStore.state.encounter)))))
+                    store.send(.setSheet(.add(EncounterDetailFeature.AddCombatantSheet(state: AddCombatantFeature.State(encounter: store.encounter)))))
                 }) {
                     Label("Add combatants", systemImage: "plus")
                 }
@@ -49,11 +50,11 @@ struct RunningEncounterActionBar: View {
                 Divider()
 
                 FeedbackMenuButton {
-                    viewStore.send(.onFeedbackButtonTap)
+                    store.send(.onFeedbackButtonTap)
                 }
 
                 Button(action: {
-                    viewStore.send(.stop, animation: .default)
+                    store.send(.stop, animation: .default)
                 }) {
                     Label("Stop run", systemImage: "stop.fill")
                 }
@@ -61,7 +62,7 @@ struct RunningEncounterActionBar: View {
                 HStack {
                     Image(systemName: "ellipsis.circle.fill")
 
-                    viewStore.state.running.map { running in
+                    store.running.map { running in
                         VStack(alignment: .leading) {
                             running.currentTurnCombatant.map { combatant in
                                 Text("\(combatant.discriminatedName)'s turn")
@@ -79,17 +80,17 @@ struct RunningEncounterActionBar: View {
 
             Color.white.frame(width: 1, height: verticalDividerHeight)
 
-            if viewStore.state.encounter.initiativeOrder.isEmpty {
+            if store.encounter.initiativeOrder.isEmpty {
                 Button(action: {
-                    self.viewStore.send(.popover(.encounterInitiative))
+                    store.send(.popover(.encounterInitiative))
                 }) {
                     Text("Roll initiative...")
                 }
             } else {
                 Button(action: {
-                    self.viewStore.send(.runningEncounter(.nextTurn))
+                    store.send(.runningEncounter(.nextTurn))
                 }) {
-                    if viewStore.state.running?.turn == nil {
+                    if store.running?.turn == nil {
                         Text("Start")
                     } else {
                         Text("Next turn")

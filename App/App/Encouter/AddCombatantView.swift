@@ -16,21 +16,19 @@ import SharedViews
 struct AddCombatantView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    var store: Store<AddCombatantFeature.State, AddCombatantFeature.Action>
-    @ObservedObject var viewStore: ViewStore<AddCombatantFeature.State, AddCombatantFeature.Action>
+    @Bindable var store: StoreOf<AddCombatantFeature>
 
     let externalNavigation: Bool
     let showEncounterDifficulty: Bool
     let onSelection: (Action, _ dismiss: Bool) -> Void
 
     init(
-        store: Store<AddCombatantFeature.State, AddCombatantFeature.Action>,
+        store: StoreOf<AddCombatantFeature>,
         externalNavigation: Bool = false,
         showEncounterDifficulty: Bool = true,
         onSelection: @escaping (Action, _ dismiss: Bool) -> Void
     ) {
         self.store = store
-        self.viewStore = ViewStore(store, observe: { $0 }, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
         self.externalNavigation = externalNavigation
         self.showEncounterDifficulty = showEncounterDifficulty
         self.onSelection = onSelection
@@ -40,10 +38,10 @@ struct AddCombatantView: View {
         return VStack(spacing: 0) {
             ZStack {
                 if externalNavigation {
-                    AddCombatantCompendiumView(store: store, viewStore: viewStore, onSelection: onSelection)
+                    AddCombatantCompendiumView(store: store, onSelection: onSelection)
                 } else {
                     NavigationStack {
-                        AddCombatantCompendiumView(store: store, viewStore: viewStore, onSelection: onSelection)
+                        AddCombatantCompendiumView(store: store, onSelection: onSelection)
                         .navigationBarItems(trailing: Button(action: {
                             self.presentationMode.wrappedValue.dismiss()
                         }) {
@@ -58,25 +56,19 @@ struct AddCombatantView: View {
                 VStack {
                     Divider()
 
-                    EncounterDifficultyView(encounter: viewStore.state.encounter)
+                    EncounterDifficultyView(encounter: store.encounter)
                         .padding(12)
                 }
                 .padding(.bottom, 30) // fixme: static value because I can't make this view not ignore the safe area
                 .background(Color(UIColor.tertiarySystemBackground))
             }
         }
-        .sheet(isPresented: Binding(get: {
-            self.viewStore.state.creatureEditViewState != nil
-        }, set: {
-            if !$0 && self.viewStore.state.creatureEditViewState != nil {
-                self.viewStore.send(.onCreatureEditViewDismiss)
-            }
-        })) {
-            IfLetStore(self.store.scope(state: \.creatureEditViewState, action: \.creatureEditView)) { store in
-                SheetNavigationContainer(isModalInPresentation: true) {
-                    CreatureEditView(store: store)
-                        .navigationBarTitle(Text("Quick create"), displayMode: .inline)
-                }
+        .sheet(
+            store: store.scope(state: \.$creatureEditViewState, action: \.creatureEditView)
+        ) { creatureStore in
+            SheetNavigationContainer(isModalInPresentation: true) {
+                CreatureEditView(store: creatureStore)
+                    .navigationBarTitle(Text("Quick create"), displayMode: .inline)
             }
         }
         .edgesIgnoringSafeArea(.bottom)

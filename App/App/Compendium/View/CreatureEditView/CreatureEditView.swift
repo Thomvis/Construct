@@ -242,32 +242,24 @@ struct CreatureEditView: View {
     }
 
     struct Sheets: ViewModifier {
-        let store: StoreOf<CreatureEditFeature>
+        @Bindable var store: StoreOf<CreatureEditFeature>
 
         func body(content: Content) -> some View {
             content
-                .sheet(
-                    store: store.scope(state: \.$sheet, action: CreatureEditFeature.Action.sheet),
-                    state: /CreatureEditFeature.Sheet.State.actionEditor,
-                    action: CreatureEditFeature.Sheet.Action.actionEditor
-                ) { store in
-                    WithViewStore(store, observe: { $0 }) { sheetViewStore in
+                .sheet(item: $store.scope(state: \.sheet, action: \.sheet)) { store in
+                    switch store.case {
+                    case .actionEditor(let store):
                         AutoSizingSheetContainer {
                             SheetNavigationContainer {
                                 NamedStatBlockContentItemEditView(store: store)
-                                    .navigationTitle(sheetViewStore.state.title)
+                                    .navigationTitle(store.state.title)
                                     .navigationBarTitleDisplayMode(.inline)
                             }
                         }
-                    }
-                }
-                .sheet(
-                    store: store.scope(state: \.$sheet, action: CreatureEditFeature.Action.sheet),
-                    state: /CreatureEditFeature.Sheet.State.creatureGeneration,
-                    action: CreatureEditFeature.Sheet.Action.creatureGeneration
-                ) { store in
-                    SheetNavigationContainer {
-                        MechMuseCreatureGenerationSheet(store: store)
+                    case .creatureGeneration(let store):
+                        SheetNavigationContainer {
+                            MechMuseCreatureGenerationSheet(store: store)
+                        }
                     }
                 }
         }
@@ -312,7 +304,7 @@ struct CreatureEditView: View {
 
     @ViewBuilder
     var compendiumDocumentField: some View {
-        let documentSelectionStore = store.scope(state: \.model.document, action: CreatureEditFeature.Action.documentSelection)
+        let documentSelectionStore = store.scope(state: \.model.document, action: \.documentSelection)
         LabeledContent {
             if !viewStore.state.mode.isEdit {
                 CompendiumDocumentSelectionView.menu(
@@ -623,7 +615,7 @@ extension CreatureEditView {
                 FlowLayout {
                     ForEach(proficiencies, id: \.stat) { proficiency in
                         Menu {
-                            let times = (/StatBlock.Proficiency.times).extract(from: proficiency.proficiency)
+                            let times = proficiency.proficiency[case: \.times]
                             Button {
                                 var model = viewStore.model
                                 setProficiency(&model.statBlock, .times(1), proficiency.stat)

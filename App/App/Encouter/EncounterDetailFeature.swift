@@ -6,15 +6,14 @@
 //  Copyright © 2019 Thomas Visser. All rights reserved.
 //
 
-import Foundation
 import Combine
 import ComposableArchitecture
-import SwiftUI
-import ComposableArchitecture
-import Helpers
-import Persistence
+import Foundation
 import GameModels
+import Helpers
 import MechMuse
+import Persistence
+import SwiftUI
 
 struct EncounterDetailFeature: Reducer {
     struct AddCombatantSheet: Identifiable, Equatable {
@@ -29,6 +28,7 @@ struct EncounterDetailFeature: Reducer {
         static let nullInstance = AddCombatantSheet(state: AddCombatantFeature.State.nullInstance)
     }
 
+    @ObservableState
     struct State: Equatable {
         var building: Encounter {
             didSet {
@@ -52,7 +52,9 @@ struct EncounterDetailFeature: Reducer {
                     }
                     // refresh combatants in selectedCombatantTagsState
                     if let scts = selectedCombatantTagsState {
-                        selectedCombatantTagsState?.combatants = scts.combatants.compactMap { running.current.combatant(for: $0.id) }
+                        selectedCombatantTagsState?.combatants = scts.combatants.compactMap {
+                            running.current.combatant(for: $0.id)
+                        }
                     }
                 }
             }
@@ -61,7 +63,7 @@ struct EncounterDetailFeature: Reducer {
         typealias AsyncResumableRunningEncounters = Async<[String], EquatableError>
         var resumableRunningEncounters: AsyncResumableRunningEncounters.State = .initial
 
-        @PresentationState var sheet: Sheet.State?
+        @Presents var sheet: Sheet.State?
         var popover: Popover?
 
         var editMode: EditMode = .inactive
@@ -82,7 +84,7 @@ struct EncounterDetailFeature: Reducer {
             self.building = building
             self.running = running
             self.resumableRunningEncounters = resumableRunningEncounters
-            self._sheet = PresentationState(wrappedValue: sheet)
+            self.sheet = sheet
             self.popover = popover
             self.editMode = editMode
             self.selection = selection
@@ -179,17 +181,23 @@ struct EncounterDetailFeature: Reducer {
                 switch $0 {
                 case .add: return .add(AddCombatantSheet.nullInstance)
                 case .combatant: return .combatant(CombatantDetailFeature.State.nullInstance)
-                case .runningEncounterLog: return .runningEncounterLog(RunningEncounterLogViewState.nullInstance)
-                case .selectedCombatantTags: return .selectedCombatantTags(CombatantTagsFeature.State.nullInstance)
+                case .runningEncounterLog:
+                    return .runningEncounterLog(RunningEncounterLogViewState.nullInstance)
+                case .selectedCombatantTags:
+                    return .selectedCombatantTags(CombatantTagsFeature.State.nullInstance)
                 case .settings: return .settings
-                case .generateCombatantTraits: return .generateCombatantTraits(GenerateCombatantTraitsFeature.State.nullInstance)
+                case .generateCombatantTraits:
+                    return .generateCombatantTraits(
+                        GenerateCombatantTraitsFeature.State.nullInstance)
                 }
             }
 
             res.popover = popover.map {
                 switch $0 {
                 case .encounterInitiative: return .encounterInitiative
-                case .combatantInitiative: return .combatantInitiative(Combatant.nullInstance, NumberEntryFeature.State.nullInstance)
+                case .combatantInitiative:
+                    return .combatantInitiative(
+                        Combatant.nullInstance, NumberEntryFeature.State.nullInstance)
                 case .health: return .health(.single(Combatant.nullInstance))
                 }
             }
@@ -209,8 +217,12 @@ struct EncounterDetailFeature: Reducer {
         }
     }
 
+    // Note: Cannot be replaced with an @Reducer enum (new in TCA 1.8) for now
+    // because not all children are reducers
     struct Sheet: Reducer {
+        @ObservableState
         @CasePathable
+        @dynamicMemberLookup
         enum State: Equatable {
             case add(AddCombatantSheet)
             case combatant(CombatantDetailFeature.State)
@@ -245,24 +257,16 @@ struct EncounterDetailFeature: Reducer {
             Scope(state: \.generateCombatantTraits, action: \.generateCombatantTraits) {
                 GenerateCombatantTraitsFeature()
             }
-            Reduce { _, action in
-                switch action {
-                case .runningEncounterLog, .settings:
-                    return .none
-                case .add, .combatant, .selectedCombatantTags, .generateCombatantTraits:
-                    return .none
-                }
-            }
         }
     }
 
     @CasePathable
     enum Action: Equatable {
         case onAppear
-        case encounter(EncounterFeature.Action) // forwarded to the effective encounter
+        case encounter(EncounterFeature.Action)  // forwarded to the effective encounter
         case buildingEncounter(EncounterFeature.Action)
         case runningEncounter(RunningEncounter.Action)
-        case onResumeRunningEncounterTap(String) // key of the running encounter
+        case onResumeRunningEncounterTap(String)  // key of the running encounter
         case run(RunningEncounter?)
         case stop
         case setSheet(Sheet.State?)
@@ -271,8 +275,8 @@ struct EncounterDetailFeature: Reducer {
         case combatantInitiativePopover(NumberEntryFeature.Action)
         case addCombatantAction(AddCombatantView.Action, Bool)
         case resumableRunningEncounters(State.AsyncResumableRunningEncounters.Action)
-        case removeResumableRunningEncounter(String) // key of the running encounter
-        case resetEncounter(Bool) // false = clear monsters, true = clear all
+        case removeResumableRunningEncounter(String)  // key of the running encounter
+        case resetEncounter(Bool)  // false = clear monsters, true = clear all
         case editMode(EditMode)
         case selection(Set<Combatant.Id>)
 
@@ -328,21 +332,24 @@ struct EncounterDetailFeature: Reducer {
                 let base = apply(state.building) {
                     $0.ensureStableDiscriminators = true
                 }
-                let re = runningEncounter
+                let re =
+                    runningEncounter
                     ?? RunningEncounter(
                         id: uuid().tagged(),
                         base: base,
                         current: base,
-                        turn: state.building.initiativeOrder.first.map { RunningEncounter.Turn(round: 1, combatantId: $0.id) }
+                        turn: state.building.initiativeOrder.first.map {
+                            RunningEncounter.Turn(round: 1, combatantId: $0.id)
+                        }
                     )
                 state.running = re
-                // let's not use this until it's a setting
-                // state.building.runningEncounterKey = re.key
+            // let's not use this until it's a setting
+            // state.building.runningEncounterKey = re.key
             case .stop:
                 state.running = nil
                 state.encounter.runningEncounterKey = nil
                 return .send(.resumableRunningEncounters(.startLoading))
-            case .encounter(let a): // forward to the effective encounter
+            case .encounter(let a):  // forward to the effective encounter
                 if state.running != nil {
                     return .send(.runningEncounter(.current(a)))
                 } else {
@@ -350,7 +357,7 @@ struct EncounterDetailFeature: Reducer {
                 }
             case .buildingEncounter: break
             case .runningEncounter: break
-            case .resumableRunningEncounters: break // handled below
+            case .resumableRunningEncounters: break  // handled below
             case .removeResumableRunningEncounter(let key):
                 return .run { send in
                     _ = try? database.keyValueStore.remove(key)
@@ -386,7 +393,9 @@ struct EncounterDetailFeature: Reducer {
                             await send(.encounter(.addByKey(key, party)))
                         }
                     case .remove(let definitionID, let quantity):
-                        for c in state.encounter.combatants(with: definitionID).reversed().prefix(quantity) {
+                        for c in state.encounter.combatants(with: definitionID).reversed().prefix(
+                            quantity)
+                        {
                             await send(.encounter(.remove(c)))
                         }
                     }
@@ -397,24 +406,29 @@ struct EncounterDetailFeature: Reducer {
                 }
             case .sheet(.presented(.combatant(.combatant(let a)))):
                 if let combatantDetailState = state.combatantDetailState {
-                    return .send(.encounter(.combatant(.element(id: combatantDetailState.combatant.id, action: a))))
+                    return .send(
+                        .encounter(
+                            .combatant(.element(id: combatantDetailState.combatant.id, action: a))))
                 }
             case .popover(let p):
                 state.popover = p
-            case .combatantInitiativePopover: break // handled below
+            case .combatantInitiativePopover: break  // handled below
 
             case .resetEncounter(let clearAll):
                 state.building.runningEncounterKey = nil
                 if clearAll {
                     state.building.combatants = []
                 } else {
-                    state.building.combatants.removeAll { $0.party == nil && $0.definition.player == nil }
+                    state.building.combatants.removeAll {
+                        $0.party == nil && $0.definition.player == nil
+                    }
                 }
 
                 let runningEncounterPrefix = RunningEncounter.keyPrefix(for: state.building)
                 return .run { send in
                     // remove all runs
-                    _ = try? database.keyValueStore.removeAll(.keyPrefix(runningEncounterPrefix.rawValue))
+                    _ = try? database.keyValueStore.removeAll(
+                        .keyPrefix(runningEncounterPrefix.rawValue))
                     await send(.resumableRunningEncounters(.startLoading))
                 }
             case .editMode(let mode):
@@ -462,7 +476,11 @@ struct EncounterDetailFeature: Reducer {
             case .showAddCombatantReferenceItem:
                 state.addCombatantReferenceItemRequest = ReferenceViewItemRequest(
                     id: state.addCombatantReferenceItemRequest?.id ?? UUID().tagged(),
-                    state: ReferenceItem.State(content: .addCombatant(ReferenceItem.State.Content.AddCombatant(addCombatantState: AddCombatantFeature.State(encounter: state.encounter)))),
+                    state: ReferenceItem.State(
+                        content: .addCombatant(
+                            ReferenceItem.State.Content.AddCombatant(
+                                addCombatantState: AddCombatantFeature.State(
+                                    encounter: state.encounter)))),
                     oneOff: false
                 )
             case .didDismissReferenceItem(let id):
@@ -472,30 +490,34 @@ struct EncounterDetailFeature: Reducer {
                     state.combatantDetailReferenceItemRequest = nil
                 }
             case .onGenerateCombatantTraitsButtonTap:
-                state.sheet = .generateCombatantTraits(.init(
-                    encounter: state.encounter
-                ))
+                state.sheet = .generateCombatantTraits(
+                    .init(
+                        encounter: state.encounter
+                    ))
             case .onFeedbackButtonTap:
                 guard mailer.canSendMail() else { break }
 
                 let currentState = state
                 return .run { send in
-                    try await Task.sleep(for: .seconds(0.1)) // delay for a bit so the menu has disappeared
+                    try await Task.sleep(for: .seconds(0.1))  // delay for a bit so the menu has disappeared
 
                     let imageData = await MainActor.run {
                         screenshotClient.screenshot()?.pngData()
                     }
 
-                    mailer.sendMail(.init(
-                        subject: "Encounter Feedback",
-                        attachment: Array(builder: {
-                            FeedbackMailContents.Attachment(customDump: currentState)
+                    mailer.sendMail(
+                        .init(
+                            subject: "Encounter Feedback",
+                            attachment: Array(builder: {
+                                FeedbackMailContents.Attachment(customDump: currentState)
 
-                            if let imageData {
-                                FeedbackMailContents.Attachment(data: imageData, mimeType: "image/png", fileName: "view.png")
-                            }
-                        })
-                    ))
+                                if let imageData {
+                                    FeedbackMailContents.Attachment(
+                                        data: imageData, mimeType: "image/png", fileName: "view.png"
+                                    )
+                                }
+                            })
+                        ))
                 }
             case .sheet(.dismiss):
                 state.sheet = nil
@@ -520,7 +542,9 @@ struct EncounterDetailFeature: Reducer {
         EmptyReducer()
             .onChange(of: \.generateCombatantTraitsState?.traits) { _, _ in
                 Reduce { state, action in
-                    guard let combatants = state.generateCombatantTraitsState?.combatants else { return .none }
+                    guard let combatants = state.generateCombatantTraitsState?.combatants else {
+                        return .none
+                    }
 
                     // apply all changes from the "generate combatant traits" view
                     for c in combatants {
@@ -534,7 +558,8 @@ struct EncounterDetailFeature: Reducer {
             Scope(state: \.resumableRunningEncounters, action: \.resumableRunningEncounters) {
                 State.AsyncResumableRunningEncounters {
                     do {
-                        return try database.keyValueStore.fetchKeys(.keyPrefix(RunningEncounter.keyPrefix(for: id).rawValue))
+                        return try database.keyValueStore.fetchKeys(
+                            .keyPrefix(RunningEncounter.keyPrefix(for: id).rawValue))
                     } catch {
                         throw error.toEquatableError()
                     }
@@ -544,7 +569,6 @@ struct EncounterDetailFeature: Reducer {
     }
 }
 
-
 extension EncounterDetailFeature.State: NavigationStackItemState {
     var navigationStackItemStateId: String { encounter.rawKey }
 
@@ -552,9 +576,9 @@ extension EncounterDetailFeature.State: NavigationStackItemState {
     var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
 }
 
-
 extension EncounterDetailFeature.State {
-    static let nullInstance = EncounterDetailFeature.State(building: Encounter.nullInstance, isMechMuseEnabled: false)
+    static let nullInstance = EncounterDetailFeature.State(
+        building: Encounter.nullInstance, isMechMuseEnabled: false)
 }
 
 extension EncounterDetailFeature.State: NavigationTreeNode {}

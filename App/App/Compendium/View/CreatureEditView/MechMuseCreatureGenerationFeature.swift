@@ -9,15 +9,16 @@ import CustomDump
 import Tagged
 
 struct MechMuseCreatureGenerationFeature: Reducer {
+    @ObservableState
     struct State: Equatable, Identifiable {
         var id: UUID = UUID()
-        @BindingState var prompt: String = ""
+        var prompt: String = ""
         let base: StatBlock
         var mechMuseIsConfigured = true
 
         var revisions: IdentifiedArrayOf<Revision> = []
 
-        @PresentationState var preview: Preview.State? = nil
+        @Presents var preview: Preview.State? = nil
 
         var isGenerating: Bool {
             revisions.last?.result.isLoading == true
@@ -183,161 +184,159 @@ struct MechMuseCreatureGenerationFeature: Reducer {
 }
 
 struct MechMuseCreatureGenerationSheet: View {
-    let store: StoreOf<MechMuseCreatureGenerationFeature>
     @SwiftUI.Environment(\.presentationMode) private var presentationMode
 
     @ScaledMetric(relativeTo: .body) var placeholderPadding = 4
     @ScaledMetric(relativeTo: .callout) var ellipsisOffset = 1
 
+    @Bindable var store: StoreOf<MechMuseCreatureGenerationFeature>
+
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            VStack {
-                ScrollView {
+        VStack {
+            ScrollView {
 
-                    // Messages
-                    LazyVStack(spacing: 22) {
-                        ForEach(viewStore.state.revisions, id: \.id) { revision in
-                            // user message
-                            VStack(alignment: .trailing, spacing: 4) {
-                                Text(revision.prompt)
-                                    .multilineTextAlignment(.leading)
+                // Messages
+                LazyVStack(spacing: 22) {
+                    ForEach(store.revisions, id: \.id) { revision in
+                        // user message
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(revision.prompt)
+                                .multilineTextAlignment(.leading)
 
-                                Menu {
-                                    Button {
-                                        viewStore.send(.onRestorePromptButtonTap(revision.id))
-                                    } label: {
-                                        Text("Restore prompt")
-                                    }
-                                } label: {
-                                    Image(systemName: "arrow.uturn.backward")
-                                }
-                                .disabled(viewStore.state.isGenerating)
-                            }
-                            .padding(8)
-                            .foregroundStyle(.secondary)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.secondary.opacity(0.3))
-                                    .fill(Color(UIColor.secondarySystemBackground))
-                            )
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                            .padding(.leading, 22)
-
-                            // model response
-                            if let result = revision.result.value {
+                            Menu {
                                 Button {
-                                    viewStore.send(.onGenerationResultTap(revision.id))
+                                    store.send(.onRestorePromptButtonTap(revision.id))
                                 } label: {
-                                    HStack {
-                                        VStack(alignment: .leading) {
-                                            Text(result.name)
-                                            Text("Generated stat block")
-                                                .font(.footnote)
-                                        }
-                                        Image(systemName: "chevron.right")
-                                    }
-                                    .padding(6)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(Color.secondary.opacity(0.3))
-                                            .fill(Color(UIColor.secondarySystemBackground))
-                                    )
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    Text("Restore prompt")
                                 }
-                                .transition(.opacity)
+                            } label: {
+                                Image(systemName: "arrow.uturn.backward")
                             }
+                            .disabled(store.isGenerating)
                         }
+                        .padding(8)
+                        .foregroundStyle(.secondary)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.secondary.opacity(0.3))
+                                .fill(Color(UIColor.secondarySystemBackground))
+                        )
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.leading, 22)
 
-                        // Status
-                        if viewStore.state.isGenerating {
-                            HStack {
-                                Text("Generating")
-
-                                Image(systemName: "ellipsis")
-                                    .symbolEffect(.variableColor.cumulative)
-                                    .offset(x: -7*ellipsisOffset, y: 4*ellipsisOffset)
-                                    .fontWeight(.light)
+                        // model response
+                        if let result = revision.result.value {
+                            Button {
+                                store.send(.onGenerationResultTap(revision.id))
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        Text(result.name)
+                                        Text("Generated stat block")
+                                            .font(.footnote)
+                                    }
+                                    Image(systemName: "chevron.right")
+                                }
+                                .padding(6)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.secondary.opacity(0.3))
+                                        .fill(Color(UIColor.secondarySystemBackground))
+                                )
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            .foregroundStyle(.secondary)
-                            .font(.callout)
-                            .padding(4)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .transition(.opacity)
                         }
+                    }
+
+                    // Status
+                    if store.isGenerating {
+                        HStack {
+                            Text("Generating")
+
+                            Image(systemName: "ellipsis")
+                                .symbolEffect(.variableColor.cumulative)
+                                .offset(x: -7*ellipsisOffset, y: 4*ellipsisOffset)
+                                .fontWeight(.light)
+                        }
+                        .foregroundStyle(.secondary)
+                        .font(.callout)
+                        .padding(4)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .padding()
+            }
+            .background {
+                if store.revisions.isEmpty {
+                    VStack(spacing: 12) {
+                        Text("I can adapt, reskin and buff creatures or conjure up completely new ones. Tell me what you need.")
+                            .italic()
+                        Text("- Mechanical Muse")
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                     .padding()
                 }
-                .background {
-                    if viewStore.state.revisions.isEmpty {
-                        VStack(spacing: 12) {
-                            Text("I can adapt, reskin and buff creatures or conjure up completely new ones. Tell me what you need.")
-                                .italic()
-                            Text("- Mechanical Muse")
-                                .frame(maxWidth: .infinity, alignment: .trailing)
-                        }
-                        .padding()
-                    }
-                }
+            }
 
-                if let error = viewStore.state.error {
-                    NoticeView(notice: .error(error.attributedDescription))
-                        .padding([.leading, .trailing])
-                }
+            if let error = store.error {
+                NoticeView(notice: .error(error.attributedDescription))
+                    .padding([.leading, .trailing])
+            }
 
-                // Editor
-                VStack(spacing: 12) {
+            // Editor
+            VStack(spacing: 12) {
 
-                    VStack {
-                        TextEditor(text: viewStore.$prompt)
-                            .disabled(viewStore.state.isGenerating)
-                            .overlay(alignment: .topLeading) {
-                                if viewStore.state.prompt.isEmpty {
-                                    Text("Adapt, reskin, buff or conjure...")
-                                        .foregroundStyle(.secondary)
-                                        .padding(EdgeInsets(top: placeholderPadding*2, leading: placeholderPadding, bottom: 0, trailing: 0))
-                                }
-                            }
-                            .frame(minHeight: 50)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        HStack {
-                            Spacer()
-
-                            if viewStore.state.isGenerating {
-                                Button {
-                                    viewStore.send(.onCancelGenerateButtonTap, animation: .spring)
-                                } label: {
-                                    Image(systemName: "stop.circle.fill")
-                                }
-                            } else {
-                                Button {
-                                    viewStore.send(.onGenerateButtonTap, animation: .spring)
-                                } label: {
-                                    Image(systemName: "arrow.up.circle.fill")
-                                }
-                                .disabled(viewStore.state.isGenerating || !viewStore.state.promptIsValid)
+                VStack {
+                    TextEditor(text: $store.prompt)
+                        .disabled(store.isGenerating)
+                        .overlay(alignment: .topLeading) {
+                            if store.prompt.isEmpty {
+                                Text("Adapt, reskin, buff or conjure...")
+                                    .foregroundStyle(.secondary)
+                                    .padding(EdgeInsets(top: placeholderPadding*2, leading: placeholderPadding, bottom: 0, trailing: 0))
                             }
                         }
-                        .font(.title)
-                        .padding(4)
+                        .frame(minHeight: 50)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    HStack {
+                        Spacer()
+
+                        if store.isGenerating {
+                            Button {
+                                store.send(.onCancelGenerateButtonTap, animation: .spring)
+                            } label: {
+                                Image(systemName: "stop.circle.fill")
+                            }
+                        } else {
+                            Button {
+                                store.send(.onGenerateButtonTap, animation: .spring)
+                            } label: {
+                                Image(systemName: "arrow.up.circle.fill")
+                            }
+                            .disabled(store.isGenerating || !store.promptIsValid)
+                        }
                     }
-                    .disabled(!viewStore.state.mechMuseIsConfigured)
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.3)))
+                    .font(.title)
+                    .padding(4)
                 }
+                .disabled(!store.mechMuseIsConfigured)
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.3)))
             }
-            .padding()
-            .geometryGroup()
-            .onAppear {
-                viewStore.send(.onAppear)
-            }
+        }
+        .padding()
+        .geometryGroup()
+        .onAppear {
+            store.send(.onAppear)
         }
         .navigationTitle("Generate stats")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(
-            store: store.scope(state: \.$preview, action: MechMuseCreatureGenerationFeature.Action.preview),
-            destination: { store in
-                MechMuseCreatureGenerationPreview(store: store)
-            }
-        )
+            item: $store.scope(state: \.preview, action: \.preview)
+        ) { store in
+            MechMuseCreatureGenerationPreview(store: store)
+        }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
@@ -350,12 +349,13 @@ struct MechMuseCreatureGenerationSheet: View {
 
 extension MechMuseCreatureGenerationFeature {
     struct Preview: Reducer {
+        @ObservableState
         struct State: Equatable {
             let statBlock: StatBlock
             let diffWithPrevious: AttributedString?
             let diffWithBase: AttributedString?
 
-            @BindingState var mode: Mode = .statBlock
+            var mode: Mode = .statBlock
 
             public init(
                 statBlock: SimpleStatBlock,
@@ -450,52 +450,49 @@ extension String {
 }
 
 struct MechMuseCreatureGenerationPreview: View {
-    let store: StoreOf<MechMuseCreatureGenerationFeature.Preview>
+    @Bindable var store: StoreOf<MechMuseCreatureGenerationFeature.Preview>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            ScrollView {
-                VStack(spacing: 6) {
-                    Menu {
-
-                        ForEach(MechMuseCreatureGenerationFeature.Preview.State.Mode.allCases, id: \.rawValue) { mode in
-                            Button {
-                                viewStore.send(.set(\.$mode, mode))
-                            } label: {
-                                Label(mode.localizedDisplayName, systemImage: viewStore.state.mode == mode ? "checkmark" : "")
-                            }
-                            .disabled(!viewStore.state.modeIsAvailable(mode))
+        ScrollView {
+            VStack(spacing: 6) {
+                Menu {
+                    ForEach(MechMuseCreatureGenerationFeature.Preview.State.Mode.allCases, id: \.rawValue) { mode in
+                        Button {
+                            store.send(.set(\.mode, mode))
+                        } label: {
+                            Label(mode.localizedDisplayName, systemImage: store.mode == mode ? "checkmark" : "")
                         }
-                    } label: {
-                        Label(viewStore.state.mode.localizedDisplayName, systemImage: "square.and.line.vertical.and.square.filled")
-                            .labelStyle(.titleAndIcon)
+                        .disabled(!store.state.modeIsAvailable(mode))
                     }
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-
-                    if viewStore.state.mode == .statBlock {
-                        SectionContainer {
-                            StatBlockView(stats: viewStore.state.statBlock)
-                        }
-                    } else {
-                        ZStack {
-                            if viewStore.state.mode == .diffWithPrevious, let diffWithPrevious = viewStore.state.diffWithPrevious {
-                                Text(diffWithPrevious)
-                            } else if viewStore.state.mode == .diffWithBase, let diffWithBase = viewStore.state.diffWithBase {
-                                Text(diffWithBase)
-                            }
-                        }
-                        .font(.system(.body, design: .monospaced))
-                        .padding()
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.3)))
-                    }
+                } label: {
+                    Label(store.mode.localizedDisplayName, systemImage: "square.and.line.vertical.and.square.filled")
+                        .labelStyle(.titleAndIcon)
                 }
-                .padding()
-            }
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Accept") {
-                        viewStore.send(.onAcceptButtonTap)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+
+                if store.mode == .statBlock {
+                    SectionContainer {
+                        StatBlockView(stats: store.statBlock)
                     }
+                } else {
+                    ZStack {
+                        if store.mode == .diffWithPrevious, let diffWithPrevious = store.diffWithPrevious {
+                            Text(diffWithPrevious)
+                        } else if store.mode == .diffWithBase, let diffWithBase = store.diffWithBase {
+                            Text(diffWithBase)
+                        }
+                    }
+                    .font(.system(.body, design: .monospaced))
+                    .padding()
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.3)))
+                }
+            }
+            .padding()
+        }
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Accept") {
+                    store.send(.onAcceptButtonTap)
                 }
             }
         }

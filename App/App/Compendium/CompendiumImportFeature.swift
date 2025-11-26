@@ -6,19 +6,20 @@
 //  Copyright © 2023 Thomas Visser. All rights reserved.
 //
 
+import Combine
+import Compendium
 import ComposableArchitecture
 import Foundation
-import SwiftUI
-import Tagged
+import GameModels
 import Helpers
 import Open5eAPI
-import Combine
-import GameModels
 import Persistence
-import Compendium
 import SharedViews
+import SwiftUI
+import Tagged
 
 struct CompendiumImportFeature: Reducer {
+    @ObservableState
     struct State: Equatable {
         var phase: Phase = .dataSourcePreferences
 
@@ -40,18 +41,18 @@ struct CompendiumImportFeature: Reducer {
                 description: "Load content from the network",
                 icon: .network,
                 preferences: .network(.init())
-            )
+            ),
         ]
         var selectedDataSourceId: DataSource.State.Id? = nil
         var selectedDataSource: DataSource.State? {
             selectedDataSourceId.flatMap { dataSources[id: $0] }
         }
 
-        @BindingState var importSettings = ImportSettings.State()
+        var importSettings = ImportSettings.State()
 
         // we use Async just for state storage, not its reducer
         var importResult: Async<CompendiumImporter.Result, Error>.State = .initial
-        @PresentationState var alert: AlertState<Never>?
+        @Presents var alert: AlertState<Never>?
         var dismiss = false
 
         var isValid: Bool {
@@ -104,11 +105,15 @@ struct CompendiumImportFeature: Reducer {
 
                 let dataSource = state.selectedDataSource
 
-                if !state.importSettings.setSuggestedDocument(dataSource?.preferences.suggestedSourceName ?? "") {
-                    _ = state.importSettings.setSuggestedRealm(dataSource?.preferences.suggestedRealmName ?? "")
+                if !state.importSettings.setSuggestedDocument(
+                    dataSource?.preferences.suggestedSourceName ?? "")
+                {
+                    _ = state.importSettings.setSuggestedRealm(
+                        dataSource?.preferences.suggestedRealmName ?? "")
                 }
 
-                state.importSettings.readerForDataSource = dataSource?.preferences.correspondingDataSourceReader
+                state.importSettings.readerForDataSource =
+                    dataSource?.preferences.correspondingDataSourceReader
 
                 state.phase = .importSettings
             case .didTapClearDataSourceSelectionButton:
@@ -134,7 +139,8 @@ struct CompendiumImportFeature: Reducer {
                             try compendiumMetadata.createDocument(newDocument)
                         }
 
-                        let importer = CompendiumImporter(compendium: compendium, metadata: compendiumMetadata)
+                        let importer = CompendiumImporter(
+                            compendium: compendium, metadata: compendiumMetadata)
 
                         let result = try await importer.run(task)
                         await send(.importDidFinish(result))
@@ -149,7 +155,9 @@ struct CompendiumImportFeature: Reducer {
                 state.alert = AlertState {
                     TextState("Import completed")
                 } message: {
-                    TextState("\\(result.newItemCount + result.overwrittenItemCount) item(s) imported (\\(result.newItemCount ) new). \\(result.invalidItemCount) item(s) skipped.")
+                    TextState(
+                        "\\(result.newItemCount + result.overwrittenItemCount) item(s) imported (\\(result.newItemCount ) new). \\(result.invalidItemCount) item(s) skipped."
+                    )
                 }
             case .importDidFinish(nil):
                 state.importResult.result = .failure(Error.importFailed)
@@ -180,7 +188,9 @@ struct CompendiumImportFeature: Reducer {
         BindingReducer()
     }
 
-    struct DataSource: Reducer {
+    @Reducer
+    struct DataSource {
+        @ObservableState
         struct State: Equatable, Identifiable {
             let title: String
             let description: String
@@ -193,7 +203,6 @@ struct CompendiumImportFeature: Reducer {
             typealias Id = Tagged<DataSource, String>
         }
 
-        @CasePathable
         enum Action: Equatable {
             case preferences(DataSourcePreferences.Action)
 
@@ -201,11 +210,8 @@ struct CompendiumImportFeature: Reducer {
         }
 
         var body: some Reducer<State, Action> {
-            Reduce { state, action in
-                .none
-            }
             Scope(state: \.preferences, action: \.preferences) {
-                DataSourcePreferences()
+                DataSourcePreferences.State.StateReducer.body
             }
         }
     }
@@ -231,9 +237,10 @@ struct CompendiumImportFeature: Reducer {
 
             var newDocument: CompendiumSourceDocument? {
                 guard case .new = document,
-                        let displayName = newDocumentName.nonEmptyString,
-                        let slug = effectiveNewDocumentSlug.nonEmptyString,
-                        let realm = effectiveRealm else { return nil }
+                    let displayName = newDocumentName.nonEmptyString,
+                    let slug = effectiveNewDocumentSlug.nonEmptyString,
+                    let realm = effectiveRealm
+                else { return nil }
 
                 return CompendiumSourceDocument(
                     id: .init(slug),
@@ -261,7 +268,9 @@ struct CompendiumImportFeature: Reducer {
             // If readerForDataSource is non-nil, customDataSourceReader is ignored
             var readerForDataSource: DataSourceReader? = nil
             var customDataSourceReader: DataSourceReader? = nil
-            var effectiveDataSourceReader: DataSourceReader? { readerForDataSource ?? customDataSourceReader }
+            var effectiveDataSourceReader: DataSourceReader? {
+                readerForDataSource ?? customDataSourceReader
+            }
 
             var overwrite = false
 
@@ -287,8 +296,8 @@ struct CompendiumImportFeature: Reducer {
 
             var realmForExistingDocument: CompendiumRealm? {
                 guard case let .existing(documentId) = document,
-                      let doc = documents.value?.first(where: { $0.id == documentId }),
-                      let realm = realms.value?.first(where: { $0.id == doc.realmId })
+                    let doc = documents.value?.first(where: { $0.id == documentId }),
+                    let realm = realms.value?.first(where: { $0.id == doc.realmId })
                 else {
                     return nil
                 }
@@ -298,9 +307,9 @@ struct CompendiumImportFeature: Reducer {
 
             var newRealm: CompendiumRealm? {
                 guard case .new = realm,
-                      case .new = document,
-                      let displayName = newRealmName.nonEmptyString,
-                      let slug = effectiveNewRealmSlug.nonEmptyString
+                    case .new = document,
+                    let displayName = newRealmName.nonEmptyString,
+                    let slug = effectiveNewRealmSlug.nonEmptyString
                 else {
                     return nil
                 }
@@ -340,12 +349,12 @@ struct CompendiumImportFeature: Reducer {
             }
 
             var isValid: Bool {
-                document != nil &&
-                (document != .new || !newDocumentName.isEmpty) &&
-                (realmForExistingDocument != nil || realm != .new || !newRealmName.isEmpty) &&
-                (document != .new || existingDocumentMatchingNewSlug == nil) &&
-                (realm != .new || realmForExistingDocument != nil || existingRealmMatchingNewSlug == nil) &&
-                effectiveDataSourceReader != nil
+                document != nil && (document != .new || !newDocumentName.isEmpty)
+                    && (realmForExistingDocument != nil || realm != .new || !newRealmName.isEmpty)
+                    && (document != .new || existingDocumentMatchingNewSlug == nil)
+                    && (realm != .new || realmForExistingDocument != nil
+                        || existingRealmMatchingNewSlug == nil)
+                    && effectiveDataSourceReader != nil
             }
 
             /// Returns true if it found an existing document
@@ -431,116 +440,39 @@ struct CompendiumImportFeature: Reducer {
             }
         }
     }
+
+    enum DataSourceIcon: Equatable {
+        case open5e
+        case file
+        case network
+
+        @ViewBuilder
+        var view: some View {
+            switch self {
+            case .open5e: Open5eLogo()
+            case .file: Image(systemName: "doc.fill").foregroundStyle(.secondary)
+            case .network: Image(systemName: "network").foregroundStyle(.secondary)
+            }
+        }
+    }
 }
 
-enum DataSourceIcon: Equatable {
-    case open5e
-    case file
-    case network
-
-    @ViewBuilder
-    var view: some View {
-        switch self {
-        case .open5e: Open5eLogo()
-        case .file: Image(systemName: "doc.fill").foregroundStyle(.secondary)
-        case .network: Image(systemName: "network").foregroundStyle(.secondary)
-        }
-    }
-}
-
-    struct DataSourcePreferences: Reducer {
-    @CasePathable
-    enum State: Equatable {
-        case open5e(Open5e.State)
-        case file(File.State)
-        case network(Network.State)
-
-        var isValid: Bool {
-            switch self {
-            case .open5e(let o5e):
-                switch o5e.document {
-                case .known: return true
-                case .other: return !o5e.other.isEmpty
-                case .none: return false
-                }
-            case .file(let file):
-                return file.url != nil
-            case .network(let network):
-                return network.url != nil
-            }
-        }
-
-        var summaryString: String? {
-            switch self {
-            case .open5e(let o5e):
-                switch o5e.document {
-                case .known(let doc):
-                    return "\(o5e.itemType.localizedDisplayNamePlural.capitalized) from “\(doc.title)”"
-                case .other:
-                    return "\(o5e.itemType.localizedDisplayNamePlural.capitalized) from document “\(o5e.other)”"
-                case .none:
-                    return nil
-                }
-            case .file(let file):
-                return file.url?.lastPathComponent
-            case .network(let network):
-                return network.url?.lastPathComponent.nonEmptyString ?? network.urlString
-            }
-        }
-
-        var suggestedSourceName: String? {
-            if case .open5e(let s) = self {
-                return s.suggestedSourceName
-            }
-            return nil
-        }
-
-        var suggestedRealmName: String? {
-            if case .open5e(let s) = self {
-                return s.suggestedRealmName
-            }
-            return nil
-        }
-
-        var correspondingDataSourceReader: CompendiumImportFeature.DataSourceReader? {
-            if case .open5e = self {
-                return .open5e
-            }
-            return nil
-        }
-    }
-
-    @CasePathable
-    enum Action: Equatable {
-        case open5e(Open5e.Action)
-        case file(File.Action)
-        case network(Network.Action)
-    }
-
-    var body: some Reducer<State, Action> {
-        Reduce { state, action in
-            .none
-        }
-        .ifCaseLet(\.open5e, action: \.open5e) {
-            Open5e()
-        }
-        .ifCaseLet(\.file, action: \.file) {
-            File()
-        }
-        .ifCaseLet(\.network, action: \.network) {
-            Network()
-        }
-    }
+@Reducer
+enum DataSourcePreferences {
+    case open5e(Open5e)
+    case file(File)
+    case network(Network)
 
     struct Open5e: Reducer {
+        @ObservableState
         struct State: Equatable {
             typealias RemoteDocuments = Async<[Open5eAPI.Document], EquatableError>
             var remoteDocuments: RemoteDocuments.State = .initial
 
-            @BindingState var document: SelectedOpen5eDocument? = nil
-            @BindingState var other: String = ""
+            var document: SelectedOpen5eDocument? = nil
+            var other: String = ""
 
-            @BindingState var itemType = CompendiumItemType.monster
+            var itemType = CompendiumItemType.monster
 
             enum SelectedOpen5eDocument: Hashable {
                 case known(Open5eAPI.Document)
@@ -622,9 +554,10 @@ enum DataSourceIcon: Equatable {
     }
 
     struct File: Reducer {
+        @ObservableState
         struct State: Equatable {
-            @BindingState var url: URL? = nil
-            @BindingState var openPicker = false
+            var url: URL? = nil
+            var openPicker = false
         }
 
         enum Action: Equatable, BindableAction {
@@ -637,8 +570,9 @@ enum DataSourceIcon: Equatable {
     }
 
     struct Network: Reducer {
+        @ObservableState
         struct State: Equatable {
-            @BindingState var urlString: String = ""
+            var urlString: String = ""
 
             var url: URL? {
                 URL(string: urlString)
@@ -653,30 +587,66 @@ enum DataSourceIcon: Equatable {
             BindingReducer()
         }
     }
-
 }
 
-extension StoreOf<DataSourcePreferences> {
-    @ViewBuilder
-    var view: some View {
-        SwitchStore(self) { state in
-            switch state {
-            case .open5e:
-                CaseLet(/DataSourcePreferences.State.open5e, action: DataSourcePreferences.Action.open5e) { store in
-                    Open5ePreferencesView(store: store)
-                }
-            case .file:
-                CaseLet(/DataSourcePreferences.State.file, action: DataSourcePreferences.Action.file) { store in
-                    FilePreferencesView(store: store)
-                }
-            case .network:
-                CaseLet(/DataSourcePreferences.State.network, action: DataSourcePreferences.Action.network) { store in
-                    NetworkPreferencesView(store: store)
-                }
+extension DataSourcePreferences.State: Equatable {
+    var isValid: Bool {
+        switch self {
+        case .open5e(let o5e):
+            switch o5e.document {
+            case .known: return true
+            case .other: return !o5e.other.isEmpty
+            case .none: return false
             }
+        case .file(let file):
+            return file.url != nil
+        case .network(let network):
+            return network.url != nil
         }
     }
+
+    var summaryString: String? {
+        switch self {
+        case .open5e(let o5e):
+            switch o5e.document {
+            case .known(let doc):
+                return "\(o5e.itemType.localizedDisplayNamePlural.capitalized) from “\(doc.title)”"
+            case .other:
+                return
+                    "\(o5e.itemType.localizedDisplayNamePlural.capitalized) from document “\(o5e.other)”"
+            case .none:
+                return nil
+            }
+        case .file(let file):
+            return file.url?.lastPathComponent
+        case .network(let network):
+            return network.url?.lastPathComponent.nonEmptyString ?? network.urlString
+        }
+    }
+
+    var suggestedSourceName: String? {
+        if case .open5e(let s) = self {
+            return s.suggestedSourceName
+        }
+        return nil
+    }
+
+    var suggestedRealmName: String? {
+        if case .open5e(let s) = self {
+            return s.suggestedRealmName
+        }
+        return nil
+    }
+
+    var correspondingDataSourceReader: CompendiumImportFeature.DataSourceReader? {
+        if case .open5e = self {
+            return .open5e
+        }
+        return nil
+    }
 }
+
+extension DataSourcePreferences.Action: Equatable {}
 
 struct Open5eLogo: View, Equatable {
     var body: some View {
@@ -685,7 +655,9 @@ struct Open5eLogo: View, Equatable {
             .font(.footnote)
             .padding(4)
             .foregroundColor(Color.white)
-            .background(Color.red.cornerRadius(4).aspectRatio(CGSize(width: 1, height: 1), contentMode: .fill))
+            .background(
+                Color.red.cornerRadius(4).aspectRatio(
+                    CGSize(width: 1, height: 1), contentMode: .fill))
     }
 }
 
@@ -720,91 +692,89 @@ extension CompendiumImportFeature.State {
 struct Open5ePreferencesView: View {
     private typealias SelectedDocument = DataSourcePreferences.Open5e.State.SelectedOpen5eDocument
 
-    let store: StoreOf<DataSourcePreferences.Open5e>
+    @Bindable var store: StoreOf<DataSourcePreferences.Open5e>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
-                VStack {
-                    let remoteDocuments = viewStore.state.remoteDocuments
-                    if remoteDocuments.error != nil && viewStore.document == .other {
-                        Text("Failed to load document list from Open5e. You can try to specify the document slug manually.")
-                    } else {
-                        MenuPickerField(
-                            title: "Document",
-                            selection: viewStore.$document.animation()
-                        ) {
-                            if let docs = remoteDocuments.value {
-                                ForEach(docs, id: \.slug) { doc in
-                                    Text(doc.title).tag(Optional.some(SelectedDocument.known(doc)))
-                                }
-                            } else {
-                                Text("Loading documents...")
+        SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
+            VStack {
+                let remoteDocuments = store.remoteDocuments
+                if remoteDocuments.error != nil && store.document == .other {
+                    Text(
+                        "Failed to load document list from Open5e. You can try to specify the document slug manually."
+                    )
+                } else {
+                    MenuPickerField(
+                        title: "Document",
+                        selection: $store.document.animation()
+                    ) {
+                        if let docs = remoteDocuments.value {
+                            ForEach(docs, id: \.slug) { doc in
+                                Text(doc.title).tag(Optional.some(SelectedDocument.known(doc)))
                             }
-
-                            Divider()
-
-                            Text("Other...").tag(Optional.some(SelectedDocument.other))
+                        } else {
+                            Text("Loading documents...")
                         }
-                    }
 
-                    if viewStore.document == .other {
                         Divider()
 
-                        TextField("Document slug", text: viewStore.$other)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled(true)
-                            .frame(minHeight: 35)
-                    }
-
-                    Divider()
-
-                    MenuPickerField(
-                        title: "Item type",
-                        selection: viewStore.$itemType.optional()
-                    ) {
-                        Text("Monsters").tag(Optional<CompendiumItemType>.some(.monster))
-                        Text("Spells").tag(Optional<CompendiumItemType>.some(.spell))
+                        Text("Other...").tag(Optional.some(SelectedDocument.other))
                     }
                 }
+
+                if store.document == .other {
+                    Divider()
+
+                    TextField("Document slug", text: $store.other)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+                        .frame(minHeight: 35)
+                }
+
+                Divider()
+
+                MenuPickerField(
+                    title: "Item type",
+                    selection: $store.itemType.optional()
+                ) {
+                    Text("Monsters").tag(Optional<CompendiumItemType>.some(.monster))
+                    Text("Spells").tag(Optional<CompendiumItemType>.some(.spell))
+                }
             }
-            .onAppear {
-                viewStore.send(.onAppear)
-            }
+        }
+        .onAppear {
+            store.send(.onAppear)
         }
     }
 }
 
 struct FilePreferencesView: View {
 
-    let store: StoreOf<DataSourcePreferences.File>
+    @Bindable var store: StoreOf<DataSourcePreferences.File>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
-                VStack {
-                    if let url = viewStore.state.url {
-                        HStack {
-                            Text(url.lastPathComponent)
-                            Spacer()
-                            Button("Clear", systemImage: "xmark.circle.fill") {
-                                viewStore.send(.binding(.set(\.$url, nil)))
-                            }
-                            .labelStyle(.iconOnly)
-                            .foregroundColor(Color(UIColor.systemGray))
+        SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
+            VStack {
+                if let url = store.url {
+                    HStack {
+                        Text(url.lastPathComponent)
+                        Spacer()
+                        Button("Clear", systemImage: "xmark.circle.fill") {
+                            store.url = nil
                         }
-                    } else {
-                        Button("Select file...") {
-                            viewStore.send(.binding(.set(\.$openPicker, true)))
-                        }
+                        .labelStyle(.iconOnly)
+                        .foregroundColor(Color(UIColor.systemGray))
+                    }
+                } else {
+                    Button("Select file...") {
+                        store.openPicker = true
                     }
                 }
-                .frame(minHeight: 35)
             }
-            .sheet(isPresented: viewStore.$openPicker) {
-                DocumentPicker { urls in
-                    viewStore.send(.binding(.set(\.$url, urls.first)))
-                }
+            .frame(minHeight: 35)
+        }
+        .sheet(isPresented: $store.openPicker) {
+            DocumentPicker { urls in
+                store.url = urls.first
             }
         }
     }
@@ -812,63 +782,41 @@ struct FilePreferencesView: View {
 
 struct NetworkPreferencesView: View {
 
-    let store: StoreOf<DataSourcePreferences.Network>
+    @Bindable var store: StoreOf<DataSourcePreferences.Network>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
-                VStack {
-                    ClearableTextField("URL", text: viewStore.$urlString)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                }
-                .frame(minHeight: 35)
+        SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
+            VStack {
+                ClearableTextField("URL", text: $store.urlString)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
             }
+            .frame(minHeight: 35)
         }
     }
 }
 
-struct UrlPreferencesView: View {
-
-    let store: StoreOf<DataSourcePreferences.File>
+struct DataSourcePreferencesView: View {
+    @Bindable var store: StoreOf<DataSourcePreferences>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            SectionContainer(backgroundColor: Color(UIColor.systemBackground)) {
-                VStack {
-                    if let url = viewStore.state.url {
-                        HStack {
-                            Text(url.lastPathComponent)
-                            Spacer()
-                            Button("Clear", systemImage: "clear") {
-                                viewStore.send(.binding(.set(\.$url, nil)))
-                            }
-                        }
-                    } else {
-                        Button("Select file...") {
-                            viewStore.send(.binding(.set(\.$openPicker, true)))
-                        }
-                    }
-                }
-                .frame(minHeight: 35)
-            }
-            .sheet(isPresented: viewStore.$openPicker) {
-                DocumentPicker { urls in
-                    viewStore.send(.binding(.set(\.$url, urls.first)))
-                }
-            }
+        switch store.case {
+        case .open5e(let store): Open5ePreferencesView(store: store)
+        case .file(let store): FilePreferencesView(store: store)
+        case .network(let store): NetworkPreferencesView(store: store)
         }
     }
-}
 
+}
 
 public struct CompendiumImportView: View {
     typealias SelectedRealm = CompendiumImportFeature.ImportSettings.State.SelectedRealm
-    typealias SelectedDocument = CompendiumImportFeature.ImportSettings.State.SelectedCompendiumDocument
+    typealias SelectedDocument = CompendiumImportFeature.ImportSettings.State
+        .SelectedCompendiumDocument
 
     @SwiftUI.Environment(\.dismiss) var dismiss
 
-    let store: StoreOf<CompendiumImportFeature>
+    @Bindable var store: StoreOf<CompendiumImportFeature>
 
     @ScaledMetric
     var iconWidth = 30
@@ -877,262 +825,255 @@ public struct CompendiumImportView: View {
     @State var saved = false
 
     public var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            ScrollView {
-                VStack(alignment: .leading) {
-                    if viewStore.state.phase == .dataSourcePreferences {
-                        Text("Select a source")
-                            .font(.headline)
-                    }
+        ScrollView {
+            VStack(alignment: .leading) {
+                if store.phase == .dataSourcePreferences {
+                    Text("Select a source")
+                        .font(.headline)
+                }
 
-                    ForEachStore(
-                        store.scope(
-                            state: \.visibleDataSources,
-                            action: CompendiumImportFeature.Action.dataSources
-                        )
-                    ) { dataSourceStore in
-                        WithViewStore(dataSourceStore, observe: \.self) { dataSourceViewStore in
-                            let unselected = viewStore.state.selectedDataSourceId != nil
-                                && viewStore.state.selectedDataSourceId != dataSourceViewStore.state.id
-                            SectionContainer {
-                                VStack(alignment: .leading) {
-                                    Button {
-                                        viewStore.send(.didSelectDataSource(dataSourceViewStore.state.id), animation: .default)
-                                    } label: {
-                                        HStack {
-                                            dataSourceViewStore.state.icon.view
-                                                .frame(minWidth: iconWidth)
+                ForEach(
+                    store.scope(state: \.visibleDataSources, action: \.dataSources)
+                ) { dataSourceStore in
+                    let unselected = store.selectedDataSourceId != nil && store.selectedDataSourceId != dataSourceStore.state.id
+                    SectionContainer {
+                        VStack(alignment: .leading) {
+                            Button {
+                                store.send(.didSelectDataSource(dataSourceStore.state.id), animation: .default)
+                            } label: {
+                                HStack {
+                                    dataSourceStore.icon.view
+                                        .frame(minWidth: iconWidth)
 
-                                            VStack(alignment: .leading) {
-                                                Text(dataSourceViewStore.state.title)
+                                    VStack(alignment: .leading) {
+                                        Text(dataSourceStore.title)
 
-                                                if let description = viewStore.state.description(for: dataSourceViewStore.state) {
-                                                    Text(description)
-                                                        .font(.footnote)
-                                                        .foregroundStyle(.secondary)
-                                                }
-                                            }
+                                        if let description = store.state.description(for: dataSourceStore.state) {
+                                            Text(description)
+                                                .font(.footnote)
+                                                .foregroundStyle(.secondary)
                                         }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .contentShape(Rectangle())
-                                    }
-                                    .buttonStyle(.plain)
-
-                                    if viewStore.state.shouldShowPreferences(for: dataSourceViewStore.state) {
-                                        Divider()
-
-                                        dataSourceStore.scope(
-                                            state: \.preferences,
-                                            action: CompendiumImportFeature.DataSource.Action.preferences
-                                        ).view
-
-                                        Button("Configure...") {
-                                            viewStore.send(.didTapNextButton, animation: .default)
-                                        }
-                                        .disabled(!viewStore.state.isDataSourceConfigured)
-                                        .buttonStyle(.borderedProminent)
-                                        .buttonBorderShape(.roundedRectangle)
-                                        .frame(maxWidth: .infinity, alignment: .trailing)
                                     }
                                 }
-                                .padding(4)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
                             }
-                            .compositingGroup()
-                            .opacity(unselected ? 0.5 : 1.0)
+                            .buttonStyle(.plain)
+
+                            if store.state.shouldShowPreferences(for: dataSourceStore.state) {
+                                Divider()
+
+                                DataSourcePreferencesView(
+                                    store: dataSourceStore.scope(
+                                        state: \.preferences,
+                                        action: \.preferences
+                                    )
+                                )
+
+                                Button("Configure...") {
+                                    store.send(.didTapNextButton, animation: .default)
+                                }
+                                .disabled(!store.isDataSourceConfigured)
+                                .buttonStyle(.borderedProminent)
+                                .buttonBorderShape(.roundedRectangle)
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                            }
                         }
+                        .padding(4)
                     }
+                    .compositingGroup()
+                    .opacity(unselected ? 0.5 : 1.0)
+                }
 
-                    if viewStore.state.phase == .importSettings {
-                        Button(action: {
-                            viewStore.send(.didTapClearDataSourceSelectionButton, animation: .default)
-                        }, label: {
-                            Label("Select different source", systemImage: "chevron.up")
-                        })
-                        .font(.footnote)
-                        .foregroundStyle(Color.accentColor)
-                        .buttonStyle(.plain)
-                        .padding(EdgeInsets(top: 0, leading: 0, bottom: -15, trailing: 10))
-                        .frame(maxWidth: .infinity)
+                if store.phase == .importSettings {
+                    Button(action: {
+                        store.send(.didTapClearDataSourceSelectionButton, animation: .default)
+                    }, label: {
+                        Label("Select different source", systemImage: "chevron.up")
+                    })
+                    .font(.footnote)
+                    .foregroundStyle(Color.accentColor)
+                    .buttonStyle(.plain)
+                    .padding(EdgeInsets(top: 0, leading: 0, bottom: -15, trailing: 10))
+                    .frame(maxWidth: .infinity)
 
-                        VStack(alignment: .leading) {
+                    VStack(alignment: .leading) {
+                        SectionContainer {
+                            VStack {
+                                MenuPickerField(
+                                    title: "Document",
+                                    selection: $store.importSettings.document.animation()
+                                ) {
+                                    if let docs = store.importSettings.documents.value {
+                                        ForEach(docs, id: \.id) { doc in
+                                            Text("\(doc.displayName) (\(doc.id.rawValue))").tag(Optional.some(SelectedDocument.existing(doc.id)))
+                                        }
+                                    } else {
+                                        Text("Loading documents...")
+                                    }
+
+                                    Divider()
+
+                                    Text("New...").tag(Optional<SelectedDocument>.some(.new))
+                                }
+
+                                if store.importSettings.document == .new {
+                                    Divider()
+
+                                    VStack {
+                                        TextFieldWithSlug(
+                                            title: "Document name",
+                                            text: $store.importSettings.newDocumentName,
+                                            slug: Binding(
+                                                get: { store.importSettings.effectiveNewDocumentSlug },
+                                                set: { store.importSettings.newDocumentCustomSlug = $0 }
+                                            )
+                                        )
+                                        .frame(minHeight: 35)
+
+                                        if let match = store.importSettings.existingDocumentMatchingNewSlug {
+                                            SlugConflictError(
+                                                resourceName: "document",
+                                                conflictingResourceName: match.displayName
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding([.top], 32)
+
+                        let configureRealmForNewDocument = store.importSettings.document == .new
+                        let realmForExistingDocument = store.importSettings.realmForExistingDocument
+                        if configureRealmForNewDocument || realmForExistingDocument != nil {
                             SectionContainer {
                                 VStack {
-                                    MenuPickerField(
-                                        title: "Document",
-                                        selection: viewStore.$importSettings.document.animation()
-                                    ) {
-                                        if let docs = viewStore.state.importSettings.documents.value {
-                                            ForEach(docs, id: \.id) { doc in
-                                                Text("\(doc.displayName) (\(doc.id.rawValue))").tag(Optional.some(SelectedDocument.existing(doc.id)))
+                                    if configureRealmForNewDocument {
+                                        MenuPickerField(
+                                            title: "Realm",
+                                            selection: $store.importSettings.realm.animation()
+                                        ) {
+                                            if let realms = store.importSettings.realms.value {
+                                                ForEach(realms, id: \.id) { realm in
+                                                    Text("\(realm.displayName) (\(realm.id.rawValue))").tag(Optional.some(SelectedRealm.existing(realm.id)))
+                                                }
+                                            } else {
+                                                Text("Loading realms...")
                                             }
-                                        } else {
-                                            Text("Loading documents...")
+
+                                            Divider()
+
+                                            Text("New...").tag(Optional<SelectedRealm>.some(.new))
                                         }
-                                        
-                                        Divider()
-                                        
-                                        Text("New...").tag(Optional<SelectedDocument>.some(.new))
-                                    }
-                                    
-                                    if viewStore.state.importSettings.document == .new {
-                                        Divider()
-                                        
-                                        VStack {
+
+                                        if store.importSettings.realm == .new {
+                                            Divider()
+
                                             TextFieldWithSlug(
-                                                title: "Document name",
-                                                text: viewStore.$importSettings.newDocumentName,
+                                                title: "Realm name",
+                                                text: $store.importSettings.newRealmName,
                                                 slug: Binding(
-                                                    get: { viewStore.state.importSettings.effectiveNewDocumentSlug },
-                                                    set: { viewStore.$importSettings.newDocumentCustomSlug.wrappedValue = $0 }
+                                                    get: { store.importSettings.effectiveNewRealmSlug },
+                                                    set: { store.importSettings.newRealmCustomSlug = $0 }
                                                 )
                                             )
                                             .frame(minHeight: 35)
 
-                                            if let match = viewStore.state.importSettings.existingDocumentMatchingNewSlug {
-                                                
+                                            if let match = store.importSettings.existingRealmMatchingNewSlug {
                                                 SlugConflictError(
-                                                    resourceName: "document",
+                                                    resourceName: "realm",
                                                     conflictingResourceName: match.displayName
                                                 )
                                             }
                                         }
+                                    } else if let realm = realmForExistingDocument {
+                                        LabeledContent("Realm", value: "\(realm.displayName) (\(realm.id.rawValue))")
+                                            .frame(minHeight: 35)
                                     }
                                 }
                             }
-                            .padding([.top], 32)
-                            
-                            let configureRealmForNewDocument = viewStore.state.importSettings.document == .new
-                            let realmForExistingDocument = viewStore.state.importSettings.realmForExistingDocument
-                            if configureRealmForNewDocument || realmForExistingDocument != nil {
-                                SectionContainer {
-                                    VStack {
-                                        if configureRealmForNewDocument {
-                                            MenuPickerField(
-                                                title: "Realm",
-                                                selection: viewStore.$importSettings.realm.animation()
-                                            ) {
-                                                if let realms = viewStore.state.importSettings.realms.value {
-                                                    ForEach(realms, id: \.id) { realm in
-                                                        Text("\(realm.displayName) (\(realm.id.rawValue))").tag(Optional.some(SelectedRealm.existing(realm.id)))
-                                                    }
-                                                } else {
-                                                    Text("Loading realms...")
-                                                }
-                                                
-                                                Divider()
-                                                
-                                                Text("New...").tag(Optional<SelectedRealm>.some(.new))
-                                            }
-                                            
-                                            if viewStore.state.importSettings.realm == .new {
-                                                Divider()
-                                                
-                                                TextFieldWithSlug(
-                                                    title: "Realm name",
-                                                    text: viewStore.$importSettings.newRealmName,
-                                                    slug: Binding(
-                                                        get: { viewStore.state.importSettings.effectiveNewRealmSlug },
-                                                        set: { viewStore.$importSettings.newRealmCustomSlug.wrappedValue = $0 }
-                                                    )
-                                                )
-                                                .frame(minHeight: 35)
-                                                
-                                                if let match = viewStore.state.importSettings.existingRealmMatchingNewSlug {
-                                                    SlugConflictError(
-                                                        resourceName: "realm",
-                                                        conflictingResourceName: match.displayName
-                                                    )
-                                                }
-                                            }
-                                        } else if let realm = realmForExistingDocument {
-                                            LabeledContent("Realm", value: "\(realm.displayName) (\(realm.id.rawValue))")
-                                                .frame(minHeight: 35)
-                                        }
-                                    }
-                                }
-                                .padding([.top], 12)
-                            }
+                            .padding([.top], 12)
                         }
-
-                        if viewStore.state.importSettings.readerForDataSource == nil {
-                            SectionContainer(footer: {
-                                if let reader = viewStore.state.importSettings.effectiveDataSourceReader {
-                                    let itemsList = ListFormatter().string(from: reader.supportedItemTypes.map(\.localizedDisplayNamePlural)) ?? "none"
-
-                                    Text("Supported item types: \(itemsList)")
-                                        .font(.footnote).foregroundColor(Color.secondary)
-                                        .padding([.leading, .trailing], 12)
-                                }
-                            }) {
-                                if let fixedReader = viewStore.state.importSettings.readerForDataSource {
-                                    LabeledContent("Format", value: "\(fixedReader.displayName)")
-                                        .frame(minHeight: 35)
-                                } else {
-                                    MenuPickerField(
-                                        title: "Format",
-                                        selection: viewStore.$importSettings.customDataSourceReader.animation()
-                                    ) {
-                                        ForEach(CompendiumImportFeature.DataSourceReader.allCases, id: \.rawValue) { reader in
-                                            Text(reader.displayName).tag(Optional.some(reader))
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        SectionContainer(footer: {
-                            let text = viewStore.state.importSettings.overwrite
-                                ? "Existing items with the same name (within the realm) are overwritten."
-                                : "Existing items with the same name (within the realm) are skipped."
-                            Text(text).font(.footnote).foregroundColor(Color.secondary)
-                                .padding([.leading, .trailing], 12)
-                        }) {
-                            Toggle(isOn: viewStore.$importSettings.overwrite) {
-                                Text("Overwrite existing items")
-                            }
-                        }
-                        .padding([.top], 12)
-
-                        let isImporting = viewStore.state.importResult.isLoading
-                        let isFinished = viewStore.state.importResult.result != nil
-                        Button {
-                            viewStore.send(.didTapImportButton, animation: .default)
-                        } label: {
-                            HStack(spacing: 2) {
-                                if (isImporting) {
-                                    ProgressView().scaleEffect(0.5).padding([.top, .bottom], -10)
-                                }
-                                Text(isImporting ? "Importing..." : "Import")
-                            }
-                            .padding([.leading, .trailing], 8)
-                        }
-                        .disabled(!viewStore.state.isValid || isImporting || isFinished)
-                        .controlSize(.large)
-                        .disabled(!viewStore.state.isDataSourceConfigured)
-                        .buttonStyle(.borderedProminent)
-                        .buttonBorderShape(.roundedRectangle)
-                        .padding()
-                        .frame(maxWidth: .infinity)
                     }
 
+                    if store.importSettings.readerForDataSource == nil {
+                        SectionContainer(footer: {
+                            if let reader = store.importSettings.effectiveDataSourceReader {
+                                let itemsList = ListFormatter().string(from: reader.supportedItemTypes.map(\.localizedDisplayNamePlural)) ?? "none"
+
+                                Text("Supported item types: \(itemsList)")
+                                    .font(.footnote).foregroundColor(Color.secondary)
+                                    .padding([.leading, .trailing], 12)
+                            }
+                        }) {
+                            if let fixedReader = store.importSettings.readerForDataSource {
+                                LabeledContent("Format", value: "\(fixedReader.displayName)")
+                                    .frame(minHeight: 35)
+                            } else {
+                                MenuPickerField(
+                                    title: "Format",
+                                    selection: $store.importSettings.customDataSourceReader.animation()
+                                ) {
+                                    ForEach(CompendiumImportFeature.DataSourceReader.allCases, id: \.rawValue) { reader in
+                                        Text(reader.displayName).tag(Optional.some(reader))
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    SectionContainer(footer: {
+                        let text = store.importSettings.overwrite
+                            ? "Existing items with the same name (within the realm) are overwritten."
+                            : "Existing items with the same name (within the realm) are skipped."
+                        Text(text).font(.footnote).foregroundColor(Color.secondary)
+                            .padding([.leading, .trailing], 12)
+                    }) {
+                        Toggle(isOn: $store.importSettings.overwrite) {
+                            Text("Overwrite existing items")
+                        }
+                    }
+                    .padding([.top], 12)
+
+                    let isImporting = store.importResult.isLoading
+                    let isFinished = store.importResult.result != nil
+                    Button {
+                        store.send(.didTapImportButton, animation: .default)
+                    } label: {
+                        HStack(spacing: 2) {
+                            if (isImporting) {
+                                ProgressView().scaleEffect(0.5).padding([.top, .bottom], -10)
+                            }
+                            Text(isImporting ? "Importing..." : "Import")
+                        }
+                        .padding([.leading, .trailing], 8)
+                    }
+                    .disabled(!store.isValid || isImporting || isFinished)
+                    .controlSize(.large)
+                    .disabled(!store.isDataSourceConfigured)
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.roundedRectangle)
+                    .padding()
+                    .frame(maxWidth: .infinity)
                 }
-                .padding()
+
             }
-            .onAppear {
-                viewStore.send(.onAppear)
-            }
-            .onChange(of: viewStore.state.dismiss) { _, dismiss in
-                if dismiss {
-                    self.dismiss()
-                }
+            .padding()
+        }
+        .onAppear {
+            store.send(.onAppear)
+        }
+        .onChange(of: store.dismiss) { _, dismiss in
+            if dismiss {
+                self.dismiss()
             }
         }
-        .alert(store: store.scope(state: \.$alert, action: \.alert))
+        .alert($store.scope(state: \.alert, action: \.alert))
         .navigationTitle(Text("Import"))
     }
 }
 
-fileprivate func SlugConflictError(resourceName: String, conflictingResourceName: String) -> some View {
+private func SlugConflictError(resourceName: String, conflictingResourceName: String) -> some View {
     HStack(spacing: 12) {
         Text(Image(systemName: "exclamationmark.octagon"))
         Text("Existing \(resourceName) “\(conflictingResourceName)” has the same shorthand. Tap the shorthand to edit or select the existing \(resourceName).")
@@ -1156,7 +1097,7 @@ extension CompendiumImportFeature.DataSource.State {
             return Open5eAPIDataSource(
                 itemType: p.itemType,
                 document: slug,
-                urlSession: URLSession.shared // fixme
+                urlSession: URLSession.shared  // fixme
             )
         case .file(let f):
             guard let url = f.url else { return nil }
@@ -1165,7 +1106,7 @@ extension CompendiumImportFeature.DataSource.State {
             guard let url = n.url else { return nil }
             return URLDataSource(
                 url: url.absoluteString,
-                using: URLSession.shared // fixme
+                using: URLSession.shared  // fixme
             )
         }
     }
@@ -1174,11 +1115,13 @@ extension CompendiumImportFeature.DataSource.State {
 extension CompendiumImportFeature.DataSourceReader {
     func reader(source: any CompendiumDataSource) -> (any CompendiumDataSourceReader)? {
 
-        @Dependency(\.uuid) var uuid // is this an anti-pattern?
+        @Dependency(\.uuid) var uuid  // is this an anti-pattern?
 
         switch self {
         case .open5e:
-            guard let source = source as? any CompendiumDataSource<[Open5eAPIResult]> else { return nil }
+            guard let source = source as? any CompendiumDataSource<[Open5eAPIResult]> else {
+                return nil
+            }
             return Open5eDataSourceReader(
                 dataSource: source,
                 generateUUID: uuid.callAsFunction
@@ -1202,9 +1145,10 @@ extension CompendiumImportFeature.DataSourceReader {
 extension CompendiumImportFeature.State {
     var importTask: CompendiumImportTask? {
         guard let source = selectedDataSource?.source,
-              let document = importSettings.effectiveDocument,
-              let format = importSettings.effectiveDataSourceReader,
-              let reader = format.reader(source: source) else {
+            let document = importSettings.effectiveDocument,
+            let format = importSettings.effectiveDataSourceReader,
+            let reader = format.reader(source: source)
+        else {
             return nil
         }
 
@@ -1232,9 +1176,13 @@ enum Open5eAPIClientKey: DependencyKey {
                     next: nil,
                     previous: nil,
                     results: [
-                        Document(title: "Tome of Beasts 1", slug: "tob1", organization: "Kobold Press"),
-                        Document(title: "Tome of Beasts 2", slug: "tob2", organization: "Kobold Press"),
-                        Document(title: "Heroes of Might and Magic Complete Edition", slug: "homam", organization: "BAM"),
+                        Document(
+                            title: "Tome of Beasts 1", slug: "tob1", organization: "Kobold Press"),
+                        Document(
+                            title: "Tome of Beasts 2", slug: "tob2", organization: "Kobold Press"),
+                        Document(
+                            title: "Heroes of Might and Magic Complete Edition", slug: "homam",
+                            organization: "BAM"),
                     ]
                 ),
                 fetchNext: { _ in nil }
@@ -1254,12 +1202,12 @@ enum CompendiumMetadataKey: DependencyKey {
             CompendiumSourceDocument.srd5_1,
             CompendiumSourceDocument.unspecifiedCore,
             CompendiumSourceDocument.homebrew,
-            .init(id: Tagged("tob1"), displayName: "Tome of Beasts 1", realmId: Tagged("kp"))
+            .init(id: Tagged("tob1"), displayName: "Tome of Beasts 1", realmId: Tagged("kp")),
         ]
         let dummyRealms = [
             CompendiumRealm.core,
             CompendiumRealm.homebrew,
-            .init(id: Tagged("kp"), displayName: "Kobold Press")
+            .init(id: Tagged("kp"), displayName: "Kobold Press"),
         ]
 
         return CompendiumMetadata {
@@ -1312,8 +1260,8 @@ extension DependencyValues {
     }
 }
 
-public extension Async<[CompendiumSourceDocument], EquatableError> {
-    init(compendiumMetadata: CompendiumMetadata) {
+extension Async<[CompendiumSourceDocument], EquatableError> {
+    public init(compendiumMetadata: CompendiumMetadata) {
         self.init {
             do {
                 return try compendiumMetadata.sourceDocuments().sorted(by: .init(\.displayName))
@@ -1324,8 +1272,8 @@ public extension Async<[CompendiumSourceDocument], EquatableError> {
     }
 }
 
-public extension Async<[CompendiumRealm], EquatableError> {
-    init(compendiumMetadata: CompendiumMetadata) {
+extension Async<[CompendiumRealm], EquatableError> {
+    public init(compendiumMetadata: CompendiumMetadata) {
         self.init {
             do {
                 return try compendiumMetadata.realms().sorted(by: .init(\.displayName))
@@ -1337,30 +1285,30 @@ public extension Async<[CompendiumRealm], EquatableError> {
 }
 
 #if DEBUG
-@available(iOS 17.0, *)
-struct CompendiumImportPreview: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            CompendiumImportView(
-                store: Store(
-                    initialState: apply(CompendiumImportFeature.State()) { state in
-                        state.selectedDataSourceId = state.dataSources[0].id
+    @available(iOS 17.0, *)
+    struct CompendiumImportPreview: PreviewProvider {
+        static var previews: some View {
+            NavigationStack {
+                CompendiumImportView(
+                    store: Store(
+                        initialState: apply(CompendiumImportFeature.State()) { state in
+                            state.selectedDataSourceId = state.dataSources[0].id
 
-                        state.phase = .importSettings
-                        state.importSettings.document = .new
-                        state.importSettings.newDocumentName = "Toom of the Beests 1"
+                            state.phase = .importSettings
+                            state.importSettings.document = .new
+                            state.importSettings.newDocumentName = "Toom of the Beests 1"
 
-                        state.importSettings.realm = .new
-                        state.importSettings.newRealmName = "Kobold a Press"
+                            state.importSettings.realm = .new
+                            state.importSettings.newRealmName = "Kobold a Press"
+                        }
+                    ) {
+                        CompendiumImportFeature()
                     }
-                ) {
-                    CompendiumImportFeature()
-                }
-            )
-            .navigationTitle("Import")
+                )
+                .navigationTitle("Import")
+            }
         }
     }
-}
 #endif
 
 extension CompendiumImportFeature.State: NavigationTreeNode {}

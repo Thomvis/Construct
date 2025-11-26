@@ -7,6 +7,7 @@ import GameModels
 
 struct CampaignBrowseViewFeature: Reducer {
 
+    @ObservableState
     struct State: Equatable {
         let node: CampaignNode
         var mode: Mode
@@ -16,17 +17,17 @@ struct CampaignBrowseViewFeature: Reducer {
 
         let showSettingsButton: Bool
 
-        @PresentationState var sheet: Sheet.State?
+        @Presents var sheet: Sheet.State?
 
-        @PresentationState var destination: Destination.State?
+        @Presents var destination: Destination.State?
 
         init(node: CampaignNode, mode: Mode, items: AsyncItems.State = .initial, showSettingsButton: Bool, sheet: Sheet.State? = nil, destination: Destination.State? = nil) {
             self.node = node
             self.mode = mode
             self.items = items
             self.showSettingsButton = showSettingsButton
-            self._sheet = PresentationState(wrappedValue: sheet)
-            self._destination = PresentationState(wrappedValue: destination)
+            self.sheet = sheet
+            self.destination = destination
         }
 
         var localStateForDeduplication: State {
