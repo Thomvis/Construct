@@ -151,7 +151,7 @@ class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     var tabNavigationEncounterDetailRunning: ConstructView {
         get async {
-            let encounterDetailViewState = encounterDetailRunningEncounterDetailState
+            let encounterDetailViewState = await encounterDetailRunningEncounterDetailState
 
             let state = AppFeature.State(
                 navigation: .tab(
@@ -173,9 +173,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 )
                             ])),
                             showSettingsButton: false,
-                            presentedScreens: [
-                                .nextInStack: .encounter(encounterDetailViewState)
-                            ]),
+                            destination: .encounter(encounterDetailViewState)),
                         compendium: CompendiumIndexFeature.State.nullInstance,
                         diceRoller: DiceRollerFeature.State.nullInstance
                     )
@@ -271,9 +269,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 campaignBrowseViewState.node
                             ])),
                             showSettingsButton: false,
-                            presentedScreens: [
-                                .nextInStack: .campaignBrowse(campaignBrowseViewState)
-                            ]
+                            destination: .campaignBrowse(campaignBrowseViewState)
                         ),
                         compendium: .nullInstance,
                         diceRoller: DiceRollerFeature.State.nullInstance
@@ -347,9 +343,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 )
                             ])),
                             showSettingsButton: true,
-                            presentedScreens: [
-                                .nextInStack: .encounter(encounterDetailViewState)
-                            ]
+                            destination: .encounter(encounterDetailViewState)
                         ),
                         referenceView: ReferenceViewFeature.State(
                             items: IdentifiedArray(arrayLiteral:
@@ -540,17 +534,15 @@ class AppStoreScreenshotTests: XCTestCase {
                                     )
                                 ])),
                                 showSettingsButton: true,
-                                presentedScreens: [
-                                    .nextInStack: .encounter(EncounterDetailFeature.State(
-                                        building: encounter,
-                                        running: nil,
-                                        resumableRunningEncounters: .initial,
-                                        sheet: nil,
-                                        popover: nil,
-                                        editMode: .inactive,
-                                        selection: Set()
-                                    ))
-                                ]
+                                destination: .encounter(EncounterDetailFeature.State(
+                                    building: encounter,
+                                    running: nil,
+                                    resumableRunningEncounters: .initial,
+                                    sheet: nil,
+                                    popover: nil,
+                                    editMode: .inactive,
+                                    selection: Set()
+                                ))
                             ),
                             referenceView: ReferenceViewFeature.State(
                                 items: IdentifiedArray(
@@ -697,9 +689,7 @@ class AppStoreScreenshotTests: XCTestCase {
                     parentKeyPrefix: nil
                 )
             ])),
-            showSettingsButton: false,
-            sheet: nil,
-            presentedScreens: [:]
+            showSettingsButton: false
         )
     }
 
@@ -734,7 +724,7 @@ class AppStoreScreenshotTests: XCTestCase {
 
                                                     let fireballSpell = state.results.entries!.first(where: { $0.item.title == "Fireball" })!
                                                     state.scrollTo = fireballSpell.key
-                                                    state.nextScreen = .itemDetail(CompendiumEntryDetailFeature.State(entry: fireballSpell))
+                                                    state.destination = .itemDetail(CompendiumEntryDetailFeature.State(entry: fireballSpell))
                                                 }
                                             )
                                         )
