@@ -112,14 +112,7 @@ struct CreatureEditView: View {
 
                         Menu(mode.localizedDisplayName) {
                             Picker(
-                                selection: Binding(
-                                    get: { mode },
-                                    set: { newMode in
-                                        var model = store.model
-                                        model.statBlock.change(mode: mode, to: newMode)
-                                        store.send(.model(model))
-                                    }
-                                ),
+                                selection: movementModeBinding(for: mode),
                                 label: EmptyView()
                             ) {
                                 ForEach(MovementMode.allCases, id: \.hashValue) { option in
@@ -128,12 +121,7 @@ struct CreatureEditView: View {
                             }
                         }
 
-                        TextField("speed in ft. (Optional)", text: Binding(get: {
-                                self.model.wrappedValue.statBlock.speed(for: mode)
-                            }, set: {
-                                self.model.wrappedValue.statBlock.setSpeed($0, for: mode)
-                            })
-                        )
+                        TextField("speed in ft. (Optional)", text: speedBinding(for: mode))
                         .keyboardType(.numberPad)
                         .offset(x: 0, y: 1)
                     }
@@ -146,14 +134,10 @@ struct CreatureEditView: View {
 
             FormSection(.abilities) {
                 ForEach(Ability.allCases, id: \.self) { ability in
-                    Stepper(value: Binding(get: {
-                        self.model.statBlock.abilities.wrappedValue.score(for: ability).score
-                    }, set: {
-                        self.model.statBlock.abilities.wrappedValue.set(ability, to: $0)
-                    }), in: 1...store.maximumAbilityScore) {
+                    Stepper(value: abilityScoreBinding(for: ability), in: 1...store.maximumAbilityScore) {
                         Text("\(ability.localizedDisplayName): ")
-                            + Text("\(self.model.statBlock.abilities.wrappedValue.score(for: ability).score)")
-                            + Text(" (\(modifierFormatter.string(from: self.model.statBlock.abilities.wrappedValue.score(for: ability).modifier.modifier)))").bold()
+                            + Text("\(store.model.statBlock.abilities.score(for: ability).score)")
+                            + Text(" (\(modifierFormatter.string(from: store.model.statBlock.abilities.score(for: ability).modifier.modifier)))").bold()
 
                     }
                 }
@@ -326,11 +310,7 @@ struct CreatureEditView: View {
 
     var characterFields: some View {
         Group {
-            OptionalSelectField(
-                \.size,
-                 fieldLabel: "Size",
-                 valueLabel: \.localizedDisplayName.capitalized
-            )
+            sizeField
 
             Stepper("Level: \(model.wrappedValue.levelOrNilAsZeroString)", value: model.levelOrNilAsZero, in: 0...20)
         }
@@ -338,29 +318,14 @@ struct CreatureEditView: View {
 
     var monsterFields: some View {
         Group {
-            OptionalSelectField(
-                \.size,
-                 fieldLabel: "Size",
-                 valueLabel: \.localizedDisplayName.capitalized
-            )
+            sizeField
 
-            OptionalSelectField(
-                \.type,
-                 fieldLabel: "Type",
-                 valueLabel: \.localizedDisplayName.capitalized
-            )
+            monsterTypeField
 
             LabeledContent {
                 Menu {
                     Picker(
-                        selection: Binding(
-                            get: { store.model.statBlock.challengeRating },
-                            set: { newValue in
-                                var model = store.model
-                                model.statBlock.challengeRating = newValue
-                                store.send(.model(model))
-                            }
-                        ),
+                        selection: $store.model.statBlock.challengeRating.sending(\.setChallengeRating),
                         label: EmptyView()
                     ) {
                         ForEach(Array(crToXpMapping.keys).sorted(), id: \.hashValue) { option in
@@ -498,11 +463,7 @@ extension CreatureEditView {
                 }
             }) {
                 if !store.creatureType.requiredSections.contains(section) {
-                    Toggle(isOn: Binding(get: {
-                        store.sections.contains(section)
-                    }, set: { b in
-                        self.store.send(b ? .addSection(section) : .removeSection(section), animation: .default)
-                    })) {
+                    Toggle(isOn: sectionBinding(for: section)) {
                         Text(section.localizedHeader ?? "").bold()
                     }
                 }
@@ -511,6 +472,90 @@ extension CreatureEditView {
                     content()
                 }
             }
+        }
+    }
+
+    // MARK: - Parameterized Bindings
+
+    fileprivate func movementModeBinding(for mode: MovementMode) -> Binding<MovementMode> {
+        Binding(
+            get: { mode },
+            set: { store.send(.setMovementMode(from: mode, to: $0)) }
+        )
+    }
+
+    fileprivate func speedBinding(for mode: MovementMode) -> Binding<String> {
+        Binding(
+            get: { store.model.statBlock.speed(for: mode) },
+            set: { store.send(.setSpeed($0, for: mode)) }
+        )
+    }
+
+    fileprivate func abilityScoreBinding(for ability: Ability) -> Binding<Int> {
+        Binding(
+            get: { store.model.statBlock.abilities.score(for: ability).score },
+            set: { store.send(.setAbilityScore(ability, score: $0)) }
+        )
+    }
+
+    fileprivate func sectionBinding(for section: CreatureEditFeature.State.Section) -> Binding<Bool> {
+        Binding(
+            get: { store.sections.contains(section) },
+            set: { store.send(.setSection(section, enabled: $0), animation: .default) }
+        )
+    }
+
+    // MARK: - Specific Fields
+
+    @ViewBuilder
+    fileprivate var sizeField: some View {
+        LabeledContent {
+            Menu {
+                Picker(
+                    selection: $store.model.statBlock.size.sending(\.setSize),
+                    label: EmptyView()
+                ) {
+                    Text("None").tag(Optional<CreatureSize>.none)
+                    Divider()
+                    ForEach(CreatureSize.allCases, id: \.rawValue) { value in
+                        Text(value.localizedDisplayName.capitalized).tag(Optional.some(value))
+                    }
+                }
+            } label: {
+                Text(store.model.statBlock.size?.localizedDisplayName.capitalized ?? "Select (Optional)")
+                    .foregroundColor(Color.secondary)
+
+                Image(systemName: "chevron.down.square.fill")
+                    .foregroundColor(Color.secondary)
+            }
+        } label: {
+            Text("Size")
+        }
+    }
+
+    @ViewBuilder
+    fileprivate var monsterTypeField: some View {
+        LabeledContent {
+            Menu {
+                Picker(
+                    selection: $store.model.statBlock.type.sending(\.setMonsterType),
+                    label: EmptyView()
+                ) {
+                    Text("None").tag(Optional<MonsterType>.none)
+                    Divider()
+                    ForEach(MonsterType.allCases, id: \.rawValue) { value in
+                        Text(value.localizedDisplayName.capitalized).tag(Optional.some(value))
+                    }
+                }
+            } label: {
+                Text(store.model.statBlock.type?.localizedDisplayName.capitalized ?? "Select (Optional)")
+                    .foregroundColor(Color.secondary)
+
+                Image(systemName: "chevron.down.square.fill")
+                    .foregroundColor(Color.secondary)
+            }
+        } label: {
+            Text("Type")
         }
     }
 

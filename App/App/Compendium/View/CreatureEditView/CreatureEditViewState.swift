@@ -228,6 +228,13 @@ struct CreatureEditFeature: Reducer {
         case onNamedContentItemMove(NamedStatBlockContentItemType, IndexSet, Int)
         case addSection(State.Section)
         case removeSection(State.Section)
+        case setSection(State.Section, enabled: Bool)
+        case setMovementMode(from: MovementMode, to: MovementMode)
+        case setSpeed(String, for: MovementMode)
+        case setAbilityScore(Ability, score: Int)
+        case setChallengeRating(Fraction?)
+        case setSize(CreatureSize?)
+        case setMonsterType(MonsterType?)
         case onCreatureGenerationButtonTap
         case onAddTap(State)
         case onDoneTap(State)
@@ -300,6 +307,24 @@ struct CreatureEditFeature: Reducer {
                 break
             case .addSection(let s): state.sections.insert(s)
             case .removeSection(let s): state.sections.remove(s)
+            case .setSection(let s, let enabled):
+                if enabled {
+                    state.sections.insert(s)
+                } else {
+                    state.sections.remove(s)
+                }
+            case .setMovementMode(let from, let to):
+                state.model.statBlock.change(mode: from, to: to)
+            case .setSpeed(let speed, let mode):
+                state.model.statBlock.setSpeed(speed, for: mode)
+            case .setAbilityScore(let ability, let score):
+                state.model.statBlock.abilities.set(ability, to: score)
+            case .setChallengeRating(let cr):
+                state.model.statBlock.challengeRating = cr
+            case .setSize(let size):
+                state.model.statBlock.size = size
+            case .setMonsterType(let type):
+                state.model.statBlock.type = type
             case .onAddTap:
                 // Create flows
                 switch state.creatureType {
