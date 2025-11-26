@@ -32,20 +32,16 @@
 - Migrated CampaignBrowseViewFeature's NodeEditView to observation; added `@Reducer` macro, `@ObservableState` to NodeEditState.
 - Migrated CompendiumItemTransferFeature to `@Reducer` + `@ObservableState`; replaced binding state mutations from effects with explicit actions.
 - Migrated CompendiumDocumentSelectionFeature to `@Reducer` + `@ObservableState`; removed `WithViewStore` wrappers.
+- Migrated CompendiumDocumentsFeature to `@Reducer` + `@ObservableState`; replaced all `WithViewStore` in views.
+- Migrated CompendiumIndexView to observation: removed all LocalState structs; replaced `WithViewStore` in main view, searchable modifier, item list, entry row, and filter button; added computed properties to State for view state.
 
-## Remaining (15 deprecated usages across 8 files)
+## Status
 
-- `CompendiumIndexView.swift` (5): Multiple `WithViewStore` usages; feature needs `@Reducer` macro and `@ObservableState`.
-- `CompendiumDocumentsFeature.swift` (3): `WithViewStore` usages; needs `@Reducer` + `@ObservableState`.
-- `CompendiumEntryDetailView.swift` (2): `IfLetStore` usages.
-- `CreatureEditView.swift` (1): `IfLetStore` usage.
-- `CombatantTagEditView.swift` (1): `IfLetStore` usage.
-- `CombatantResourcesView.swift` (1): `IfLetStore` usage.
-- `EncounterDetailView.swift` (1): `IfLetStore` usage.
-- `CombatantDetailView.swift` (1): `ForEachStore` usage.
+All deprecated TCA APIs have been removed:
+- ✅ No `WithViewStore` usages remain
+- ✅ No `IfLetStore` usages remain
+- ✅ No `ForEachStore` usages remain
+- ✅ No `@PresentationState` usages remain (replaced with `@Presents`)
+- ✅ Build succeeds with no deprecation warnings
 
-## Next steps
-
-- Continue migrating CompendiumDocumentsFeature, CompendiumIndexView.
-- Replace remaining `IfLetStore`/`ForEachStore` with `if let store.scope()`/`ForEach` patterns.
-- Once all deprecated APIs are removed, verify clean build.
+Some reducers still use the old `struct X: Reducer` pattern without `@Reducer` macro, but these compile fine and can be migrated opportunistically.
