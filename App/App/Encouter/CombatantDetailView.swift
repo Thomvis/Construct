@@ -294,10 +294,13 @@ struct CombatantDetailView: View {
                     Text("Manage")
                 })
             ) {
-                ForEachStore(
-                    combatantStore.scope(state: \.resources, action: \.resources)
-                ) { resourceStore in
-                    CombatantResourceTrackerView(store: resourceStore)
+                ForEach(combatant.resources) { resource in
+                    CombatantResourceTrackerView(
+                        store: combatantStore.scope(
+                            state: \.resources[id: resource.id]!,
+                            action: \.resources[id: resource.id]
+                        )
+                    )
                 }
             }
         }
