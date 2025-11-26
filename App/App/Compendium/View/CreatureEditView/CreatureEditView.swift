@@ -22,16 +22,13 @@ struct CreatureEditView: View {
 
     @EnvironmentObject var modifierFormatter: ModifierFormatter
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    let store: StoreOf<CreatureEditFeature>
+    @Bindable var store: StoreOf<CreatureEditFeature>
 
     @ScaledMetric(relativeTo: .body)
     var bodyMetric: CGFloat = 14
 
     var model: Binding<CreatureEditFormModel> {
-        Binding(
-            get: { store.model },
-            set: { store.send(.model($0)) }
-        )
+        $store.model.sending(\.model)
     }
 
     @ViewBuilder
@@ -272,10 +269,7 @@ struct CreatureEditView: View {
         Menu {
             if editableCreatureType {
                 Picker(
-                    selection: Binding(
-                        get: { store.creatureType },
-                        set: { store.send(.setCreateModeCreatureType($0)) }
-                    ),
+                    selection: $store.creatureType.sending(\.setCreateModeCreatureType),
                     label: EmptyView()
                 ) {
                     ForEach(CreatureEditFeature.State.CreatureType.allCases, id: \.rawValue) { type in

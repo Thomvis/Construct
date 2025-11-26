@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Construct}",
+            "name": "Debug db-tool",
+            "preLaunchTask": "swift: Build Debug db-tool",
+            "target": "db-tool",
+            "configuration": "debug"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Construct}",
+            "name": "Release db-tool",
+            "preLaunchTask": "swift: Build Release db-tool",
+            "target": "db-tool",
+            "configuration": "release"
+        }
+    ]
+}

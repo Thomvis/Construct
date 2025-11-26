@@ -17,15 +17,12 @@ import Compendium
 struct CompendiumItemGroupEditView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    let store: StoreOf<CompendiumItemGroupEditFeature>
+    @Bindable var store: StoreOf<CompendiumItemGroupEditFeature>
 
     var body: some View {
         Form {
             Section {
-                ClearableTextField("Name", text: Binding(
-                    get: { store.group.title },
-                    set: { store.send(.groupTitle($0)) }
-                ))
+                ClearableTextField("Name", text: $store.group.title.sending(\.groupTitle))
                     .disableAutocorrection(true)
             }
 

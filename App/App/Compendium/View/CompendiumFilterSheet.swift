@@ -17,7 +17,7 @@ import Combine
 import Tagged
 
 struct CompendiumFilterSheet: View {
-    let store: StoreOf<CompendiumFilterSheetFeature>
+    @Bindable var store: StoreOf<CompendiumFilterSheetFeature>
 
     let onApply: (CompendiumFilterSheetFeature.State.Values) -> Void
 
@@ -40,10 +40,7 @@ struct CompendiumFilterSheet: View {
 
                     SectionContainer {
                         LabeledContent {
-                            Picker("Type", selection: Binding(
-                                get: { store.current.itemType },
-                                set: { store.send(.itemType($0)) }
-                            ).animation()) {
+                            Picker("Type", selection: $store.current.itemType.sending(\.itemType).animation()) {
                                 Text("All").tag(Optional<CompendiumItemType>.none)
                                 ForEach(store.allAllowedItemTypes, id: \.rawValue) { type in
                                     Text("\(type.localizedScreenDisplayName)").tag(Optional.some(type))
@@ -60,10 +57,7 @@ struct CompendiumFilterSheet: View {
                         SectionContainer {
                             LabeledContent {
                                 Picker(
-                                    selection: Binding(
-                                        get: { store.monsterType },
-                                        set: { store.send(.monsterType($0)) }
-                                    ),
+                                    selection: $store.monsterType.sending(\.monsterType),
                                     label: Text("Monster Type")
                                 ) {
                                     Text("All").tag(Optional<MonsterType>.none)
@@ -84,11 +78,13 @@ struct CompendiumFilterSheet: View {
                             SectionContainer(title: "Minimum CR", accessory: clearButton(for: .minMonsterCR)) {
                                 HStack {
                                     Text(store.minMonsterCrString).frame(width: 30)
-                                    Slider(value: Binding(
-                                        get: { store.minMonsterCrDouble },
-                                        set: { store.send(.minMonsterCR($0)) }
-                                    ), in: 0.0...crRangeMax, step: 1.0, onEditingChanged: onEditingChanged(.minMonsterCR))
-                                        .environment(\.layoutDirection, .rightToLeft)
+                                    Slider(
+                                        value: $store.minMonsterCrDouble.sending(\.minMonsterCR),
+                                        in: 0.0...crRangeMax,
+                                        step: 1.0,
+                                        onEditingChanged: onEditingChanged(.minMonsterCR)
+                                    )
+                                    .environment(\.layoutDirection, .rightToLeft)
                                 }
                             }
                         }
@@ -97,10 +93,12 @@ struct CompendiumFilterSheet: View {
                             SectionContainer(title: "Maximum CR", accessory: clearButton(for: .maxMonsterCR)) {
                                 HStack {
                                     Text(store.maxMonsterCrString).frame(width: 30)
-                                    Slider(value: Binding(
-                                        get: { store.maxMonsterCrDouble },
-                                        set: { store.send(.maxMonsterCR($0)) }
-                                    ), in: 0.0...crRangeMax, step: 1.0, onEditingChanged: onEditingChanged(.maxMonsterCR))
+                                    Slider(
+                                        value: $store.maxMonsterCrDouble.sending(\.maxMonsterCR),
+                                        in: 0.0...crRangeMax,
+                                        step: 1.0,
+                                        onEditingChanged: onEditingChanged(.maxMonsterCR)
+                                    )
                                 }
                             }
                         }

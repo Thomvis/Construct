@@ -14,7 +14,7 @@ import Helpers
 import GameModels
 
 struct CombatantTrackerEditView: View, Popover {
-    let store: StoreOf<CombatantTrackerEditFeature>
+    @Bindable var store: StoreOf<CombatantTrackerEditFeature>
 
     var popoverId: AnyHashable { store.resource.id }
 
@@ -24,16 +24,12 @@ struct CombatantTrackerEditView: View, Popover {
             Divider()
 
             VStack(spacing: 16) {
-                ClearableTextField("Name", text: Binding(
-                    get: { store.resource.title },
-                    set: { store.send(.resource(.title($0))) }
-                ))
+                ClearableTextField("Name", text: $store.resource.title.sending(\.resource.title))
                     .disableAutocorrection(true)
-                Stepper(value: Binding<Int>(get: {
-                    store.resource.slots.count
-                }, set: {
-                    store.send(.resource(.slots($0)))
-                }), in: 1...10) {
+                Stepper(
+                    value: $store.resource.slots.count.sending(\.resource.slots),
+                    in: 1...10
+                ) {
                     Text(store.resource.slots.count == 1 ? "1 use" : "\(store.resource.slots.count) uses")
                 }
             }
@@ -72,11 +68,13 @@ struct CombatantTrackerEditFeature {
         static let nullInstance = State(resource: CombatantResource.nullInstance)
     }
 
+    @CasePathable
     enum Action: Equatable {
         case resource(ResourceAction)
         case onCancelTap
         case onDoneTap
 
+        @CasePathable
         enum ResourceAction: Equatable {
             case title(String)
             case slots(Int)

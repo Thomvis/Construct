@@ -20,7 +20,7 @@ import SharedViews
 struct CompendiumEntryDetailView: View {
     @SwiftUI.Environment(\.appNavigation) var appNavigation
 
-    var store: StoreOf<CompendiumEntryDetailFeature>
+    @Bindable var store: StoreOf<CompendiumEntryDetailFeature>
 
     var item: CompendiumItem {
         store.item
@@ -109,7 +109,7 @@ struct CompendiumEntryDetailView: View {
 
         return navigation
             .safariView(
-                item: Binding(get: { store.safari }, set: { store.send(.setSafari($0)) }),
+                item: $store.safari.sending(\.setSafari),
                 onDismiss: { store.send(.setSafari(nil)) },
                 content: { state in
                     BetterSafariView.SafariView(
