@@ -61,10 +61,9 @@ struct CombatantResourcesView: View {
             .frame(maxHeight: .infinity, alignment: .bottom).padding(8)
         }
         .popover(Binding(get: { () -> AnyView? in
-            if viewStore.state.editState != nil {
-                return IfLetStore(store.scope(state: \.editState, action: \.editState)) { store in
-                    CombatantTrackerEditView(store: store)
-                }.eraseToAnyView
+            if store.editState != nil {
+                let editStore = store.scope(state: \.editState!, action: \.editState)
+                return CombatantTrackerEditView(store: editStore).eraseToAnyView
             }
             return nil
         }, set: {

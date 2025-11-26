@@ -11,8 +11,10 @@ import ComposableArchitecture
 import Helpers
 import GameModels
 
-struct CombatantResourcesFeature: Reducer {
+@Reducer
+struct CombatantResourcesFeature {
 
+    @ObservableState
     struct State: NavigationStackItemState, Equatable {
         var combatant: Combatant
         var editState: CombatantTrackerEditFeature.State?
