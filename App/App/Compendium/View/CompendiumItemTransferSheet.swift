@@ -7,12 +7,14 @@ import Persistence
 import SharedViews
 
 /// The UI that enables the user to move/copy compendium items between documents
-struct CompendiumItemTransferFeature: Reducer {
+@Reducer
+struct CompendiumItemTransferFeature {
     static let operationEffectId = "CompendiumItemTransferFeature.operationEffectId"
 
+    @ObservableState
     struct State: Equatable {
         let mode: TransferMode
-        @BindingState var conflictResolution: ConflictResolution = .keepBoth
+        var conflictResolution: ConflictResolution = .keepBoth
 
         // The thing that we're moving/copying
         let selection: CompendiumItemSelection
@@ -22,7 +24,7 @@ struct CompendiumItemTransferFeature: Reducer {
 
         var documentSelection: CompendiumDocumentSelectionFeature.State
 
-        @BindingState var operation: Operation?
+        var operation: Operation?
 
         var isValid: Bool {
             documentSelection.selectedSource != nil && operation == nil
@@ -76,13 +78,13 @@ struct CompendiumItemTransferFeature: Reducer {
         static let nullInstance = State(mode: .copy, selection: .single(CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "")), originDocument: nil)
     }
 
-    @CasePathable
     enum Action: BindableAction, Equatable {
         case onAppear
         case onTransferButtonTap
         case onCancelButtonTap
         case documentSelection(CompendiumDocumentSelectionFeature.Action)
         case itemCountResponse(Int)
+        case operationDidComplete(State.Operation)
         case onTransferDidSucceed
         case binding(BindingAction<State>)
     }
@@ -117,9 +119,8 @@ struct CompendiumItemTransferFeature: Reducer {
             case .onTransferButtonTap:
                 guard state.isValid, let target = state.documentSelection.selectedSource else { return .none }
 
+                state.operation = .pending
                 return .run { [state] send in
-
-                    await send(.set(\.$operation, .pending))
                     do {
                         try await transfer(
                             state.selection,
@@ -128,10 +129,9 @@ struct CompendiumItemTransferFeature: Reducer {
                             conflictResolution: state.conflictResolution,
                             db: database.access
                         )
-                        await send(.set(\.$operation, .success))
-                        await send(.onTransferDidSucceed)
+                        await send(.operationDidComplete(.success))
                     } catch {
-                        await send(.set(\.$operation, .failure(error.localizedDescription)), animation: .default)
+                        await send(.operationDidComplete(.failure(error.localizedDescription)), animation: .default)
                     }
                 }
                 .cancellable(id: Self.operationEffectId)
@@ -142,6 +142,13 @@ struct CompendiumItemTransferFeature: Reducer {
 
             case let .itemCountResponse(count):
                 state.itemCount = count
+                return .none
+
+            case let .operationDidComplete(operation):
+                state.operation = operation
+                if case .success = operation {
+                    return .send(.onTransferDidSucceed)
+                }
                 return .none
 
             case .onTransferDidSucceed:
@@ -155,76 +162,74 @@ struct CompendiumItemTransferFeature: Reducer {
 }
 
 struct CompendiumItemTransferSheet: View {
-    let store: StoreOf<CompendiumItemTransferFeature>
+    @Bindable var store: StoreOf<CompendiumItemTransferFeature>
     @SwiftUI.Environment(\.presentationMode) private var presentationMode
     @SwiftUI.ScaledMetric(relativeTo: .footnote) private var footerHeight = 50
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            VStack {
-                if let notice = viewStore.state.notice {
-                    NoticeView(notice: notice)
-                }
+        VStack {
+            if let notice = store.notice {
+                NoticeView(notice: notice)
+            }
 
-                SectionContainer {
-                    CompendiumDocumentSelectionView(
-                        store: store.scope(
-                            state: \.documentSelection,
-                            action: \.documentSelection
-                        ),
-                        label: "Destination"
-                    )
-                }
+            SectionContainer {
+                CompendiumDocumentSelectionView(
+                    store: store.scope(
+                        state: \.documentSelection,
+                        action: \.documentSelection
+                    ),
+                    label: "Destination"
+                )
+            }
 
-                SectionContainer(footer: {
-                    Text(viewStore.conflictResolution.footerText)
-                        .font(.footnote)
-                        .foregroundColor(Color.secondary)
-                        .padding([.leading, .trailing], 12)
-                        .frame(minHeight: footerHeight, alignment: .top)
-                }) {
-                    HStack {
-                        Text("Conflict resolution").bold()
-                        Spacer()
-                        Picker("", selection: viewStore.$conflictResolution) {
-                            ForEach(ConflictResolution.allCases, id: \.self) { strategy in
-                                Text(strategy.description).tag(strategy)
-                            }
+            SectionContainer(footer: {
+                Text(store.conflictResolution.footerText)
+                    .font(.footnote)
+                    .foregroundColor(Color.secondary)
+                    .padding([.leading, .trailing], 12)
+                    .frame(minHeight: footerHeight, alignment: .top)
+            }) {
+                HStack {
+                    Text("Conflict resolution").bold()
+                    Spacer()
+                    Picker("", selection: $store.conflictResolution.sending(\.binding.conflictResolution)) {
+                        ForEach(ConflictResolution.allCases, id: \.self) { strategy in
+                            Text(strategy.description).tag(strategy)
                         }
                     }
                 }
-
-                Button(action: {
-                    viewStore.send(.onTransferButtonTap)
-                }) {
-                    switch viewStore.state.operation {
-                    case .pending:
-                        ProgressView()
-                    default:
-                        Text(viewStore.buttonTitle)
-                            .frame(maxWidth: .infinity)
-
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .padding(.top, 8)
-                .disabled(!viewStore.isValid)
             }
-            .padding()
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        viewStore.send(.onCancelButtonTap)
-                        presentationMode.wrappedValue.dismiss()
-                    }
+
+            Button(action: {
+                store.send(.onTransferButtonTap)
+            }) {
+                switch store.operation {
+                case .pending:
+                    ProgressView()
+                default:
+                    Text(store.buttonTitle)
+                        .frame(maxWidth: .infinity)
+
                 }
             }
-            .onAppear {
-                viewStore.send(.onAppear)
-            }
-            .navigationTitle(viewStore.state.mode.actionText)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding(.top, 8)
+            .disabled(!store.isValid)
         }
+        .padding()
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    store.send(.onCancelButtonTap)
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+        }
+        .onAppear {
+            store.send(.onAppear)
+        }
+        .navigationTitle(store.mode.actionText)
     }
 }
 
