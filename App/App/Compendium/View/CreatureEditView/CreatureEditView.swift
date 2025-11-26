@@ -320,8 +320,8 @@ struct CreatureEditView: View {
                     }
                 )
             } else {
-                CompendiumDocumentSelectionView.withViewStore(store: documentSelectionStore) { state in
-                    Text(state.currentDocument?.displayName ?? "")
+                CompendiumDocumentSelectionView.withStore(store: documentSelectionStore) { store in
+                    Text(store.currentDocument?.displayName ?? "")
                 }
             }
         } label: {

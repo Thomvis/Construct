@@ -5,7 +5,9 @@ import GameModels
 import Compendium
 import Helpers
 
-struct CompendiumDocumentSelectionFeature: Reducer {
+@Reducer
+struct CompendiumDocumentSelectionFeature {
+    @ObservableState
     struct State: Equatable {
 
         let unselectedLabel: String?
@@ -16,7 +18,7 @@ struct CompendiumDocumentSelectionFeature: Reducer {
         typealias AsyncRealms = Async<[CompendiumRealm], EquatableError>
         var realms: AsyncRealms.State = .initial
 
-        @BindingState var selectedSource: CompendiumFilters.Source?
+        var selectedSource: CompendiumFilters.Source?
         
         var currentDocument: CompendiumSourceDocument? {
             guard let s = selectedSource else { return nil }
@@ -132,26 +134,33 @@ struct CompendiumDocumentSelectionView: View {
         store: StoreOf<CompendiumDocumentSelectionFeature>,
         label: @escaping (String) -> some View
     ) -> some View {
-        WithViewStore(store, observe: \.self) { viewStore in
+        MenuContent(store: store, label: label)
+    }
+    
+    private struct MenuContent<Label: View>: View {
+        let store: StoreOf<CompendiumDocumentSelectionFeature>
+        let label: (String) -> Label
+        
+        var body: some View {
             Menu {
-                if let unselectedLabel = viewStore.unselectedLabel {
+                if let unselectedLabel = store.unselectedLabel {
                     Button(unselectedLabel) {
-                        viewStore.send(.clearSource)
+                        store.send(.clearSource)
                     }
                 }
 
-                if let allSources = viewStore.allSources {
-                    ForEach(allSources, id: \.document.id) { source in
+                if let allSources = store.allSources {
+                    ForEach(Array(allSources.enumerated()), id: \.element.document.id) { index, source in
                         // Add divider between realms
-                        if needsDividerBefore(source, in: allSources) {
+                        if CompendiumDocumentSelectionView.needsDividerBefore(source, in: allSources) {
                             Divider()
                         }
 
                         Button(action: {
-                            viewStore.send(.source(source.document, source.realm))
+                            store.send(.source(source.document, source.realm))
                         }) {
-                            if let s = viewStore.selectedSource, s.document == source.document.id && s.realm == source.realm.id {
-                                Label(source.document.displayName, systemImage: "checkmark")
+                            if let s = store.selectedSource, s.document == source.document.id && s.realm == source.realm.id {
+                                SwiftUI.Label(source.document.displayName, systemImage: "checkmark")
                             } else {
                                 Text(source.document.displayName)
                             }
@@ -159,38 +168,45 @@ struct CompendiumDocumentSelectionView: View {
                                 Text(source.realm.displayName)
                             }
                         }
-                        .disabled(viewStore.state.disabledSources.contains { $0.document == source.document.id && $0.realm == source.realm.id })
+                        .disabled(store.disabledSources.contains { $0.document == source.document.id && $0.realm == source.realm.id })
                     }
                 } else {
                     Text("Loading...")
                 }
             } label: {
-                if let name = viewStore.currentDocument.map({ $0.displayName }) ?? viewStore.unselectedLabel {
+                if let name = store.currentDocument.map({ $0.displayName }) ?? store.unselectedLabel {
                     label(name)
                 }
             }
             .onAppear {
-                viewStore.send(.documents(.startLoading))
-                viewStore.send(.realms(.startLoading))
+                store.send(.documents(.startLoading))
+                store.send(.realms(.startLoading))
             }
         }
     }
 
     // Wraps some view so it can access our state
-    public static func withViewStore(
+    public static func withStore(
         store: StoreOf<CompendiumDocumentSelectionFeature>,
-        content: @escaping (CompendiumDocumentSelectionFeature.State) -> some View
+        content: @escaping (StoreOf<CompendiumDocumentSelectionFeature>) -> some View
     ) -> some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            content(viewStore.state)
+        WithStoreContent(store: store, content: content)
+    }
+    
+    private struct WithStoreContent<Content: View>: View {
+        let store: StoreOf<CompendiumDocumentSelectionFeature>
+        let content: (StoreOf<CompendiumDocumentSelectionFeature>) -> Content
+        
+        var body: some View {
+            content(store)
                 .onAppear {
-                    viewStore.send(.documents(.startLoading))
-                    viewStore.send(.realms(.startLoading))
+                    store.send(.documents(.startLoading))
+                    store.send(.realms(.startLoading))
                 }
         }
     }
 
-    private static func needsDividerBefore(
+    fileprivate static func needsDividerBefore(
         _ source: (document: CompendiumSourceDocument, realm: CompendiumRealm),
         in sources: [(document: CompendiumSourceDocument, realm: CompendiumRealm)]
     ) -> Bool {
