@@ -3,6 +3,7 @@ import TestSupport
 import ViewInspector
 import XCTest
 import Persistence
+import ComposableArchitecture
 
 @MainActor
 class SettingsViewTest: XCTestCase {

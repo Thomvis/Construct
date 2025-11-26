@@ -124,8 +124,6 @@ struct ConstructView: View {
 
     @Bindable var store: StoreOf<AppFeature>
 
-    let storeManager = StoreManager()
-
     @ViewBuilder
     private var navigationView: some View {
         if let tabStore = store.scope(state: \.navigation?.tab, action: \.navigation.tab) {

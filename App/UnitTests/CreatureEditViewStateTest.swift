@@ -21,19 +21,12 @@ class CreatureEditViewStateTest: XCTestCase {
     
     @MainActor
     func testNewMonsterDefaultsToHomebrew() async {
-        let testEnv = TestEnvironment()
         let store = TestStore(
             initialState: CreatureEditFeature.State(create: .monster)
         ) {
             CreatureEditFeature()
         } withDependencies: {
-            $0.modifierFormatter = testEnv.modifierFormatter
-            $0.mainQueue = testEnv.mainQueue
-            $0.diceLog = testEnv.diceLog
-            $0.compendiumMetadata = testEnv.compendiumMetadata
-            $0.mechMuse = testEnv.mechMuse
-            $0.compendium = testEnv.compendium
-            $0.database = testEnv.database
+            applyTestDependencies(&$0)
         }
         
         // Set required fields to make monster valid
@@ -58,19 +51,12 @@ class CreatureEditViewStateTest: XCTestCase {
     func testNewMonsterWithCustomSource() async {
         // Test that creating a new monster with a custom source uses that source
         let customSource = CompendiumFilters.Source(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)
-        let testEnv = TestEnvironment()
         let store = TestStore(
             initialState: CreatureEditFeature.State(create: .monster, sourceDocument: customSource)
         ) {
             CreatureEditFeature()
         } withDependencies: {
-            $0.modifierFormatter = testEnv.modifierFormatter
-            $0.mainQueue = testEnv.mainQueue
-            $0.diceLog = testEnv.diceLog
-            $0.compendiumMetadata = testEnv.compendiumMetadata
-            $0.mechMuse = testEnv.mechMuse
-            $0.compendium = testEnv.compendium
-            $0.database = testEnv.database
+            applyTestDependencies(&$0)
         }
         
         // Verify initial document selection is set
@@ -96,19 +82,12 @@ class CreatureEditViewStateTest: XCTestCase {
     
     @MainActor
     func testDocumentSelectionUpdatesOutput() async {
-        let testEnv = TestEnvironment()
         let store = TestStore(
             initialState: CreatureEditFeature.State(create: .monster)
         ) {
             CreatureEditFeature()
         } withDependencies: {
-            $0.modifierFormatter = testEnv.modifierFormatter
-            $0.mainQueue = testEnv.mainQueue
-            $0.diceLog = testEnv.diceLog
-            $0.compendiumMetadata = testEnv.compendiumMetadata
-            $0.mechMuse = testEnv.mechMuse
-            $0.compendium = testEnv.compendium
-            $0.database = testEnv.database
+            applyTestDependencies(&$0)
         }
         
         // Set required fields to make monster valid
@@ -150,20 +129,12 @@ class CreatureEditViewStateTest: XCTestCase {
     func testClearingDocumentSelectionDefaultsToHomebrew() async {
         // Start with a core document selected
         let coreSource = CompendiumFilters.Source(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)
-        let testEnv = TestEnvironment()
         let store = TestStore(
             initialState: CreatureEditFeature.State(create: .monster, sourceDocument: coreSource)
         ) {
             CreatureEditFeature()
         } withDependencies: {
-            $0.modifierFormatter = testEnv.modifierFormatter
-            $0.mainQueue = testEnv.mainQueue
-            $0.diceLog = testEnv.diceLog
-            $0.compendiumMetadata = testEnv.compendiumMetadata
-            $0.mechMuse = testEnv.mechMuse
-            $0.compendium = testEnv.compendium
-            $0.database = testEnv.database
-            $0.uuid = UUIDGenerator.fake()
+            applyTestDependencies(&$0)
         }
         
         // Set required fields
@@ -215,7 +186,7 @@ class CreatureEditViewStateTest: XCTestCase {
     }
     
     // MARK: - Test Dependencies
-    private func applyTestDependencies(_ inout dependencies deps: DependencyValues) {
+    private func applyTestDependencies(_ deps: inout DependencyValues) {
         deps.modifierFormatter = ModifierFormatter()
         deps.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
         deps.diceLog = DiceLogPublisher()
@@ -233,8 +204,8 @@ class CreatureEditViewStateTest: XCTestCase {
             removeDocument: { _, _ in }
         )
         deps.mechMuse = MechMuse.unconfigured
-        deps.compendium = Compendium { DatabaseCompendium(databaseAccess: database.access) }
         deps.database = Database.uninitialized
+        deps.compendium = DatabaseCompendium(databaseAccess: deps.database.access)
         deps.uuid = UUIDGenerator.fake()
     }
 }
