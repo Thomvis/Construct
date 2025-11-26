@@ -6,7 +6,9 @@ import Dice
 import GameModels
 import Helpers
 
-public struct NumberEntryFeature: Reducer {
+@Reducer
+public struct NumberEntryFeature {
+    @ObservableState
     public struct State: Equatable {
         var mode: Mode
         var pad: NumberPadFeature.State
@@ -37,7 +39,6 @@ public struct NumberEntryFeature: Reducer {
         }
     }
 
-    @CasePathable
     public enum Action: Equatable {
         case mode(State.Mode)
         case pad(NumberPadFeature.Action)
@@ -105,32 +106,27 @@ public extension NumberEntryFeature.State {
 }
 
 struct NumberEntryView: View {
-    let store: StoreOf<NumberEntryFeature>
+    @Bindable var store: StoreOf<NumberEntryFeature>
 
     init(store: StoreOf<NumberEntryFeature>) {
         self.store = store
     }
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            VStack {
-                Picker(
-                    "Type",
-                    selection: viewStore.binding(
-                        get: \.mode,
-                        send: NumberEntryFeature.Action.mode
-                    ).animation(.spring())
-                ) {
-                    Text("Roll").tag(NumberEntryFeature.State.Mode.dice)
-                    Text("Manual").tag(NumberEntryFeature.State.Mode.pad)
-                }
-                .pickerStyle(.segmented)
+        VStack {
+            Picker(
+                "Type",
+                selection: $store.mode.sending(\.mode).animation(.spring())
+            ) {
+                Text("Roll").tag(NumberEntryFeature.State.Mode.dice)
+                Text("Manual").tag(NumberEntryFeature.State.Mode.pad)
+            }
+            .pickerStyle(.segmented)
 
-                if viewStore.state.mode == .dice {
-                    DiceCalculatorView(store: store.scope(state: \.dice, action: \.dice))
-                } else {
-                    NumberPadView(store: store.scope(state: \.pad, action: \.pad))
-                }
+            if store.mode == .dice {
+                DiceCalculatorView(store: store.scope(state: \.dice, action: \.dice))
+            } else {
+                NumberPadView(store: store.scope(state: \.pad, action: \.pad))
             }
         }
     }

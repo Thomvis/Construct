@@ -24,28 +24,18 @@ struct NumberEntryPopover: Popover, View {
     }
 
     var body: some View {
-        WithViewStore(store, observe: State.init) { viewStore in
-            VStack {
-                NumberEntryView(store: self.store)
-                Divider()
-                Button(action: {
-                    self.onOutcomeSelected(viewStore.state.outcome ?? 0)
-                }) {
-                    Text("Use")
-                }.disabled(viewStore.state.outcome == nil)
-            }
+        VStack {
+            NumberEntryView(store: self.store)
+            Divider()
+            Button(action: {
+                self.onOutcomeSelected(store.value ?? 0)
+            }) {
+                Text("Use")
+            }.disabled(store.value == nil)
         }
     }
 
     func makeBody() -> AnyView {
         return AnyView(self)
-    }
-
-    struct State: Equatable {
-        let outcome: Int?
-
-        init(_ state: NumberEntryFeature.State) {
-            self.outcome = state.value
-        }
     }
 }

@@ -3,7 +3,9 @@ import SwiftUI
 import ComposableArchitecture
 import DiceRollerFeature
 
-public struct NumberPadFeature: Reducer {
+@Reducer
+public struct NumberPadFeature {
+    @ObservableState
     public struct State: Equatable {
         fileprivate var digits: [Int]
 
@@ -50,48 +52,46 @@ struct NumberPadView: View {
     }
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            VStack {
-                HStack {
-                    Text("\(viewStore.value)")
-                        .font(.largeTitle)
-                        .animation(.none, value: viewStore.value)
-                    Spacer()
-                    Button {
-                        viewStore.send(.deleteButtonTap)
-                    } label: {
-                        Image(systemName: "delete.left").font(.title)
-                    }
-                    .accentColor(Color(UIColor.systemRed))
-                    .keyboardShortcut(.delete, modifiers: [])
+        VStack {
+            HStack {
+                Text("\(store.value)")
+                    .font(.largeTitle)
+                    .animation(.none, value: store.value)
+                Spacer()
+                Button {
+                    store.send(.deleteButtonTap)
+                } label: {
+                    Image(systemName: "delete.left").font(.title)
+                }
+                .accentColor(Color(UIColor.systemRed))
+                .keyboardShortcut(.delete, modifiers: [])
+            }
+
+            Divider()
+
+            VStack(spacing: DiceCalculatorView.buttonSpacing) {
+                HStack(spacing: DiceCalculatorView.buttonSpacing) {
+                    makeButton("7", 7).keyboardShortcut("7", modifiers: [])
+                    makeButton("8", 8).keyboardShortcut("8", modifiers: [])
+                    makeButton("9", 9).keyboardShortcut("9", modifiers: [])
                 }
 
-                Divider()
+                HStack(spacing: DiceCalculatorView.buttonSpacing) {
+                    makeButton("4", 4).keyboardShortcut("4", modifiers: [])
+                    makeButton("5", 5).keyboardShortcut("5", modifiers: [])
+                    makeButton("6", 6).keyboardShortcut("6", modifiers: [])
+                }
 
-                VStack(spacing: DiceCalculatorView.buttonSpacing) {
-                    HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                        makeButton("7", 7).keyboardShortcut("7", modifiers: [])
-                        makeButton("8", 8).keyboardShortcut("8", modifiers: [])
-                        makeButton("9", 9).keyboardShortcut("9", modifiers: [])
-                    }
+                HStack(spacing: DiceCalculatorView.buttonSpacing) {
+                    makeButton("1", 1).keyboardShortcut("1", modifiers: [])
+                    makeButton("2", 2).keyboardShortcut("2", modifiers: [])
+                    makeButton("3", 3).keyboardShortcut("3", modifiers: [])
+                }
 
-                    HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                        makeButton("4", 4).keyboardShortcut("4", modifiers: [])
-                        makeButton("5", 5).keyboardShortcut("5", modifiers: [])
-                        makeButton("6", 6).keyboardShortcut("6", modifiers: [])
-                    }
-
-                    HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                        makeButton("1", 1).keyboardShortcut("1", modifiers: [])
-                        makeButton("2", 2).keyboardShortcut("2", modifiers: [])
-                        makeButton("3", 3).keyboardShortcut("3", modifiers: [])
-                    }
-
-                    HStack(spacing: DiceCalculatorView.buttonSpacing) {
-                        makeButton("--", 0).opacity(0)
-                        makeButton("0", 0).keyboardShortcut("0", modifiers: [])
-                        makeButton("--", 0).opacity(0)
-                    }
+                HStack(spacing: DiceCalculatorView.buttonSpacing) {
+                    makeButton("--", 0).opacity(0)
+                    makeButton("0", 0).keyboardShortcut("0", modifiers: [])
+                    makeButton("--", 0).opacity(0)
                 }
             }
         }
