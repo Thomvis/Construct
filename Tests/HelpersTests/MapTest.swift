@@ -151,13 +151,14 @@ final class MapTest: XCTestCase {
             var counter: Map<Input, Result>.State
         }
 
+        @CasePathable
         enum Action: Equatable {
             case triggerTwoInputChanges
             case counter(Map<Input, Result>.Action)
         }
 
         var body: some ReducerOf<Self> {
-            Scope(state: \.counter, action: /Action.counter) {
+            Scope(state: \.counter, action: \.counter) {
                 Map(
                     inputReducer: Input(),
                     initialResultStateForInput: { Result.State(count: $0.string.count) },

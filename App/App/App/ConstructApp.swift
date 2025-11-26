@@ -122,16 +122,7 @@ struct ConstructView: View {
 
     let dependencies: BaseDependencies
 
-    @Bindable var store: StoreOf<AppFeature>
-
-    @ViewBuilder
-    private var navigationView: some View {
-        if let tabStore = store.scope(state: \.navigation?.tab, action: \.navigation.tab) {
-            TabNavigationView(store: tabStore)
-        } else if let columnStore = store.scope(state: \.navigation?.column, action: \.navigation.column) {
-            ColumnNavigationView(store: columnStore)
-        }
-    }
+    @StateObject var store: StoreOf<AppFeature>
 
     private var welcomeSheetBinding: Binding<Bool> {
         Binding(
@@ -150,7 +141,7 @@ struct ConstructView: View {
         )
 
         self.dependencies = dependencies
-        self.store = Store(
+        self._store = StateObject(wrappedValue: Store(
             initialState: state
         ) {
             dependencies.database.keyValueStore.entityChangeObserver(
@@ -161,18 +152,22 @@ struct ConstructView: View {
             deps.database = dependencies.database
             deps.modifierFormatter = dependencies.modifierFormatter
             deps.ordinalFormatter = dependencies.ordinalFormatter
-        }
+        })
     }
 
     /// Initializer for testing with a pre-built store
     init(dependencies: BaseDependencies, store: StoreOf<AppFeature>) {
         self.dependencies = dependencies
-        self.store = store
+        self._store = StateObject(wrappedValue: store)
     }
 
     var body: some View {
         ZStack {
-            navigationView
+            if let tabStore = store.scope(state: \.navigation?.tab, action: \.navigation.tab) {
+                TabNavigationView(store: tabStore)
+            } else if let columnStore = store.scope(state: \.navigation?.column, action: \.navigation.column) {
+                ColumnNavigationView(store: columnStore)
+            }
         }
         .sheet(isPresented: welcomeSheetBinding) {
             WelcomeView { tap in

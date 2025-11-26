@@ -100,27 +100,30 @@ final class PagingDataTest: XCTestCase {
         }
     }
 
+    struct State: Equatable {
+        var left: PagingData<Int>.State
+        var right: PagingData<Int>.State
+    }
+    @CasePathable
+    enum Action: Equatable {
+        case left(PagingData<Int>.Action)
+        case right(PagingData<Int>.Action)
+    }
+
     @MainActor
     func testIsolation() async {
-        struct State: Equatable {
-            var left: PagingData<Int>.State
-            var right: PagingData<Int>.State
-        }
-        enum Action: Equatable {
-            case left(PagingData<Int>.Action)
-            case right(PagingData<Int>.Action)
-        }
-
         let clock = TestClock()
-        let store = TestStore<State, Action, State, Action, ()>(
+        let store = TestStore<State, Action>(
             initialState: State(left: .init(), right: .init()),
         ) {
-            Scope(state: \.left, action: /Action.left) {
-                pagingData(clock: clock)
-            }
-
-            Scope(state: \.right, action: /Action.right) {
-                pagingData(clock: clock)
+            CombineReducers {
+                Scope(state: \.left, action: \.left) {
+                    pagingData(clock: clock)
+                }
+                
+                Scope(state: \.right, action: \.right) {
+                    pagingData(clock: clock)
+                }
             }
         }
 
