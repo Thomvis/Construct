@@ -18,7 +18,9 @@ import Persistence
 import MechMuse
 import DiceRollerFeature
 
-struct CompendiumIndexFeature: Reducer {
+@Reducer
+struct CompendiumIndexFeature {
+    @ObservableState
     struct State: Equatable {
 
         typealias MappedResults = Map<Query, PagingData<CompendiumEntry>>
@@ -36,10 +38,89 @@ struct CompendiumIndexFeature: Reducer {
         var isSelecting: Bool = false
         var selectedKeys: Set<CompendiumItemKey> = []
 
-        @PresentationState var destination: Destination.State?
+        @Presents var destination: Destination.State?
         var safari: SafariViewState?
-        @PresentationState var alert: AlertState<Action.Alert>?
-        @PresentationState var sheet: Sheet.State?
+        @Presents var alert: AlertState<Action.Alert>?
+        @Presents var sheet: Sheet.State?
+        
+        // MARK: - Computed properties for view
+        
+        var resultsStatus: ResultsStatus {
+            if let resValues = results.entries {
+                return resValues.isEmpty ? .succeededWithoutResults : .succeededWithResults
+            } else if results.error != nil {
+                return .failedWithError
+            } else {
+                return .loadingInitialContent
+            }
+        }
+        
+        var showMenu: Bool { properties.showImport }
+        var showAddButton: Bool { properties.showAdd }
+        var itemTypeRestriction: [CompendiumItemType]? { properties.typeRestriction }
+        var sourceRestriction: CompendiumFilters.Source? { properties.sourceRestriction }
+        
+        var currentItemTypeFilter: [CompendiumItemType]? {
+            Self.computeItemTypeFilter(input: results.input, properties: properties)
+        }
+        
+        static func computeItemTypeFilter(input: CompendiumIndexFeature.Query.State?, properties: Properties) -> [CompendiumItemType]? {
+            if Set(input?.filters?.types ?? []) == Set(properties.typeRestriction ?? CompendiumItemType.allCases) {
+                return nil
+            } else {
+                return input?.filters?.types
+            }
+        }
+        
+        var allAllowedItemTypes: [CompendiumItemType] {
+            itemTypeRestriction ?? CompendiumItemType.allCases
+        }
+        
+        var addableItemTypes: [CompendiumItemType] {
+            (currentItemTypeFilter ?? CompendiumItemType.allCases).filter { [.monster, .character, .group].contains($0) }
+        }
+        
+        /// Entries currently displayed
+        var entries: [CompendiumEntry] {
+            results.entries ?? []
+        }
+        
+        /// Suggestions to show when no query is entered
+        var displaySuggestions: [CompendiumEntry]? {
+            let input = results.inputForEntries
+            if input?.text?.nonEmptyString == nil && Set(input?.filters?.types ?? []) == Set(properties.typeRestriction ?? []) {
+                return suggestions?.nonEmptyArray
+            }
+            return nil
+        }
+        
+        /// Type filters to show when no query is entered
+        var displayTypeFilters: [CompendiumItemType]? {
+            let input = results.inputForEntries
+            let typeFilter = Self.computeItemTypeFilter(input: input, properties: properties)
+            return input?.text?.nonEmptyString == nil && typeFilter == nil
+                ? (properties.typeRestriction ?? CompendiumItemType.allCases)
+                : nil
+        }
+        
+        var useNamedSections: Bool {
+            displaySuggestions != nil || displayTypeFilters != nil
+        }
+        
+        var isLoadingMoreEntries: Bool {
+            results.isLoading
+        }
+        
+        enum ResultsStatus: Hashable {
+            case loadingInitialContent
+            case succeededWithResults
+            case succeededWithoutResults
+            case failedWithError
+
+            var isSuccess: Bool {
+                self == .succeededWithResults || self == .succeededWithoutResults
+            }
+        }
 
         init(
             title: String,

@@ -46,48 +46,46 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     }
 
     var body: some View {
-        WithViewStore(store, observe: LocalState.init) { localViewStore in
-            Group {
-                contentView(localViewStore)
-            }
-            .safeAreaInset(edge: .bottom) {
-                roundedButtonToolbar(localViewStore)
-            }
-            .scrollDismissesKeyboard(.immediately)
-            .navigationBarTitle(localViewStore.state.title, displayMode: .inline)
-            .toolbar {
-                if localViewStore.state.showMenu {
-                    ToolbarItemGroup(placement: .primaryAction) {
+        Group {
+            contentView
+        }
+        .safeAreaInset(edge: .bottom) {
+            roundedButtonToolbar
+        }
+        .scrollDismissesKeyboard(.immediately)
+        .navigationBarTitle(store.title, displayMode: .inline)
+        .toolbar {
+            if store.showMenu {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Button {
+                        store.send(.setSelecting(!store.isSelecting), animation: .default)
+                    } label: {
+                        Label(
+                            "Select",
+                            systemImage: store.isSelecting ? "checkmark.circle.fill" : "checkmark.circle"
+                        )
+                    }
+
+                    Menu {
                         Button {
-                            localViewStore.send(.setSelecting(!localViewStore.state.isSelecting), animation: .default)
+                            store.send(.setSheet(.documents(CompendiumDocumentsFeature.State())))
                         } label: {
-                            Label(
-                                "Select",
-                                systemImage: localViewStore.state.isSelecting ? "checkmark.circle.fill" : "checkmark.circle"
-                            )
+                            Label("Manage Documents", systemImage: "line.3.horizontal.decrease")
                         }
 
-                        Menu {
-                            Button {
-                                localViewStore.send(.setSheet(.documents(CompendiumDocumentsFeature.State())))
-                            } label: {
-                                Label("Manage Documents", systemImage: "line.3.horizontal.decrease")
-                            }
-
-                            Button {
-                                localViewStore.send(.setSheet(.compendiumImport(CompendiumImportFeature.State())))
-                            } label: {
-                                Label("Import...", systemImage: "square.and.arrow.down")
-                            }
+                        Button {
+                            store.send(.setSheet(.compendiumImport(CompendiumImportFeature.State())))
                         } label: {
-                            Label("Manage", systemImage: "books.vertical")
+                            Label("Import...", systemImage: "square.and.arrow.down")
                         }
+                    } label: {
+                        Label("Manage", systemImage: "books.vertical")
                     }
                 }
             }
-            .onAppear {
-                loadResultsIfNeeded(localViewStore)
-            }
+        }
+        .onAppear {
+            loadResultsIfNeeded()
         }
         .modifier(IsSearchingModifier(isSearching: $isSearching.animation(.default)))
         .modifier(CompendiumSearchableModifier(store: store))
@@ -96,28 +94,29 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     }
 
     @ViewBuilder
-    func contentView(_ localViewStore: ViewStore<LocalState, CompendiumIndexFeature.Action>) -> some View {
-        switch localViewStore.state.results {
+    private var contentView: some View {
+        switch store.resultsStatus {
         case .succeededWithoutResults:
-            WithViewStore(store, observe: \.safari) { safariViewStore in
-                VStack(spacing: 18) {
-                    Text("No results").font(.title)
+            VStack(spacing: 18) {
+                Text("No results").font(.title)
 
-                    Button("Search the web") {
-                        localViewStore.send(.onSearchOnWebButtonTap)
-                    }
+                Button("Search the web") {
+                    store.send(.onSearchOnWebButtonTap)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .safariView(
-                    item: safariViewStore.binding(get: { $0 }, send: { _ in .setSafari(nil) }),
-                    onDismiss: { localViewStore.send(.setSafari(nil)) },
-                    content: { state in
-                        BetterSafariView.SafariView(
-                            url: state.url
-                        )
-                    }
-                )
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .safariView(
+                item: Binding(
+                    get: { store.safari },
+                    set: { _ in store.send(.setSafari(nil)) }
+                ),
+                onDismiss: { store.send(.setSafari(nil)) },
+                content: { state in
+                    BetterSafariView.SafariView(
+                        url: state.url
+                    )
+                }
+            )
         case .succeededWithResults, .loadingInitialContent:
             CompendiumItemList(store: store, viewProvider: viewProvider)
         case .failedWithError:
@@ -126,15 +125,15 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     }
 
     @ViewBuilder
-    private func roundedButtonToolbar(_ localViewStore: ViewStore<LocalState, CompendiumIndexFeature.Action>) -> some View {
+    private var roundedButtonToolbar: some View {
         RoundedButtonToolbar {
             bottomBarButtons()
 
-            if localViewStore.state.showAddButton {
-                let addableTypes = localViewStore.state.addableItemTypes
+            if store.showAddButton {
+                let addableTypes = store.addableItemTypes
                 if let type = addableTypes.single {
                     Button(action: {
-                        localViewStore.send(.onAddButtonTap(type))
+                        store.send(.onAddButtonTap(type))
                     }) {
                         Label("Add \(type.localizedDisplayName)", systemImage: "plus.circle")
                     }
@@ -142,7 +141,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                     Menu {
                         ForEach(addableTypes, id: \.rawValue) { type in
                             Button {
-                                localViewStore.send(.onAddButtonTap(type))
+                                store.send(.onAddButtonTap(type))
                             } label: {
                                 Text("New \(type.localizedDisplayName)")
                             }
@@ -158,25 +157,23 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                 }
             }
 
-            WithViewStore(store, observe: \.results.input) { viewStore in
-                FilterButton(
-                    viewStore: viewStore,
-                    allAllowedItemTypes: localViewStore.state.allAllowedItemTypes,
-                    sourceRestriction: localViewStore.state.sourceRestriction
-                )
-            }
+            FilterButton(
+                store: store,
+                allAllowedItemTypes: store.allAllowedItemTypes,
+                sourceRestriction: store.sourceRestriction
+            )
 
-            if localViewStore.state.isSelecting || isSearching {
-                let keys = localViewStore.state.selectedKeys
+            if store.isSelecting || isSearching {
+                let keys = store.selectedKeys
                 Menu {
                     // If the user is searching, the toggle selection mode button is not visible in the navigation bar
                     if isSearching {
                         Button {
-                            localViewStore.send(.setSelecting(!localViewStore.state.isSelecting), animation: .default)
+                            store.send(.setSelecting(!store.isSelecting), animation: .default)
                         } label: {
                             Label(
                                 "Select",
-                                systemImage: localViewStore.state.isSelecting ? "checkmark.circle.fill" : "checkmark.circle"
+                                systemImage: store.isSelecting ? "checkmark.circle.fill" : "checkmark.circle"
                             )
                         }
 
@@ -184,14 +181,14 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                     }
 
                     Button {
-                        localViewStore.send(.onTransferSelectedMenuItemTap(.move))
+                        store.send(.onTransferSelectedMenuItemTap(.move))
                     } label: {
                         Label("Move selected...", systemImage: "arrow.right.doc.on.clipboard")
                     }
                     .disabled(keys.isEmpty)
 
                     Button {
-                        localViewStore.send(.onTransferSelectedMenuItemTap(.copy))
+                        store.send(.onTransferSelectedMenuItemTap(.copy))
                     } label: {
                         Label("Copy selected...", systemImage: "document.on.clipboard")
                     }
@@ -200,7 +197,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                     Divider()
 
                     Button(role: .destructive) {
-                        localViewStore.send(.onDeleteSelectedRequested)
+                        store.send(.onDeleteSelectedRequested)
                     } label: {
                         Label("Delete selected...", systemImage: "trash")
                     }
@@ -219,9 +216,9 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         .padding([.leading, .trailing, .bottom], 8)
     }
 
-    private func loadResultsIfNeeded(_ localViewStore: ViewStore<LocalState, CompendiumIndexFeature.Action>) {
-        if !localViewStore.state.results.isSuccess {
-            localViewStore.send(.results(.result(.didShowElementAtIndex(0)))) // kick-start search, fixme?
+    private func loadResultsIfNeeded() {
+        if !store.resultsStatus.isSuccess {
+            store.send(.results(.result(.didShowElementAtIndex(0)))) // kick-start search, fixme?
         }
     }
 
@@ -290,60 +287,6 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         }
     }
 
-    struct LocalState: Equatable {
-        let results: ResultsStatus
-
-        let itemTypeRestriction: [CompendiumItemType]?
-        let sourceRestriction: CompendiumFilters.Source?
-        let itemTypeFilter: [CompendiumItemType]?
-        let showAddButton: Bool
-
-        let title: String
-        let showMenu: Bool
-
-        let isSelecting: Bool
-        let selectedKeys: Set<CompendiumItemKey>
-
-        init(_ state: CompendiumIndexFeature.State) {
-            if let resValues = state.results.entries {
-                self.results = resValues.isEmpty ? .succeededWithoutResults : .succeededWithResults
-            } else if state.results.error != nil {
-                self.results = .failedWithError
-            } else {
-                self.results = .loadingInitialContent
-            }
-
-            itemTypeRestriction = state.properties.typeRestriction
-            sourceRestriction = state.properties.sourceRestriction
-            itemTypeFilter = CompendiumIndexFeature.State.itemTypeFilter(input: state.results.input, properties: state.properties)
-            showAddButton = state.properties.showAdd
-
-            title = state.title
-            showMenu = state.properties.showImport
-
-            isSelecting = state.isSelecting
-            selectedKeys = state.selectedKeys
-        }
-
-        var allAllowedItemTypes: [CompendiumItemType] {
-            itemTypeRestriction ?? CompendiumItemType.allCases
-        }
-
-        var addableItemTypes: [CompendiumItemType] {
-            return (itemTypeFilter ?? CompendiumItemType.allCases).filter { [.monster, .character, .group].contains($0) }
-        }
-
-        enum ResultsStatus: Hashable {
-            case loadingInitialContent
-            case succeededWithResults
-            case succeededWithoutResults
-            case failedWithError
-
-            var isSuccess: Bool {
-                self == .succeededWithResults || self == .succeededWithoutResults
-            }
-        }
-    }
 }
 
 struct CompendiumIndexViewProvider {
@@ -365,12 +308,6 @@ struct CompendiumIndexViewProvider {
 }
 
 /// This modifier applies the searchable modifier to the view it is applied to
-/// This is done in a convoluted way to work around a glitch in the searchable modifier:
-/// When the searchable modifier is inside a WithViewStore, fast text entry can cause the
-/// cursor to not remain at the end of the text. Example: fast entry of "Goblin" can result
-/// in "Gobin|l" (where | is the position of the cursor after text entry)
-///
-/// Using searchable with `tokens` makes the issue more apparent.
 fileprivate struct CompendiumSearchableModifier: ViewModifier {
     let store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
 
@@ -378,6 +315,9 @@ fileprivate struct CompendiumSearchableModifier: ViewModifier {
     @State var tokens: [CompendiumItemType] = []
 
     func body(content: Content) -> some View {
+        let searchText = store.results.input.text
+        let itemTypeFilter = store.currentItemTypeFilter ?? []
+        
         content.searchable(
             text: $text,
             tokens: $tokens,
@@ -391,34 +331,19 @@ fileprivate struct CompendiumSearchableModifier: ViewModifier {
         .onChange(of: tokens) { _, tokens in
             store.send(.onQueryTypeFilterDidChange(tokens.nonEmptyArray))
         }
-        .background {
-            WithViewStore(store, observe: LocalState.init) { localViewStore in
-                Color.clear
-                    .onChange(of: localViewStore.state.searchText) { _, t in
-                        if t.nonNilString != text {
-                            text = t.nonNilString
-                        }
-                    }
-                    .onChange(of: localViewStore.state.itemTypeFilter) { _, filter in
-                        if filter != tokens {
-                            tokens = filter
-                        }
-                    }
-                    .onAppear {
-                        text = localViewStore.state.searchText.nonNilString
-                        tokens = localViewStore.state.itemTypeFilter
-                    }
+        .onChange(of: searchText) { _, t in
+            if t.nonNilString != text {
+                text = t.nonNilString
             }
         }
-    }
-
-    struct LocalState: Equatable {
-        let searchText: String?
-        let itemTypeFilter: [CompendiumItemType]
-
-        init(_ parentState: CompendiumIndexFeature.State) {
-            self.searchText = parentState.results.input.text
-            self.itemTypeFilter = CompendiumIndexFeature.State.itemTypeFilter(input: parentState.results.input, properties: parentState.properties) ?? []
+        .onChange(of: itemTypeFilter) { _, filter in
+            if filter != tokens {
+                tokens = filter
+            }
+        }
+        .onAppear {
+            text = searchText.nonNilString
+            tokens = itemTypeFilter
         }
     }
 }
@@ -435,47 +360,43 @@ private struct IsSearchingModifier: ViewModifier {
     }
 }
 
-fileprivate struct CompendiumItemList: View, Equatable {
+fileprivate struct CompendiumItemList: View {
 
     var store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
-    @ObservedObject var viewStore: ViewStore<LocalState, CompendiumIndexFeature.Action>
-
     let viewProvider: CompendiumIndexViewProvider
 
     init(store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>, viewProvider: CompendiumIndexViewProvider) {
         self.store = store
-        self.viewStore = ViewStore(store, observe: LocalState.init)
         self.viewProvider = viewProvider
     }
 
     var body: some View {
-        let listHash = AnyHashable((viewStore.state.entries + (viewStore.state.suggestions ?? [])).map { $0.key })
+        let listHash = AnyHashable((store.entries + (store.displaySuggestions ?? [])).map { $0.key })
 
-        let state = viewStore.state
         return ScrollViewReader { scrollView in
-            List(selection: viewStore.binding(
-                get: \.selectedKeys,
-                send: { .setSelectedKeys($0) }
+            List(selection: Binding(
+                get: { store.selectedKeys },
+                set: { store.send(.setSelectedKeys($0)) }
             )) {
-                if state.useNamedSections {
-                    if let suggestions = state.suggestions {
+                if store.useNamedSections {
+                    if let suggestions = store.displaySuggestions {
                         section(header: Text("Suggestions"), entries: suggestions)
                             .selectionDisabled()
                     }
 
-                    if let typeFilters = state.typeFilters {
+                    if let typeFilters = store.displayTypeFilters {
                         typeFilterSection(typeFilters: typeFilters)
                             .selectionDisabled()
                     }
 
-                    if !state.entries.isEmpty {
-                        section(header: Text("All"), entries: state.entries, reportVisibility: true)
+                    if !store.entries.isEmpty {
+                        section(header: Text("All"), entries: store.entries, reportVisibility: true)
                     }
                 } else {
-                    section(header: EmptyView(), entries: state.entries, reportVisibility: true)
+                    section(header: EmptyView(), entries: store.entries, reportVisibility: true)
                 }
 
-                if viewStore.state.isLoadingMoreEntries {
+                if store.isLoadingMoreEntries {
                     VStack(spacing: 12) {
                         // work-around: the regular ProgressView() does not show during subsequent loads, so we use our own
                         AnimatingSymbol(systemName: "ellipsis")
@@ -497,12 +418,10 @@ fileprivate struct CompendiumItemList: View, Equatable {
             // At the moment of writing, the sidebar navigation link to the compendium is made in a way
             // that a switch from one compendium type to another does not create a new CompendiumIndexView
             // instance
-            .id(viewStore.state.title)
-            .environment(\.editMode, viewStore.binding(
-                get: {
-                    $0.isSelecting ? .active : .inactive
-                },
-                send: { .setSelecting($0 == .active) }
+            .id(store.title)
+            .environment(\.editMode, Binding(
+                get: { store.isSelecting ? .active : .inactive },
+                set: { store.send(.setSelecting($0 == .active)) }
             ))
             .navigationDestination(
                 store: store.scope(state: \.$destination, action: \.destination)
@@ -512,15 +431,13 @@ fileprivate struct CompendiumItemList: View, Equatable {
                     viewProvider.detail(detailStore)
                 }
             }
-            .onChange(of: [listHash, AnyHashable(viewStore.state.scrollTo)]) { _, _ in
-                // workaround: this closure is called with `self.entries` still out of date,
-                // that's why we access it from viewStore
-                let entries = viewStore.state.entries
-                if let id = viewStore.state.scrollTo, entries.contains(where: { $0.key == id }) {
+            .onChange(of: [listHash, AnyHashable(store.scrollTo)]) { _, _ in
+                let entries = store.entries
+                if let id = store.scrollTo, entries.contains(where: { $0.key == id }) {
                     withAnimation {
                         scrollView.scrollTo(id)
                     }
-                    viewStore.send(.scrollTo(nil))
+                    store.send(.scrollTo(nil))
                 }
             }
         }
@@ -533,14 +450,14 @@ fileprivate struct CompendiumItemList: View, Equatable {
         Section(header: header) {
             ForEach(entries, id: \.item.key) { entry in
                 NavigationRowButton(action: {
-                    viewStore.send(.setDestination(.itemDetail(CompendiumEntryDetailFeature.State(entry: entry))))
+                    store.send(.setDestination(.itemDetail(CompendiumEntryDetailFeature.State(entry: entry))))
                 }) {
                     let itemView = viewProvider.row(self.store, entry)
 
                     if reportVisibility {
                         itemView.onAppear {
                             if let idx = indexByKey[entry.key] {
-                                viewStore.send(.results(.result(.didShowElementAtIndex(idx))))
+                                store.send(.results(.result(.didShowElementAtIndex(idx))))
                             }
                         }
                     } else {
@@ -559,7 +476,7 @@ fileprivate struct CompendiumItemList: View, Equatable {
         Section(header: Text("Filter")) {
             ForEach(typeFilters, id: \.self) { t in
                 Button {
-                    viewStore.send(.onQueryTypeFilterDidChange([t]))
+                    store.send(.onQueryTypeFilterDidChange([t]))
                 } label: {
                     HStack {
                         Text("\(t.localizedScreenDisplayName)").bold()
@@ -572,61 +489,6 @@ fileprivate struct CompendiumItemList: View, Equatable {
                 .buttonStyle(.borderless)
             }
         }
-    }
-
-    struct LocalState: Equatable {
-        let title: String
-        let entries: [CompendiumEntry]
-        let suggestions: [CompendiumEntry]?
-        let typeFilters: [CompendiumItemType]?
-        // not used by the view (store is used directly) but here to ensure the view is re-evaluated
-        let presentedItemDetail: String?
-        let isLoadingMoreEntries: Bool
-        let showSourceDocumentBadges: Bool
-
-        let scrollTo: CompendiumEntry.Key?
-        let isSelecting: Bool
-        let selectedKeys: Set<CompendiumItemKey>
-
-        init(_ state: CompendiumIndexFeature.State) {
-            self.title = state.title
-            self.entries = state.results.entries ?? []
-
-            let input = state.results.inputForEntries
-            if input?.text?.nonEmptyString == nil && Set(input?.filters?.types ?? []) == Set(state.properties.typeRestriction ?? []) {
-                self.suggestions = state.suggestions?.nonEmptyArray
-            } else {
-                self.suggestions = nil
-            }
-
-            let itemTypeFilter = CompendiumIndexFeature.State.itemTypeFilter(input: input, properties: state.properties)
-            /// Returns allowed item types (as per type restriction), but only if the user has not
-            /// added a query or changed the type filter. If that's the case, an empty array is returned.
-            typeFilters = input?.text?.nonEmptyString == nil && itemTypeFilter == nil
-                    ? (state.properties.typeRestriction ?? CompendiumItemType.allCases)
-                    : nil
-
-            if case .itemDetail(let detailState)? = state.destination {
-                self.presentedItemDetail = detailState.navigationStackItemStateId
-            } else {
-                self.presentedItemDetail = nil
-            }
-            self.isLoadingMoreEntries = state.results.isLoading
-
-            self.scrollTo = state.scrollTo
-            self.showSourceDocumentBadges = state.properties.showSourceDocumentBadges
-            self.isSelecting = state.isSelecting
-            self.selectedKeys = state.selectedKeys
-        }
-
-        var useNamedSections: Bool {
-            suggestions != nil || typeFilters != nil
-        }
-    }
-
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        func eq<E>(_ lhs: E, _ rhs: Any) -> Bool where E: Equatable { lhs == (rhs as? E) }
-        return lhs.viewStore.state == rhs.viewStore.state && eq(lhs.viewProvider.state(), rhs.viewProvider.state())
     }
 }
 
@@ -641,7 +503,7 @@ fileprivate struct CompendiumEntryRow: View {
             VStack(alignment: .leading) {
                 Text(entry.item.title).lineLimit(1)
 
-                entry.item.localizedSummary(in: ViewStore(store, observe: \.self).state, ordinalFormatter: ordinalFormatter)
+                entry.item.localizedSummary(in: store.state, ordinalFormatter: ordinalFormatter)
                     .font(.footnote)
                     .foregroundColor(Color(UIColor.secondaryLabel))
                     .multilineTextAlignment(.leading)
@@ -656,7 +518,7 @@ fileprivate struct CompendiumEntryRow: View {
                     .font(.headline)
             }
 
-            if ViewStore(store, observe: \.self).properties.showSourceDocumentBadges {
+            if store.properties.showSourceDocumentBadges {
                 Text(entry.document.id.rawValue.uppercased())
                     .font(.caption)
                     .foregroundStyle(Color(UIColor.systemBackground))
@@ -668,7 +530,7 @@ fileprivate struct CompendiumEntryRow: View {
 }
 
 struct FilterButton: View {
-    @ObservedObject var viewStore: ViewStore<CompendiumIndexFeature.Query.State, CompendiumIndexFeature.Action>
+    let store: StoreOf<CompendiumIndexFeature>
     let allAllowedItemTypes: [CompendiumItemType]
     let sourceRestriction: CompendiumFilters.Source?
 
@@ -676,8 +538,9 @@ struct FilterButton: View {
 
     var body: some View {
         // todo: should it be "active" if filters are equal to the restrictions
+        let filters = store.results.input.filters
         let label: String = {
-            if viewStore.state.filters == nil || viewStore.state.filters == .init() {
+            if filters == nil || filters == .init() {
                 return "Filter"
             } else {
                 return "Filters active"
@@ -686,11 +549,11 @@ struct FilterButton: View {
 
         return Menu {
             Button {
-                viewStore.send(.results(.input(.onFiltersDidChange(.init()))))
+                store.send(.results(.input(.onFiltersDidChange(.init()))))
             } label: {
                 Label("Clear filters", systemImage: "clear")
             }
-            .disabled(viewStore.state.filters == nil || viewStore.state.filters == .init())
+            .disabled(filters == nil || filters == .init())
 
         } label: {
             Label(label, systemImage: "slider.horizontal.3")
@@ -705,8 +568,9 @@ struct FilterButton: View {
     }
 
     private func presentFilterSheet() {
+        let filters = store.results.input.filters
         let state = CompendiumFilterSheetFeature.State(
-            self.viewStore.state.filters,
+            filters,
             allAllowedItemTypes: allAllowedItemTypes,
             sourceRestriction: sourceRestriction
         )
@@ -718,13 +582,13 @@ struct FilterButton: View {
                 CompendiumFilterSheetFeature()
             }
         ) { filterValues in
-            var filters = self.viewStore.state.filters ?? .init()
-            filters.source = filterValues.source
-            filters.types = filterValues.itemType.optionalArray
-            filters.minMonsterChallengeRating = filterValues.minMonsterCR
-            filters.maxMonsterChallengeRating = filterValues.maxMonsterCR
-            filters.monsterType = filterValues.monsterType
-            self.viewStore.send(.query(.onFiltersDidChange(filters)))
+            var newFilters = filters ?? .init()
+            newFilters.source = filterValues.source
+            newFilters.types = filterValues.itemType.optionalArray
+            newFilters.minMonsterChallengeRating = filterValues.minMonsterCR
+            newFilters.maxMonsterChallengeRating = filterValues.maxMonsterCR
+            newFilters.monsterType = filterValues.monsterType
+            self.store.send(.query(.onFiltersDidChange(newFilters)))
             self.sheet = nil
         }
     }
@@ -830,12 +694,3 @@ fileprivate extension CompendiumFilterSheetFeature.State {
     }
 }
 
-fileprivate extension CompendiumIndexFeature.State {
-    static func itemTypeFilter(input: CompendiumIndexFeature.Query.State?, properties: Properties) -> [CompendiumItemType]? {
-        if Set(input?.filters?.types ?? []) == Set(properties.typeRestriction ?? CompendiumItemType.allCases) {
-            return nil
-        } else {
-            return input?.filters?.types
-        }
-    }
-}
