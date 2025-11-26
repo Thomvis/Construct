@@ -18,13 +18,15 @@ import Persistence
 import Compendium
 import MechMuse
 
-struct CompendiumEntryDetailFeature: Reducer {
+@Reducer
+struct CompendiumEntryDetailFeature {
+    @ObservableState
     struct State: Equatable {
 
         var entry: CompendiumEntry
         var popover: Popover?
-        @PresentationState var sheet: Sheet.State?
-        @PresentationState var destination: Destination.State?
+        @Presents var sheet: Sheet.State?
+        @Presents var destination: Destination.State?
         var safari: SafariViewState?
         var itemRequest: ReferenceViewItemRequest?
 
@@ -38,8 +40,8 @@ struct CompendiumEntryDetailFeature: Reducer {
         ) {
             self.entry = entry
             self.popover = popover
-            self._sheet = PresentationState(wrappedValue: sheet)
-            self._destination = PresentationState(wrappedValue: destination)
+            self.sheet = sheet
+            self.destination = destination
             self.safari = safari
             self.itemRequest = itemRequest
         }

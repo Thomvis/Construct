@@ -20,16 +20,10 @@ import SharedViews
 struct CompendiumEntryDetailView: View {
     @SwiftUI.Environment(\.appNavigation) var appNavigation
 
-    var store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
-    @ObservedObject var viewStore: ViewStore<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>
-
-    init(store: Store<CompendiumEntryDetailFeature.State, CompendiumEntryDetailFeature.Action>) {
-        self.store = store
-        self.viewStore = ViewStore(store, observe: \.self, removeDuplicates: { $0.localStateForDeduplication == $1.localStateForDeduplication })
-    }
+    var store: StoreOf<CompendiumEntryDetailFeature>
 
     var item: CompendiumItem {
-        viewStore.state.item
+        store.item
     }
 
     var itemStatBlock: StatBlock? {
@@ -49,7 +43,7 @@ struct CompendiumEntryDetailView: View {
             VStack {
                 contentView()
                 
-                if let attribution = viewStore.state.entryAttribution {
+                if let attribution = store.entryAttribution {
                     Text(attribution)
                         .font(.footnote).italic()
                         .foregroundColor(Color(UIColor.secondaryLabel))
@@ -98,11 +92,11 @@ struct CompendiumEntryDetailView: View {
                     }
                 }
             }
-            .navigationBarTitle(Text(viewStore.state.navigationTitle), displayMode: .inline)
+            .navigationBarTitle(Text(store.navigationTitle), displayMode: .inline)
 
         let navigation = base
             .onAppear {
-                viewStore.send(.onAppear)
+                store.send(.onAppear)
             }
             .navigationDestination(
                 store: store.scope(state: \.$destination, action: \.destination)
@@ -115,8 +109,8 @@ struct CompendiumEntryDetailView: View {
 
         return navigation
             .safariView(
-                item: viewStore.binding(get: \.safari, send: CompendiumEntryDetailFeature.Action.setSafari),
-                onDismiss: { viewStore.send(.setSafari(nil)) },
+                item: Binding(get: { store.safari }, set: { store.send(.setSafari($0)) }),
+                onDismiss: { store.send(.setSafari(nil)) },
                 content: { state in
                     BetterSafariView.SafariView(
                         url: state.url
@@ -169,13 +163,13 @@ struct CompendiumEntryDetailView: View {
         switch item {
         case let monster as Monster: return CreatureEditFeature.State(
             edit: monster,
-            documentId: viewStore.state.entry.document.id,
-            origin: viewStore.state.entry.origin
+            documentId: store.entry.document.id,
+            origin: store.entry.origin
         )
         case let character as Character: return CreatureEditFeature.State(
             edit: character,
-            documentId: viewStore.state.entry.document.id,
-            origin: viewStore.state.entry.origin
+            documentId: store.entry.document.id,
+            origin: store.entry.origin
         )
         default: return nil
         }
@@ -187,12 +181,12 @@ struct CompendiumEntryDetailView: View {
         if isCreature {
             MenuItem(text: "Edit", systemImage: "pencil") {
                 if let evs = self.editViewState {
-                    self.viewStore.send(.setSheet(.creatureEdit(evs)))
+                    self.store.send(.setSheet(.creatureEdit(evs)))
                 }
             }
         } else if let group =  item as? CompendiumItemGroup {
             MenuItem(text: "Edit", systemImage: "pencil") {
-                self.viewStore.send(.setSheet(.groupEdit(CompendiumItemGroupEditFeature.State(mode: .edit, group: group))))
+                self.store.send(.setSheet(.groupEdit(CompendiumItemGroupEditFeature.State(mode: .edit, group: group))))
             }
         }
 
@@ -201,8 +195,8 @@ struct CompendiumEntryDetailView: View {
                 var state = CreatureEditFeature.State(create: .monster)
                 state.model.statBlock = .init(statBlock: itemStatBlock)
                 state.sections = state.creatureType.initialSections.union(state.model.sectionsWithData)
-                state.createOrigin = .created(CompendiumItemReference(self.viewStore.state.item))
-                self.viewStore.send(.setSheet(.creatureEdit(state)))
+                state.createOrigin = .created(CompendiumItemReference(self.store.item))
+                self.store.send(.setSheet(.creatureEdit(state)))
             }
         }
 
@@ -212,13 +206,13 @@ struct CompendiumEntryDetailView: View {
         MenuItem(text: "Move...", systemImage: "arrow.right.doc.on.clipboard") {
             let state = CompendiumItemTransferFeature.State(
                 mode: .move,
-                selection: .single(self.viewStore.state.item.key),
+                selection: .single(self.store.item.key),
                 originDocument: CompendiumFilters.Source(
-                    realm: self.viewStore.state.item.realm.value,
-                    document: self.viewStore.state.entry.document.id
+                    realm: self.store.item.realm.value,
+                    document: self.store.entry.document.id
                 )
             )
-            self.viewStore.send(.setSheet(.transfer(state)))
+            self.store.send(.setSheet(.transfer(state)))
         }
     }
 
@@ -228,16 +222,16 @@ struct CompendiumEntryDetailView: View {
             switch target {
             case .ability(let a):
                 let modifier: Int = stats.abilityScores?.score(for: a).modifier.modifier ?? 0
-                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, creatureName: stats.name), rollOnAppear: true))))
+                self.store.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: a, skill: nil, creatureName: stats.name), rollOnAppear: true))))
             case .skill(let s):
                 let modifier: Int = stats.skillModifier(s).modifier
-                self.viewStore.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, creatureName: stats.name), rollOnAppear: true))))
+                self.store.send(.popover(.rollCheck(.rolling(.abilityCheck(modifier, ability: s.ability, skill: s, creatureName: stats.name), rollOnAppear: true))))
             case .action(let action):
                 let state = ActionResolutionFeature.State(
                     creatureStats: stats,
                     action: action
                 )
-                self.viewStore.send(.popover(.creatureAction(state)))
+                self.store.send(.popover(.creatureAction(state)))
             default:
                 onTap(target)
             }
@@ -248,9 +242,9 @@ struct CompendiumEntryDetailView: View {
     func onTap(_ target: StatBlockView.TapTarget) {
         switch target {
         case .rollCheck(let e):
-            self.viewStore.send(.popover(.rollCheck(DiceCalculator.State.rollingExpression(e, rollOnAppear: true))))
+            self.store.send(.popover(.rollCheck(DiceCalculator.State.rollingExpression(e, rollOnAppear: true))))
         case .compendiumItemReferenceTextAnnotation(let a):
-            self.viewStore.send(.didTapCompendiumItemReferenceTextAnnotation(a, appNavigation))
+            self.store.send(.didTapCompendiumItemReferenceTextAnnotation(a, appNavigation))
         default:
             assertionFailure("Failed to handle statblock tap target: \(target)")
             break
@@ -259,22 +253,22 @@ struct CompendiumEntryDetailView: View {
 
     var popoverBinding: Binding<AnyView?> {
         Binding(get: {
-            switch viewStore.state.popover {
+            switch store.popover {
             case .creatureAction:
-                return IfLetStore(store.scope(state: \.createActionPopover, action: \.creatureActionPopover)) { store in
-                    ActionResolutionView(
-                        store: store
-                    )
-                }.eraseToAnyView
+                if let popoverStore = store.scope(state: \.createActionPopover, action: \.creatureActionPopover) {
+                    return ActionResolutionView(store: popoverStore).eraseToAnyView
+                }
+                return nil
             case .rollCheck:
-                return IfLetStore(store.scope(state: \.rollCheckPopover, action: \.rollCheckPopover)) { store in
-                    DiceCalculatorView(store: store)
-                }.eraseToAnyView
+                if let popoverStore = store.scope(state: \.rollCheckPopover, action: \.rollCheckPopover) {
+                    return DiceCalculatorView(store: popoverStore).eraseToAnyView
+                }
+                return nil
             case nil: return nil
             }
         }, set: {
             assert($0 == nil)
-            self.viewStore.send(.popover(nil))
+            self.store.send(.popover(nil))
         })
     }
 
