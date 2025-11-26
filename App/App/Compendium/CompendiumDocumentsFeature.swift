@@ -15,21 +15,24 @@ import Persistence
 import Helpers
 import SharedViews
 
-struct CompendiumDocumentsFeature: Reducer {
+@Reducer
+struct CompendiumDocumentsFeature {
+    @ObservableState
     struct State: Equatable {
-        @BindingState var documents: [CompendiumSourceDocument] = []
-        @BindingState var realms: [CompendiumRealm] = []
+        var documents: [CompendiumSourceDocument] = []
+        var realms: [CompendiumRealm] = []
 
-        @PresentationState var sheet: Sheet.State?
+        @Presents var sheet: Sheet.State?
 
         func documents(for realm: CompendiumRealm) -> [CompendiumSourceDocument] {
             documents.filter { $0.realmId == realm.id }
         }
     }
 
-    @CasePathable
-    enum Action: BindableAction, Equatable {
+    enum Action: Equatable {
         case onAppear
+        case documentsDidChange([CompendiumSourceDocument])
+        case realmsDidChange([CompendiumRealm])
 
         case onEditRealmTap(CompendiumRealm)
         case onAddDocumentToRealmTap(CompendiumRealm)
@@ -40,8 +43,6 @@ struct CompendiumDocumentsFeature: Reducer {
 
         case sheet(PresentationAction<Sheet.Action>)
         case editDocumentSheet
-
-        case binding(BindingAction<State>)
     }
 
     @Reducer
@@ -58,13 +59,17 @@ struct CompendiumDocumentsFeature: Reducer {
             case .onAppear:
                 return .run { send in
                     for try await documents in compendiumMetadata.observeSourceDocuments() {
-                        await send(.binding(.set(\.$documents, documents.sorted(by: .init(\.displayName)))))
+                        await send(.documentsDidChange(documents.sorted(by: .init(\.displayName))))
                     }
                 }.merge(with: .run(operation: { send in
                     for try await realms in compendiumMetadata.observeRealms() {
-                        await send(.binding(.set(\.$realms, realms.sorted(by: .init(\.displayName)))))
+                        await send(.realmsDidChange(realms.sorted(by: .init(\.displayName))))
                     }
                 }))
+            case .documentsDidChange(let documents):
+                state.documents = documents
+            case .realmsDidChange(let realms):
+                state.realms = realms
             case .onEditRealmTap(let realm):
                 state.sheet = .editRealm(.init(original: realm))
             case .onAddDocumentToRealmTap(let realm):
@@ -81,23 +86,23 @@ struct CompendiumDocumentsFeature: Reducer {
                 state.sheet = .editRealm(.init())
             case .onAddDocumentButtonTap:
                 state.sheet = .editDocument(.init(realms: state.realms))
-            default: break
+            case .sheet, .editDocumentSheet:
+                break
             }
             return .none
         }
-        .ifLet(\.$sheet, action: \.sheet) {
-        }
-
-        BindingReducer()
+        .ifLet(\.$sheet, action: \.sheet)
     }
 }
 
-struct EditRealm: Reducer {
+@Reducer
+struct EditRealm {
+    @ObservableState
     struct State: Equatable {
         var original: CompendiumRealm? // nil for new realms, non-nil for editing
 
-        @BindingState var displayName: String = ""
-        @BindingState var error: String?
+        var displayName: String = ""
+        var error: String?
 
         var customSlug: String?
         var effectiveSlug: String {
@@ -158,6 +163,7 @@ struct EditRealm: Reducer {
         case onDoneButtonTap
         case onErrorTap
         case onSlugChange(String)
+        case errorDidOccur(String)
         case binding(BindingAction<State>)
     }
 
@@ -165,6 +171,8 @@ struct EditRealm: Reducer {
     @Dependency(\.compendiumMetadata) var compendiumMetadata
 
     var body: some ReducerOf<Self> {
+        BindingReducer()
+
         Reduce { state, action in
             switch action {
             case .onCancelButtonTap:
@@ -193,11 +201,14 @@ struct EditRealm: Reducer {
                         }
                         await dismiss()
                     } catch {
-                        await send(.binding(.set(\.$error, error.localizedDescription)))
+                        await send(.errorDidOccur(error.localizedDescription))
                     }
                 }
             case .onErrorTap:
                 state.error = nil
+
+            case .errorDidOccur(let errorMessage):
+                state.error = errorMessage
 
             case .onSlugChange(let newSlug):
                 // Don't allow slug changes for existing realms
@@ -208,30 +219,31 @@ struct EditRealm: Reducer {
                 } else {
                     state.customSlug = nil
                 }
-            default: break
+            case .binding:
+                break
             }
             return .none
         }
-
-        BindingReducer()
     }
 }
 
-struct EditDocument: Reducer {
+@Reducer
+struct EditDocument {
+    @ObservableState
     struct State: Equatable {
         var original: CompendiumSourceDocument? // nil for new documents, non-nil for editing
         let realms: [CompendiumRealm]
 
-        @BindingState var displayName: String = ""
-        @BindingState var realmId: CompendiumRealm.Id?
+        var displayName: String = ""
+        var realmId: CompendiumRealm.Id?
 
         typealias AsyncOperation = Async<Bool, EquatableError>
-        @BindingState var operation: AsyncOperation.State? = nil
+        var operation: AsyncOperation.State? = nil
         var isLoading: Bool {
             operation?.isLoading == true
         }
 
-        @PresentationState var contents: CompendiumIndexFeature.State?
+        @Presents var contents: CompendiumIndexFeature.State?
 
         var customSlug: String?
         var effectiveSlug: String {
@@ -289,7 +301,6 @@ struct EditDocument: Reducer {
         }
     }
 
-    @CasePathable
     enum Action: BindableAction, Equatable {
         case onCancelButtonTap
         case onDoneButtonTap
@@ -297,6 +308,7 @@ struct EditDocument: Reducer {
         case onConfirmRemoveDocumentTap
 
         case onSlugChange(String)
+        case operationDidUpdate(State.AsyncOperation.State?)
 
         case onViewItemsInDocumentTap
         case contents(PresentationAction<CompendiumIndexFeature.Action>)
@@ -308,6 +320,8 @@ struct EditDocument: Reducer {
     @Dependency(\.compendiumMetadata) var compendiumMetadata
 
     var body: some ReducerOf<Self> {
+        BindingReducer()
+
         Reduce { state, action in
             switch action {
             case .onCancelButtonTap:
@@ -360,6 +374,8 @@ struct EditDocument: Reducer {
                 } else {
                     state.customSlug = nil
                 }
+            case .operationDidUpdate(let newOperation):
+                state.operation = newOperation
             case .onViewItemsInDocumentTap:
                 guard let original = state.original else { break }
 
@@ -371,15 +387,14 @@ struct EditDocument: Reducer {
                     )),
                     results: .initial
                 )
-            default: break
+            case .contents, .binding:
+                break
             }
             return .none
         }
         .ifLet(\.$contents, action: \.contents) {
             CompendiumIndexFeature()
         }
-
-        BindingReducer()
     }
 
     private func compendiumMetadataOperation(
@@ -403,7 +418,7 @@ struct EditDocument: Reducer {
 
                 let (operationResult, _) = await (operationTask.result, delayTask.result)
 
-                send(.binding(.set(\.$operation, State.AsyncOperation.State(isLoading: false, result: operationResult.mapError { $0.toEquatableError() }))), animation: .default)
+                send(.operationDidUpdate(State.AsyncOperation.State(isLoading: false, result: operationResult.mapError { $0.toEquatableError() })), animation: .default)
 
                 if operationResult.value != nil {
                     await dismiss()
@@ -420,18 +435,15 @@ struct CompendiumDocumentsView: View {
     let store: StoreOf<CompendiumDocumentsFeature>
 
     var body: some View {
-        WithViewStore(store, observe: ViewState.init) { viewStore in
-            content(viewStore: viewStore)
-                .onAppear {
-                    viewStore.send(.onAppear)
-                }
-                .navigationTitle("Documents")
-        }
+        content
+            .onAppear {
+                store.send(.onAppear)
+            }
+            .navigationTitle("Documents")
     }
 
     @ViewBuilder
     private func realmSection(
-        viewStore: ViewStore<ViewState, CompendiumDocumentsFeature.Action>,
         realm: CompendiumRealm,
         documents: [CompendiumSourceDocument]
     ) -> some View {
@@ -439,23 +451,23 @@ struct CompendiumDocumentsView: View {
             title: realm.displayName,
             accessory: Menu(content: {
                 Button(action: {
-                    viewStore.send(.onEditRealmTap(realm))
+                    store.send(.onEditRealmTap(realm))
                 }, label: {
-                    Label("Edit realm", systemImage: "pencil")
+                    SwiftUI.Label("Edit realm", systemImage: "pencil")
                 })
 
                 Divider()
 
                 Button(action: {
-                    viewStore.send(.onAddDocumentToRealmTap(realm))
+                    store.send(.onAddDocumentToRealmTap(realm))
                 }, label: {
-                    Label("Add document", systemImage: "doc.badge.plus")
+                    SwiftUI.Label("Add document", systemImage: "doc.badge.plus")
                 })
 
                 Button(role: .destructive, action: {
-                    viewStore.send(.onRemoveEmptyRealmTap(realm))
+                    store.send(.onRemoveEmptyRealmTap(realm))
                 }, label: {
-                    Label("Remove empty realm", systemImage: "trash")
+                    SwiftUI.Label("Remove empty realm", systemImage: "trash")
                 })
                 .disabled(!documents.isEmpty)
             }, label: {
@@ -469,7 +481,7 @@ struct CompendiumDocumentsView: View {
                 VStack {
                     ForEach(documents, id: \.id) { document in
                         NavigationRowButton {
-                            viewStore.send(.onDocumentTap(document))
+                            store.send(.onDocumentTap(document))
                         } label: {
                             HStack {
                                 Text(document.displayName)
@@ -490,33 +502,33 @@ struct CompendiumDocumentsView: View {
     }
 
     @ViewBuilder
-    private func content(viewStore: ViewStore<ViewState, CompendiumDocumentsFeature.Action>) -> some View {
+    private var content: some View {
         let sheetStore = store.scope(state: \.$sheet, action: \.sheet)
 
-        let documents = ScrollView {
+        let documentsView = ScrollView {
             VStack(spacing: 20) {
-                ForEach(viewStore.state.realms, id: \.id) { realm in
-                    let documents = viewStore.state.documents(for: realm)
+                ForEach(store.realms, id: \.id) { realm in
+                    let documents = store.documents.filter { $0.realmId == realm.id }
 
-                    realmSection(viewStore: viewStore, realm: realm, documents: documents)
+                    realmSection(realm: realm, documents: documents)
                 }
             }
             .padding()
         }
 
-        documents
+        documentsView
             .safeAreaInset(edge: .bottom) {
                 RoundedButtonToolbar {
                     Button(action: {
-                        viewStore.send(.onAddRealmButtonTap)
+                        store.send(.onAddRealmButtonTap)
                     }) {
-                        Label("Add realm", systemImage: "plus.circle")
+                        SwiftUI.Label("Add realm", systemImage: "plus.circle")
                     }
 
                     Button(action: {
-                        viewStore.send(.onAddDocumentButtonTap)
+                        store.send(.onAddDocumentButtonTap)
                     }) {
-                        Label("Add document", systemImage: "doc.badge.plus")
+                        SwiftUI.Label("Add document", systemImage: "doc.badge.plus")
                     }
                 }
                 .padding(8)
@@ -540,20 +552,6 @@ struct CompendiumDocumentsView: View {
                 }
             }
     }
-
-    struct ViewState: Equatable {
-        let realms: [CompendiumRealm]
-        let documents: [CompendiumSourceDocument]
-
-        init(state: CompendiumDocumentsFeature.State) {
-            self.realms = state.realms
-            self.documents = state.documents
-        }
-
-        func documents(for realm: CompendiumRealm) -> [CompendiumSourceDocument] {
-            documents.filter { $0.realmId == realm.id }
-        }
-    }
 }
 
 extension CompendiumDocumentsFeature.Sheet.State: Equatable {}
@@ -561,202 +559,198 @@ extension CompendiumDocumentsFeature.Sheet.Action: Equatable {}
 
 struct CompendiumDocumentEditView: View {
 
-    let store: StoreOf<EditDocument>
+    @Bindable var store: StoreOf<EditDocument>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            ScrollView {
-                VStack(spacing: 20) {
-                    if let notice = viewStore.notice {
-                        NoticeView(notice: notice)
-                    }
-
-                    SectionContainer {
-                        VStack {
-                            TextFieldWithSlug(
-                                title: "Document name",
-                                text: viewStore.$displayName,
-                                slug: viewStore.binding(
-                                    get: \.effectiveSlug,
-                                    send: { .onSlugChange($0) }
-                                ),
-                                configuration: .init(
-                                    textForegroundColor: Color(UIColor.label),
-                                    slugForegroundColor: Color(UIColor.secondaryLabel),
-                                    slugFieldEnabled: viewStore.state.original == nil
-                                ),
-                                requestFocusOnText: Binding.constant(viewStore.state.original == nil)
-                            )
-                            .disabled(viewStore.state.original?.isDefaultDocument == true)
-                            .padding(.trailing, 10) // to align with the picker field
-
-                            Divider()
-
-                            MenuPickerField(
-                                title: "Realm",
-                                selection: viewStore.$realmId
-                            ) {
-                                ForEach(viewStore.state.realms, id: \.id) { realm in
-                                    Text("\(realm.displayName) (\(realm.id.rawValue))").tag(Optional.some(realm.id))
-                                }
-                            }
-                            .disabled(viewStore.state.original?.isDefaultDocument == true)
-                        }
-                    }
-
-                    if viewStore.state.original != nil {
-                        SectionContainer {
-                            NavigationRowButton {
-                                viewStore.send(.onViewItemsInDocumentTap)
-                            } label: {
-                                HStack {
-                                    Label("View items in document", systemImage: "book")
-                                }
-                                .frame(minHeight: 35)
-                            }
-                        }
-
-                        SectionContainer {
-                            VStack {
-                                Menu {
-                                    Text("All items in the document will be removed.").font(.footnote)
-
-                                    Divider()
-
-                                    Button(role: .destructive) {
-                                        viewStore.send(.onConfirmRemoveDocumentTap)
-                                    } label: {
-                                        Label("Confirm", systemImage: "trash")
-                                    }
-
-                                } label: {
-                                    Button(role: .destructive, action: { }) {
-                                        Label("Remove document & contents", systemImage: "trash")
-                                        Spacer()
-                                    }
-                                    .symbolVariant(.circle.fill)
-                                    .imageScale(.large)
-                                }
-                                .frame(minHeight: 35)
-                            }
-                        }
-                        .symbolRenderingMode(.hierarchical)
-                        .disabled(viewStore.state.original?.isDefaultDocument == true)
-                    }
-                }
-                .padding()
-                .autoSizingSheetContent(constant: 100)
-            }
-            .navigationDestination(
-                store: store.scope(state: \.$contents, action: \.contents),
-                destination: { store in
-                    CompendiumIndexView(store: store)
-                }
-            )
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    if viewStore.state.isLoading {
-                        ProgressView()
-                    } else {
-                        Button(action: {
-                            viewStore.send(.onDoneButtonTap, animation: .spring())
-                        }, label: {
-                            Text("Done").bold()
-                        })
-                        .disabled(viewStore.state.doneButtonDisabled)
-                    }
+        ScrollView {
+            VStack(spacing: 20) {
+                if let notice = store.notice {
+                    NoticeView(notice: notice)
                 }
 
-                ToolbarItem(placement: .navigation) {
-                    Button("Cancel", role: .destructive) {
-                        viewStore.send(.onCancelButtonTap)
-                    }
-                }
-            }
-            .navigationTitle(viewStore.state.navigationTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .interactiveDismissDisabled(viewStore.state.hasPendingChanges || viewStore.state.isLoading)
-        }
-    }
-}
-
-struct EditRealmView: View {
-    let store: StoreOf<EditRealm>
-
-    var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            ScrollView {
-                VStack(spacing: 20) {
-                    if let notice = viewStore.notice {
-                        SectionContainer {
-                            VStack(alignment: notice.isDismissible ? .trailing : .leading) {
-                                HStack(spacing: 12) {
-                                    Text(Image(systemName: notice.icon))
-                                    Text(notice.message)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                                .padding(8)
-                                .foregroundStyle(notice.foregroundColor)
-                                .symbolRenderingMode(.monochrome)
-                                .symbolVariant(.fill)
-
-                                if notice.isDismissible {
-                                    Text("Tap to dismiss")
-                                        .font(.footnote)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                        .transition(.scale.combined(with: .opacity))
-                        .onTapGesture {
-                            if notice.isDismissible {
-                                viewStore.send(.onErrorTap, animation: .default)
-                            }
-                        }
-                    }
-
-                    SectionContainer {
+                SectionContainer {
+                    VStack {
                         TextFieldWithSlug(
-                            title: "Realm name",
-                            text: viewStore.$displayName,
-                            slug: viewStore.binding(
-                                get: \.effectiveSlug,
-                                send: { .onSlugChange($0) }
+                            title: "Document name",
+                            text: $store.displayName.sending(\.binding.displayName),
+                            slug: Binding(
+                                get: { store.effectiveSlug },
+                                set: { store.send(.onSlugChange($0)) }
                             ),
                             configuration: .init(
                                 textForegroundColor: Color(UIColor.label),
                                 slugForegroundColor: Color(UIColor.secondaryLabel),
-                                slugFieldEnabled: viewStore.state.original == nil
+                                slugFieldEnabled: store.original == nil
                             ),
-                            requestFocusOnText: Binding.constant(viewStore.state.original == nil)
+                            requestFocusOnText: Binding.constant(store.original == nil)
                         )
-                        .padding(.trailing, 10)
+                        .disabled(store.original?.isDefaultDocument == true)
+                        .padding(.trailing, 10) // to align with the picker field
+
+                        Divider()
+
+                        MenuPickerField(
+                            title: "Realm",
+                            selection: $store.realmId.sending(\.binding.realmId)
+                        ) {
+                            ForEach(store.realms, id: \.id) { realm in
+                                Text("\(realm.displayName) (\(realm.id.rawValue))").tag(Optional.some(realm.id))
+                            }
+                        }
+                        .disabled(store.original?.isDefaultDocument == true)
                     }
-                    .disabled(viewStore.state.original?.isDefaultRealm == true)
                 }
-                .padding()
-                .autoSizingSheetContent(constant: 100)
+
+                if store.original != nil {
+                    SectionContainer {
+                        NavigationRowButton {
+                            store.send(.onViewItemsInDocumentTap)
+                        } label: {
+                            HStack {
+                                SwiftUI.Label("View items in document", systemImage: "book")
+                            }
+                            .frame(minHeight: 35)
+                        }
+                    }
+
+                    SectionContainer {
+                        VStack {
+                            Menu {
+                                Text("All items in the document will be removed.").font(.footnote)
+
+                                Divider()
+
+                                Button(role: .destructive) {
+                                    store.send(.onConfirmRemoveDocumentTap)
+                                } label: {
+                                    SwiftUI.Label("Confirm", systemImage: "trash")
+                                }
+
+                            } label: {
+                                Button(role: .destructive, action: { }) {
+                                    SwiftUI.Label("Remove document & contents", systemImage: "trash")
+                                    Spacer()
+                                }
+                                .symbolVariant(.circle.fill)
+                                .imageScale(.large)
+                            }
+                            .frame(minHeight: 35)
+                        }
+                    }
+                    .symbolRenderingMode(.hierarchical)
+                    .disabled(store.original?.isDefaultDocument == true)
+                }
             }
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+            .padding()
+            .autoSizingSheetContent(constant: 100)
+        }
+        .navigationDestination(
+            store: store.scope(state: \.$contents, action: \.contents),
+            destination: { store in
+                CompendiumIndexView(store: store)
+            }
+        )
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                if store.isLoading {
+                    ProgressView()
+                } else {
                     Button(action: {
-                        viewStore.send(.onDoneButtonTap)
+                        store.send(.onDoneButtonTap, animation: .spring())
                     }, label: {
                         Text("Done").bold()
                     })
-                    .disabled(viewStore.state.doneButtonDisabled)
-                }
-
-                ToolbarItem(placement: .navigation) {
-                    Button("Cancel", role: .destructive) {
-                        viewStore.send(.onCancelButtonTap)
-                    }
+                    .disabled(store.doneButtonDisabled)
                 }
             }
-            .navigationTitle(viewStore.state.navigationTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .interactiveDismissDisabled(viewStore.state.hasPendingChanges)
+
+            ToolbarItem(placement: .navigation) {
+                Button("Cancel", role: .destructive) {
+                    store.send(.onCancelButtonTap)
+                }
+            }
         }
+        .navigationTitle(store.navigationTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .interactiveDismissDisabled(store.hasPendingChanges || store.isLoading)
+    }
+}
+
+struct EditRealmView: View {
+    @Bindable var store: StoreOf<EditRealm>
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                if let notice = store.notice {
+                    SectionContainer {
+                        VStack(alignment: notice.isDismissible ? .trailing : .leading) {
+                            HStack(spacing: 12) {
+                                Text(Image(systemName: notice.icon))
+                                Text(notice.message)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .padding(8)
+                            .foregroundStyle(notice.foregroundColor)
+                            .symbolRenderingMode(.monochrome)
+                            .symbolVariant(.fill)
+
+                            if notice.isDismissible {
+                                Text("Tap to dismiss")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                    .onTapGesture {
+                        if notice.isDismissible {
+                            store.send(.onErrorTap, animation: .default)
+                        }
+                    }
+                }
+
+                SectionContainer {
+                    TextFieldWithSlug(
+                        title: "Realm name",
+                        text: $store.displayName.sending(\.binding.displayName),
+                        slug: Binding(
+                            get: { store.effectiveSlug },
+                            set: { store.send(.onSlugChange($0)) }
+                        ),
+                        configuration: .init(
+                            textForegroundColor: Color(UIColor.label),
+                            slugForegroundColor: Color(UIColor.secondaryLabel),
+                            slugFieldEnabled: store.original == nil
+                        ),
+                        requestFocusOnText: Binding.constant(store.original == nil)
+                    )
+                    .padding(.trailing, 10)
+                }
+                .disabled(store.original?.isDefaultRealm == true)
+            }
+            .padding()
+            .autoSizingSheetContent(constant: 100)
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    store.send(.onDoneButtonTap)
+                }, label: {
+                    Text("Done").bold()
+                })
+                .disabled(store.doneButtonDisabled)
+            }
+
+            ToolbarItem(placement: .navigation) {
+                Button("Cancel", role: .destructive) {
+                    store.send(.onCancelButtonTap)
+                }
+            }
+        }
+        .navigationTitle(store.navigationTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .interactiveDismissDisabled(store.hasPendingChanges)
     }
 }
 
