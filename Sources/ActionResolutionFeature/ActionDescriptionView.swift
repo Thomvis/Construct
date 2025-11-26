@@ -16,148 +16,142 @@ struct ActionDescriptionView: View {
     @ScaledMetric(relativeTo: .largeTitle) var speechBalloonOffset = 8
     @ScaledMetric(relativeTo: .footnote) var bottomButtonHeight = 16
 
-    let store: StoreOf<ActionDescriptionFeature>
+    @Bindable var store: StoreOf<ActionDescriptionFeature>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            VStack {
-                let isLoading = viewStore.state.isLoadingDescription
+        VStack {
+            let isLoading = store.isLoadingDescription
 
-                ScrollView(showsIndicators: false) {
-                    ZStack {
-                        if isLoading || viewStore.state.descriptionString != nil {
-                            VStack(alignment: .trailing, spacing: 10) {
-                                let description = viewStore.state.descriptionString
-                                Text(description ?? "Generating attack description…")
-                                    .foregroundColor(description == nil ? Color.secondary : Color.primary)
-                                    .animation(nil, value: viewStore.state.descriptionString)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(12)
-                                    .overlay(alignment: .bottom) {
-                                        if isLoading {
-                                            AnimatingSymbol(systemName: "ellipsis")
-                                                .transition(.opacity.animation(.default.speed(1.0)))
-                                        }
+            ScrollView(showsIndicators: false) {
+                ZStack {
+                    if isLoading || store.descriptionString != nil {
+                        VStack(alignment: .trailing, spacing: 10) {
+                            let description = store.descriptionString
+                            Text(description ?? "Generating attack description…")
+                                .foregroundColor(description == nil ? Color.secondary : Color.primary)
+                                .animation(nil, value: store.descriptionString)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(12)
+                                .overlay(alignment: .bottom) {
+                                    if isLoading {
+                                        AnimatingSymbol(systemName: "ellipsis")
+                                            .transition(.opacity.animation(.default.speed(1.0)))
                                     }
-                                    .padding(12)
-                                    .background(BoxedTextBackground())
-
-                                Text("Mechanical Muse")
-                                    .foregroundColor(Color.secondary)
-                                    .font(.footnote)
-                                    .padding(EdgeInsets(top: -10, leading: 0, bottom: 0, trailing: 15))
-                            }
-                            .transition(.opacity)
-                        } else if let error = viewStore.state.descriptionErrorString {
-                            NoticeView(notice: .error(error))
-                                .frame(minHeight: descriptionHeight)
-                        } else if viewStore.state.isMissingOutcomeSetting {
-                            VStack {
-                                Text("Did the attack hit or miss?")
-
-                                EqualWidthLayout(spacing: 20) {
-                                    Button {
-                                        viewStore.$settings.outcome.wrappedValue = .hit
-                                    } label: {
-                                        Text("Hit").frame(maxWidth: .infinity)
-                                    }
-                                    .tint(hitOrMissTintHit)
-
-                                    Button {
-                                        viewStore.$settings.outcome.wrappedValue = .miss
-                                    } label: {
-                                        Text("Miss").frame(maxWidth: .infinity)
-                                    }
-                                    .tint(hitOrMissTintMiss)
                                 }
-                                .controlSize(.large)
-                                .buttonStyle(.bordered)
-                                .buttonBorderShape(.capsule)
-                            }
-                            .frame(minHeight: descriptionHeight)
+                                .padding(12)
+                                .background(BoxedTextBackground())
+
+                            Text("Mechanical Muse")
+                                .foregroundColor(Color.secondary)
+                                .font(.footnote)
+                                .padding(EdgeInsets(top: -10, leading: 0, bottom: 0, trailing: 15))
                         }
+                        .transition(.opacity)
+                    } else if let error = store.descriptionErrorString {
+                        NoticeView(notice: .error(error))
+                            .frame(minHeight: descriptionHeight)
+                    } else if store.isMissingOutcomeSetting {
+                        VStack {
+                            Text("Did the attack hit or miss?")
+
+                            EqualWidthLayout(spacing: 20) {
+                                Button {
+                                    $store.settings.outcome.wrappedValue = .hit
+                                } label: {
+                                    Text("Hit").frame(maxWidth: .infinity)
+                                }
+                                .tint(hitOrMissTintHit)
+
+                                Button {
+                                    $store.settings.outcome.wrappedValue = .miss
+                                } label: {
+                                    Text("Miss").frame(maxWidth: .infinity)
+                                }
+                                .tint(hitOrMissTintMiss)
+                            }
+                            .controlSize(.large)
+                            .buttonStyle(.bordered)
+                            .buttonBorderShape(.capsule)
+                        }
+                        .frame(minHeight: descriptionHeight)
                     }
                 }
-                .frame(height: descriptionHeight)
+            }
+            .frame(height: descriptionHeight)
 
-                Divider()
+            Divider()
+
+            HStack {
+                FeedbackButton {
+                    store.send(.onFeedbackButtonTap)
+                }
+
+                Spacer()
 
                 HStack {
-                    FeedbackButton {
-                        viewStore.send(.onFeedbackButtonTap)
+                    Group {
+                        hitButton()
+
+                        impactButton()
                     }
+                    .disabled(isLoading || store.isMissingOutcomeSetting)
 
-                    Spacer()
-
-                    HStack {
-                        Group {
-                            hitButton(viewStore)
-
-                            impactButton(viewStore)
+                    Button {
+                        store.send(.onReloadOrCancelButtonTap)
+                    } label: {
+                        if isLoading {
+                            Image(systemName: "xmark")
+                                .frame(height: bottomButtonHeight)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                                .frame(height: bottomButtonHeight)
                         }
-                        .disabled(isLoading || viewStore.state.isMissingOutcomeSetting)
-
-                        Button {
-                            viewStore.send(.onReloadOrCancelButtonTap)
-                        } label: {
-                            if isLoading {
-                                Image(systemName: "xmark")
-                                    .frame(height: bottomButtonHeight)
-                            } else {
-                                Image(systemName: "arrow.clockwise")
-                                    .frame(height: bottomButtonHeight)
-                            }
-                        }
-                        .disabled(viewStore.state.isMissingOutcomeSetting)
                     }
-                    .font(.footnote)
-                    .buttonStyle(.bordered)
-                    .buttonBorderShape(.capsule)
+                    .disabled(store.isMissingOutcomeSetting)
                 }
+                .font(.footnote)
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.capsule)
             }
-            .onAppear {
-                viewStore.send(.onAppear)
-            }
-            .onDisappear {
-                viewStore.send(.onDisappear)
-            }
+        }
+        .onAppear {
+            store.send(.onAppear)
+        }
+        .onDisappear {
+            store.send(.onDisappear)
         }
     }
 
     @ViewBuilder
-    func hitButton(
-        _ viewStore: ViewStoreOf<ActionDescriptionFeature>
-    ) -> some View {
-        if viewStore.settings.outcome != nil {
+    func hitButton() -> some View {
+        if store.settings.outcome != nil {
             Menu {
-                Picker("Outcome", selection: viewStore.$settings.outcome) {
+                Picker("Outcome", selection: $store.settings.outcome) {
                     Text("Hit").tag(Optional<ActionDescriptionFeature.State.Settings.OutcomeSetting>.some(.hit))
                     Text("Miss").tag(Optional<ActionDescriptionFeature.State.Settings.OutcomeSetting>.some(.miss))
                 }
-                .disabled(viewStore.state.context.diceAction == nil)
+                .disabled(store.context.diceAction == nil)
             } label: {
-                Text(viewStore.state.hitOrMissString ?? "-")
+                Text(store.hitOrMissString ?? "-")
             }
-            .tint(viewStore.state.hitOrMissTint)
+            .tint(store.hitOrMissTint)
             .fixedSize(horizontal: true, vertical: false)
         }
     }
 
     @ViewBuilder
-    func impactButton(
-        _ viewStore: ViewStoreOf<ActionDescriptionFeature>
-    ) -> some View {
+    func impactButton() -> some View {
         Menu {
-            Picker("Outcome", selection: viewStore.$settings.impact) {
+            Picker("Outcome", selection: $store.settings.impact) {
                 Text("Minimal").tag(CreatureActionDescriptionRequest.Impact.minimal)
                 Text("Average").tag(CreatureActionDescriptionRequest.Impact.average)
                 Text("Devastating").tag(CreatureActionDescriptionRequest.Impact.devastating)
             }
         } label: {
-            Text(viewStore.state.impactString)
+            Text(store.impactString)
         }
-        .tint(viewStore.state.impactTint)
-        .disabled(!(viewStore.state.effectiveOutcome?.isHit == true))
+        .tint(store.impactTint)
+        .disabled(!(store.effectiveOutcome?.isHit == true))
         .fixedSize(horizontal: true, vertical: false)
     }
 }

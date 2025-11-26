@@ -14,71 +14,66 @@ import DiceRollerFeature
 import GameModels
 
 struct DiceActionView: View {
-    let store: Store<DiceActionFeature.State, DiceActionFeature.Action>
+    let store: StoreOf<DiceActionFeature>
 
     var body: some View {
-        WithViewStore(store, observe: \.self) { viewStore in
-            VStack {
+        VStack {
+            ForEach(store.scope(state: \.action.steps, action: \.steps)) { stepStore in
+                StepView(store: stepStore)
+            }
 
-                ForEachStore(store.scope(state: \.action.steps, action: \.steps)) { store in
-                    StepView(store: store)
+            HStack {
+                FeedbackButton {
+                    store.send(.onFeedbackButtonTap)
                 }
 
-                HStack {
-                    FeedbackButton {
-                        viewStore.send(.onFeedbackButtonTap)
-                    }
-
-                    Spacer()
-                    Button(action: {
-                        viewStore.send(.rollAll, animation: .default)
-                    }) {
-                        Text("Re-roll all")
-                    }
+                Spacer()
+                Button(action: {
+                    store.send(.rollAll, animation: .default)
+                }) {
+                    Text("Re-roll all")
                 }
             }
-            .onAppear {
-                if viewStore.action.steps.allSatisfy({ $0.rollValue?.result == nil }) {
-                    viewStore.send(.rollAll)
-                }
+        }
+        .onAppear {
+            if store.action.steps.allSatisfy({ $0.rollValue?.result == nil }) {
+                store.send(.rollAll)
             }
         }
     }
 
     struct StepView: View {
-        let store: Store<DiceAction.Step, DiceActionFeature.StepAction>
+        let store: StoreOf<DiceActionFeature.Step>
 
         var body: some View {
-            WithViewStore(store, observe: \.self) { viewStore in
-                VStack(spacing: 8) {
-                    HStack {
-                        SimpleButton(action: {
-                            viewStore.send(.value(.roll(.details(.firstRoll))), animation: .default)
-                        }) {
-                            VStack(alignment: .leading) {
-                                Text(viewStore.state.title)
+            VStack(spacing: 8) {
+                HStack {
+                    SimpleButton(action: {
+                        store.send(.value(.roll(.details(.firstRoll))), animation: .default)
+                    }) {
+                        VStack(alignment: .leading) {
+                            Text(store.title)
 
-                                if let subtitle = viewStore.state.subtitle {
-                                    Text(subtitle.localizedFirstLetterCapitalized)
-                                        .font(.footnote)
-                                        .foregroundColor(.secondary)
-                                }
+                            if let subtitle = store.subtitle {
+                                Text(subtitle.localizedFirstLetterCapitalized)
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
                             }
-                            .frame(minHeight: 50)
                         }
-                        Spacer()
-
-                        IfLetStore(store.scope(state: \.rollValue, action: \.value.roll)) { store in
-                            RollValueView(step: viewStore.state, store: store)
-                        }
+                        .frame(minHeight: 50)
                     }
+                    Spacer()
 
-                    if viewStore.state.rollDetails != nil {
-                        RollDetailView(step: viewStore.state, store: self.store)
+                    if let rollValueStore = store.scope(state: \.rollValue, action: \.value.roll) {
+                        RollValueView(step: store.state, store: rollValueStore)
                     }
-
-                    Divider()
                 }
+
+                if store.rollDetails != nil {
+                    RollDetailView(step: store.state, store: store)
+                }
+
+                Divider()
             }
         }
 
@@ -87,73 +82,68 @@ struct DiceActionView: View {
             let store: Store<DiceAction.Step.Value.RollValue, DiceActionFeature.StepAction.ValueAction.RollAction>
 
             var body: some View {
-                WithViewStore(store, observe: \.self) { viewStore in
-                    HStack {
-                        if viewStore.state.isToHit {
-                            Menu(content: {
-                                Button(action: {
-                                    viewStore.send(.type(.advantage), animation: .default)
-                                }) {
-                                    Label("Advantage", systemImage: "arrow.up.circle")
-                                }
-
-                                Button(action: {
-                                    viewStore.send(.type(.normal), animation: .default)
-                                }) {
-                                    Label("Normal", systemImage: "equal.circle")
-                                }
-
-                                Button(action: {
-                                    viewStore.send(.type(.disadvantage), animation: .default)
-                                }) {
-                                    Label("Disadvantage", systemImage: "arrow.down.circle")
-                                }
+                HStack {
+                    if store.isToHit {
+                        Menu(content: {
+                            Button(action: {
+                                store.send(.type(.advantage), animation: .default)
                             }) {
-                                Image(systemName: "ellipsis.circle")
+                                Label("Advantage", systemImage: "arrow.up.circle")
                             }
-                        }
 
-                        WithViewStore(store.scope(state: \.first, action: \.first), observe: \.self) { firstViewStore in
-                            SimpleButton(action: {
-                                viewStore.send(.details(viewStore.state.details.toggled(.firstRoll)), animation: .default)
+                            Button(action: {
+                                store.send(.type(.normal), animation: .default)
                             }) {
-                                rollView(firstViewStore, step, viewStore.state, .firstRoll)
-                                    .opacity(viewStore.state.details == .secondRoll ? 0.33 : 1.0)
+                                Label("Normal", systemImage: "equal.circle")
                             }
-                        }
 
-                        IfLetStore(store.scope(state: \.second, action: \.second)) { store in
-                            WithViewStore(store, observe: \.self) { secondViewStore in
-                                SimpleButton(action: {
-                                    viewStore.send(.details(viewStore.state.details.toggled(.secondRoll)), animation: .default)
-                                }) {
-                                    rollView(secondViewStore, step, viewStore.state, .secondRoll)
-                                        .opacity(viewStore.state.details == .firstRoll ? 0.33 : 1.0)
-                                }
+                            Button(action: {
+                                store.send(.type(.disadvantage), animation: .default)
+                            }) {
+                                Label("Disadvantage", systemImage: "arrow.down.circle")
                             }
+                        }) {
+                            Image(systemName: "ellipsis.circle")
+                        }
+                    }
+
+                    let firstStore = store.scope(state: \.first, action: \.first)
+                    SimpleButton(action: {
+                        store.send(.details(store.details.toggled(.firstRoll)), animation: .default)
+                    }) {
+                        rollView(firstStore.state, step, store.state, .firstRoll)
+                            .opacity(store.details == .secondRoll ? 0.33 : 1.0)
+                    }
+
+                    if let secondStore = store.scope(state: \.second, action: \.second) {
+                        SimpleButton(action: {
+                            store.send(.details(store.details.toggled(.secondRoll)), animation: .default)
+                        }) {
+                            rollView(secondStore.state, step, store.state, .secondRoll)
+                                .opacity(store.details == .firstRoll ? 0.33 : 1.0)
                         }
                     }
                 }
             }
 
-            private func rollView(_ viewStore: ViewStore<AnimatedRoll.State, AnimatedRoll.Action>, _ step: DiceAction.Step, _ rollValue: DiceAction.Step.Value.RollValue, _ roll: DiceAction.Step.Value.RollValue.Details) -> some View {
-                AnimatedRollView(roll: viewStore.binding(send: { _ in fatalError() })) { res, final in
-                    Text("\(res?.total ?? 0)")
-                        .underline(res != nil && res?.total == res?.unroll.maximum)
-                        .italic(res != nil && res?.total == res?.unroll.minimum)
-                        .foregroundColor(rollValue.emphasis(for: roll).map { emphasisColor(for: $0) })
-                        .opacity(final ? 1 : 0.66)
-                        .opacity(rollValue.emphasis(for: roll.other) == nil ? 1 : 0.33)
-                        .font(.headline)
-                        .padding(6)
-                        .frame(minWidth: 50, minHeight: 50)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(style: StrokeStyle(lineWidth: 4))
-                                .foregroundColor(Color(UIColor.systemGray5))
-                        )
-                        .animation(nil, value: res)
-                }
+            private func rollView(_ roll: AnimatedRoll.State, _ step: DiceAction.Step, _ rollValue: DiceAction.Step.Value.RollValue, _ rollDetails: DiceAction.Step.Value.RollValue.Details) -> some View {
+                let res = roll.effectiveResult
+                let final = roll.isFinal
+                return Text("\(res?.total ?? 0)")
+                    .underline(res != nil && res?.total == res?.unroll.maximum)
+                    .italic(res != nil && res?.total == res?.unroll.minimum)
+                    .foregroundColor(rollValue.emphasis(for: rollDetails).map { emphasisColor(for: $0) })
+                    .opacity(final ? 1 : 0.66)
+                    .opacity(rollValue.emphasis(for: rollDetails.other) == nil ? 1 : 0.33)
+                    .font(.headline)
+                    .padding(6)
+                    .frame(minWidth: 50, minHeight: 50)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(style: StrokeStyle(lineWidth: 4))
+                            .foregroundColor(Color(UIColor.systemGray5))
+                    )
+                    .animation(nil, value: res)
             }
 
             private func emphasisColor(for rollType: DiceAction.Step.Value.RollValue.RollType) -> Color {
@@ -167,20 +157,18 @@ struct DiceActionView: View {
 
         struct RollDetailView: View {
             let step: DiceAction.Step
-            let store: Store<DiceAction.Step, DiceActionFeature.StepAction>
+            let store: StoreOf<DiceActionFeature.Step>
 
             var body: some View {
-                WithViewStore(store, observe: \.self) { viewStore in
-                    if let result = viewStore.state.rollDetails?.result(includingIntermediary: true) {
-                        ResultDetailView(result: result) { idx in
-                            viewStore.send(.rollDetails(.onResultDieTap(idx)), animation: .spring())
-                        }
-                        .padding(10)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            Color(UIColor.systemGray6).cornerRadius(4)
-                        )
+                if let result = store.rollDetails?.result(includingIntermediary: true) {
+                    ResultDetailView(result: result) { idx in
+                        store.send(.rollDetails(.onResultDieTap(idx)), animation: .spring())
                     }
+                    .padding(10)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        Color(UIColor.systemGray6).cornerRadius(4)
+                    )
                 }
             }
         }
@@ -188,19 +176,17 @@ struct DiceActionView: View {
 }
 
 #if DEBUG
-struct DiceActionViewDebugHost: View {
-    var body: some View {
-        DiceActionView(store: Store(
-            initialState: DiceActionFeature.State(
-                creatureName: "",
-                action: DiceAction(
-                    title: "Scimitar",
-                    parsedAction: CreatureActionParser.parse("Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.")!
-                )!
-            )
-        ) {
-            DiceActionFeature()
-        })
-    }
+#Preview {
+    DiceActionView(store: Store(
+        initialState: DiceActionFeature.State(
+            creatureName: "",
+            action: DiceAction(
+                title: "Scimitar",
+                parsedAction: CreatureActionParser.parse("Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.")!
+            )!
+        )
+    ) {
+        DiceActionFeature()
+    })
 }
 #endif

@@ -13,11 +13,13 @@ import DiceRollerFeature
 import GameModels
 import Helpers
 
+@ObservableState
 public struct DiceAction: Hashable {
     let title: String
     let subtitle: String
     var steps: IdentifiedArrayOf<Step>
 
+    @ObservableState
     public struct Step: Hashable, Identifiable {
         public let id = UUID()
         let title: String
@@ -27,6 +29,7 @@ public struct DiceAction: Hashable {
         public enum Value: Hashable {
             case roll(RollValue)
 
+            @ObservableState
             public struct RollValue: Hashable {
                 let roll: Roll
                 var type: RollType = .normal

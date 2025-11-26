@@ -3,7 +3,9 @@ import SwiftUI
 import ComposableArchitecture
 import Dice
 
-public struct AnimatedRoll: Reducer {
+@Reducer
+public struct AnimatedRoll {
+    @ObservableState
     public struct State: Hashable {
         var expression: DiceExpression?
         var result: RolledDiceExpression?

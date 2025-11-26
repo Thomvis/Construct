@@ -4,8 +4,9 @@ import ComposableArchitecture
 import DiceRollerFeature
 
 @Reducer
-public struct DiceActionFeature: Reducer {
+public struct DiceActionFeature {
 
+    @ObservableState
     public struct State: Hashable {
         var creatureName: String
         var action: DiceAction

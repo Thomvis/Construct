@@ -12,16 +12,17 @@ import ComposableArchitecture
 import GameModels
 
 @Reducer
-public struct ActionDescriptionFeature: Reducer {
+public struct ActionDescriptionFeature {
 
+    @ObservableState
     public struct State: Equatable {
         public typealias _AsyncDescription_Reduce = AsyncReduce<String, String, MechMuseError>
         public typealias _AsyncDescription_Map = Map<RequestInput, _AsyncDescription_Reduce>
         public typealias AsyncDescription = Retain<_AsyncDescription_Map, _AsyncDescription_Reduce.State>
 
         let encounterContext: ActionResolutionFeature.State.EncounterContext?
-        @BindingState var context: Context
-        @BindingState var settings: Settings = .init(outcome: nil, impact: .average)
+        var context: Context
+        var settings: Settings = .init(outcome: nil, impact: .average)
 
         fileprivate var description: AsyncDescription.State = .init(
             wrapped: .init(input: .init(), result: .init(value: ""))
