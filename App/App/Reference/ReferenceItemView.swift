@@ -19,33 +19,37 @@ struct ReferenceItemView: View {
 
     var body: some View {
         // TODO: not all content should be presented in a NavigationView
-        WithViewStore(store, observe: \.content.typeHash) { _ in
-            NavigationStack {
-                ZStack {
-                    IfLetStore(store.scope(state: \.content.compendiumState?.compendium, action: \.contentCompendium.compendium)) { store in
-                        CompendiumIndexView(store: store)
-                    }
-
-                    IfLetStore(store.scope(state: \.content.combatantDetailState, action: \.contentCombatantDetail), then: CombatantDetailView.init)
-
-                    IfLetStore(store.scope(state: \.content.addCombatantState, action: \.contentAddCombatant), then: AddCombatantReferenceItemView.init)
-
-                    IfLetStore(store.scope(state: \.content.compendiumItemState, action: \.contentCompendiumItem), then: CompendiumEntryDetailView.init)
-
-                    IfLetStore(store.scope(state: \.content.safariState, action: \.contentSafari)) { store in
-                        SafariView(store: store)
-                            .navigationBarHidden(true)
-                    }
+        NavigationStack {
+            ZStack {
+                if let compendiumStore = store.scope(state: \.content.compendiumState?.compendium, action: \.contentCompendium.compendium) {
+                    CompendiumIndexView(store: compendiumStore)
                 }
-                .navigationBarTitleDisplayMode(.inline)
+
+                if let combatantDetailStore = store.scope(state: \.content.combatantDetailState, action: \.contentCombatantDetail) {
+                    CombatantDetailView(store: combatantDetailStore)
+                }
+
+                if let addCombatantStore = store.scope(state: \.content.addCombatantState, action: \.contentAddCombatant) {
+                    AddCombatantReferenceItemView(store: addCombatantStore)
+                }
+
+                if let compendiumItemStore = store.scope(state: \.content.compendiumItemState, action: \.contentCompendiumItem) {
+                    CompendiumEntryDetailView(store: compendiumItemStore)
+                }
+
+                if let safariStore = store.scope(state: \.content.safariState, action: \.contentSafari) {
+                    SafariView(store: safariStore)
+                        .navigationBarHidden(true)
+                }
             }
+            .navigationBarTitleDisplayMode(.inline)
         }
         // Work-around for a blank tab when the iPad app is running on a mac
         // Usually, macOS would convert the attempt to show a SFSafariViewController
         // to a link open in Safari. This works on the Settings/About screen, but not here
         // for some reason. So we do it manually.
         .onAppear {
-            if let url = store.withState({ $0.content.safariState?.url }), ProcessInfo.processInfo.isiOSAppOnMac {
+            if let url = store.content.safariState?.url, ProcessInfo.processInfo.isiOSAppOnMac {
                 self.openURL(url)
                 store.send(.close)
             }
@@ -56,32 +60,30 @@ struct ReferenceItemView: View {
         let store: Store<ReferenceItem.State.Content.CombatantDetail, ReferenceItem.Action.CombatantDetail>
 
         var body: some View {
-            WithViewStore(store, observe: \.self) { viewStore in
-                Construct.CombatantDetailView(store: store.scope(state: \.detailState, action: \.detail))
-                    .id(viewStore.state.selectedCombatantId)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .primaryAction) {
-                            Button(action: {
-                                viewStore.send(.previousCombatantTapped)
-                            }) {
-                                Image(systemName: "chevron.left")
-                            }
+            Construct.CombatantDetailView(store: store.scope(state: \.detailState, action: \.detail))
+                .id(store.selectedCombatantId)
+                .toolbar {
+                    ToolbarItemGroup(placement: .primaryAction) {
+                        Button(action: {
+                            store.send(.previousCombatantTapped)
+                        }) {
+                            Image(systemName: "chevron.left")
+                        }
 
-                            Button(action: {
-                                viewStore.send(.togglePinToTurnTapped)
-                            }) {
-                                Image(systemName: viewStore.state.pinToTurn ? "pin.fill" : "pin")
-                            }
-                            .disabled(viewStore.state.runningEncounter == nil)
+                        Button(action: {
+                            store.send(.togglePinToTurnTapped)
+                        }) {
+                            Image(systemName: store.pinToTurn ? "pin.fill" : "pin")
+                        }
+                        .disabled(store.runningEncounter == nil)
 
-                            Button(action: {
-                                viewStore.send(.nextCombatantTapped)
-                            }) {
-                                Image(systemName: "chevron.right")
-                            }
+                        Button(action: {
+                            store.send(.nextCombatantTapped)
+                        }) {
+                            Image(systemName: "chevron.right")
                         }
                     }
-            }
+                }
         }
     }
 }
