@@ -67,6 +67,7 @@
 		E95DE630251E8D160085D550 /* FloatingDiceRollerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */; };
 		E95E25A52EA6895D000B82BF /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95E25A42EA6895D000B82BF /* StoreManager.swift */; };
 		E95E25A72EA6899F000B82BF /* TipJarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95E25A62EA6899F000B82BF /* TipJarView.swift */; };
+		E9SETT0F2EA6900000000001 /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9SETT0F2EA6900000000000 /* SettingsFeature.swift */; };
 		E95E25A92EA689B5000B82BF /* SettingsViewTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95E25A82EA689B5000B82BF /* SettingsViewTest.swift */; };
 		E95FA115231C58A30098BD83 /* DiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */; };
 		E95FD42F249BFA280023F363 /* EncounterDetailTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */; };
@@ -279,6 +280,7 @@
 		E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerView.swift; sourceTree = "<group>"; };
 		E95E25A42EA6895D000B82BF /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		E95E25A62EA6899F000B82BF /* TipJarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipJarView.swift; sourceTree = "<group>"; };
+		E9SETT0F2EA6900000000000 /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFeature.swift; sourceTree = "<group>"; };
 		E95E25A82EA689B5000B82BF /* SettingsViewTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewTest.swift; sourceTree = "<group>"; };
 		E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExpressionTest.swift; sourceTree = "<group>"; };
 		E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailTest.swift; sourceTree = "<group>"; };
@@ -551,6 +553,7 @@
 			isa = PBXGroup;
 			children = (
 				E96FC16723D3A59E00A12F1E /* Fixtures */,
+				E9SETT0F2EA6900000000000 /* SettingsFeature.swift */,
 				E96FC16523D3976800A12F1E /* SettingsView.swift */,
 				E95E25A62EA6899F000B82BF /* TipJarView.swift */,
 			);
@@ -1102,6 +1105,7 @@
 				E97651CC248ADA0100C76865 /* EncounterDetailView.swift in Sources */,
 				E931E54B233971B300C3FE9A /* SearchField.swift in Sources */,
 				E95E25A72EA6899F000B82BF /* TipJarView.swift in Sources */,
+				E9SETT0F2EA6900000000001 /* SettingsFeature.swift in Sources */,
 				E97651D2248AE0D600C76865 /* RunningEncounterEventRow.swift in Sources */,
 				E9819BE22482E772005B898E /* CombatantTrackerEditView.swift in Sources */,
 				E97651D9248AEA8000C76865 /* CombatantTagEditView.swift in Sources */,

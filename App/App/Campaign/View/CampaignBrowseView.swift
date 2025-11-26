@@ -59,7 +59,7 @@ struct CampaignBrowseView: View {
             if store.state.showSettingsButton {
                 ToolbarItem(placement: .navigation) {
                     Button(action: {
-                        store.send(.setSheet(.settings))
+                        store.send(.setSheet(.settings(SettingsFeature.State())))
                     }) {
                         Text("Settings")
                     }
@@ -101,33 +101,28 @@ struct CampaignBrowseView: View {
     }
 
     struct Sheets: ViewModifier {
-        let store: StoreOf<CampaignBrowseViewFeature>
+        @Bindable var store: StoreOf<CampaignBrowseViewFeature>
 
         func body(content: Content) -> some View {
             content
-                .sheet(
-                    store: store.scope(state: \.$sheet.settings, action: \.sheet.settings)
-                ) { _ in
-                    SettingsContainerView()
-                }
-                .sheet(
-                    store: store.scope(state: \.$sheet.nodeEdit, action: \.sheet.nodeEdit)
-                ) { store in
-                    SheetNavigationContainer {
-                        NodeEditView(
-                            store: store,
-                            onDoneTap: { state, node, title in
-                                self.store.send(.didTapNodeEditDone(state, node, title))
-                            }
-                        )
-                    }
-                }
-                .sheet(
-                    store: store.scope(state: \.$sheet.move, action: \.sheet.move)
-                ) { store in
-                    SheetNavigationContainer {
-                        CampaignBrowseView(store: store)
-                            .navigationBarTitleDisplayMode(.inline)
+                .sheet(item: $store.scope(state: \.sheet, action: \.sheet)) { sheetStore in
+                    switch sheetStore.case {
+                    case let .settings(settingsStore):
+                        SettingsContainerView(store: settingsStore)
+                    case let .nodeEdit(nodeEditStore):
+                        SheetNavigationContainer {
+                            NodeEditView(
+                                store: nodeEditStore,
+                                onDoneTap: { state, node, title in
+                                    self.store.send(.didTapNodeEditDone(state, node, title))
+                                }
+                            )
+                        }
+                    case let .move(moveStore):
+                        SheetNavigationContainer {
+                            CampaignBrowseView(store: moveStore)
+                                .navigationBarTitleDisplayMode(.inline)
+                        }
                     }
                 }
         }
@@ -242,7 +237,7 @@ struct CampaignBrowseView: View {
 struct NodeEditView: View {
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    @Bindable var store: StoreOf<CampaignBrowseViewFeature.NodeEdit>
+    @Bindable var store: StoreOf<CampaignBrowseViewFeature.NodeEditFeature>
     let onDoneTap: (CampaignBrowseViewFeature.State.NodeEditState, CampaignNode?, String) -> Void
 
     @State var didFocusOnField = false

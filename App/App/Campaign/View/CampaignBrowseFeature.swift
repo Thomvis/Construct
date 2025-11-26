@@ -127,35 +127,17 @@ struct CampaignBrowseViewFeature {
         case encounter(EncounterDetailFeature)
     }
 
-    struct Sheet: Reducer {
-        @CasePathable
-        enum State: Equatable {
-            case settings
-            case nodeEdit(CampaignBrowseViewFeature.State.NodeEditState)
-            indirect case move(CampaignBrowseViewFeature.State)
-        }
-
-        @CasePathable
-        enum Action: Equatable {
-            case settings(Never)
-            case nodeEdit(CampaignBrowseViewFeature.NodeEdit.Action)
-            case move(CampaignBrowseViewFeature.Action)
-        }
-
-        var body: some ReducerOf<Self> {
-            Scope(state: \.nodeEdit, action: \.nodeEdit) {
-                CampaignBrowseViewFeature.NodeEdit()
-            }
-            Scope(state: \.move, action: \.move) {
-                CampaignBrowseViewFeature()
-            }
-        }
+    @Reducer
+    enum Sheet {
+        case settings(SettingsFeature)
+        case nodeEdit(NodeEditFeature)
+        indirect case move(CampaignBrowseViewFeature)
     }
 
-    struct NodeEdit: Reducer {
+    @Reducer
+    struct NodeEditFeature {
         typealias State = CampaignBrowseViewFeature.State.NodeEditState
 
-        @CasePathable
         enum Action: BindableAction, Equatable {
             case binding(BindingAction<State>)
         }
@@ -170,7 +152,7 @@ struct CampaignBrowseViewFeature {
     @Dependency(\.uuid) var uuid
 
     var body: some ReducerOf<Self> {
-        Reduce { state, action in
+        Reduce<State, Action> { state, action in
             let node = state.node
             switch action {
             case .didTapConfirmMoveButton:
@@ -194,8 +176,6 @@ struct CampaignBrowseViewFeature {
                     await send(.sheet(.dismiss))
                     await send(.items(.startLoading))
                 }
-            case .sheet(.presented(.move)):
-                break
             case .setSheet(let s):
                 state.sheet = s
             case .setDestination(let destination):
@@ -267,8 +247,6 @@ struct CampaignBrowseViewFeature {
 
                     await send(.items(.startLoading))
                 }
-            case .sheet(.dismiss):
-                state.sheet = nil
             case .sheet:
                 break
             case .items: break // handled below
@@ -287,9 +265,7 @@ struct CampaignBrowseViewFeature {
             }
         }
         .ifLet(\.$destination, action: \.destination)
-        .ifLet(\.$sheet, action: \.sheet) {
-            Sheet()
-        }
+        .ifLet(\.$sheet, action: \.sheet)
     }
 }
 
@@ -331,3 +307,6 @@ extension CampaignBrowseViewFeature.Destination.State: NavigationTreeNode {
 
 extension CampaignBrowseViewFeature.Destination.State: Equatable {}
 extension CampaignBrowseViewFeature.Destination.Action: Equatable {}
+
+extension CampaignBrowseViewFeature.Sheet.State: Equatable {}
+extension CampaignBrowseViewFeature.Sheet.Action: Equatable {}

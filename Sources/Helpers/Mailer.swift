@@ -6,6 +6,11 @@ import ComposableArchitecture
 public struct Mailer {
     public var canSendMail: () -> Bool
     public var sendMail: (FeedbackMailContents) -> Void
+
+    public init(canSendMail: @escaping () -> Bool, sendMail: @escaping (FeedbackMailContents) -> Void) {
+        self.canSendMail = canSendMail
+        self.sendMail = sendMail
+    }
 }
 
 public struct FeedbackMailContents {

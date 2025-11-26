@@ -11,19 +11,19 @@ import SwiftUI
 import Parma
 import GameModels
 import Compendium
-import Helpers
 import MechMuse
 import Introspect
 import Persistence
 import ComposableArchitecture
 
 struct SettingsContainerView: View {
-
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+
+    let store: StoreOf<SettingsFeature>
 
     var body: some View {
         NavigationStack {
-            SettingsView()
+            SettingsView(store: store)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: {
@@ -39,20 +39,7 @@ struct SettingsContainerView: View {
 }
 
 struct SettingsView: View {
-    @Dependency(\.mailer) var mailer
-    @Dependency(\.appReview) var appReview
-    @Dependency(\.preferences) var preferencesClient
-    @Dependency(\.compendium) var compendium
-    @Dependency(\.compendiumMetadata) var compendiumMetadata
-    @Dependency(\.mechMuse) var mechMuse
-    
-    @State var destination: Destination?
-
-    @State var initialPreferences: Preferences?
-    @State var preferences = Preferences()
-
-    // the value is the api key
-    @State var mechMuseVerificationResult: Async<String, MechMuseError>.State = .initial
+    @Bindable var store: StoreOf<SettingsFeature>
 
     var body: some View {
         List {
@@ -61,9 +48,9 @@ struct SettingsView: View {
                     Text("Help center")
                 }
 
-                if mailer.canSendMail() {
+                if store.canSendMail {
                     NavigationRowButton(action: {
-                        mailer.sendMail(.init())
+                        store.send(.sendFeedback)
                     }) {
                         VStack(alignment: .leading) {
                             Text("Send feedback").foregroundColor(Color.primary)
@@ -72,13 +59,13 @@ struct SettingsView: View {
                 }
 
                 NavigationRowButton(action: {
-                    appReview.rateInAppStore()
+                    store.send(.rateInAppStore)
                 }) {
                     Text("Please rate Construct").foregroundColor(Color.primary)
                 }
 
                 NavigationRowButton(action: {
-                    destination = .tipJar
+                    store.send(.setDestination(.tipJar))
                 }) {
                     let text = HStack(alignment: .firstTextBaseline) {
                         Image(systemName: "gift.fill")
@@ -104,30 +91,42 @@ struct SettingsView: View {
 
             Section(
                 footer: Group {
-                    if preferences.mechMuse.enabled {
+                    if store.preferences.mechMuse.enabled {
                         Text(try! AttributedString(markdown: "Construct uses [OpenAI](https://openai.com) to generate situational prompts that inspire your DM'ing."))
                     } else {
                         Text(try! AttributedString(markdown: "Let Construct generate situational prompts that inspire your DM'ing."))
                     }
                 }
             ) {
-                Toggle("Mechanical Muse", isOn: $preferences.mechMuse.enabled.animation())
+                Toggle(
+                    "Mechanical Muse",
+                    isOn: Binding(
+                        get: { store.preferences.mechMuse.enabled },
+                        set: { store.send(.setMechMuseEnabled($0), animation: .default) }
+                    )
+                )
 
-                if preferences.mechMuse.enabled {
-                    TextField("OpenAI API key", text: $preferences.mechMuse.apiKey.nonNilString)
-                        .introspectTextField { field in
-                            field.clearButtonMode = .whileEditing
-                        }
-                        .foregroundColor(Color.secondary)
+                if store.preferences.mechMuse.enabled {
+                    TextField(
+                        "OpenAI API key",
+                        text: Binding(
+                            get: { store.preferences.mechMuse.apiKey ?? "" },
+                            set: { store.send(.setMechMuseApiKey($0)) }
+                        )
+                    )
+                    .introspectTextField { field in
+                        field.clearButtonMode = .whileEditing
+                    }
+                    .foregroundColor(Color.secondary)
 
                     VStack {
                         LabeledContent {
-                            if mechMuseVerificationResult.isLoading {
+                            if store.mechMuseVerificationState.isLoading {
                                 ProgressView()
-                            } else if mechMuseVerificationResult.value != nil {
+                            } else if store.mechMuseVerificationState.verifiedApiKey != nil {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(Color(UIColor.systemGreen))
-                            } else if mechMuseVerificationResult.error != nil {
+                            } else if store.mechMuseVerificationState.error != nil {
                                 Image(systemName: "exclamationmark.circle.fill")
                                     .foregroundColor(Color(UIColor.systemRed))
                             } else {
@@ -138,7 +137,7 @@ struct SettingsView: View {
                         }
                         .padding(.trailing, 5) // 5 is the magic number to align with the API key textfield
 
-                        if let errorMessage = mechMuseVerificationResult.error?.attributedDescription {
+                        if let errorMessage = store.mechMuseVerificationState.error?.attributedDescription {
                             Text(errorMessage)
                                 .font(.footnote)
                                 .multilineTextAlignment(.leading)
@@ -152,24 +151,25 @@ struct SettingsView: View {
             }
 
             Section(footer: Text("Help me improve Construct by sending an anonymous report when an unexpected error occurs.").font(.footnote)) {
-                Toggle("Send diagnostic reports", isOn: $preferences.errorReportingEnabled.withDefault(false))
+                Toggle(
+                    "Send diagnostic reports",
+                    isOn: Binding(
+                        get: { store.preferences.errorReportingEnabled ?? false },
+                        set: { store.send(.setErrorReportingEnabled($0)) }
+                    )
+                )
             }
 
             #if DEBUG
             Section(header: Text("Debug options")) {
                 NavigationRowButton(action: {
-                    try? preferencesClient.update { prefs in
-                        prefs = Preferences()
-                    }
+                    store.send(.resetPreferences)
                 }) {
                     Text("Reset all preferences").foregroundColor(Color.primary)
                 }
 
                 NavigationRowButton(action: {
-                    Task {
-                        let importer = CompendiumImporter(compendium: compendium, metadata: compendiumMetadata)
-                        try await importer.importDefaultContent()
-                    }
+                    store.send(.importDefaultContent)
                 }) {
                     Text("Import default content").foregroundColor(Color.primary)
                 }
@@ -201,41 +201,7 @@ struct SettingsView: View {
         .navigationDestination(item: pushDestination, destination: pushView)
         .navigationBarTitle("Settings", displayMode: .inline)
         .onAppear {
-            let prefs = preferencesClient.get()
-            self.initialPreferences = prefs
-            self.preferences = prefs
-        }
-        .onChange(of: preferences) { _, p in
-            if p != initialPreferences && p != Preferences() {
-                try? preferencesClient.update { prefs in
-                    prefs = p
-                }
-            }
-        }
-        .task(id: ["\(preferences.mechMuse.enabled)", preferences.mechMuse.apiKey]) { [mm=preferences.mechMuse] in
-            guard mm.enabled, let key = mm.apiKey else {
-                self.mechMuseVerificationResult = .initial
-                return
-            }
-
-            guard key != mechMuseVerificationResult.value else { return }
-
-            self.mechMuseVerificationResult = .initial
-            self.mechMuseVerificationResult.isLoading = true
-
-            do {
-                // debounce
-                try await Task.sleep(for: .milliseconds(100))
-
-                // verify API key
-                try await mechMuse.verifyAPIKey(key)
-                self.mechMuseVerificationResult.result = .success(key)
-            } catch let error as MechMuseError {
-                self.mechMuseVerificationResult.result = .failure(error)
-            } catch {
-                self.mechMuseVerificationResult.result = .failure(.unspecified)
-            }
-            self.mechMuseVerificationResult.isLoading = false
+            store.send(.onAppear)
         }
     }
 
@@ -249,45 +215,45 @@ struct SettingsView: View {
     }
 
     @ViewBuilder
-    func navigationLink<Label>(destination: Destination, @ViewBuilder label: () -> Label) -> some View where Label: View {
+    func navigationLink<Label>(destination: SettingsFeature.State.Destination, @ViewBuilder label: () -> Label) -> some View where Label: View {
         NavigationRowButton(action: {
-            self.destination = destination
+            store.send(.setDestination(destination))
         }, label: {
             label().foregroundColor(Color.primary)
         })
     }
 
-    var sheetDestination: Binding<Destination?> {
+    var sheetDestination: Binding<SettingsFeature.State.Destination?> {
         Binding(get: {
-            if case .safariView(let url) = self.destination {
+            if case .safariView(let url) = store.destination {
                 return .safariView(url)
             }
             return nil
         }, set: {
-            self.destination = $0
+            store.send(.setDestination($0))
         })
     }
 
-    var pushDestination: Binding<Destination?> {
+    var pushDestination: Binding<SettingsFeature.State.Destination?> {
         Binding(get: {
-            switch self.destination {
-            case .ogl, .acknowledgements, .tipJar: return self.destination
+            switch store.destination {
+            case .ogl, .acknowledgements, .tipJar: return store.destination
             default: return nil
             }
         }, set: {
-            self.destination = $0
+            store.send(.setDestination($0))
         })
     }
 
     @ViewBuilder
-    func sheetView(destination: Destination?) -> some View {
+    func sheetView(destination: SettingsFeature.State.Destination?) -> some View {
         if case .safariView(let url) = destination {
             SafariView(url: URL(string: url)!).edgesIgnoringSafeArea(.all)
         }
     }
 
     @ViewBuilder
-    func pushView(destination: Destination) -> some View {
+    func pushView(destination: SettingsFeature.State.Destination) -> some View {
         switch destination {
         case .ogl:
             ScrollView {
@@ -301,15 +267,6 @@ struct SettingsView: View {
             TipJarView()
         default: EmptyView()
         }
-    }
-
-    enum Destination: Hashable, Identifiable {
-        var id: Int { hashValue }
-
-        case safariView(String)
-        case ogl
-        case acknowledgements
-        case tipJar
     }
 }
 
