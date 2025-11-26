@@ -166,6 +166,12 @@ struct ConstructView: View {
         }
     }
 
+    /// Initializer for testing with a pre-built store
+    init(dependencies: BaseDependencies, store: StoreOf<AppFeature>) {
+        self.dependencies = dependencies
+        self.store = store
+    }
+
     var body: some View {
         ZStack {
             navigationView
