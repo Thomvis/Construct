@@ -18,18 +18,14 @@ struct CombatantTagEditView: View {
     @EnvironmentObject var ordinalFormatter: OrdinalFormatter
     @SwiftUI.Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    let store: StoreOf<CombatantTagEditFeature>
+    @Bindable var store: StoreOf<CombatantTagEditFeature>
 
     var tag: CombatantTag {
         store.tag
     }
 
     var note: Binding<String> {
-        return Binding(get: {
-            store.tag.note ?? ""
-        }, set: {
-            store.send(.onNoteTextDidChange($0))
-        })
+        $store.tag.note.nonNilString.sending(\.onNoteTextDidChange)
     }
 
     var body: some View {
