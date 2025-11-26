@@ -36,13 +36,18 @@
 - Migrated CompendiumIndexView to observation: removed all LocalState structs; replaced `WithViewStore` in main view, searchable modifier, item list, entry row, and filter button; added computed properties to State for view state.
 - Migrated DiceActionView.swift to observation: added `@ObservableState` to `DiceActionFeature.State`, `DiceAction`, `DiceAction.Step`, `DiceAction.Step.Value.RollValue`, and `AnimatedRoll.State`; replaced `WithViewStore`/`ForEachStore`/`IfLetStore` with direct store access and `ForEach`/`if let` patterns.
 - Migrated ActionDescriptionView.swift to observation: added `@ObservableState` to `ActionDescriptionFeature.State`; removed `@BindingState` annotations; replaced `WithViewStore` with `@Bindable var store`; updated bindings to use `$store.property` syntax.
+- Migrated all remaining ViewStore views to observation: CombatantResourcesView, CombatantTagEditView, CombatantTrackerEditView, CompendiumFilterSheet, CompendiumItemGroupEditView, HealthDialog, AddCombatantDetailView, AddCombatantCompendiumView, RunningEncounterLogView, CreatureEditView.
 
 ## Status
 
-Most deprecated TCA APIs have been removed. Remaining legacy patterns:
+All deprecated `ViewStore` usages have been removed:
 - ✅ No `@PresentationState` usages remain (replaced with `@Presents`)
-- ⚠️ Some `ViewStore` usages remain (~10 files with `@ObservedObject var viewStore` pattern)
+- ✅ No `ViewStore` usages remain in production code
+- ✅ No `WithViewStore` usages remain
+- ✅ No `IfLetStore` usages remain  
+- ✅ No `ForEachStore` usages remain
+
+Remaining items (low priority, can be done opportunistically):
 - ⚠️ Old-style `\.$` scoping in some navigation modifiers (~19 occurrences)
 - ⚠️ `.alert(store:)` modifier in 3 files
-
-Some reducers still use the old `struct X: Reducer` pattern without `@Reducer` macro, but these compile fine and can be migrated opportunistically.
+- ⚠️ Some reducers use `struct X: Reducer` without `@Reducer` macro (~40 occurrences)
