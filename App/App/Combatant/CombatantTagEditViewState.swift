@@ -11,8 +11,10 @@ import ComposableArchitecture
 import Helpers
 import GameModels
 
-struct CombatantTagEditFeature: Reducer {
+@Reducer
+struct CombatantTagEditFeature {
 
+    @ObservableState
     struct State: Equatable, NavigationStackItemState {
         var mode: Mode
         var tag: CombatantTag

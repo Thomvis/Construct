@@ -146,12 +146,14 @@ struct CombatantTagEditView: View {
                     }
                 ).eraseToAnyView
             case .numberEntry:
-                return IfLetStore(store.scope(state: \.numberEntryPopover, action: \.numberEntryPopover)) { store in
-                    NumberEntryPopover(store: store) { outcome in
+                if store.numberEntryPopover != nil {
+                    let popoverStore = store.scope(state: \.numberEntryPopover!, action: \.numberEntryPopover)
+                    return NumberEntryPopover(store: popoverStore) { outcome in
                         self.viewStore.send(.onNoteTextDidChange("DC \(outcome)"))
                         self.viewStore.send(.popover(nil))
-                    }
-                }.eraseToAnyView
+                    }.eraseToAnyView
+                }
+                return nil
             case nil: return nil
             }
         }, set: {
