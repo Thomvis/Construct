@@ -136,23 +136,28 @@ struct ConstructView: View {
     }
 
     init(dependencies: BaseDependencies) {
-        let state = AppFeature.State(
-            navigation: nil
-        )
-
         self.dependencies = dependencies
-        self._store = StateObject(wrappedValue: Store(
-            initialState: state
-        ) {
-            dependencies.database.keyValueStore.entityChangeObserver(
-                initialState: state,
-                reducer: AppFeature()
-            )
-        } withDependencies: { deps in
+
+        let store = withDependencies { deps in
             deps.database = dependencies.database
             deps.modifierFormatter = dependencies.modifierFormatter
             deps.ordinalFormatter = dependencies.ordinalFormatter
-        })
+        } operation: {
+            let state = AppFeature.State(
+                navigation: nil
+            )
+
+            return Store(
+                initialState: state
+            ) {
+                dependencies.database.keyValueStore.entityChangeObserver(
+                    initialState: state,
+                    reducer: AppFeature()
+                )
+            }
+        }
+
+        self._store = StateObject(wrappedValue: store)
     }
 
     /// Initializer for testing with a pre-built store

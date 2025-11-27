@@ -31,6 +31,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-identified-collections", from: "1.1.1"),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.4"),
+        .package(url: "https://github.com/pointfreeco/swift-case-paths.git", from: "1.7.2"),
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-tagged", from: "0.10.0"),
         .package(url: "https://github.com/pointfreeco/swift-url-routing", from: "0.6.2"),
@@ -39,6 +40,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.14.1"),
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.14.0"),
+        .package(url: "https://github.com/pointfreeco/swift-sharing.git", from: "2.0.0"),
         .package(url: "https://github.com/ajevans99/swift-json-schema", from: "0.10.0"),
         .package(url: "https://github.com/MacPaw/OpenAI.git", from: "0.4.7")
     ],
@@ -102,7 +104,9 @@ let package = Package(
             name: "GameModels",
             dependencies: [
                 "Dice",
-                "Helpers"
+                "Helpers",
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                .product(name: "CasePathsCore", package: "swift-case-paths")
             ]
         ),
         .testTarget(
@@ -111,7 +115,8 @@ let package = Package(
                 "GameModels",
                 "TestSupport",
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-                .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")
+                .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing"),
+                .product(name: "CasePathsCore", package: "swift-case-paths")
             ]
         ),
         .target(
@@ -134,7 +139,8 @@ let package = Package(
                 "TestSupport",
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 .product(name: "Clocks", package: "swift-clocks"),
-                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
+                .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
+                .product(name: "CasePathsCore", package: "swift-case-paths")
             ]
         ),
         .target(
@@ -161,7 +167,9 @@ let package = Package(
             dependencies: [
                 "Compendium",
                 "GameModels",
-                .product(name: "GRDB", package: "GRDB.swift")
+                .product(name: "GRDB", package: "GRDB.swift"),
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                .product(name: "Sharing", package: "swift-sharing")
             ]
         ),
         .testTarget(
@@ -170,7 +178,10 @@ let package = Package(
                 "Persistence",
                 "GameModels",
                 "TestSupport",
-                .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing")
+                .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing"),
+                .product(name: "CasePathsCore", package: "swift-case-paths"),
+                .product(name: "Sharing", package: "swift-sharing"),
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
             ]
         ),
         .target(

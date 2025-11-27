@@ -12,6 +12,7 @@ import GameModels
 import Compendium
 import MechMuse
 import Persistence
+import Sharing
 
 @Reducer
 public struct SettingsFeature: Reducer {
@@ -21,18 +22,14 @@ public struct SettingsFeature: Reducer {
     @ObservableState
     public struct State: Equatable {
         var destination: Destination?
-        var initialPreferences: Preferences?
-        var preferences: Preferences = Preferences()
+        @Shared(.entity(Preferences.key)) var preferences = Preferences()
         var mechMuseVerificationState: MechMuseVerificationState = .initial
         var canSendMail: Bool = false
 
         public init(
-            destination: Destination? = nil,
-            preferences: Preferences = Preferences()
+            destination: Destination? = nil
         ) {
             self.destination = destination
-            self.initialPreferences = preferences
-            self.preferences = preferences
         }
 
         public enum Destination: Hashable, Identifiable {
@@ -70,7 +67,6 @@ public struct SettingsFeature: Reducer {
     public enum Action: Equatable {
         case onAppear
         case setDestination(State.Destination?)
-        case setPreferences(Preferences)
         case setMechMuseEnabled(Bool)
         case setMechMuseApiKey(String)
         case setErrorReportingEnabled(Bool)
@@ -86,7 +82,6 @@ public struct SettingsFeature: Reducer {
 
     @Dependency(\.mailer) var mailer
     @Dependency(\.appReview) var appReview
-    @Dependency(\.preferences) var preferencesClient
     @Dependency(\.compendium) var compendium
     @Dependency(\.compendiumMetadata) var compendiumMetadata
     @Dependency(\.mechMuse) var mechMuse
@@ -100,40 +95,25 @@ public struct SettingsFeature: Reducer {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                let prefs = preferencesClient.get()
-                state.initialPreferences = prefs
-                state.preferences = prefs
                 state.canSendMail = mailer.canSendMail()
                 return verifyMechMuseIfNeeded(state: &state)
 
             case .setDestination(let destination):
                 state.destination = destination
 
-            case .setPreferences(let preferences):
-                state.preferences = preferences
-                return persistPreferences(state: state)
-                    .merge(with: verifyMechMuseIfNeeded(state: &state))
-
             case .setMechMuseEnabled(let enabled):
-                state.preferences.mechMuse.enabled = enabled
-                return persistPreferences(state: state)
-                    .merge(with: verifyMechMuseIfNeeded(state: &state))
+                state.$preferences.withLock { $0.mechMuse.enabled = enabled }
+                return verifyMechMuseIfNeeded(state: &state)
 
             case .setMechMuseApiKey(let apiKey):
-                state.preferences.mechMuse.apiKey = apiKey.isEmpty ? nil : apiKey
-                return persistPreferences(state: state)
-                    .merge(with: verifyMechMuseIfNeeded(state: &state))
+                state.$preferences.withLock { $0.mechMuse.apiKey = apiKey.isEmpty ? nil : apiKey }
+                return verifyMechMuseIfNeeded(state: &state)
 
             case .setErrorReportingEnabled(let enabled):
-                state.preferences.errorReportingEnabled = enabled
-                return persistPreferences(state: state)
+                state.$preferences.withLock { $0.errorReportingEnabled = enabled }
 
             case .resetPreferences:
-                try? preferencesClient.update { prefs in
-                    prefs = Preferences()
-                }
-                state.preferences = Preferences()
-                state.initialPreferences = Preferences()
+                state.$preferences.withLock { $0 = Preferences() }
 
             case .importDefaultContent:
                 return .run { _ in
@@ -189,21 +169,6 @@ public struct SettingsFeature: Reducer {
         }
     }
 
-    private func persistPreferences(state: State) -> Effect<Action> {
-        // fixme preferences not consistently saved
-        guard state.preferences != state.initialPreferences,
-              state.preferences != Preferences() else {
-            return .none
-        }
-
-        let preferences = state.preferences
-        return .run { _ in
-            try? preferencesClient.update { prefs in
-                prefs = preferences
-            }
-        }
-    }
-
     private func verifyMechMuseIfNeeded(state: inout State) -> Effect<Action> {
         guard state.preferences.mechMuse.enabled,
               let apiKey = state.preferences.mechMuse.apiKey,
@@ -224,4 +189,3 @@ public struct SettingsFeature: Reducer {
 public extension SettingsFeature.State {
     static let nullInstance = Self()
 }
-

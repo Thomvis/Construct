@@ -13,6 +13,8 @@ import ComposableArchitecture
 import Helpers
 import SharedViews
 import GameModels
+import Persistence
+import Sharing
 
 struct CampaignBrowseView: View {
     @SwiftUI.Environment(\.sheetPresentationMode) var sheetPresentationMode: SheetPresentationMode?
@@ -188,7 +190,7 @@ struct CampaignBrowseView: View {
         NavigationRowButton {
             @Dependency(\.database) var database
             @Dependency(\.crashReporter) var crashReporter
-            @Dependency(\.preferences) var preferencesClient
+            @Shared(.entity(Preferences.key)) var preferences: Preferences = Preferences()
             // FIXME: move logic to reducer
 
             let nextScreen: CampaignBrowseViewFeature.Destination.State
@@ -204,7 +206,7 @@ struct CampaignBrowseView: View {
                         let detailState = EncounterDetailFeature.State(
                             building: encounter,
                             running: runningEncounter,
-                            isMechMuseEnabled: preferencesClient.get().mechMuse.enabled
+                            isMechMuseEnabled: preferences.mechMuse.enabled
                         )
                         nextScreen = .encounter(detailState)
                     } else {

@@ -16,6 +16,7 @@ import Helpers
 import URLRouting
 import GameModels
 import Persistence
+import Sharing
 
 @Reducer
 struct AppFeature: Reducer {
@@ -28,6 +29,8 @@ struct AppFeature: Reducer {
         var pendingPresentations: [Presentation] = []
 
         var sceneIsActive = false
+        
+        @Shared(.entity(Preferences.key)) var preferences: Preferences = Preferences()
         
         @Presents var crashReportingPermissionAlert: AlertState<Action.Alert>?
 
@@ -71,7 +74,6 @@ struct AppFeature: Reducer {
     @Dependency(\.database) var database
     @Dependency(\.diceLog) var diceLog
     @Dependency(\.idleTimer) var idleTimer
-    @Dependency(\.preferences) var preferencesClient
     @Dependency(\.storeManager) var storeManager
 
     var body: some ReducerOf<Self> {
@@ -79,10 +81,10 @@ struct AppFeature: Reducer {
             switch action {
             case .onLaunch:
                 return .merge(
-                    .run { send in
+                    .run { [preferences = state.preferences] send in
                         // Check Crashlytics
                         if Crashlytics.crashlytics().didCrashDuringPreviousExecution() {
-                            if preferencesClient.get().errorReportingEnabled == true {
+                            if preferences.errorReportingEnabled == true {
                                 // user consent has been given, send reports
                                 crashReporter.registerUserPermission(.send)
                             }
@@ -141,10 +143,6 @@ struct AppFeature: Reducer {
                     state.pendingPresentations.append(p)
                 }
             case .dismissPresentation(let p):
-                // we can't add this precondition because SwiftUI invokes the isPresented binding
-                // _after_ we hid the sheet by nilling underlying field.
-                // Instead, we ignore the dismiss action
-                // precondition(state.presentation == p)
                 guard state.presentation == p else { break }
                 state.presentation = nil
                 if p == .crashReportingPermissionAlert {
@@ -153,8 +151,6 @@ struct AppFeature: Reducer {
 
                 if let next = state.pendingPresentations.first {
                     state.pendingPresentations.removeFirst()
-                    // workaround: we need to delay the action to work around
-                    // a "Attempt to present X which is already presenting Y" error
                     return .run { send in
                         try await Task.sleep(for: .seconds(0.1))
                         await send(.requestPresentation(next))
@@ -171,10 +167,8 @@ struct AppFeature: Reducer {
                 }
             case .onReceiveCrashReportingUserPermission(let permission):
                 crashReporter.registerUserPermission(permission)
-                var preferences = preferencesClient.get()
-                if preferences.errorReportingEnabled != (permission == .send) {
-                    preferences.errorReportingEnabled = permission == .send
-                    try? preferencesClient.update { $0.errorReportingEnabled = permission == .send }
+                if state.preferences.errorReportingEnabled != (permission == .send) {
+                    state.$preferences.withLock { $0.errorReportingEnabled = permission == .send }
                 }
             case .welcomeSheetSampleEncounterTapped:
                 return .run { send in
@@ -190,12 +184,11 @@ struct AppFeature: Reducer {
                     await send(.dismissPresentation(.welcomeSheet))
                 }
             case .onAppear:
-                if !preferencesClient.get().didShowWelcomeSheet {
+                if !state.preferences.didShowWelcomeSheet {
                     return .send(.requestPresentation(.welcomeSheet))
                 } else if let nodeCount = try? campaignBrowser.nodeCount(),
                           nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
                 {
-                    // if the user created some campaign nodes
                     #if !DEBUG
                     appReview.requestAppStoreReview()
                     #endif
@@ -205,13 +198,11 @@ struct AppFeature: Reducer {
             case .onOpenURL(let url):
                 guard let invocation = try? appInvocationRouter.match(url: url) else { break }
                 if case .diceRoller(let roller) = invocation {
-                    // tab
                     state.navigation?.tabState?.selectedTab = .diceRoller
                     state.navigation?.tabState?.diceRoller.calculatorState.mode = .editingExpression
                     state.navigation?.tabState?.diceRoller.calculatorState.reset()
                     state.navigation?.tabState?.diceRoller.calculatorState.expression = roller.expression
 
-                    // column
                     state.navigation?.columnState?.diceCalculator.hidden = false
                     state.navigation?.columnState?.diceCalculator.diceCalculator.mode = .editingExpression
                     state.navigation?.columnState?.diceCalculator.diceCalculator.reset()
@@ -229,9 +220,7 @@ struct AppFeature: Reducer {
         .onChange(of: \.presentation) { oldValue, newValue in
             Reduce { state, action in
                 if newValue == .welcomeSheet {
-                    try? preferencesClient.update {
-                        $0.didShowWelcomeSheet = true
-                    }
+                    state.$preferences.withLock { $0.didShowWelcomeSheet = true }
                 }
                 return .none
             }
@@ -289,7 +278,7 @@ struct AppFeature: Reducer {
             case column(ColumnNavigationFeature.Action)
         }
 
-        @Dependency(\.preferences) var preferencesClient
+        @Shared(.entity(Preferences.key)) var preferences: Preferences = Preferences()
 
         var body: some ReducerOf<Self> {
             Reduce<State, Action> { state, action in
@@ -297,13 +286,13 @@ struct AppFeature: Reducer {
                 case (.tab, .openEncounter(let e)):
                     let detailState = EncounterDetailFeature.State(
                         building: e,
-                        isMechMuseEnabled: preferencesClient.get().mechMuse.enabled
+                        isMechMuseEnabled: preferences.mechMuse.enabled
                     )
                     return .send(.tab(.campaignBrowser(.setDestination(.encounter(detailState)))))
                 case (.column, .openEncounter(let e)):
                     let detailState = EncounterDetailFeature.State(
                         building: e,
-                        isMechMuseEnabled: preferencesClient.get().mechMuse.enabled
+                        isMechMuseEnabled: preferences.mechMuse.enabled
                     )
                     return .send(.column(.campaignBrowse(.setDestination(.encounter(detailState)))))
                 default:

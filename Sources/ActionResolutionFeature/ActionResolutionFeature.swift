@@ -94,7 +94,6 @@ public struct ActionResolutionFeature: Reducer {
     }
 
     @Dependency(\.mailer) var mailer
-    @Dependency(\.preferences) var preferencesClient
     @Dependency(\.mechMuse) var mechMuse
 
     public var body: some Reducer<State, Action> {

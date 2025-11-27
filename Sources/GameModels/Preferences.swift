@@ -9,7 +9,7 @@
 import Foundation
 import Helpers
 
-public struct Preferences: Codable, Equatable {
+public struct Preferences: Codable, Equatable, Sendable {
     public var didShowWelcomeSheet = false
     /// The ParseableGameModels.combinedVersion when ParseableKeyValueRecordManager last ran
     public var parseableManagerLastRunVersion: String?
@@ -30,7 +30,7 @@ public struct Preferences: Codable, Equatable {
     }
 }
 
-public struct MechMusePreferences: Codable, Equatable {
+public struct MechMusePreferences: Codable, Equatable, Sendable {
     public var enabled: Bool
     public var apiKey: String?
 }
