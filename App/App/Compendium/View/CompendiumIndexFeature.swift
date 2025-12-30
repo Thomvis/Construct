@@ -157,6 +157,7 @@ struct CompendiumIndexFeature {
                 case .compendiumImport: return .compendiumImport(CompendiumImportFeature.State())
                 case .documents: return .documents(CompendiumDocumentsFeature.State())
                 case .transfer: return .transfer(CompendiumItemTransferFeature.State(mode: .copy, selection: .multipleFetchRequest(.init())))
+                case .filter: return .filter(CompendiumFilterSheetFeature.State())
                 }
             }
 
@@ -256,6 +257,7 @@ struct CompendiumIndexFeature {
             case compendiumImport(CompendiumImportFeature.State)
             case documents(CompendiumDocumentsFeature.State)
             case transfer(CompendiumItemTransferFeature.State)
+            case filter(CompendiumFilterSheetFeature.State)
         }
 
         @CasePathable
@@ -265,6 +267,9 @@ struct CompendiumIndexFeature {
             case compendiumImport(CompendiumImportFeature.Action)
             case documents(CompendiumDocumentsFeature.Action)
             case transfer(CompendiumItemTransferFeature.Action)
+            case filter(CompendiumFilterSheetFeature.Action)
+
+            case onFilterApply
         }
 
         var body: some ReducerOf<Self> {
@@ -282,6 +287,9 @@ struct CompendiumIndexFeature {
             }
             Scope(state: \.transfer, action: \.transfer) {
                 CompendiumItemTransferFeature()
+            }
+            Scope(state: \.filter, action: \.filter) {
+                CompendiumFilterSheetFeature()
             }
         }
     }
@@ -391,6 +399,19 @@ struct CompendiumIndexFeature {
                     .send(.results(.result(.reload(.currentCount)))),
                     .send(.sheet(.dismiss))
                 )
+            case .sheet(.presented(.onFilterApply)):
+                guard case let .filter(filterState) = state.sheet else { break }
+                let filterValues = filterState.effectiveCurrentValues
+                var newFilters = state.results.input.filters ?? .init()
+                newFilters.source = filterValues.source
+                newFilters.types = filterValues.itemType.optionalArray
+                newFilters.minMonsterChallengeRating = filterValues.minMonsterCR
+                newFilters.maxMonsterChallengeRating = filterValues.maxMonsterCR
+                newFilters.monsterType = filterValues.monsterType
+                return .merge(
+                    .send(.query(.onFiltersDidChange(newFilters))),
+                    .send(.sheet(.dismiss))
+                )
             case .destination(.presented(.itemDetail(.didRemoveItem))):
                 // creature removed
                 return .run { send in
@@ -410,8 +431,6 @@ struct CompendiumIndexFeature {
             case .destination(.presented(.itemDetail(.entry))):
                 // creature on the detail screen changed
                 return .send(.results(.result(.reload(.currentCount))))
-            case .destination(.dismiss):
-                state.destination = nil
             case .destination:
                 break
             case .setSafari(let safari):

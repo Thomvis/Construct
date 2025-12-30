@@ -124,15 +124,22 @@ struct EncounterSettingsView: View {
     }
 
     func isCombatantInParty(_ c: Combatant) -> Bool {
-        guard let party = party.wrappedValue.combatantParty else { return false }
-        guard let filter = party.filter else { return canSelectCombatant(c) }
+        guard party.wrappedValue.combatantBased else { return false }
+        guard let filter = party.wrappedValue.combatantParty?.filter else { return canSelectCombatant(c) }
         return filter.contains(c.id)
     }
 
     func toggleCombatantInParty(_ c: Combatant) {
+        guard self.party.wrappedValue.combatantBased else { return }
+
+        // ensure we have the party set up
+        if self.party.wrappedValue.combatantParty == nil {
+            let defaultCombatantParty = Encounter.Party.CombatantParty(filter: nil)
+            self.party.wrappedValue.combatantParty = defaultCombatantParty
+        }
+
         guard let party = self.party.wrappedValue.combatantParty else {
-            // first selected combatant
-            self.party.wrappedValue.combatantParty = Encounter.Party.CombatantParty(filter: [c.id])
+            assertionFailure("We should have set up a party by now")
             return
         }
 
@@ -145,7 +152,7 @@ struct EncounterSettingsView: View {
                 self.party.wrappedValue.combatantParty?.filter?.append(c.id)
             }
         } else {
-            // party didn't have a filter, select all exect this combatant
+            // party didn't have a filter, select all except this combatant
             self.party.wrappedValue.combatantParty?.filter = self.encounter.playerControlledCombatants
                 .filter { $0.id != c.id && self.canSelectCombatant($0) }
                 .map { $0.id }
@@ -174,7 +181,7 @@ struct EncounterSettingsView: View {
     func onDeleteResumableRunningEncounter(_ indices: IndexSet) {
         let keys = indices.compactMap { store.resumableRunningEncounters.value?[$0] }
         for key in keys {
-            store.send(.removeResumableRunningEncounter(key))
+            store.send(.removeResumableRunningEncounter(key), animation: .default)
         }
     }
 

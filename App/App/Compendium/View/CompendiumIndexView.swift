@@ -284,6 +284,15 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
                         }
                     }
                 }
+                .sheet(
+                    store: store.scope(state: \.$sheet.filter, action: \.sheet.filter)
+                ) { filterStore in
+                    AutoSizingSheetContainer {
+                        CompendiumFilterSheet(store: filterStore) { _ in
+                            self.store.send(.sheet(.presented(.onFilterApply)))
+                        }
+                    }
+                }
         }
     }
 
@@ -410,6 +419,7 @@ fileprivate struct CompendiumItemList: View {
                     .foregroundColor(.secondary)
                     .listRowSeparator(.hidden)
                     .selectionDisabled()
+                    .transition(.opacity.animation(.default))
                 }
             }
             .listStyle(.plain)
@@ -534,8 +544,6 @@ struct FilterButton: View {
     let allAllowedItemTypes: [CompendiumItemType]
     let sourceRestriction: CompendiumFilters.Source?
 
-    @State var sheet: CompendiumFilterSheet?
-
     var body: some View {
         // todo: should it be "active" if filters are equal to the restrictions
         let filters = store.results.input.filters
@@ -560,11 +568,6 @@ struct FilterButton: View {
         } primaryAction: {
             presentFilterSheet()
         }
-        .sheet(item: $sheet) { popover in
-            AutoSizingSheetContainer {
-                popover
-            }
-        }
     }
 
     private func presentFilterSheet() {
@@ -574,29 +577,7 @@ struct FilterButton: View {
             allAllowedItemTypes: allAllowedItemTypes,
             sourceRestriction: sourceRestriction
         )
-
-        self.sheet = CompendiumFilterSheet(
-            store: Store(
-                initialState: state
-            ) {
-                CompendiumFilterSheetFeature()
-            }
-        ) { filterValues in
-            var newFilters = filters ?? .init()
-            newFilters.source = filterValues.source
-            newFilters.types = filterValues.itemType.optionalArray
-            newFilters.minMonsterChallengeRating = filterValues.minMonsterCR
-            newFilters.maxMonsterChallengeRating = filterValues.maxMonsterCR
-            newFilters.monsterType = filterValues.monsterType
-            self.store.send(.query(.onFiltersDidChange(newFilters)))
-            self.sheet = nil
-        }
-    }
-}
-
-extension CompendiumFilterSheet: Identifiable {
-    var id: AnyHashable {
-        "CompendiumFilterSheet"
+        store.send(.setSheet(.filter(state)))
     }
 }
 

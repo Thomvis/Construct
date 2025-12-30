@@ -188,40 +188,7 @@ struct CampaignBrowseView: View {
 
     func navigationLink<Label>(for item: CampaignNode, @ViewBuilder label: @escaping () -> Label) -> some View where Label: View {
         NavigationRowButton {
-            @Dependency(\.database) var database
-            @Dependency(\.crashReporter) var crashReporter
-            @Shared(.entity(Preferences.key)) var preferences: Preferences = Preferences()
-            // FIXME: move logic to reducer
-
-            let nextScreen: CampaignBrowseViewFeature.Destination.State
-            if let contents = item.contents {
-                switch contents.type {
-                case .encounter:
-                    if let encounter: Encounter = try? database.keyValueStore.get(
-                        contents.key,
-                        crashReporter: crashReporter
-                    ) {
-                        let runningEncounter: RunningEncounter? = encounter.runningEncounterKey
-                            .flatMap { try? database.keyValueStore.get($0, crashReporter: crashReporter) }
-                        let detailState = EncounterDetailFeature.State(
-                            building: encounter,
-                            running: runningEncounter,
-                            isMechMuseEnabled: preferences.mechMuse.enabled
-                        )
-                        nextScreen = .encounter(detailState)
-                    } else {
-                        nextScreen = .encounter(EncounterDetailFeature.State.nullInstance)
-                    }
-                case .other:
-                    assertionFailure("Other item type is not supported")
-                    nextScreen = .encounter(EncounterDetailFeature.State.nullInstance)
-                }
-            } else {
-                // group
-                nextScreen = .campaignBrowse(CampaignBrowseViewFeature.State(node: item, mode: store.mode, items: .initial, showSettingsButton: false))
-            }
-
-            store.send(.setDestination(nextScreen))
+            store.send(.didTapNode(item))
         } label: {
             label()
         }
@@ -230,7 +197,7 @@ struct CampaignBrowseView: View {
     func onDelete(_ indices: IndexSet) {
         guard let items = store.sortedItems else { return }
         for i in indices {
-            store.send(.remove(items[i]))
+            store.send(.remove(items[i]), animation: .default)
         }
     }
 

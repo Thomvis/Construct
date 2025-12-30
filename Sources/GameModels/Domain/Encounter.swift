@@ -11,6 +11,7 @@ import ComposableArchitecture
 import Combine
 import Tagged
 import Dice
+import Helpers
 
 public struct Encounter: Equatable, Codable {
     public let id: Id
@@ -105,25 +106,18 @@ public struct Encounter: Equatable, Codable {
     }
 
     public var partyWithEntriesForDifficulty: (Party, [EncounterDifficulty.PartyEntry]) {
-        // return entries for configured party, if available
-        if let party = partyForDifficulty, let entries = encounterDifficultyPartyEntries(for: party) {
-            return (party, entries)
-        }
-
-        // falling back to entries for combatants in the encounter
-        let defaultCombatantParty = Party.combatant(Party.CombatantParty(filter: nil))
-        if let entries = encounterDifficultyPartyEntries(for: defaultCombatantParty) {
-            return (defaultCombatantParty, entries)
-        }
-
-        // falling back to the default party composition
         let defaultSimpleParty = Party.defaultSimple()
-        if let entries = encounterDifficultyPartyEntries(for: defaultSimpleParty) {
-            return (defaultSimpleParty, entries)
+        guard let party = partyForDifficulty else {
+            return (defaultSimpleParty, encounterDifficultyPartyEntries(for: defaultSimpleParty) ?? [])
         }
 
-        assertionFailure("Party.defaultSimple() should always have entries")
-        return (defaultSimpleParty, [])
+        let fallback: [EncounterDifficulty.PartyEntry] = if party.combatantBased {
+            []
+        } else {
+            encounterDifficultyPartyEntries(for: defaultSimpleParty) ?? []
+        }
+
+        return (party, encounterDifficultyPartyEntries(for: party) ?? fallback)
     }
 
     public func combatant(for id: Combatant.Id) -> Combatant? {
@@ -207,7 +201,8 @@ public struct Encounter: Equatable, Codable {
         }
 
         public static func defaultSimple() -> Self {
-            simple([Encounter.Party.SimplePartyEntry(level: 2, count: 3)])
+            // id needs to be stable here or else editing the entry in the initial state adds a second one instead
+            simple([Encounter.Party.SimplePartyEntry(id: UUID(123).tagged(), level: 2, count: 3)])
         }
 
         public struct CombatantParty: Codable, Equatable {
@@ -227,8 +222,8 @@ public struct Encounter: Equatable, Codable {
             public var level: Int
             public var count: Int
 
-            public init(level: Int, count: Int) {
-                self.id = UUID().tagged()
+            public init(id: Id = UUID().tagged(), level: Int, count: Int) {
+                self.id = id
                 self.level = level
                 self.count = count
             }

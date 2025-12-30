@@ -269,8 +269,6 @@ struct CompendiumEntryDetailFeature {
             return .send(.didRemoveItem)
         case .destination(.presented(.compendiumItemDetailView(.didAddCopy))):
             return .send(.didAddCopy)
-        case .destination(.dismiss):
-            state.destination = nil
         case .destination:
             break
         case .sheet(.dismiss):

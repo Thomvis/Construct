@@ -371,8 +371,6 @@ struct CombatantDetailFeature: Reducer {
                 )
             }
             return .none
-        case .destination(.dismiss):
-            state.destination = nil
         case .destination:
             break
         case .setSafari(let safari):

@@ -13,13 +13,17 @@ public let PagingDataBatchSize = 40
 public struct PagingData<Element>: Reducer where Element: Equatable {
 
     public struct State: Equatable {
-        fileprivate let id = UUID()
+        fileprivate let id: UUID
         public var elements: [Element]?
         public var loadingState: LoadingState
 
         public init() {
+            @Dependency(\.uuid) var uuid
+            self.id = uuid()
             self.elements = nil
             self.loadingState = .notLoading(didReachEnd: false)
+
+            print("TV creating new PagingData with id \(id)")
         }
 
         public enum LoadingState: Equatable {
@@ -31,7 +35,7 @@ public struct PagingData<Element>: Reducer where Element: Equatable {
 
     public enum Action: Equatable {
         case didShowElementAtIndex(Int)
-        case didLoadMore(Result<FetchResult, PagingDataError>)
+        case didLoadMore(UUID, Result<FetchResult, PagingDataError>)
         case reload(ReloadScope)
 
         public struct FetchResult: Equatable {
@@ -72,11 +76,14 @@ public struct PagingData<Element>: Reducer where Element: Equatable {
         Reduce { state, action in
             func load(_ request: FetchRequest, in state: inout State) -> Effect<Action> {
                 state.loadingState = .loading
+                let id = state.id
                 return .run { send in
+                    print("TV received result for request \(request) for paging data with id \(id)")
                     let result = await fetch(request)
-                    await send(.didLoadMore(result))
+                    print("TV fulfilled result for request \(request) for paging data with id \(id)")
+                    await send(.didLoadMore(id, result))
                 }
-                .cancellable(id: state.id)
+//                .cancellable(id: state.id)
             }
 
             func loadIfNeeded(for idx: Int, state: inout State) -> Effect<Action> {
@@ -89,11 +96,17 @@ public struct PagingData<Element>: Reducer where Element: Equatable {
             switch action {
             case .didShowElementAtIndex(let idx):
                 return loadIfNeeded(for: idx, state: &state)
-            case .didLoadMore(.success(let res)):
+            case .didLoadMore(state.id, .success(let res)):
                 state.elements = (state.elements ?? []) + res.elements
                 state.loadingState = .notLoading(didReachEnd: res.end)
-            case .didLoadMore(.failure(let e)):
+            case .didLoadMore(state.id, .failure(let e)):
                 state.loadingState = .error(e)
+            case .didLoadMore:
+                // received didLoadMore with mismatched id
+                // this is a work-around for Map not properly cancelling result effects
+                // when the input changes
+                print("TV: catch mismatching id")
+                break
             case .reload(.initial):
                 state.elements = nil
                 state.loadingState = .notLoading(didReachEnd: false)

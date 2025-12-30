@@ -104,6 +104,7 @@ struct CampaignBrowseViewFeature {
         case setSheet(Sheet.State?)
         case performMove([CampaignNode], CampaignNode)
         case setDestination(Destination.State?)
+        case didTapNode(CampaignNode)
         case destination(PresentationAction<Destination.Action>)
         case sheet(PresentationAction<Sheet.Action>)
 
@@ -149,6 +150,7 @@ struct CampaignBrowseViewFeature {
 
     @Dependency(\.campaignBrowser) var campaignBrowser
     @Dependency(\.crashReporter) var crashReporter
+    @Dependency(\.database) var database
     @Dependency(\.uuid) var uuid
 
     var body: some ReducerOf<Self> {
@@ -178,13 +180,39 @@ struct CampaignBrowseViewFeature {
                 }
             case .setSheet(let s):
                 state.sheet = s
-            case .setDestination(let destination):
-                state.destination = destination
+            case .setDestination(let dest):
+                state.destination = dest
+            case .didTapNode(let node):
+                let nextScreen: CampaignBrowseViewFeature.Destination.State
+                if let contents = node.contents {
+                    switch contents.type {
+                    case .encounter:
+                        if let encounter: Encounter = try? database.keyValueStore.get(
+                            contents.key,
+                            crashReporter: crashReporter
+                        ) {
+                            let runningEncounter: RunningEncounter? = encounter.runningEncounterKey
+                                .flatMap { try? database.keyValueStore.get($0, crashReporter: crashReporter) }
+                            let detailState = EncounterDetailFeature.State(
+                                building: encounter,
+                                running: runningEncounter
+                            )
+                            nextScreen = .encounter(detailState)
+                        } else {
+                            nextScreen = .encounter(EncounterDetailFeature.State.nullInstance)
+                        }
+                    case .other:
+                        assertionFailure("Other item type is not supported")
+                        nextScreen = .encounter(EncounterDetailFeature.State.nullInstance)
+                    }
+                } else {
+                    // group
+                    nextScreen = .campaignBrowse(CampaignBrowseViewFeature.State(node: node, mode: state.mode, items: .initial, showSettingsButton: false))
+                }
+                state.destination = nextScreen
             case .destination(.presented(.campaignBrowse(.performMove(let items, let destination)))):
                 // bubble-up
                 return .send(.performMove(items, destination))
-            case .destination(.dismiss):
-                state.destination = nil
             case .destination:
                 break
             case .didTapNodeEditDone(_, let node?, let title):

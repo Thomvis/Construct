@@ -118,6 +118,7 @@ public struct ActionResolutionFeature: Reducer {
                 return .run { send in
                     let imageData = await MainActor.run {
                         let renderer = ImageRenderer(
+                            // FIXME
                             content: ActionResolutionView(store: Store(
                                 initialState: currentState
                             ) {

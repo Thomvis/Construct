@@ -32,30 +32,47 @@ struct EncounterDetailFeature: Reducer {
     struct State: Equatable {
         var building: Encounter {
             didSet {
-                let b = building
-                addCombatantState?.encounter = b
-
-                if let cds = combatantDetailState, let c = b.combatant(for: cds.combatant.id) {
-                    combatantDetailState?.combatant = c
+                let b = building // copy to local var to prevent overlapping access
+                switch sheet {
+                case .add:
+                    sheet?.modify(\.add) {
+                        $0.state.encounter = b
+                    }
+                case .combatant(let cds):
+                    // Update combatant from building, or nullInstance if removed
+                    let updatedCombatant = b.combatant(for: cds.combatant.id) ?? .nullInstance
+                    sheet?.modify(\.combatant) {
+                        $0.combatant = updatedCombatant
+                    }
+                default:
+                    break
                 }
             }
         }
         var running: RunningEncounter? {
             didSet {
-                if let running = running {
-                    addCombatantState?.encounter = running.current
-                    if let cds = combatantDetailState {
-                        combatantDetailState?.runningEncounter = running
-                        if let c = running.current.combatant(for: cds.combatant.id) {
-                            combatantDetailState?.combatant = c
-                        }
+                guard let running else { return }
+
+                switch sheet {
+                case .add:
+                    sheet?.modify(\.add) {
+                        $0.state.encounter = running.current
                     }
-                    // refresh combatants in selectedCombatantTagsState
-                    if let scts = selectedCombatantTagsState {
-                        selectedCombatantTagsState?.combatants = scts.combatants.compactMap {
-                            running.current.combatant(for: $0.id)
-                        }
+                case .combatant(let cds):
+                    let updatedCombatant = running.current.combatant(for: cds.combatant.id) ?? .nullInstance
+                    sheet?.modify(\.combatant) {
+                        $0.runningEncounter = running
+                        $0.combatant = updatedCombatant
                     }
+                case .selectedCombatantTags(let scts):
+                    let updatedCombatants = scts.combatants.compactMap {
+                        running.current.combatant(for: $0.id)
+                    }
+                    sheet?.modify(\.selectedCombatantTags) {
+                        $0.combatants = updatedCombatants
+                    }
+                default:
+                    break
                 }
             }
         }
@@ -69,7 +86,7 @@ struct EncounterDetailFeature: Reducer {
         var editMode: EditMode = .inactive
         var selection = Set<Combatant.Id>()
 
-        var isMechMuseEnabled: Bool
+        @SharedReader(.entity(Preferences.key)) var preferences = Preferences()
 
         public init(
             building: Encounter,
@@ -78,8 +95,7 @@ struct EncounterDetailFeature: Reducer {
             sheet: Sheet.State? = nil,
             popover: Popover? = nil,
             editMode: EditMode = .inactive,
-            selection: Set<Combatant.Id> = Set<Combatant.Id>(),
-            isMechMuseEnabled: Bool = true
+            selection: Set<Combatant.Id> = Set<Combatant.Id>()
         ) {
             self.building = building
             self.running = running
@@ -88,7 +104,10 @@ struct EncounterDetailFeature: Reducer {
             self.popover = popover
             self.editMode = editMode
             self.selection = selection
-            self.isMechMuseEnabled = isMechMuseEnabled
+        }
+
+        var isMechMuseEnabled: Bool {
+            preferences.mechMuse.enabled
         }
 
         var encounter: Encounter {
@@ -102,54 +121,8 @@ struct EncounterDetailFeature: Reducer {
             }
         }
 
-        var addCombatantState: AddCombatantFeature.State? {
-            get {
-                if case .add(let sheet)? = sheet {
-                    return sheet.state
-                }
-                return nil
-            }
-            set {
-                if case .add(let sheet)? = sheet, let state = newValue {
-                    self.sheet = .add(AddCombatantSheet(id: sheet.id, state: state))
-                }
-            }
-        }
-
-        var combatantDetailState: CombatantDetailFeature.State? {
-            get {
-                if case .combatant(let state)? = sheet {
-                    return state
-                }
-                return nil
-            }
-            set {
-                if sheet != nil {
-                    self.sheet = newValue.map { .combatant($0) }
-                }
-            }
-        }
-
         var combatantDetailReferenceItemRequest: ReferenceViewItemRequest?
         var addCombatantReferenceItemRequest: ReferenceViewItemRequest?
-
-        var runningEncounterLogState: RunningEncounterLogViewState? {
-            guard case .runningEncounterLog(let state)? = sheet else { return nil }
-            return state
-        }
-
-        var selectedCombatantTagsState: CombatantTagsFeature.State? {
-            get {
-                guard case .selectedCombatantTags(let state) = sheet else { return nil }
-                return state
-            }
-
-            set {
-                if let state = newValue {
-                    self.sheet = .selectedCombatantTags(state)
-                }
-            }
-        }
 
         var combatantInitiativePopover: NumberEntryFeature.State? {
             get {
@@ -159,18 +132,6 @@ struct EncounterDetailFeature: Reducer {
             set {
                 if let newValue = newValue, case .combatantInitiative(let c, _) = popover {
                     popover = .combatantInitiative(c, newValue)
-                }
-            }
-        }
-
-        var generateCombatantTraitsState: GenerateCombatantTraitsFeature.State? {
-            get {
-                guard case .generateCombatantTraits(let s) = sheet else { return nil }
-                return s
-            }
-            set {
-                if let newValue = newValue {
-                    self.sheet = .generateCombatantTraits(newValue)
                 }
             }
         }
@@ -405,7 +366,7 @@ struct EncounterDetailFeature: Reducer {
                     }
                 }
             case .sheet(.presented(.combatant(.combatant(let a)))):
-                if let combatantDetailState = state.combatantDetailState {
+                if let combatantDetailState = state.sheet?.combatant {
                     return .send(
                         .encounter(
                             .combatant(.element(id: combatantDetailState.combatant.id, action: a))))
@@ -534,15 +495,27 @@ struct EncounterDetailFeature: Reducer {
         }
         .ifLet(\.running, action: \.runningEncounter) {
             RunningEncounter.Reducer()
+                .onChange(of: \.self) { _, newValue in
+                    Reduce { _, _ in
+                        try? database.keyValueStore.put(newValue)
+                        return .none
+                    }
+                }
         }
         Scope(state: \.building, action: \.buildingEncounter) {
             EncounterFeature()
+                .onChange(of: \.self) { _, newValue in
+                    Reduce { _, _ in
+                        try? database.keyValueStore.put(newValue)
+                        return .none
+                    }
+                }
         }
 
         EmptyReducer()
-            .onChange(of: \.generateCombatantTraitsState?.traits) { _, _ in
+            .onChange(of: \.sheet?.generateCombatantTraits?.traits) { _, _ in
                 Reduce { state, action in
-                    guard let combatants = state.generateCombatantTraitsState?.combatants else {
+                    guard let combatants = state.sheet?.generateCombatantTraits?.combatants else {
                         return .none
                     }
 
@@ -578,7 +551,7 @@ extension EncounterDetailFeature.State: NavigationStackItemState {
 
 extension EncounterDetailFeature.State {
     static let nullInstance = EncounterDetailFeature.State(
-        building: Encounter.nullInstance, isMechMuseEnabled: false)
+        building: Encounter.nullInstance)
 }
 
 extension EncounterDetailFeature.State: NavigationTreeNode {}

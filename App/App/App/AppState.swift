@@ -30,8 +30,8 @@ struct AppFeature: Reducer {
 
         var sceneIsActive = false
         
-        @Shared(.entity(Preferences.key)) var preferences: Preferences = Preferences()
-        
+        @Shared(.entity(Preferences.key)) var preferences = Preferences()
+
         @Presents var crashReportingPermissionAlert: AlertState<Action.Alert>?
 
         enum Presentation: Equatable {
@@ -285,14 +285,12 @@ struct AppFeature: Reducer {
                 switch (state, action) {
                 case (.tab, .openEncounter(let e)):
                     let detailState = EncounterDetailFeature.State(
-                        building: e,
-                        isMechMuseEnabled: preferences.mechMuse.enabled
+                        building: e
                     )
                     return .send(.tab(.campaignBrowser(.setDestination(.encounter(detailState)))))
                 case (.column, .openEncounter(let e)):
                     let detailState = EncounterDetailFeature.State(
-                        building: e,
-                        isMechMuseEnabled: preferences.mechMuse.enabled
+                        building: e
                     )
                     return .send(.column(.campaignBrowse(.setDestination(.encounter(detailState)))))
                 default:

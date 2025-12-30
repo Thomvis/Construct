@@ -143,17 +143,12 @@ struct ConstructView: View {
             deps.modifierFormatter = dependencies.modifierFormatter
             deps.ordinalFormatter = dependencies.ordinalFormatter
         } operation: {
-            let state = AppFeature.State(
-                navigation: nil
-            )
-
             return Store(
-                initialState: state
-            ) {
-                dependencies.database.keyValueStore.entityChangeObserver(
-                    initialState: state,
-                    reducer: AppFeature()
+                initialState: AppFeature.State(
+                    navigation: nil
                 )
+            ) {
+                AppFeature()
             }
         }
 

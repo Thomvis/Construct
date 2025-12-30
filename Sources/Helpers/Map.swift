@@ -28,14 +28,15 @@ where Input: Reducer, Result: Reducer, Input.State: Equatable {
     }
 
     public struct State {
+        fileprivate let id: UUID
         public var input: Input.State
         public var result: Result.State
-        var cancellationId: UUID?
 
         public init(input: Input.State, result: Result.State) {
+            @Dependency(\.uuid) var uuid
+            self.id = uuid()
             self.input = input
             self.result = result
-            self.cancellationId = nil
         }
     }
 
@@ -48,18 +49,37 @@ where Input: Reducer, Result: Reducer, Input.State: Equatable {
     @Dependency(\.uuid) var uuid
 
     public func reduce(into state: inout State, action: Action) -> Effect<Action> {
-        func updateReducer() -> Effect<Action> {
-            let previousCancellationId = state.cancellationId
-            let cancellationId = uuid()
+        func invokeResultReducer(action: Result.Action) -> Effect<Action> {
+            let resultReducer = resultReducerForInput(state.input)
+            print("TV map[\(state.id)] .result(\(String(describing: action).prefix(100)))")
+            return resultReducer.reduce(into: &state.result, action: action)
+                .cancellable(id: state.id)
+                .map { Action.result($0) }
+        }
 
+        func onInputDidChange() -> Effect<Action> {
             state.result = initialResultStateForInput(state.input)
-            state.cancellationId = cancellationId
 
             let resultAction = initialResultActionForInput(state.input)
 
-            return .merge(
-                previousCancellationId.map { .cancel(id: $0) } ?? .none,
-                resultAction.map { .send(.result($0)) } ?? .none
+            print("TV map[\(state.id)] cancelling")
+            return .concatenate(
+                .cancel(id: state.id), // cancel effects from the result reducer
+                resultAction.map { invokeResultReducer(action: $0) } ?? .none,
+                .run { _ in
+                    do {
+                        do {
+                            print("TV night night")
+                            try await Task.sleep(for: .seconds(1))
+                            print("TV good morning")
+                        } catch is CancellationError {
+                            print("TV sleep cancelled inner")
+                        }
+                    } catch is CancellationError {
+                        print("TV sleep cancelled")
+                    }
+                }
+                .cancellable(id: state.id)
             )
         }
 
@@ -71,41 +91,34 @@ where Input: Reducer, Result: Reducer, Input.State: Equatable {
                 .map { Action.input($0) }
 
             if previousInput != state.input {
-                return .merge(
+                print("TV map input changed")
+                return .concatenate(
                     inputEffect,
-                    updateReducer()
+                    onInputDidChange()
                 )
             } else {
                 return inputEffect
             }
 
         case .result(let resultAction):
-            if state.cancellationId == nil {
-                _ = updateReducer()
-            }
-
-            guard let cancellationId = state.cancellationId else {
-                return .none
-            }
-
             let resultReducer = resultReducerForInput(state.input)
+            print("TV map[\(state.id)] .result(\(String(describing: resultAction).prefix(100)))")
             return resultReducer.reduce(into: &state.result, action: resultAction)
+                .cancellable(id: state.id)
                 .map { Action.result($0) }
-                .cancellable(id: cancellationId)
+//                .cancellable(id: state.id)  // make all effects from the result reducer cancellable
+                                            // does not work as well as I'd hoped (see tests)
 
         case .set(let input, nil):
             state.input = input
-            return updateReducer()
+            return onInputDidChange()
 
         case .set(let input, let result?):
             state.input = input
             state.result = result
 
-            let cancellationId = uuid()
-            let previousCancellationId = state.cancellationId
-            state.cancellationId = cancellationId
-
-            return previousCancellationId.map { .cancel(id: $0) } ?? .none
+            print("TV map[\(state.id)] .set")
+            return .cancel(id: state.id)
         }
     }
 }

@@ -37,6 +37,7 @@
 - Migrated DiceActionView.swift to observation: added `@ObservableState` to `DiceActionFeature.State`, `DiceAction`, `DiceAction.Step`, `DiceAction.Step.Value.RollValue`, and `AnimatedRoll.State`; replaced `WithViewStore`/`ForEachStore`/`IfLetStore` with direct store access and `ForEach`/`if let` patterns.
 - Migrated ActionDescriptionView.swift to observation: added `@ObservableState` to `ActionDescriptionFeature.State`; removed `@BindingState` annotations; replaced `WithViewStore` with `@Bindable var store`; updated bindings to use `$store.property` syntax.
 - Migrated all remaining ViewStore views to observation: CombatantResourcesView, CombatantTagEditView, CombatantTrackerEditView, CompendiumFilterSheet, CompendiumItemGroupEditView, HealthDialog, AddCombatantDetailView, AddCombatantCompendiumView, RunningEncounterLogView, CreatureEditView.
+- Ported SettingsView to TCA: created `SettingsFeature` with `@Reducer` + `@ObservableState`; replaced @State properties with store state; converted view to use `@Bindable var store: StoreOf<SettingsFeature>`; async API key verification now runs via effects.
 
 ## Status
 
