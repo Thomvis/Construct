@@ -38,7 +38,14 @@
 - Migrated ActionDescriptionView.swift to observation: added `@ObservableState` to `ActionDescriptionFeature.State`; removed `@BindingState` annotations; replaced `WithViewStore` with `@Bindable var store`; updated bindings to use `$store.property` syntax.
 - Migrated all remaining ViewStore views to observation: CombatantResourcesView, CombatantTagEditView, CombatantTrackerEditView, CompendiumFilterSheet, CompendiumItemGroupEditView, HealthDialog, AddCombatantDetailView, AddCombatantCompendiumView, RunningEncounterLogView, CreatureEditView.
 - Updated AppStore screenshot tests to use `store.withState` instead of `ViewStore` for state inspection.
+- Cleaned AppStore screenshot test warnings by removing unnecessary `try/await` and adopting iOS 17 trait APIs.
 - Added `@ObservableState` to the remaining nested state types (Compendium import settings, reference tab items, compendium query, paging data).
+- Adjusted `MapTest` expectations to avoid `cancellationId` (no longer exposed on Map state).
+- Updated `PagingDataTest` to use deterministic UUIDs and match the new `didLoadMore(id:result:)` action signature.
+- Removed the debug sleep effect from `Map` and updated Map tests to match immediate state updates.
+- Re-enabled `PagingData` load cancellation to keep reload behavior deterministic.
+- Added an explicit test database dependency in `EncounterDetailTest` to satisfy new dependency checks.
+- Added a `DatabaseDependencyKey.testValue` fallback for test contexts.
 - Ported SettingsView to TCA: created `SettingsFeature` with `@Reducer` + `@ObservableState`; replaced @State properties with store state; converted view to use `@Bindable var store: StoreOf<SettingsFeature>`; async API key verification now runs via effects.
 - Replaced old `\.$` navigation/alert scoping with `item:` bindings and `alert($store.scope...)`; converted remaining reducers to `@Reducer`.
 - Updated App Clip dice log effect to avoid non-Sendable capture; `onContinueUserActivity` now takes a URL and `AppFeature.Action` is `@unchecked Sendable` to satisfy Swift 6 checks.
@@ -60,7 +67,6 @@ Remaining items:
 - ✅ Removed duplicate `AddCombatantFeature` file (`App/App/Encouter/AddCombatantState.swift`).
 - ✅ Removed duplicate `FloatingDiceRollerFeature` file (`App/App/DiceRoller/FloatingDiceRollerViewState.swift`).
 - ⚠️ CLI build currently requires `-skipMacroValidation` to bypass SwiftPM macro enablement errors.
-- ⚠️ Build still surfaces warnings in `AppStoreScreenshotTests.swift` (try/await without async, deprecated trait APIs).
 
 Follow‑up ideas (best‑practice polish):
 - ✅ Refactored `CompendiumIndexFeature.Sheet` to a `@Reducer enum` so CompendiumIndexView uses `sheet(item:)` and avoids `\.$sheet` view scoping.

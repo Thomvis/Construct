@@ -280,6 +280,12 @@ struct DatabaseDependencyKey: DependencyKey {
     }
 }
 
+#if DEBUG
+extension DatabaseDependencyKey: TestDependencyKey {
+    static var testValue: Database { .uninitialized }
+}
+#endif
+
 public extension DependencyValues {
     var database: Database {
         get { self[DatabaseDependencyKey.self] }

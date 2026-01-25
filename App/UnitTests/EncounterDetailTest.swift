@@ -12,6 +12,7 @@ import XCTest
 @testable import Construct
 import Helpers
 import GameModels
+import Persistence
 
 class EncounterDetailTest: XCTestCase {
 
@@ -35,13 +36,20 @@ class EncounterDetailTest: XCTestCase {
 
         let uuidGenerator = UUIDGenerator.fake()
 
-        let store = TestStore(
-            initialState: initialState
-        ) {
-            EncounterDetailFeature()
-        } withDependencies: {
+        let store = withDependencies {
             $0.uuid = uuidGenerator
             $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+            $0.database = Database.uninitialized
+        } operation: {
+            TestStore(
+                initialState: initialState
+            ) {
+                EncounterDetailFeature()
+            } withDependencies: {
+                $0.uuid = uuidGenerator
+                $0.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+                $0.database = Database.uninitialized
+            }
         }
         store.exhaustivity = .off
 
