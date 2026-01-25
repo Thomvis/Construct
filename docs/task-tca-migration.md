@@ -37,6 +37,7 @@
 - Migrated DiceActionView.swift to observation: added `@ObservableState` to `DiceActionFeature.State`, `DiceAction`, `DiceAction.Step`, `DiceAction.Step.Value.RollValue`, and `AnimatedRoll.State`; replaced `WithViewStore`/`ForEachStore`/`IfLetStore` with direct store access and `ForEach`/`if let` patterns.
 - Migrated ActionDescriptionView.swift to observation: added `@ObservableState` to `ActionDescriptionFeature.State`; removed `@BindingState` annotations; replaced `WithViewStore` with `@Bindable var store`; updated bindings to use `$store.property` syntax.
 - Migrated all remaining ViewStore views to observation: CombatantResourcesView, CombatantTagEditView, CombatantTrackerEditView, CompendiumFilterSheet, CompendiumItemGroupEditView, HealthDialog, AddCombatantDetailView, AddCombatantCompendiumView, RunningEncounterLogView, CreatureEditView.
+- Updated AppStore screenshot tests to use `store.withState` instead of `ViewStore` for state inspection.
 - Ported SettingsView to TCA: created `SettingsFeature` with `@Reducer` + `@ObservableState`; replaced @State properties with store state; converted view to use `@Bindable var store: StoreOf<SettingsFeature>`; async API key verification now runs via effects.
 - Replaced old `\.$` navigation/alert scoping with `item:` bindings and `alert($store.scope...)`; converted remaining reducers to `@Reducer`.
 - Updated App Clip dice log effect to avoid non-Sendable capture; `onContinueUserActivity` now takes a URL and `AppFeature.Action` is `@unchecked Sendable` to satisfy Swift 6 checks.

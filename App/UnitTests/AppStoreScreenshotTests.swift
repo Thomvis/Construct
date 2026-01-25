@@ -242,7 +242,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 $0.uuid = UUIDGenerator.fake()
                             }
                             await store.send(.query(.onTextDidChange("Dragon"))).finish()
-                            state = ViewStore(store, observe: \.self).state
+                            state = store.withState { $0 }
                         },
                         diceRoller: DiceRollerFeature.State.nullInstance
                     )
@@ -566,9 +566,9 @@ class AppStoreScreenshotTests: XCTestCase {
                                                             }
                                                             let filters = CompendiumFilters(types: [.monster], minMonsterChallengeRating: Fraction(integer: 4))
                                                             await store.send(.query(.onFiltersDidChange(filters))).finish()
-                                                            let entry = ViewStore(store, observe: \.self).state.results.entries!.first!
+                                                            let entry = store.withState { $0.results.entries!.first! }
                                                             store.send(.setDestination(.itemDetail(CompendiumEntryDetailFeature.State(entry: entry))))
-                                                            state = ViewStore(store, observe: \.self).state
+                                                            state = store.withState { $0 }
                                                         },
                                                         encounter: encounter
                                                     ),
@@ -618,7 +618,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                         $0.uuid = UUIDGenerator.fake()
                                                     }
                                                     await store.send(.query(.onTextDidChange("Dragon"))).finish()
-                                                    state = ViewStore(store, observe: \.self).state
+                                                    state = store.withState { $0 }
                                                 }
                                             )
                                         )
@@ -720,7 +720,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                     }
 
                                                     await store.send(.results(.result(.reload(.all)))).finish()
-                                                    state = ViewStore(store, observe: \.self).state
+                                                    state = store.withState { $0 }
 
                                                     let fireballSpell = state.results.entries!.first(where: { $0.item.title == "Fireball" })!
                                                     state.scrollTo = fireballSpell.key
@@ -789,7 +789,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                                         $0.uuid = UUIDGenerator.fake()
                                                     }
                                                     await store.send(.query(.onTextDidChange("Dragon"))).finish()
-                                                    state = ViewStore(store, observe: \.self).state
+                                                    state = store.withState { $0 }
                                                 }
                                             )
                                         )
