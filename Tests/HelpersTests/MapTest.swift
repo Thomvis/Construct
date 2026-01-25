@@ -13,10 +13,6 @@ final class MapTest: XCTestCase {
 
         await store.send(.input(.string("Construct"))) {
             $0.input.string = "Construct"
-            $0.cancellationId = UUID(0)
-        }
-
-        await store.receive(.result(.count(9))) {
             $0.result.count = 9
         }
 
@@ -40,23 +36,16 @@ final class MapTest: XCTestCase {
         await store.receive(.counter(.input(.string("Construct")))) {
             $0.counter.input.string = "Construct"
             $0.counter.result.count = 9
-            $0.counter.cancellationId = UUID(0)
         }
-
-        // expect .add (the initial action for the input)
-        await store.receive(.counter(.result(.add)))
 
         await store.receive(.counter(.input(.string("5e")))) {
             $0.counter.input.string = "5e"
             $0.counter.result.count = 2
-            $0.counter.cancellationId = UUID(1)
         }
-
-        await store.receive(.counter(.result(.add)))
 
         await clock.advance(by: .seconds(1))
 
-        // Unexpected behavior: We expected the count not to become 18 because
+        // Unexpected behavior: we expected the count not to become 18 because
         // setting input to "5e" should have cancelled the .add from "Construct"
         // while it was waiting 1 second.
         await store.receive(.counter(.result(.count(18)))) {
@@ -75,10 +64,6 @@ final class MapTest: XCTestCase {
 
         await store.send(.input(.string("Construct"))) {
             $0.input.string = "Construct"
-            $0.cancellationId = UUID(0)
-        }
-
-        await store.receive(.result(.count(9))) {
             $0.result.count = 9
         }
 
@@ -89,11 +74,6 @@ final class MapTest: XCTestCase {
 
         await store.send(.input(.string("5e"))) {
             $0.input.string = "5e"
-            $0.result.count = 0
-            $0.cancellationId = UUID(1)
-        }
-
-        await store.receive(.result(.count(2))) {
             $0.result.count = 2
         }
 

@@ -66,21 +66,7 @@ where Input: Reducer, Result: Reducer, Input.State: Equatable {
             print("TV map[\(state.id)] cancelling")
             return .concatenate(
                 .cancel(id: state.id), // cancel effects from the result reducer
-                resultAction.map { invokeResultReducer(action: $0) } ?? .none,
-                .run { _ in
-                    do {
-                        do {
-                            print("TV night night")
-                            try await Task.sleep(for: .seconds(1))
-                            print("TV good morning")
-                        } catch is CancellationError {
-                            print("TV sleep cancelled inner")
-                        }
-                    } catch is CancellationError {
-                        print("TV sleep cancelled")
-                    }
-                }
-                .cancellable(id: state.id)
+                resultAction.map { invokeResultReducer(action: $0) } ?? .none
             )
         }
 

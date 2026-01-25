@@ -85,7 +85,7 @@ public struct PagingData<Element> where Element: Equatable {
                     print("TV fulfilled result for request \(request) for paging data with id \(id)")
                     await send(.didLoadMore(id, result))
                 }
-//                .cancellable(id: state.id)
+                .cancellable(id: state.id)
             }
 
             func loadIfNeeded(for idx: Int, state: inout State) -> Effect<Action> {

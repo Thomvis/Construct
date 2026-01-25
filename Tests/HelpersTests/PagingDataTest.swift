@@ -10,6 +10,7 @@ import XCTest
 import Helpers
 import ComposableArchitecture
 import Clocks
+import TestSupport
 
 let defaultItemCount = 2*PagingDataBatchSize+10
 
@@ -26,7 +27,7 @@ final class PagingDataTest: XCTestCase {
 
         await clock.advance(by: .seconds(1))
 
-        await store.receive(.didLoadMore(.success(.init(elements: Array(0..<PagingDataBatchSize), end: false)))) {
+        await store.receive(.didLoadMore(UUID(fakeSeq: 0), .success(.init(elements: Array(0..<PagingDataBatchSize), end: false)))) {
             $0.elements = Array(0..<PagingDataBatchSize)
             $0.loadingState = .notLoading(didReachEnd: false)
         }
@@ -41,7 +42,7 @@ final class PagingDataTest: XCTestCase {
 
         await clock.advance(by: .seconds(1))
 
-        await store.receive(.didLoadMore(.success(.init(elements: Array(PagingDataBatchSize..<(2*PagingDataBatchSize)), end: false)))) {
+        await store.receive(.didLoadMore(UUID(fakeSeq: 0), .success(.init(elements: Array(PagingDataBatchSize..<(2*PagingDataBatchSize)), end: false)))) {
             $0.elements = Array(0..<2*PagingDataBatchSize)
             $0.loadingState = .notLoading(didReachEnd: false)
         }
@@ -55,7 +56,7 @@ final class PagingDataTest: XCTestCase {
 
         await clock.advance(by: .seconds(1))
 
-        await store.receive(.didLoadMore(.success(.init(elements: Array((2*PagingDataBatchSize)..<defaultItemCount), end: true)))) {
+        await store.receive(.didLoadMore(UUID(fakeSeq: 0), .success(.init(elements: Array((2*PagingDataBatchSize)..<defaultItemCount), end: true)))) {
             $0.elements = Array(0..<defaultItemCount)
             $0.loadingState = .notLoading(didReachEnd: true)
         }
@@ -74,7 +75,7 @@ final class PagingDataTest: XCTestCase {
 
         await clock.advance(by: .seconds(1))
 
-        await store.receive(.didLoadMore(.success(.init(elements: Array(0..<PagingDataBatchSize), end: false)))) {
+        await store.receive(.didLoadMore(UUID(fakeSeq: 0), .success(.init(elements: Array(0..<PagingDataBatchSize), end: false)))) {
             $0.elements = Array(0..<PagingDataBatchSize)
             $0.loadingState = .notLoading(didReachEnd: false)
         }
@@ -94,7 +95,7 @@ final class PagingDataTest: XCTestCase {
 
         await clock.advance(by: .seconds(1))
 
-        await store.receive(.didLoadMore(.success(.init(elements: Array(0..<PagingDataBatchSize), end: false)))) {
+        await store.receive(.didLoadMore(UUID(fakeSeq: 0), .success(.init(elements: Array(0..<PagingDataBatchSize), end: false)))) {
             $0.elements = Array(0..<PagingDataBatchSize)
             $0.loadingState = .notLoading(didReachEnd: false)
         }
@@ -113,8 +114,19 @@ final class PagingDataTest: XCTestCase {
     @MainActor
     func testIsolation() async {
         let clock = TestClock()
+        let uuidGenerator = UUIDGenerator.fake()
+        let left = withDependencies {
+            $0.uuid = uuidGenerator
+        } operation: {
+            PagingData<Int>.State()
+        }
+        let right = withDependencies {
+            $0.uuid = uuidGenerator
+        } operation: {
+            PagingData<Int>.State()
+        }
         let store = TestStore<State, Action>(
-            initialState: State(left: .init(), right: .init()),
+            initialState: State(left: left, right: right),
         ) {
             CombineReducers {
                 Scope(state: \.left, action: \.left) {
@@ -125,6 +137,8 @@ final class PagingDataTest: XCTestCase {
                     pagingData(clock: clock)
                 }
             }
+        } withDependencies: {
+            $0.uuid = uuidGenerator
         }
 
         await store.send(.left(.didShowElementAtIndex(0))) {
@@ -137,26 +151,33 @@ final class PagingDataTest: XCTestCase {
 
         await clock.advance(by: .seconds(1))
 
-        await store.receive(.left(.didLoadMore(.success(.init(elements: Array(0..<PagingDataBatchSize), end: false))))) {
+        await store.receive(.left(.didLoadMore(UUID(fakeSeq: 0), .success(.init(elements: Array(0..<PagingDataBatchSize), end: false))))) {
             $0.left.elements = Array(0..<PagingDataBatchSize)
             $0.left.loadingState = .notLoading(didReachEnd: false)
         }
 
-        await store.receive(.right(.didLoadMore(.success(.init(elements: Array(0..<PagingDataBatchSize), end: false))))) {
+        await store.receive(.right(.didLoadMore(UUID(fakeSeq: 1), .success(.init(elements: Array(0..<PagingDataBatchSize), end: false))))) {
             $0.right.elements = Array(0..<PagingDataBatchSize)
             $0.right.loadingState = .notLoading(didReachEnd: false)
         }
     }
 
     private func makeStore(
-        state: PagingData<Int>.State = .init(),
         clock: any Clock<Duration> = ContinuousClock(),
         elements: [Int] = Array(0..<defaultItemCount)
     ) -> TestStoreOf<PagingData<Int>> {
-        TestStore(
+        let uuidGenerator = UUIDGenerator.fake()
+        let state = withDependencies {
+            $0.uuid = uuidGenerator
+        } operation: {
+            PagingData<Int>.State()
+        }
+        return TestStore(
             initialState: state,
         ) {
             pagingData(clock: clock, elements: elements)
+        } withDependencies: {
+            $0.uuid = uuidGenerator
         }
     }
 
