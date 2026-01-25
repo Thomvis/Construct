@@ -16,6 +16,7 @@ extension CompendiumIndexFeature {
 
     @Reducer
     struct Query {
+        @ObservableState
         struct State: Equatable {
             var text: String?
             var filters: CompendiumFilters?

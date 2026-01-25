@@ -13,6 +13,7 @@ public let PagingDataBatchSize = 40
 @Reducer
 public struct PagingData<Element> where Element: Equatable {
 
+    @ObservableState
     public struct State: Equatable {
         fileprivate let id: UUID
         public var elements: [Element]?

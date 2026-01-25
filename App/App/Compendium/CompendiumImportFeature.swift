@@ -219,6 +219,7 @@ struct CompendiumImportFeature {
 
     @Reducer
     struct ImportSettings {
+        @ObservableState
         struct State: Equatable {
             typealias AsyncDocuments = Async<[CompendiumSourceDocument], EquatableError>
             var documents: AsyncDocuments.State = .initial

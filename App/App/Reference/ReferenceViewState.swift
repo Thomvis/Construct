@@ -135,6 +135,7 @@ struct ReferenceViewFeature {
     struct Item {
         typealias Action = ReferenceItem.Action
 
+        @ObservableState
         struct State: Equatable, Identifiable {
             let id: TabbedDocumentViewContentItem.Id
             var title: String
