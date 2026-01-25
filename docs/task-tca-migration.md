@@ -19,7 +19,7 @@
 
 - Reviewed migration guides (1.4–1.19) and outlined required updates.
 - Migrated DiceRollerFeature (and AppClip host) to `@Reducer`, `@ObservableState`, case key-path scoping, and observation-based views; updated ResultDetailView API to decouple state from store.
-- Ran `xcodebuild build -project App/Construct.xcodeproj -scheme Construct -destination "platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2"` (passes with many legacy deprecation warnings elsewhere).
+- Ran `xcodebuild build -project App/Construct.xcodeproj -scheme Construct -destination "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2" -skipMacroValidation` (passes with many legacy deprecation warnings elsewhere).
 - Updated ActionResolutionFeature to `@Reducer` + observable state, replaced bindings with explicit actions, and converted ActionResolutionView to observation without `WithViewStore`.
 - Removed `WithPerceptionTracking` from dice views; views now rely on `@Bindable` stores.
 - Converted column/tab navigation and floating dice roller to `@Reducer` + observation; modernized Construct app root to key-path scoping, `@Presents` alerts, and observation-based navigation; build succeeds after changes.
@@ -62,4 +62,4 @@ Remaining items:
 Follow‑up ideas (best‑practice polish):
 - ✅ Refactored `CompendiumIndexFeature.Sheet` to a `@Reducer enum` so CompendiumIndexView uses `sheet(item:)` and avoids `\.$sheet` view scoping.
 - ✅ Removed the last production `ViewStore` usage in `App/App/UI/SafariView.swift` (pass URL directly).
-- Revisit `@unchecked Sendable` on `DiceRollerAppClipApp.AppFeature.Action` if strict concurrency is enabled later.
+- ✅ Removed `@unchecked Sendable` from `DiceRollerAppClipApp.AppFeature.Action` (no longer needed under Swift 5.9/minimal).

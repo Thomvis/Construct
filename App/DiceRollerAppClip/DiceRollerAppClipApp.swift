@@ -62,7 +62,7 @@ struct AppFeature {
         var didShowAppStoreOverlay: Bool = false
     }
 
-    enum Action: Equatable, @unchecked Sendable {
+    enum Action: Equatable {
         case onLaunch
         case onContinueUserActivity(URL)
         case diceRoller(DiceRollerFeature.Action)
