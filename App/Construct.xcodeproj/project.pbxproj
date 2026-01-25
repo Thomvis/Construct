@@ -67,7 +67,6 @@
 		E95DE630251E8D160085D550 /* FloatingDiceRollerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */; };
 		E95E25A52EA6895D000B82BF /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95E25A42EA6895D000B82BF /* StoreManager.swift */; };
 		E95E25A72EA6899F000B82BF /* TipJarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95E25A62EA6899F000B82BF /* TipJarView.swift */; };
-		E9SETT0F2EA6900000000001 /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9SETT0F2EA6900000000000 /* SettingsFeature.swift */; };
 		E95E25A92EA689B5000B82BF /* SettingsViewTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95E25A82EA689B5000B82BF /* SettingsViewTest.swift */; };
 		E95FA115231C58A30098BD83 /* DiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */; };
 		E95FD42F249BFA280023F363 /* EncounterDetailTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */; };
@@ -191,6 +190,7 @@
 		E9F6D03F2FB7576B00C551A7 /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = E9F6D0352FB74B2F00C551A7 /* OrderedCollections */; };
 		E9F7EB4D2D7B2D7000A0C19D /* CompendiumDocumentSelectionFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F7EB4C2D7B2D7000A0C19D /* CompendiumDocumentSelectionFeature.swift */; };
 		E9F9EB532319696C00A70D11 /* RolledDiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F9EB522319696C00A70D11 /* RolledDiceExpressionTest.swift */; };
+		E9SETT0F2EA6900000000001 /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9SETT0F2EA6900000000000 /* SettingsFeature.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -280,7 +280,6 @@
 		E95DE62F251E8D160085D550 /* FloatingDiceRollerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingDiceRollerView.swift; sourceTree = "<group>"; };
 		E95E25A42EA6895D000B82BF /* StoreManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
 		E95E25A62EA6899F000B82BF /* TipJarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipJarView.swift; sourceTree = "<group>"; };
-		E9SETT0F2EA6900000000000 /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFeature.swift; sourceTree = "<group>"; };
 		E95E25A82EA689B5000B82BF /* SettingsViewTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewTest.swift; sourceTree = "<group>"; };
 		E95FA114231C58A30098BD83 /* DiceExpressionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiceExpressionTest.swift; sourceTree = "<group>"; };
 		E95FD42E249BFA280023F363 /* EncounterDetailTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterDetailTest.swift; sourceTree = "<group>"; };
@@ -381,6 +380,7 @@
 		E9F9EB4C2319694200A70D11 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E9F9EB522319696C00A70D11 /* RolledDiceExpressionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RolledDiceExpressionTest.swift; sourceTree = "<group>"; };
 		E9FF539228AF96F0000D754A /* Construct */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Construct; path = ..; sourceTree = "<group>"; };
+		E9SETT0F2EA6900000000000 /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFeature.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1268,7 +1268,8 @@
 				STRIPFLAGS = "-rSTx";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.9;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -1329,7 +1330,8 @@
 				STRIPFLAGS = "-rSTx";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.9;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

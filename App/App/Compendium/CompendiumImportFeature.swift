@@ -18,7 +18,8 @@ import SharedViews
 import SwiftUI
 import Tagged
 
-struct CompendiumImportFeature: Reducer {
+@Reducer
+struct CompendiumImportFeature {
     @ObservableState
     struct State: Equatable {
         var phase: Phase = .dataSourcePreferences
@@ -216,7 +217,8 @@ struct CompendiumImportFeature: Reducer {
         }
     }
 
-    struct ImportSettings: Reducer {
+    @Reducer
+    struct ImportSettings {
         struct State: Equatable {
             typealias AsyncDocuments = Async<[CompendiumSourceDocument], EquatableError>
             var documents: AsyncDocuments.State = .initial
@@ -463,7 +465,8 @@ enum DataSourcePreferences {
     case file(File)
     case network(Network)
 
-    struct Open5e: Reducer {
+    @Reducer
+    struct Open5e {
         @ObservableState
         struct State: Equatable {
             typealias RemoteDocuments = Async<[Open5eAPI.Document], EquatableError>
@@ -553,7 +556,8 @@ enum DataSourcePreferences {
         }
     }
 
-    struct File: Reducer {
+    @Reducer
+    struct File {
         @ObservableState
         struct State: Equatable {
             var url: URL? = nil
@@ -569,7 +573,8 @@ enum DataSourcePreferences {
         }
     }
 
-    struct Network: Reducer {
+    @Reducer
+    struct Network {
         @ObservableState
         struct State: Equatable {
             var urlString: String = ""

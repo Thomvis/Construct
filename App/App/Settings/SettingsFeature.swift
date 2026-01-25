@@ -15,7 +15,7 @@ import Persistence
 import Sharing
 
 @Reducer
-public struct SettingsFeature: Reducer {
+public struct SettingsFeature {
 
     public init() { }
 

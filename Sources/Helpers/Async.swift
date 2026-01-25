@@ -11,7 +11,8 @@ import Combine
 import ComposableArchitecture
 
 // Storage of an async result
-public struct Async<Success, Failure>: Reducer where Failure: Error {
+@Reducer
+public struct Async<Success, Failure> where Failure: Error {
 
     public let fetch: () async throws -> Success
 

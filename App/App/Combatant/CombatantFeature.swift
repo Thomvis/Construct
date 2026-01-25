@@ -42,7 +42,11 @@ enum CombatantResourceAction: Equatable {
     case slot(Int, Bool)
 }
 
-struct HpReducer: Reducer {
+@Reducer
+struct HpReducer {
+    typealias State = Hp
+    typealias Action = Hp.Action
+
     func reduce(into state: inout Hp, action: Hp.Action) -> Effect<Hp.Action> {
         switch action {
         case .current(let m):
@@ -86,7 +90,11 @@ extension Hp {
     }
 }
 
-struct CombatantResourceReducer: Reducer {
+@Reducer
+struct CombatantResourceReducer {
+    typealias State = CombatantResource
+    typealias Action = CombatantResourceAction
+
     func reduce(into state: inout CombatantResource, action: CombatantResourceAction) -> Effect<CombatantResourceAction> {
         switch action {
         case .title(let t):
@@ -100,7 +108,8 @@ struct CombatantResourceReducer: Reducer {
     }
 }
 
-struct CombatantFeature: Reducer {
+@Reducer
+struct CombatantFeature {
     typealias State = Combatant
     typealias Action = CombatantAction
 

@@ -38,6 +38,9 @@
 - Migrated ActionDescriptionView.swift to observation: added `@ObservableState` to `ActionDescriptionFeature.State`; removed `@BindingState` annotations; replaced `WithViewStore` with `@Bindable var store`; updated bindings to use `$store.property` syntax.
 - Migrated all remaining ViewStore views to observation: CombatantResourcesView, CombatantTagEditView, CombatantTrackerEditView, CompendiumFilterSheet, CompendiumItemGroupEditView, HealthDialog, AddCombatantDetailView, AddCombatantCompendiumView, RunningEncounterLogView, CreatureEditView.
 - Ported SettingsView to TCA: created `SettingsFeature` with `@Reducer` + `@ObservableState`; replaced @State properties with store state; converted view to use `@Bindable var store: StoreOf<SettingsFeature>`; async API key verification now runs via effects.
+- Replaced old `\.$` navigation/alert scoping with `item:` bindings and `alert($store.scope...)`; converted remaining reducers to `@Reducer`.
+- Updated App Clip dice log effect to avoid non-Sendable capture; `onContinueUserActivity` now takes a URL and `AppFeature.Action` is `@unchecked Sendable` to satisfy Swift 6 checks.
+- Updated project build settings to Swift 5.9 with strict concurrency set to minimal for CLI builds.
 
 ## Status
 
@@ -48,7 +51,15 @@ All deprecated `ViewStore` usages have been removed:
 - ✅ No `IfLetStore` usages remain  
 - ✅ No `ForEachStore` usages remain
 
-Remaining items (low priority, can be done opportunistically):
-- ⚠️ Old-style `\.$` scoping in some navigation modifiers (~19 occurrences)
-- ⚠️ `.alert(store:)` modifier in 3 files
-- ⚠️ Some reducers use `struct X: Reducer` without `@Reducer` macro (~40 occurrences)
+Remaining items:
+- ✅ Old-style `\.$` scoping in navigation modifiers replaced with `item:` bindings (except CompendiumIndexView sheets, which still use `\.$sheet` to avoid `CaseReducerState` requirements)
+- ✅ `.alert(store:)` modifiers replaced with `alert($store.scope(...))`
+- ✅ All reducers converted to `@Reducer` (no `struct X: Reducer` remains)
+- ✅ Removed duplicate `AddCombatantFeature` file (`App/App/Encouter/AddCombatantState.swift`).
+- ✅ Removed duplicate `FloatingDiceRollerFeature` file (`App/App/DiceRoller/FloatingDiceRollerViewState.swift`).
+- ⚠️ CLI build currently requires `-skipMacroValidation` to bypass SwiftPM macro enablement errors.
+
+Follow‑up ideas (best‑practice polish):
+- Consider refactoring `CompendiumIndexFeature.Sheet` to a `@Reducer enum` so CompendiumIndexView can use `sheet(item:)` and remove the last `\.$sheet` view scoping.
+- Remove the last production `ViewStore` usage in `App/App/UI/SafariView.swift` (e.g. make `SafariViewState` observable and pass a URL directly).
+- Revisit `@unchecked Sendable` on `DiceRollerAppClipApp.AppFeature.Action` if strict concurrency is enabled later.

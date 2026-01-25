@@ -99,7 +99,7 @@ struct CompendiumEntryDetailView: View {
                 store.send(.onAppear)
             }
             .navigationDestination(
-                store: store.scope(state: \.$destination, action: \.destination)
+                item: $store.scope(state: \.destination, action: \.destination)
             ) { destinationStore in
                 switch destinationStore.case {
                 case let .compendiumItemDetailView(store):
@@ -118,7 +118,7 @@ struct CompendiumEntryDetailView: View {
                 }
             )
             .sheet(
-                store: store.scope(state: \.$sheet, action: \.sheet)
+                item: $store.scope(state: \.sheet, action: \.sheet)
             ) { sheetStore in
                 switch sheetStore.case {
                 case let .creatureEdit(store):

@@ -8,7 +8,8 @@
 import Foundation
 import ComposableArchitecture
 
-public struct Map<Input, Result>: Reducer
+@Reducer
+public struct Map<Input, Result>
 where Input: Reducer, Result: Reducer, Input.State: Equatable {
     let inputReducer: Input
     let initialResultStateForInput: (Input.State) -> Result.State

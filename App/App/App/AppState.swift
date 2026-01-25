@@ -19,7 +19,7 @@ import Persistence
 import Sharing
 
 @Reducer
-struct AppFeature: Reducer {
+struct AppFeature {
 
     @ObservableState
     struct State: Equatable {
@@ -239,9 +239,10 @@ struct AppFeature: Reducer {
     }
 
     @Reducer
-    struct Navigation: Reducer {
+    struct Navigation {
 
         @ObservableState
+        @CasePathable
         enum State: Equatable {
             case tab(TabNavigationFeature.State)
             case column(ColumnNavigationFeature.State)
@@ -271,6 +272,7 @@ struct AppFeature: Reducer {
             }
         }
 
+        @CasePathable
         enum Action: Equatable {
             case openEncounter(Encounter)
 

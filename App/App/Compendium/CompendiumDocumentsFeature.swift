@@ -432,7 +432,7 @@ struct EditDocument {
 
 struct CompendiumDocumentsView: View {
 
-    let store: StoreOf<CompendiumDocumentsFeature>
+    @Bindable var store: StoreOf<CompendiumDocumentsFeature>
 
     var body: some View {
         content
@@ -503,8 +503,6 @@ struct CompendiumDocumentsView: View {
 
     @ViewBuilder
     private var content: some View {
-        let sheetStore = store.scope(state: \.$sheet, action: \.sheet)
-
         let documentsView = ScrollView {
             VStack(spacing: 20) {
                 ForEach(store.realms, id: \.id) { realm in
@@ -534,7 +532,7 @@ struct CompendiumDocumentsView: View {
                 .padding(8)
             }
             .sheet(
-                store: sheetStore
+                item: $store.scope(state: \.sheet, action: \.sheet)
             ) { sheetStore in
                 switch sheetStore.case {
                 case let .editRealm(store):
@@ -645,11 +643,10 @@ struct CompendiumDocumentEditView: View {
             .autoSizingSheetContent(constant: 100)
         }
         .navigationDestination(
-            store: store.scope(state: \.$contents, action: \.contents),
-            destination: { store in
-                CompendiumIndexView(store: store)
-            }
-        )
+            item: $store.scope(state: \.contents, action: \.contents)
+        ) { store in
+            CompendiumIndexView(store: store)
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 if store.isLoading {

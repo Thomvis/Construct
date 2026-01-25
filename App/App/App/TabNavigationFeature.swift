@@ -5,7 +5,7 @@ import Helpers
 import GameModels
 
 @Reducer
-struct TabNavigationFeature: Reducer {
+struct TabNavigationFeature {
 
     @ObservableState
     struct State: Equatable {

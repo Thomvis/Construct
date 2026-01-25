@@ -12,7 +12,7 @@ import Dice
 import Helpers
 
 @Reducer
-public struct DiceRollerFeature: Reducer {
+public struct DiceRollerFeature {
 
     public init() { }
 

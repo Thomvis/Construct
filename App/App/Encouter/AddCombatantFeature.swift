@@ -7,7 +7,8 @@ import MechMuse
 import Persistence
 import DiceRollerFeature
 
-struct AddCombatantFeature: Reducer {
+@Reducer
+struct AddCombatantFeature {
     @ObservableState
     struct State: Equatable {
         var compendiumState: CompendiumIndexFeature.State

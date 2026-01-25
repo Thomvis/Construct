@@ -131,7 +131,8 @@ struct ReferenceViewFeature {
         case itemRequests([ReferenceViewItemRequest])
     }
 
-    struct Item: Reducer {
+    @Reducer
+    struct Item {
         typealias Action = ReferenceItem.Action
 
         struct State: Equatable, Identifiable {

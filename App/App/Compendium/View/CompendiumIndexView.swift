@@ -19,7 +19,7 @@ import Compendium
 struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View {
     @State var isSearching = false
 
-    let store: StoreOf<CompendiumIndexFeature>
+    @Bindable var store: StoreOf<CompendiumIndexFeature>
 
     let viewProvider: CompendiumIndexViewProvider
 
@@ -90,7 +90,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
         .modifier(IsSearchingModifier(isSearching: $isSearching.animation(.default)))
         .modifier(CompendiumSearchableModifier(store: store))
         .modifier(Sheets(store: store))
-        .alert(store: store.scope(state: \.$alert, action: \.alert))
+        .alert($store.scope(state: \.alert, action: \.alert))
     }
 
     @ViewBuilder
@@ -223,7 +223,7 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
     }
 
     struct Sheets: ViewModifier {
-        let store: StoreOf<CompendiumIndexFeature>
+        @Bindable var store: StoreOf<CompendiumIndexFeature>
 
         func body(content: Content) -> some View {
             content
@@ -370,11 +370,10 @@ private struct IsSearchingModifier: ViewModifier {
 }
 
 fileprivate struct CompendiumItemList: View {
-
-    var store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>
+    @Bindable var store: StoreOf<CompendiumIndexFeature>
     let viewProvider: CompendiumIndexViewProvider
 
-    init(store: Store<CompendiumIndexFeature.State, CompendiumIndexFeature.Action>, viewProvider: CompendiumIndexViewProvider) {
+    init(store: StoreOf<CompendiumIndexFeature>, viewProvider: CompendiumIndexViewProvider) {
         self.store = store
         self.viewProvider = viewProvider
     }
@@ -434,7 +433,7 @@ fileprivate struct CompendiumItemList: View {
                 set: { store.send(.setSelecting($0 == .active)) }
             ))
             .navigationDestination(
-                store: store.scope(state: \.$destination, action: \.destination)
+                item: $store.scope(state: \.destination, action: \.destination)
             ) { destinationStore in
                 switch destinationStore.case {
                 case let .itemDetail(detailStore):
@@ -674,4 +673,3 @@ fileprivate extension CompendiumFilterSheetFeature.State {
         )
     }
 }
-

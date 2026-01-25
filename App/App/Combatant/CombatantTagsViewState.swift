@@ -14,7 +14,8 @@ import Tagged
 import Helpers
 import GameModels
 
-struct CombatantTagsFeature: Reducer {
+@Reducer
+struct CombatantTagsFeature {
 
     @ObservableState
     struct State: Equatable {

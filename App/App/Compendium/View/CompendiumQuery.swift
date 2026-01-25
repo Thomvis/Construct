@@ -14,7 +14,8 @@ import ComposableArchitecture
 
 extension CompendiumIndexFeature {
 
-    struct Query: Reducer {
+    @Reducer
+    struct Query {
         struct State: Equatable {
             var text: String?
             var filters: CompendiumFilters?
@@ -69,4 +70,3 @@ extension CompendiumIndexFeature {
 //extension CompendiumIndexFeature.State.Query {
 //    static let nullInstance = CompendiumIndexFeature.State.Query(text: nil, filters: nil, order: .title)
 //}
-

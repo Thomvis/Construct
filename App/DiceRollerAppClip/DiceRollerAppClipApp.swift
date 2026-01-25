@@ -32,7 +32,11 @@ struct DiceRollerAppClipApp: App {
                     await store.send(.onLaunch).finish()
                 }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
-                    store.send(.onContinueUserActivity(activity))
+                    if let url = activity.webpageURL {
+                        store.send(.onContinueUserActivity(url))
+                    } else {
+                        print("ERROR: Could not continue user activity")
+                    }
                 }
                 .appStoreOverlay(
                     isPresented: Binding(
@@ -48,7 +52,7 @@ struct DiceRollerAppClipApp: App {
 }
 
 @Reducer
-struct AppFeature: Reducer {
+struct AppFeature {
 
     @ObservableState
     struct State: Equatable {
@@ -58,9 +62,9 @@ struct AppFeature: Reducer {
         var didShowAppStoreOverlay: Bool = false
     }
 
-    enum Action: Equatable {
+    enum Action: Equatable, @unchecked Sendable {
         case onLaunch
-        case onContinueUserActivity(NSUserActivity)
+        case onContinueUserActivity(URL)
         case diceRoller(DiceRollerFeature.Action)
 
         case setShowAppStoreOverlay(Bool)
@@ -77,15 +81,14 @@ struct AppFeature: Reducer {
             switch action {
             case .onLaunch:
                 // Listen to dice rolls and forward them to the right place
-                let rolls = diceLog.rolls
                 return .run { send in
-                    for await (result, roll) in rolls.values {
+                    for await (result, roll) in diceLog.rolls.values {
                         await send(.diceRoller(.onProcessRollForDiceLog(result, roll)))
                     }
                 }
                 .cancellable(id: "diceLog", cancelInFlight: true)
-            case .onContinueUserActivity(let activity):
-                guard let url = activity.webpageURL, let invocation = try? diceRollerInvocationRouter.match(url: url) else {
+            case .onContinueUserActivity(let url):
+                guard let invocation = try? diceRollerInvocationRouter.match(url: url) else {
                     print("ERROR: Could not continue user activity")
                     break
                 }

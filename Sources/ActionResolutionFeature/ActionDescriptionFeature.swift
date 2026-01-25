@@ -116,7 +116,7 @@ public struct ActionDescriptionFeature {
     }
 
     @Reducer
-    public struct RequestInput: Reducer {
+    public struct RequestInput {
         public struct State: Hashable {
             var request: CreatureActionDescriptionRequest? = nil
         }

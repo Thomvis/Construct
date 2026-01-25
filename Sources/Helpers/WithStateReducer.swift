@@ -1,12 +1,16 @@
 import ComposableArchitecture
 
-public struct WithValue<ParentState, Value, ParentAction, Body: Reducer>: Reducer
+@Reducer
+public struct WithValue<ParentState, Value, ParentAction, Body: Reducer>
 where Body.State == ParentState, Body.Action == ParentAction {
 
     @usableFromInline
     let toValue: (ParentState) -> Value
     @usableFromInline
     let reducer: (Value) -> Body
+
+    public typealias State = ParentState
+    public typealias Action = ParentAction
 
     @inlinable
     public init(

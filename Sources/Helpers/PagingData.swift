@@ -10,7 +10,8 @@ import ComposableArchitecture
 
 public let PagingDataBatchSize = 40
 
-public struct PagingData<Element>: Reducer where Element: Equatable {
+@Reducer
+public struct PagingData<Element> where Element: Equatable {
 
     public struct State: Equatable {
         fileprivate let id: UUID
@@ -152,4 +153,3 @@ public struct PagingDataError: Swift.Error, Equatable {
         self.description = String(describing: error)
     }
 }
-

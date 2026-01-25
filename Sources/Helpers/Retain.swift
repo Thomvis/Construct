@@ -8,9 +8,12 @@
 import Foundation
 import ComposableArchitecture
 
-public struct Retain<Wrapped, Value>: Reducer where Wrapped: Reducer, Value: Equatable {
+@Reducer
+public struct Retain<Wrapped, Value> where Wrapped: Reducer, Value: Equatable {
     let wrappedReducer: Wrapped
     let valueToRetain: (Wrapped.State) -> Value?
+
+    public typealias Action = Wrapped.Action
 
     public init(
         wrappedReducer: Wrapped,

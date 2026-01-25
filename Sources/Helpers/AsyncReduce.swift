@@ -8,7 +8,8 @@
 import Foundation
 import ComposableArchitecture
 
-public struct AsyncReduce<Result, Element, Failure>: Reducer where Failure: Error {
+@Reducer
+public struct AsyncReduce<Result, Element, Failure> where Failure: Error {
 
     public struct State {
         fileprivate let id = UUID()

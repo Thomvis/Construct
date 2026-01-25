@@ -15,7 +15,8 @@ import MechMuse
 import Persistence
 import SwiftUI
 
-struct EncounterDetailFeature: Reducer {
+@Reducer
+struct EncounterDetailFeature {
     struct AddCombatantSheet: Identifiable, Equatable {
         let id: UUID
         var state: AddCombatantFeature.State
@@ -180,7 +181,8 @@ struct EncounterDetailFeature: Reducer {
 
     // Note: Cannot be replaced with an @Reducer enum (new in TCA 1.8) for now
     // because not all children are reducers
-    struct Sheet: Reducer {
+    @Reducer
+    struct Sheet {
         @ObservableState
         @CasePathable
         @dynamicMemberLookup

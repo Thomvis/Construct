@@ -16,7 +16,8 @@ import Compendium
 import MechMuse
 import Persistence
 
-struct NamedStatBlockContentItemEditFeature: Reducer {
+@Reducer
+struct NamedStatBlockContentItemEditFeature {
 
     @ObservableState
     struct State: Equatable {

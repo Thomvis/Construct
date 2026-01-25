@@ -87,7 +87,7 @@ struct CampaignBrowseView: View {
             }
         }
         .navigationDestination(
-            store: store.scope(state: \.$destination, action: \.destination)
+            item: $store.scope(state: \.destination, action: \.destination)
         ) { destinationStore in
             switch destinationStore.case {
             case let .campaignBrowse(store):

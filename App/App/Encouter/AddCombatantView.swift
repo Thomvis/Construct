@@ -64,7 +64,7 @@ struct AddCombatantView: View {
             }
         }
         .sheet(
-            store: store.scope(state: \.$creatureEditViewState, action: \.creatureEditView)
+            item: $store.scope(state: \.creatureEditViewState, action: \.creatureEditView)
         ) { creatureStore in
             SheetNavigationContainer(isModalInPresentation: true) {
                 CreatureEditView(store: creatureStore)

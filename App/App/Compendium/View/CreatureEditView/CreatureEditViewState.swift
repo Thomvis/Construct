@@ -17,7 +17,8 @@ import MechMuse
 import Persistence
 import SharedViews
 
-struct CreatureEditFeature: Reducer {
+@Reducer
+struct CreatureEditFeature {
     @ObservableState
     struct State: Equatable {
         var mode: Mode

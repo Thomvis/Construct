@@ -12,7 +12,7 @@ import Helpers
 import GameModels
 
 @Reducer
-struct ReferenceItem: Reducer {
+struct ReferenceItem {
 
     @ObservableState
     struct State: Equatable {
@@ -300,7 +300,8 @@ struct ReferenceItem: Reducer {
         }
     }
 
-    struct ContentReducer: Reducer {
+    @Reducer
+    struct ContentReducer {
         typealias State = ReferenceItem.State.Content
         typealias Action = ReferenceItem.Action
 

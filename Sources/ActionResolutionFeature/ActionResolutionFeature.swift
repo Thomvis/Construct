@@ -15,7 +15,7 @@ import Persistence
 import SwiftUI
 
 @Reducer
-public struct ActionResolutionFeature: Reducer {
+public struct ActionResolutionFeature {
 
     public init() { }
 

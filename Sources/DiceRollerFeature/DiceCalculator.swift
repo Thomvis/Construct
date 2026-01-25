@@ -13,7 +13,7 @@ import Dice
 import SharedViews
 
 @Reducer
-public struct DiceCalculator: Reducer {
+public struct DiceCalculator {
 
     public init() { }
 

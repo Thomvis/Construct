@@ -8,7 +8,8 @@ import MechMuse
 import CustomDump
 import Tagged
 
-struct MechMuseCreatureGenerationFeature: Reducer {
+@Reducer
+struct MechMuseCreatureGenerationFeature {
     @ObservableState
     struct State: Equatable, Identifiable {
         var id: UUID = UUID()
@@ -348,7 +349,8 @@ struct MechMuseCreatureGenerationSheet: View {
 }
 
 extension MechMuseCreatureGenerationFeature {
-    struct Preview: Reducer {
+    @Reducer
+    struct Preview {
         @ObservableState
         struct State: Equatable {
             let statBlock: StatBlock

@@ -249,7 +249,8 @@ struct CompendiumIndexFeature {
         case itemDetail(CompendiumEntryDetailFeature)
     }
 
-    struct Sheet: Reducer {
+    @Reducer
+    struct Sheet {
         @CasePathable
         enum State: Equatable {
             case creatureEdit(CreatureEditFeature.State)

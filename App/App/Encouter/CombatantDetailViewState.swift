@@ -17,7 +17,8 @@ import GameModels
 import ActionResolutionFeature
 import Compendium
 
-struct CombatantDetailFeature: Reducer {
+@Reducer
+struct CombatantDetailFeature {
     @ObservableState
     struct State: Equatable {
 

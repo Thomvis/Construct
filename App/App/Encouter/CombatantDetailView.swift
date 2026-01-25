@@ -96,7 +96,7 @@ struct CombatantDetailView: View {
                     }
                 )
                 .popover(popover)
-                .alert(store: store.scope(state: \.$alert, action: \.alert))
+                .alert($store.scope(state: \.alert, action: \.alert))
                 .onAppear {
                     store.send(.onAppear)
                 }
@@ -128,7 +128,7 @@ struct CombatantDetailView: View {
     private func navigationDestinations<Content: View>(_ content: Content) -> some View {
         content
             .navigationDestination(
-                store: store.scope(state: \.$destination, action: \.destination)
+                item: $store.scope(state: \.destination, action: \.destination)
             ) { destinationStore in
                 switch destinationStore.case {
                 case let .combatantTagEditView(store):

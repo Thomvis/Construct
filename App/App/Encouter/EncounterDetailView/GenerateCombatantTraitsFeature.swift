@@ -13,7 +13,8 @@ import Helpers
 import MechMuse
 import CustomDump
 
-struct GenerateCombatantTraitsFeature: Reducer {
+@Reducer
+struct GenerateCombatantTraitsFeature {
 
     @ObservableState
     struct State: Equatable {
@@ -255,4 +256,3 @@ struct GenerateCombatantTraitsFeature: Reducer {
         }
     }
 }
-

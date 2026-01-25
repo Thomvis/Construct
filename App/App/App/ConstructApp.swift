@@ -117,23 +117,9 @@ struct AppLoadingView: View {
 }
 
 struct ConstructView: View {
-    @SwiftUI.Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @SwiftUI.Environment(\.scenePhase) var scenePhase
-
     let dependencies: BaseDependencies
 
     @StateObject var store: StoreOf<AppFeature>
-
-    private var welcomeSheetBinding: Binding<Bool> {
-        Binding(
-            get: { store.presentation == .welcomeSheet },
-            set: { isPresented in
-                if !isPresented {
-                    store.send(.dismissPresentation(.welcomeSheet))
-                }
-            }
-        )
-    }
 
     init(dependencies: BaseDependencies) {
         self.dependencies = dependencies
@@ -162,6 +148,30 @@ struct ConstructView: View {
     }
 
     var body: some View {
+        ConstructContentView(store: store)
+            .environmentObject(dependencies.modifierFormatter)
+            .environmentObject(dependencies.ordinalFormatter)
+    }
+}
+
+private struct ConstructContentView: View {
+    @SwiftUI.Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @SwiftUI.Environment(\.scenePhase) var scenePhase
+
+    @Bindable var store: StoreOf<AppFeature>
+
+    private var welcomeSheetBinding: Binding<Bool> {
+        Binding(
+            get: { store.presentation == .welcomeSheet },
+            set: { isPresented in
+                if !isPresented {
+                    store.send(.dismissPresentation(.welcomeSheet))
+                }
+            }
+        )
+    }
+
+    var body: some View {
         ZStack {
             if let tabStore = store.scope(state: \.navigation?.tab, action: \.navigation.tab) {
                 TabNavigationView(store: tabStore)
@@ -179,7 +189,7 @@ struct ConstructView: View {
                 }
             }
         }
-        .alert(store: store.scope(state: \.$crashReportingPermissionAlert, action: \.alert))
+        .alert($store.scope(state: \.crashReportingPermissionAlert, action: \.alert))
         .task {
             await store.send(.onLaunch).finish()
         }
@@ -211,8 +221,6 @@ struct ConstructView: View {
             guard let url = activity.webpageURL else { return }
             store.send(.onOpenURL(url))
         }
-        .environmentObject(dependencies.modifierFormatter)
-        .environmentObject(dependencies.ordinalFormatter)
     }
 }
 

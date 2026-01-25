@@ -21,7 +21,8 @@ struct CompendiumContainerView: View {
     }
 }
 
-struct CompendiumRootFeature: Reducer {
+@Reducer
+struct CompendiumRootFeature {
     typealias State = CompendiumIndexFeature.State
     typealias Action = CompendiumIndexFeature.Action
 
