@@ -285,7 +285,7 @@ class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     var tabNavigationCombatantDetailMage: some View {
         get async {
-            return try! await withDependencies {
+            return withDependencies {
                 $0.database = database
             } operation: {
                 @Dependency(\.database) var db
@@ -376,7 +376,7 @@ class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     var encounterDetailRunningEncounterDetailState: EncounterDetailFeature.State {
         get async {
-            return try! await withDependencies {
+            return withDependencies {
                 $0.database = database
                 $0.crashReporter = CrashReporter.firebase
             } operation: {
@@ -506,7 +506,7 @@ class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     var columnNavigationEncounterDetailBuilding: ConstructView {
         get async {
-            return try! await withDependencies {
+            return await withDependencies {
                 $0.database = database
                 $0.crashReporter = CrashReporter.firebase
             } operation: {
@@ -1126,9 +1126,7 @@ func prepareView(
         viewController.view.bounds = view.bounds
         viewController.view.addSubview(view)
     }
-    // Note: this warning is hard to fix without changes to swift-snapshot-testing
-    // (we'd need to go all-in on UITraitCollection.TraitMutations)
-    let traits = UITraitCollection(traitsFrom: [config.traits, traits])
+    let traits = combinedTraits(configTraits: config.traits, overrides: traits)
     let window: UIWindow
     if drawHierarchyInKeyWindow {
         fatalError("'drawHierarchyInKeyWindow' not supported")
@@ -1148,6 +1146,53 @@ func prepareView(
     }
 
     return dispose
+}
+
+private func combinedTraits(configTraits: UITraitCollection, overrides: UITraitCollection) -> UITraitCollection {
+    if #available(iOS 17, *) {
+        return configTraits.modifyingTraits { mutations in
+            if overrides.userInterfaceStyle != .unspecified {
+                mutations.userInterfaceStyle = overrides.userInterfaceStyle
+            }
+            if overrides.userInterfaceLevel != .unspecified {
+                mutations.userInterfaceLevel = overrides.userInterfaceLevel
+            }
+            if overrides.horizontalSizeClass != .unspecified {
+                mutations.horizontalSizeClass = overrides.horizontalSizeClass
+            }
+            if overrides.verticalSizeClass != .unspecified {
+                mutations.verticalSizeClass = overrides.verticalSizeClass
+            }
+            if overrides.layoutDirection != .unspecified {
+                mutations.layoutDirection = overrides.layoutDirection
+            }
+            if overrides.displayGamut != .unspecified {
+                mutations.displayGamut = overrides.displayGamut
+            }
+            if overrides.preferredContentSizeCategory != .unspecified {
+                mutations.preferredContentSizeCategory = overrides.preferredContentSizeCategory
+            }
+            if overrides.accessibilityContrast != .unspecified {
+                mutations.accessibilityContrast = overrides.accessibilityContrast
+            }
+            if overrides.legibilityWeight != .unspecified {
+                mutations.legibilityWeight = overrides.legibilityWeight
+            }
+            if overrides.userInterfaceIdiom != .unspecified {
+                mutations.userInterfaceIdiom = overrides.userInterfaceIdiom
+            }
+            if overrides.forceTouchCapability != .unknown {
+                mutations.forceTouchCapability = overrides.forceTouchCapability
+            }
+            if overrides.displayScale > 0 {
+                mutations.displayScale = overrides.displayScale
+            }
+            if overrides.activeAppearance != .unspecified {
+                mutations.activeAppearance = overrides.activeAppearance
+            }
+        }
+    }
+    return configTraits
 }
 
 func addImagesForRenderedViews(_ view: UIView) -> [SnapshotTesting.Async<UIView>] {
@@ -1320,9 +1365,7 @@ private func add(traits: UITraitCollection, viewController: UIViewController, to
     } else {
         rootViewController = viewController
     }
-    // Note: this warning is hard to fix without changes to swift-snapshot-testing
-    // (we'd need to go all-in on UITraitCollection.TraitMutations)
-    rootViewController.setOverrideTraitCollection(traits, forChild: viewController)
+    applyTraitOverrides(traits, to: viewController)
     viewController.didMove(toParent: rootViewController)
 
     window.rootViewController = rootViewController
@@ -1341,6 +1384,24 @@ private func add(traits: UITraitCollection, viewController: UIViewController, to
         rootViewController.endAppearanceTransition()
         window.rootViewController = nil
     }
+}
+
+private func applyTraitOverrides(_ traits: UITraitCollection, to viewController: UIViewController) {
+    guard #available(iOS 17, *) else { return }
+
+    viewController.traitOverrides.userInterfaceStyle = traits.userInterfaceStyle
+    viewController.traitOverrides.userInterfaceLevel = traits.userInterfaceLevel
+    viewController.traitOverrides.horizontalSizeClass = traits.horizontalSizeClass
+    viewController.traitOverrides.verticalSizeClass = traits.verticalSizeClass
+    viewController.traitOverrides.layoutDirection = traits.layoutDirection
+    viewController.traitOverrides.displayGamut = traits.displayGamut
+    viewController.traitOverrides.preferredContentSizeCategory = traits.preferredContentSizeCategory
+    viewController.traitOverrides.accessibilityContrast = traits.accessibilityContrast
+    viewController.traitOverrides.legibilityWeight = traits.legibilityWeight
+    viewController.traitOverrides.userInterfaceIdiom = traits.userInterfaceIdiom
+    viewController.traitOverrides.forceTouchCapability = traits.forceTouchCapability
+    viewController.traitOverrides.displayScale = traits.displayScale
+    viewController.traitOverrides.activeAppearance = traits.activeAppearance
 }
 
 extension Array {
