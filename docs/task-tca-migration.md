@@ -60,6 +60,7 @@ Remaining items:
 - ✅ Removed duplicate `AddCombatantFeature` file (`App/App/Encouter/AddCombatantState.swift`).
 - ✅ Removed duplicate `FloatingDiceRollerFeature` file (`App/App/DiceRoller/FloatingDiceRollerViewState.swift`).
 - ⚠️ CLI build currently requires `-skipMacroValidation` to bypass SwiftPM macro enablement errors.
+- ⚠️ Build still surfaces warnings in `AppStoreScreenshotTests.swift` (try/await without async, deprecated trait APIs).
 
 Follow‑up ideas (best‑practice polish):
 - ✅ Refactored `CompendiumIndexFeature.Sheet` to a `@Reducer enum` so CompendiumIndexView uses `sheet(item:)` and avoids `\.$sheet` view scoping.
