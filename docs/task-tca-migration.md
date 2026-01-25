@@ -61,5 +61,5 @@ Remaining items:
 
 Follow‑up ideas (best‑practice polish):
 - ✅ Refactored `CompendiumIndexFeature.Sheet` to a `@Reducer enum` so CompendiumIndexView uses `sheet(item:)` and avoids `\.$sheet` view scoping.
-- Remove the last production `ViewStore` usage in `App/App/UI/SafariView.swift` (e.g. make `SafariViewState` observable and pass a URL directly).
+- ✅ Removed the last production `ViewStore` usage in `App/App/UI/SafariView.swift` (pass URL directly).
 - Revisit `@unchecked Sendable` on `DiceRollerAppClipApp.AppFeature.Action` if strict concurrency is enabled later.

@@ -38,7 +38,7 @@ struct ReferenceItemView: View {
                 }
 
                 if let safariStore = store.scope(state: \.content.safariState, action: \.contentSafari) {
-                    SafariView(store: safariStore)
+                    SafariView(url: safariStore.withState(\.url))
                         .navigationBarHidden(true)
                 }
             }

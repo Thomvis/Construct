@@ -9,7 +9,6 @@
 import Foundation
 import SwiftUI
 import SafariServices
-import ComposableArchitecture
 import Helpers
 
 struct SafariView: UIViewControllerRepresentable {
@@ -47,9 +46,3 @@ extension SafariViewState: NavigationStackItemState {
 }
 
 extension SafariViewState: NavigationTreeNode {}
-
-extension SafariView {
-    init(store: Store<SafariViewState, Void>) {
-        self.init(url: ViewStore(store, observe: \.self).url)
-    }
-}
