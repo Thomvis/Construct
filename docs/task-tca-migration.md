@@ -60,6 +60,6 @@ Remaining items:
 - ⚠️ CLI build currently requires `-skipMacroValidation` to bypass SwiftPM macro enablement errors.
 
 Follow‑up ideas (best‑practice polish):
-- Consider refactoring `CompendiumIndexFeature.Sheet` to a `@Reducer enum` so CompendiumIndexView can use `sheet(item:)` and remove the last `\.$sheet` view scoping.
+- ✅ Refactored `CompendiumIndexFeature.Sheet` to a `@Reducer enum` so CompendiumIndexView uses `sheet(item:)` and avoids `\.$sheet` view scoping.
 - Remove the last production `ViewStore` usage in `App/App/UI/SafariView.swift` (e.g. make `SafariViewState` observable and pass a URL directly).
 - Revisit `@unchecked Sendable` on `DiceRollerAppClipApp.AppFeature.Action` if strict concurrency is enabled later.

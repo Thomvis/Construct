@@ -19,8 +19,6 @@ import Tagged
 struct CompendiumFilterSheet: View {
     @Bindable var store: StoreOf<CompendiumFilterSheetFeature>
 
-    let onApply: (CompendiumFilterSheetFeature.State.Values) -> Void
-
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -109,7 +107,7 @@ struct CompendiumFilterSheet: View {
             }
             .safeAreaInset(edge: .bottom) {
                 Button(action: {
-                    onApply(store.effectiveCurrentValues)
+                    store.send(.onApply)
                 }) {
                     Text("Apply").frame(maxWidth: .infinity)
                 }
@@ -278,6 +276,7 @@ struct CompendiumFilterSheetFeature {
         case editing(State.Filter, Bool)
         case clear(State.Filter)
         case clearAll
+        case onApply
 
         case documentSelection(CompendiumDocumentSelectionFeature.Action)
     }
@@ -319,6 +318,8 @@ struct CompendiumFilterSheetFeature {
                                 .send(.clear(filter))
                         }
                     )
+                case .onApply:
+                    break
                 case .documentSelection:
                     break
                 }
@@ -410,9 +411,7 @@ struct CompendiumFilterSheetPreview: PreviewProvider {
             store: Store(initialState: CompendiumFilterSheetFeature.State()) {
                 CompendiumFilterSheetFeature()
             }
-        ) { _ in
-
-        }
+        )
     }
 }
 #endif

@@ -250,49 +250,13 @@ struct CompendiumIndexFeature {
     }
 
     @Reducer
-    struct Sheet {
-        @CasePathable
-        enum State: Equatable {
-            case creatureEdit(CreatureEditFeature.State)
-            case groupEdit(CompendiumItemGroupEditFeature.State)
-            case compendiumImport(CompendiumImportFeature.State)
-            case documents(CompendiumDocumentsFeature.State)
-            case transfer(CompendiumItemTransferFeature.State)
-            case filter(CompendiumFilterSheetFeature.State)
-        }
-
-        @CasePathable
-        enum Action: Equatable {
-            case creatureEdit(CreatureEditFeature.Action)
-            case groupEdit(CompendiumItemGroupEditFeature.Action)
-            case compendiumImport(CompendiumImportFeature.Action)
-            case documents(CompendiumDocumentsFeature.Action)
-            case transfer(CompendiumItemTransferFeature.Action)
-            case filter(CompendiumFilterSheetFeature.Action)
-
-            case onFilterApply
-        }
-
-        var body: some ReducerOf<Self> {
-            Scope(state: \.creatureEdit, action: \.creatureEdit) {
-                CreatureEditFeature()
-            }
-            Scope(state: \.groupEdit, action: \.groupEdit) {
-                CompendiumItemGroupEditFeature()
-            }
-            Scope(state: \.compendiumImport, action: \.compendiumImport) {
-                CompendiumImportFeature()
-            }
-            Scope(state: \.documents, action: \.documents) {
-                CompendiumDocumentsFeature()
-            }
-            Scope(state: \.transfer, action: \.transfer) {
-                CompendiumItemTransferFeature()
-            }
-            Scope(state: \.filter, action: \.filter) {
-                CompendiumFilterSheetFeature()
-            }
-        }
+    enum Sheet {
+        case creatureEdit(CreatureEditFeature)
+        case groupEdit(CompendiumItemGroupEditFeature)
+        case compendiumImport(CompendiumImportFeature)
+        case documents(CompendiumDocumentsFeature)
+        case transfer(CompendiumItemTransferFeature)
+        case filter(CompendiumFilterSheetFeature)
     }
 
     var body: some ReducerOf<Self> {
@@ -400,7 +364,7 @@ struct CompendiumIndexFeature {
                     .send(.results(.result(.reload(.currentCount)))),
                     .send(.sheet(.dismiss))
                 )
-            case .sheet(.presented(.onFilterApply)):
+            case .sheet(.presented(.filter(.onApply))):
                 guard case let .filter(filterState) = state.sheet else { break }
                 let filterValues = filterState.effectiveCurrentValues
                 var newFilters = state.results.input.filters ?? .init()
@@ -457,9 +421,7 @@ struct CompendiumIndexFeature {
             return .none
         }
         .ifLet(\.$destination, action: \.destination)
-        .ifLet(\.$sheet, action: \.sheet) {
-            Sheet()
-        }
+        .ifLet(\.$sheet, action: \.sheet)
 
         Scope(state: \.results, action: \.results) {
             resultsReducer
@@ -540,6 +502,9 @@ struct CompendiumIndexFeature {
         }
     }
 }
+
+extension CompendiumIndexFeature.Sheet.State: Equatable {}
+extension CompendiumIndexFeature.Sheet.Action: Equatable {}
 
 extension CompendiumIndexFeature.State {
     static let nullInstance = CompendiumIndexFeature.State(

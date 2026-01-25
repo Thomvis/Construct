@@ -227,69 +227,53 @@ struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View 
 
         func body(content: Content) -> some View {
             content
-                .sheet(
-                    store: store.scope(state: \.$sheet.creatureEdit, action: \.sheet.creatureEdit)
-                ) { store in
-                    SheetNavigationContainer(isModalInPresentation: true) {
-                        CreatureEditView(store: store)
-                    }
-                }
-                .sheet(
-                    store: store.scope(state: \.$sheet.groupEdit, action: \.sheet.groupEdit)
-                ) { store in
-                    SheetNavigationContainer {
-                        CompendiumItemGroupEditView(store: store)
-                    }
-                }
-                .sheet(
-                    store: store.scope(state: \.$sheet.compendiumImport, action: \.sheet.compendiumImport)
-                ) { store in
-                    SheetNavigationContainer {
-                        CompendiumImportView(store: store)
-                            .toolbar {
-                                ToolbarItem(placement: .cancellationAction) {
-                                    Button {
-                                        self.store.send(.sheet(.dismiss))
-                                    } label: {
-                                        Text("Cancel")
-                                    }
-                                }
-                            }
-                    }
-                }
-                .sheet(
-                    store: store.scope(state: \.$sheet.documents, action: \.sheet.documents)
-                ) { store in
-                    SheetNavigationContainer {
-                        CompendiumDocumentsView(store: store)
-                            .toolbar {
-                                ToolbarItem(placement: .confirmationAction) {
-                                    Button {
-                                        self.store.send(.sheet(.dismiss))
-                                    } label: {
-                                        Text("Done").bold()
-                                    }
-                                }
-                            }
-                    }
-                }
-                .sheet(
-                    store: store.scope(state: \.$sheet.transfer, action: \.sheet.transfer)
-                ) { store in
-                    AutoSizingSheetContainer {
-                        SheetNavigationContainer {
-                            CompendiumItemTransferSheet(store: store)
-                                .autoSizingSheetContent(constant: 40) // add 40 for the navigation bar
-                                .navigationBarTitleDisplayMode(.inline)
+                .sheet(item: $store.scope(state: \.sheet, action: \.sheet)) { sheetStore in
+                    switch sheetStore.case {
+                    case let .creatureEdit(store):
+                        SheetNavigationContainer(isModalInPresentation: true) {
+                            CreatureEditView(store: store)
                         }
-                    }
-                }
-                .sheet(
-                    store: store.scope(state: \.$sheet.filter, action: \.sheet.filter)
-                ) { filterStore in
-                    AutoSizingSheetContainer {
-                        CompendiumFilterSheet(store: filterStore) { _ in
-                            self.store.send(.sheet(.presented(.onFilterApply)))
+                    case let .groupEdit(store):
+                        SheetNavigationContainer {
+                            CompendiumItemGroupEditView(store: store)
+                        }
+                    case let .compendiumImport(store):
+                        SheetNavigationContainer {
+                            CompendiumImportView(store: store)
+                                .toolbar {
+                                    ToolbarItem(placement: .cancellationAction) {
+                                        Button {
+                                            self.store.send(.sheet(.dismiss))
+                                        } label: {
+                                            Text("Cancel")
+                                        }
+                                    }
+                                }
+                        }
+                    case let .documents(store):
+                        SheetNavigationContainer {
+                            CompendiumDocumentsView(store: store)
+                                .toolbar {
+                                    ToolbarItem(placement: .confirmationAction) {
+                                        Button {
+                                            self.store.send(.sheet(.dismiss))
+                                        } label: {
+                                            Text("Done").bold()
+                                        }
+                                    }
+                                }
+                        }
+                    case let .transfer(store):
+                        AutoSizingSheetContainer {
+                            SheetNavigationContainer {
+                                CompendiumItemTransferSheet(store: store)
+                                    .autoSizingSheetContent(constant: 40) // add 40 for the navigation bar
+                                    .navigationBarTitleDisplayMode(.inline)
+                            }
+                        }
+                    case let .filter(store):
+                        AutoSizingSheetContainer {
+                            CompendiumFilterSheet(store: store)
                         }
                     }
                 }
