@@ -142,26 +142,83 @@ struct ScratchPadPage {
 
     @discardableResult
     func openAddCombatants() -> AddCombatantsPage {
-        let addCombatantsButton = app.buttons["Add combatants"]
-        XCTAssertTrue(addCombatantsButton.waitForExistence(timeout: 10))
-        addCombatantsButton.tap()
+        let addCombatantsControl = addCombatantsButtonControl()
+        XCTAssertTrue(addCombatantsControl.waitForExistence(timeout: 10))
+        addCombatantsControl.tap()
         return AddCombatantsPage(app: app).waitForVisible()
     }
 
     func openAddCombatantsContextMenu() {
-        let addCombatantsButton = app.buttons["Add combatants"]
+        let addCombatantsButton = addCombatantsButtonControl()
         XCTAssertTrue(addCombatantsButton.waitForExistence(timeout: 10))
-        addCombatantsButton.press(forDuration: 1.0)
+
+        func quickCreateMenuIsVisible() -> Bool {
+            app.buttons["Quick create"].firstMatch.exists || app.menuItems["Quick create"].firstMatch.exists
+        }
+
+        if quickCreateMenuIsVisible() { return }
+
+        let center = addCombatantsButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let absoluteCenter = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            .withOffset(CGVector(dx: addCombatantsButton.frame.midX, dy: addCombatantsButton.frame.midY))
+
+        for _ in 0..<2 {
+            center.press(forDuration: 1.5)
+            if quickCreateMenuIsVisible() { return }
+            absoluteCenter.press(forDuration: 1.5)
+            if quickCreateMenuIsVisible() { return }
+            absoluteCenter.press(
+                forDuration: 1.2,
+                thenDragTo: absoluteCenter.withOffset(CGVector(dx: 1, dy: 1))
+            )
+            if quickCreateMenuIsVisible() { return }
+        }
+
+        XCTFail("Expected Add combatants context menu to appear")
+    }
+
+    func tapQuickCreateFromAddCombatantsContextMenu() {
+        let quickCreateButton = app.buttons["Quick create"].firstMatch
+        if quickCreateButton.waitForExistence(timeout: 5) {
+            quickCreateButton.tap()
+            return
+        }
+
+        let quickCreateMenuItem = app.menuItems["Quick create"].firstMatch
+        XCTAssertTrue(quickCreateMenuItem.waitForExistence(timeout: 5), "Expected quick create context action")
+        quickCreateMenuItem.tap()
+    }
+
+    private func addCombatantsButtonControl() -> XCUIElement {
+        let popUpButton = app.popUpButtons["Add combatants"].firstMatch
+        if popUpButton.exists {
+            return popUpButton
+        }
+
+        return app.buttons["Add combatants"].firstMatch
     }
 
     func openActionsSettings() -> EncounterSettingsPage {
-        let actionsButton = app.buttons["Actions"]
+        let actionsButton = app.navigationBars["Scratch pad"].buttons["Actions"].firstMatch
         XCTAssertTrue(actionsButton.waitForExistence(timeout: 10))
+        XCTAssertTrue(actionsButton.isHittable, "Scratch pad actions button should be hittable")
         actionsButton.tap()
 
-        let settingsButton = app.buttons["Settings"]
-        XCTAssertTrue(settingsButton.waitForExistence(timeout: 10))
-        settingsButton.tap()
+        let settingsButton = app.buttons["Settings"].firstMatch
+        if settingsButton.waitForExistence(timeout: 5) {
+            settingsButton.tap()
+            return EncounterSettingsPage(app: app)
+        }
+
+        let settingsMenuItem = app.menuItems["Settings"].firstMatch
+        if settingsMenuItem.waitForExistence(timeout: 5) {
+            settingsMenuItem.tap()
+            return EncounterSettingsPage(app: app)
+        }
+
+        let settingsStaticText = app.staticTexts["Settings"].firstMatch
+        XCTAssertTrue(settingsStaticText.waitForExistence(timeout: 5), "Expected Settings action in menu")
+        settingsStaticText.tap()
 
         return EncounterSettingsPage(app: app)
     }
@@ -175,6 +232,10 @@ struct ScratchPadPage {
 
     func assertDifficultyLabel(_ text: String) {
         XCTAssertTrue(app.staticTexts[text].waitForExistence(timeout: 10), "Expected difficulty label \(text)")
+    }
+
+    func assertCombatantVisible(_ name: String) {
+        XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 10), "Expected combatant \(name)")
     }
 }
 
@@ -245,10 +306,102 @@ struct AddCombatantsPage {
 
     @discardableResult
     func done() -> ScratchPadPage {
-        let doneButton = app.buttons["Done"]
-        XCTAssertTrue(doneButton.waitForExistence(timeout: 10))
-        doneButton.tap()
+        // If we're on a combatant detail push, navigate back to the add-combatants list.
+        for _ in 0..<2 {
+            let backToAddCombatant = app.buttons["Add Combatant"].firstMatch
+            if backToAddCombatant.exists && backToAddCombatant.isHittable {
+                backToAddCombatant.tap()
+            }
+        }
+
+        // If we're still on creature edit, cancel back to add-combatants list.
+        let cancelButton = app.navigationBars.buttons["Cancel"].firstMatch
+        if cancelButton.exists && cancelButton.isHittable {
+            cancelButton.tap()
+        }
+
+        let searchField = app.searchFields.firstMatch
+        if searchField.exists {
+            for _ in 0..<3 {
+                let closeButton = app.buttons["close"].firstMatch
+                if closeButton.exists {
+                    if closeButton.isHittable {
+                        closeButton.tap()
+                    } else {
+                        closeButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+                    }
+                } else {
+                    // Some add-combatants presentations expose only an unlabeled close affordance in
+                    // the lower-right corner of the search row.
+                    app.coordinate(withNormalizedOffset: CGVector(dx: 0.83, dy: 0.80)).tap()
+                }
+
+                let gone = NSPredicate(format: "exists == false")
+                let waiter = XCTNSPredicateExpectation(predicate: gone, object: searchField)
+                if XCTWaiter().wait(for: [waiter], timeout: 1.5) == .completed {
+                    return waitForDismissalToScratchPad()
+                }
+            }
+
+            for backLabel in ["Scratch pad", "Adventure"] {
+                let backButton = app.buttons[backLabel].firstMatch
+                if backButton.exists && backButton.isHittable {
+                    backButton.tap()
+                    return waitForDismissalToScratchPad()
+                }
+            }
+
+            let nonDismissLabels = Set(["Done", "Edit", "Actions", ""])
+            let navBarButtons = app.navigationBars.buttons.allElementsBoundByIndex
+            if let hittableDismissButton = navBarButtons.first(where: {
+                $0.exists && $0.isHittable && !nonDismissLabels.contains($0.label)
+            }) {
+                hittableDismissButton.tap()
+                return waitForDismissalToScratchPad()
+            }
+
+            let addCombatantNavBar = app.navigationBars["Add Combatant"].firstMatch
+            let addCombatantDone = addCombatantNavBar.buttons["Done"].firstMatch
+            if addCombatantDone.exists && addCombatantDone.isHittable {
+                addCombatantDone.tap()
+                return waitForDismissalToScratchPad()
+            }
+
+            let navBarDoneButtons = app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Done'"))
+            if tapFirstHittable(from: navBarDoneButtons, timeout: 5) {
+                return waitForDismissalToScratchPad()
+            }
+
+            let doneButtons = app.buttons.matching(NSPredicate(format: "label == 'Done'"))
+            if tapFirstHittable(from: doneButtons, timeout: 2) {
+                return waitForDismissalToScratchPad()
+            }
+        }
+
+        app.swipeDown()
+        return waitForDismissalToScratchPad()
+    }
+
+    private func waitForDismissalToScratchPad() -> ScratchPadPage {
+        let searchField = app.searchFields.firstMatch
+        if searchField.exists {
+            let gone = NSPredicate(format: "exists == false")
+            let waiter = XCTNSPredicateExpectation(predicate: gone, object: searchField)
+            _ = XCTWaiter().wait(for: [waiter], timeout: 8)
+        }
         return ScratchPadPage(app: app).waitForVisible()
+    }
+
+    private func tapFirstHittable(from query: XCUIElementQuery, timeout: TimeInterval) -> Bool {
+        guard query.firstMatch.waitForExistence(timeout: timeout) else { return false }
+        for index in 0..<query.count {
+            let button = query.element(boundBy: index)
+            if button.exists && button.isHittable {
+                button.tap()
+                return true
+            }
+        }
+        return false
     }
 }
 
@@ -328,24 +481,40 @@ struct CreatureEditPage {
 
     @discardableResult
     func setControlledByPlayer(_ enabled: Bool) -> Self {
+        dismissKeyboardIfVisible()
+
         let label = app.staticTexts["Controlled by player"]
-        scrollToElement(label)
+        scrollToElement(label, requireHittable: true)
         XCTAssertTrue(label.waitForExistence(timeout: 10), "Expected Controlled by player row")
 
-        let switchElement: XCUIElement
-        let identifiedSwitch = app.switches["controlledByPlayerToggle"]
-        if identifiedSwitch.exists {
-            switchElement = identifiedSwitch
-        } else {
-            switchElement = app.switches["Controlled by player"].firstMatch
+        let identifiedSwitch = app.switches["controlledByPlayerToggle"].firstMatch
+        if identifiedSwitch.waitForExistence(timeout: 2) {
+            scrollToElement(identifiedSwitch, requireHittable: true)
+            setSwitch(identifiedSwitch, enabled: enabled)
+            return self
         }
 
-        if switchElement.exists {
-            setSwitch(switchElement, enabled: enabled)
+        let labeledSwitch = app.switches["Controlled by player"].firstMatch
+        if labeledSwitch.exists {
+            scrollToElement(labeledSwitch, requireHittable: true)
+            setSwitch(labeledSwitch, enabled: enabled)
+            return self
+        }
+
+        let row = app.cells.containing(.staticText, identifier: "Controlled by player").firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        scrollToElement(row, requireHittable: true)
+
+        let rowSwitch = row.switches.firstMatch
+        if rowSwitch.exists {
+            setSwitch(rowSwitch, enabled: enabled)
         } else {
-            let row = app.otherElements.containing(.staticText, identifier: "Controlled by player").firstMatch
-            XCTAssertTrue(row.waitForExistence(timeout: 10))
-            setSwitch(row, enabled: enabled)
+            for _ in 0..<5 {
+                if switchValue(of: row) == enabled { return self }
+                let toggleCoordinate = row.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5))
+                toggleCoordinate.tap()
+            }
+            XCTAssertEqual(switchValue(of: row), enabled, "Failed to set switch state to \(enabled)")
         }
 
         return self
@@ -353,16 +522,40 @@ struct CreatureEditPage {
 
     @discardableResult
     func tapAdd() -> AddCombatantsPage {
-        let addButton = app.navigationBars.buttons["Add"]
-        XCTAssertTrue(addButton.waitForExistence(timeout: 10))
-        addButton.tap()
+        let addButtons = app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Add'"))
+        XCTAssertTrue(addButtons.firstMatch.waitForExistence(timeout: 10), "Expected Add button in creature editor")
+
+        var tapped = false
+        for index in 0..<addButtons.count {
+            let button = addButtons.element(boundBy: index)
+            if button.exists && button.isHittable {
+                button.tap()
+                tapped = true
+                break
+            }
+        }
+        if !tapped {
+            addButtons.firstMatch.tap()
+        }
+
+        let nameField = app.textFields["Name"].firstMatch
+        if nameField.exists {
+            let gone = NSPredicate(format: "exists == false")
+            let waiter = XCTNSPredicateExpectation(predicate: gone, object: nameField)
+            XCTAssertEqual(XCTWaiter().wait(for: [waiter], timeout: 10), .completed, "Creature edit view should dismiss after tapping Add")
+        }
         return AddCombatantsPage(app: app)
     }
 
     private func setSwitch(_ element: XCUIElement, enabled: Bool) {
-        for _ in 0..<4 {
+        for _ in 0..<5 {
             if switchValue(of: element) == enabled { return }
-            element.tap()
+            if element.isHittable {
+                element.tap()
+            } else {
+                let center = element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                center.tap()
+            }
             if switchValue(of: element) == enabled { return }
 
             let coordinate = element.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5))
@@ -386,12 +579,50 @@ struct CreatureEditPage {
         return false
     }
 
-    private func scrollToElement(_ element: XCUIElement) {
-        for _ in 0..<8 {
-            if element.exists { break }
-            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
-            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2))
+    private func scrollToElement(_ element: XCUIElement, requireHittable: Bool = false) {
+        for _ in 0..<10 {
+            if element.exists && (!requireHittable || element.isHittable) { return }
+            dismissKeyboardIfVisible()
+
+            let container = scrollContainer()
+            let start = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.72))
+            let end = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.28))
             start.press(forDuration: 0.01, thenDragTo: end)
+        }
+    }
+
+    private func scrollContainer() -> XCUIElement {
+        let table = app.tables.firstMatch
+        if table.waitForExistence(timeout: 1) {
+            return table
+        }
+
+        let scrollView = app.scrollViews.firstMatch
+        if scrollView.exists {
+            return scrollView
+        }
+
+        return app
+    }
+
+    private func dismissKeyboardIfVisible() {
+        guard app.keyboards.firstMatch.exists else { return }
+
+        let done = app.keyboards.buttons["Done"].firstMatch
+        if done.exists {
+            done.tap()
+            return
+        }
+
+        let `return` = app.keyboards.buttons["Return"].firstMatch
+        if `return`.exists {
+            `return`.tap()
+            return
+        }
+
+        let navBar = app.navigationBars.firstMatch
+        if navBar.exists {
+            navBar.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)).tap()
         }
     }
 }

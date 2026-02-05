@@ -28,34 +28,24 @@ final class ConstructEncounterBuildingUITests: ConstructUITestCase {
         backButton.tap()
 
         let goblinSniperEdit = addCombatants.tapQuickCreate()
-        _ = goblinSniperEdit
+        let addCombatantsAfterGoblinQuickCreate = goblinSniperEdit
             .setName("Goblin sniper")
             .tapAdd()
 
-        // Known bug: Quick create dismisses add combatants.
-        XCTAssertTrue(addCombatants.app.buttons["Add combatants"].waitForExistence(timeout: 10))
-
-        scratchPad.openAddCombatantsContextMenu()
-        addCombatants.app.buttons["Quick create"].tap()
-
-        let sarovinEdit = CreatureEditPage(app: addCombatants.app)
+        let sarovinEdit = addCombatantsAfterGoblinQuickCreate
             .waitForVisible()
+            .tapQuickCreate()
             .chooseCreatureType("character")
             .setName("Sarovin")
             .setLevel(2)
             .setControlledByPlayer(true)
 
-        _ = sarovinEdit.tapAdd()
+        let addCombatantsAfterSarovinQuickCreate = sarovinEdit.tapAdd()
+        _ = addCombatantsAfterSarovinQuickCreate.waitForVisible()
+        _ = addCombatantsAfterSarovinQuickCreate.done()
 
-        // Known bug: Quick create for character does not add and does not dismiss.
-        let doneButton = addCombatants.app.buttons["Done"]
-        XCTAssertTrue(doneButton.waitForExistence(timeout: 10))
-        doneButton.tap()
-
-        _ = scratchPad.openAddCombatants()
-        addCombatants.filterCharactersIfPresent()
-        addCombatants.addFromList(named: "Sarovin")
-        _ = addCombatants.done()
+        _ = scratchPad.waitForVisible()
+        scratchPad.assertCombatantVisible("Sarovin")
 
         scratchPad.assertDifficultyLabel("Hard for 3 level 2 characters")
 
