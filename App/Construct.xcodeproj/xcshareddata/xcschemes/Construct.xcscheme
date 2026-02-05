@@ -42,6 +42,20 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C3FE6C4A03954BE2AD32C020"
+               BuildableName = "ConstructUITests.xctest"
+               BlueprintName = "ConstructUITests"
+               ReferencedContainer = "container:Construct.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "HelpersTests"
                BuildableName = "HelpersTests"
                BlueprintName = "HelpersTests"
@@ -70,6 +84,16 @@
                   Identifier = "AppStoreScreenshotTests">
                </Test>
             </SkippedTests>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C3FE6C4A03954BE2AD32C020"
+               BuildableName = "ConstructUITests.xctest"
+               BlueprintName = "ConstructUITests"
+               ReferencedContainer = "container:Construct.xcodeproj">
+            </BuildableReference>
          </TestableReference>
          <TestableReference
             skipped = "NO">
