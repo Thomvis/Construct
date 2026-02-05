@@ -15,6 +15,7 @@ clarify uncertainty before coding, and align suggestions with the rules linked b
 [Fill in by LLM assistant]
 - `xcodebuild build -project App/Construct.xcodeproj -scheme Construct -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' | xcpretty`
   To validate changes. Pick another listed simulator if that one isn’t available.
+- When running xcodebuild in this repo, include `-skipPackagePluginValidation -skipMacroValidation` to avoid Swift macro/plugin validation failures.
 
 ## Code Style
 [Fill in by LLM assistant]
@@ -33,7 +34,7 @@ clarify uncertainty before coding, and align suggestions with the rules linked b
   - to discover the actual error, temporarily comment out or break out part of the offending expression "binary search-style" until the compiler can type-check.
 
 ## Testing
-- Run the tests with this command: `xcodebuild test -project App/Construct.xcodeproj -scheme Construct -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' | xcpretty`
+- Run the tests with this command: `xcodebuild test -project App/Construct.xcodeproj -scheme Construct -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' -skipPackagePluginValidation -skipMacroValidation | xcpretty`
 
 ## Environment
 [Fill in by LLM assistant]
