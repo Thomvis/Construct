@@ -19,6 +19,7 @@ struct AddCombatantFeature {
                 updateSuggestedCombatants()
             }
         }
+        var dismissAfterQuickCreateAdd = false
         @Presents var creatureEditViewState: CreatureEditFeature.State?
 
         var combatantsByDefinitionCache: [String: [Combatant]] = [:] // computed from the encounter
@@ -60,6 +61,7 @@ struct AddCombatantFeature {
     enum Action: Equatable {
         case compendiumState(CompendiumIndexFeature.Action)
         case quickCreate
+        case quickCreateAndDismissOnAdd
         case creatureEditView(PresentationAction<CreatureEditFeature.Action>)
         case onSelect([Combatant], dismiss: Bool)
     }
@@ -68,14 +70,23 @@ struct AddCombatantFeature {
         Reduce { state, action in
             switch action {
             case .quickCreate:
+                state.dismissAfterQuickCreateAdd = false
+                state.creatureEditViewState = CreatureEditFeature.State(create: .adHocCombatant)
+            case .quickCreateAndDismissOnAdd:
+                state.dismissAfterQuickCreateAdd = true
                 state.creatureEditViewState = CreatureEditFeature.State(create: .adHocCombatant)
             case let .creatureEditView(.presented(.didAdd(result))):
                 state.creatureEditViewState = nil
+                let dismiss = state.dismissAfterQuickCreateAdd
+                state.dismissAfterQuickCreateAdd = false
                 if case let .adHoc(def) = result {
-                    return .send(.onSelect([Combatant(adHoc: def)], dismiss: true))
+                    return .send(.onSelect([Combatant(adHoc: def)], dismiss: dismiss))
+                } else if case let .compendium(entry) = result, let combatant = entry.item as? CompendiumCombatant {
+                    return .send(.onSelect([Combatant(compendiumCombatant: combatant)], dismiss: dismiss))
                 }
             case .creatureEditView(.dismiss):
                 state.creatureEditViewState = nil
+                state.dismissAfterQuickCreateAdd = false
             case .creatureEditView:
                 break // handled below
             case .compendiumState:

@@ -158,6 +158,7 @@ struct CreatureEditView: View {
                 Toggle(isOn: model.isPlayer.animation()) {
                     Text("Controlled by player").bold()
                 }
+                .accessibilityIdentifier("controlledByPlayerToggle")
                 if model.wrappedValue.isPlayer {
                     ClearableTextField("Player name (Optional)", text: model.playerName).textContentType(.name)
                 }

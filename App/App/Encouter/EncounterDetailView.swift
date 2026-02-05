@@ -22,6 +22,10 @@ struct EncounterDetailView: View {
         store.state.encounter
     }
 
+    private var isUITesting: Bool {
+        ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
+    }
+
     var body: some View {
         List(
             selection: Binding(
@@ -194,7 +198,7 @@ struct EncounterDetailView: View {
                                     state: AddCombatantFeature.State(
                                         encounter:
                                             store.state.encounter)))))
-                    store.send(.sheet(.presented(.add(.quickCreate))))
+                    store.send(.sheet(.presented(.add(.quickCreateAndDismissOnAdd))))
                 }) {
                     Text("Quick create")
                     Image(systemName: "plus.circle")
@@ -204,7 +208,7 @@ struct EncounterDetailView: View {
                     Label("Add combatants", systemImage: "plus.circle")
                 }
             } primaryAction: {
-                if appNavigation == .tab {
+                if isUITesting || appNavigation == .tab {
                     store.send(
                         .setSheet(
                             .add(
