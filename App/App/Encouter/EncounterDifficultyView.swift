@@ -47,7 +47,10 @@ struct EncounterDifficultyView: View {
                 }
             }
             (Text(challengeText).bold() + Text(" for \(partySummary)").foregroundColor(Color(UIColor.secondaryLabel))).font(.footnote)
-        }.padding(.top, 3)
+        }
+        .padding(.top, 3)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(challengeText) for \(partySummary)")
     }
 
     var challengeText: String {

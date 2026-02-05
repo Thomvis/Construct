@@ -175,12 +175,13 @@ struct EncounterDetailView: View {
                         Text("Clear all").foregroundColor(Color.red)
                     }
                 } label: {
-                    Button(action: {}) {
+                    RoundedButtonLabel(maxHeight: .infinity) {
                         Label("Reset…", systemImage: "xmark.circle")
+                            .accessibilityHint(Text("Activate to clear the encounter."))
                     }
-                    .accessibilityHint(Text("Activate to clear the encounter."))
                 }
                 .menuStyle(.borderlessButton)
+                .buttonStyle(.plain)
                 .disabled(store.state.building.combatants.isEmpty)
             }
 
@@ -199,7 +200,7 @@ struct EncounterDetailView: View {
                     Image(systemName: "plus.circle")
                 }
             } label: {
-                Button(action: {}) {
+                RoundedButtonLabel(maxHeight: .infinity) {
                     Label("Add combatants", systemImage: "plus.circle")
                 }
             } primaryAction: {
@@ -215,6 +216,7 @@ struct EncounterDetailView: View {
                 }
             }
             .menuStyle(.borderlessButton)
+            .buttonStyle(.plain)
 
             if let resumables = store.state.resumableRunningEncounters.value, resumables.count > 0 {
                 Menu {
@@ -237,13 +239,14 @@ struct EncounterDetailView: View {
                         }
                     }
                 } label: {
-                    Button(action: {
-                        store.send(.run(nil), animation: .default)
-                    }) {
+                    RoundedButtonLabel(maxHeight: .infinity) {
                         Label("Run encounter", systemImage: "play")
                     }
+                } primaryAction: {
+                    store.send(.run(nil), animation: .default)
                 }
                 .menuStyle(.borderlessButton)
+                .buttonStyle(.plain)
                 .disabled(store.state.building.combatants.isEmpty)
             } else {
                 Button(action: {

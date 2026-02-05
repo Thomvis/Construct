@@ -34,7 +34,10 @@ public struct CompendiumCombatantDefinition: CombatantDefinition, Codable, Equat
     }
 
     public var player: Player? { return item.player }
-    public var level: Int? { return (item as? Character)?.level }
+    public var level: Int? {
+        guard let character = item as? Character else { return nil }
+        return character.level ?? character.stats.level
+    }
 
     public var isUnique: Bool { item.isUnique }
 

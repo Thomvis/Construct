@@ -6,6 +6,7 @@
 //  Copyright © 2019 Thomas Visser. All rights reserved.
 //
 
+import Foundation
 import SwiftUI
 import Combine
 import ComposableArchitecture
@@ -66,7 +67,8 @@ struct RootView: View {
                 return
             }
 
-            guard ProcessInfo.processInfo.environment["XCTestSessionIdentifier"] == nil else {
+            let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
+            guard ProcessInfo.processInfo.environment["XCTestSessionIdentifier"] == nil || isUiTesting else {
                 print("Aborting launch because Construct is launched as a Test Host.")
                 return
             }
@@ -231,8 +233,12 @@ struct BaseDependencies {
     let ordinalFormatter = OrdinalFormatter()
 
     static func live() async throws -> Self {
-        try await Self(
-            database: Database.live()
-        )
+        let database: Database
+        if ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1" {
+            database = try await Database(path: nil)
+        } else {
+            database = try await Database.live()
+        }
+        return try await Self(database: database)
     }
 }
