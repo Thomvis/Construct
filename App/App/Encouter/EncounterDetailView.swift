@@ -115,7 +115,7 @@ struct EncounterDetailView: View {
                     }
                 case .combatant:
                     if let store = store.scope(state: \.combatant, action: \.combatant) {
-                        CombatantDetailView(store: store)
+                        CombatantDetailContainerView(store: store)
                     }
                 case .runningEncounterLog:
                     if let store = store.scope(state: \.runningEncounterLog, action: \.runningEncounterLog) {

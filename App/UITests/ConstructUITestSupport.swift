@@ -499,6 +499,78 @@ struct CombatantDetailPage {
     }
 
     @discardableResult
+    func addTag(named tag: String) -> Self {
+        let manageButton = app.buttons["Manage"].firstMatch
+        XCTAssertTrue(manageButton.waitForExistence(timeout: 10), "Expected Manage tags button")
+        manageButton.tap()
+
+        let tagButton = app.buttons[tag].firstMatch
+        if tagButton.waitForExistence(timeout: 5) {
+            tagButton.tap()
+        } else {
+            let tagText = app.staticTexts[tag].firstMatch
+            XCTAssertTrue(tagText.waitForExistence(timeout: 10), "Expected tag option \(tag)")
+            tagText.tap()
+        }
+
+        // Create flow opens tag-edit with Done; edit flow may skip this.
+        let tagEditDone = app.navigationBars.buttons["Done"].firstMatch
+        if tagEditDone.waitForExistence(timeout: 2) && tagEditDone.isHittable {
+            tagEditDone.tap()
+        }
+
+        // Back from manage-tags destination to combatant detail.
+        let backButton = app.navigationBars.buttons.element(boundBy: 0)
+        if backButton.exists && backButton.isHittable {
+            backButton.tap()
+        }
+
+        return waitForVisible()
+    }
+
+    @discardableResult
+    func addLimitedResource(named name: String, uses: Int) -> Self {
+        let addResourceButton = app.buttons["Add limited resource"].firstMatch
+        scrollToElement(addResourceButton)
+        XCTAssertTrue(addResourceButton.waitForExistence(timeout: 10), "Expected Add limited resource button")
+        addResourceButton.tap()
+
+        let nameField = app.textFields["Name"].firstMatch
+        XCTAssertTrue(nameField.waitForExistence(timeout: 10), "Expected resource name field")
+        nameField.tap()
+        nameField.typeText(name)
+
+        if uses > 1 {
+            let stepper = app.steppers.firstMatch
+            XCTAssertTrue(stepper.waitForExistence(timeout: 5), "Expected resource uses stepper")
+            for _ in 0..<(uses - 1) {
+                stepper.buttons["Increment"].tap()
+            }
+        }
+
+        dismissKeyboardIfVisible()
+
+        let doneButton = app.buttons["Done"].firstMatch
+        XCTAssertTrue(doneButton.waitForExistence(timeout: 10), "Expected resource editor Done button")
+        doneButton.tap()
+
+        return self
+    }
+
+    func assertTagVisible(_ tag: String, timeout: TimeInterval = 10) {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", tag)
+        XCTAssertTrue(app.staticTexts.matching(predicate).firstMatch.waitForExistence(timeout: timeout), "Expected tag \(tag)")
+    }
+
+    func assertResourceVisible(containing text: String, timeout: TimeInterval = 10) {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", text)
+        if app.staticTexts.matching(predicate).firstMatch.waitForExistence(timeout: timeout) {
+            return
+        }
+        XCTAssertTrue(app.buttons.matching(predicate).firstMatch.waitForExistence(timeout: 2), "Expected resource containing \(text)")
+    }
+
+    @discardableResult
     func doneToScratchPad() -> ScratchPadPage {
         let doneButton = app.buttons["Done"].firstMatch
         if doneButton.exists && doneButton.isHittable {
@@ -535,6 +607,40 @@ struct CombatantDetailPage {
             XCTAssertTrue(digitButton.waitForExistence(timeout: 5), "Expected digit button \(character)")
             digitButton.tap()
         }
+    }
+
+    private func scrollToElement(_ element: XCUIElement) {
+        for _ in 0..<8 {
+            if element.exists && element.isHittable { return }
+
+            let container = app.scrollViews.firstMatch
+            if container.exists {
+                let start = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.78))
+                let end = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.28))
+                start.press(forDuration: 0.01, thenDragTo: end)
+            } else {
+                app.swipeUp()
+            }
+        }
+    }
+
+    private func dismissKeyboardIfVisible() {
+        guard app.keyboards.firstMatch.exists else { return }
+
+        let done = app.keyboards.buttons["Done"].firstMatch
+        if done.exists {
+            done.tap()
+            return
+        }
+
+        let `return` = app.keyboards.buttons["Return"].firstMatch
+        if `return`.exists {
+            `return`.tap()
+            return
+        }
+
+        let header = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08))
+        header.tap()
     }
 }
 

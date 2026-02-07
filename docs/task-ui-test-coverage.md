@@ -56,12 +56,15 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 1. Add a goblin to Scratch pad from add-combatants.
 2. Open combatant detail from Scratch pad row tap.
 3. Apply damage from combatant detail and dismiss back to Scratch pad.
-4. Verify encounter row updates HP label (`HP: 5 of 7`).
-5. Long-press combatant and `Duplicate`.
-6. Long-press combatant and `Eliminate`.
-7. Long-press combatant and `Reset`.
-8. Long-press combatant and `Remove`.
-9. Verify combatant count transitions (`1 -> 2 -> 1`).
+4. Add `Hidden` tag from combatant detail.
+5. Add limited resource (`Spell Slots`, 2 uses) from combatant detail.
+6. Verify detail shows `Hidden` and `Spell Slots`.
+7. Dismiss detail and verify row updates (`HP: 5 of 7`, `Hidden`).
+8. Long-press combatant and `Duplicate`.
+9. Long-press combatant and `Eliminate`.
+10. Long-press combatant and `Reset`.
+11. Long-press combatant and `Remove`.
+12. Verify combatant count transitions (`1 -> 2 -> 1`).
 
 ## Observations from code + axe exploration
 - Key surfaces currently visible and automatable with accessibility:
