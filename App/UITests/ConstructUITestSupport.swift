@@ -84,6 +84,47 @@ struct AdventurePage {
         return SettingsPage(app: app).waitForVisible()
     }
 
+    @discardableResult
+    func openCompendium(timeout: TimeInterval = 20) -> CompendiumPage {
+        let tabButton = app.buttons["Compendium"].firstMatch
+        if tabButton.waitForExistence(timeout: 2), tabButton.isHittable {
+            tabButton.tap()
+            if isCompendiumVisible(timeout: 3) {
+                return CompendiumPage(app: app).waitForVisible(timeout: timeout)
+            }
+        }
+
+        let tabBarButton = app.tabBars.buttons["Compendium"].firstMatch
+        if tabBarButton.waitForExistence(timeout: 2), tabBarButton.isHittable {
+            tabBarButton.tap()
+            if isCompendiumVisible(timeout: 3) {
+                return CompendiumPage(app: app).waitForVisible(timeout: timeout)
+            }
+        }
+
+        // Custom tab bar is not always exposed as a semantic button in UI tests.
+        let coordinateCandidates: [CGVector] = [
+            .init(dx: 0.50, dy: 0.94),
+            .init(dx: 0.50, dy: 0.90),
+            .init(dx: 0.50, dy: 0.96),
+        ]
+        for candidate in coordinateCandidates {
+            let tabCoordinate = app.coordinate(withNormalizedOffset: candidate)
+            tabCoordinate.tap()
+            if isCompendiumVisible(timeout: 3) {
+                return CompendiumPage(app: app).waitForVisible(timeout: timeout)
+            }
+        }
+
+        XCTFail("Expected to open Compendium tab")
+        return CompendiumPage(app: app).waitForVisible(timeout: timeout)
+    }
+
+    private func isCompendiumVisible(timeout: TimeInterval) -> Bool {
+        if app.buttons["Monsters"].waitForExistence(timeout: timeout) { return true }
+        return app.searchFields.firstMatch.waitForExistence(timeout: 1)
+    }
+
     func createGroup(named name: String) {
         createItem(button: "New group", name: name)
     }
@@ -124,6 +165,158 @@ struct AdventurePage {
         nameField.tap()
         nameField.typeText(name)
         app.navigationBars.buttons["Done"].firstMatch.tap()
+    }
+}
+
+struct CompendiumPage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 20) -> Self {
+        if app.buttons["Monsters"].waitForExistence(timeout: timeout) { return self }
+        XCTAssertTrue(app.searchFields.firstMatch.waitForExistence(timeout: timeout), "Compendium should be visible")
+        return self
+    }
+
+    @discardableResult
+    func search(_ text: String) -> Self {
+        let searchField = app.searchFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: 10), "Expected compendium search field")
+        focusSearchField(searchField)
+        searchField.typeText(text)
+        return self
+    }
+
+    @discardableResult
+    func clearSearch() -> Self {
+        let searchField = app.searchFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: 10), "Expected compendium search field")
+        let clearButton = searchField.buttons["Clear text"].firstMatch
+        XCTAssertTrue(clearButton.waitForExistence(timeout: 5), "Expected clear search button")
+        clearButton.tap()
+        return self
+    }
+
+    @discardableResult
+    func tapTypeFilter(_ label: String) -> Self {
+        let filterButton = app.buttons[label].firstMatch
+        XCTAssertTrue(filterButton.waitForExistence(timeout: 10), "Expected type filter \(label)")
+        filterButton.tap()
+        return self
+    }
+
+    @discardableResult
+    func openEntry(containing text: String) -> CompendiumDetailPage {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", text)
+        let entry = app.buttons.matching(predicate).firstMatch
+        XCTAssertTrue(entry.waitForExistence(timeout: 15), "Expected compendium entry containing \(text)")
+        entry.tap()
+        return CompendiumDetailPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func createMonster(named name: String) -> Self {
+        openAddMenu()
+
+        let newMonster = app.buttons["New monster"].firstMatch
+        XCTAssertTrue(newMonster.waitForExistence(timeout: 10), "Expected New monster action")
+        newMonster.tap()
+
+        let creatureEdit = CreatureEditPage(app: app).waitForVisible().setName(name)
+        _ = creatureEdit.tapAddToCompendiumDetail().goBackToCompendium()
+        return waitForVisible()
+    }
+
+    private func openAddMenu() {
+        let addPopUp = app.popUpButtons["Add"].firstMatch
+        if addPopUp.exists && addPopUp.isHittable {
+            addPopUp.tap()
+            return
+        }
+
+        let addButton = app.buttons["Add"].firstMatch
+        if addButton.exists && addButton.isHittable {
+            addButton.tap()
+            return
+        }
+
+        let addMenuCoordinate = app.coordinate(withNormalizedOffset: CGVector(dx: 0.24, dy: 0.86))
+        addMenuCoordinate.tap()
+    }
+
+    private func focusSearchField(_ searchField: XCUIElement) {
+        searchField.tap()
+        if hasKeyboardFocus(searchField) || app.keyboards.firstMatch.exists { return }
+
+        let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            .withOffset(CGVector(dx: searchField.frame.minX + 24, dy: searchField.frame.midY))
+        absolute.tap()
+        if hasKeyboardFocus(searchField) || app.keyboards.firstMatch.exists { return }
+
+        searchField.doubleTap()
+        XCTAssertTrue(hasKeyboardFocus(searchField) || app.keyboards.firstMatch.waitForExistence(timeout: 2), "Expected search field focus")
+    }
+
+    private func hasKeyboardFocus(_ element: XCUIElement) -> Bool {
+        guard let hasFocus = element.value(forKey: "hasKeyboardFocus") as? Bool else { return false }
+        return hasFocus
+    }
+}
+
+struct CompendiumDetailPage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 10) -> Self {
+        let navBar = app.navigationBars.firstMatch
+        XCTAssertTrue(navBar.waitForExistence(timeout: timeout), "Expected compendium detail navigation bar")
+        return self
+    }
+
+    @discardableResult
+    func openMenuAction(_ label: String) -> CreatureEditPage {
+        let moreButton = app.buttons["More"].firstMatch
+        if moreButton.waitForExistence(timeout: 2), moreButton.isHittable {
+            moreButton.tap()
+        } else {
+            let menuButton = app.navigationBars.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'ellipsis'"))
+                .firstMatch
+            if menuButton.exists && menuButton.isHittable {
+                menuButton.tap()
+            } else {
+                let navBarButtons = app.navigationBars.buttons.allElementsBoundByIndex
+                let fallback = navBarButtons.last(where: { $0.exists && $0.isHittable })
+                XCTAssertNotNil(fallback, "Expected a tappable detail menu button")
+                fallback?.tap()
+            }
+        }
+
+        let actionButton = app.buttons[label].firstMatch
+        if actionButton.waitForExistence(timeout: 5) {
+            actionButton.tap()
+        } else {
+            let actionMenuItem = app.menuItems[label].firstMatch
+            XCTAssertTrue(actionMenuItem.waitForExistence(timeout: 5), "Expected menu action \(label)")
+            actionMenuItem.tap()
+        }
+
+        return CreatureEditPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func goBackToCompendium() -> CompendiumPage {
+        for _ in 0..<4 {
+            if app.buttons["Monsters"].exists || app.searchFields.firstMatch.exists {
+                return CompendiumPage(app: app).waitForVisible(timeout: 5)
+            }
+
+            let backButton = app.navigationBars.buttons.element(boundBy: 0)
+            XCTAssertTrue(backButton.waitForExistence(timeout: 5), "Expected back button from detail")
+            backButton.tap()
+        }
+
+        XCTFail("Expected to navigate back to Compendium index")
+        return CompendiumPage(app: app).waitForVisible()
     }
 }
 
@@ -944,7 +1137,13 @@ struct CreatureEditPage {
     func setName(_ name: String) -> Self {
         let nameField = app.textFields["Name"].firstMatch
         XCTAssertTrue(nameField.waitForExistence(timeout: 10))
-        nameField.tap()
+        focusTextField(nameField)
+
+        if let currentValue = nameField.value as? String, !currentValue.isEmpty, currentValue != "Name" {
+            let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: currentValue.count)
+            nameField.typeText(deleteString)
+        }
+
         nameField.typeText(name)
         return self
     }
@@ -1031,6 +1230,43 @@ struct CreatureEditPage {
         return AddCombatantsPage(app: app)
     }
 
+    @discardableResult
+    func tapAddToCompendiumDetail() -> CompendiumDetailPage {
+        let addButton = app.navigationBars.buttons["Add"].firstMatch
+        XCTAssertTrue(addButton.waitForExistence(timeout: 10), "Expected Add button in creature editor")
+        addButton.tap()
+
+        let nameField = app.textFields["Name"].firstMatch
+        if nameField.exists {
+            let gone = NSPredicate(format: "exists == false")
+            let waiter = XCTNSPredicateExpectation(predicate: gone, object: nameField)
+            _ = XCTWaiter().wait(for: [waiter], timeout: 10)
+        }
+
+        return CompendiumDetailPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func tapDone() -> CompendiumDetailPage {
+        let doneButtons = app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Done'"))
+        XCTAssertTrue(doneButtons.firstMatch.waitForExistence(timeout: 10), "Expected Done button in creature editor")
+
+        var tapped = false
+        for index in 0..<doneButtons.count {
+            let button = doneButtons.element(boundBy: index)
+            if button.exists && button.isHittable {
+                button.tap()
+                tapped = true
+                break
+            }
+        }
+        if !tapped {
+            doneButtons.firstMatch.tap()
+        }
+
+        return CompendiumDetailPage(app: app).waitForVisible()
+    }
+
     private func setSwitch(_ element: XCUIElement, enabled: Bool) {
         for _ in 0..<5 {
             if switchValue(of: element) == enabled { return }
@@ -1108,6 +1344,24 @@ struct CreatureEditPage {
         if navBar.exists {
             navBar.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)).tap()
         }
+    }
+
+    private func focusTextField(_ field: XCUIElement) {
+        field.tap()
+        if hasKeyboardFocus(field) || app.keyboards.firstMatch.exists { return }
+
+        let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            .withOffset(CGVector(dx: field.frame.minX + 18, dy: field.frame.midY))
+        absolute.tap()
+        if hasKeyboardFocus(field) || app.keyboards.firstMatch.exists { return }
+
+        field.doubleTap()
+        XCTAssertTrue(hasKeyboardFocus(field) || app.keyboards.firstMatch.waitForExistence(timeout: 2), "Expected text field focus")
+    }
+
+    private func hasKeyboardFocus(_ element: XCUIElement) -> Bool {
+        guard let hasFocus = element.value(forKey: "hasKeyboardFocus") as? Bool else { return false }
+        return hasFocus
     }
 }
 
