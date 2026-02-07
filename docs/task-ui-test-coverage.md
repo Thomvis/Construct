@@ -71,6 +71,17 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 11. Long-press combatant and `Remove`.
 12. Verify combatant count transitions (`1 -> 2 -> 1`).
 
+### 7) Compendium basics (read/search/filter/add/edit)
+- File: `App/UITests/ConstructCompendiumBasicsUITests.swift`
+- Covered scenarios:
+1. Navigate from Adventure to Compendium.
+2. Apply the `Monsters` type filter.
+3. Search for `Acolyte` and open detail.
+4. Create a copy via detail menu (`Edit a copy`) and give it a new name.
+5. Open the created copy detail.
+6. Open `Edit` for the created copy and save from the editor.
+7. Navigate back to index and reopen the created copy entry.
+
 ## Observations from code + axe exploration
 - Key surfaces currently visible and automatable with accessibility:
 1. Adventure/Scratch pad actions: `Reset…`, `Add combatants`, `Run encounter`.
@@ -90,13 +101,6 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 - Running-mode follow-up:
 - Add coverage for combatant operations while a run is active (running rows currently expose HP/initiative controls but no stable direct detail-open target in UI tests).
 - Add context actions coverage: `Eliminate`, `Reset`, `Duplicate`, `Remove`.
-
-3. **Compendium basics (read/search/filter/add/edit)**
-- Switch to Compendium tab.
-- Search for an item by name.
-- Apply/remove filters (type + source where available).
-- Open detail view of a monster/character/spell.
-- Create at least one new homebrew item and edit it.
 
 ### P1 - High value, after P0
 1. **Compendium management actions**
