@@ -16,6 +16,12 @@ clarify uncertainty before coding, and align suggestions with the rules linked b
 - `xcodebuild build -project App/Construct.xcodeproj -scheme Construct -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' | xcpretty`
   To validate changes. Pick another listed simulator if that one isn’t available.
 - When running xcodebuild in this repo, include `-skipPackagePluginValidation -skipMacroValidation` to avoid Swift macro/plugin validation failures.
+- `xcodebuildmcp` CLI is available and useful for simulator/test workflows. Prefer absolute project paths:
+  - `xcodebuildmcp project-discovery list-schemes --project-path /Users/thomasvisser/Projects/Playgrounds/SwiftUI/Construct/App/Construct.xcodeproj`
+  - `xcodebuildmcp simulator list-sims --enabled`
+  - `xcodebuildmcp simulator test-sim --project-path /Users/thomasvisser/Projects/Playgrounds/SwiftUI/Construct/App/Construct.xcodeproj --scheme Construct --simulator-id EA0E0CB6-E385-4152-8D4D-1A424B1D33A6 --extra-args=-skipPackagePluginValidation --extra-args=-skipMacroValidation`
+- `xcodebuildmcp` CLI parsing gotcha: for any `extra-args` value that starts with `-`, pass it as `--extra-args=<value>` (with `=`), otherwise it is parsed as flags and fails.
+- If you need to debug what `xcodebuildmcp` is invoking, run with `--log-level debug` to see the exact underlying `/usr/bin/xcrun xcodebuild ...` command.
 
 ## Code Style
 [Fill in by LLM assistant]
@@ -35,6 +41,12 @@ clarify uncertainty before coding, and align suggestions with the rules linked b
 
 ## Testing
 - Run the tests with this command: `xcodebuild test -project App/Construct.xcodeproj -scheme Construct -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' -skipPackagePluginValidation -skipMacroValidation | xcpretty`
+- Equivalent `xcodebuildmcp` test command:
+  - `xcodebuildmcp simulator test-sim --project-path /Users/thomasvisser/Projects/Playgrounds/SwiftUI/Construct/App/Construct.xcodeproj --scheme Construct --simulator-id EA0E0CB6-E385-4152-8D4D-1A424B1D33A6 --extra-args=-skipPackagePluginValidation --extra-args=-skipMacroValidation`
+- When to prefer `xcodebuildmcp` over raw `xcodebuild`:
+  - You want structured test summaries and easy simulator targeting by `simulator-id`.
+  - You want one toolchain for build/test plus simulator inspection/automation (`snapshot-ui`, `screenshot`, `tap`, `swipe`).
+  - You want the exact underlying command logged (`--log-level debug`) for reproducibility.
 
 ## Environment
 [Fill in by LLM assistant]
