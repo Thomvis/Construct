@@ -148,6 +148,37 @@ struct ScratchPadPage {
         return AddCombatantsPage(app: app).waitForVisible()
     }
 
+    @discardableResult
+    func openCombatantDetail(containing nameFragment: String) -> CombatantDetailPage {
+        let namePredicate = NSPredicate(format: "label CONTAINS[c] %@", nameFragment)
+        let labels = app.staticTexts.matching(namePredicate)
+        XCTAssertTrue(labels.firstMatch.waitForExistence(timeout: 10), "Expected combatant matching \(nameFragment)")
+
+        let detail = CombatantDetailPage(app: app)
+
+        for _ in 0..<5 {
+            if detail.isVisible {
+                return detail
+            }
+
+            let label = labels.allElementsBoundByIndex.first(where: { $0.exists && $0.isHittable }) ?? labels.firstMatch
+            XCTAssertTrue(label.exists, "Expected combatant label matching \(nameFragment)")
+
+            // XCUIElement.tap() on StaticText does not always trigger the row's onTapGesture.
+            // Tap absolute coordinates to activate the row reliably.
+            let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+                .withOffset(CGVector(dx: label.frame.midX, dy: label.frame.midY))
+            absolute.tap()
+
+            if detail.waitForVisible(timeout: 2, failOnTimeout: false).isVisible {
+                return detail
+            }
+        }
+
+        XCTFail("Expected combatant detail for \(nameFragment) to open")
+        return detail
+    }
+
     func assertRunEncounterVisible(timeout: TimeInterval = 10) {
         XCTAssertTrue(runEncounterButtonControl().waitForExistence(timeout: timeout), "Run encounter control should be visible")
     }
@@ -303,6 +334,14 @@ struct ScratchPadPage {
     func assertCombatantVisible(_ name: String) {
         XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 10), "Expected combatant \(name)")
     }
+
+    func assertLabelContaining(_ textFragment: String, timeout: TimeInterval = 10) {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", textFragment)
+        if app.staticTexts.matching(predicate).firstMatch.waitForExistence(timeout: timeout) {
+            return
+        }
+        XCTAssertTrue(app.buttons.matching(predicate).firstMatch.waitForExistence(timeout: 2), "Expected label containing \(textFragment)")
+    }
 }
 
 struct RunningEncounterPage {
@@ -423,6 +462,79 @@ struct RunningEncounterLogPage {
         XCTAssertTrue(doneButton.waitForExistence(timeout: 10), "Expected Done button on running log")
         doneButton.tap()
         return RunningEncounterPage(app: app).waitForVisible()
+    }
+}
+
+struct CombatantDetailPage {
+    let app: XCUIApplication
+
+    var isVisible: Bool {
+        let hpButton = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Hit Points'")).firstMatch
+        return hpButton.exists && app.buttons["Manage"].firstMatch.exists
+    }
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 10, failOnTimeout: Bool = true) -> Self {
+        let hpButton = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Hit Points'")).firstMatch
+        let visible = hpButton.waitForExistence(timeout: timeout)
+        if failOnTimeout {
+            XCTAssertTrue(visible, "Expected combatant detail to be visible")
+        }
+        return self
+    }
+
+    @discardableResult
+    func applyDamage(_ amount: Int) -> Self {
+        let hpButton = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Hit Points'")).firstMatch
+        XCTAssertTrue(hpButton.waitForExistence(timeout: 10), "Expected Hit Points button")
+        hpButton.tap()
+
+        enterManualNumber(amount)
+
+        let hitButton = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Hit'")).firstMatch
+        XCTAssertTrue(hitButton.waitForExistence(timeout: 5), "Expected Hit button")
+        hitButton.tap()
+
+        return self
+    }
+
+    @discardableResult
+    func doneToScratchPad() -> ScratchPadPage {
+        let doneButton = app.buttons["Done"].firstMatch
+        if doneButton.exists && doneButton.isHittable {
+            doneButton.tap()
+            return ScratchPadPage(app: app).waitForVisible()
+        }
+
+        // Combatant detail is often presented as a swipe-dismissable sheet without a dedicated Done button.
+        for _ in 0..<3 {
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.10))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+            start.press(forDuration: 0.01, thenDragTo: end)
+
+            let scratchPad = ScratchPadPage(app: app)
+            if app.navigationBars["Scratch pad"].waitForExistence(timeout: 1.5) {
+                return scratchPad.waitForVisible()
+            }
+        }
+
+        XCTFail("Expected combatant detail to dismiss to Scratch pad")
+        return ScratchPadPage(app: app).waitForVisible()
+    }
+
+    private func enterManualNumber(_ number: Int) {
+        let deleteButton = app.buttons["delete.left"].firstMatch
+        if deleteButton.waitForExistence(timeout: 1) {
+            for _ in 0..<4 {
+                deleteButton.tap()
+            }
+        }
+
+        for character in String(number) {
+            let digitButton = app.buttons[String(character)].firstMatch
+            XCTAssertTrue(digitButton.waitForExistence(timeout: 5), "Expected digit button \(character)")
+            digitButton.tap()
+        }
     }
 }
 

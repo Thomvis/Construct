@@ -2,6 +2,25 @@ import XCTest
 
 final class ConstructCombatantOperationsUITests: ConstructUITestCase {
 
+    func testOpenCombatantDetailAndApplyDamage() {
+        let adventure = launchIntoAdventureBySkippingOnboarding()
+        let scratchPad = adventure.openScratchPad()
+
+        let addCombatants = scratchPad.openAddCombatants()
+        addCombatants
+            .search("goblin")
+            .quickAddCombatant(named: "Goblin", times: 1)
+        let scratchPadWithGoblin = addCombatants.done()
+        scratchPadWithGoblin.assertCombatantCount(containing: "Goblin", equals: 1)
+
+        let detail = scratchPadWithGoblin
+            .openCombatantDetail(containing: "Goblin")
+            .applyDamage(2)
+
+        let scratchPadAfterDamage = detail.doneToScratchPad()
+        scratchPadAfterDamage.assertLabelContaining("HP: 5 of 7")
+    }
+
     func testCombatantContextActionsInScratchPad() {
         let adventure = launchIntoAdventureBySkippingOnboarding()
         let scratchPad = adventure.openScratchPad()

@@ -54,11 +54,14 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 - File: `App/UITests/ConstructCombatantOperationsUITests.swift`
 - Covered scenarios:
 1. Add a goblin to Scratch pad from add-combatants.
-2. Long-press combatant and `Duplicate`.
-3. Long-press combatant and `Eliminate`.
-4. Long-press combatant and `Reset`.
-5. Long-press combatant and `Remove`.
-6. Verify combatant count transitions (`1 -> 2 -> 1`).
+2. Open combatant detail from Scratch pad row tap.
+3. Apply damage from combatant detail and dismiss back to Scratch pad.
+4. Verify encounter row updates HP label (`HP: 5 of 7`).
+5. Long-press combatant and `Duplicate`.
+6. Long-press combatant and `Eliminate`.
+7. Long-press combatant and `Reset`.
+8. Long-press combatant and `Remove`.
+9. Verify combatant count transitions (`1 -> 2 -> 1`).
 
 ## Observations from code + axe exploration
 - Key surfaces currently visible and automatable with accessibility:
