@@ -393,6 +393,35 @@ struct RunningEncounterPage {
         return self
     }
 
+    @discardableResult
+    func openCombatantDetail(containing nameFragment: String) -> CombatantDetailPage {
+        let namePredicate = NSPredicate(format: "label CONTAINS[c] %@", nameFragment)
+        let labels = app.staticTexts.matching(namePredicate)
+        XCTAssertTrue(labels.firstMatch.waitForExistence(timeout: 10), "Expected combatant matching \(nameFragment)")
+
+        let detail = CombatantDetailPage(app: app)
+
+        for _ in 0..<5 {
+            if detail.isVisible {
+                return detail
+            }
+
+            let label = labels.allElementsBoundByIndex.first(where: { $0.exists && $0.isHittable }) ?? labels.firstMatch
+            XCTAssertTrue(label.exists, "Expected combatant label matching \(nameFragment)")
+
+            let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+                .withOffset(CGVector(dx: label.frame.midX, dy: label.frame.midY))
+            absolute.tap()
+
+            if detail.waitForVisible(timeout: 2, failOnTimeout: false).isVisible {
+                return detail
+            }
+        }
+
+        XCTFail("Expected combatant detail for \(nameFragment) to open")
+        return detail
+    }
+
     func assertCombatantVisible(containing nameFragment: String, timeout: TimeInterval = 10) {
         let namePredicate = NSPredicate(format: "label CONTAINS[c] %@", nameFragment)
         XCTAssertTrue(app.staticTexts.matching(namePredicate).firstMatch.waitForExistence(timeout: timeout), "Expected combatant matching \(nameFragment)")
@@ -557,6 +586,32 @@ struct CombatantDetailPage {
         return self
     }
 
+    @discardableResult
+    func openAttackResolution(containing actionTextFragment: String) -> Self {
+        let actionPredicate = NSPredicate(format: "label CONTAINS[c] %@", actionTextFragment)
+        let actionText = app.staticTexts.matching(actionPredicate).firstMatch
+        scrollToElement(actionText)
+        XCTAssertTrue(actionText.waitForExistence(timeout: 10), "Expected action text containing \(actionTextFragment)")
+
+        let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            .withOffset(CGVector(dx: actionText.frame.midX, dy: actionText.frame.midY))
+        absolute.tap()
+        return self
+    }
+
+    func assertAttackResolutionVisible(timeout: TimeInterval = 10) {
+        let melee = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'Weapon Attack'")).firstMatch
+        XCTAssertTrue(melee.waitForExistence(timeout: timeout), "Expected attack resolution to be visible")
+    }
+
+    @discardableResult
+    func dismissAttackResolution() -> Self {
+        // Action resolution is displayed as an overlay/popover; tap outside it.
+        let outside = app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.08))
+        outside.tap()
+        return waitForVisible()
+    }
+
     func assertTagVisible(_ tag: String, timeout: TimeInterval = 10) {
         let predicate = NSPredicate(format: "label CONTAINS[c] %@", tag)
         XCTAssertTrue(app.staticTexts.matching(predicate).firstMatch.waitForExistence(timeout: timeout), "Expected tag \(tag)")
@@ -592,6 +647,27 @@ struct CombatantDetailPage {
 
         XCTFail("Expected combatant detail to dismiss to Scratch pad")
         return ScratchPadPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func doneToRunningEncounter() -> RunningEncounterPage {
+        let doneButton = app.buttons["Done"].firstMatch
+        if doneButton.waitForExistence(timeout: 5), doneButton.isHittable {
+            doneButton.tap()
+            return RunningEncounterPage(app: app).waitForVisible()
+        }
+
+        for _ in 0..<3 {
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.10))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+            start.press(forDuration: 0.01, thenDragTo: end)
+            if app.buttons["Next turn"].waitForExistence(timeout: 1.5) {
+                return RunningEncounterPage(app: app).waitForVisible()
+            }
+        }
+
+        XCTFail("Expected combatant detail to dismiss to running encounter")
+        return RunningEncounterPage(app: app).waitForVisible()
     }
 
     private func enterManualNumber(_ number: Int) {

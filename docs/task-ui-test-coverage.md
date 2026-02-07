@@ -45,10 +45,15 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 1. Add a spellcasting monster (`Acolyte`) from add-combatants.
 2. Start run from Scratch pad.
 3. Roll initiative and start turn progression.
-4. Advance turn order.
-5. Open running log and verify `Start of encounter`.
-6. Stop run and verify return to Scratch pad.
-7. Resume a previous run from `Run encounter` menu.
+4. Open combatant detail during running encounter.
+5. Apply damage to running combatant.
+6. Add `Hidden` tag in running detail.
+7. Add limited resource (`Spell Slots`) in running detail.
+8. Tap a weapon-attack action and verify action-resolution UI appears.
+9. Advance turn order.
+10. Open running log and verify `Start of encounter`.
+11. Stop run and verify return to Scratch pad.
+12. Resume a previous run from `Run encounter` menu.
 
 ### 6) Combatant operations (context actions)
 - File: `App/UITests/ConstructCombatantOperationsUITests.swift`
@@ -77,12 +82,9 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 
 ### P0 - Must cover next
 1. **Running encounter lifecycle**
-- Covered in `ConstructRunningEncounterUITests`: run start, spellcaster seed, initiative, turn progression, log open, stop, resume.
+- Covered in `ConstructRunningEncounterUITests`: run start, spellcaster seed, initiative, running-detail edits (damage/tag/resource), attack roll opening, turn progression, log open, stop, resume.
 - Still to add:
-- Deal damage to a monster
-- Track spell slots for the monster
-- Give a creature a hidden tag
-- Roll for an attack for a creature
+- Verify resulting state after action resolution (e.g. persisted log/event side-effects)
 
 2. **Combatant operations during encounter**
 - Running-mode follow-up:
