@@ -148,6 +148,37 @@ struct ScratchPadPage {
         return AddCombatantsPage(app: app).waitForVisible()
     }
 
+    func assertRunEncounterVisible(timeout: TimeInterval = 10) {
+        XCTAssertTrue(runEncounterButtonControl().waitForExistence(timeout: timeout), "Run encounter control should be visible")
+    }
+
+    @discardableResult
+    func tapRunEncounter(timeout: TimeInterval = 10) -> RunningEncounterPage {
+        let runEncounterControl = runEncounterButtonControl()
+        XCTAssertTrue(runEncounterControl.waitForExistence(timeout: timeout), "Run encounter control should be visible")
+        runEncounterControl.tap()
+        return RunningEncounterPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func resumeRunningEncounterFromMenu(timeout: TimeInterval = 10) -> RunningEncounterPage {
+        let runEncounterControl = runEncounterButtonControl()
+        XCTAssertTrue(runEncounterControl.waitForExistence(timeout: timeout), "Run encounter control should be visible")
+        runEncounterControl.press(forDuration: 1.2)
+
+        let resumePredicate = NSPredicate(format: "label BEGINSWITH 'Resume run '")
+        let resumeButton = app.buttons.matching(resumePredicate).firstMatch
+        if resumeButton.waitForExistence(timeout: 5) {
+            resumeButton.tap()
+            return RunningEncounterPage(app: app).waitForVisible()
+        }
+
+        let resumeMenuItem = app.menuItems.matching(resumePredicate).firstMatch
+        XCTAssertTrue(resumeMenuItem.waitForExistence(timeout: 5), "Expected Resume run action")
+        resumeMenuItem.tap()
+        return RunningEncounterPage(app: app).waitForVisible()
+    }
+
     func openAddCombatantsContextMenu() {
         let addCombatantsButton = addCombatantsButtonControl()
         XCTAssertTrue(addCombatantsButton.waitForExistence(timeout: 10))
@@ -198,6 +229,15 @@ struct ScratchPadPage {
         return app.buttons["Add combatants"].firstMatch
     }
 
+    private func runEncounterButtonControl() -> XCUIElement {
+        let popUpButton = app.popUpButtons["Run encounter"].firstMatch
+        if popUpButton.exists {
+            return popUpButton
+        }
+
+        return app.buttons["Run encounter"].firstMatch
+    }
+
     func openActionsSettings() -> EncounterSettingsPage {
         let actionsButton = app.navigationBars["Scratch pad"].buttons["Actions"].firstMatch
         XCTAssertTrue(actionsButton.waitForExistence(timeout: 10))
@@ -230,12 +270,159 @@ struct ScratchPadPage {
         app.buttons["Duplicate"].tap()
     }
 
+    func performCombatantContextAction(containing nameFragment: String, action: String) {
+        let namePredicate = NSPredicate(format: "label CONTAINS[c] %@", nameFragment)
+        let combatantLabel = app.staticTexts.matching(namePredicate).firstMatch
+        XCTAssertTrue(combatantLabel.waitForExistence(timeout: 10), "Expected combatant matching \(nameFragment)")
+
+        let center = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            .withOffset(CGVector(dx: combatantLabel.frame.midX, dy: combatantLabel.frame.midY))
+        center.press(forDuration: 1.0)
+
+        let actionButton = app.buttons[action].firstMatch
+        if actionButton.waitForExistence(timeout: 5) {
+            actionButton.tap()
+            return
+        }
+
+        let actionMenuItem = app.menuItems[action].firstMatch
+        XCTAssertTrue(actionMenuItem.waitForExistence(timeout: 5), "Expected context action \(action)")
+        actionMenuItem.tap()
+    }
+
+    func assertCombatantCount(containing nameFragment: String, equals expected: Int) {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", nameFragment)
+        let labels = app.staticTexts.matching(predicate)
+        XCTAssertEqual(labels.count, expected, "Expected \(expected) combatants matching \(nameFragment)")
+    }
+
     func assertDifficultyLabel(_ text: String) {
         XCTAssertTrue(app.staticTexts[text].waitForExistence(timeout: 10), "Expected difficulty label \(text)")
     }
 
     func assertCombatantVisible(_ name: String) {
         XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 10), "Expected combatant \(name)")
+    }
+}
+
+struct RunningEncounterPage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 20) -> Self {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if app.buttons["Roll initiative..."].exists
+                || app.buttons["Start"].exists
+                || app.buttons["Next turn"].exists {
+                return self
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+
+        XCTFail("Expected running encounter controls to appear")
+        return self
+    }
+
+    @discardableResult
+    func rollInitiativeIfNeeded() -> Self {
+        let rollInitiativeButton = app.buttons["Roll initiative..."].firstMatch
+        if rollInitiativeButton.waitForExistence(timeout: 2) {
+            rollInitiativeButton.tap()
+            let rollButton = app.buttons["Roll"].firstMatch
+            XCTAssertTrue(rollButton.waitForExistence(timeout: 5), "Expected initiative roll confirmation button")
+            rollButton.tap()
+        }
+        return self
+    }
+
+    @discardableResult
+    func startIfNeeded() -> Self {
+        let startButton = app.buttons["Start"].firstMatch
+        if startButton.waitForExistence(timeout: 3) {
+            startButton.tap()
+        }
+        XCTAssertTrue(app.buttons["Next turn"].waitForExistence(timeout: 10), "Expected Next turn button")
+        return self
+    }
+
+    @discardableResult
+    func nextTurn() -> Self {
+        let nextTurnButton = app.buttons["Next turn"].firstMatch
+        XCTAssertTrue(nextTurnButton.waitForExistence(timeout: 10), "Expected Next turn button")
+        nextTurnButton.tap()
+        return self
+    }
+
+    func assertCombatantVisible(containing nameFragment: String, timeout: TimeInterval = 10) {
+        let namePredicate = NSPredicate(format: "label CONTAINS[c] %@", nameFragment)
+        XCTAssertTrue(app.staticTexts.matching(namePredicate).firstMatch.waitForExistence(timeout: timeout), "Expected combatant matching \(nameFragment)")
+    }
+
+    @discardableResult
+    func openLog() -> RunningEncounterLogPage {
+        openRunningMenu()
+
+        let showLogButton = app.buttons["Show log"].firstMatch
+        if showLogButton.waitForExistence(timeout: 5) {
+            showLogButton.tap()
+            return RunningEncounterLogPage(app: app).waitForVisible()
+        }
+
+        let showLogMenuItem = app.menuItems["Show log"].firstMatch
+        XCTAssertTrue(showLogMenuItem.waitForExistence(timeout: 5), "Expected Show log action")
+        showLogMenuItem.tap()
+        return RunningEncounterLogPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func stopRun() -> ScratchPadPage {
+        openRunningMenu()
+
+        let stopRunButton = app.buttons["Stop run"].firstMatch
+        if stopRunButton.waitForExistence(timeout: 5) {
+            stopRunButton.tap()
+            return ScratchPadPage(app: app).waitForVisible()
+        }
+
+        let stopRunMenuItem = app.menuItems["Stop run"].firstMatch
+        XCTAssertTrue(stopRunMenuItem.waitForExistence(timeout: 5), "Expected Stop run action")
+        stopRunMenuItem.tap()
+        return ScratchPadPage(app: app).waitForVisible()
+    }
+
+    private func openRunningMenu() {
+        let roundButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Round'")).firstMatch
+        if roundButton.waitForExistence(timeout: 5) {
+            roundButton.tap()
+            return
+        }
+
+        let turnButton = app.buttons.matching(NSPredicate(format: "label CONTAINS \"turn\"")).firstMatch
+        XCTAssertTrue(turnButton.waitForExistence(timeout: 10), "Expected running encounter menu button")
+        turnButton.tap()
+    }
+}
+
+struct RunningEncounterLogPage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 10) -> Self {
+        XCTAssertTrue(app.navigationBars["Running Encounter Log"].waitForExistence(timeout: timeout), "Running Encounter Log should be visible")
+        return self
+    }
+
+    func assertStartOfEncounterVisible(timeout: TimeInterval = 10) {
+        XCTAssertTrue(app.staticTexts["Start of encounter"].waitForExistence(timeout: timeout), "Expected Start of encounter row")
+    }
+
+    @discardableResult
+    func done() -> RunningEncounterPage {
+        let doneButton = app.navigationBars.buttons["Done"].firstMatch
+        XCTAssertTrue(doneButton.waitForExistence(timeout: 10), "Expected Done button on running log")
+        doneButton.tap()
+        return RunningEncounterPage(app: app).waitForVisible()
     }
 }
 
@@ -378,7 +565,10 @@ struct AddCombatantsPage {
             }
         }
 
-        app.swipeDown()
+        let container = app.scrollViews.firstMatch.exists ? app.scrollViews.firstMatch : app
+        let start = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2))
+        let end = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
+        start.press(forDuration: 0.01, thenDragTo: end)
         return waitForDismissalToScratchPad()
     }
 
