@@ -120,9 +120,50 @@ struct AdventurePage {
         return CompendiumPage(app: app).waitForVisible(timeout: timeout)
     }
 
+    @discardableResult
+    func openDice(timeout: TimeInterval = 20) -> DicePage {
+        let tabButton = app.buttons["Dice"].firstMatch
+        if tabButton.waitForExistence(timeout: 2), tabButton.isHittable {
+            tabButton.tap()
+            if isDiceVisible(timeout: 3) {
+                return DicePage(app: app).waitForVisible(timeout: timeout)
+            }
+        }
+
+        let tabBarButton = app.tabBars.buttons["Dice"].firstMatch
+        if tabBarButton.waitForExistence(timeout: 2), tabBarButton.isHittable {
+            tabBarButton.tap()
+            if isDiceVisible(timeout: 3) {
+                return DicePage(app: app).waitForVisible(timeout: timeout)
+            }
+        }
+
+        let coordinateCandidates: [CGVector] = [
+            .init(dx: 0.83, dy: 0.94),
+            .init(dx: 0.83, dy: 0.90),
+            .init(dx: 0.83, dy: 0.96),
+        ]
+        for candidate in coordinateCandidates {
+            let tabCoordinate = app.coordinate(withNormalizedOffset: candidate)
+            tabCoordinate.tap()
+            if isDiceVisible(timeout: 3) {
+                return DicePage(app: app).waitForVisible(timeout: timeout)
+            }
+        }
+
+        XCTFail("Expected to open Dice tab")
+        return DicePage(app: app).waitForVisible(timeout: timeout)
+    }
+
     private func isCompendiumVisible(timeout: TimeInterval) -> Bool {
         if app.buttons["Monsters"].waitForExistence(timeout: timeout) { return true }
         return app.searchFields.firstMatch.waitForExistence(timeout: 1)
+    }
+
+    private func isDiceVisible(timeout: TimeInterval) -> Bool {
+        if app.buttons["1d20"].waitForExistence(timeout: timeout) { return true }
+        if app.buttons["Roll"].waitForExistence(timeout: 1) { return true }
+        return app.buttons["Re-roll"].waitForExistence(timeout: 1)
     }
 
     func createGroup(named name: String) {
@@ -317,6 +358,102 @@ struct CompendiumDetailPage {
 
         XCTFail("Expected to navigate back to Compendium index")
         return CompendiumPage(app: app).waitForVisible()
+    }
+}
+
+struct DicePage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 20) -> Self {
+        if app.buttons["1d20"].waitForExistence(timeout: timeout) { return self }
+        if app.buttons["Roll"].waitForExistence(timeout: timeout) { return self }
+        XCTAssertTrue(app.buttons["Re-roll"].waitForExistence(timeout: timeout), "Dice roller should be visible")
+        return self
+    }
+
+    @discardableResult
+    func clearLogIfPresent() -> Self {
+        let clearLogButton = app.buttons["Clear log"].firstMatch
+        if clearLogButton.waitForExistence(timeout: 1) {
+            tapPossiblyNonHittable(clearLogButton)
+        }
+        return self
+    }
+
+    @discardableResult
+    func tapEditIfPresent() -> Self {
+        let editButton = app.buttons["Edit"].firstMatch
+        if editButton.waitForExistence(timeout: 2) {
+            editButton.tap()
+        }
+        return self
+    }
+
+    @discardableResult
+    func clearExpressionIfPresent() -> Self {
+        let clearButton = app.buttons["Clear"].firstMatch
+        if clearButton.waitForExistence(timeout: 2), clearButton.isHittable {
+            clearButton.tap()
+        }
+        return self
+    }
+
+    @discardableResult
+    func tapPreset(_ label: String) -> Self {
+        let button = app.buttons[label].firstMatch
+        XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected dice preset \(label)")
+        button.tap()
+        return self
+    }
+
+    @discardableResult
+    func roll() -> Self {
+        let rollButton = app.buttons["Roll"].firstMatch
+        XCTAssertTrue(rollButton.waitForExistence(timeout: 10), "Expected Roll button")
+        rollButton.tap()
+        XCTAssertTrue(app.buttons["Re-roll"].waitForExistence(timeout: 10), "Expected Re-roll after rolling")
+        return self
+    }
+
+    @discardableResult
+    func assertClearLogVisible(timeout: TimeInterval = 10) -> Self {
+        XCTAssertTrue(app.buttons["Clear log"].waitForExistence(timeout: timeout), "Expected non-empty dice log")
+        return self
+    }
+
+    @discardableResult
+    func clearLog() -> Self {
+        let clearLogButton = app.buttons["Clear log"].firstMatch
+        XCTAssertTrue(clearLogButton.waitForExistence(timeout: 10), "Expected Clear log button")
+        tapPossiblyNonHittable(clearLogButton)
+        return self
+    }
+
+    @discardableResult
+    func assertClearLogHidden(timeout: TimeInterval = 5) -> Self {
+        XCTAssertFalse(app.buttons["Clear log"].waitForExistence(timeout: timeout), "Expected dice log to be cleared")
+        return self
+    }
+
+    @discardableResult
+    func assertExpressionVisible(_ expressionFragment: String, timeout: TimeInterval = 10) -> Self {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", expressionFragment)
+        if app.staticTexts.matching(predicate).firstMatch.waitForExistence(timeout: timeout) {
+            return self
+        }
+        XCTAssertTrue(app.buttons.matching(predicate).firstMatch.waitForExistence(timeout: 2), "Expected dice expression containing \(expressionFragment)")
+        return self
+    }
+
+    private func tapPossiblyNonHittable(_ element: XCUIElement) {
+        if element.isHittable {
+            element.tap()
+            return
+        }
+
+        let coordinate = element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        coordinate.tap()
     }
 }
 

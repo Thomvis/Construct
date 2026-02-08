@@ -85,6 +85,16 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 6. Open `Edit` for the created copy and save from the editor.
 7. Navigate back to index and reopen the created copy entry.
 
+### 8) Dice roller basics
+- File: `App/UITests/ConstructDiceUITests.swift`
+- Covered scenarios:
+1. Navigate from Adventure to Dice tab.
+2. Start from a clean visible state (`Clear log` if present, clear expression if present).
+3. Roll a baseline expression from preset (`1d20`) and verify log visibility.
+4. Enter expression edit mode and extend expression with modifier preset (`+5`).
+5. Roll edited expression and verify log remains populated.
+6. Known gap: deterministic verification that `Clear log` fully empties log is still flaky in UI tests and tracked as follow-up.
+
 ## Observations from code + axe exploration
 - Key surfaces currently visible and automatable with accessibility:
 1. Adventure/Scratch pad actions: `Reset…`, `Add combatants`, `Run encounter`.
@@ -115,22 +125,20 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 - Move document from one realm to another
 - Check an item in the document to see if it has updated
 
-2. **Dice roller**
-- Roll from preset buttons.
-- Build expression and roll.
-- Verify log entries append and `Clear` empties log.
-
 ### P2 - Useful but optional/late
 1. **Scratch pad reset variants**
 - `Reset… -> Clear monsters`.
 - `Reset… -> Clear all`.
 - Verify expected remaining combatants/party behavior.
 
-2. **Settings behavior beyond tip jar**
+2. **Dice clear-log determinism**
+- Add a stable assertion that `Clear log` empties the feed (currently flaky due hittability/visibility timing).
+
+3. **Settings behavior beyond tip jar**
 - Toggle `Send diagnostic reports` and verify persistence across relaunch.
 - Toggle `Mechanical Muse` and verify integration status state transitions for invalid key/empty key.
 
-3. **Compendium import**
+4. **Compendium import**
 - Import flow smoke test (prefer local fixture path if deterministic).
 
 ### P3 - Nice to have
