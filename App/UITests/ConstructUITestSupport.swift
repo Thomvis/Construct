@@ -256,6 +256,141 @@ struct CompendiumPage {
     }
 
     @discardableResult
+    func assertEntryVisible(containing text: String, timeout: TimeInterval = 15) -> Self {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", text)
+        let buttonMatch = app.buttons.matching(predicate).firstMatch
+        if buttonMatch.waitForExistence(timeout: timeout) {
+            return self
+        }
+        XCTAssertTrue(app.staticTexts.matching(predicate).firstMatch.waitForExistence(timeout: 2), "Expected entry containing \(text)")
+        return self
+    }
+
+    @discardableResult
+    func setSelecting(_ selecting: Bool) -> Self {
+        let selectButton = app.buttons["Select"].firstMatch
+        if selectButton.waitForExistence(timeout: 2) {
+            let isSelected = selectButton.isSelected
+            if selecting != isSelected {
+                selectButton.tap()
+            }
+            return self
+        }
+
+        openSelectionMenu()
+
+        let menuSelect = app.buttons["Select"].firstMatch
+        if menuSelect.waitForExistence(timeout: 5) {
+            menuSelect.tap()
+            return self
+        }
+
+        let menuSelectItem = app.menuItems["Select"].firstMatch
+        if menuSelectItem.waitForExistence(timeout: 5) {
+            menuSelectItem.tap()
+            return self
+        }
+
+        XCTFail("Expected Select control")
+        return self
+    }
+
+    @discardableResult
+    func selectEntry(containing text: String) -> Self {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", text)
+
+        let cell = app.cells.matching(predicate).firstMatch
+        if cell.waitForExistence(timeout: 10) {
+            cell.tap()
+            return self
+        }
+
+        let button = app.buttons.matching(predicate).firstMatch
+        if button.waitForExistence(timeout: 10) {
+            button.tap()
+            return self
+        }
+
+        let label = app.staticTexts.matching(predicate).firstMatch
+        XCTAssertTrue(label.waitForExistence(timeout: 10), "Expected selectable entry containing \(text)")
+        let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            .withOffset(CGVector(dx: label.frame.midX, dy: label.frame.midY))
+        absolute.tap()
+        return self
+    }
+
+    @discardableResult
+    func openSelectionAction(_ label: String) -> CompendiumTransferPage {
+        openSelectionMenu()
+
+        let actionButton = app.buttons[label].firstMatch
+        if actionButton.waitForExistence(timeout: 5) {
+            actionButton.tap()
+        } else {
+            let actionItem = app.menuItems[label].firstMatch
+            XCTAssertTrue(actionItem.waitForExistence(timeout: 5), "Expected selection action \(label)")
+            actionItem.tap()
+        }
+
+        return CompendiumTransferPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func confirmDeleteSelected() -> Self {
+        openSelectionMenu()
+        let deleteAction = app.buttons["Delete selected..."].firstMatch
+        if deleteAction.waitForExistence(timeout: 5) {
+            deleteAction.tap()
+        } else {
+            let deleteItem = app.menuItems["Delete selected..."].firstMatch
+            XCTAssertTrue(deleteItem.waitForExistence(timeout: 5), "Expected Delete selected action")
+            deleteItem.tap()
+        }
+
+        let destructiveDelete = app.buttons["Delete"].firstMatch
+        XCTAssertTrue(destructiveDelete.waitForExistence(timeout: 10), "Expected delete confirmation")
+        destructiveDelete.tap()
+        return self
+    }
+
+    @discardableResult
+    func openManageDocuments() -> CompendiumDocumentsPage {
+        for _ in 0..<3 {
+            openManageMenu()
+
+            let documentsButton = app.buttons["Manage Documents"].firstMatch
+            if documentsButton.waitForExistence(timeout: 2) {
+                documentsButton.tap()
+                return CompendiumDocumentsPage(app: app).waitForVisible()
+            }
+
+            let documentsItem = app.menuItems["Manage Documents"].firstMatch
+            if documentsItem.waitForExistence(timeout: 2) {
+                documentsItem.tap()
+                return CompendiumDocumentsPage(app: app).waitForVisible()
+            }
+
+            let predicate = NSPredicate(format: "label CONTAINS[c] 'Manage Documents'")
+            let documentsText = app.staticTexts.matching(predicate).firstMatch
+            if documentsText.waitForExistence(timeout: 2) {
+                documentsText.tap()
+                return CompendiumDocumentsPage(app: app).waitForVisible()
+            }
+        }
+
+        XCTFail("Expected Manage Documents action")
+        return CompendiumDocumentsPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func goBack() -> Self {
+        let backButton = app.navigationBars.buttons.element(boundBy: 0)
+        XCTAssertTrue(backButton.waitForExistence(timeout: 10), "Expected back button")
+        backButton.tap()
+        return self
+    }
+
+    @discardableResult
     func createMonster(named name: String) -> Self {
         openAddMenu()
 
@@ -283,6 +418,63 @@ struct CompendiumPage {
 
         let addMenuCoordinate = app.coordinate(withNormalizedOffset: CGVector(dx: 0.24, dy: 0.86))
         addMenuCoordinate.tap()
+    }
+
+    private func openManageMenu() {
+        let manageButton = app.buttons["Manage"].firstMatch
+        if manageButton.waitForExistence(timeout: 2), manageButton.isHittable {
+            manageButton.tap()
+            return
+        }
+
+        let popUpManage = app.popUpButtons["Manage"].firstMatch
+        if popUpManage.waitForExistence(timeout: 2), popUpManage.isHittable {
+            popUpManage.tap()
+            return
+        }
+
+        let navButtons = app.navigationBars.buttons.allElementsBoundByIndex
+        if let candidate = navButtons.first(where: { $0.exists && $0.isHittable && $0.label.contains("Manage") }) {
+            candidate.tap()
+            return
+        }
+
+        if let candidate = navButtons.first(where: { $0.exists && $0.isHittable && $0.label != "Select" }) {
+            candidate.tap()
+            return
+        }
+
+        if let candidate = navButtons.last(where: { $0.exists && $0.isHittable }) {
+            candidate.tap()
+            return
+        }
+
+        let topRight = app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: 0.08))
+        topRight.tap()
+
+        XCTFail("Expected Manage menu button")
+    }
+
+    private func openSelectionMenu() {
+        let direct = app.buttons["ellipsis.circle.fill"].firstMatch
+        if direct.waitForExistence(timeout: 1), direct.isHittable {
+            direct.tap()
+            return
+        }
+
+        let menuButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'ellipsis'"))
+        if menuButtons.firstMatch.waitForExistence(timeout: 1) {
+            for index in 0..<menuButtons.count {
+                let button = menuButtons.element(boundBy: index)
+                if button.exists && button.isHittable {
+                    button.tap()
+                    return
+                }
+            }
+        }
+
+        let fallback = app.coordinate(withNormalizedOffset: CGVector(dx: 0.91, dy: 0.86))
+        fallback.tap()
     }
 
     private func focusSearchField(_ searchField: XCUIElement) {
@@ -357,6 +549,310 @@ struct CompendiumDetailPage {
         }
 
         XCTFail("Expected to navigate back to Compendium index")
+        return CompendiumPage(app: app).waitForVisible()
+    }
+}
+
+struct CompendiumDocumentsPage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 20) -> Self {
+        XCTAssertTrue(app.navigationBars["Documents"].waitForExistence(timeout: timeout), "Expected Documents sheet")
+        return self
+    }
+
+    @discardableResult
+    func addRealm(named name: String) -> Self {
+        let addRealmButton = app.buttons["Add realm"].firstMatch
+        XCTAssertTrue(addRealmButton.waitForExistence(timeout: 10), "Expected Add realm button")
+        if addRealmButton.isHittable {
+            addRealmButton.tap()
+        } else {
+            addRealmButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+
+        let editRealm = EditRealmPage(app: app).waitForVisible()
+        _ = editRealm.setName(name).tapDone()
+        return waitForVisible()
+    }
+
+    @discardableResult
+    func addDocument(named name: String, realm realmName: String) -> Self {
+        let openedFromRealmMenu = openAddDocumentFromRealmMenu(named: realmName)
+        if !openedFromRealmMenu {
+            let addDocumentButton = app.buttons["Add document"].firstMatch
+            XCTAssertTrue(addDocumentButton.waitForExistence(timeout: 10), "Expected Add document button")
+            if addDocumentButton.isHittable {
+                addDocumentButton.tap()
+            } else {
+                addDocumentButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+        }
+
+        let editDocument = CompendiumDocumentEditPage(app: app).waitForVisible()
+        _ = editDocument.setName(name)
+        if !openedFromRealmMenu {
+            _ = editDocument.selectRealm(named: realmName)
+        }
+        _ = editDocument.tapDone()
+        return waitForVisible()
+    }
+
+    @discardableResult
+    func openDocument(named name: String) -> CompendiumDocumentEditPage {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", name)
+        let button = app.buttons.matching(predicate).firstMatch
+        if button.waitForExistence(timeout: 10) {
+            button.tap()
+            return CompendiumDocumentEditPage(app: app).waitForVisible()
+        }
+
+        let label = app.staticTexts.matching(predicate).firstMatch
+        XCTAssertTrue(label.waitForExistence(timeout: 10), "Expected document row containing \(name)")
+        let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            .withOffset(CGVector(dx: label.frame.midX, dy: label.frame.midY))
+        absolute.tap()
+        return CompendiumDocumentEditPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func openFirstDocument() -> CompendiumDocumentEditPage {
+        if app.buttons["Edit realm"].firstMatch.exists || app.buttons["Remove empty realm"].firstMatch.exists {
+            let outside = app.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.10))
+            outside.tap()
+        }
+
+        let candidates = app.buttons.allElementsBoundByIndex.filter { button in
+            guard button.exists, button.isHittable else { return false }
+            let label = button.label
+            guard label.contains(",") else { return false }
+            return button.frame.midY > 120 && button.frame.midY < 760
+        }
+
+        guard let first = candidates.first else {
+            XCTFail("Expected at least one document row")
+            return CompendiumDocumentEditPage(app: app).waitForVisible()
+        }
+        first.tap()
+        return CompendiumDocumentEditPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func doneToCompendium() -> CompendiumPage {
+        let doneButton = app.navigationBars["Documents"].buttons["Done"].firstMatch
+        XCTAssertTrue(doneButton.waitForExistence(timeout: 10), "Expected Done button on Documents sheet")
+        doneButton.tap()
+        return CompendiumPage(app: app).waitForVisible()
+    }
+
+    private func openAddDocumentFromRealmMenu(named realmName: String) -> Bool {
+        let realmLabel = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", realmName)).firstMatch
+        guard realmLabel.waitForExistence(timeout: 4) else { return false }
+
+        let rowY = realmLabel.frame.midY
+        let ellipsisButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'ellipsis'"))
+            .allElementsBoundByIndex
+            .filter { $0.exists && abs($0.frame.midY - rowY) < 40 }
+            .sorted { abs($0.frame.midY - rowY) < abs($1.frame.midY - rowY) }
+
+        if let menuButton = ellipsisButtons.first {
+            if menuButton.isHittable {
+                menuButton.tap()
+            } else {
+                menuButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+        } else {
+            let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+                .withOffset(CGVector(dx: app.frame.width * 0.92, dy: rowY))
+            absolute.tap()
+        }
+
+        let addDocumentButton = app.buttons["Add document"].firstMatch
+        if addDocumentButton.waitForExistence(timeout: 3) {
+            addDocumentButton.tap()
+            return true
+        }
+
+        let addDocumentItem = app.menuItems["Add document"].firstMatch
+        if addDocumentItem.waitForExistence(timeout: 3) {
+            addDocumentItem.tap()
+            return true
+        }
+
+        return false
+    }
+}
+
+struct EditRealmPage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 10) -> Self {
+        let addTitle = app.navigationBars["Add realm"].firstMatch
+        if addTitle.waitForExistence(timeout: timeout) { return self }
+        let editTitle = app.navigationBars.matching(NSPredicate(format: "identifier CONTAINS[c] 'Edit'")).firstMatch
+        XCTAssertTrue(editTitle.waitForExistence(timeout: timeout), "Expected realm editor")
+        return self
+    }
+
+    @discardableResult
+    func setName(_ name: String) -> Self {
+        let field = app.textFields["Realm name"].firstMatch.exists ? app.textFields["Realm name"].firstMatch : app.textFields.firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "Expected realm name field")
+        field.tap()
+        if let current = field.value as? String, !current.isEmpty, current != "Realm name" {
+            field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
+        }
+        field.typeText(name)
+        return self
+    }
+
+    @discardableResult
+    func tapDone() -> CompendiumDocumentsPage {
+        let doneButton = app.navigationBars.buttons["Done"].firstMatch
+        XCTAssertTrue(doneButton.waitForExistence(timeout: 10), "Expected Done in realm editor")
+        doneButton.tap()
+        return CompendiumDocumentsPage(app: app).waitForVisible()
+    }
+}
+
+struct CompendiumDocumentEditPage {
+    let app: XCUIApplication
+
+    var isRealmSelectionVisible: Bool {
+        app.buttons["Select"].firstMatch.exists || app.staticTexts["Realm"].firstMatch.exists
+    }
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 10) -> Self {
+        let addTitle = app.navigationBars["Add document"].firstMatch
+        if addTitle.waitForExistence(timeout: timeout) { return self }
+        let editTitle = app.navigationBars.matching(NSPredicate(format: "identifier CONTAINS[c] 'Edit'")).firstMatch
+        if editTitle.waitForExistence(timeout: 1) { return self }
+
+        let cancelButton = app.navigationBars.buttons["Cancel"].firstMatch
+        let doneButton = app.navigationBars.buttons["Done"].firstMatch
+        if cancelButton.waitForExistence(timeout: timeout), doneButton.exists {
+            return self
+        }
+
+        XCTAssertTrue(false, "Expected document editor")
+        return self
+    }
+
+    @discardableResult
+    func setName(_ name: String) -> Self {
+        let field = app.textFields["Document name"].firstMatch.exists ? app.textFields["Document name"].firstMatch : app.textFields.firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "Expected document name field")
+        field.tap()
+        if let current = field.value as? String, !current.isEmpty, current != "Document name" {
+            field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
+        }
+        field.typeText(name)
+        return self
+    }
+
+    @discardableResult
+    func selectRealm(named realmName: String) -> Self {
+        let selectButtons = app.buttons.matching(NSPredicate(format: "label == 'Select'"))
+            .allElementsBoundByIndex
+            .filter { $0.exists && $0.frame.midY > 150 }
+            .sorted { $0.frame.midY < $1.frame.midY }
+
+        if let selectButton = selectButtons.first {
+            if selectButton.isHittable {
+                selectButton.tap()
+            } else {
+                selectButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+        } else {
+            let realmLabel = app.staticTexts["Realm"].firstMatch
+            XCTAssertTrue(realmLabel.waitForExistence(timeout: 10), "Expected Realm field")
+            let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+                .withOffset(CGVector(dx: realmLabel.frame.maxX + 140, dy: realmLabel.frame.midY))
+            absolute.tap()
+        }
+
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", realmName)
+        let realmButton = app.buttons.matching(predicate).firstMatch
+        if realmButton.waitForExistence(timeout: 5) {
+            realmButton.tap()
+        } else {
+            let realmText = app.staticTexts.matching(predicate).firstMatch
+            XCTAssertTrue(realmText.waitForExistence(timeout: 5), "Expected realm option \(realmName)")
+            realmText.tap()
+        }
+        return self
+    }
+
+    @discardableResult
+    func tapDone() -> CompendiumDocumentsPage {
+        let doneButton = app.navigationBars.buttons["Done"].firstMatch
+        XCTAssertTrue(doneButton.waitForExistence(timeout: 10), "Expected Done in document editor")
+        doneButton.tap()
+        return CompendiumDocumentsPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func openItems() -> CompendiumPage {
+        let button = app.buttons["View items in document"].firstMatch
+        XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected View items in document")
+        button.tap()
+        return CompendiumPage(app: app).waitForVisible()
+    }
+}
+
+struct CompendiumTransferPage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 10) -> Self {
+        let move = app.navigationBars["Move"].firstMatch
+        if move.waitForExistence(timeout: timeout) { return self }
+        XCTAssertTrue(app.navigationBars["Copy"].firstMatch.waitForExistence(timeout: timeout), "Expected transfer sheet")
+        return self
+    }
+
+    @discardableResult
+    func selectDestinationDocument(named documentName: String) -> Self {
+        let selectButton = app.buttons["Select"].firstMatch
+        if selectButton.exists && selectButton.isHittable {
+            selectButton.tap()
+        } else {
+            let destinationLabel = app.staticTexts["Destination"].firstMatch
+            XCTAssertTrue(destinationLabel.waitForExistence(timeout: 10), "Expected Destination field")
+            let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+                .withOffset(CGVector(dx: destinationLabel.frame.maxX + 140, dy: destinationLabel.frame.midY))
+            absolute.tap()
+        }
+
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", documentName)
+        let destinationButton = app.buttons.matching(predicate).firstMatch
+        if destinationButton.waitForExistence(timeout: 5) {
+            destinationButton.tap()
+        } else {
+            let destinationText = app.staticTexts.matching(predicate).firstMatch
+            XCTAssertTrue(destinationText.waitForExistence(timeout: 5), "Expected destination \(documentName)")
+            destinationText.tap()
+        }
+        return self
+    }
+
+    @discardableResult
+    func confirmTransfer(action: String) -> CompendiumPage {
+        let predicate = NSPredicate(format: "label BEGINSWITH[c] %@", action)
+        let button = app.buttons.matching(predicate).firstMatch
+        XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected transfer button for \(action)")
+        button.tap()
+        return CompendiumPage(app: app).waitForVisible(timeout: 20)
+    }
+
+    @discardableResult
+    func cancel() -> CompendiumPage {
+        let cancelButton = app.navigationBars.buttons["Cancel"].firstMatch
+        XCTAssertTrue(cancelButton.waitForExistence(timeout: 10), "Expected Cancel in transfer sheet")
+        cancelButton.tap()
         return CompendiumPage(app: app).waitForVisible()
     }
 }

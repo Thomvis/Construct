@@ -95,6 +95,14 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 5. Roll edited expression and verify log remains populated.
 6. Known gap: deterministic verification that `Clear log` fully empties log is still flaky in UI tests and tracked as follow-up.
 
+### 9) Compendium document management (baseline)
+- File: `App/UITests/ConstructCompendiumManagementUITests.swift`
+- Covered scenarios:
+1. Open `Manage Documents` from Compendium.
+2. Open an existing source document editor.
+3. Open `View items in document` and verify expected baseline entries are visible.
+4. Navigate back to Documents and dismiss back to Compendium.
+
 ## Observations from code + axe exploration
 - Key surfaces currently visible and automatable with accessibility:
 1. Adventure/Scratch pad actions: `Reset…`, `Add combatants`, `Run encounter`.
@@ -119,11 +127,10 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 - Selection mode in index.
 - Move selected / copy selected / delete selected.
 - Transfer sheet destination + conflict resolution.
-- Open `Manage Documents`.
-- Basic document CRUD and selection behavior.
-- Add realm + document
-- Move document from one realm to another
-- Check an item in the document to see if it has updated
+- `Manage Documents` CRUD:
+- Add realm + document.
+- Move document from one realm to another.
+- Verify item-level effects after document moves.
 
 ### P2 - Useful but optional/late
 1. **Scratch pad reset variants**
