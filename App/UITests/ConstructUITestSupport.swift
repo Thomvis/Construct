@@ -267,6 +267,15 @@ struct CompendiumPage {
     }
 
     @discardableResult
+    func assertEntryAbsent(containing text: String) -> Self {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", text)
+        let buttons = app.buttons.matching(predicate)
+        let labels = app.staticTexts.matching(predicate)
+        XCTAssertEqual(buttons.count + labels.count, 0, "Expected no entry containing \(text)")
+        return self
+    }
+
+    @discardableResult
     func setSelecting(_ selecting: Bool) -> Self {
         let selectButton = app.buttons["Select"].firstMatch
         if selectButton.waitForExistence(timeout: 2) {
@@ -289,6 +298,21 @@ struct CompendiumPage {
         if menuSelectItem.waitForExistence(timeout: 5) {
             menuSelectItem.tap()
             return self
+        }
+
+        let searchField = app.searchFields.firstMatch
+        if searchField.waitForExistence(timeout: 2), searchField.isHittable {
+            searchField.tap()
+            openSelectionMenu()
+
+            if menuSelect.waitForExistence(timeout: 2) {
+                menuSelect.tap()
+                return self
+            }
+            if menuSelectItem.waitForExistence(timeout: 2) {
+                menuSelectItem.tap()
+                return self
+            }
         }
 
         XCTFail("Expected Select control")
@@ -485,25 +509,50 @@ struct CompendiumPage {
     }
 
     private func openSelectionMenu() {
-        let direct = app.buttons["ellipsis.circle.fill"].firstMatch
-        if direct.waitForExistence(timeout: 1), direct.isHittable {
-            direct.tap()
+        if selectionMenuActionsVisible() { return }
+
+        let allEllipsisButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'ellipsis'"))
+            .allElementsBoundByIndex
+            .filter { $0.exists && $0.isHittable }
+        let lowerButtons = allEllipsisButtons
+            .filter { $0.frame.midY > app.frame.height * 0.70 }
+            .sorted { $0.frame.midY > $1.frame.midY }
+
+        for button in lowerButtons + allEllipsisButtons {
+            button.tap()
+            if selectionMenuActionsVisible() { return }
+            dismissAnyContextMenuIfNeeded()
+        }
+
+        let coordinates: [CGVector] = [
+            .init(dx: 0.91, dy: 0.86),
+            .init(dx: 0.90, dy: 0.93),
+            .init(dx: 0.90, dy: 0.88),
+        ]
+        for point in coordinates {
+            let fallback = app.coordinate(withNormalizedOffset: point)
+            fallback.tap()
+            if selectionMenuActionsVisible() { return }
+        }
+    }
+
+    private func selectionMenuActionsVisible() -> Bool {
+        if app.buttons["Move selected..."].firstMatch.exists { return true }
+        if app.menuItems["Move selected..."].firstMatch.exists { return true }
+        if app.buttons["Delete selected..."].firstMatch.exists { return true }
+        if app.menuItems["Delete selected..."].firstMatch.exists { return true }
+        return false
+    }
+
+    private func dismissAnyContextMenuIfNeeded() {
+        let dismissButton = app.buttons["Dismiss context menu"].firstMatch
+        if dismissButton.exists && dismissButton.isHittable {
+            dismissButton.tap()
             return
         }
 
-        let menuButtons = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'ellipsis'"))
-        if menuButtons.firstMatch.waitForExistence(timeout: 1) {
-            for index in 0..<menuButtons.count {
-                let button = menuButtons.element(boundBy: index)
-                if button.exists && button.isHittable {
-                    button.tap()
-                    return
-                }
-            }
-        }
-
-        let fallback = app.coordinate(withNormalizedOffset: CGVector(dx: 0.91, dy: 0.86))
-        fallback.tap()
+        let outside = app.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.08))
+        outside.tap()
     }
 
     private func focusSearchField(_ searchField: XCUIElement) {
@@ -537,21 +586,7 @@ struct CompendiumDetailPage {
 
     @discardableResult
     func openMenuAction(_ label: String) -> CreatureEditPage {
-        let moreButton = app.buttons["More"].firstMatch
-        if moreButton.waitForExistence(timeout: 2), moreButton.isHittable {
-            moreButton.tap()
-        } else {
-            let menuButton = app.navigationBars.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'ellipsis'"))
-                .firstMatch
-            if menuButton.exists && menuButton.isHittable {
-                menuButton.tap()
-            } else {
-                let navBarButtons = app.navigationBars.buttons.allElementsBoundByIndex
-                let fallback = navBarButtons.last(where: { $0.exists && $0.isHittable })
-                XCTAssertNotNil(fallback, "Expected a tappable detail menu button")
-                fallback?.tap()
-            }
-        }
+        openDetailMenu()
 
         let actionButton = app.buttons[label].firstMatch
         if actionButton.waitForExistence(timeout: 5) {
@@ -563,6 +598,22 @@ struct CompendiumDetailPage {
         }
 
         return CreatureEditPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func openTransferMenuAction(_ label: String = "Move...") -> CompendiumTransferPage {
+        openDetailMenu()
+
+        let actionButton = app.buttons[label].firstMatch
+        if actionButton.waitForExistence(timeout: 5) {
+            actionButton.tap()
+        } else {
+            let actionItem = app.menuItems[label].firstMatch
+            XCTAssertTrue(actionItem.waitForExistence(timeout: 5), "Expected transfer menu action \(label)")
+            actionItem.tap()
+        }
+
+        return CompendiumTransferPage(app: app).waitForVisible()
     }
 
     @discardableResult
@@ -579,6 +630,26 @@ struct CompendiumDetailPage {
 
         XCTFail("Expected to navigate back to Compendium index")
         return CompendiumPage(app: app).waitForVisible()
+    }
+
+    private func openDetailMenu() {
+        let moreButton = app.buttons["More"].firstMatch
+        if moreButton.waitForExistence(timeout: 2), moreButton.isHittable {
+            moreButton.tap()
+            return
+        }
+
+        let menuButton = app.navigationBars.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'ellipsis'"))
+            .firstMatch
+        if menuButton.exists && menuButton.isHittable {
+            menuButton.tap()
+            return
+        }
+
+        let navBarButtons = app.navigationBars.buttons.allElementsBoundByIndex
+        let fallback = navBarButtons.last(where: { $0.exists && $0.isHittable })
+        XCTAssertNotNil(fallback, "Expected a tappable detail menu button")
+        fallback?.tap()
     }
 }
 
@@ -874,7 +945,26 @@ struct CompendiumTransferPage {
         let button = app.buttons.matching(predicate).firstMatch
         XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected transfer button for \(action)")
         button.tap()
-        return CompendiumPage(app: app).waitForVisible(timeout: 20)
+
+        let compendium = CompendiumPage(app: app)
+        if isCompendiumVisible(timeout: 5) {
+            return compendium.waitForVisible(timeout: 10)
+        }
+
+        for _ in 0..<4 {
+            if isCompendiumVisible(timeout: 2) {
+                return compendium.waitForVisible(timeout: 10)
+            }
+
+            let backButton = app.navigationBars.buttons.element(boundBy: 0)
+            if backButton.waitForExistence(timeout: 2), backButton.isHittable {
+                backButton.tap()
+            } else {
+                break
+            }
+        }
+
+        return compendium.waitForVisible(timeout: 20)
     }
 
     @discardableResult
@@ -883,6 +973,11 @@ struct CompendiumTransferPage {
         XCTAssertTrue(cancelButton.waitForExistence(timeout: 10), "Expected Cancel in transfer sheet")
         cancelButton.tap()
         return CompendiumPage(app: app).waitForVisible()
+    }
+
+    private func isCompendiumVisible(timeout: TimeInterval) -> Bool {
+        if app.buttons["Monsters"].waitForExistence(timeout: timeout) { return true }
+        return app.searchFields.firstMatch.waitForExistence(timeout: 1)
     }
 }
 

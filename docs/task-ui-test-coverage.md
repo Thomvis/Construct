@@ -95,13 +95,14 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 5. Roll edited expression and verify log remains populated.
 6. Known gap: deterministic verification that `Clear log` fully empties log is still flaky in UI tests and tracked as follow-up.
 
-### 9) Compendium document management (baseline)
+### 9) Compendium management (smoke)
 - File: `App/UITests/ConstructCompendiumManagementUITests.swift`
 - Covered scenarios:
-1. Open `Manage Documents` from Compendium.
-2. Open an existing source document editor.
-3. Open `View items in document` and verify expected baseline entries are visible.
-4. Navigate back to Documents and dismiss back to Compendium.
+1. Navigate from Adventure to Compendium and filter/search for `Acolyte`.
+2. Open detail and create a compendium copy (`Edit a copy`) with a unique name.
+3. Move the copied entry to destination document `SRD 5.1`.
+4. Open `Manage Documents` and `SRD 5.1` items.
+5. Verify the moved copy is visible in destination document items.
 
 ### 10) Scratch pad reset + settings toggle (baseline)
 - File: `App/UITests/ConstructScratchPadAndSettingsUITests.swift`
