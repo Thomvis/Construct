@@ -33,10 +33,25 @@ final class ConstructRunningEncounterUITests: ConstructUITestCase {
         let runningAfterDetail = attackResolution
             .dismissAttackResolution()
             .doneToRunningEncounter()
-            .nextTurn()
-        runningAfterDetail.assertRoundVisible(2)
 
-        let log = runningAfterDetail.openLog()
+        runningAfterDetail.assertCombatantCount(containing: "Acolyte", equals: 1)
+        runningAfterDetail.assertCombatantContextAction(containing: "Acolyte", action: "Eliminate", isVisible: true)
+        _ = runningAfterDetail.performCombatantContextAction(containing: "Acolyte", action: "Eliminate")
+        runningAfterDetail.assertCombatantContextAction(containing: "Acolyte", action: "Eliminate", isVisible: false)
+        _ = runningAfterDetail.performCombatantContextAction(containing: "Acolyte", action: "Reset")
+        runningAfterDetail.assertCombatantContextAction(containing: "Acolyte", action: "Eliminate", isVisible: true)
+        _ = runningAfterDetail.performCombatantContextAction(containing: "Acolyte", action: "Duplicate")
+        runningAfterDetail.assertCombatantCount(containing: "Acolyte", equals: 2)
+        _ = runningAfterDetail.performCombatantContextAction(containing: "Acolyte", action: "Remove")
+        runningAfterDetail.assertCombatantCount(containing: "Acolyte", equals: 1)
+
+        let runningAfterTurnAdvance = runningAfterDetail
+            .rollInitiativeIfNeeded()
+            .startIfNeeded()
+            .nextTurn()
+        runningAfterTurnAdvance.assertRoundVisible(2)
+
+        let log = runningAfterTurnAdvance.openLog()
         log.assertStartOfEncounterVisible()
         log.assertLogContains("Acolyte")
         let runningAfterLog = log.done()

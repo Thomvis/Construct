@@ -625,6 +625,31 @@ struct RunningEncounterPage {
         XCTAssertTrue(app.staticTexts.matching(namePredicate).firstMatch.waitForExistence(timeout: timeout), "Expected combatant matching \(nameFragment)")
     }
 
+    func assertCombatantCount(containing nameFragment: String, equals expected: Int) {
+        let matchingCells = combatantCells(containing: nameFragment)
+        XCTAssertEqual(matchingCells.count, expected, "Expected \(expected) combatants matching \(nameFragment) while running")
+    }
+
+    @discardableResult
+    func performCombatantContextAction(containing nameFragment: String, action: String) -> Self {
+        openCombatantContextMenu(containing: nameFragment)
+        tapContextAction(action)
+        return self
+    }
+
+    @discardableResult
+    func assertCombatantContextAction(containing nameFragment: String, action: String, isVisible: Bool) -> Self {
+        openCombatantContextMenu(containing: nameFragment)
+        let actionExists = app.buttons[action].firstMatch.exists || app.menuItems[action].firstMatch.exists
+        if isVisible {
+            XCTAssertTrue(actionExists, "Expected context action \(action) for \(nameFragment)")
+        } else {
+            XCTAssertFalse(actionExists, "Expected context action \(action) to be absent for \(nameFragment)")
+        }
+        dismissContextMenu()
+        return self
+    }
+
     @discardableResult
     func openLog() -> RunningEncounterLogPage {
         openRunningMenu()
@@ -667,6 +692,52 @@ struct RunningEncounterPage {
         let turnButton = app.buttons.matching(NSPredicate(format: "label CONTAINS \"turn\"")).firstMatch
         XCTAssertTrue(turnButton.waitForExistence(timeout: 10), "Expected running encounter menu button")
         turnButton.tap()
+    }
+
+    private func openCombatantContextMenu(containing nameFragment: String) {
+        let matchingCells = combatantCells(containing: nameFragment)
+        guard let targetCell = matchingCells.first else {
+            XCTFail("Expected combatant cell matching \(nameFragment)")
+            return
+        }
+
+        let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+            .withOffset(CGVector(dx: targetCell.frame.midX, dy: targetCell.frame.midY))
+        absolute.press(forDuration: 1.0)
+    }
+
+    private func tapContextAction(_ action: String) {
+        let actionButton = app.buttons[action].firstMatch
+        if actionButton.waitForExistence(timeout: 5) {
+            actionButton.tap()
+            return
+        }
+
+        let actionMenuItem = app.menuItems[action].firstMatch
+        XCTAssertTrue(actionMenuItem.waitForExistence(timeout: 5), "Expected context action \(action)")
+        actionMenuItem.tap()
+    }
+
+    private func dismissContextMenu() {
+        let dismissButton = app.buttons["Dismiss context menu"].firstMatch
+        if dismissButton.exists && dismissButton.isHittable {
+            dismissButton.tap()
+            return
+        }
+
+        let outside = app.coordinate(withNormalizedOffset: CGVector(dx: 0.06, dy: 0.10))
+        outside.tap()
+    }
+
+    private func combatantCells(containing nameFragment: String) -> [XCUIElement] {
+        let lower = nameFragment.lowercased()
+        return app.cells.allElementsBoundByIndex.filter { cell in
+            guard cell.exists else { return false }
+            guard cell.frame.midY > 120, cell.frame.midY < 760 else { return false }
+            return cell.staticTexts.allElementsBoundByIndex.contains { label in
+                label.exists && label.label.lowercased().contains(lower)
+            }
+        }
     }
 }
 
