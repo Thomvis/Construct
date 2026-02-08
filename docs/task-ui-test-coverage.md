@@ -51,10 +51,12 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 7. Add limited resource (`Spell Slots`) in running detail.
 8. Tap a weapon-attack action and verify action-resolution UI appears.
 9. Verify side effects in running detail (`Hidden` tag and `Spell Slots` resource are visible).
-10. Advance turn order and verify round progression to `Round 2`.
-11. Open running log and verify `Start of encounter` and entries containing `Acolyte`.
-12. Stop run and verify return to Scratch pad.
-13. Resume a previous run from `Run encounter` menu.
+10. Run combatant context actions while running: `Eliminate`, `Reset`, `Duplicate`, `Remove`.
+11. Verify running-mode side effects for context actions (eliminate availability toggles, combatant count transitions `1 -> 2 -> 1`).
+12. Advance turn order and verify round progression to `Round 2`.
+13. Open running log and verify `Start of encounter` and entries containing `Acolyte`.
+14. Stop run and verify return to Scratch pad.
+15. Resume a previous run from `Run encounter` menu.
 
 ### 6) Combatant operations (context actions)
 - File: `App/UITests/ConstructCombatantOperationsUITests.swift`
@@ -100,8 +102,7 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 
 2. **Combatant operations during encounter**
 - Running-mode follow-up:
-- Add coverage for combatant operations while a run is active (running rows currently expose HP/initiative controls but no stable direct detail-open target in UI tests).
-- Add context actions coverage: `Eliminate`, `Reset`, `Duplicate`, `Remove`.
+- Covered in `ConstructRunningEncounterUITests`: context actions in active run (`Eliminate`, `Reset`, `Duplicate`, `Remove`) and state transitions.
 
 ### P1 - High value, after P0
 1. **Compendium management actions**
