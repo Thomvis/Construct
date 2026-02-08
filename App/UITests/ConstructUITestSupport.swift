@@ -383,6 +383,35 @@ struct CompendiumPage {
     }
 
     @discardableResult
+    func openImport() -> CompendiumImportPage {
+        for _ in 0..<3 {
+            openManageMenu()
+
+            let importButton = app.buttons["Import..."].firstMatch
+            if importButton.waitForExistence(timeout: 2) {
+                importButton.tap()
+                return CompendiumImportPage(app: app).waitForVisible()
+            }
+
+            let importItem = app.menuItems["Import..."].firstMatch
+            if importItem.waitForExistence(timeout: 2) {
+                importItem.tap()
+                return CompendiumImportPage(app: app).waitForVisible()
+            }
+
+            let predicate = NSPredicate(format: "label CONTAINS[c] 'Import'")
+            let importText = app.staticTexts.matching(predicate).firstMatch
+            if importText.waitForExistence(timeout: 2) {
+                importText.tap()
+                return CompendiumImportPage(app: app).waitForVisible()
+            }
+        }
+
+        XCTFail("Expected Import action")
+        return CompendiumImportPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
     func goBack() -> Self {
         let backButton = app.navigationBars.buttons.element(boundBy: 0)
         XCTAssertTrue(backButton.waitForExistence(timeout: 10), "Expected back button")
@@ -857,6 +886,29 @@ struct CompendiumTransferPage {
     }
 }
 
+struct CompendiumImportPage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 10) -> Self {
+        XCTAssertTrue(app.navigationBars["Import"].firstMatch.waitForExistence(timeout: timeout), "Expected Import sheet")
+        return self
+    }
+
+    @discardableResult
+    func cancel() -> CompendiumPage {
+        let cancelButton = app.navigationBars["Import"].buttons["Cancel"].firstMatch
+        if cancelButton.waitForExistence(timeout: 5) {
+            cancelButton.tap()
+        } else {
+            let fallback = app.navigationBars.buttons["Cancel"].firstMatch
+            XCTAssertTrue(fallback.waitForExistence(timeout: 5), "Expected Cancel in Import sheet")
+            fallback.tap()
+        }
+        return CompendiumPage(app: app).waitForVisible()
+    }
+}
+
 struct DicePage {
     let app: XCUIApplication
 
@@ -964,6 +1016,30 @@ struct ScratchPadPage {
 
     func assertEmptyEncounterVisible() {
         XCTAssertTrue(app.staticTexts["Empty encounter"].waitForExistence(timeout: 10))
+    }
+
+    @discardableResult
+    func resetEncounter(option: String) -> Self {
+        let resetControl = app.popUpButtons["Reset…"].firstMatch.exists
+            ? app.popUpButtons["Reset…"].firstMatch
+            : app.buttons["Reset…"].firstMatch
+        XCTAssertTrue(resetControl.waitForExistence(timeout: 10), "Expected Reset… control")
+        if resetControl.isHittable {
+            resetControl.tap()
+        } else {
+            resetControl.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+
+        let actionButton = app.buttons[option].firstMatch
+        if actionButton.waitForExistence(timeout: 5) {
+            actionButton.tap()
+        } else {
+            let actionItem = app.menuItems[option].firstMatch
+            XCTAssertTrue(actionItem.waitForExistence(timeout: 5), "Expected reset option \(option)")
+            actionItem.tap()
+        }
+
+        return self
     }
 
     @discardableResult
@@ -1167,6 +1243,14 @@ struct ScratchPadPage {
             return
         }
         XCTAssertTrue(app.buttons.matching(predicate).firstMatch.waitForExistence(timeout: 2), "Expected label containing \(textFragment)")
+    }
+
+    @discardableResult
+    func goBackToAdventure() -> AdventurePage {
+        let backButton = app.navigationBars["Scratch pad"].buttons.element(boundBy: 0)
+        XCTAssertTrue(backButton.waitForExistence(timeout: 10), "Expected back button from Scratch pad")
+        backButton.tap()
+        return AdventurePage(app: app).waitForVisible()
     }
 }
 
@@ -2117,6 +2201,110 @@ struct SettingsPage {
         XCTAssertTrue(tipJarCell.waitForExistence(timeout: 10))
         tipJarCell.tap()
         return TipJarPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func openExternalLink(named label: String) -> SafariSheetPage {
+        let row = app.cells.containing(.staticText, identifier: label).firstMatch
+        if row.waitForExistence(timeout: 10) {
+            row.tap()
+        } else {
+            let button = app.buttons[label].firstMatch
+            XCTAssertTrue(button.waitForExistence(timeout: 10), "Expected settings link \(label)")
+            button.tap()
+        }
+        return SafariSheetPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func setDiagnosticReports(enabled: Bool) -> Self {
+        let toggle = diagnosticReportsToggle()
+        XCTAssertTrue(toggle.waitForExistence(timeout: 10), "Expected Send diagnostic reports toggle")
+        setSwitch(toggle, enabled: enabled)
+        return self
+    }
+
+    @discardableResult
+    func assertDiagnosticReports(enabled: Bool) -> Self {
+        let toggle = diagnosticReportsToggle()
+        XCTAssertTrue(toggle.waitForExistence(timeout: 10), "Expected Send diagnostic reports toggle")
+        XCTAssertEqual(switchValue(of: toggle), enabled, "Unexpected Send diagnostic reports value")
+        return self
+    }
+
+    @discardableResult
+    func doneToAdventure() -> AdventurePage {
+        let doneButton = app.navigationBars["Settings"].buttons["Done"].firstMatch
+        XCTAssertTrue(doneButton.waitForExistence(timeout: 10), "Expected Done button in Settings")
+        doneButton.tap()
+        return AdventurePage(app: app).waitForVisible()
+    }
+
+    private func setSwitch(_ element: XCUIElement, enabled: Bool) {
+        for _ in 0..<5 {
+            if switchValue(of: element) == enabled { return }
+            if element.isHittable {
+                element.tap()
+            } else {
+                element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+            if switchValue(of: element) == enabled { return }
+
+            let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+                .withOffset(CGVector(dx: app.frame.width * 0.90, dy: element.frame.midY))
+            absolute.tap()
+        }
+        XCTAssertEqual(switchValue(of: element), enabled, "Failed to set switch state to \(enabled)")
+    }
+
+    private func switchValue(of element: XCUIElement) -> Bool {
+        guard let value = element.value else { return false }
+        if let stringValue = value as? String {
+            return stringValue == "1" || stringValue.lowercased() == "on"
+        }
+        if let numberValue = value as? NSNumber {
+            return numberValue.boolValue
+        }
+        return false
+    }
+
+    private func diagnosticReportsToggle() -> XCUIElement {
+        let labeled = app.switches["Send diagnostic reports"].firstMatch
+        if labeled.exists {
+            return labeled
+        }
+
+        let label = app.staticTexts["Send diagnostic reports"].firstMatch
+        if label.waitForExistence(timeout: 2) {
+            let matchingSwitch = app.switches.allElementsBoundByIndex
+                .filter { $0.exists && abs($0.frame.midY - label.frame.midY) < 80 }
+                .sorted { abs($0.frame.midY - label.frame.midY) < abs($1.frame.midY - label.frame.midY) }
+                .first
+            if let matchingSwitch {
+                return matchingSwitch
+            }
+        }
+
+        return app.switches.firstMatch
+    }
+}
+
+struct SafariSheetPage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 10) -> Self {
+        let doneButton = app.buttons["Done"].firstMatch
+        XCTAssertTrue(doneButton.waitForExistence(timeout: timeout), "Expected external link sheet")
+        return self
+    }
+
+    @discardableResult
+    func done() -> SettingsPage {
+        let doneButton = app.buttons["Done"].firstMatch
+        XCTAssertTrue(doneButton.waitForExistence(timeout: 10), "Expected Done button on external link sheet")
+        doneButton.tap()
+        return SettingsPage(app: app).waitForVisible()
     }
 }
 

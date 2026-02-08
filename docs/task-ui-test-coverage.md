@@ -103,6 +103,20 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 3. Open `View items in document` and verify expected baseline entries are visible.
 4. Navigate back to Documents and dismiss back to Compendium.
 
+### 10) Scratch pad reset + settings toggle (baseline)
+- File: `App/UITests/ConstructScratchPadAndSettingsUITests.swift`
+- Covered scenarios:
+1. Add combatants to Scratch pad and execute `Reset… -> Clear monsters`.
+2. Re-add combatants and execute `Reset… -> Clear all`.
+3. Verify both reset actions return to the empty encounter state.
+4. Toggle `Send diagnostic reports` on and off in Settings and verify immediate state updates.
+
+### 11) Import + external links (smoke)
+- File: `App/UITests/ConstructImportAndLinksUITests.swift`
+- Covered scenarios:
+1. Open `Import...` from Compendium manage menu, verify Import sheet is presented, and cancel.
+2. Open `Help center` from Settings, verify external sheet presentation, and dismiss.
+
 ## Observations from code + axe exploration
 - Key surfaces currently visible and automatable with accessibility:
 1. Adventure/Scratch pad actions: `Reset…`, `Add combatants`, `Run encounter`.
@@ -133,24 +147,22 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 - Verify item-level effects after document moves.
 
 ### P2 - Useful but optional/late
-1. **Scratch pad reset variants**
-- `Reset… -> Clear monsters`.
-- `Reset… -> Clear all`.
-- Verify expected remaining combatants/party behavior.
+1. **Scratch pad reset variants (depth)**
+- Add a mixed encounter (monsters + player-controlled entries) and assert `Clear monsters` preserves non-monsters.
 
 2. **Dice clear-log determinism**
 - Add a stable assertion that `Clear log` empties the feed (currently flaky due hittability/visibility timing).
 
 3. **Settings behavior beyond tip jar**
-- Toggle `Send diagnostic reports` and verify persistence across relaunch.
+- Verify `Send diagnostic reports` persistence across relaunch.
 - Toggle `Mechanical Muse` and verify integration status state transitions for invalid key/empty key.
 
-4. **Compendium import**
-- Import flow smoke test (prefer local fixture path if deterministic).
+4. **Compendium import depth**
+- Execute a deterministic end-to-end import with a local fixture and verify imported entries appear.
 
 ### P3 - Nice to have
-1. **External link smoke tests**
-- Help center / privacy / terms / OGL / acknowledgements navigation smoke checks.
+1. **External link smoke tests (expanded)**
+- Extend beyond Help center to privacy / terms / OGL / acknowledgements.
 
 ## Proposed implementation order
 1. Running encounter lifecycle.
