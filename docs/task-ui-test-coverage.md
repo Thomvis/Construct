@@ -50,10 +50,11 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 6. Add `Hidden` tag in running detail.
 7. Add limited resource (`Spell Slots`) in running detail.
 8. Tap a weapon-attack action and verify action-resolution UI appears.
-9. Advance turn order.
-10. Open running log and verify `Start of encounter`.
-11. Stop run and verify return to Scratch pad.
-12. Resume a previous run from `Run encounter` menu.
+9. Verify side effects in running detail (`Hidden` tag and `Spell Slots` resource are visible).
+10. Advance turn order and verify round progression to `Round 2`.
+11. Open running log and verify `Start of encounter` and entries containing `Acolyte`.
+12. Stop run and verify return to Scratch pad.
+13. Resume a previous run from `Run encounter` menu.
 
 ### 6) Combatant operations (context actions)
 - File: `App/UITests/ConstructCombatantOperationsUITests.swift`
