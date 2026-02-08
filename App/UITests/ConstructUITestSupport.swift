@@ -586,6 +586,11 @@ struct RunningEncounterPage {
         return self
     }
 
+    func assertRoundVisible(_ round: Int, timeout: TimeInterval = 10) {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", "Round \(round)")
+        XCTAssertTrue(app.buttons.matching(predicate).firstMatch.waitForExistence(timeout: timeout), "Expected running encounter to show Round \(round)")
+    }
+
     @discardableResult
     func openCombatantDetail(containing nameFragment: String) -> CombatantDetailPage {
         let namePredicate = NSPredicate(format: "label CONTAINS[c] %@", nameFragment)
@@ -676,6 +681,14 @@ struct RunningEncounterLogPage {
 
     func assertStartOfEncounterVisible(timeout: TimeInterval = 10) {
         XCTAssertTrue(app.staticTexts["Start of encounter"].waitForExistence(timeout: timeout), "Expected Start of encounter row")
+    }
+
+    func assertLogContains(_ textFragment: String, timeout: TimeInterval = 10) {
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", textFragment)
+        if app.staticTexts.matching(predicate).firstMatch.waitForExistence(timeout: timeout) {
+            return
+        }
+        XCTAssertTrue(app.buttons.matching(predicate).firstMatch.waitForExistence(timeout: 2), "Expected running log entry containing \(textFragment)")
     }
 
     @discardableResult
