@@ -48,6 +48,8 @@
 	<false/>
 	<key>SKIncludeConsumableInAppPurchaseHistory</key>
 	<true/>
+	<key>UIDesignRequiresCompatibility</key>
+	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
