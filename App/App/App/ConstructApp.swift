@@ -22,7 +22,14 @@ import Helpers
 struct ConstructApp: App {
 
     init() {
-        FirebaseApp.configure()
+        let environment = ProcessInfo.processInfo.environment
+        let isUiTesting = environment["CONSTRUCT_UI_TESTS"] == "1"
+        let isTestHostLaunch = environment["XCTestSessionIdentifier"] != nil && !isUiTesting
+
+        // XCTest host launches do not need Firebase and can fail in CI when test-only config is used.
+        if !isTestHostLaunch {
+            FirebaseApp.configure()
+        }
     }
 
     @SceneBuilder
