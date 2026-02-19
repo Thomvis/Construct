@@ -24,8 +24,6 @@ public struct PagingData<Element> where Element: Equatable {
             self.id = uuid()
             self.elements = nil
             self.loadingState = .notLoading(didReachEnd: false)
-
-            print("TV creating new PagingData with id \(id)")
         }
 
         public enum LoadingState: Equatable {
@@ -80,9 +78,7 @@ public struct PagingData<Element> where Element: Equatable {
                 state.loadingState = .loading
                 let id = state.id
                 return .run { send in
-                    print("TV received result for request \(request) for paging data with id \(id)")
                     let result = await fetch(request)
-                    print("TV fulfilled result for request \(request) for paging data with id \(id)")
                     await send(.didLoadMore(id, result))
                 }
                 .cancellable(id: state.id)
@@ -107,7 +103,6 @@ public struct PagingData<Element> where Element: Equatable {
                 // received didLoadMore with mismatched id
                 // this is a work-around for Map not properly cancelling result effects
                 // when the input changes
-                print("TV: catch mismatching id")
                 break
             case .reload(.initial):
                 state.elements = nil

@@ -52,7 +52,6 @@ where Input: Reducer, Result: Reducer, Input.State: Equatable {
     public func reduce(into state: inout State, action: Action) -> Effect<Action> {
         func invokeResultReducer(action: Result.Action) -> Effect<Action> {
             let resultReducer = resultReducerForInput(state.input)
-            print("TV map[\(state.id)] .result(\(String(describing: action).prefix(100)))")
             return resultReducer.reduce(into: &state.result, action: action)
                 .cancellable(id: state.id)
                 .map { Action.result($0) }
@@ -63,7 +62,6 @@ where Input: Reducer, Result: Reducer, Input.State: Equatable {
 
             let resultAction = initialResultActionForInput(state.input)
 
-            print("TV map[\(state.id)] cancelling")
             return .concatenate(
                 .cancel(id: state.id), // cancel effects from the result reducer
                 resultAction.map { invokeResultReducer(action: $0) } ?? .none
@@ -78,7 +76,6 @@ where Input: Reducer, Result: Reducer, Input.State: Equatable {
                 .map { Action.input($0) }
 
             if previousInput != state.input {
-                print("TV map input changed")
                 return .concatenate(
                     inputEffect,
                     onInputDidChange()
@@ -89,7 +86,6 @@ where Input: Reducer, Result: Reducer, Input.State: Equatable {
 
         case .result(let resultAction):
             let resultReducer = resultReducerForInput(state.input)
-            print("TV map[\(state.id)] .result(\(String(describing: resultAction).prefix(100)))")
             return resultReducer.reduce(into: &state.result, action: resultAction)
                 .cancellable(id: state.id)
                 .map { Action.result($0) }
@@ -104,7 +100,6 @@ where Input: Reducer, Result: Reducer, Input.State: Equatable {
             state.input = input
             state.result = result
 
-            print("TV map[\(state.id)] .set")
             return .cancel(id: state.id)
         }
     }
