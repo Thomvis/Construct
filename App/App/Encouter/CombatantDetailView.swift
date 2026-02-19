@@ -284,7 +284,6 @@ struct CombatantDetailView: View {
     @ViewBuilder
     private var resourcesSection: some View {
         if !combatant.resources.isEmpty {
-            let combatantStore = store.scope(state: \.combatant, action: \.combatant)
             SectionContainer(
                 title: "Limited resources",
                 accessory: Button(action: {
@@ -294,13 +293,10 @@ struct CombatantDetailView: View {
                     Text("Manage")
                 })
             ) {
-                ForEach(combatant.resources) { resource in
-                    CombatantResourceTrackerView(
-                        store: combatantStore.scope(
-                            state: \.resources[id: resource.id]!,
-                            action: \.resources[id: resource.id]
-                        )
-                    )
+                ForEach(
+                    store.scope(state: \.combatant.resources, action: \.combatant.resources)
+                ) { resourceStore in
+                    CombatantResourceTrackerView(store: resourceStore)
                 }
             }
         }

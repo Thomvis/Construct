@@ -390,10 +390,10 @@ struct EncounterDetailView: View {
                 store.state.popover.flatMap { popover in
                     switch popover {
                     case .combatantInitiative(let combatant, _):
-                        if store.combatantInitiativePopover != nil {
-                            let popoverStore = store.scope(
-                                state: \.combatantInitiativePopover!,
-                                action: \.combatantInitiativePopover)
+                        if let popoverStore = store.scope(
+                            state: \.combatantInitiativePopover,
+                            action: \.combatantInitiativePopover)
+                        {
                             return NumberEntryPopover(store: popoverStore) { value in
                                 self.store.send(
                                     .encounter(
