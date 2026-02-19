@@ -191,7 +191,7 @@ class DatabaseCompendiumTest: XCTestCase {
         XCTAssertEqual(try sut.sourceDocuments(), [newDoc])
 
         let entries = try compendium.fetchAll(filters: .init(source: .init(realm: newDoc.realmId, document: newDoc.id)))
-        XCTAssertNoDifference(entries, [apply(entry) { e in
+        expectNoDifference(entries, [apply(entry) { e in
             e.document = .init(newDoc)
         }])
     }
@@ -1193,15 +1193,17 @@ class DatabaseCompendiumTest: XCTestCase {
             }
         }
 
-        func assert(_ db: Database, file: StaticString = #filePath, line: UInt = #line) throws {
+        func assert(_ db: Database, fileID: StaticString = #fileID, filePath: StaticString = #filePath, line: UInt = #line, column: UInt = #column) throws {
             let db2 = Database.uninitialized
             try insert(into: db2)
 
-            try XCTAssertNoDifference(
+            try expectNoDifference(
                 DatabaseKeyValueStore(db.access).dump(.all),
                 DatabaseKeyValueStore(db2.access).dump(.all),
-                file: file,
-                line: line
+                fileID: fileID,
+                filePath: filePath,
+                line: line,
+                column: column
             )
         }
     }

@@ -25,7 +25,7 @@ class ParseableCreatureActionTest: XCTestCase {
             value: LimitedUse(amount: 1, recharge: .turnStart([5, 6])),
             range: 5..<17
         )
-        XCTAssertNoDifference(sut.result?.value?.limitedUse, expectedLimitedUse)
+        expectNoDifference(sut.result?.value?.limitedUse, expectedLimitedUse)
     }
 
 }

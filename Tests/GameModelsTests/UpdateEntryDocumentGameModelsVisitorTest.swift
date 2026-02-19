@@ -58,7 +58,7 @@ final class UpdateEntryDocumentGameModelsVisitorTest: XCTestCase {
         // - no changes were made to the entry
         var entryNotInDoc = fixtures.entryNotInDocument
         XCTAssertFalse(sut.visit(entry: &entryNotInDoc))
-        XCTAssertNoDifference(fixtures.entryNotInDocument, entryNotInDoc)
+        expectNoDifference(fixtures.entryNotInDocument, entryNotInDoc)
     }
     
     func testUpdateDocumentId() {

@@ -20,7 +20,7 @@ class CreatureActionParserTest: XCTestCase {
 
     func testMeleeAttack() {
         let action = CreatureActionParser.parse("Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.")
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 4,
             ranges: [.reach(5)],
             effects: [
@@ -33,7 +33,7 @@ class CreatureActionParserTest: XCTestCase {
 
     func testMeleeAttack2() {
         let action = CreatureActionParser.parse("Melee Weapon Attack: +3 to hit, reach 5 ft., one target. Hit: 2 (1d4) bludgeoning damage")
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 3,
             ranges: [.reach(5)],
             effects: [
@@ -50,7 +50,7 @@ class CreatureActionParserTest: XCTestCase {
 
     func testMeleeAttackWithoutHitKeyword() {
         let action = CreatureActionParser.parse("Melee Weapon Attack: +3 to hit, reach 5 ft., one target. 2 (1d4) bludgeoning damage")
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 3,
             ranges: [.reach(5)],
             effects: [
@@ -68,7 +68,7 @@ class CreatureActionParserTest: XCTestCase {
     func testMeleeAttackStaticDamage() {
         let action = CreatureActionParser.parse("Melee Weapon Attack: +2 to hit, reach 5 ft., one target. Hit: 1 piercing damage.")
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 2,
             ranges: [.reach(5)],
             effects: [
@@ -86,7 +86,7 @@ class CreatureActionParserTest: XCTestCase {
     func testRangedAttack() {
         let action = CreatureActionParser.parse("Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage.")
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 4,
             ranges: [.range(80, 320)],
             effects: [
@@ -104,7 +104,7 @@ class CreatureActionParserTest: XCTestCase {
     func testTwoDamage() {
         let action = CreatureActionParser.parse("Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 7 (1d10 + 2) piercing damage plus 3 (1d6) poison damage.")
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 4,
             ranges: [.reach(5)],
             effects: [
@@ -127,7 +127,7 @@ class CreatureActionParserTest: XCTestCase {
     func testCreatureCondition() {
         let action = CreatureActionParser.parse("Melee Weapon Attack: +4 to hit, reach 5 ft., one creature. Hit: 6 (1d8 + 2) bludgeoning damage, and the target is grappled (escape DC 14). Until this grapple ends, the creature is restrained, and the snake can't constrict another target.")
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 4,
             ranges: [.reach(5)],
             effects: [
@@ -150,7 +150,7 @@ class CreatureActionParserTest: XCTestCase {
             "Melee Weapon Attack: +5 to hit, reach 5 ft., one creature. Hit: 7 (1d8 + 3) piercing damage, and the target must make a DC 11 Constitution saving throw, taking 9 (2d8) poison damage on a failed save, or half as much damage on a successful one. If the poison damage reduces the target to 0 hit points, the target is stable but poisoned for 1 hour, even after regaining hit points, and is paralyzed while poisoned in this way."
         )
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 5,
             ranges: [.reach(5)],
             effects: [
@@ -182,7 +182,7 @@ class CreatureActionParserTest: XCTestCase {
             "Melee Weapon Attack: +9 to hit, reach 10 ft., one target. Hit: 12 (2d6 + 5) bludgeoning damage. If the target is a creature, it must succeed on a DC 14 Constitution saving throw or become diseased. The disease has no effect for 1 minute and can be removed by any magic that cures disease. After 1 minute, the diseased creature's skin becomes translucent and slimy, the creature can't regain hit points unless it is underwater, and the disease can be removed only by heal or another disease-curing spell of 6th level or higher. When the creature is outside a body of water, it takes 6 (1d12) acid damage every 10 minutes unless moisture is applied to the skin before 10 minutes have passed."
         )
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 9,
             ranges: [.reach(10)],
             effects: [
@@ -212,7 +212,7 @@ class CreatureActionParserTest: XCTestCase {
         let action = CreatureActionParser.parse("Melee Weapon Attack: +14 to hit, reach 30 ft., one target. Hit: 15 (2d6 + 8) slashing damage plus 10 (3d6) fire damage, and the target must succeed on a DC 20 Strength saving throw or be pulled up to 25 feet toward the balor."
         )
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 14,
             ranges: [.reach(30)],
             effects: [
@@ -246,7 +246,7 @@ class CreatureActionParserTest: XCTestCase {
         let action = CreatureActionParser.parse("Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 10 (2d6 + 3) slashing damage plus 3 (1d6) acid damage. If the target is a Large or smaller creature, it is grappled (escape DC 13). Until this grapple ends, the ankheg can bite only the grappled creature and has advantage on attack rolls to do so."
         )
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 5,
             ranges: [.reach(5)],
             effects: [
@@ -277,7 +277,7 @@ class CreatureActionParserTest: XCTestCase {
             "Melee or Ranged Weapon Attack: +6 to hit, reach 5 ft. or range 20/60 ft., one target. Hit: 4 (1d4 + 2) piercing damage."
         )
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 6,
             ranges: [.reach(5), .range(20, 60)],
             effects: [
@@ -297,7 +297,7 @@ class CreatureActionParserTest: XCTestCase {
         "Melee or Ranged Weapon Attack: +4 to hit, reach 5 ft. or range 30/120 ft., one target. Hit: 9 (2d6 + 2) piercing damage in melee or 5 (1d6 + 2) piercing damage at range."
         )
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 4,
             ranges: [.reach(5), .range(30, 120)],
             effects: [
@@ -324,7 +324,7 @@ class CreatureActionParserTest: XCTestCase {
             "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 7 (1d8 + 3) bludgeoning damage, or 8 (1d10 + 3) bludgeoning damage if used with two hands to make a melee attack, plus 3 (1d6) fire damage."
         )
 
-        XCTAssertNoDifference(action, .weaponAttack(.init(
+        expectNoDifference(action, .weaponAttack(.init(
             hitModifier: 5,
             ranges: [.reach(5)],
             effects: [

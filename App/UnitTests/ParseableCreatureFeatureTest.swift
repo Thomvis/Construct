@@ -49,7 +49,7 @@ class ParseableCreatureFeatureTest: XCTestCase {
             ]
         )
 
-        XCTAssertNoDifference(sut.result?.value, expected)
+        expectNoDifference(sut.result?.value, expected)
     }
 
     func testInnateSpellcasting() {
@@ -83,6 +83,6 @@ class ParseableCreatureFeatureTest: XCTestCase {
             otherDescriptionAnnotations: []
         )
 
-        XCTAssertNoDifference(sut.result?.value, expected)
+        expectNoDifference(sut.result?.value, expected)
     }
 }
