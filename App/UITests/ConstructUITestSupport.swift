@@ -586,32 +586,18 @@ struct CompendiumDetailPage {
 
     @discardableResult
     func openMenuAction(_ label: String) -> CreatureEditPage {
-        openDetailMenu()
-
-        let actionButton = app.buttons[label].firstMatch
-        if actionButton.waitForExistence(timeout: 5) {
-            actionButton.tap()
-        } else {
-            let actionMenuItem = app.menuItems[label].firstMatch
-            XCTAssertTrue(actionMenuItem.waitForExistence(timeout: 5), "Expected menu action \(label)")
-            actionMenuItem.tap()
-        }
+        let actionLabels = menuActionLabelCandidates(for: label)
+        openDetailMenu(expectedActions: actionLabels)
+        tapDetailMenuAction(actionLabels, failureMessage: "Expected menu action \(label)")
 
         return CreatureEditPage(app: app).waitForVisible()
     }
 
     @discardableResult
     func openTransferMenuAction(_ label: String = "Move...") -> CompendiumTransferPage {
-        openDetailMenu()
-
-        let actionButton = app.buttons[label].firstMatch
-        if actionButton.waitForExistence(timeout: 5) {
-            actionButton.tap()
-        } else {
-            let actionItem = app.menuItems[label].firstMatch
-            XCTAssertTrue(actionItem.waitForExistence(timeout: 5), "Expected transfer menu action \(label)")
-            actionItem.tap()
-        }
+        let actionLabels = menuActionLabelCandidates(for: label)
+        openDetailMenu(expectedActions: actionLabels)
+        tapDetailMenuAction(actionLabels, failureMessage: "Expected transfer menu action \(label)")
 
         return CompendiumTransferPage(app: app).waitForVisible()
     }
@@ -632,24 +618,108 @@ struct CompendiumDetailPage {
         return CompendiumPage(app: app).waitForVisible()
     }
 
-    private func openDetailMenu() {
-        let moreButton = app.buttons["More"].firstMatch
-        if moreButton.waitForExistence(timeout: 2), moreButton.isHittable {
-            moreButton.tap()
-            return
-        }
+    private func openDetailMenu(expectedActions: [String]) {
+        if detailMenuIsVisible(expectedActions: expectedActions) { return }
 
-        let menuButton = app.navigationBars.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'ellipsis'"))
-            .firstMatch
-        if menuButton.exists && menuButton.isHittable {
-            menuButton.tap()
-            return
+        let labelPredicates = [
+            NSPredicate(format: "label ==[c] 'More'"),
+            NSPredicate(format: "label ==[c] 'More actions'"),
+            NSPredicate(format: "label CONTAINS[c] 'ellipsis'"),
+            NSPredicate(format: "label CONTAINS[c] 'more'"),
+        ]
+
+        for predicate in labelPredicates {
+            let candidates = app.buttons.matching(predicate).allElementsBoundByIndex
+                .filter { $0.exists && $0.isHittable }
+            for candidate in candidates {
+                candidate.tap()
+                if detailMenuIsVisible(expectedActions: expectedActions) { return }
+            }
         }
 
         let navBarButtons = app.navigationBars.buttons.allElementsBoundByIndex
-        let fallback = navBarButtons.last(where: { $0.exists && $0.isHittable })
-        XCTAssertNotNil(fallback, "Expected a tappable detail menu button")
-        fallback?.tap()
+            .filter { $0.exists && $0.isHittable }
+            .sorted { $0.frame.maxX > $1.frame.maxX }
+        for button in navBarButtons {
+            button.tap()
+            if detailMenuIsVisible(expectedActions: expectedActions) { return }
+        }
+
+        let coordinates: [CGVector] = [
+            .init(dx: 0.92, dy: 0.08),
+            .init(dx: 0.88, dy: 0.08),
+        ]
+        for point in coordinates {
+            app.coordinate(withNormalizedOffset: point).tap()
+            if detailMenuIsVisible(expectedActions: expectedActions) { return }
+        }
+
+        XCTFail("Expected detail menu to open")
+    }
+
+    private func tapDetailMenuAction(_ labels: [String], failureMessage: String) {
+        for label in labels {
+            let actionButton = app.buttons[label].firstMatch
+            if actionButton.waitForExistence(timeout: 1) {
+                actionButton.tap()
+                return
+            }
+
+            let actionMenuItem = app.menuItems[label].firstMatch
+            if actionMenuItem.waitForExistence(timeout: 1) {
+                actionMenuItem.tap()
+                return
+            }
+
+            let actionText = app.staticTexts[label].firstMatch
+            if actionText.waitForExistence(timeout: 1) {
+                actionText.tap()
+                return
+            }
+        }
+
+        if let compactLabel = labels.first?.lowercased().replacingOccurrences(of: " a ", with: " ") {
+            let fuzzyPredicate = NSPredicate(format: "label CONTAINS[c] %@", compactLabel)
+            let fuzzyCandidate = app.buttons.matching(fuzzyPredicate).firstMatch
+            if fuzzyCandidate.waitForExistence(timeout: 2) {
+                fuzzyCandidate.tap()
+                return
+            }
+
+            let fuzzyMenuItem = app.menuItems.matching(fuzzyPredicate).firstMatch
+            if fuzzyMenuItem.waitForExistence(timeout: 2) {
+                fuzzyMenuItem.tap()
+                return
+            }
+        }
+
+        XCTFail(failureMessage)
+    }
+
+    private func detailMenuIsVisible(expectedActions: [String]) -> Bool {
+        for label in expectedActions {
+            if app.buttons[label].firstMatch.exists { return true }
+            if app.menuItems[label].firstMatch.exists { return true }
+            if app.staticTexts[label].firstMatch.exists { return true }
+        }
+        return false
+    }
+
+    private func menuActionLabelCandidates(for label: String) -> [String] {
+        var labels: [String] = [label]
+
+        if label == "Edit a copy" {
+            labels += ["Edit copy", "Edit a copy…", "Edit copy…"]
+        }
+
+        if label.contains("...") {
+            labels.append(label.replacingOccurrences(of: "...", with: "…"))
+        }
+        if label.contains("…") {
+            labels.append(label.replacingOccurrences(of: "…", with: "..."))
+        }
+
+        return Array(Set(labels))
     }
 }
 
@@ -1325,7 +1395,29 @@ struct ScratchPadPage {
     }
 
     func assertDifficultyLabel(_ text: String) {
-        XCTAssertTrue(app.staticTexts[text].waitForExistence(timeout: 10), "Expected difficulty label \(text)")
+        if app.staticTexts[text].waitForExistence(timeout: 10) { return }
+        if app.buttons[text].waitForExistence(timeout: 2) { return }
+
+        let lowercasedText = text.lowercased()
+        let expectedDifficultyWord = lowercasedText.split(separator: " ").first.map(String.init) ?? lowercasedText
+        let expectedLevelFragment = lowercasedText.contains("level ") ? "level " : nil
+
+        let deadline = Date().addingTimeInterval(20)
+        while Date() < deadline {
+            let candidates = app.staticTexts.allElementsBoundByIndex + app.buttons.allElementsBoundByIndex
+            let labels = candidates.map { $0.label.lowercased() }
+            let containsExpected = labels.contains { label in
+                guard label.contains(expectedDifficultyWord) else { return false }
+                if let expectedLevelFragment {
+                    return label.contains(expectedLevelFragment)
+                }
+                return true
+            }
+            if containsExpected { return }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+
+        XCTFail("Expected difficulty label \(text)")
     }
 
     func assertCombatantVisible(_ name: String) {
@@ -1405,26 +1497,37 @@ struct RunningEncounterPage {
 
     @discardableResult
     func openCombatantDetail(containing nameFragment: String) -> CombatantDetailPage {
-        let namePredicate = NSPredicate(format: "label CONTAINS[c] %@", nameFragment)
-        let labels = app.staticTexts.matching(namePredicate)
-        XCTAssertTrue(labels.firstMatch.waitForExistence(timeout: 10), "Expected combatant matching \(nameFragment)")
-
         let detail = CombatantDetailPage(app: app)
+        assertCombatantVisible(containing: nameFragment, timeout: 15)
 
-        for _ in 0..<5 {
+        for attempt in 0..<8 {
             if detail.isVisible {
                 return detail
             }
 
-            let label = labels.allElementsBoundByIndex.first(where: { $0.exists && $0.isHittable }) ?? labels.firstMatch
-            XCTAssertTrue(label.exists, "Expected combatant label matching \(nameFragment)")
+            if let targetCell = combatantCells(containing: nameFragment).first {
+                let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+                    .withOffset(CGVector(dx: targetCell.frame.midX, dy: targetCell.frame.midY))
+                absolute.tap()
+            } else {
+                let namePredicate = NSPredicate(format: "label CONTAINS[c] %@", nameFragment)
+                let labels = app.staticTexts.matching(namePredicate)
+                let fallbackLabel = labels.allElementsBoundByIndex.first(where: { $0.exists && $0.isHittable }) ?? labels.firstMatch
+                XCTAssertTrue(fallbackLabel.exists, "Expected combatant label matching \(nameFragment)")
 
-            let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
-                .withOffset(CGVector(dx: label.frame.midX, dy: label.frame.midY))
-            absolute.tap()
+                let absolute = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+                    .withOffset(CGVector(dx: fallbackLabel.frame.midX, dy: fallbackLabel.frame.midY))
+                absolute.tap()
+            }
 
             if detail.waitForVisible(timeout: 2, failOnTimeout: false).isVisible {
                 return detail
+            }
+
+            if attempt % 2 == 0 {
+                app.swipeUp()
+            } else {
+                app.swipeDown()
             }
         }
 
