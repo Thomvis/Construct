@@ -23,11 +23,10 @@ struct ConstructApp: App {
 
     init() {
         let environment = ProcessInfo.processInfo.environment
-        let isUiTesting = environment["CONSTRUCT_UI_TESTS"] == "1"
-        let isTestHostLaunch = environment["XCTestSessionIdentifier"] != nil && !isUiTesting
+        let isXCTestLaunch = environment["XCTestSessionIdentifier"] != nil
 
-        // XCTest host launches do not need Firebase and can fail in CI when test-only config is used.
-        if !isTestHostLaunch {
+        // Test runs (unit + UI) should not depend on Firebase setup.
+        if !isXCTestLaunch {
             FirebaseApp.configure()
         }
     }

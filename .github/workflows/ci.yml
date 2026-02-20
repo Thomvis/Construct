@@ -61,7 +61,7 @@ jobs:
           fi
 
           echo "destination=id=$destination_id" >> "$GITHUB_OUTPUT"
-      - name: iOS tests (excluding UI tests)
+      - name: iOS tests (including UI tests)
         run: |
           set -o pipefail
           env NSUnbufferedIO=YES xcodebuild \
@@ -71,7 +71,6 @@ jobs:
             -derivedDataPath ./build \
             -skipPackagePluginValidation \
             -skipMacroValidation \
-            -skip-testing:ConstructUITests \
             clean test | xcpretty
       - name: Archive test artifacts
         uses: actions/upload-artifact@v4
