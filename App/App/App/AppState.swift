@@ -184,7 +184,8 @@ struct AppFeature {
                     await send(.dismissPresentation(.welcomeSheet))
                 }
             case .onAppear:
-                if !state.preferences.didShowWelcomeSheet {
+                let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
+                if isUiTesting || !state.preferences.didShowWelcomeSheet {
                     return .send(.requestPresentation(.welcomeSheet))
                 } else if let nodeCount = try? campaignBrowser.nodeCount(),
                           nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
@@ -219,7 +220,8 @@ struct AppFeature {
         }
         .onChange(of: \.presentation) { oldValue, newValue in
             Reduce { state, action in
-                if newValue == .welcomeSheet {
+                let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
+                if newValue == .welcomeSheet && !isUiTesting {
                     state.$preferences.withLock { $0.didShowWelcomeSheet = true }
                 }
                 return .none

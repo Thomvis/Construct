@@ -240,8 +240,21 @@ struct BaseDependencies {
 
     static func live() async throws -> Self {
         let database: Database
-        if ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1" {
-            database = try await Database(path: nil)
+        let environment = ProcessInfo.processInfo.environment
+        if environment["CONSTRUCT_UI_TESTS"] == "1" {
+            if let sessionIdentifier = environment["XCTestSessionIdentifier"] {
+                let sanitizedSessionIdentifier = sessionIdentifier.replacingOccurrences(
+                    of: "[^A-Za-z0-9-]",
+                    with: "-",
+                    options: .regularExpression
+                )
+                let dbURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("construct-ui-\(sanitizedSessionIdentifier)")
+                    .appendingPathExtension("sqlite")
+                database = try await Database(path: dbURL.path)
+            } else {
+                database = try await Database(path: nil)
+            }
         } else {
             database = try await Database.live()
         }
