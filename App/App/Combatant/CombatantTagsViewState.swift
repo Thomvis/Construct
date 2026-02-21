@@ -136,6 +136,8 @@ struct CombatantTagsFeature {
         case tagEdit(CombatantTagEditFeature)
     }
 
+    @Dependency(\.uuid) var uuid
+
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
@@ -144,7 +146,7 @@ struct CombatantTagsFeature {
                     state.combatants.map { c in
                         .send(
                             Action.combatant(c, .addTag(CombatantTag(
-                                id: UUID().tagged(), // make sure every tag has a unique id
+                                id: uuid().tagged(), // make sure every tag has a unique id
                                 definition: tag.definition,
                                 note: tag.note,
                                 sourceCombatantId: tag.sourceCombatantId

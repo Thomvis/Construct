@@ -27,6 +27,7 @@ struct CompendiumRootFeature {
     typealias Action = CompendiumIndexFeature.Action
 
     @Dependency(\.compendium) var compendium
+    @Dependency(\.uuid) var uuid
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -34,7 +35,7 @@ struct CompendiumRootFeature {
                 return .run { send in
                     var stats = monster.stats
                     stats.name = "\(stats.name) NPC"
-                    let character = Character(id: UUID().tagged(), realm: .init(CompendiumRealm.homebrew.id), level: nil, stats: stats, player: nil)
+                    let character = Character(id: uuid().tagged(), realm: .init(CompendiumRealm.homebrew.id), level: nil, stats: stats, player: nil)
 
                     do {
                         // save character

@@ -432,13 +432,13 @@ struct EncounterDetailFeature {
                 )
 
                 state.combatantDetailReferenceItemRequest = ReferenceViewItemRequest(
-                    id: state.combatantDetailReferenceItemRequest?.id ?? UUID().tagged(),
+                    id: state.combatantDetailReferenceItemRequest?.id ?? uuid().tagged(),
                     state: ReferenceItem.State(content: .combatantDetail(detailState)),
                     oneOff: false
                 )
             case .showAddCombatantReferenceItem:
                 state.addCombatantReferenceItemRequest = ReferenceViewItemRequest(
-                    id: state.addCombatantReferenceItemRequest?.id ?? UUID().tagged(),
+                    id: state.addCombatantReferenceItemRequest?.id ?? uuid().tagged(),
                     state: ReferenceItem.State(
                         content: .addCombatant(
                             ReferenceItem.State.Content.AddCombatant(
@@ -496,7 +496,7 @@ struct EncounterDetailFeature {
             NumberEntryFeature()
         }
         .ifLet(\.running, action: \.runningEncounter) {
-            RunningEncounter.Reducer()
+            RunningEncounterFeature()
                 .onChange(of: \.self) { _, newValue in
                     Reduce { _, _ in
                         try? database.keyValueStore.put(newValue)

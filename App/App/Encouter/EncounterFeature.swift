@@ -115,82 +115,83 @@ extension RunningEncounter {
     }
 }
 
-extension RunningEncounter {
-    struct Reducer: ComposableArchitecture.Reducer {
-        typealias State = RunningEncounter
-        typealias Action = RunningEncounter.Action
+@Reducer
+struct RunningEncounterFeature {
+    typealias State = RunningEncounter
+    typealias Action = RunningEncounter.Action
 
-        var body: some ReducerOf<Self> {
-            Reduce { state, action in
-                guard let turn = state.turn else { return .none }
+    @Dependency(\.uuid) var uuid
 
-                switch action {
-                case .current(.combatant(.element(let uuid, let action))):
-                    guard let combatant = state.current.combatants[id: uuid] else { return .none }
-                    switch action {
-                    case .hp(.current(.add(let hp))):
-                        state.log.append(
-                            RunningEncounterEvent(
-                                id: UUID().tagged(),
-                                turn: turn,
-                                combatantEvent: RunningEncounterEvent.CombatantEvent(
-                                    target: .init(id: uuid, name: combatant.name, discriminator: combatant.discriminator),
-                                    source: nil,
-                                    effect: .init(currentHp: hp)
-                                )
+    var body: some ReducerOf<Self> {
+        Reduce { state, action in
+            guard let turn = state.turn else { return .none }
+
+            switch action {
+            case .current(.combatant(.element(let combatantID, let combatantAction))):
+                guard let combatant = state.current.combatants[id: combatantID] else { return .none }
+                switch combatantAction {
+                case .hp(.current(.add(let hp))):
+                    state.log.append(
+                        RunningEncounterEvent(
+                            id: uuid().tagged(),
+                            turn: turn,
+                            combatantEvent: RunningEncounterEvent.CombatantEvent(
+                                target: .init(id: combatantID, name: combatant.name, discriminator: combatant.discriminator),
+                                source: nil,
+                                effect: .init(currentHp: hp)
                             )
                         )
-                    default:
-                        break
-                    }
+                    )
                 default:
                     break
                 }
-                return .none
+            default:
+                break
             }
+            return .none
+        }
 
-            Reduce { state, action in
-                switch action {
-                case .current(.remove(let c)):
+        Reduce { state, action in
+            switch action {
+            case .current(.remove(let c)):
+                if state.turn?.combatantId == c.id {
+                    state.nextTurn()
                     if state.turn?.combatantId == c.id {
-                        state.nextTurn()
-                        if state.turn?.combatantId == c.id {
-                            state.turn = nil
-                        }
-                    }
-                default:
-                    break
-                }
-                return .none
-            }
-
-            Scope(state: \.current, action: \.current) {
-                EncounterFeature()
-            }
-
-            Reduce { state, action in
-                switch action {
-                case .current(.combatant(.element(let uuid, .addTag(let tag)))):
-                    if state.current.combatants[id: uuid]?.tags[id: tag.id]?.addedIn == nil {
-                        state.current.combatants[id: uuid]?.tags[id: tag.id]?.addedIn = state.turn
-                    }
-                case .current:
-                    if state.current.allCombatantsHaveInitiative, state.turn == nil {
-                        state.turn = state.current.initiativeOrder.first.map { Turn(round: 1, combatantId: $0.id) }
-                    }
-                case .nextTurn:
-                    if state.turn != nil {
-                        state.nextTurn()
-                    } else {
-                        state.turn = state.current.initiativeOrder.first.map { Turn(round: 1, combatantId: $0.id) }
-                    }
-                case .previousTurn:
-                    if state.turn != nil {
-                        state.previousTurn()
+                        state.turn = nil
                     }
                 }
-                return .none
+            default:
+                break
             }
+            return .none
+        }
+
+        Scope(state: \.current, action: \.current) {
+            EncounterFeature()
+        }
+
+        Reduce { state, action in
+            switch action {
+            case .current(.combatant(.element(let uuid, .addTag(let tag)))):
+                if state.current.combatants[id: uuid]?.tags[id: tag.id]?.addedIn == nil {
+                    state.current.combatants[id: uuid]?.tags[id: tag.id]?.addedIn = state.turn
+                }
+            case .current:
+                if state.current.allCombatantsHaveInitiative, state.turn == nil {
+                    state.turn = state.current.initiativeOrder.first.map { RunningEncounter.Turn(round: 1, combatantId: $0.id) }
+                }
+            case .nextTurn:
+                if state.turn != nil {
+                    state.nextTurn()
+                } else {
+                    state.turn = state.current.initiativeOrder.first.map { RunningEncounter.Turn(round: 1, combatantId: $0.id) }
+                }
+            case .previousTurn:
+                if state.turn != nil {
+                    state.previousTurn()
+                }
+            }
+            return .none
         }
     }
 }

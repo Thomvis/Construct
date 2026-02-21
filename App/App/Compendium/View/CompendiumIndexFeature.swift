@@ -259,6 +259,8 @@ struct CompendiumIndexFeature {
         case filter(CompendiumFilterSheetFeature)
     }
 
+    @Dependency(\.uuid) var uuid
+
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
@@ -295,7 +297,12 @@ struct CompendiumIndexFeature {
                     assertionFailure("Adding spells is not supported")
                     break
                 case .group:
-                    state.sheet = .groupEdit(CompendiumItemGroupEditFeature.State(mode: .create, group: CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])))
+                    state.sheet = .groupEdit(
+                        CompendiumItemGroupEditFeature.State(
+                            mode: .create,
+                            group: CompendiumItemGroup(id: uuid().tagged(), title: "", members: [])
+                        )
+                    )
                 }
 
             case .onSearchOnWebButtonTap:

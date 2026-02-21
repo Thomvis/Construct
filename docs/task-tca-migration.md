@@ -50,6 +50,17 @@
 - Replaced old `\.$` navigation/alert scoping with `item:` bindings and `alert($store.scope...)`; converted remaining reducers to `@Reducer`.
 - Updated App Clip dice log effect to avoid non-Sendable capture; `onContinueUserActivity` now takes a URL and `AppFeature.Action` is `@unchecked Sendable` to satisfy Swift 6 checks.
 - Updated project build settings to Swift 5.9 with strict concurrency set to minimal for CLI builds.
+- On February 21, 2026: pinned `swift-composable-architecture` to exact `1.23.2` in SwiftPM (`Package.swift`) and Xcode package requirements (`App/Construct.xcodeproj/project.pbxproj`), and updated both lockfiles to `1.23.2`.
+- Replaced legacy `RunningEncounter.Reducer` with `@Reducer struct RunningEncounterFeature` and updated `EncounterDetailFeature` to scope `RunningEncounterFeature()`.
+- Updated running-encounter logging reducer logic to use controlled randomness via `@Dependency(\.uuid)` instead of direct `UUID()` for event IDs.
+- Replaced direct reducer-level `UUID()` calls with dependency-driven IDs in:
+  - `CompendiumRootFeature` (`CompendiumContainerView.swift`)
+  - `CompendiumIndexFeature`
+  - `CombatantTagsFeature`
+  - `EncounterDetailFeature` reference-item request IDs
+- Validation on February 21, 2026:
+  - `xcodebuild build -project App/Construct.xcodeproj -scheme Construct -destination "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2" -skipPackagePluginValidation -skipMacroValidation -disableAutomaticPackageResolution` ✅
+  - `xcodebuild test ...` non-UI suites passed; UI tests in `ConstructUITests` were killed by runner process (`signal kill`) in this environment.
 
 ## Status
 
