@@ -157,7 +157,7 @@ struct CompendiumImportFeature {
                     TextState("Import completed")
                 } message: {
                     TextState(
-                        "\\(result.newItemCount + result.overwrittenItemCount) item(s) imported (\\(result.newItemCount ) new). \\(result.invalidItemCount) item(s) skipped."
+                        "\(result.newItemCount + result.overwrittenItemCount) item(s) imported (\(result.newItemCount ) new). \(result.invalidItemCount) item(s) skipped."
                     )
                 }
             case .importDidFinish(nil):
