@@ -9,10 +9,14 @@ clarify uncertainty before coding, and align suggestions with the rules linked b
 - The app is built using the Composable Architecture.
 - The app is available in the App Store and is Open Source on GitHub.
 - The project is moving towards a more modular architecture, using Swift Packages for new features.
-[Fill in by LLM assistant]
+- Core domain/parsing/data modules live in `Sources/` (e.g. `GameModels`, `Compendium`, `Persistence`, `Helpers`).
+- The iOS app target and UI integration live under `App/App/`.
+- Parsing of imported compendium content uses versioned `Parseable` wrappers so parser/model updates can trigger recomputation.
 
 ## Commands
-[Fill in by LLM assistant]
+- Prefer targeted test runs while iterating (example: `-only-testing:UnitTests/CreatureActionParserTest`).
+- Use simulator IDs from `xcodebuildmcp simulator list-sims --enabled` to avoid device-name/OS mismatches.
+- Use `rg` for codebase search and file discovery (`rg`, `rg --files`) before making changes.
 - `xcodebuild build -project App/Construct.xcodeproj -scheme Construct -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' | xcpretty`
   To validate changes. Pick another listed simulator if that one isn’t available.
 - When running xcodebuild in this repo, include `-skipPackagePluginValidation -skipMacroValidation` to avoid Swift macro/plugin validation failures.
@@ -24,11 +28,15 @@ clarify uncertainty before coding, and align suggestions with the rules linked b
 - If you need to debug what `xcodebuildmcp` is invoking, run with `--log-level debug` to see the exact underlying `/usr/bin/xcrun xcodebuild ...` command.
 
 ## Code Style
-[Fill in by LLM assistant]
+- Follow existing Swift naming and formatting conventions in surrounding files.
+- Prefer small, composable parsing functions and keep parser/model changes additive when possible.
+- Keep test expectations explicit with `expectNoDifference` and snapshots for parser behavior changes.
 - Follow existing code style.
 
 ## Architecture & Patterns
-[Fill in by LLM assistant]
+- Feature/state logic is primarily TCA-based with reducer-driven composition.
+- `Parseable<Input, Result>` + `DomainParser`/`DomainModel` versioning is used to cache and invalidate derived parsed data.
+- For new behavior in parsed models, prefer additive fields over breaking schema changes.
 - The project is built using the Composable Architecture.
 
 ## Workflow
@@ -49,7 +57,9 @@ clarify uncertainty before coding, and align suggestions with the rules linked b
   - You want the exact underlying command logged (`--log-level debug`) for reproducibility.
 
 ## Environment
-[Fill in by LLM assistant]
+- Use Xcode tooling (`xcodebuild`/`xcodebuildmcp`) for build and test; this repository is not `swift build` first.
+- Dependencies are managed through SwiftPM and integrated into the Xcode project/workspace.
+- If default simulator destinations are unavailable locally, pick an enabled simulator from the current machine.
 - Requires SwiftUI, GRDB, and Point-Free Composable Architecture libraries
 - Use xcodebuild to build the project (not swift build, since this is an iOS project).
 
