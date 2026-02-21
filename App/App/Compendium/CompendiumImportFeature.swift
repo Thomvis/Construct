@@ -1107,7 +1107,7 @@ extension CompendiumImportFeature.DataSource.State {
             )
         case .file(let f):
             guard let url = f.url else { return nil }
-            return FileDataSource(path: url.absoluteString)
+            return FileDataSource(path: url.path)
         case .network(let n):
             guard let url = n.url else { return nil }
             return URLDataSource(
