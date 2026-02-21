@@ -20,9 +20,6 @@ struct EncounterSettingsView: View {
 
     @State var popover: Popover?
 
-    // Provide a stable date for the duration of this screen
-    @State var now = Date()
-
     var encounter: Encounter {
         store.building
     }
@@ -102,8 +99,8 @@ struct EncounterSettingsView: View {
                     if (store.resumableRunningEncounters.value ?? []).isEmpty {
                         Text("No runs found")
                     } else {
-                        ForEach(store.resumableRunningEncounters.value ?? [], id: \.self) { run in
-                            Text(self.titleForRawRunningEncounter(run)).lineLimit(1)
+                        ForEach(store.resumableRunningEncounters.value ?? []) { run in
+                            Text(self.titleForResumableRunningEncounter(run)).lineLimit(1)
                         }.onDelete(perform: self.onDeleteResumableRunningEncounter)
                     }
                 }
@@ -172,14 +169,12 @@ struct EncounterSettingsView: View {
         }
     }
 
-    func titleForRawRunningEncounter(_ key: String) -> String {
-//        let formatter = RelativeDateTimeFormatter()
-//        let relativeDate = formatter.localizedString(for: record.modifiedAt, relativeTo: self.now)
-        return "Run \(key.suffix(5))"
+    func titleForResumableRunningEncounter(_ run: EncounterDetailFeature.ResumableRunningEncounter) -> String {
+        "Run \(run.modifiedAt.formatted(date: .abbreviated, time: .shortened))"
     }
 
     func onDeleteResumableRunningEncounter(_ indices: IndexSet) {
-        let keys = indices.compactMap { store.resumableRunningEncounters.value?[$0] }
+        let keys = indices.compactMap { store.resumableRunningEncounters.value?[$0].key }
         for key in keys {
             store.send(.removeResumableRunningEncounter(key), animation: .default)
         }

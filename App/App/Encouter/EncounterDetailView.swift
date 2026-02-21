@@ -232,12 +232,12 @@ struct EncounterDetailView: View {
 
                     Divider()
 
-                    ForEach(resumables, id: \.self) { r in
+                    ForEach(resumables) { resumable in
                         Button(action: {
-                            store.send(.onResumeRunningEncounterTap(r), animation: .default)
+                            store.send(.onResumeRunningEncounterTap(resumable.key), animation: .default)
                         }) {
                             Label(
-                                "Resume run \(String(r.suffix(5)))",
+                                "Resume run \(resumable.modifiedAt.formatted(date: .abbreviated, time: .shortened))",
                                 systemImage: "play"
                             )
                         }

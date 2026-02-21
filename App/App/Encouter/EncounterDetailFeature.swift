@@ -17,6 +17,13 @@ import SwiftUI
 
 @Reducer
 struct EncounterDetailFeature {
+    struct ResumableRunningEncounter: Equatable, Identifiable {
+        let key: String
+        let modifiedAt: Date
+
+        var id: String { key }
+    }
+
     struct AddCombatantSheet: Identifiable, Equatable {
         let id: UUID
         var state: AddCombatantFeature.State
@@ -78,7 +85,7 @@ struct EncounterDetailFeature {
             }
         }
 
-        typealias AsyncResumableRunningEncounters = Async<[String], EquatableError>
+        typealias AsyncResumableRunningEncounters = Async<[ResumableRunningEncounter], EquatableError>
         var resumableRunningEncounters: AsyncResumableRunningEncounters.State = .initial
 
         @Presents var sheet: Sheet.State?
@@ -533,8 +540,13 @@ struct EncounterDetailFeature {
             Scope(state: \.resumableRunningEncounters, action: \.resumableRunningEncounters) {
                 State.AsyncResumableRunningEncounters {
                     do {
-                        return try database.keyValueStore.fetchKeys(
-                            .keyPrefix(RunningEncounter.keyPrefix(for: id).rawValue))
+                        return try database.keyValueStore.fetchMetadata(
+                            .keyPrefix(RunningEncounter.keyPrefix(for: id).rawValue)
+                        )
+                        .map {
+                            ResumableRunningEncounter(key: $0.key, modifiedAt: $0.modifiedAt)
+                        }
+                        .sorted(by: { $0.modifiedAt > $1.modifiedAt })
                     } catch {
                         throw error.toEquatableError()
                     }

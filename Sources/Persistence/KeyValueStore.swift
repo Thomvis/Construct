@@ -28,6 +28,17 @@ public protocol KeyValueStore {
     func count(_ request: KeyValueStoreRequest) throws -> Int
 
     func fetchKeys(_ request: KeyValueStoreRequest) throws -> [String]
+    func fetchMetadata(_ request: KeyValueStoreRequest) throws -> [KeyValueStoreMetadata]
+}
+
+public struct KeyValueStoreMetadata: Equatable {
+    public let key: String
+    public let modifiedAt: Date
+
+    public init(key: String, modifiedAt: Date) {
+        self.key = key
+        self.modifiedAt = modifiedAt
+    }
 }
 
 public extension KeyValueStore {
@@ -196,6 +207,21 @@ public final class DatabaseKeyValueStore: KeyValueStore {
         return try database.read { db in
             try print(query.makePreparedRequest(db).statement)
             return try query.fetchAll(db)
+        }
+    }
+
+    public func fetchMetadata(_ request: KeyValueStoreRequest) throws -> [KeyValueStoreMetadata] {
+        let query = Self.build(request: request)
+            .select(Record.Columns.key, Record.Columns.modified_at)
+            .asRequest(of: Row.self)
+
+        return try database.read { db in
+            try query.fetchAll(db).map { row in
+                KeyValueStoreMetadata(
+                    key: row[Record.Columns.key],
+                    modifiedAt: Date(timeIntervalSince1970: row[Record.Columns.modified_at])
+                )
+            }
         }
     }
 
