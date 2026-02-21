@@ -17,6 +17,15 @@ import Compendium
 import ComposableArchitecture
 
 class CreatureActionParserTest: XCTestCase {
+    private static func isWeaponAttackDescription(_ description: String) -> Bool {
+        let normalized = description
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        return normalized.hasPrefix("melee weapon attack:")
+            || normalized.hasPrefix("ranged weapon attack:")
+            || normalized.hasPrefix("melee or ranged weapon attack:")
+    }
 
     func testMeleeAttack() {
         let action = CreatureActionParser.parse("Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.")
@@ -172,6 +181,9 @@ class CreatureActionParserTest: XCTestCase {
                         damageExpression: 2.d(8),
                         type: .poison
                     )]
+                ),
+                .init(
+                    other: "if the poison damage reduces the target to 0 hit points, the target is stable but poisoned for 1 hour, even after regaining hit points, and is paralyzed while poisoned in this way"
                 )
             ]
         )))
@@ -353,6 +365,127 @@ class CreatureActionParserTest: XCTestCase {
         )))
     }
 
+    func testConditionalHitModifier() {
+        let action = CreatureActionParser.parse(
+            "Melee Weapon Attack: +2 to hit (+4 to hit with shillelagh), reach 5 ft., one target. Hit: 3 (1d6) bludgeoning damage, or 6 (1d8 + 2) bludgeoning damage with shillelagh or if wielded with two hands."
+        )
+
+        expectNoDifference(action, .weaponAttack(.init(
+            hitModifier: 2,
+            conditionalHitModifiers: [
+                .init(hitModifier: 4, condition: "with shillelagh")
+            ],
+            ranges: [.reach(5)],
+            effects: [
+                .init(damage: [
+                    .init(
+                        staticDamage: 3,
+                        damageExpression: 1.d(6),
+                        type: .bludgeoning
+                    )
+                ]),
+                .init(
+                    conditions: .init(other: "with shillelagh or if wielded with two hands"),
+                    damage: [
+                        .init(
+                            staticDamage: 6,
+                            damageExpression: 1.d(8)+2,
+                            type: .bludgeoning
+                        )
+                    ]
+                )
+            ]
+        )))
+    }
+
+    func testAlternativeDamageType() {
+        let action = CreatureActionParser.parse(
+            "Melee Weapon Attack: +9 to hit, reach 5 ft., one target. Hit: 12 (2d6 + 5) slashing damage plus 3 (1d6) lightning or thunder damage (djinni's choice)."
+        )
+
+        expectNoDifference(action, .weaponAttack(.init(
+            hitModifier: 9,
+            ranges: [.reach(5)],
+            effects: [
+                .init(damage: [
+                    .init(
+                        staticDamage: 12,
+                        damageExpression: 2.d(6)+5,
+                        type: .slashing
+                    ),
+                    .init(
+                        staticDamage: 3,
+                        damageExpression: 1.d(6),
+                        type: .lightning,
+                        alternativeTypes: [.thunder]
+                    )
+                ]),
+                .init(other: "(djinni's choice)")
+            ]
+        )))
+    }
+
+    func testReplacementDamageEffect() {
+        let action = CreatureActionParser.parse(
+            "Melee Weapon Attack: +9 to hit, reach 5 ft., one creature. Hit: 8 (1d8 + 4) bludgeoning damage. Instead of dealing damage, the vampire can grapple the target (escape DC 18)."
+        )
+
+        expectNoDifference(action, .weaponAttack(.init(
+            hitModifier: 9,
+            ranges: [.reach(5)],
+            effects: [
+                .init(damage: [
+                    .init(
+                        staticDamage: 8,
+                        damageExpression: 1.d(8)+4,
+                        type: .bludgeoning
+                    )
+                ]),
+                .init(
+                    condition: .init(condition: .grappled, comment: "escape dc 18"),
+                    replacesDamage: true
+                )
+            ]
+        )))
+    }
+
+    func testSavingThrowFailureMarginRider() {
+        let action = CreatureActionParser.parse(
+            "Ranged Weapon Attack: +4 to hit, range 30/120 ft., one target. Hit: 5 (1d6 + 2) piercing damage, and the target must succeed on a DC 13 Constitution saving throw or be poisoned for 1 hour. If the saving throw fails by 5 or more, the target is also unconscious while poisoned in this way. The target wakes up if it takes damage or if another creature takes an action to shake it awake."
+        )
+
+        expectNoDifference(action, .weaponAttack(.init(
+            hitModifier: 4,
+            ranges: [.range(30, 120)],
+            effects: [
+                .init(damage: [
+                    .init(
+                        staticDamage: 5,
+                        damageExpression: 1.d(6)+2,
+                        type: .piercing
+                    )
+                ]),
+                .init(
+                    conditions: .init(savingThrow: .init(
+                        ability: .constitution,
+                        dc: 13,
+                        saveEffect: .none
+                    )),
+                    other: "be poisoned for 1 hour"
+                ),
+                .init(
+                    conditions: .init(savingThrow: .init(
+                        ability: .constitution,
+                        dc: 13,
+                        saveEffect: .none,
+                        failureMargin: 5
+                    )),
+                    other: "is also unconscious while poisoned in this way"
+                )
+            ]
+        )))
+    }
+
     @MainActor
     func testAllMonsterActions() async throws {
         let sut = Open5eDataSourceReader(
@@ -375,7 +508,7 @@ class CreatureActionParserTest: XCTestCase {
             .flatMap { (creature: Monster) in
                 creature.stats.actions
                     .filter { action in
-                        action.description.contains(Regex<Substring>(verbatim: "weapon attack").ignoresCase())
+                        Self.isWeaponAttackDescription(action.description)
                     }
                     .map { action in
                         let res = CreatureActionParser.parseRaw(action.description)
@@ -406,7 +539,7 @@ class CreatureActionParserTest: XCTestCase {
             for item in items {
                 guard let monster = item as? Monster else { continue }
                 for action in monster.stats.actions {
-                    guard action.description.contains(Regex<Substring>(verbatim: "weapon attack").ignoresCase()) else { continue }
+                    guard Self.isWeaponAttackDescription(action.description) else { continue }
                     _ = CreatureActionParser.parseRaw(action.description)
                 }
             }

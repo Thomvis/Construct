@@ -15,7 +15,7 @@ public typealias ParseableCreatureAction = Parseable<CreatureAction, ParsedCreat
 
 public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
 
-    public static let version: String = "2"
+    public static let version: String = "3"
 
     /**
      Parsed from `name`. Range is scoped to `name`.
@@ -57,13 +57,30 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
 
         public struct WeaponAttack: Hashable, Codable {
             public let hitModifier: Modifier
+            public let conditionalHitModifiers: [ConditionalHitModifier]
             public let ranges: [Range]
             public let effects: [AttackEffect]
 
-            public init(hitModifier: Modifier, ranges: [Range], effects: [AttackEffect]) {
+            public init(
+                hitModifier: Modifier,
+                conditionalHitModifiers: [ConditionalHitModifier] = [],
+                ranges: [Range],
+                effects: [AttackEffect]
+            ) {
                 self.hitModifier = hitModifier
+                self.conditionalHitModifiers = conditionalHitModifiers
                 self.ranges = ranges
                 self.effects = effects
+            }
+
+            public struct ConditionalHitModifier: Hashable, Codable {
+                public let hitModifier: Modifier
+                public let condition: String
+
+                public init(hitModifier: Modifier, condition: String) {
+                    self.hitModifier = hitModifier
+                    self.condition = condition
+                }
             }
 
             public enum Range: Hashable, Codable {
@@ -92,17 +109,20 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
             public var conditions: Conditions
             public let damage: [Damage]
             public let condition: CreatureConditionEffect? // restrained, prone, etc.
+            public let replacesDamage: Bool
             public let other: String?
 
             public init(
                 conditions: Conditions = .init(),
                 damage: [Damage] = [],
                 condition: CreatureConditionEffect? = nil,
+                replacesDamage: Bool = false,
                 other: String? = nil
             ) {
                 self.conditions = conditions
                 self.damage = damage
                 self.condition = condition
+                self.replacesDamage = replacesDamage
                 self.other = other
             }
 
@@ -123,11 +143,19 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
                     public let ability: Ability
                     public let dc: Int
                     public let saveEffect: SaveEffect
+                    // E.g. "fails by 5 or more" -> 5
+                    public let failureMargin: Int?
 
-                    public init(ability: Ability, dc: Int, saveEffect: SaveEffect) {
+                    public init(
+                        ability: Ability,
+                        dc: Int,
+                        saveEffect: SaveEffect,
+                        failureMargin: Int? = nil
+                    ) {
                         self.ability = ability
                         self.dc = dc
                         self.saveEffect = saveEffect
+                        self.failureMargin = failureMargin
                     }
 
                     public enum SaveEffect: Hashable, Codable {
@@ -146,11 +174,18 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
                 public let staticDamage: Int
                 public let damageExpression: DiceExpression?
                 public let type: DamageType
+                public let alternativeTypes: [DamageType]
 
-                public init(staticDamage: Int, damageExpression: DiceExpression?, type: DamageType) {
+                public init(
+                    staticDamage: Int,
+                    damageExpression: DiceExpression?,
+                    type: DamageType,
+                    alternativeTypes: [DamageType] = []
+                ) {
                     self.staticDamage = staticDamage
                     self.damageExpression = damageExpression
                     self.type = type
+                    self.alternativeTypes = alternativeTypes
                 }
             }
 
@@ -168,7 +203,7 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
 }
 
 struct CreatureActionDomainParser: DomainParser {
-    static let version: String = "2"
+    static let version: String = "3"
 
     static func parse(input: CreatureAction) -> ParsedCreatureAction? {
         return ParsedCreatureAction(

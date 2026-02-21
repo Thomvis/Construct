@@ -26,20 +26,10 @@ public struct CreatureActionParser {
     }
 
     static func weaponAttackParser() -> Parser<Action.WeaponAttack> {
-        return zip(
+        zip(
             skip(until: string(":")),
             whitespace(),
-            zip(
-                either(
-                    char("+").map { _ in 1 },
-                    char("-").map { _ in -1 }
-                ),
-                int(),
-                whitespace(),
-                string("to hit")
-            ).map { sign, mod, _, _ in
-                return Modifier(modifier: sign * mod)
-            },
+            hitModifierParser(),
             zip(string(","), whitespace().optional()),
             many(
                 element: either(
@@ -77,13 +67,74 @@ public struct CreatureActionParser {
                 ),
                 terminator: .nothing
             ),
-            skip(until: zip(string("."), whitespace())), // skipping  "one target"
+            skip(until: zip(string("."), whitespace())), // skipping "one target"
             hitParser().optional()
-        ).map {  _, _, modifier, _, ranges, _, effects in
+        ).map {  _, _, hit, _, ranges, _, effects in
             Action.WeaponAttack(
-                hitModifier: modifier,
+                hitModifier: hit.0,
+                conditionalHitModifiers: hit.1,
                 ranges: ranges,
                 effects: effects ?? []
+            )
+        }
+    }
+
+    static func hitModifierParser() -> Parser<(Modifier, [Action.WeaponAttack.ConditionalHitModifier])> {
+        zip(
+            signedModifierParser(),
+            whitespace(),
+            string("to hit"),
+            zip(
+                whitespace().optional(),
+                char("("),
+                skip(until: char(")"))
+            ).map { _, _, inside in inside.0 }.optional()
+        ).map { modifier, _, _, conditional in
+            (
+                modifier,
+                conditional.map(Self.parseConditionalHitModifiers(from:)) ?? []
+            )
+        }
+    }
+
+    static func signedModifierParser() -> Parser<Modifier> {
+        zip(
+            either(
+                char("+").map { _ in 1 },
+                char("-").map { _ in -1 }
+            ),
+            int()
+        ).map { sign, mod in
+            Modifier(modifier: sign * mod)
+        }
+    }
+
+    static func parseConditionalHitModifiers(from string: String) -> [Action.WeaponAttack.ConditionalHitModifier] {
+        let pattern = #"([+-]\d+)\s*to hit(?:\s*with\s*([^,;]+))?"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+            return []
+        }
+
+        let range = NSRange(location: 0, length: string.utf16.count)
+        return regex.matches(in: string, options: [], range: range).compactMap { match in
+            guard match.numberOfRanges >= 2,
+                  let modifierRange = Range(match.range(at: 1), in: string),
+                  let modifierValue = Int(string[modifierRange])
+            else {
+                return nil
+            }
+
+            let condition: String
+            if match.numberOfRanges >= 3,
+               let conditionRange = Range(match.range(at: 2), in: string) {
+                condition = "with \(string[conditionRange])"
+            } else {
+                condition = "conditional"
+            }
+
+            return .init(
+                hitModifier: Modifier(modifier: modifierValue),
+                condition: condition
             )
         }
     }
@@ -104,13 +155,14 @@ public struct CreatureActionParser {
                 // these must go before damageEffect even though they're
                 versatileWeaponGripConditionedDamageEffectParser(),
                 rangeConditionedDamageEffectParser(),
-
+                conditionalAlternativeDamageEffectParser(),
+                replacementDamageEffectParser(),
                 damageEffectParser(),
-                savingThrowConditionedEffectParser(),
-                otherConditionedEffectParser(),
-                otherEffectParser()
-
-            ),
+                savingThrowConditionedEffectParser()
+            )
+            .or(otherConditionedEffectParser())
+            .or(otherEffectParser())
+            .or(fallbackRemainderEffectParser()),
             separator: oneOrMore(
                 either(
                     string(","),
@@ -134,6 +186,55 @@ public struct CreatureActionParser {
             [
                 .init(conditions: .init(type: .melee), damage: [md]),
                 .init(conditions: .init(type: .ranged), damage: [rd])
+            ]
+        }
+    }
+
+    /// - 14 (4d6) piercing damage, or 7 (2d6) piercing damage if the swarm has half of its hit points or fewer
+    /// - 6 (1d8 + 2) piercing damage, or 11 (2d8 + 2) piercing damage while enlarged
+    static func conditionalAlternativeDamageEffectParser() -> Parser<[Action.AttackEffect]> {
+        zip(
+            damageParser(),
+            string(",").trimming(whitespace()).optional(),
+            string("or").trimming(whitespace()),
+            damageParser(),
+            alternativeDamageConditionParser()
+        ).map { defaultDamage, _, _, conditionedDamage, condition in
+            [
+                .init(damage: [defaultDamage]),
+                .init(conditions: .init(other: condition), damage: [conditionedDamage])
+            ]
+        }
+    }
+
+    static func alternativeDamageConditionParser() -> Parser<String> {
+        either(
+            string("with shillelagh or if wielded with two hands"),
+            string("if the swarm has half of its hit points or fewer"),
+            string("while enlarged"),
+            string("in small or medium form"),
+            string("with shillelagh"),
+            string("if wielded with two hands")
+        ).trimming(whitespace())
+    }
+
+    /// - Instead of dealing damage, the vampire can grapple the target (escape DC 18)
+    static func replacementDamageEffectParser() -> Parser<[Action.AttackEffect]> {
+        zip(
+            string("instead of dealing damage").trimming(whitespace()),
+            string(",").trimming(whitespace()).optional(),
+            skip(until: string("grapple the target").trimming(whitespace())),
+            zip(
+                whitespace().optional(),
+                char("("),
+                skip(until: char(")"))
+            ).map { _, _, inner in inner.0 }.optional()
+        ).map { _, _, _, comment in
+            [
+                .init(
+                    condition: .init(condition: .grappled, comment: comment),
+                    replacesDamage: true
+                )
             ]
         }
     }
@@ -164,10 +265,58 @@ public struct CreatureActionParser {
                 }
             },
             zip(
-                string("the target").trimming(whitespace()),
-                mustSucceedSavingThrowEffectParser().map { [$0] }
-            ).map { $0.1 }
+                effectSubjectParser(),
+                mustSucceedSavingThrowEffectsParser()
+            ).map { subject, effects in
+                effects.map { effect in
+                    guard subject == "the target" else {
+                        return apply(effect) { $0.conditions.other = subject }
+                    }
+                    return effect
+                }
+            }
         )
+    }
+
+    static func mustSucceedSavingThrowEffectsParser() -> Parser<[Action.AttackEffect]> {
+        zip(
+            mustSucceedSavingThrowEffectParser(),
+            failureMarginSavingThrowRiderParser().optional()
+        ).map { primary, failureRider in
+            var effects = [primary]
+
+            if let failureRider, let primarySave = primary.conditions.savingThrow {
+                effects.append(
+                    apply(failureRider.effect) {
+                        $0.conditions.savingThrow = .init(
+                            ability: primarySave.ability,
+                            dc: primarySave.dc,
+                            saveEffect: .none,
+                            failureMargin: failureRider.failureMargin
+                        )
+                    }
+                )
+            }
+
+            return effects
+        }
+    }
+
+    static func failureMarginSavingThrowRiderParser() -> Parser<(failureMargin: Int, effect: Action.AttackEffect)> {
+        zip(
+            string(".").optional().trimming(whitespace()),
+            string("if the saving throw fails by").trimming(whitespace()),
+            int(),
+            string("or more").trimming(whitespace()),
+            string(",").optional().trimming(whitespace()),
+            effectSubjectParser(),
+            thenEffectParser()
+        ).map { _, _, margin, _, _, _, effect in
+            (
+                failureMargin: margin,
+                effect: effect
+            )
+        }
     }
 
     static func versatileWeaponGripConditionedDamageEffectParser() -> Parser<[Action.AttackEffect]> {
@@ -195,9 +344,13 @@ public struct CreatureActionParser {
             string("if the target is").trimming(whitespace()),
             skip(until: string(",").trimming(whitespace())),
             zip(
-                string("it").trimming(whitespace()),
                 either(
-                    mustSucceedSavingThrowEffectParser(),
+                    string("it"),
+                    string("the target"),
+                    string("the creature")
+                ).trimming(whitespace()),
+                either(
+                    mustSucceedSavingThrowEffectsParser().flatMap { $0.first },
                     thenEffectParser()
                 )
             ).map { $0.1 }
@@ -212,19 +365,30 @@ public struct CreatureActionParser {
     /// - 7 (1d10 + 2) piercing damage
     /// - 7 (1d10 + 2) piercing damage plus 3 (1d6) poison damage
     static func damageEffectParser() -> Parser<[Action.AttackEffect]> {
-        many(
-            element: damageParser(),
-            separator: oneOrMore(
-                either(
-                    string(","),
-                    string("and"),
-                    string("plus")
-                ).trimming(whitespace())
+        zip(
+            many(
+                element: damageParser(),
+                separator: oneOrMore(
+                    either(
+                        string(","),
+                        string("and"),
+                        string("plus")
+                    ).trimming(whitespace())
+                ),
+                terminator: .nothing
             ),
-            terminator: .nothing
-        ).flatMap { dmgs in
+            zip(
+                whitespace().optional(),
+                char("("),
+                skip(until: char(")"))
+            ).map { _, _, inner in "(\(inner.0))" }.optional()
+        ).flatMap { dmgs, trailingComment in
             guard dmgs.count > 0 else { return nil }
-            return [.init(damage: dmgs)]
+            var effects = [Action.AttackEffect(damage: dmgs)]
+            if let trailingComment {
+                effects.append(.init(other: trailingComment))
+            }
+            return effects
         }
     }
 
@@ -232,11 +396,23 @@ public struct CreatureActionParser {
     /// - the target is grappled
     static func otherEffectParser() -> Parser<[Action.AttackEffect]> {
         zip(
-            string("the target").trimming(whitespace()),
+            effectSubjectParser(),
             thenEffectParser()
-        ).map { _, effect in
-            [effect]
+        ).map { subject, effect in
+            var modified = effect
+            if subject != "the target" {
+                modified.conditions.other = subject
+            }
+            return [modified]
         }
+    }
+
+    static func effectSubjectParser() -> Parser<String> {
+        either(
+            string("the target"),
+            string("the creature"),
+            string("a swallowed creature")
+        ).trimming(whitespace())
     }
 
     static func mustSucceedSavingThrowEffectParser() -> Parser<Action.AttackEffect> {
@@ -308,6 +484,18 @@ public struct CreatureActionParser {
         )
     }
 
+    static func fallbackRemainderEffectParser() -> Parser<[Action.AttackEffect]> {
+        remainder().flatMap { raw in
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            let meaningful = trimmed.trimmingCharacters(in: CharacterSet(charactersIn: ".,;:"))
+            guard meaningful.nonEmptyString != nil else {
+                return nil
+            }
+
+            return [.init(other: meaningful)]
+        }
+    }
+
     /// Parses:
     /// - dc 12 constitution saving throw
     static func savingThrowParser() -> Parser<(Int, Ability)> {
@@ -334,13 +522,20 @@ public struct CreatureActionParser {
             ).map { _, _, expr, _ in expr }.optional(),
             whitespace(),
             word().flatMap { DamageType(rawValue: $0) },
+            zip(
+                whitespace(),
+                string("or"),
+                whitespace(),
+                word().flatMap { DamageType(rawValue: $0) }
+            ).map { _, _, _, type in type }.optional(),
             whitespace(),
             string("damage")
-        ).map { stat, expr, _, type, _, _ in
+        ).map { stat, expr, _, type, alternatives, _, _ in
             Action.AttackEffect.Damage(
                 staticDamage: stat,
                 damageExpression: expr,
-                type: type
+                type: type,
+                alternativeTypes: alternatives.map { [$0] } ?? []
             )
         }
     }
