@@ -246,8 +246,6 @@ struct EncounterDetailView: View {
                     RoundedButtonLabel(maxHeight: .infinity) {
                         Label("Run encounter", systemImage: "play")
                     }
-                } primaryAction: {
-                    store.send(.run(nil), animation: .default)
                 }
                 .menuStyle(.borderlessButton)
                 .buttonStyle(.plain)
