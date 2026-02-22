@@ -183,9 +183,17 @@ public enum O5e {
             }
 
             private var decoratedName: String {
-                let suffixes = [limitedToFormSuffix, usageSuffix, legendaryCostSuffix].compactMap { $0 }
-                guard !suffixes.isEmpty else { return name }
-                return "\(name) (\(suffixes.joined(separator: "; ")))"
+                let generatedSuffixes = [limitedToFormSuffix, usageSuffix, legendaryCostSuffix].compactMap { $0 }
+                guard !generatedSuffixes.isEmpty else { return name }
+
+                let existingSuffixes = Self.trailingSuffixes(in: name)
+                let existingNormalized = Set(existingSuffixes.map(Self.normalizeSuffix))
+                let newSuffixes = generatedSuffixes.filter { suffix in
+                    !existingNormalized.contains(Self.normalizeSuffix(suffix))
+                }
+
+                guard !newSuffixes.isEmpty else { return name }
+                return "\(name) (\(newSuffixes.joined(separator: "; ")))"
             }
 
             // v2 sends structured usage metadata instead of appending these details to the name.
@@ -220,6 +228,45 @@ public enum O5e {
 
             private var limitedToFormSuffix: String? {
                 limitedToForm?.trimmingCharacters(in: .whitespacesAndNewlines).nonEmptyString
+            }
+
+            private static func trailingSuffixes(in value: String) -> [String] {
+                let pattern = #"\(([^()]*)\)\s*$"#
+                guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+                    return []
+                }
+
+                var suffixes: [String] = []
+                var remaining = value.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                while true {
+                    let nsRange = NSRange(remaining.startIndex..<remaining.endIndex, in: remaining)
+                    guard let match = regex.firstMatch(in: remaining, options: [], range: nsRange),
+                          match.numberOfRanges > 1,
+                          let fullRange = Range(match.range(at: 0), in: remaining),
+                          let groupRange = Range(match.range(at: 1), in: remaining)
+                    else {
+                        break
+                    }
+
+                    suffixes.append(contentsOf: remaining[groupRange]
+                        .split(separator: ";")
+                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        .filter { !$0.isEmpty })
+
+                    remaining = remaining[..<fullRange.lowerBound]
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+
+                return suffixes
+            }
+
+            private static func normalizeSuffix(_ value: String) -> String {
+                value
+                    .lowercased()
+                    .components(separatedBy: .whitespacesAndNewlines)
+                    .filter { !$0.isEmpty }
+                    .joined(separator: " ")
             }
         }
 

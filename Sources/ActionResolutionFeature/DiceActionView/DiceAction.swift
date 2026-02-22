@@ -166,67 +166,105 @@ extension DiceAction {
     init?(title: String, parsedAction: ParsedCreatureAction.Model) {
         @Dependency(\.modifierFormatter) var modifierFormatter
 
-        guard case .weaponAttack(let attack) = parsedAction else { return nil }
-        self.init(
-            title: title,
-            subtitle: {
-                if attack.ranges.allSatisfy(\.isReach) {
-                    return "Melee Weapon Attack"
-                } else if attack.ranges.allSatisfy(\.isRange) {
-                    return "Ranged Weapon Attack"
-                } else {
-                    return "Melee or Ranged Weapon Attack"
-                }
-            }(),
-            steps: IdentifiedArray(uniqueElements: [
-                Step(
-                    title: "\(modifierFormatter.string(from: attack.hitModifier.modifier)) to hit",
-                    subtitle: nil,
-                    value: .roll(Step.Value.RollValue(roll: .toHit(attack.hitModifier)))
+        switch parsedAction {
+        case .weaponAttack(let attack):
+            self.init(
+                title: title,
+                subtitle: {
+                    if attack.ranges.allSatisfy(\.isReach) {
+                        return "Melee Weapon Attack"
+                    } else if attack.ranges.allSatisfy(\.isRange) {
+                        return "Ranged Weapon Attack"
+                    } else {
+                        return "Melee or Ranged Weapon Attack"
+                    }
+                }(),
+                steps: IdentifiedArray(uniqueElements: [
+                    Step(
+                        title: "\(modifierFormatter.string(from: attack.hitModifier.modifier)) to hit",
+                        subtitle: nil,
+                        value: .roll(Step.Value.RollValue(roll: .toHit(attack.hitModifier)))
+                    )
+                ] + Self.steps(from: attack.effects))
+            )
+        case .savingThrow(let action):
+            let saveText = "DC \(action.savingThrow.dc) \(action.savingThrow.ability.localizedDisplayName) save"
+            let targetText = action.target?.nonEmptyString
+            let outcomeSteps = action.effects.flatMap { outcome in
+                Self.steps(
+                    from: outcome.effects,
+                    extraCondition: outcome.outcome.displayName,
+                    includeSavingThrowCondition: false
                 )
-            ] + attack.effects.flatMap { effect -> [Step] in
-                var conditionComponents: [String] = []
+            }
 
-                if effect.conditions.type == .melee {
-                    conditionComponents.append("melee")
-                } else if effect.conditions.type == .ranged {
-                    conditionComponents.append("ranged")
+            self.init(
+                title: title,
+                subtitle: "Saving Throw Action",
+                steps: IdentifiedArray(
+                    uniqueElements: [
+                        Step(title: saveText, subtitle: targetText)
+                    ] + outcomeSteps
+                )
+            )
+        }
+    }
+
+    private static func steps(
+        from effects: [ParsedCreatureAction.Model.AttackEffect],
+        extraCondition: String? = nil,
+        includeSavingThrowCondition: Bool = true
+    ) -> [Step] {
+        effects.flatMap { effect -> [Step] in
+            var conditionComponents: [String] = []
+
+            if let extraCondition {
+                conditionComponents.append(extraCondition)
+            }
+
+            if effect.conditions.type == .melee {
+                conditionComponents.append("melee")
+            } else if effect.conditions.type == .ranged {
+                conditionComponents.append("ranged")
+            }
+
+            if includeSavingThrowCondition, let save = effect.conditions.savingThrow {
+                let saveDescription = "DC \(save.dc) \(save.ability.localizedDisplayName)"
+                if effect.conditions.savingThrow?.saveEffect == .some(.none) {
+                    conditionComponents.append("on a failed save (\(saveDescription))")
+                } else if effect.conditions.savingThrow?.saveEffect == .half {
+                    conditionComponents.append("on a failed save (\(saveDescription)), or halved otherwise")
+                }
+            }
+
+            if effect.conditions.versatileWeaponGrip == .oneHanded {
+                conditionComponents.append("one-handed")
+            } else if effect.conditions.versatileWeaponGrip == .twoHanded {
+                conditionComponents.append("two-handed")
+            }
+
+            if let other = effect.conditions.other?.nonEmptyString {
+                conditionComponents.append(other)
+            }
+
+            let conds = conditionComponents.nonEmptyArray?.joined(separator: ", ")
+
+            return Array<Step>(builder: {
+                effect.damage.map { Step(damage: $0, subtitle: conds) }
+
+                if let creatureCondition = effect.condition {
+                    let title = "The target is \(creatureCondition.condition.localizedDisplayName)"
+                    let condsAndComment = [
+                        conds, creatureCondition.comment
+                    ].compactMap { $0 }.nonEmptyArray?.joined(separator: ", ")
+                    Step(title: title, subtitle: condsAndComment)
                 }
 
-                if let save = effect.conditions.savingThrow {
-                    let saveDescription = "DC \(save.dc) \(save.ability.localizedDisplayName)"
-                    if effect.conditions.savingThrow?.saveEffect == .some(.none) {
-                        conditionComponents.append("on a failed save (\(saveDescription))")
-                    } else if effect.conditions.savingThrow?.saveEffect == .half {
-                        conditionComponents.append("on a failed save (\(saveDescription)), or halved otherwise")
-                    }
+                if let otherEffect = effect.other {
+                    Step(title: otherEffect, subtitle: conds)
                 }
-
-                if effect.conditions.versatileWeaponGrip == .oneHanded {
-                    conditionComponents.append("one-handed")
-                } else if effect.conditions.versatileWeaponGrip == .twoHanded {
-                    conditionComponents.append("two-handed")
-                }
-
-                let conds = conditionComponents.nonEmptyArray?.joined(separator: ", ")
-
-                return Array<Step>(builder: {
-                    effect.damage.map { Step(damage: $0, subtitle: conds) }
-
-                    if let creatureCondition = effect.condition {
-                        let title = "The target is \(creatureCondition.condition.localizedDisplayName)"
-                        let condsAndComment = [
-                            conds, creatureCondition.comment
-                        ].compactMap { $0 }.nonEmptyArray?.joined(separator: ", ")
-                        Step(title: title, subtitle: condsAndComment)
-                    }
-
-                    if let otherEffect = effect.other {
-                        Step(title: otherEffect, subtitle: conds)
-                    }
-                })
             })
-        )
+        }
     }
 }
 

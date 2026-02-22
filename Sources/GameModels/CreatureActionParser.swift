@@ -18,11 +18,18 @@ public struct CreatureActionParser {
     }
 
     public static func parseRaw(_ string: String) -> (Remainder, Action)? {
-        var remainder = Remainder(string.lowercased())
-        guard let action = weaponAttackParser().parse(&remainder) else {
-            return nil
+        let normalized = string.lowercased()
+
+        var remainder = Remainder(normalized)
+        if let action = weaponAttackParser().parse(&remainder) {
+            return (remainder, Action.weaponAttack(action))
         }
-        return (remainder, Action.weaponAttack(action))
+
+        if let savingThrowAction = parseSavingThrowAction(normalized) {
+            return (Remainder(""), .savingThrow(savingThrowAction))
+        }
+
+        return nil
     }
 
     static func weaponAttackParser() -> Parser<Action.WeaponAttack> {
@@ -30,7 +37,7 @@ public struct CreatureActionParser {
             skip(until: string(":")),
             whitespace(),
             hitModifierParser(),
-            zip(string(","), whitespace().optional()),
+            zip(string(","), whitespace().optional()).optional(),
             many(
                 element: either(
                     zip(
@@ -67,7 +74,11 @@ public struct CreatureActionParser {
                 ),
                 terminator: .nothing
             ),
-            skip(until: zip(string("."), whitespace())), // skipping "one target"
+            zip(
+                string(","),
+                whitespace().optional(),
+                skip(until: zip(string("."), whitespace()))
+            ).optional(), // skipping "one target"
             hitParser().optional()
         ).map {  _, _, hit, _, ranges, _, effects in
             Action.WeaponAttack(
@@ -82,14 +93,16 @@ public struct CreatureActionParser {
     static func hitModifierParser() -> Parser<(Modifier, [Action.WeaponAttack.ConditionalHitModifier])> {
         zip(
             signedModifierParser(),
-            whitespace(),
-            string("to hit"),
+            zip(
+                whitespace(),
+                string("to hit")
+            ).optional(),
             zip(
                 whitespace().optional(),
                 char("("),
                 skip(until: char(")"))
             ).map { _, _, inside in inside.0 }.optional()
-        ).map { modifier, _, _, conditional in
+        ).map { modifier, _, conditional in
             (
                 modifier,
                 conditional.map(Self.parseConditionalHitModifiers(from:)) ?? []
@@ -460,6 +473,24 @@ public struct CreatureActionParser {
                 Action.AttackEffect(damage: [dmg])
             },
             zip(
+                string("has").trimming(whitespace()),
+                string("the").trimming(whitespace()).optional(),
+                word().flatMap {
+                    CreatureCondition(rawValue: $0)
+                }.trimming(whitespace()),
+                string("condition").trimming(whitespace()),
+                skip(until: string(".")).map { $0.0 }.optional()
+            ).map { _, _, c, _, comment in
+                Action.AttackEffect(
+                    condition: .init(
+                        condition: c,
+                        comment: comment?
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                            .nonEmptyString
+                    )
+                )
+            },
+            zip(
                 either(
                     string("is"),
                     string("becomes")
@@ -538,5 +569,217 @@ public struct CreatureActionParser {
                 alternativeTypes: alternatives.map { [$0] } ?? []
             )
         }
+    }
+
+    static func parseSavingThrowAction(_ string: String) -> Action.SavingThrowAction? {
+        let headerPattern = #"^(strength|dexterity|constitution|intelligence|wisdom|charisma)\s+saving throw:\s*dc\s+(\d+),\s*(.+?)\.\s*(.+)$"#
+
+        guard let regex = try? NSRegularExpression(pattern: headerPattern, options: [.dotMatchesLineSeparators]),
+              let match = regex.firstMatch(
+                in: string,
+                options: [],
+                range: NSRange(location: 0, length: string.utf16.count)
+              ),
+              let abilityRange = Range(match.range(at: 1), in: string),
+              let dcRange = Range(match.range(at: 2), in: string),
+              let targetRange = Range(match.range(at: 3), in: string),
+              let bodyRange = Range(match.range(at: 4), in: string),
+              let ability = Ability(rawValue: String(string[abilityRange])),
+              let dc = Int(string[dcRange])
+        else {
+            return nil
+        }
+
+        let target = String(string[targetRange]).trimmingCharacters(in: .whitespacesAndNewlines).nonEmptyString
+        let body = String(string[bodyRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let outcomeEffects = parseSavingThrowOutcomeEffects(body, dc: dc, ability: ability)
+
+        guard !outcomeEffects.isEmpty else { return nil }
+
+        return .init(
+            savingThrow: .init(
+                ability: ability,
+                dc: dc,
+                saveEffect: .none
+            ),
+            target: target,
+            effects: outcomeEffects
+        )
+    }
+
+    static func parseSavingThrowOutcomeEffects(
+        _ body: String,
+        dc: Int,
+        ability: Ability
+    ) -> [Action.SavingThrowAction.OutcomeEffect] {
+        let labelPattern = #"(?i)\b(failure or success|first failure|second failure|failure|success)\b\s*:?\s*"#
+
+        guard let regex = try? NSRegularExpression(pattern: labelPattern, options: []),
+              let nsRange = Range(NSRange(location: 0, length: body.utf16.count), in: body)
+        else {
+            return []
+        }
+
+        let matches = regex.matches(
+            in: body,
+            options: [],
+            range: NSRange(location: 0, length: body.utf16.count)
+        )
+
+        guard !matches.isEmpty else { return [] }
+
+        var results: [Action.SavingThrowAction.OutcomeEffect] = []
+
+        for (index, match) in matches.enumerated() {
+            guard let labelRange = Range(match.range(at: 1), in: body),
+                  let fullRange = Range(match.range(at: 0), in: body),
+                  let outcome = parseSavingThrowOutcomeLabel(String(body[labelRange]))
+            else {
+                continue
+            }
+
+            let segmentStart = fullRange.upperBound
+            let segmentEnd: String.Index
+            if index + 1 < matches.count {
+                guard let nextFullRange = Range(matches[index + 1].range(at: 0), in: body) else {
+                    continue
+                }
+                segmentEnd = nextFullRange.lowerBound
+            } else {
+                segmentEnd = nsRange.upperBound
+            }
+
+            let segment = String(body[segmentStart..<segmentEnd])
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let parsedEffects = parseSavingThrowEffects(segment, dc: dc, ability: ability)
+
+            guard !parsedEffects.isEmpty else { continue }
+
+            results.append(.init(outcome: outcome, effects: parsedEffects))
+        }
+
+        return results
+    }
+
+    static func parseSavingThrowOutcomeLabel(
+        _ label: String
+    ) -> Action.SavingThrowAction.OutcomeEffect.Outcome? {
+        switch label.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "failure":
+            return .failure
+        case "success":
+            return .success
+        case "failure or success":
+            return .failureOrSuccess
+        case "first failure":
+            return .firstFailure
+        case "second failure":
+            return .secondFailure
+        default:
+            return nil
+        }
+    }
+
+    static func parseSavingThrowEffects(
+        _ segment: String,
+        dc: Int,
+        ability: Ability
+    ) -> [Action.AttackEffect] {
+        guard segment.nonEmptyString != nil else { return [] }
+
+        let normalizedSegment = normalizeConditionTypos(in: segment)
+
+        var remainder = Remainder(normalizedSegment)
+        if let parsed = effectsParser().parse(&remainder), !parsed.isEmpty {
+            let trailing = remainder.string()
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .trimmingCharacters(in: CharacterSet(charactersIn: ".,;:"))
+
+            var results = parsed
+            if let trailing = trailing.nonEmptyString {
+                results.append(.init(other: trailing))
+            }
+
+            results = mergeSavingThrowNarrativeRiders(results)
+
+            return results.map {
+                apply($0) {
+                    $0.conditions.savingThrow = .init(
+                        ability: ability,
+                        dc: dc,
+                        saveEffect: .none
+                    )
+                }
+            }
+        }
+
+        guard let fallback = segment
+            .trimmingCharacters(in: CharacterSet(charactersIn: " \n\t\r.,;:"))
+            .nonEmptyString
+        else {
+            return []
+        }
+
+        return [
+            .init(
+                conditions: .init(
+                    savingThrow: .init(
+                        ability: ability,
+                        dc: dc,
+                        saveEffect: .none
+                    )
+                ),
+                other: fallback
+            )
+        ]
+    }
+
+    private static func normalizeConditionTypos(in value: String) -> String {
+        value
+            .replacingOccurrences(of: #"\bunconscious\b"#, with: "unconcious", options: .regularExpression)
+            .replacingOccurrences(of: #"\bpoisoned\b"#, with: "poisioned", options: .regularExpression)
+    }
+
+    private static func mergeSavingThrowNarrativeRiders(
+        _ effects: [Action.AttackEffect]
+    ) -> [Action.AttackEffect] {
+        var merged: [Action.AttackEffect] = []
+
+        for effect in effects {
+            let isOtherOnly =
+                effect.damage.isEmpty
+                && effect.condition == nil
+                && effect.other?.nonEmptyString != nil
+                && effect.conditions.type == nil
+                && effect.conditions.savingThrow == nil
+                && effect.conditions.versatileWeaponGrip == nil
+                && effect.conditions.other == nil
+                && !effect.replacesDamage
+
+            if isOtherOnly,
+               let rider = effect.other?.nonEmptyString,
+               rider.lowercased().hasPrefix("this effect ends"),
+               let last = merged.last,
+               let lastCondition = last.condition
+            {
+                let combinedComment = [lastCondition.comment?.nonEmptyString, rider]
+                    .compactMap { $0 }
+                    .joined(separator: ". ")
+                    .nonEmptyString
+
+                merged[merged.count - 1] = .init(
+                    conditions: last.conditions,
+                    damage: last.damage,
+                    condition: .init(condition: lastCondition.condition, comment: combinedComment),
+                    replacesDamage: last.replacesDamage,
+                    other: last.other
+                )
+                continue
+            }
+
+            merged.append(effect)
+        }
+
+        return merged
     }
 }

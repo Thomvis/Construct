@@ -15,7 +15,7 @@ public typealias ParseableCreatureAction = Parseable<CreatureAction, ParsedCreat
 
 public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
 
-    public static let version: String = "3"
+    public static let version: String = "5"
 
     /**
      Parsed from `name`. Range is scoped to `name`.
@@ -54,6 +54,7 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
 
     public enum Model: Hashable, Codable {
         case weaponAttack(WeaponAttack)
+        case savingThrow(SavingThrowAction)
 
         public struct WeaponAttack: Hashable, Codable {
             public let hitModifier: Modifier
@@ -96,6 +97,50 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
 
                 public var isRange: Bool {
                     !isReach
+                }
+            }
+        }
+
+        public struct SavingThrowAction: Hashable, Codable {
+            public let savingThrow: AttackEffect.Conditions.SavingThrow
+            public let target: String?
+            public let effects: [OutcomeEffect]
+
+            public init(
+                savingThrow: AttackEffect.Conditions.SavingThrow,
+                target: String?,
+                effects: [OutcomeEffect]
+            ) {
+                self.savingThrow = savingThrow
+                self.target = target
+                self.effects = effects
+            }
+
+            public struct OutcomeEffect: Hashable, Codable {
+                public let outcome: Outcome
+                public let effects: [AttackEffect]
+
+                public init(outcome: Outcome, effects: [AttackEffect]) {
+                    self.outcome = outcome
+                    self.effects = effects
+                }
+
+                public enum Outcome: String, Hashable, Codable {
+                    case failure
+                    case success
+                    case failureOrSuccess
+                    case firstFailure
+                    case secondFailure
+
+                    public var displayName: String {
+                        switch self {
+                        case .failure: return "on a failed save"
+                        case .success: return "on a successful save"
+                        case .failureOrSuccess: return "on failure or success"
+                        case .firstFailure: return "on the first failed save"
+                        case .secondFailure: return "on the second failed save"
+                        }
+                    }
                 }
             }
         }
@@ -203,15 +248,42 @@ public struct ParsedCreatureAction: DomainModel, Codable, Hashable {
 }
 
 struct CreatureActionDomainParser: DomainParser {
-    static let version: String = "3"
+    static let version: String = "5"
 
     static func parse(input: CreatureAction) -> ParsedCreatureAction? {
+        let spellcastingAnnotations = spellcastingDescriptionAnnotations(in: input.description)
+        let diceAnnotations = DiceExpressionParser.matches(in: input.description).map {
+            $0.map { TextAnnotation.diceExpression($0) }
+        }
+
+        let descriptionAnnotations = (diceAnnotations + spellcastingAnnotations).nonEmptyArray
+
         return ParsedCreatureAction(
             limitedUse: CreatureFeatureDomainParser.limitedUseInNameParser().run(input.name.lowercased()),
             action: CreatureActionParser.parse(input.description),
-            otherDescriptionAnnotations: DiceExpressionParser.matches(in: input.description).map {
-                $0.map { TextAnnotation.diceExpression($0) }
-            }
+            otherDescriptionAnnotations: descriptionAnnotations
         )
+    }
+
+    static func spellcastingDescriptionAnnotations(in description: String) -> [Located<TextAnnotation>] {
+        let normalized = description.lowercased()
+        guard normalized.contains("spellcasting ability") else { return [] }
+        guard let spellcasting = CreatureFeatureDomainParser.spellcastingParser().run(normalized) else { return [] }
+
+        var result: [Located<TextAnnotation>] = []
+
+        if let spellsByLevel = spellcasting.spellsByLevel {
+            for (_, spells) in spellsByLevel {
+                result.append(contentsOf: spells.map { $0.map { .reference(.compendiumItem($0)) } })
+            }
+        }
+
+        if let limitedUseSpells = spellcasting.limitedUseSpells {
+            for group in limitedUseSpells {
+                result.append(contentsOf: group.spells.map { $0.map { .reference(.compendiumItem($0)) } })
+            }
+        }
+
+        return result
     }
 }

@@ -85,4 +85,30 @@ class ParseableCreatureFeatureTest: XCTestCase {
 
         expectNoDifference(sut.result?.value, expected)
     }
+
+    func testInnateSpellcastingParses2024DayEachSyntax() {
+        let feature = CreatureFeature(
+            id: UUID(),
+            name: "Innate Spellcasting",
+            description: "The dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC 17, +9 to hit with spell attacks): - At Will: Detect Magic, Fear, Acid Arrow - 1e/Day Each: Speak with Dead, Vitriolic Sphere"
+        )
+
+        var sut = ParseableCreatureFeature(input: feature)
+        sut.parseIfNeeded()
+
+        let limitedUseSpells = sut.result?.value?.spellcasting?.limitedUseSpells
+        expectNoDifference(
+            limitedUseSpells?.map {
+                let amount = $0.limitedUse.map { String($0.amount) } ?? "at will"
+                return "\(amount): \($0.spells.map(\.value.text).joined(separator: ", "))"
+            },
+            [
+                "at will: detect magic",
+                "at will: fear",
+                "at will: acid arrow",
+                "1: speak with dead",
+                "1: vitriolic sphere"
+            ]
+        )
+    }
 }

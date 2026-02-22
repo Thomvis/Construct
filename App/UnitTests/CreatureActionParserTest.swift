@@ -25,6 +25,22 @@ class CreatureActionParserTest: XCTestCase {
         return normalized.hasPrefix("melee weapon attack:")
             || normalized.hasPrefix("ranged weapon attack:")
             || normalized.hasPrefix("melee or ranged weapon attack:")
+            || normalized.hasPrefix("melee attack roll:")
+            || normalized.hasPrefix("ranged attack roll:")
+            || normalized.hasPrefix("melee or ranged attack roll:")
+    }
+
+    private static func isSavingThrowActionDescription(_ description: String) -> Bool {
+        let normalized = description
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        return normalized.hasPrefix("strength saving throw:")
+            || normalized.hasPrefix("dexterity saving throw:")
+            || normalized.hasPrefix("constitution saving throw:")
+            || normalized.hasPrefix("intelligence saving throw:")
+            || normalized.hasPrefix("wisdom saving throw:")
+            || normalized.hasPrefix("charisma saving throw:")
     }
 
     func testMeleeAttack() {
@@ -53,6 +69,151 @@ class CreatureActionParserTest: XCTestCase {
                         type: .bludgeoning
                     )
                 ])
+            ]
+        )))
+    }
+
+    func testMeleeAttackRoll2024() {
+        let action = CreatureActionParser.parse("Melee Attack Roll: +9, reach 15 ft. 12 (2d6 + 5) bludgeoning damage.")
+
+        expectNoDifference(action, .weaponAttack(.init(
+            hitModifier: 9,
+            ranges: [.reach(15)],
+            effects: [
+                .init(damage: [
+                    .init(
+                        staticDamage: 12,
+                        damageExpression: 2.d(6)+5,
+                        type: .bludgeoning
+                    )
+                ])
+            ]
+        )))
+    }
+
+    func testMeleeAttackRoll2024WithHasConditionWording() {
+        let action = CreatureActionParser.parse("Melee Attack Roll: +9, reach 15 ft. 12 (2d6 + 5) bludgeoning damage. If the target is a Large or smaller creature, it has the Grappled condition (escape DC 14) from one of four tentacles.")
+
+        expectNoDifference(action, .weaponAttack(.init(
+            hitModifier: 9,
+            ranges: [.reach(15)],
+            effects: [
+                .init(damage: [
+                    .init(
+                        staticDamage: 12,
+                        damageExpression: 2.d(6)+5,
+                        type: .bludgeoning
+                    )
+                ]),
+                .init(
+                    conditions: .init(other: "the target is a large or smaller creature"),
+                    condition: .init(
+                        condition: .grappled,
+                        comment: "(escape dc 14) from one of four tentacles"
+                    )
+                )
+            ]
+        )))
+    }
+
+    func testSavingThrowAction2024() {
+        let action = CreatureActionParser.parse("Dexterity Saving Throw: DC 18, each creature in a 60-foot-long, 5-foot-wide line. Failure: 54 (12d8) acid damage. Success: Half damage.")
+
+        expectNoDifference(action, .savingThrow(.init(
+            savingThrow: .init(
+                ability: .dexterity,
+                dc: 18,
+                saveEffect: .none
+            ),
+            target: "each creature in a 60-foot-long, 5-foot-wide line",
+            effects: [
+                .init(
+                    outcome: .failure,
+                    effects: [
+                        .init(
+                            conditions: .init(
+                                savingThrow: .init(
+                                    ability: .dexterity,
+                                    dc: 18,
+                                    saveEffect: .none
+                                )
+                            ),
+                            damage: [
+                                .init(
+                                    staticDamage: 54,
+                                    damageExpression: 12.d(8),
+                                    type: .acid
+                                )
+                            ]
+                        )
+                    ]
+                ),
+                .init(
+                    outcome: .success,
+                    effects: [
+                        .init(
+                            conditions: .init(
+                                savingThrow: .init(
+                                    ability: .dexterity,
+                                    dc: 18,
+                                    saveEffect: .none
+                                )
+                            ),
+                            other: "half damage"
+                        )
+                    ]
+                )
+            ]
+        )))
+    }
+
+    func testSavingThrowActionWithSecondFailure() {
+        let action = CreatureActionParser.parse("Constitution Saving Throw: DC 18, each creature in a 60-foot Cone. Failure: The target has the Incapacitated condition until the end of its next turn, at which point it repeats the save. Second Failure The target has the Unconscious condition for 10 minutes. This effect ends for the target if it takes damage or a creature within 5 feet of it takes an action to wake it.")
+
+        expectNoDifference(action, .savingThrow(.init(
+            savingThrow: .init(
+                ability: .constitution,
+                dc: 18,
+                saveEffect: .none
+            ),
+            target: "each creature in a 60-foot cone",
+            effects: [
+                .init(
+                    outcome: .failure,
+                    effects: [
+                        .init(
+                            conditions: .init(
+                                savingThrow: .init(
+                                    ability: .constitution,
+                                    dc: 18,
+                                    saveEffect: .none
+                                )
+                            ),
+                            condition: .init(
+                                condition: .incapacitated,
+                                comment: "until the end of its next turn, at which point it repeats the save"
+                            )
+                        )
+                    ]
+                ),
+                .init(
+                    outcome: .secondFailure,
+                    effects: [
+                        .init(
+                            conditions: .init(
+                                savingThrow: .init(
+                                    ability: .constitution,
+                                    dc: 18,
+                                    saveEffect: .none
+                                )
+                            ),
+                            condition: .init(
+                                condition: .unconcious,
+                                comment: "for 10 minutes. this effect ends for the target if it takes damage or a creature within 5 feet of it takes an action to wake it"
+                            )
+                        )
+                    ]
+                )
             ]
         )))
     }
@@ -524,6 +685,58 @@ class CreatureActionParserTest: XCTestCase {
             }
 
         assertSnapshot(of: actions, as: .dump, record: false)
+    }
+
+    @MainActor
+    func testAll2024AttackRollActionsAreParsed() async throws {
+        let sut = Open5eDataSourceReader(
+            dataSource: FileDataSource(path: defaultMonsters2024Path).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
+            generateUUID: UUIDGenerator.fake().callAsFunction
+        )
+
+        let items = try await Array(sut.items(realmId: CompendiumRealm.core2024.id).compactMap { $0.item })
+
+        let unparsableDescriptions: [String] = items
+            .compactMap { $0 as? Monster }
+            .flatMap { (creature: Monster) in
+                creature.stats.actions
+                    .map { (creature.title, $0) }
+            }
+            .filter { _, action in
+                Self.isWeaponAttackDescription(action.description)
+            }
+            .compactMap { title, action in
+                guard CreatureActionParser.parse(action.description) == nil else { return nil }
+                return "\(title): \(action.name) => \(action.description)"
+            }
+
+        expectNoDifference(unparsableDescriptions, [])
+    }
+
+    @MainActor
+    func testAll2024SavingThrowActionsAreParsed() async throws {
+        let sut = Open5eDataSourceReader(
+            dataSource: FileDataSource(path: defaultMonsters2024Path).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
+            generateUUID: UUIDGenerator.fake().callAsFunction
+        )
+
+        let items = try await Array(sut.items(realmId: CompendiumRealm.core2024.id).compactMap { $0.item })
+
+        let unparsableDescriptions: [String] = items
+            .compactMap { $0 as? Monster }
+            .flatMap { (creature: Monster) in
+                creature.stats.actions
+                    .map { (creature.title, $0) }
+            }
+            .filter { _, action in
+                Self.isSavingThrowActionDescription(action.description)
+            }
+            .compactMap { title, action in
+                guard CreatureActionParser.parse(action.description) == nil else { return nil }
+                return "\(title): \(action.name) => \(action.description)"
+            }
+
+        expectNoDifference(unparsableDescriptions, [])
     }
 
     @MainActor

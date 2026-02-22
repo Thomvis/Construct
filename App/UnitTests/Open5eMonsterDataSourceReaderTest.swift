@@ -180,6 +180,70 @@ class Open5eMonsterDataSourceReaderTest: XCTestCase {
         XCTAssertFalse(spells.isEmpty)
     }
 
+    @MainActor
+    func testV2ActionNameSuffixesAreNotDuplicatedWhenAlreadyPresent() async throws {
+        let monster = """
+        [
+          {
+            "name": "Suffix Tester",
+            "size": { "name": "Large" },
+            "type": { "name": "aberration" },
+            "alignment": "neutral",
+            "armor_class": 10,
+            "hit_points": 1,
+            "ability_scores": {
+              "strength": 10,
+              "dexterity": 10,
+              "constitution": 10,
+              "intelligence": 10,
+              "wisdom": 10,
+              "charisma": 10
+            },
+            "actions": [
+              {
+                "name": "Dominate Mind (2/Day)",
+                "desc": "desc",
+                "action_type": "ACTION",
+                "usage_limits": { "type": "PER_DAY", "param": 2 }
+              },
+              {
+                "name": "Nightmare Haunting (1/Day; Requires Soul Bag)",
+                "desc": "desc",
+                "action_type": "ACTION",
+                "usage_limits": { "type": "PER_DAY", "param": 1 },
+                "limited_to_form": "Requires Soul Bag"
+              },
+              {
+                "name": "Wing Attack (Costs 2 Actions)",
+                "desc": "desc",
+                "action_type": "LEGENDARY_ACTION",
+                "legendary_action_cost": 2
+              }
+            ]
+          }
+        ]
+        """
+
+        let reader = Open5eDataSourceReader(
+            dataSource: StringDataSource(string: monster)
+                .decode(type: [O5e.Monster].self)
+                .toOpen5eAPIResults(),
+            generateUUID: UUIDGenerator.fake().callAsFunction
+        )
+
+        let parsedMonster = try await Array(reader.items(realmId: CompendiumRealm.core.id).compactMap { $0.item as? Monster }).first
+        let actionNames = parsedMonster?.stats.actions.map(\.name) ?? []
+        let legendaryActionNames = parsedMonster?.stats.legendary?.actions.map(\.input.name) ?? []
+
+        XCTAssertEqual(actionNames, [
+            "Dominate Mind (2/Day)",
+            "Nightmare Haunting (1/Day; Requires Soul Bag)"
+        ])
+        XCTAssertEqual(legendaryActionNames, [
+            "Wing Attack (Costs 2 Actions)"
+        ])
+    }
+
 }
 
 private struct DefaultContentSnapshot {

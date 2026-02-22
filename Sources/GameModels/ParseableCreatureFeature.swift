@@ -15,7 +15,7 @@ public typealias ParseableCreatureFeature = Parseable<CreatureFeature, ParsedCre
 
 public struct ParsedCreatureFeature: DomainModel, Codable, Hashable {
 
-    public static let version: String = "1"
+    public static let version: String = "3"
 
     /**
      Parsed from `name`. Range is scoped to `name`.
@@ -137,14 +137,19 @@ public extension AttributeScopes {
 }
 
 struct CreatureFeatureDomainParser: DomainParser {
-    static let version: String = "1"
+    static let version: String = "3"
 
     static func parse(input: CreatureFeature) -> ParsedCreatureFeature? {
+        let normalizedName = input.name.lowercased()
+        let normalizedDescription = input.description.lowercased()
+        let isSpellcastingFeature = normalizedName.contains("spellcasting")
+            || normalizedDescription.contains("spellcasting ability")
+
         return ParsedCreatureFeature(
-            limitedUse: limitedUseInNameParser().run(input.name.lowercased()),
-            spellcasting: input.name.lowercased().contains("spellcasting").compactMapTrue {
-                var spellcasting = spellcastingParser().run(input.description.lowercased())
-                spellcasting?.innate = input.name.lowercased().contains("innate")
+            limitedUse: limitedUseInNameParser().run(normalizedName),
+            spellcasting: isSpellcastingFeature.compactMapTrue {
+                var spellcasting = spellcastingParser().run(normalizedDescription)
+                spellcasting?.innate = normalizedName.contains("innate")
                 return spellcasting
             },
             otherDescriptionAnnotations: DiceExpressionParser.matches(in: input.description).map {
@@ -242,7 +247,10 @@ extension CreatureFeatureDomainParser {
 
         let spellsByLevel = zip(
             either(
-                string("cantrips").map { _ in 0 },
+                either(
+                    string("cantrips"),
+                    string("cantrip")
+                ).map { _ in 0 },
                 zip(
                     int(),
                     word(), // st, nd, rd
@@ -269,8 +277,9 @@ extension CreatureFeatureDomainParser {
                 string("at will").map { _ in nil },
                 zip(
                     int(),
+                    string("e").optional(),
                     string("/day each")
-                ).map { n, _ in .init(amount: n, recharge: .day) }
+                ).map { n, _, _ in .init(amount: n, recharge: .day) }
             ),
             string(": "),
             spellList

@@ -28,4 +28,25 @@ class ParseableCreatureActionTest: XCTestCase {
         expectNoDifference(sut.result?.value?.limitedUse, expectedLimitedUse)
     }
 
+    func testSpellcastingActionAddsSpellReferences() {
+        let action = CreatureAction(
+            id: UUID(),
+            name: "Spellcasting",
+            description: "The dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC 17, +9 to hit with spell attacks): - At Will: Detect Magic, Fear, Acid Arrow - 1e/Day Each: Speak with Dead, Vitriolic Sphere"
+        )
+
+        var sut = ParseableCreatureAction(input: action)
+        _ = sut.parseIfNeeded()
+
+        let spellReferences = sut.result?.value?.descriptionAnnotations.compactMap { located -> String? in
+            guard case .reference(.compendiumItem(let reference)) = located.value else { return nil }
+            return reference.text
+        }
+
+        expectNoDifference(
+            spellReferences,
+            ["detect magic", "fear", "acid arrow", "speak with dead", "vitriolic sphere"]
+        )
+    }
+
 }

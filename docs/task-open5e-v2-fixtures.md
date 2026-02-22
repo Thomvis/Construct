@@ -34,6 +34,15 @@ Align default Open5e fixture data with v2 while preserving stat block quality in
   - 2024 casting-time token normalization via `Open5eMonsterDataSourceReaderTest/testV2SpellCastingTimeNormalizationFor2024Tokens`
   - 2024 fixture readability via `Open5eMonsterDataSourceReaderTest/testDefault2024ContentCanBeRead`
   - legacy `DefaultContentVersions` decoding via `KeyValueStoreEntityTest/testDefaultContentVersionsDecodesLegacyPayload`
+- [x] Improved 2024 parseability for creature features/actions:
+  - `CreatureActionParser` now supports `Melee/Ranged Attack Roll:` style hit modifiers (with or without `to hit`) and does not require legacy `one target. Hit:` phrasing.
+  - added a dedicated `ParsedCreatureAction.Model.savingThrow` representation for `Ability Saving Throw: DC ...` actions, including outcome buckets for `Failure`, `Success`, `Failure or Success`, `First Failure`, and `Second Failure`.
+  - updated `DiceAction` to render structured saving-throw actions (save prompt + outcome-scoped effect steps) without forcing a to-hit roll model.
+  - added condition parsing for `has the <Condition> condition` wording.
+  - `ParseableCreatureAction` now extracts spell reference annotations from spellcasting-style action descriptions (common in 2024 stat blocks).
+  - `ParseableCreatureFeature` spellcasting detection now also keys off description text (`spellcasting ability`) and supports both `cantrip`/`cantrips` plus `1e/day each` syntax.
+  - bumped parseable/domain parser versions to invalidate cached parsed payloads for these parser changes.
+- [x] Fixed duplicated Open5e v2 action name suffixes when names already include usage/cost metadata (e.g. `(2/Day)`, `(Recharge 5-6)`, `(Costs 2 Actions)`), with regression coverage in `Open5eMonsterDataSourceReaderTest/testV2ActionNameSuffixesAreNotDuplicatedWhenAlreadyPresent`.
 - [x] Regenerated snapshots for:
   - `Open5eMonsterDataSourceReaderTest/test`
   - `CreatureActionParserTest/testAllMonsterActions`
@@ -43,6 +52,12 @@ Align default Open5e fixture data with v2 while preserving stat block quality in
   - `Open5eMonsterDataSourceReaderTest/testMultipleMovements`
   - `CreatureActionParserTest/testAllMonsterActions`
 - [x] `Open5eMonsterDataSourceReaderTest/testDefaultContentSnapshot`
+- [x] Verified parser regression suites:
+  - `CreatureActionParserTest`
+  - `CreatureActionParserTest/testAll2024AttackRollActionsAreParsed`
+  - `CreatureActionParserTest/testAll2024SavingThrowActionsAreParsed`
+  - `ParseableCreatureFeatureTest`
+  - `ParseableCreatureActionTest`
 
 ## Notes
 - Open5e v2 creature serializer does not emit `senses` or `legendary_desc` as v1 strings; they are represented as structured fields.
