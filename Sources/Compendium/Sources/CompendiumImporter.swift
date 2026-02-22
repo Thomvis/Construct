@@ -34,7 +34,7 @@ public class CompendiumImporter {
 
         let parseableVisitor = ParseableGameModelsVisitor()
 
-        for try await read in try task.reader.items(realmId: CompendiumRealm.core.id) {
+        for try await read in try task.reader.items(realmId: task.document.realmId) {
             switch read {
             case .item(let item):
                 let entry = apply(CompendiumEntry(

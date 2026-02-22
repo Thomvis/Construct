@@ -664,6 +664,8 @@ public enum O5e {
                 return "1 action"
             case "bonus-action":
                 return "1 bonus action"
+            case "bonus_action":
+                return "1 bonus action"
             case "reaction":
                 guard let reactionCondition else { return "1 reaction" }
                 if reactionCondition.lowercased().hasPrefix("which ") || reactionCondition.lowercased().hasPrefix("when ") {
@@ -675,6 +677,10 @@ public enum O5e {
                 return "1 turn"
             case "round":
                 return "1 round"
+            case "minute":
+                return "1 minute"
+            case "hour":
+                return "1 hour"
             default:
                 let normalizedDurationMap: [String: String] = [
                     "1minute": "1 minute",

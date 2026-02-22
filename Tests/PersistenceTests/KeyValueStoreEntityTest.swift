@@ -75,4 +75,20 @@ class KeyValueStoreEntityTest: XCTestCase {
         XCTAssertEqual(DefaultContentVersions.current.key.rawValue, "Construct::DefaultContentVersions")
     }
 
+    func testDefaultContentVersionsDecodesLegacyPayload() throws {
+        let legacyPayload = """
+        {
+          "monsters": "2026.02.21",
+          "spells": "2026.02.21"
+        }
+        """.data(using: .utf8)!
+
+        let versions = try JSONDecoder().decode(DefaultContentVersions.self, from: legacyPayload)
+
+        XCTAssertEqual(versions.monsters2014, "2026.02.21")
+        XCTAssertEqual(versions.spells2014, "2026.02.21")
+        XCTAssertEqual(versions.monsters2024, "")
+        XCTAssertEqual(versions.spells2024, "")
+    }
+
 }

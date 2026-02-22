@@ -150,8 +150,10 @@ public class Database {
 
             // compendium
             try await self.importDefaultCompendiumContent(
-                monsters: versions?.monsters != DefaultContentVersions.current.monsters,
-                spells: versions?.spells != DefaultContentVersions.current.spells
+                monsters2014: versions?.monsters2014 != DefaultContentVersions.current.monsters2014,
+                spells2014: versions?.spells2014 != DefaultContentVersions.current.spells2014,
+                monsters2024: versions?.monsters2024 != DefaultContentVersions.current.monsters2024,
+                spells2024: versions?.spells2024 != DefaultContentVersions.current.spells2024
             )
             try keyValueStore.put(DefaultContentVersions.current)
         }
@@ -179,7 +181,12 @@ public class Database {
         try queue.close()
     }
 
-    func importDefaultCompendiumContent(monsters: Bool = true, spells: Bool = true) async throws {
+    func importDefaultCompendiumContent(
+        monsters2014: Bool = true,
+        spells2014: Bool = true,
+        monsters2024: Bool = true,
+        spells2024: Bool = true
+    ) async throws {
         let compendium = DatabaseCompendium(databaseAccess: DatabaseQueueAccess(queue: queue), fallback: .empty)
         let metadata = CompendiumMetadata.live(self)
         let importer = CompendiumImporter(
@@ -188,7 +195,12 @@ public class Database {
         )
 
         try await metadata.importDefaultContent()
-        try await importer.importDefaultContent(monsters: monsters, spells: spells)
+        try await importer.importDefaultContent(
+            monsters2014: monsters2014,
+            spells2014: spells2014,
+            monsters2024: monsters2024,
+            spells2024: spells2024
+        )
     }
 
 }

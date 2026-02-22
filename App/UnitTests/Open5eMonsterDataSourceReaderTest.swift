@@ -91,6 +91,95 @@ class Open5eMonsterDataSourceReaderTest: XCTestCase {
         XCTAssertEqual(item.stats.movement![.burrow], 10)
     }
 
+    @MainActor
+    func testV2SpellCastingTimeNormalizationFor2024Tokens() async throws {
+        let spells = """
+        [
+          {
+            "name": "Bonus Action Spell",
+            "desc": "desc",
+            "range_text": "Self",
+            "verbal": true,
+            "somatic": false,
+            "material": false,
+            "ritual": false,
+            "duration": "Instantaneous",
+            "concentration": false,
+            "casting_time": "bonus_action",
+            "level": 1,
+            "school": { "name": "Abjuration" },
+            "classes": [{ "name": "Wizard" }]
+          },
+          {
+            "name": "Minute Spell",
+            "desc": "desc",
+            "range_text": "Self",
+            "verbal": true,
+            "somatic": false,
+            "material": false,
+            "ritual": false,
+            "duration": "Instantaneous",
+            "concentration": false,
+            "casting_time": "minute",
+            "level": 1,
+            "school": { "name": "Abjuration" },
+            "classes": [{ "name": "Wizard" }]
+          },
+          {
+            "name": "Hour Spell",
+            "desc": "desc",
+            "range_text": "Self",
+            "verbal": true,
+            "somatic": false,
+            "material": false,
+            "ritual": false,
+            "duration": "Instantaneous",
+            "concentration": false,
+            "casting_time": "hour",
+            "level": 1,
+            "school": { "name": "Abjuration" },
+            "classes": [{ "name": "Wizard" }]
+          }
+        ]
+        """
+
+        let reader = Open5eDataSourceReader(
+            dataSource: StringDataSource(string: spells)
+                .decode(type: [O5e.Spell].self)
+                .toOpen5eAPIResults(),
+            generateUUID: UUIDGenerator.fake().callAsFunction
+        )
+
+        let items = try await Array(reader.items(realmId: CompendiumRealm.core.id).compactMap { $0.item as? Spell })
+        let castingsByName = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.castingTime) })
+
+        XCTAssertEqual(castingsByName["Bonus Action Spell"], "1 bonus action")
+        XCTAssertEqual(castingsByName["Minute Spell"], "1 minute")
+        XCTAssertEqual(castingsByName["Hour Spell"], "1 hour")
+    }
+
+    @MainActor
+    func testDefault2024ContentCanBeRead() async throws {
+        let monsterReader = Open5eDataSourceReader(
+            dataSource: FileDataSource(path: defaultMonsters2024Path)
+                .decode(type: [O5e.Monster].self)
+                .toOpen5eAPIResults(),
+            generateUUID: UUIDGenerator.fake().callAsFunction
+        )
+        let spellReader = Open5eDataSourceReader(
+            dataSource: FileDataSource(path: defaultSpells2024Path)
+                .decode(type: [O5e.Spell].self)
+                .toOpen5eAPIResults(),
+            generateUUID: UUIDGenerator.fake().callAsFunction
+        )
+
+        let monsters = try await Array(monsterReader.items(realmId: CompendiumRealm.core2024.id).compactMap { $0.item as? Monster })
+        let spells = try await Array(spellReader.items(realmId: CompendiumRealm.core2024.id).compactMap { $0.item as? Spell })
+
+        XCTAssertFalse(monsters.isEmpty)
+        XCTAssertFalse(spells.isEmpty)
+    }
+
 }
 
 private struct DefaultContentSnapshot {

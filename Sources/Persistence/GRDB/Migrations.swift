@@ -402,8 +402,10 @@ extension Database {
             let decoder = JSONDecoder()
             let fixtures: [any KeyValueStoreEntity] = [
                 CompendiumRealm.core,
+                CompendiumRealm.core2024,
                 CompendiumRealm.homebrew,
                 CompendiumSourceDocument.srd5_1,
+                CompendiumSourceDocument.srd5_2,
                 CompendiumSourceDocument.homebrew
             ]
 

@@ -64,8 +64,10 @@ let package = Package(
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms")
             ],
             resources: [
-                .copy("Fixtures/monsters.json"),
-                .copy("Fixtures/spells.json")
+                .copy("Fixtures/monsters-2014.json"),
+                .copy("Fixtures/spells-2014.json"),
+                .copy("Fixtures/monsters-2024.json"),
+                .copy("Fixtures/spells-2024.json")
             ]
         ),
         .testTarget(

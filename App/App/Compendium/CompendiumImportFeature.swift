@@ -1206,12 +1206,14 @@ enum CompendiumMetadataKey: DependencyKey {
     public static var previewValue: CompendiumMetadata {
         let dummyDocuments = [
             CompendiumSourceDocument.srd5_1,
+            CompendiumSourceDocument.srd5_2,
             CompendiumSourceDocument.unspecifiedCore,
             CompendiumSourceDocument.homebrew,
             .init(id: Tagged("tob1"), displayName: "Tome of Beasts 1", realmId: Tagged("kp")),
         ]
         let dummyRealms = [
             CompendiumRealm.core,
+            CompendiumRealm.core2024,
             CompendiumRealm.homebrew,
             .init(id: Tagged("kp"), displayName: "Kobold Press"),
         ]

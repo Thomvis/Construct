@@ -94,8 +94,10 @@ public extension CompendiumMetadata {
     func importDefaultContent() async throws {
         // Documents & Realms
         try await createOrUpdateRealm(CompendiumRealm.core)
+        try await createOrUpdateRealm(CompendiumRealm.core2024)
         try await createOrUpdateRealm(CompendiumRealm.homebrew)
         try await createOrUpdateDocument(CompendiumSourceDocument.srd5_1)
+        try await createOrUpdateDocument(CompendiumSourceDocument.srd5_2)
         try await createOrUpdateDocument(CompendiumSourceDocument.homebrew)
     }
 }

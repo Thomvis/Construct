@@ -102,6 +102,45 @@ class CompendiumImporterTest: XCTestCase {
         let entry = try! keyValueStore.get(item.key)
         XCTAssertEqual((entry?.item as? Monster)?.stats.hitPoints, 1000)
     }
+
+    func testUsesTaskDocumentRealmForReader() async throws {
+        let sut = CompendiumImporter(compendium: compendium, metadata: compendiumMetadata)
+
+        let document = CompendiumSourceDocument(
+            id: .init("custom-homebrew"),
+            displayName: "Custom Homebrew",
+            realmId: CompendiumRealm.homebrew.id
+        )
+        try compendiumMetadata.createDocument(document)
+
+        let task = CompendiumImportTask(
+            sourceId: .defaultMonsters,
+            sourceVersion: nil,
+            reader: RealmAwareDummyCompendiumDataSourceReader { realmId in
+                var stats = StatBlock.default
+                stats.name = "Realm Routed Monster"
+                return Monster(
+                    realm: .init(realmId),
+                    stats: stats,
+                    challengeRating: .half
+                )
+            },
+            document: document,
+            overwriteExisting: true
+        )
+
+        _ = try await sut.run(task)
+
+        let key = CompendiumItemKey(
+            type: .monster,
+            realm: .init(CompendiumRealm.homebrew.id),
+            identifier: "Realm Routed Monster"
+        )
+        let entry = try keyValueStore.get(key)
+
+        XCTAssertNotNil(entry)
+        XCTAssertEqual(entry?.item.key.realm.value, CompendiumRealm.homebrew.id)
+    }
 }
 
 struct DummyCompendiumDataSourceReader: CompendiumDataSourceReader {
@@ -112,6 +151,17 @@ struct DummyCompendiumDataSourceReader: CompendiumDataSourceReader {
 
     func items(realmId: CompendiumRealm.Id) throws -> AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
         items.map {CompendiumDataSourceReaderOutput.item($0) }.async.stream
+    }
+}
+
+struct RealmAwareDummyCompendiumDataSourceReader: CompendiumDataSourceReader {
+    static var name = "RealmAwareDummyCompendiumDataSourceReader"
+
+    let dataSource: any CompendiumDataSource<Data> = DummyCompendiumDataSource()
+    let makeItem: (CompendiumRealm.Id) -> CompendiumItem
+
+    func items(realmId: CompendiumRealm.Id) throws -> AsyncThrowingStream<CompendiumDataSourceReaderOutput, Error> {
+        [CompendiumDataSourceReaderOutput.item(makeItem(realmId))].async.stream
     }
 }
 

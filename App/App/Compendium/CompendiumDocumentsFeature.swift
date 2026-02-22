@@ -764,9 +764,11 @@ struct CompendiumDocumentsPreview: PreviewProvider {
 
                             do {
                                 try database.keyValueStore.put(CompendiumRealm.core)
+                                try database.keyValueStore.put(CompendiumRealm.core2024)
                                 try database.keyValueStore.put(CompendiumRealm.homebrew)
 
                                 try database.keyValueStore.put(CompendiumSourceDocument.srd5_1)
+                                try database.keyValueStore.put(CompendiumSourceDocument.srd5_2)
                                 try database.keyValueStore.put(CompendiumSourceDocument.unspecifiedCore)
                                 try database.keyValueStore.put(CompendiumSourceDocument.homebrew)
                             } catch {

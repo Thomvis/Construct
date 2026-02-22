@@ -7,12 +7,13 @@ DOCUMENT_KEY="${OPEN5E_DOCUMENT_KEY:-srd-2014}"
 LIMIT="${OPEN5E_PAGE_LIMIT:-500}"
 V1_API_BASE="${OPEN5E_V1_API_BASE:-https://api.open5e.com}"
 V1_DOCUMENT_SLUG="${OPEN5E_V1_DOCUMENT_SLUG:-wotc-srd}"
+V1_AUGMENT="${OPEN5E_V1_AUGMENT:-auto}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-MONSTERS_OUTPUT="${REPO_ROOT}/Sources/Compendium/Fixtures/monsters.json"
-SPELLS_OUTPUT="${REPO_ROOT}/Sources/Compendium/Fixtures/spells.json"
+MONSTERS_OUTPUT="${OPEN5E_MONSTERS_OUTPUT:-${REPO_ROOT}/Sources/Compendium/Fixtures/monsters-2014.json}"
+SPELLS_OUTPUT="${OPEN5E_SPELLS_OUTPUT:-${REPO_ROOT}/Sources/Compendium/Fixtures/spells-2014.json}"
 
 require_tool() {
   local tool="$1"
@@ -213,36 +214,59 @@ filter_spells() {
   '
 }
 
+should_augment_v1_usage_limits() {
+  case "${V1_AUGMENT}" in
+  auto)
+    [[ "${DOCUMENT_KEY}" == "srd-2014" ]]
+    ;;
+  true | TRUE | 1 | yes | YES)
+    return 0
+    ;;
+  false | FALSE | 0 | no | NO)
+    return 1
+    ;;
+  *)
+    echo "Invalid OPEN5E_V1_AUGMENT value: ${V1_AUGMENT} (expected auto|true|false)" >&2
+    exit 1
+    ;;
+  esac
+}
+
 main() {
   require_tool curl
   require_tool jq
 
   local monsters_url="${API_BASE}/creatures/?document__key=${DOCUMENT_KEY}&limit=${LIMIT}"
   local spells_url="${API_BASE}/spells/?document__key=${DOCUMENT_KEY}&limit=${LIMIT}"
-  local v1_monsters_url="${V1_API_BASE}/monsters/?document__slug=${V1_DOCUMENT_SLUG}&limit=${LIMIT}"
 
   local raw_monsters
-  local raw_v1_monsters
   local raw_spells
   raw_monsters="$(fetch_all_results "${monsters_url}")"
-  raw_v1_monsters="$(fetch_all_results "${v1_monsters_url}")"
   raw_spells="$(fetch_all_results "${spells_url}")"
 
-  local v2_raw_file
-  local v1_raw_file
-  local merged_raw_file
-  v2_raw_file="$(mktemp)"
-  v1_raw_file="$(mktemp)"
-  merged_raw_file="$(mktemp)"
+  if should_augment_v1_usage_limits; then
+    local v1_monsters_url="${V1_API_BASE}/monsters/?document__slug=${V1_DOCUMENT_SLUG}&limit=${LIMIT}"
+    local raw_v1_monsters
+    local v2_raw_file
+    local v1_raw_file
+    local merged_raw_file
 
-  printf '%s\n' "${raw_monsters}" > "${v2_raw_file}"
-  printf '%s\n' "${raw_v1_monsters}" > "${v1_raw_file}"
+    raw_v1_monsters="$(fetch_all_results "${v1_monsters_url}")"
+    v2_raw_file="$(mktemp)"
+    v1_raw_file="$(mktemp)"
+    merged_raw_file="$(mktemp)"
 
-  enrich_monsters_with_v1_usage_limits "${v2_raw_file}" "${v1_raw_file}" > "${merged_raw_file}"
-  cat "${merged_raw_file}" | filter_monsters > "${MONSTERS_OUTPUT}"
+    printf '%s\n' "${raw_monsters}" > "${v2_raw_file}"
+    printf '%s\n' "${raw_v1_monsters}" > "${v1_raw_file}"
+
+    enrich_monsters_with_v1_usage_limits "${v2_raw_file}" "${v1_raw_file}" > "${merged_raw_file}"
+    cat "${merged_raw_file}" | filter_monsters > "${MONSTERS_OUTPUT}"
+    rm -f "${v2_raw_file}" "${v1_raw_file}" "${merged_raw_file}"
+  else
+    printf '%s\n' "${raw_monsters}" | filter_monsters > "${MONSTERS_OUTPUT}"
+  fi
+
   printf '%s\n' "${raw_spells}" | filter_spells > "${SPELLS_OUTPUT}"
-
-  rm -f "${v2_raw_file}" "${v1_raw_file}" "${merged_raw_file}"
 
   local monster_count
   local spell_count

@@ -30,6 +30,12 @@ public extension CompendiumSourceDocument {
         realmId: CompendiumRealm.core.id
     )
 
+    static let srd5_2 = CompendiumSourceDocument(
+        id: "srd52",
+        displayName: "SRD 5.2",
+        realmId: CompendiumRealm.core2024.id
+    )
+
     static let unspecifiedCore = CompendiumSourceDocument(
         id: "core",
         displayName: "Unspecified",
@@ -43,7 +49,7 @@ public extension CompendiumSourceDocument {
     )
 
     private static var defaultDocuments: [CompendiumSourceDocument] {
-        [.srd5_1, .unspecifiedCore, .homebrew]
+        [.srd5_1, .srd5_2, .unspecifiedCore, .homebrew]
     }
 
     static func isDefaultDocument(id: CompendiumSourceDocument.Id) -> Bool {
