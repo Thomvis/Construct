@@ -1,4 +1,4 @@
-▿ 513 elements
+▿ 517 elements
   ▿ ParseResult
     - actionDescription: "Melee Weapon Attack: +9 to hit, reach 10 ft., one target. Hit: 12 (2d6 + 5) bludgeoning damage. If the target is a creature, it must succeed on a DC 14 Constitution saving throw or become diseased. The disease has no effect for 1 minute and can be removed by any magic that cures disease. After 1 minute, the diseased creature\'s skin becomes translucent and slimy, the creature can\'t regain hit points unless it is underwater, and the disease can be removed only by heal or another disease-curing spell of 6th level or higher. When the creature is outside a body of water, it takes 6 (1d12) acid damage every 10 minutes unless moisture is applied to the skin before 10 minutes have passed."
     - actionName: "Tentacle"
@@ -7862,6 +7862,126 @@
     ▿ remainder: Optional<String>
       - some: "."
   ▿ ParseResult
+    - actionDescription: "Ranged Weapon Attack: +4 to hit, range 30/120 ft., one target. Hit: 5 (1d6 + 2) piercing damage, and the target must succeed on a DC 13 Constitution saving throw or be poisoned for 1 hour. If the saving throw fails by 5 or more, the target is also unconscious while poisoned in this way. The target wakes up if it takes damage or if another creature takes an action to shake it awake.\n"
+    - actionName: "Hand Crossbow"
+    - creatureName: "Elf, Drow"
+    ▿ parsedAction: Optional<Model>
+      ▿ some: Model
+        ▿ weaponAttack: WeaponAttack
+          - conditionalHitModifiers: 0 elements
+          ▿ effects: 3 elements
+            ▿ AttackEffect
+              - condition: Optional<CreatureConditionEffect>.none
+              ▿ conditions: Conditions
+                - other: Optional<String>.none
+                - savingThrow: Optional<SavingThrow>.none
+                - type: Optional<AttackType>.none
+                - versatileWeaponGrip: Optional<Grip>.none
+              ▿ damage: 1 element
+                ▿ Damage
+                  - alternativeTypes: 0 elements
+                  ▿ damageExpression: Optional<DiceExpression>
+                    ▿ some: 1d6 + 2
+                      ▿ compound: (3 elements)
+                        ▿ .0: 1d6
+                          ▿ dice: (2 elements)
+                            - count: 1
+                            ▿ die: Die
+                              - color: Optional<Color>.none
+                              - sides: 6
+                        - .1: Operator.add
+                        ▿ .2: 2
+                          - number: 2
+                  - staticDamage: 5
+                  - type: DamageType.piercing
+              - other: Optional<String>.none
+              - replacesDamage: false
+            ▿ AttackEffect
+              - condition: Optional<CreatureConditionEffect>.none
+              ▿ conditions: Conditions
+                - other: Optional<String>.none
+                ▿ savingThrow: Optional<SavingThrow>
+                  ▿ some: SavingThrow
+                    - ability: Ability.constitution
+                    - dc: 13
+                    - failureMargin: Optional<Int>.none
+                    - saveEffect: SaveEffect.none
+                - type: Optional<AttackType>.none
+                - versatileWeaponGrip: Optional<Grip>.none
+              - damage: 0 elements
+              ▿ other: Optional<String>
+                - some: "be poisoned for 1 hour"
+              - replacesDamage: false
+            ▿ AttackEffect
+              - condition: Optional<CreatureConditionEffect>.none
+              ▿ conditions: Conditions
+                - other: Optional<String>.none
+                ▿ savingThrow: Optional<SavingThrow>
+                  ▿ some: SavingThrow
+                    - ability: Ability.constitution
+                    - dc: 13
+                    ▿ failureMargin: Optional<Int>
+                      - some: 5
+                    - saveEffect: SaveEffect.none
+                - type: Optional<AttackType>.none
+                - versatileWeaponGrip: Optional<Grip>.none
+              - damage: 0 elements
+              ▿ other: Optional<String>
+                - some: "is also unconscious while poisoned in this way"
+              - replacesDamage: false
+          ▿ hitModifier: Modifier
+            - modifier: 4
+          ▿ ranges: 1 element
+            ▿ Range
+              ▿ range: (2 elements)
+                - .0: 30
+                ▿ .1: Optional<Int>
+                  - some: 120
+    ▿ remainder: Optional<String>
+      - some: "the target wakes up if it takes damage or if another creature takes an action to shake it awake.\n"
+  ▿ ParseResult
+    - actionDescription: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) piercing damage.\n"
+    - actionName: "Shortsword"
+    - creatureName: "Elf, Drow"
+    ▿ parsedAction: Optional<Model>
+      ▿ some: Model
+        ▿ weaponAttack: WeaponAttack
+          - conditionalHitModifiers: 0 elements
+          ▿ effects: 1 element
+            ▿ AttackEffect
+              - condition: Optional<CreatureConditionEffect>.none
+              ▿ conditions: Conditions
+                - other: Optional<String>.none
+                - savingThrow: Optional<SavingThrow>.none
+                - type: Optional<AttackType>.none
+                - versatileWeaponGrip: Optional<Grip>.none
+              ▿ damage: 1 element
+                ▿ Damage
+                  - alternativeTypes: 0 elements
+                  ▿ damageExpression: Optional<DiceExpression>
+                    ▿ some: 1d6 + 2
+                      ▿ compound: (3 elements)
+                        ▿ .0: 1d6
+                          ▿ dice: (2 elements)
+                            - count: 1
+                            ▿ die: Die
+                              - color: Optional<Color>.none
+                              - sides: 6
+                        - .1: Operator.add
+                        ▿ .2: 2
+                          - number: 2
+                  - staticDamage: 5
+                  - type: DamageType.piercing
+              - other: Optional<String>.none
+              - replacesDamage: false
+          ▿ hitModifier: Modifier
+            - modifier: 4
+          ▿ ranges: 1 element
+            ▿ Range
+              - reach: 5
+    ▿ remainder: Optional<String>
+      - some: ".\n"
+  ▿ ParseResult
     - actionDescription: "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 6 (1d6 + 3) bludgeoning damage."
     - actionName: "Ram"
     - creatureName: "Elk"
@@ -11514,6 +11634,109 @@
     ▿ remainder: Optional<String>
       - some: "."
   ▿ ParseResult
+    - actionDescription: "Ranged Weapon Attack: +4 to hit, range 30/120 ft., one creature. Hit: 4 (1d4 + 2) piercing damage, and the target must succeed on a DC 12 Constitution saving throw or be poisoned for 1 minute. The target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success.\n"
+    - actionName: "Poisoned Dart"
+    - creatureName: "Gnome, Deep (Svirfneblin)"
+    ▿ parsedAction: Optional<Model>
+      ▿ some: Model
+        ▿ weaponAttack: WeaponAttack
+          - conditionalHitModifiers: 0 elements
+          ▿ effects: 2 elements
+            ▿ AttackEffect
+              - condition: Optional<CreatureConditionEffect>.none
+              ▿ conditions: Conditions
+                - other: Optional<String>.none
+                - savingThrow: Optional<SavingThrow>.none
+                - type: Optional<AttackType>.none
+                - versatileWeaponGrip: Optional<Grip>.none
+              ▿ damage: 1 element
+                ▿ Damage
+                  - alternativeTypes: 0 elements
+                  ▿ damageExpression: Optional<DiceExpression>
+                    ▿ some: 1d4 + 2
+                      ▿ compound: (3 elements)
+                        ▿ .0: 1d4
+                          ▿ dice: (2 elements)
+                            - count: 1
+                            ▿ die: Die
+                              - color: Optional<Color>.none
+                              - sides: 4
+                        - .1: Operator.add
+                        ▿ .2: 2
+                          - number: 2
+                  - staticDamage: 4
+                  - type: DamageType.piercing
+              - other: Optional<String>.none
+              - replacesDamage: false
+            ▿ AttackEffect
+              - condition: Optional<CreatureConditionEffect>.none
+              ▿ conditions: Conditions
+                - other: Optional<String>.none
+                ▿ savingThrow: Optional<SavingThrow>
+                  ▿ some: SavingThrow
+                    - ability: Ability.constitution
+                    - dc: 12
+                    - failureMargin: Optional<Int>.none
+                    - saveEffect: SaveEffect.none
+                - type: Optional<AttackType>.none
+                - versatileWeaponGrip: Optional<Grip>.none
+              - damage: 0 elements
+              ▿ other: Optional<String>
+                - some: "be poisoned for 1 minute"
+              - replacesDamage: false
+          ▿ hitModifier: Modifier
+            - modifier: 4
+          ▿ ranges: 1 element
+            ▿ Range
+              ▿ range: (2 elements)
+                - .0: 30
+                ▿ .1: Optional<Int>
+                  - some: 120
+    ▿ remainder: Optional<String>
+      - some: "the target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success.\n"
+  ▿ ParseResult
+    - actionDescription: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 6 (1d8 + 2) piercing damage.\n"
+    - actionName: "War Pick"
+    - creatureName: "Gnome, Deep (Svirfneblin)"
+    ▿ parsedAction: Optional<Model>
+      ▿ some: Model
+        ▿ weaponAttack: WeaponAttack
+          - conditionalHitModifiers: 0 elements
+          ▿ effects: 1 element
+            ▿ AttackEffect
+              - condition: Optional<CreatureConditionEffect>.none
+              ▿ conditions: Conditions
+                - other: Optional<String>.none
+                - savingThrow: Optional<SavingThrow>.none
+                - type: Optional<AttackType>.none
+                - versatileWeaponGrip: Optional<Grip>.none
+              ▿ damage: 1 element
+                ▿ Damage
+                  - alternativeTypes: 0 elements
+                  ▿ damageExpression: Optional<DiceExpression>
+                    ▿ some: 1d8 + 2
+                      ▿ compound: (3 elements)
+                        ▿ .0: 1d8
+                          ▿ dice: (2 elements)
+                            - count: 1
+                            ▿ die: Die
+                              - color: Optional<Color>.none
+                              - sides: 8
+                        - .1: Operator.add
+                        ▿ .2: 2
+                          - number: 2
+                  - staticDamage: 6
+                  - type: DamageType.piercing
+              - other: Optional<String>.none
+              - replacesDamage: false
+          ▿ hitModifier: Modifier
+            - modifier: 4
+          ▿ ranges: 1 element
+            ▿ Range
+              - reach: 5
+    ▿ remainder: Optional<String>
+      - some: ".\n"
+  ▿ ParseResult
     - actionDescription: "Melee Weapon Attack: +3 to hit, reach 5 ft., one target. Hit: 3 (1d4 + 1) bludgeoning damage."
     - actionName: "Ram"
     - creatureName: "Goat"
@@ -12150,7 +12373,7 @@
     ▿ remainder: Optional<String>
       - some: "."
   ▿ ParseResult
-    - actionDescription: "Melee or Ranged Weapon Attack: +3 to hit, reach 5 ft. or range 20/60 ft., one target. Hit: 4 (1d6 + 1) piercing damage or 5 (1d8 + 1) piercing damage if used with two hands to make a melee attack."
+    - actionDescription: "Melee or Ranged Weapon Attack: +3 to hit, reach 5 ft. or range 20/60 ft., one target. Hit: 4 (1d6 + 1) piercing damage, or 5 (1d8 + 1) piercing damage if used with two hands to make a melee attack."
     - actionName: "Spear"
     - creatureName: "Guard"
     ▿ parsedAction: Optional<Model>
@@ -14198,7 +14421,7 @@
     ▿ remainder: Optional<String>
       - some: "."
   ▿ ParseResult
-    - actionDescription: "Melee Weapon Attack: +3 to hit, reach 5 ft., one target. Hit: 2 (1d4) bludgeoning damage"
+    - actionDescription: "Melee Weapon Attack: +3 to hit, reach 5 ft., one target. Hit: 2 (1d4) bludgeoning damage."
     - actionName: "Fist"
     - creatureName: "Lemure"
     ▿ parsedAction: Optional<Model>
@@ -14233,7 +14456,7 @@
             ▿ Range
               - reach: 5
     ▿ remainder: Optional<String>
-      - some: ""
+      - some: "."
   ▿ ParseResult
     - actionDescription: "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 7 (1d8 + 3) piercing damage."
     - actionName: "Bite"
@@ -22675,7 +22898,7 @@
       - some: ""
   ▿ ParseResult
     - actionDescription: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 4 (1d4 + 2) piercing damage. If the target is a humanoid, it must succeed on a DC 11 Constitution saving throw or be cursed with wererat lycanthropy."
-    - actionName: "Bite (Rat or Hybrid Form Only)."
+    - actionName: "Bite (Rat or Hybrid Form Only)"
     - creatureName: "Wererat"
     ▿ parsedAction: Optional<Model>
       ▿ some: Model

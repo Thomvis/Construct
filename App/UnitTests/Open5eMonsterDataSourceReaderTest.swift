@@ -17,18 +17,31 @@ import ComposableArchitecture
 
 class Open5eMonsterDataSourceReaderTest: XCTestCase {
 
-    var dataSource: (any CompendiumDataSource<[Open5eAPIResult]>)!
+    var monsterDataSource: (any CompendiumDataSource<[Open5eAPIResult]>)!
+    var spellDataSource: (any CompendiumDataSource<[Open5eAPIResult]>)!
 
     override func setUp() {
-        dataSource = FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults()
+        monsterDataSource = FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults()
+        spellDataSource = FileDataSource(path: defaultSpellsPath).decode(type: [O5e.Spell].self).toOpen5eAPIResults()
     }
 
+    // Temporary migration guard: snapshot the full default Open5e content before/after fixture updates.
     @MainActor
-    func test() async throws {
-        let sut = Open5eDataSourceReader(dataSource: dataSource, generateUUID: UUIDGenerator.fake().callAsFunction)
+    func testDefaultContentSnapshot() async throws {
+        let monsterReader = Open5eDataSourceReader(
+            dataSource: monsterDataSource,
+            generateUUID: UUIDGenerator.fake().callAsFunction
+        )
+        let spellReader = Open5eDataSourceReader(
+            dataSource: spellDataSource,
+            generateUUID: UUIDGenerator.fake().callAsFunction
+        )
 
-        let items = try await Array(sut.items(realmId: CompendiumRealm.core.id).compactMap { $0.item })
-        assertSnapshot(of: items, as: .dump)
+        let monsters = try await Array(monsterReader.items(realmId: CompendiumRealm.core.id).compactMap { $0.item as? Monster })
+        let spells = try await Array(spellReader.items(realmId: CompendiumRealm.core.id).compactMap { $0.item as? Spell })
+
+        let snapshot = DefaultContentSnapshot(monsters: monsters, spells: spells)
+        assertSnapshot(of: snapshot, as: .dump, record: false)
     }
 
     @MainActor
@@ -78,6 +91,11 @@ class Open5eMonsterDataSourceReaderTest: XCTestCase {
         XCTAssertEqual(item.stats.movement![.burrow], 10)
     }
 
+}
+
+private struct DefaultContentSnapshot {
+    let monsters: [Monster]
+    let spells: [Spell]
 }
 
 struct StringDataSource: CompendiumDataSource {

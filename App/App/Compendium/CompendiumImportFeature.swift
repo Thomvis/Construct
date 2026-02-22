@@ -706,7 +706,7 @@ struct Open5ePreferencesView: View {
                 let remoteDocuments = store.remoteDocuments
                 if remoteDocuments.error != nil && store.document == .other {
                     Text(
-                        "Failed to load document list from Open5e. You can try to specify the document slug manually."
+                        "Failed to load document list from Open5e. You can try to specify the document key manually."
                     )
                 } else {
                     MenuPickerField(
@@ -730,7 +730,7 @@ struct Open5ePreferencesView: View {
                 if store.document == .other {
                     Divider()
 
-                    TextField("Document slug", text: $store.other)
+                    TextField("Document key", text: $store.other)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled(true)
                         .frame(minHeight: 35)

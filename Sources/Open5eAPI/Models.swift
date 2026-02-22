@@ -31,4 +31,35 @@ public struct Document: Decodable, Hashable {
         self.slug = slug
         self.organization = organization
     }
+
+    enum CodingKeys: String, CodingKey {
+        // v1
+        case title
+        case slug
+        case organization
+
+        // v2
+        case key
+        case name
+        case displayName = "display_name"
+        case publisher
+    }
+
+    struct Publisher: Decodable, Hashable {
+        let name: String
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.title = try c.decodeIfPresent(String.self, forKey: .title)
+            ?? c.decodeIfPresent(String.self, forKey: .displayName)
+            ?? c.decode(String.self, forKey: .name)
+
+        self.slug = try c.decodeIfPresent(String.self, forKey: .slug)
+            ?? c.decode(String.self, forKey: .key)
+
+        self.organization = try c.decodeIfPresent(String.self, forKey: .organization)
+            ?? c.decode(Publisher.self, forKey: .publisher).name
+    }
 }

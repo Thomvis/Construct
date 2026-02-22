@@ -20,18 +20,18 @@ public final class Open5eAPIDataSource: CompendiumDataSource {
     public let urlSession: URLSession
 
     var url: URL? {
-        var urlComponents = URLComponents(string: "https://api.open5e.com/v1")
+        var urlComponents = URLComponents(string: "https://api.open5e.com")
         switch itemType {
         case .monster:
-            urlComponents?.path = "/monsters"
+            urlComponents?.path = "/v2/creatures/"
         case .spell:
-            urlComponents?.path = "/spells"
+            urlComponents?.path = "/v2/spells/"
         case .character, .group:
             return nil
         }
 
         if let document {
-            urlComponents?.queryItems = [.init(name: "document__slug", value: document)]
+            urlComponents?.queryItems = [.init(name: "document__key", value: document)]
         }
 
         return urlComponents?.url
@@ -54,7 +54,12 @@ public final class Open5eAPIDataSource: CompendiumDataSource {
                 do {
                     var nextURL: URL? = initialURL
                     while let url = nextURL {
-                        let data = try await urlSession.data(from: url).0
+                        var request = URLRequest(url: url)
+                        // Open5e intermittently responds with HTML unless we explicitly request JSON.
+                        request.setValue("application/json", forHTTPHeaderField: "Accept")
+                        request.setValue("Construct iOS", forHTTPHeaderField: "User-Agent")
+
+                        let data = try await urlSession.data(for: request).0
                         let response = try decoder.decode(ListResponse.self, from: data)
 
                         continuation.yield(response.results)

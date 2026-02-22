@@ -71,11 +71,16 @@ public extension Open5eAPIClient {
                 guard let next else { return nil }
 
                 let url = try URL(next, strategy: .url)
-                let (data, _) = try await httpClient.data(for: URLRequest(url: url))
+                var request = URLRequest(url: url)
+                // Open5e intermittently responds with HTML unless we explicitly request JSON.
+                request.setValue("application/json", forHTTPHeaderField: "Accept")
+                request.setValue("Construct iOS", forHTTPHeaderField: "User-Agent")
+
+                let (data, _) = try await httpClient.data(for: request)
                 return try decoder.decode(PaginatedResponse<Document>.self, from: data)
             }
 
-            let response = try await fetch("https://api.open5e.com/v1/documents")
+            let response = try await fetch("https://api.open5e.com/v2/documents/")
             guard let response = response else {
                 fatalError()
             }
