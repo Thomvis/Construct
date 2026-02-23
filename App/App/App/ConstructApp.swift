@@ -17,6 +17,7 @@ import MechMuse
 import DiceRollerFeature
 import CombineSchedulers
 import Helpers
+import TipKit
 
 @main
 struct ConstructApp: App {
@@ -29,6 +30,12 @@ struct ConstructApp: App {
         // Test runs (unit + UI) should not depend on Firebase setup.
         if !isXCTestLaunch && !isUiTesting, FirebaseApp.app() == nil {
             FirebaseApp.configure()
+        }
+
+        do {
+            try Tips.configure()
+        } catch {
+            print("Failed to configure TipKit")
         }
     }
 

@@ -64,12 +64,24 @@ struct AdventurePage {
 
     @discardableResult
     func waitForVisible(timeout: TimeInterval = 20) -> Self {
-        XCTAssertTrue(app.navigationBars["Adventure"].waitForExistence(timeout: timeout), "Adventure should be visible")
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if app.navigationBars["Adventure"].exists || app.navigationBars["Encounter"].exists {
+                return self
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+
+        XCTFail("Adventure should be visible")
         return self
     }
 
     @discardableResult
     func openScratchPad(timeout: TimeInterval = 20) -> ScratchPadPage {
+        if app.navigationBars["Encounter"].waitForExistence(timeout: 1) {
+            return ScratchPadPage(app: app).waitForVisible()
+        }
+
         let scratchPadButton = app.buttons["Scratch pad"]
         XCTAssertTrue(scratchPadButton.waitForExistence(timeout: timeout), "Scratch pad entry should be visible")
         scratchPadButton.tap()
@@ -1175,7 +1187,15 @@ struct ScratchPadPage {
 
     @discardableResult
     func waitForVisible(timeout: TimeInterval = 20) -> Self {
-        XCTAssertTrue(app.navigationBars["Scratch pad"].waitForExistence(timeout: timeout), "Scratch pad should be visible")
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if app.navigationBars["Scratch pad"].exists || app.navigationBars["Encounter"].exists {
+                return self
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+
+        XCTFail("Scratch pad should be visible")
         return self
     }
 
@@ -1337,7 +1357,10 @@ struct ScratchPadPage {
     }
 
     func openActionsSettings() -> EncounterSettingsPage {
-        let actionsButton = app.navigationBars["Scratch pad"].buttons["Actions"].firstMatch
+        let navigationBar: XCUIElement = app.navigationBars["Encounter"].exists
+            ? app.navigationBars["Encounter"]
+            : app.navigationBars["Scratch pad"]
+        let actionsButton = navigationBar.buttons["Actions"].firstMatch
         XCTAssertTrue(actionsButton.waitForExistence(timeout: 10))
         XCTAssertTrue(actionsButton.isHittable, "Scratch pad actions button should be hittable")
         actionsButton.tap()
@@ -1434,7 +1457,14 @@ struct ScratchPadPage {
 
     @discardableResult
     func goBackToAdventure() -> AdventurePage {
-        let backButton = app.navigationBars["Scratch pad"].buttons.element(boundBy: 0)
+        if app.navigationBars["Encounter"].exists && !app.navigationBars["Scratch pad"].exists {
+            return AdventurePage(app: app).waitForVisible()
+        }
+
+        let navigationBar: XCUIElement = app.navigationBars["Scratch pad"].exists
+            ? app.navigationBars["Scratch pad"]
+            : app.navigationBars["Encounter"]
+        let backButton = navigationBar.buttons.element(boundBy: 0)
         XCTAssertTrue(backButton.waitForExistence(timeout: 10), "Expected back button from Scratch pad")
         backButton.tap()
         return AdventurePage(app: app).waitForVisible()
@@ -1832,7 +1862,8 @@ struct CombatantDetailPage {
             start.press(forDuration: 0.01, thenDragTo: end)
 
             let scratchPad = ScratchPadPage(app: app)
-            if app.navigationBars["Scratch pad"].waitForExistence(timeout: 1.5) {
+            if app.navigationBars["Scratch pad"].waitForExistence(timeout: 1.5)
+                || app.navigationBars["Encounter"].waitForExistence(timeout: 1.5) {
                 return scratchPad.waitForVisible()
             }
         }
@@ -2016,7 +2047,7 @@ struct AddCombatantsPage {
                 }
             }
 
-            for backLabel in ["Scratch pad", "Adventure"] {
+            for backLabel in ["Scratch pad", "Encounter", "Adventure"] {
                 let backButton = app.buttons[backLabel].firstMatch
                 if backButton.exists && backButton.isHittable {
                     backButton.tap()

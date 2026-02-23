@@ -288,10 +288,7 @@ struct AppFeature {
             Reduce<State, Action> { state, action in
                 switch (state, action) {
                 case (.tab, .openEncounter(let e)):
-                    let detailState = EncounterDetailFeature.State(
-                        building: e
-                    )
-                    return .send(.tab(.campaignBrowser(.setDestination(.encounter(detailState)))))
+                    return .send(.tab(.openEncounter(e)))
                 case (.column, .openEncounter(let e)):
                     let detailState = EncounterDetailFeature.State(
                         building: e
@@ -347,8 +344,18 @@ extension AppFeature.State {
 extension TabNavigationFeature.State {
     var columnNavigationViewState: ColumnNavigationFeature.State {
         let def = ColumnNavigationFeature.State()
+        let campaignBrowse: CampaignBrowseViewFeature.State = {
+            switch adventureTabMode {
+            case .simpleEncounter:
+                var state = campaignBrowser
+                state.destination = .encounter(simpleAdventure.encounter)
+                return state
+            case .campaignBrowser:
+                return campaignBrowser
+            }
+        }()
         return ColumnNavigationFeature.State(
-            campaignBrowse: campaignBrowser,
+            campaignBrowse: campaignBrowse,
             referenceView: ReferenceViewFeature.State(
                 items: [
                     ReferenceViewFeature.Item.State(
@@ -378,6 +385,11 @@ extension TabNavigationFeature.State {
 extension ColumnNavigationFeature.State {
     var tabNavigationViewState: TabNavigationFeature.State {
         let def = TabNavigationFeature.State()
+        let simpleAdventure = apply(def.simpleAdventure) { simpleAdventure in
+            if case let .encounter(encounterState)? = campaignBrowse.destination {
+                simpleAdventure.encounter = encounterState
+            }
+        }
 
         let activeCompendiumReferenceItemTab = referenceView.items
             .first(where: { $0.id == referenceView.selectedItemId })
@@ -404,6 +416,7 @@ extension ColumnNavigationFeature.State {
         return TabNavigationFeature.State(
             selectedTab: selectedTab,
             campaignBrowser: campaignBrowse,
+            simpleAdventure: simpleAdventure,
             compendium: activeCompendiumReferenceItemTab ?? def.compendium,
             diceRoller: apply(def.diceRoller) {
                 $0.calculatorState.expression = diceCalculator.diceCalculator.expression

@@ -10,10 +10,16 @@ import Foundation
 import Helpers
 
 public struct Preferences: Codable, Equatable, Sendable {
+    public enum AdventureTabMode: String, Codable, Equatable, Sendable, CaseIterable {
+        case simpleEncounter
+        case campaignBrowser
+    }
+
     public var didShowWelcomeSheet = false
     /// The ParseableGameModels.combinedVersion when ParseableKeyValueRecordManager last ran
     public var parseableManagerLastRunVersion: String?
     public var errorReportingEnabled: Bool?
+    public var adventureTabMode: AdventureTabMode?
     @DecodableDefault.TypeDefault<MechMusePreferences>
     public var mechMuse: MechMusePreferences
 
@@ -21,11 +27,13 @@ public struct Preferences: Codable, Equatable, Sendable {
         didShowWelcomeSheet: Bool = false,
         parseableManagerLastRunVersion: String? = nil,
         errorReportingEnabled: Bool? = nil,
+        adventureTabMode: AdventureTabMode? = nil,
         mechMuse: MechMusePreferences = .defaultValue
     ) {
         self.didShowWelcomeSheet = didShowWelcomeSheet
         self.parseableManagerLastRunVersion = parseableManagerLastRunVersion
         self.errorReportingEnabled = errorReportingEnabled
+        self.adventureTabMode = adventureTabMode
         self.mechMuse = mechMuse
     }
 }

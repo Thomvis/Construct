@@ -89,6 +89,22 @@ struct SettingsView: View {
                 }
             }
 
+            Section(footer: Text("Choose what the Adventure tab opens to by default.")) {
+                Picker(
+                    "Adventure tab",
+                    selection: Binding(
+                        get: { store.preferences.adventureTabMode ?? .simpleEncounter },
+                        set: { store.send(.setAdventureTabMode($0)) }
+                    )
+                ) {
+                    Text("Quick encounter")
+                        .tag(Preferences.AdventureTabMode.simpleEncounter)
+                    Text("Campaign browser")
+                        .tag(Preferences.AdventureTabMode.campaignBrowser)
+                }
+                .pickerStyle(.menu)
+            }
+
             Section(
                 footer: Group {
                     if store.preferences.mechMuse.enabled {
@@ -199,7 +215,7 @@ struct SettingsView: View {
         .listStyle(InsetGroupedListStyle())
         .sheet(item: sheetDestination, content: sheetView)
         .navigationDestination(item: pushDestination, destination: pushView)
-        .navigationBarTitle("Settings", displayMode: .inline)
+        .navigationBarTitle("Settings")
         .onAppear {
             store.send(.onAppear)
         }

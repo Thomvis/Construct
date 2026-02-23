@@ -165,6 +165,9 @@ public class Database {
             try keyValueStore.put(CampaignNode.scratchPadEncounter)
         }
 
+        // preferences migrations
+        try initializeAdventureTabModePreferenceIfNeeded()
+
         // process parseables
         if needsParseableProcessing {
             try visitorManager.run(
@@ -201,6 +204,18 @@ public class Database {
             monsters2024: monsters2024,
             spells2024: spells2024
         )
+    }
+
+    private func initializeAdventureTabModePreferenceIfNeeded() throws {
+        var preferences: Preferences = try keyValueStore.get(Preferences.key) ?? Preferences()
+        guard preferences.adventureTabMode == nil else { return }
+
+        let rootNodes: [CampaignNode] = try keyValueStore.fetchAll(
+            .keyPrefix(CampaignNode.root.keyPrefixForFetchingDirectChildren)
+        )
+        let hasUserTopLevelItems = rootNodes.contains { $0.special == nil }
+        preferences.adventureTabMode = hasUserTopLevelItems ? .campaignBrowser : .simpleEncounter
+        try keyValueStore.put(preferences)
     }
 
 }

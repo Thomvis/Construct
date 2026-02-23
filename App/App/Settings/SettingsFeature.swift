@@ -70,6 +70,7 @@ public struct SettingsFeature {
         case setMechMuseEnabled(Bool)
         case setMechMuseApiKey(String)
         case setErrorReportingEnabled(Bool)
+        case setAdventureTabMode(Preferences.AdventureTabMode)
         case resetPreferences
         case importDefaultContent
         case sendFeedback
@@ -111,6 +112,9 @@ public struct SettingsFeature {
 
             case .setErrorReportingEnabled(let enabled):
                 state.$preferences.withLock { $0.errorReportingEnabled = enabled }
+
+            case .setAdventureTabMode(let mode):
+                state.$preferences.withLock { $0.adventureTabMode = mode }
 
             case .resetPreferences:
                 state.$preferences.withLock { $0 = Preferences() }

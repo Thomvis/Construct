@@ -93,6 +93,7 @@ struct EncounterDetailFeature {
 
         var editMode: EditMode = .inactive
         var selection = Set<Combatant.Id>()
+        var navigationTitleOverride: String?
 
         @SharedReader(.entity(Preferences.key)) var preferences = Preferences()
 
@@ -103,7 +104,8 @@ struct EncounterDetailFeature {
             sheet: Sheet.State? = nil,
             popover: Popover? = nil,
             editMode: EditMode = .inactive,
-            selection: Set<Combatant.Id> = Set<Combatant.Id>()
+            selection: Set<Combatant.Id> = Set<Combatant.Id>(),
+            navigationTitleOverride: String? = nil
         ) {
             self.building = building
             self.running = running
@@ -112,6 +114,7 @@ struct EncounterDetailFeature {
             self.popover = popover
             self.editMode = editMode
             self.selection = selection
+            self.navigationTitleOverride = navigationTitleOverride
         }
 
         var isMechMuseEnabled: Bool {
@@ -559,7 +562,7 @@ struct EncounterDetailFeature {
 extension EncounterDetailFeature.State: NavigationStackItemState {
     var navigationStackItemStateId: String { encounter.rawKey }
 
-    var navigationTitle: String { encounter.name }
+    var navigationTitle: String { navigationTitleOverride ?? encounter.name }
     var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
 }
 
