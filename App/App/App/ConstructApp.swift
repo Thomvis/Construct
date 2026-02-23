@@ -266,6 +266,6 @@ struct BaseDependencies {
         } else {
             database = try await Database.live()
         }
-        return try await Self(database: database)
+        return Self(database: database)
     }
 }

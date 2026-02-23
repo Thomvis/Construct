@@ -11,12 +11,12 @@ import UIKit
 import ComposableArchitecture
 
 public struct AppReviewClient {
-    public var rateInAppStore: () -> Void
-    public var requestAppStoreReview: () -> Void
+    public var rateInAppStore: @MainActor () -> Void
+    public var requestAppStoreReview: @MainActor () -> Void
     
     public init(
-        rateInAppStore: @escaping () -> Void,
-        requestAppStoreReview: @escaping () -> Void
+        rateInAppStore: @escaping @MainActor () -> Void,
+        requestAppStoreReview: @escaping @MainActor () -> Void
     ) {
         self.rateInAppStore = rateInAppStore
         self.requestAppStoreReview = requestAppStoreReview
@@ -42,7 +42,7 @@ extension AppReviewClient: DependencyKey {
             },
             requestAppStoreReview: {
                 if let windowScene = keyWindow()?.windowScene {
-                    SKStoreReviewController.requestReview(in: windowScene)
+                    AppStore.requestReview(in: windowScene)
                 }
             }
         )

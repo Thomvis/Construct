@@ -292,7 +292,7 @@ extension Parma {
             throw Error.fileNotFound
         }
 
-        self.init(try String(contentsOfFile: path))
+        self.init(try String(contentsOfFile: path, encoding: .utf8))
     }
 
     enum Error: Swift.Error {

@@ -28,7 +28,7 @@ public extension KeyValueStoreEntity {
     }
 }
 
-public struct KeyValueStoreEntityKey<E>: Hashable where E: KeyValueStoreEntity {
+public struct KeyValueStoreEntityKey<E>: Hashable, Sendable where E: KeyValueStoreEntity {
     public let rawValue: String
 
     public init?(rawKey: String) {

@@ -21,11 +21,11 @@ public struct Async<Success, Failure> where Failure: Error {
     }
 
     public struct State {
-        var identifier: AnyHashable
+        var identifier: UUID
         public var isLoading: Bool
         public var result: Result<Success, Failure>?
 
-        public init(identifier: AnyHashable = UUID(), isLoading: Bool = false, result: Result<Success, Failure>? = nil) {
+        public init(identifier: UUID = UUID(), isLoading: Bool = false, result: Result<Success, Failure>? = nil) {
             self.identifier = identifier
             self.isLoading = isLoading
             self.result = result

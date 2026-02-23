@@ -10,8 +10,7 @@ import UIKit
 import ComposableArchitecture
 
 public struct ScreenshotClient {
-    @MainActor
-    public var screenshot: () -> UIImage?
+    public var screenshot: @MainActor () -> UIImage?
     
     public init(screenshot: @escaping @MainActor () -> UIImage?) {
         self.screenshot = screenshot

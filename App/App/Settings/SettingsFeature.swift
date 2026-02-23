@@ -131,8 +131,9 @@ public struct SettingsFeature {
                 }
 
             case .rateInAppStore:
-                appReview.rateInAppStore()
-
+                return .run { _ in
+                    await appReview.rateInAppStore()
+                }
             case .verifyMechMuseApiKey:
                 guard state.preferences.mechMuse.enabled,
                       let apiKey = state.preferences.mechMuse.apiKey,
