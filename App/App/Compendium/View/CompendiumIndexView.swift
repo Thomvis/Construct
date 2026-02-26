@@ -15,6 +15,7 @@ import GameModels
 import Helpers
 import SharedViews
 import Compendium
+import TipKit
 
 struct CompendiumIndexView<BottomBarButtons>: View where BottomBarButtons: View {
     @State var isSearching = false
@@ -370,6 +371,10 @@ fileprivate struct CompendiumItemList: View {
                 get: { store.selectedKeys },
                 set: { store.send(.setSelectedKeys($0)) }
             )) {
+                TipView(CompendiumContentTip())
+                    .listRowSeparator(.hidden)
+                    .selectionDisabled()
+
                 if store.useNamedSections {
                     if let suggestions = store.displaySuggestions {
                         section(header: Text("Suggestions"), entries: suggestions)
@@ -655,5 +660,19 @@ fileprivate extension CompendiumFilterSheetFeature.State {
             initial: values,
             current: values
         )
+    }
+}
+
+private struct CompendiumContentTip: Tip {
+    var title: Text {
+        Text("Where are all the monsters?")
+    }
+
+    var message: Text? {
+        Text("Construct includes free content from Basic Rules 2014 and Basic Rules 2024. You can add creatures manually or import your collection.")
+    }
+
+    var image: Image? {
+        Image(systemName: "book.closed")
     }
 }
