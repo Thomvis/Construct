@@ -647,7 +647,7 @@ fileprivate extension CompendiumFilterSheetFeature.State {
         sourceRestriction: CompendiumFilters.Source?
     ) {
         let values = Values(
-            source: queryFilters?.source,
+            sourceScopes: queryFilters?.sourceScopes,
             itemType: queryFilters?.types?.single,
             minMonsterCR: queryFilters?.minMonsterChallengeRating,
             maxMonsterCR: queryFilters?.maxMonsterChallengeRating,

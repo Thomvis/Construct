@@ -90,7 +90,7 @@ public struct Order: Equatable {
 }
 
 public struct CompendiumFilters: Equatable {
-    public var source: Source?
+    public var sourceScopes: [SourceScope]?
     public var types: [CompendiumItemType]?
 
     public var minMonsterChallengeRating: Fraction? = nil
@@ -98,17 +98,69 @@ public struct CompendiumFilters: Equatable {
     public var monsterType: MonsterType? = nil
 
     public init(
-        source: Source? = nil,
+        sourceScopes: [SourceScope]? = nil,
         types: [CompendiumItemType]? = nil,
         minMonsterChallengeRating: Fraction? = nil,
         maxMonsterChallengeRating: Fraction? = nil,
         monsterType: MonsterType? = nil
     ) {
-        self.source = source
+        self.sourceScopes = Self.normalizedSourceScopes(sourceScopes)
         self.types = types
         self.minMonsterChallengeRating = minMonsterChallengeRating
         self.maxMonsterChallengeRating = maxMonsterChallengeRating
         self.monsterType = monsterType
+    }
+
+    static func normalizedSourceScopes(_ scopes: [SourceScope]?) -> [SourceScope]? {
+        guard let scopes, !scopes.isEmpty else {
+            return nil
+        }
+
+        var deduplicated: [SourceScope] = []
+        for scope in scopes where !deduplicated.contains(scope) {
+            deduplicated.append(scope)
+        }
+
+        return deduplicated.sorted {
+            sortKey($0) < sortKey($1)
+        }
+    }
+
+    static func sortKey(_ scope: SourceScope) -> (Int, String, String) {
+        switch scope {
+        case .realm(let realm):
+            return (0, realm.rawValue, "")
+        case .document(let source):
+            return (1, source.realm.rawValue, source.document.rawValue)
+        }
+    }
+
+    public var selectedDocumentSources: [Source] {
+        (sourceScopes ?? []).compactMap { scope in
+            guard case let .document(source) = scope else { return nil }
+            return source
+        }
+    }
+
+    public var selectedRealmIds: [CompendiumRealm.Id] {
+        (sourceScopes ?? []).compactMap { scope in
+            guard case let .realm(realmId) = scope else { return nil }
+            return realmId
+        }
+    }
+
+    public var containsRealmSourceScope: Bool {
+        sourceScopes?.contains {
+            if case .realm = $0 { return true }
+            return false
+        } ?? false
+    }
+
+    public var singleDocumentSourceScope: Source? {
+        guard sourceScopes?.count == 1, case let .document(source)? = sourceScopes?.first else {
+            return nil
+        }
+        return source
     }
 
     public enum Property: CaseIterable, Equatable {
@@ -117,6 +169,11 @@ public struct CompendiumFilters: Equatable {
         case minMonsterCR
         case maxMonsterCR
         case monsterType
+    }
+
+    public enum SourceScope: Hashable {
+        case realm(CompendiumRealm.Id)
+        case document(Source)
     }
 
     // TODO: merge with CompendiumSourceDocumentKey

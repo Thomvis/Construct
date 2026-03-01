@@ -209,3 +209,171 @@ class CreatureEditViewStateTest: XCTestCase {
         deps.uuid = UUIDGenerator.fake()
     }
 }
+
+class CompendiumMultiSourceFilterReducerTest: XCTestCase {
+    @MainActor
+    func testFilterSheetSourceSelectionStoresMultipleSources() async {
+        let realmA = CompendiumRealm(id: "realm-a", displayName: "Realm A")
+        let realmB = CompendiumRealm(id: "realm-b", displayName: "Realm B")
+        let documentA = CompendiumSourceDocument(id: "doc-a", displayName: "Doc A", realmId: realmA.id)
+        let documentB = CompendiumSourceDocument(id: "doc-b", displayName: "Doc B", realmId: realmB.id)
+
+        let sourceA = CompendiumFilters.Source(documentA)
+        let sourceB = CompendiumFilters.Source(documentB)
+
+        let store = TestStore(initialState: CompendiumFilterSheetFeature.State()) {
+            CompendiumFilterSheetFeature()
+        } withDependencies: {
+            applyTestDependencies(&$0)
+        }
+
+        await store.send(.toggleDocumentSourceScope(sourceA)) {
+            $0.current.sourceScopes = [.document(sourceA)]
+        }
+
+        await store.send(.toggleDocumentSourceScope(sourceB)) {
+            $0.current.sourceScopes = [.document(sourceA), .document(sourceB)]
+        }
+
+        await store.send(.clear(.source)) {
+            $0.current.sourceScopes = nil
+        }
+    }
+
+    @MainActor
+    func testFilterSheetRealmSelectionStoresRealmScopeAndClearsDocumentsInRealm() async {
+        let realmA = CompendiumRealm(id: "realm-a", displayName: "Realm A")
+        let documentA = CompendiumSourceDocument(id: "doc-a", displayName: "Doc A", realmId: realmA.id)
+        let sourceA = CompendiumFilters.Source(documentA)
+
+        let store = TestStore(initialState: CompendiumFilterSheetFeature.State()) {
+            CompendiumFilterSheetFeature()
+        } withDependencies: {
+            applyTestDependencies(&$0)
+        }
+
+        await store.send(.toggleDocumentSourceScope(sourceA)) {
+            $0.current.sourceScopes = [.document(sourceA)]
+        }
+
+        await store.send(.toggleRealmSourceScope(realmA.id)) {
+            $0.current.sourceScopes = [.realm(realmA.id)]
+        }
+    }
+
+    @MainActor
+    func testIndexAddUsesSingleSelectedSource() async {
+        let source = CompendiumFilters.Source(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)
+
+        let store = TestStore(
+            initialState: apply(CompendiumIndexFeature.State(
+                title: "Compendium",
+                properties: .init(showImport: true, showAdd: true),
+                results: .initial
+            )) {
+                $0.results.input.filters = .init(sourceScopes: [.document(source)])
+            }
+        ) {
+            CompendiumIndexFeature()
+        } withDependencies: {
+            applyTestDependencies(&$0)
+        }
+        store.exhaustivity = .off
+
+        await store.send(.onAddButtonTap(.monster))
+        guard case let .creatureEdit(creatureEditState) = store.state.sheet else {
+            return XCTFail("Expected creature edit sheet")
+        }
+        XCTAssertEqual(creatureEditState.model.document.selectedSource, source)
+    }
+
+    @MainActor
+    func testIndexAddDefaultsToHomebrewWhenMultipleSourcesSelected() async {
+        let sourceA = CompendiumFilters.Source(realm: CompendiumRealm.core.id, document: CompendiumSourceDocument.srd5_1.id)
+        let sourceB = CompendiumFilters.Source(realm: CompendiumRealm.core2024.id, document: CompendiumSourceDocument.srd5_2.id)
+
+        let store = TestStore(
+            initialState: apply(CompendiumIndexFeature.State(
+                title: "Compendium",
+                properties: .init(showImport: true, showAdd: true),
+                results: .initial
+            )) {
+                $0.results.input.filters = .init(sourceScopes: [.document(sourceA), .document(sourceB)])
+            }
+        ) {
+            CompendiumIndexFeature()
+        } withDependencies: {
+            applyTestDependencies(&$0)
+        }
+        store.exhaustivity = .off
+
+        await store.send(.onAddButtonTap(.monster))
+        guard case let .creatureEdit(creatureEditState) = store.state.sheet else {
+            return XCTFail("Expected creature edit sheet")
+        }
+        XCTAssertEqual(creatureEditState.model.document.selectedSource, .init(.homebrew))
+    }
+
+    @MainActor
+    func testIndexApplyFilterSheetWritesSourcesToQueryFilters() async {
+        let realmA = CompendiumRealm(id: "realm-a", displayName: "Realm A")
+        let realmB = CompendiumRealm(id: "realm-b", displayName: "Realm B")
+        let documentA = CompendiumSourceDocument(id: "doc-a", displayName: "Doc A", realmId: realmA.id)
+        let documentB = CompendiumSourceDocument(id: "doc-b", displayName: "Doc B", realmId: realmB.id)
+        let sourceA = CompendiumFilters.Source(documentA)
+        let sourceB = CompendiumFilters.Source(documentB)
+        let selectedSourceScopes: [CompendiumFilters.SourceScope] = [.document(sourceA), .document(sourceB)]
+
+        let filterValues = CompendiumFilterSheetFeature.State.Values(
+            sourceScopes: selectedSourceScopes,
+            itemType: nil,
+            minMonsterCR: nil,
+            maxMonsterCR: nil,
+            monsterType: nil
+        )
+
+        let store = TestStore(
+            initialState: apply(CompendiumIndexFeature.State(
+                title: "Compendium",
+                properties: .init(showImport: true, showAdd: true),
+                results: .initial
+            )) {
+                $0.sheet = .filter(CompendiumFilterSheetFeature.State(
+                    initial: .init(),
+                    current: filterValues
+                ))
+            }
+        ) {
+            CompendiumIndexFeature()
+        } withDependencies: {
+            applyTestDependencies(&$0)
+        }
+        store.exhaustivity = .off
+
+        await store.send(.sheet(.presented(.filter(.onApply))))
+
+        await store.receive(.results(.input(.onFiltersDidChange(.init(sourceScopes: selectedSourceScopes))))) {
+            $0.results.input.filters = .init(sourceScopes: selectedSourceScopes)
+        }
+    }
+
+    private func applyTestDependencies(_ deps: inout DependencyValues) {
+        deps.mainQueue = DispatchQueue.immediate.eraseToAnyScheduler()
+        deps.compendiumMetadata = CompendiumMetadata(
+            sourceDocuments: { [.srd5_1, .srd5_2, .homebrew] },
+            observeSourceDocuments: { AsyncThrowingStream { _ in } },
+            realms: { [CompendiumRealm.core, CompendiumRealm.core2024, CompendiumRealm.homebrew] },
+            observeRealms: { AsyncThrowingStream { _ in } },
+            putJob: { _ in },
+            createRealm: { _ in },
+            updateRealm: { _, _ in },
+            removeRealm: { _ in },
+            createDocument: { _ in },
+            updateDocument: { _, _, _ in },
+            removeDocument: { _, _ in }
+        )
+        deps.database = Database.uninitialized
+        deps.compendium = DatabaseCompendium(databaseAccess: deps.database.access)
+        deps.uuid = UUIDGenerator.fake()
+    }
+}

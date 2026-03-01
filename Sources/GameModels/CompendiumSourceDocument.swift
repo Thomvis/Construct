@@ -26,13 +26,13 @@ public struct CompendiumSourceDocument: Hashable, Codable, Identifiable {
 public extension CompendiumSourceDocument {
     static let srd5_1 = CompendiumSourceDocument(
         id: "srd",
-        displayName: "SRD 5.1",
+        displayName: "SRD 5.1 / Basic Rules",
         realmId: CompendiumRealm.core.id
     )
 
     static let srd5_2 = CompendiumSourceDocument(
         id: "srd52",
-        displayName: "SRD 5.2",
+        displayName: "SRD 5.2 / Basic Rules",
         realmId: CompendiumRealm.core2024.id
     )
 

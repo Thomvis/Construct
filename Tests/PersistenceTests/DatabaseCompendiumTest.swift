@@ -190,10 +190,192 @@ class DatabaseCompendiumTest: XCTestCase {
 
         XCTAssertEqual(try sut.sourceDocuments(), [newDoc])
 
-        let entries = try compendium.fetchAll(filters: .init(source: .init(realm: newDoc.realmId, document: newDoc.id)))
+        let entries = try compendium.fetchAll(filters: .init(sourceScopes: [.document(.init(realm: newDoc.realmId, document: newDoc.id))]))
         expectNoDifference(entries, [apply(entry) { e in
             e.document = .init(newDoc)
         }])
+    }
+
+    func testFetchWithMultipleSourcesUsesOrSemantics() throws {
+        let db = Database.uninitialized
+        let compendium = DatabaseCompendium(databaseAccess: db.access)
+
+        var sourceDocumentA: CompendiumSourceDocument!
+        var sourceDocumentC: CompendiumSourceDocument!
+        var entryA: CompendiumEntry!
+        var entryC: CompendiumEntry!
+
+        try KeyValueStoreDefinition { s in
+            s.Compendium { c in
+                c.Realm(name: "realm") { r in
+                    r.Document(name: "sourceA", to: &sourceDocumentA) { d in
+                        d.Character(name: "Alpha", to: &entryA)
+                    }
+                    r.Document(name: "sourceB") { d in
+                        d.Character(name: "Bravo")
+                    }
+                    r.Document(name: "sourceC", to: &sourceDocumentC) { d in
+                        d.Character(name: "Charlie", to: &entryC)
+                    }
+                }
+            }
+        }.insert(into: db)
+
+        let result = try compendium.fetch(CompendiumFetchRequest(
+            filters: .init(
+                sourceScopes: [
+                    .document(.init(sourceDocumentA)),
+                    .document(.init(sourceDocumentC)),
+                ],
+                types: [.character]
+            ),
+            order: .title
+        ))
+
+        expectNoDifference(result.map(\.item.title), ["Alpha", "Charlie"])
+    }
+
+    func testFetchWithMultipleSourcesComposesWithTypeFilter() throws {
+        let db = Database.uninitialized
+        let compendium = DatabaseCompendium(databaseAccess: db.access)
+
+        var sourceDocumentA: CompendiumSourceDocument!
+        var sourceDocumentB: CompendiumSourceDocument!
+        var sourceDocumentC: CompendiumSourceDocument!
+        var monsterInA: CompendiumEntry!
+        var characterInB: CompendiumEntry!
+        var monsterInC: CompendiumEntry!
+
+        try KeyValueStoreDefinition { s in
+            s.Compendium { c in
+                c.Realm(name: "realm") { r in
+                    r.Document(name: "sourceA", to: &sourceDocumentA) { d in
+                        d.Monster(name: "A Monster", to: &monsterInA)
+                    }
+                    r.Document(name: "sourceB", to: &sourceDocumentB) { d in
+                        d.Character(name: "B Character", to: &characterInB)
+                    }
+                    r.Document(name: "sourceC", to: &sourceDocumentC) { d in
+                        d.Monster(name: "C Monster", to: &monsterInC)
+                    }
+                }
+            }
+        }.insert(into: db)
+
+        let result = try compendium.fetch(CompendiumFetchRequest(
+            filters: .init(
+                sourceScopes: [
+                    .document(.init(sourceDocumentA)),
+                    .document(.init(sourceDocumentB)),
+                ],
+                types: [.monster]
+            ),
+            order: .title
+        ))
+
+        expectNoDifference(result.map(\.item.title), ["A Monster"])
+    }
+
+    func testFetchWithRealmScopeIncludesAllRealmDocuments() throws {
+        let db = Database.uninitialized
+        let compendium = DatabaseCompendium(databaseAccess: db.access)
+
+        var sourceDocumentA: CompendiumSourceDocument!
+        var sourceDocumentB: CompendiumSourceDocument!
+        var sourceDocumentC: CompendiumSourceDocument!
+
+        try KeyValueStoreDefinition { s in
+            s.Compendium { c in
+                c.Realm(name: "realmA") { r in
+                    r.Document(name: "sourceA", to: &sourceDocumentA) { d in
+                        d.Character(name: "Alpha")
+                    }
+                    r.Document(name: "sourceB", to: &sourceDocumentB) { d in
+                        d.Character(name: "Bravo")
+                    }
+                }
+                c.Realm(name: "realmB") { r in
+                    r.Document(name: "sourceC", to: &sourceDocumentC) { d in
+                        d.Character(name: "Charlie")
+                    }
+                }
+            }
+        }.insert(into: db)
+
+        let result = try compendium.fetch(CompendiumFetchRequest(
+            filters: .init(
+                sourceScopes: [.realm(sourceDocumentA.realmId)],
+                types: [.character]
+            ),
+            order: .title
+        ))
+
+        expectNoDifference(result.map(\.item.title), ["Alpha", "Bravo"])
+    }
+
+    func testFetchWithRealmAndDocumentScopesUsesOrSemantics() throws {
+        let db = Database.uninitialized
+        let compendium = DatabaseCompendium(databaseAccess: db.access)
+
+        var sourceDocumentA: CompendiumSourceDocument!
+        var sourceDocumentB: CompendiumSourceDocument!
+        var sourceDocumentC: CompendiumSourceDocument!
+
+        try KeyValueStoreDefinition { s in
+            s.Compendium { c in
+                c.Realm(name: "realmA") { r in
+                    r.Document(name: "sourceA", to: &sourceDocumentA) { d in
+                        d.Character(name: "Alpha")
+                    }
+                    r.Document(name: "sourceB", to: &sourceDocumentB) { d in
+                        d.Character(name: "Bravo")
+                    }
+                }
+                c.Realm(name: "realmB") { r in
+                    r.Document(name: "sourceC", to: &sourceDocumentC) { d in
+                        d.Character(name: "Charlie")
+                    }
+                }
+            }
+        }.insert(into: db)
+
+        let result = try compendium.fetch(CompendiumFetchRequest(
+            filters: .init(
+                sourceScopes: [
+                    .realm(sourceDocumentA.realmId),
+                    .document(.init(sourceDocumentC)),
+                ],
+                types: [.character]
+            ),
+            order: .title
+        ))
+
+        expectNoDifference(result.map(\.item.title), ["Alpha", "Bravo", "Charlie"])
+    }
+
+    func testFetchWithUnknownRealmScopeMatchesNothing() throws {
+        let db = Database.uninitialized
+        let compendium = DatabaseCompendium(databaseAccess: db.access)
+
+        try KeyValueStoreDefinition { s in
+            s.Compendium { c in
+                c.Realm(name: "realmA") { r in
+                    r.Document(name: "sourceA") { d in
+                        d.Character(name: "Alpha")
+                    }
+                }
+            }
+        }.insert(into: db)
+
+        let result = try compendium.fetch(CompendiumFetchRequest(
+            filters: .init(
+                sourceScopes: [.realm(.init("missing-realm"))],
+                types: [.character]
+            ),
+            order: .title
+        ))
+
+        expectNoDifference(result.map(\.item.title), [])
     }
 
     func testMetadataUpdateDocumentNewIdThrowsResourceAlreadyExists() async throws {
@@ -420,7 +602,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let selection = CompendiumItemSelection.multipleFetchRequest(
             CompendiumFetchRequest(
                 search: nil,
-                filters: .init(source: .init(sourceDocument)),
+                filters: .init(sourceScopes: [.document(.init(sourceDocument))]),
                 order: nil,
                 range: nil
             )
@@ -994,7 +1176,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let selection = CompendiumItemSelection.multipleFetchRequest(
             CompendiumFetchRequest(
                 search: nil,
-                filters: .init(source: .init(sourceDocument)),
+                filters: .init(sourceScopes: [.document(.init(sourceDocument))]),
                 order: nil,
                 range: nil
             )
@@ -1066,7 +1248,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let selection = CompendiumItemSelection.multipleFetchRequest(
             CompendiumFetchRequest(
                 search: nil,
-                filters: .init(source: .init(sourceDocument)),
+                filters: .init(sourceScopes: [.document(.init(sourceDocument))]),
                 order: nil,
                 range: nil
             )

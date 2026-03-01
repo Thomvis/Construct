@@ -191,7 +191,7 @@ struct CompendiumIndexFeature {
                 }
                 if let sourceRestriction {
                     filter = filter ?? CompendiumFilters()
-                    filter?.source = sourceRestriction
+                    filter?.sourceScopes = [.document(sourceRestriction)]
                 }
             }
         }
@@ -278,7 +278,7 @@ struct CompendiumIndexFeature {
                 }
             case .onAddButtonTap(let type):
                 let sourceDocument: CompendiumFilters.Source
-                if let source = state.results.input.filters?.source {
+                if let source = state.results.input.filters?.singleDocumentSourceScope {
                     sourceDocument = source
                 } else {
                     sourceDocument = CompendiumFilters.Source(CompendiumSourceDocument.homebrew)
@@ -375,7 +375,7 @@ struct CompendiumIndexFeature {
                 guard case let .filter(filterState) = state.sheet else { break }
                 let filterValues = filterState.effectiveCurrentValues
                 var newFilters = state.results.input.filters ?? .init()
-                newFilters.source = filterValues.source
+                newFilters.sourceScopes = filterValues.sourceScopes
                 newFilters.types = filterValues.itemType.optionalArray
                 newFilters.minMonsterChallengeRating = filterValues.minMonsterCR
                 newFilters.maxMonsterChallengeRating = filterValues.maxMonsterCR

@@ -9,7 +9,6 @@ import Helpers
 struct CompendiumDocumentSelectionFeature {
     @ObservableState
     struct State: Equatable {
-
         let unselectedLabel: String?
         let disabledSources: [CompendiumFilters.Source]
 
@@ -19,24 +18,29 @@ struct CompendiumDocumentSelectionFeature {
         var realms: AsyncRealms.State = .initial
 
         var selectedSource: CompendiumFilters.Source?
-        
+
         var currentDocument: CompendiumSourceDocument? {
-            guard let s = selectedSource else { return nil }
-            return documents.value?.first(where: { $0.realmId == s.realm && $0.id == s.document })
+            guard let source = selectedSource else { return nil }
+            return documents.value?.first(where: { $0.realmId == source.realm && $0.id == source.document })
         }
-        
+
+        var selectedSourceDisplayName: String? {
+            currentDocument.map(\.displayName) ?? unselectedLabel
+        }
+
         var allSources: [(document: CompendiumSourceDocument, realm: CompendiumRealm)]? {
             guard let documents = documents.value, let realms = realms.value else {
                 return nil
             }
-            
-            return documents.compactMap { d in
-                realms.first(where: { $0.id == d.realmId }).map { r in
-                    (document: d, realm: r)
+
+            let documentsByRealm = Dictionary(grouping: documents, by: \.realmId)
+            return realms.flatMap { realm in
+                (documentsByRealm[realm.id] ?? []).map { document in
+                    (document: document, realm: realm)
                 }
             }
         }
-        
+
         init(
             selectedSource: CompendiumFilters.Source? = nil,
             disabledSources: [CompendiumFilters.Source] = [],
@@ -49,16 +53,18 @@ struct CompendiumDocumentSelectionFeature {
 
         init(
             selectedSource: CompendiumFilters.Source,
-            disabledSources: [CompendiumFilters.Source] = [],
+            disabledSources: [CompendiumFilters.Source] = []
         ) {
             self.selectedSource = selectedSource
             self.disabledSources = disabledSources
             self.unselectedLabel = nil
         }
 
-
+        func source(for document: CompendiumSourceDocument, realm: CompendiumRealm) -> CompendiumFilters.Source {
+            .init(realm: realm.id, document: document.id)
+        }
     }
-    
+
     @CasePathable
     enum Action: BindableAction, Equatable {
         case onAppear
@@ -68,25 +74,25 @@ struct CompendiumDocumentSelectionFeature {
         case realms(State.AsyncRealms.Action)
         case binding(BindingAction<State>)
     }
-    
+
     @Dependency(\.compendiumMetadata) var compendiumMetadata
 
     var body: some ReducerOf<Self> {
         BindingReducer()
-        
+
         Reduce { state, action in
             switch action {
             case .onAppear:
                 return .none
-                
+
             case let .source(document, realm):
-                state.selectedSource = .init(realm: realm.id, document: document.id)
+                state.selectedSource = state.source(for: document, realm: realm)
                 return .none
-                
+
             case .clearSource:
                 state.selectedSource = nil
                 return .none
-                
+
             case .documents, .realms, .binding:
                 return .none
             }
@@ -136,11 +142,11 @@ struct CompendiumDocumentSelectionView: View {
     ) -> some View {
         MenuContent(store: store, label: label)
     }
-    
+
     private struct MenuContent<Label: View>: View {
         let store: StoreOf<CompendiumDocumentSelectionFeature>
         let label: (String) -> Label
-        
+
         var body: some View {
             Menu {
                 if let unselectedLabel = store.unselectedLabel {
@@ -150,16 +156,16 @@ struct CompendiumDocumentSelectionView: View {
                 }
 
                 if let allSources = store.allSources {
-                    ForEach(Array(allSources.enumerated()), id: \.element.document.id) { index, source in
-                        // Add divider between realms
-                        if CompendiumDocumentSelectionView.needsDividerBefore(source, in: allSources) {
+                    ForEach(Array(allSources.enumerated()), id: \.offset) { index, source in
+                        if CompendiumDocumentSelectionView.needsDividerBefore(source, in: allSources), index > 0 {
                             Divider()
                         }
 
                         Button(action: {
                             store.send(.source(source.document, source.realm))
                         }) {
-                            if let s = store.selectedSource, s.document == source.document.id && s.realm == source.realm.id {
+                            let sourceValue = CompendiumFilters.Source(realm: source.realm.id, document: source.document.id)
+                            if store.selectedSource == sourceValue {
                                 SwiftUI.Label(source.document.displayName, systemImage: "checkmark")
                             } else {
                                 Text(source.document.displayName)
@@ -174,7 +180,7 @@ struct CompendiumDocumentSelectionView: View {
                     Text("Loading...")
                 }
             } label: {
-                if let name = store.currentDocument.map({ $0.displayName }) ?? store.unselectedLabel {
+                if let name = store.selectedSourceDisplayName {
                     label(name)
                 }
             }
@@ -185,18 +191,17 @@ struct CompendiumDocumentSelectionView: View {
         }
     }
 
-    // Wraps some view so it can access our state
     public static func withStore(
         store: StoreOf<CompendiumDocumentSelectionFeature>,
         content: @escaping (StoreOf<CompendiumDocumentSelectionFeature>) -> some View
     ) -> some View {
         WithStoreContent(store: store, content: content)
     }
-    
+
     private struct WithStoreContent<Content: View>: View {
         let store: StoreOf<CompendiumDocumentSelectionFeature>
         let content: (StoreOf<CompendiumDocumentSelectionFeature>) -> Content
-        
+
         var body: some View {
             content(store)
                 .onAppear {
@@ -213,9 +218,9 @@ struct CompendiumDocumentSelectionView: View {
         guard let idx = sources.firstIndex(where: { $0.document == source.document }) else {
             return false
         }
-        return idx == 0 || sources[idx-1].realm != source.realm
+        return idx == 0 || sources[idx - 1].realm != source.realm
     }
-} 
+}
 
 extension CompendiumDocumentSelectionFeature.State {
     public static var nullInstance: Self {

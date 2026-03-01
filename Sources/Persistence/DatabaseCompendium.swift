@@ -40,15 +40,15 @@ public class DatabaseCompendium: Compendium {
     }
 
     public func fetch(_ request: CompendiumFetchRequest) throws -> [CompendiumEntry] {
-        try keyValueStore.fetchAll(request.toKeyValueStoreRequest())
+        try keyValueStore.fetchAll(toKeyValueStoreRequest(request))
     }
 
     public func fetchCatching(_ request: CompendiumFetchRequest) throws -> [Result<CompendiumEntry, any Error>] {
-        try keyValueStore.fetchAllCatching(request.toKeyValueStoreRequest())
+        try keyValueStore.fetchAllCatching(toKeyValueStoreRequest(request))
     }
 
     public func fetchKeys(_ request: CompendiumFetchRequest) throws -> [CompendiumItemKey] {
-        let keys = try keyValueStore.fetchKeys(request.toKeyValueStoreRequest())
+        let keys = try keyValueStore.fetchKeys(toKeyValueStoreRequest(request))
         return keys.compactMap {
             let res = CompendiumItemKey(compendiumEntryKey: $0)
             assert(res != nil)
@@ -57,7 +57,7 @@ public class DatabaseCompendium: Compendium {
     }
 
     public func count(_ request: CompendiumFetchRequest) throws -> Int {
-        try keyValueStore.count(request.toKeyValueStoreRequest())
+        try keyValueStore.count(toKeyValueStoreRequest(request))
     }
 
     public func resolve(annotation: CompendiumItemReferenceTextAnnotation) -> ReferenceResolveResult {
@@ -77,6 +77,40 @@ public class DatabaseCompendium: Compendium {
         }
 
         return .notFound
+    }
+
+    fileprivate func toKeyValueStoreRequest(_ request: CompendiumFetchRequest) throws -> KeyValueStoreRequest {
+        try Self.toKeyValueStoreRequest(request, using: keyValueStore)
+    }
+
+    fileprivate static func toKeyValueStoreRequest(
+        _ request: CompendiumFetchRequest,
+        using keyValueStore: KeyValueStore
+    ) throws -> KeyValueStoreRequest {
+        let sourceDocuments: [CompendiumSourceDocument]
+        if request.filters?.containsRealmSourceScope == true {
+            sourceDocuments = try keyValueStore.fetchAll(.keyPrefix(CompendiumSourceDocument.keyPrefix))
+        } else {
+            sourceDocuments = []
+        }
+
+        let keyPrefixes = request.filters?.types.map { $0.map { CompendiumEntry.keyPrefix(for: $0) } } ?? [CompendiumEntry.keyPrefix]
+
+        // Ensure we order on title, either as first or fallback order
+        let effectiveOrder: [SecondaryIndexOrder]
+        if let order = request.order, order.key == .title {
+            effectiveOrder = [SecondaryIndexOrder(order)]
+        } else {
+            effectiveOrder = request.order.map(SecondaryIndexOrder.init).nonNilArray + [SecondaryIndexOrder(.title)]
+        }
+
+        return KeyValueStoreRequest(
+            keyPrefixes: keyPrefixes,
+            fullTextSearch: request.search,
+            filters: request.filters?.secondaryIndexFilters(sourceDocuments: sourceDocuments) ?? [],
+            order: effectiveOrder,
+            range: request.range
+        )
     }
 }
 
@@ -146,15 +180,8 @@ extension SecondaryIndexOrder {
 }
 
 extension CompendiumFilters {
-    var secondaryIndexFilters: [SecondaryIndexFilter] {
-        Array(builder: {
-            if let source {
-                SecondaryIndexFilter(
-                    index: SecondaryIndexes.compendiumEntrySourceDocumentId,
-                    condition: .equals(source.document.rawValue)
-                )
-            }
-
+    func secondaryIndexFilters(sourceDocuments: [CompendiumSourceDocument]) -> [SecondaryIndexFilter] {
+        var result = Array(builder: {
             if let minMonsterChallengeRating {
                 SecondaryIndexFilter(
                     index: SecondaryIndexes.compendiumEntryMonsterChallengeRating,
@@ -176,6 +203,33 @@ extension CompendiumFilters {
                 )
             }
         })
+
+        if let documentIds = resolvedSourceDocumentIds(sourceDocuments: sourceDocuments) {
+            result.append(
+                SecondaryIndexFilter(
+                    index: SecondaryIndexes.compendiumEntrySourceDocumentId,
+                    condition: .oneOf(documentIds.map(\.rawValue))
+                )
+            )
+        }
+
+        return result
+    }
+
+    fileprivate func resolvedSourceDocumentIds(sourceDocuments: [CompendiumSourceDocument]) -> [CompendiumSourceDocument.Id]? {
+        guard let sourceScopes else {
+            return nil
+        }
+
+        let selectedRealmIds = Set(self.selectedRealmIds)
+        let documentIds = Set((sourceScopes.compactMap { scope -> CompendiumSourceDocument.Id? in
+            guard case let .document(source) = scope else { return nil }
+            return source.document
+        }) + sourceDocuments.compactMap { sourceDocument in
+            selectedRealmIds.contains(sourceDocument.realmId) ? sourceDocument.id : nil
+        })
+
+        return documentIds.sorted { $0.rawValue < $1.rawValue }
     }
 }
 
@@ -244,10 +298,10 @@ public extension CompendiumMetadata {
                 if doc.realmId != originalRealmId {
                     let compendium = DatabaseCompendium(databaseAccess: dbAccess)
                     moving = try Set(compendium.fetchKeys(filters: .init(
-                        source: .init(
+                        sourceScopes: [.document(.init(
                             realm: originalRealmId,
                             document: originalDocumentId
-                        )
+                        ))]
                     )))
                 } else {
                     moving = nil
@@ -328,30 +382,6 @@ public extension CompendiumMetadata {
 
 }
 
-extension CompendiumFetchRequest {
-    func toKeyValueStoreRequest() -> KeyValueStoreRequest {
-        let keyPrefixes = filters?.types.map { $0.map { CompendiumEntry.keyPrefix(for: $0) } } ?? [CompendiumEntry.keyPrefix]
-
-        // Ensure we order on title, either as first or fallback order
-        let effectiveOrder: [SecondaryIndexOrder]
-        if let order, order.key == .title {
-            effectiveOrder = [SecondaryIndexOrder(order)]
-        } else {
-            effectiveOrder = order.map(SecondaryIndexOrder.init).nonNilArray + [SecondaryIndexOrder(.title)]
-        }
-
-        return KeyValueStoreRequest(
-            keyPrefixes: keyPrefixes,
-            fullTextSearch: search,
-            filters: filters?.secondaryIndexFilters ?? [],
-            order: effectiveOrder,
-            range: range
-        )
-    }
-}
-
-
-
 @discardableResult
 public func transfer(
     _ selection: CompendiumItemSelection,
@@ -393,13 +423,14 @@ public func transfer(
         var keyChangesAccum: [String: String] = [:]
         var successAccum: [String] = []
 
-        let scope = switch selection {
+        let scope: KeyValueStoreRequest
+        switch selection {
         case .single(let compendiumItemKey):
-            KeyValueStoreRequest(keys: [CompendiumEntry.key(for: compendiumItemKey).rawValue])
+            scope = KeyValueStoreRequest(keys: [CompendiumEntry.key(for: compendiumItemKey).rawValue])
         case .multipleFetchRequest(let compendiumFetchRequest):
-            compendiumFetchRequest.toKeyValueStoreRequest()
+            scope = try DatabaseCompendium.toKeyValueStoreRequest(compendiumFetchRequest, using: keyValueStore)
         case .multipleKeys(let keys):
-            KeyValueStoreRequest(
+            scope = KeyValueStoreRequest(
                 keys: keys.map { CompendiumEntry.key(for: $0).rawValue }
             )
         }

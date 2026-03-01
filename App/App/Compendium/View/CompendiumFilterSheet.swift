@@ -14,27 +14,40 @@ import SharedViews
 import GameModels
 import Compendium
 import Combine
-import Tagged
 
 struct CompendiumFilterSheet: View {
     @Bindable var store: StoreOf<CompendiumFilterSheetFeature>
+
+    enum SourceScopeSelectionStyle {
+        case none
+        case partial
+        case selected
+
+        var systemImage: String {
+            switch self {
+            case .none: return "circle"
+            case .partial: return "minus.circle.fill"
+            case .selected: return "checkmark.circle.fill"
+            }
+        }
+
+        var tint: Color {
+            switch self {
+            case .none: return .secondary
+            case .partial, .selected: return .accentColor
+            }
+        }
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack {
                     SectionContainer {
-                        CompendiumDocumentSelectionView(
-                            store: store.scope(
-                                state: \.documentSelection,
-                                action: \.documentSelection
-                            ),
-                            label: "Sources"
-                        )
-                        .disabled(store.sourcesSectionDisabled)
+                        sourceScopeControl
                     }
-                    .bold()
                     .padding(8)
+                    .disabled(store.sourcesSectionDisabled)
 
                     SectionContainer {
                         LabeledContent {
@@ -46,9 +59,9 @@ struct CompendiumFilterSheet: View {
                             }
                         } label: {
                             Text("Kind")
+                                .bold()
                         }
                     }
-                    .bold()
                     .padding(8)
 
                     if store.compatibleFilters.contains(.monsterType) {
@@ -66,12 +79,13 @@ struct CompendiumFilterSheet: View {
                                 }
                             } label: {
                                 Text("Monster Type")
+                                    .bold()
                             }
                         }
                         .padding(8)
                     }
 
-                    with(Double(store.challengeRatings.count-1)) { crRangeMax in
+                    with(Double(store.challengeRatings.count - 1)) { crRangeMax in
                         if store.compatibleFilters.contains(.minMonsterCR) {
                             SectionContainer(title: "Minimum CR", accessory: clearButton(for: .minMonsterCR)) {
                                 HStack {
@@ -129,12 +143,115 @@ struct CompendiumFilterSheet: View {
                     .disabled(store.effectiveCurrentValues == .init())
                 }
             }
+            .onAppear {
+                store.send(.onAppear)
+            }
         }
     }
 
+    @ViewBuilder
+    var sourceScopeControl: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button(action: {
+                store.send(.setSourceScopesExpanded(!store.isSourceScopesExpanded), animation: .default)
+            }) {
+                LabeledContent {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(store.sourceScopeSummary)
+                            .lineLimit(1)
+                        
+                        Image(systemName: store.isSourceScopesExpanded ? "chevron.up" : "chevron.down")
+                            .contentTransition(.symbolEffect(.replace))
+                            .font(.footnote)
+                    }
+                    .foregroundStyle(Color.accentColor)
+                    .padding(.trailing, 12) // align to other pickers
+                } label: {
+                    Text("Sources")
+                        .bold()
+                }
+                .frame(minHeight: 36)
+            }
+            .buttonStyle(.plain)
+
+            if store.isSourceScopesExpanded {
+                Divider()
+                
+                VStack(alignment: .leading, spacing: 10) {
+                    Button(action: {
+                        store.send(.clear(.source))
+                    }) {
+                    sourceScopeRow(
+                        title: "All sources",
+                        selectionStyle: (store.current.sourceScopes?.isEmpty != false) ? .selected : .none,
+                        emphasized: true,
+                        indented: false
+                    )
+                    }
+                    .buttonStyle(.plain)
+
+                    if let realmsWithDocuments = store.realmsWithDocuments {
+                        ForEach(realmsWithDocuments, id: \.realm.id) { row in
+                            Button(action: {
+                                store.send(.toggleRealmSourceScope(row.realm.id), animation: .default)
+                            }) {
+                            sourceScopeRow(
+                                title: row.realm.displayName,
+                                selectionStyle: {
+                                    if store.selectedRealmIds.contains(row.realm.id) {
+                                        return .selected
+                                    }
+                                    if store.selectedDocumentSources.contains(where: { $0.realm == row.realm.id }) {
+                                        return .partial
+                                    }
+                                    return .none
+                                }(),
+                                emphasized: true,
+                                indented: false
+                            )
+                            }
+                            .buttonStyle(.plain)
+
+                            ForEach(row.documents, id: \.id) { document in
+                                let source = CompendiumFilters.Source(realm: row.realm.id, document: document.id)
+                                Button(action: {
+                                    store.send(.toggleDocumentSourceScope(source))
+                                }) {
+                                    sourceScopeRow(
+                                        title: document.displayName,
+                                        selectionStyle: (store.selectedRealmIds.contains(source.realm) || store.selectedDocumentSources.contains(source)) ? .selected : .none,
+                                        emphasized: false,
+                                        indented: true
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    } else {
+                        Text("Loading...")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    func sourceScopeRow(title: String, selectionStyle: SourceScopeSelectionStyle, emphasized: Bool, indented: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: selectionStyle.systemImage)
+                .foregroundStyle(selectionStyle.tint)
+                .contentTransition(.symbolEffect(.replace))
+            Text(title)
+                .fontWeight(emphasized ? .semibold : .regular)
+            Spacer()
+        }
+        .frame(minHeight: 36)
+        .padding(.leading, indented ? 24 : 0)
+    }
+
     func onEditingChanged(_ filter: CompendiumFilterSheetFeature.State.Filter) -> (Bool) -> Void {
-        return { b in
-            store.send(.editing(filter, b))
+        return { isEditing in
+            store.send(.editing(filter, isEditing))
         }
     }
 
@@ -153,24 +270,12 @@ struct CompendiumFilterSheet: View {
     func makeBody() -> AnyView {
         AnyView(self.eraseToAnyView)
     }
-
-    func needsDividerBefore(
-        _ source: (CompendiumFilterSheetFeature.State.Source),
-        in sources: [CompendiumFilterSheetFeature.State.Source]
-    ) -> Bool {
-        guard let idx = sources.firstIndex(where: { $0.document == source.document }) else {
-            return false
-        }
-        return idx == 0 || sources[idx-1].realm != source.realm
-    }
 }
 
 @Reducer
 struct CompendiumFilterSheetFeature {
     @ObservableState
     struct State: Equatable {
-        typealias Source = (document: CompendiumSourceDocument, realm: CompendiumRealm)
-
         let challengeRatings = crToXpMapping.keys.sorted()
         let allAllowedItemTypes: [CompendiumItemType]
         let sourceRestriction: CompendiumFilters.Source?
@@ -178,18 +283,12 @@ struct CompendiumFilterSheetFeature {
         let initial: Values
         var current: Values
 
-        var documentSelection: CompendiumDocumentSelectionFeature.State
+        var isSourceScopesExpanded = false
 
         typealias AsyncDocuments = Async<[CompendiumSourceDocument], EquatableError>
         var documents: AsyncDocuments.State = .initial
         typealias AsyncRealms = Async<[CompendiumRealm], EquatableError>
         var realms: AsyncRealms.State = .initial
-
-        var currentDocument: CompendiumSourceDocument? {
-            guard let s = current.source else { return nil }
-            return documents.value?.first(where: { $0.realmId == s.realm && $0.id == s.document })
-        }
-
 
         public init(
             allAllowedItemTypes: [CompendiumItemType] = CompendiumItemType.allCases,
@@ -203,44 +302,199 @@ struct CompendiumFilterSheetFeature {
             self.sourceRestriction = sourceRestriction
             self.initial = initial
             self.current = current
-            self.documentSelection = .init(selectedSource: current.source)
             self.documents = documents
             self.realms = realms
         }
-
 
         init() {
             self.allAllowedItemTypes = CompendiumItemType.allCases
             self.sourceRestriction = nil
             self.initial = Values()
             self.current = Values()
-            self.documentSelection = CompendiumDocumentSelectionFeature.State()
-        }
-
-        var allSources: [Source]? {
-            guard let documents = documents.value, let realms = realms.value else {
-                return nil
-            }
-            
-            return documents.compactMap { d in
-                realms.first(where: { $0.id == d.realmId }).map { r in
-                    (document: d, realm: r)
-                }
-            }
         }
 
         struct Values: Equatable {
-            var source: CompendiumFilters.Source?
+            var sourceScopes: [CompendiumFilters.SourceScope]?
             var itemType: CompendiumItemType?
             var minMonsterCR: Fraction?
             var maxMonsterCR: Fraction?
             var monsterType: MonsterType?
         }
 
+        struct RealmWithDocuments: Equatable {
+            let realm: CompendiumRealm
+            let documents: [CompendiumSourceDocument]
+        }
+
+        var realmsWithDocuments: [RealmWithDocuments]? {
+            guard let realms = realms.value, let documents = documents.value else {
+                return nil
+            }
+
+            let documentsByRealm = Dictionary(grouping: documents, by: \.realmId)
+            return realms.map { realm in
+                RealmWithDocuments(
+                    realm: realm,
+                    documents: documentsByRealm[realm.id] ?? []
+                )
+            }
+        }
+
+        var selectedRealmIds: Set<CompendiumRealm.Id> {
+            Set((current.sourceScopes ?? []).compactMap { scope in
+                guard case let .realm(realmId) = scope else { return nil }
+                return realmId
+            })
+        }
+
+        var selectedDocumentSources: Set<CompendiumFilters.Source> {
+            Set((current.sourceScopes ?? []).compactMap { scope in
+                guard case let .document(source) = scope else { return nil }
+                return source
+            })
+        }
+
+        var sourceScopeSummary: String {
+            let realmIds = selectedRealmIds
+            let documentSources = selectedDocumentSources
+
+            guard !realmIds.isEmpty || !documentSources.isEmpty else {
+                return "All sources"
+            }
+
+            if realmIds.count == 1, documentSources.isEmpty,
+               let realmId = realmIds.first,
+               let realmName = realms.value?.first(where: { $0.id == realmId })?.displayName {
+                return realmName
+            }
+
+            if realmIds.isEmpty, documentSources.count == 1,
+               let source = documentSources.first,
+               let documentName = documents.value?.first(where: { $0.realmId == source.realm && $0.id == source.document })?.displayName {
+                return documentName
+            }
+
+            if !realmIds.isEmpty && !documentSources.isEmpty {
+                return "\(realmIds.count) realm\(realmIds.count == 1 ? "" : "s"), \(documentSources.count) document\(documentSources.count == 1 ? "" : "s")"
+            }
+
+            if !realmIds.isEmpty {
+                return "\(realmIds.count) realm\(realmIds.count == 1 ? "" : "s")"
+            }
+
+            return "\(documentSources.count) document\(documentSources.count == 1 ? "" : "s")"
+        }
+
+        mutating func toggleRealmSourceScope(_ realmId: CompendiumRealm.Id) {
+            var realmIds = selectedRealmIds
+            var documentSources = selectedDocumentSources
+
+            if realmIds.contains(realmId) {
+                realmIds.remove(realmId)
+            } else {
+                realmIds.insert(realmId)
+                documentSources = Set(documentSources.filter { $0.realm != realmId })
+            }
+
+            current.sourceScopes = orderedSourceScopes(
+                realmIds: realmIds,
+                documentSources: documentSources
+            ).nonEmptyArray
+        }
+
+        mutating func toggleDocumentSourceScope(_ source: CompendiumFilters.Source) {
+            var documentSources = selectedDocumentSources
+            var realmIds = selectedRealmIds
+            let shouldRemoveDocumentSourceScope = documentSources.contains(source) || selectedRealmIds.contains(source.realm)
+            if shouldRemoveDocumentSourceScope, realmIds.contains(source.realm) {
+                // convert realm scope to individual document scopes
+                let realmDocumentIds = realmsWithDocuments?
+                    .first { $0.realm.id == source.realm }?
+                    .documents.map { CompendiumFilters.Source($0) }
+                
+                if let realmDocumentIds {
+                    documentSources.formUnion(realmDocumentIds)
+                    realmIds.remove(source.realm)
+                }
+            }
+
+            
+            if shouldRemoveDocumentSourceScope {
+                documentSources.remove(source)
+            } else {
+                documentSources.insert(source)
+            }
+
+            current.sourceScopes = orderedSourceScopes(
+                realmIds: realmIds,
+                documentSources: documentSources
+            ).nonEmptyArray
+        }
+
+        func orderedSourceScopes(
+            realmIds: Set<CompendiumRealm.Id>,
+            documentSources: Set<CompendiumFilters.Source>
+        ) -> [CompendiumFilters.SourceScope] {
+            guard let realms = realms.value, let documents = documents.value else {
+                return sortAndDeduplicate(
+                    Array(realmIds).map(CompendiumFilters.SourceScope.realm)
+                    + Array(documentSources).map(CompendiumFilters.SourceScope.document)
+                )
+            }
+
+            var ordered: [CompendiumFilters.SourceScope] = []
+
+            for realm in realms {
+                if realmIds.contains(realm.id) {
+                    ordered.append(.realm(realm.id))
+                }
+
+                for document in documents where document.realmId == realm.id {
+                    let source = CompendiumFilters.Source(realm: realm.id, document: document.id)
+                    if !realmIds.contains(realm.id), documentSources.contains(source) {
+                        ordered.append(.document(source))
+                    }
+                }
+            }
+
+            let knownRealmIds = Set(realms.map(\.id))
+            let unknownRealmIds = realmIds.subtracting(knownRealmIds)
+                .sorted { $0.rawValue < $1.rawValue }
+            ordered.append(contentsOf: unknownRealmIds.map(CompendiumFilters.SourceScope.realm))
+
+            let knownSources = Set(documents.map {
+                CompendiumFilters.Source(realm: $0.realmId, document: $0.id)
+            })
+            let unknownSources = documentSources.subtracting(knownSources)
+                .sorted { ($0.realm.rawValue, $0.document.rawValue) < ($1.realm.rawValue, $1.document.rawValue) }
+            ordered.append(contentsOf: unknownSources.map(CompendiumFilters.SourceScope.document))
+
+            return ordered
+        }
+
+        func sortAndDeduplicate(_ scopes: [CompendiumFilters.SourceScope]) -> [CompendiumFilters.SourceScope] {
+            var deduplicated: [CompendiumFilters.SourceScope] = []
+            for scope in scopes where !deduplicated.contains(scope) {
+                deduplicated.append(scope)
+            }
+
+            return deduplicated.sorted {
+                sourceScopeSortKey($0) < sourceScopeSortKey($1)
+            }
+        }
+
+        func sourceScopeSortKey(_ scope: CompendiumFilters.SourceScope) -> (Int, String, String) {
+            switch scope {
+            case .realm(let realmId):
+                return (0, realmId.rawValue, "")
+            case .document(let source):
+                return (1, source.realm.rawValue, source.document.rawValue)
+            }
+        }
+
         var compatibleFilters: [Filter] {
             var result: [Filter] = []
-            if (current.itemType == .monster) {
-                // monster is included or there is no filter at all
+            if current.itemType == .monster {
                 result.append(.minMonsterCR)
                 result.append(.maxMonsterCR)
                 result.append(.monsterType)
@@ -248,11 +502,10 @@ struct CompendiumFilterSheetFeature {
             return result
         }
 
-        /// Removes values that are not compatible with the currently selected type
         var effectiveCurrentValues: Values {
             let filters = compatibleFilters
             return Values(
-                source: current.source,
+                sourceScopes: current.sourceScopes,
                 itemType: current.itemType,
                 minMonsterCR: filters.contains(.minMonsterCR) ? current.minMonsterCR : nil,
                 maxMonsterCR: filters.contains(.maxMonsterCR) ? current.maxMonsterCR : nil,
@@ -269,6 +522,11 @@ struct CompendiumFilterSheetFeature {
 
     @CasePathable
     enum Action: Equatable {
+        case onAppear
+        case setSourceScopesExpanded(Bool)
+        case toggleRealmSourceScope(CompendiumRealm.Id)
+        case toggleDocumentSourceScope(CompendiumFilters.Source)
+
         case itemType(CompendiumItemType?)
         case minMonsterCR(Double)
         case maxMonsterCR(Double)
@@ -278,21 +536,35 @@ struct CompendiumFilterSheetFeature {
         case clearAll
         case onApply
 
-        case documentSelection(CompendiumDocumentSelectionFeature.Action)
+        case documents(State.AsyncDocuments.Action)
+        case realms(State.AsyncRealms.Action)
     }
+
+    @Dependency(\.compendiumMetadata) var compendiumMetadata
 
     var body: some ReducerOf<Self> {
         CombineReducers {
             Reduce { state, action in
                 switch action {
+                case .onAppear:
+                    return .merge(
+                        .send(.documents(.startLoading)),
+                        .send(.realms(.startLoading))
+                    )
+                case .setSourceScopesExpanded(let expanded):
+                    state.isSourceScopesExpanded = expanded
+                case .toggleRealmSourceScope(let realmId):
+                    state.toggleRealmSourceScope(realmId)
+                case .toggleDocumentSourceScope(let source):
+                    state.toggleDocumentSourceScope(source)
                 case .itemType(let type):
                     state.current.itemType = type
-                case .minMonsterCR(let v):
-                    state.minMonsterCrDouble = v
-                case .maxMonsterCR(let v):
-                    state.maxMonsterCrDouble = v
-                case .monsterType(let t):
-                    state.monsterType = t
+                case .minMonsterCR(let value):
+                    state.minMonsterCrDouble = value
+                case .maxMonsterCR(let value):
+                    state.maxMonsterCrDouble = value
+                case .monsterType(let monsterType):
+                    state.monsterType = monsterType
                 case .editing(.minMonsterCR, false):
                     if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
                         state.current.maxMonsterCR = max(minCr, maxCr)
@@ -301,9 +573,10 @@ struct CompendiumFilterSheetFeature {
                     if let minCr = state.current.minMonsterCR, let maxCr = state.current.maxMonsterCR {
                         state.current.minMonsterCR = min(minCr, maxCr)
                     }
-                case .editing: break
+                case .editing:
+                    break
                 case .clear(.source):
-                    state.documentSelection.selectedSource = nil // change picked up in onChange below
+                    state.current.sourceScopes = nil
                 case .clear(.itemType):
                     state.current.itemType = nil
                 case .clear(.minMonsterCR):
@@ -315,24 +588,23 @@ struct CompendiumFilterSheetFeature {
                 case .clearAll:
                     return .merge(
                         State.Filter.allCases.map { filter in
-                                .send(.clear(filter))
+                            .send(.clear(filter))
                         }
                     )
                 case .onApply:
                     break
-                case .documentSelection:
+                case .documents, .realms:
                     break
                 }
                 return .none
             }
-            Scope(state: \.documentSelection, action: \.documentSelection) {
-                CompendiumDocumentSelectionFeature()
+
+            Scope(state: \.documents, action: \.documents) {
+                State.AsyncDocuments(compendiumMetadata: compendiumMetadata)
             }
-        }.onChange(of: \.documentSelection.selectedSource) { oldValue, newValue in
-            Reduce { state, action in
-                // Update current.source when documentSelection.selectedSource changes
-                state.current.source = newValue
-                return .none
+
+            Scope(state: \.realms, action: \.realms) {
+                State.AsyncRealms(compendiumMetadata: compendiumMetadata)
             }
         }
     }
@@ -342,12 +614,12 @@ extension CompendiumFilterSheetFeature.State {
     var minMonsterCrDouble: Double {
         get {
             if let fraction = current.minMonsterCR, let idx = challengeRatings.firstIndex(of: fraction) {
-                return Double(challengeRatings.count-1-idx)
+                return Double(challengeRatings.count - 1 - idx)
             }
-            return Double(challengeRatings.count-1)
+            return Double(challengeRatings.count - 1)
         }
         set {
-            current.minMonsterCR = challengeRatings[challengeRatings.count-1-Int(newValue)]
+            current.minMonsterCR = challengeRatings[challengeRatings.count - 1 - Int(newValue)]
         }
     }
 
@@ -356,7 +628,7 @@ extension CompendiumFilterSheetFeature.State {
             if let fraction = current.maxMonsterCR, let idx = challengeRatings.firstIndex(of: fraction) {
                 return Double(idx)
             }
-            return Double(challengeRatings.count-1)
+            return Double(challengeRatings.count - 1)
         }
         set {
             current.maxMonsterCR = challengeRatings[Int(newValue)]
@@ -383,7 +655,7 @@ extension CompendiumFilterSheetFeature.State {
     func hasValue(for filter: Filter) -> Bool {
         switch filter {
         case .source:
-            return current.source != nil
+            return current.sourceScopes?.isEmpty == false
         case .itemType:
             return current.itemType != nil
         case .minMonsterCR:

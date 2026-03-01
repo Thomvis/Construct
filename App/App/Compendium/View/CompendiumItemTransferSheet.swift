@@ -41,7 +41,7 @@ struct CompendiumItemTransferFeature {
             if originDocument == nil {
                 switch selection {
                 case .multipleFetchRequest(let request):
-                    if let source = request.filters?.source {
+                    if let source = request.filters?.singleDocumentSourceScope {
                         self.originDocument = source
                     } else {
                         self.originDocument = nil
@@ -57,6 +57,7 @@ struct CompendiumItemTransferFeature {
             }
 
             self.documentSelection = CompendiumDocumentSelectionFeature.State(
+                selectedSource: nil,
                 disabledSources: self.originDocument.nonNilArray,
                 unselectedLabel: "Select"
             )

@@ -242,6 +242,42 @@ class KeyValueStoreTest: XCTestCase {
         XCTAssertEqual(values, [3])
     }
 
+    func testFetchAllFilterOneOfSingleValue() throws {
+        try sut.put(4, at: "4", secondaryIndexValues: [0: "a"])
+        try sut.put(1, at: "1", secondaryIndexValues: [0: "a"])
+        try sut.put(3, at: "3", secondaryIndexValues: [0: "b"])
+        try sut.put(2, at: "2", secondaryIndexValues: [0: "c"])
+
+        let values: [Int] = try sut.fetchAll(.init(filters: [
+            .init(index: 0, condition: .oneOf(["b"]))
+        ]))
+        XCTAssertEqual(values, [3])
+    }
+
+    func testFetchAllFilterOneOfMultipleValues() throws {
+        try sut.put(4, at: "4", secondaryIndexValues: [0: "a"])
+        try sut.put(1, at: "1", secondaryIndexValues: [0: "a"])
+        try sut.put(3, at: "3", secondaryIndexValues: [0: "b"])
+        try sut.put(2, at: "2", secondaryIndexValues: [0: "c"])
+
+        let values: [Int] = try sut.fetchAll(.init(filters: [
+            .init(index: 0, condition: .oneOf(["a", "c"]))
+        ]))
+        XCTAssertEqual(values, [1, 2, 4])
+    }
+
+    func testFetchAllFilterOneOfEmptyListMatchesNothing() throws {
+        try sut.put(4, at: "4", secondaryIndexValues: [0: "a"])
+        try sut.put(1, at: "1", secondaryIndexValues: [0: "a"])
+        try sut.put(3, at: "3", secondaryIndexValues: [0: "b"])
+        try sut.put(2, at: "2", secondaryIndexValues: [0: "c"])
+
+        let values: [Int] = try sut.fetchAll(.init(filters: [
+            .init(index: 0, condition: .oneOf([]))
+        ]))
+        XCTAssertEqual(values, [])
+    }
+
     func testFetchAllSecondaryIndexKeyTieBreaker() throws {
         try sut.put(4, at: "4", secondaryIndexValues: [0: "a"])
         try sut.put(1, at: "1", secondaryIndexValues: [0: "a"])

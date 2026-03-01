@@ -348,6 +348,13 @@ extension DatabaseKeyValueStore {
                     query = query.filter(column <= v)
                 case .equals(let v):
                     query = query.filter(column == v)
+                case .oneOf(let values):
+                    guard let values = values.nonEmptyArray else {
+                        // An empty list should match nothing.
+                        query = query.filter(sql: "0")
+                        continue
+                    }
+                    query = query.filter(values.map({ column == $0 }).joined(operator: .or))
                 }
             }
         }
@@ -453,6 +460,7 @@ public enum SecondaryIndexCondition {
     case greaterThanOrEqualTo(String)
     case lessThanOrEqualTo(String)
     case equals(String)
+    case oneOf([String])
 }
 
 public struct SecondaryIndexOrder {
