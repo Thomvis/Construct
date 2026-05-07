@@ -2,6 +2,18 @@ import XCTest
 
 final class ConstructFirstLaunchUITests: ConstructUITestCase {
 
+    func testFirstLaunchShowsDefaultContentCards() {
+        let app = launchApp()
+        _ = OnboardingPage(app: app).waitForVisible()
+
+        let nextButton = app.buttons["Next"]
+        XCTAssertTrue(nextButton.waitForExistence(timeout: 10))
+        nextButton.tap()
+
+        XCTAssertTrue(app.buttons["default-content-card-2014"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["default-content-card-2024"].waitForExistence(timeout: 10))
+    }
+
     func testFirstLaunchSampleEncounterLoadsIntoScratchPad() {
         let app = launchApp()
         _ = OnboardingPage(app: app)

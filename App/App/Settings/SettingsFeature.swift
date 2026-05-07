@@ -25,6 +25,7 @@ public struct SettingsFeature {
         @Shared(.entity(Preferences.key)) var preferences = Preferences()
         var mechMuseVerificationState: MechMuseVerificationState = .initial
         var canSendMail: Bool = false
+        @Presents var defaultContentSelection: DefaultContentSelectionFeature.State?
 
         public init(
             destination: Destination? = nil
@@ -67,6 +68,8 @@ public struct SettingsFeature {
     public enum Action: Equatable {
         case onAppear
         case setDestination(State.Destination?)
+        case setDefaultContentSelection(Bool)
+        case defaultContentSelection(PresentationAction<DefaultContentSelectionFeature.Action>)
         case setMechMuseEnabled(Bool)
         case setMechMuseApiKey(String)
         case setErrorReportingEnabled(Bool)
@@ -83,8 +86,8 @@ public struct SettingsFeature {
 
     @Dependency(\.mailer) var mailer
     @Dependency(\.appReview) var appReview
-    @Dependency(\.compendium) var compendium
-    @Dependency(\.compendiumMetadata) var compendiumMetadata
+    @Dependency(\.database) var database
+    @Dependency(\.crashReporter) var crashReporter
     @Dependency(\.mechMuse) var mechMuse
     @Dependency(\.continuousClock) var clock
 
@@ -101,6 +104,37 @@ public struct SettingsFeature {
 
             case .setDestination(let destination):
                 state.destination = destination
+
+            case .setDefaultContentSelection(let presented):
+                if presented {
+                    if let suggestedSelection = try? database.suggestedDefaultContentSelection() {
+                        state.defaultContentSelection = .init(
+                            selection: suggestedSelection,
+                            sampleEncounterOption: .loadSampleEncounter(defaultEnabled: false)
+                        )
+                    } else {
+                        state.defaultContentSelection = .init(
+                            selection: .rules2014Only,
+                            sampleEncounterOption: .loadSampleEncounter(defaultEnabled: false)
+                        )
+                    }
+                } else {
+                    state.defaultContentSelection = nil
+                }
+
+            case .defaultContentSelection(.presented(.delegate(.applied(let selection, let restoreSampleEncounter)))):
+                state.defaultContentSelection = nil
+                guard restoreSampleEncounter else { break }
+                return .run { _ in
+                    _ = SampleEncounter.restore(
+                        database: database,
+                        crashReporter: crashReporter,
+                        selection: selection
+                    )
+                }
+
+            case .defaultContentSelection:
+                break
 
             case .setMechMuseEnabled(let enabled):
                 state.$preferences.withLock { $0.mechMuse.enabled = enabled }
@@ -121,8 +155,8 @@ public struct SettingsFeature {
 
             case .importDefaultContent:
                 return .run { _ in
-                    let importer = CompendiumImporter(compendium: compendium, metadata: compendiumMetadata)
-                    try await importer.importDefaultContent()
+                    let selection = try database.suggestedDefaultContentSelection()
+                    try await database.applyDefaultContentSelection(selection)
                 }
 
             case .sendFeedback:
@@ -171,6 +205,9 @@ public struct SettingsFeature {
                 state.mechMuseVerificationState = .failed(error)
             }
             return .none
+        }
+        .ifLet(\.$defaultContentSelection, action: \.defaultContentSelection) {
+            DefaultContentSelectionFeature()
         }
     }
 

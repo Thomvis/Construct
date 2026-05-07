@@ -203,6 +203,10 @@
 		E9F7EB4D2D7B2D7000A0C19D /* CompendiumDocumentSelectionFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F7EB4C2D7B2D7000A0C19D /* CompendiumDocumentSelectionFeature.swift */; };
 		E9F9EB532319696C00A70D11 /* RolledDiceExpressionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F9EB522319696C00A70D11 /* RolledDiceExpressionTest.swift */; };
 		E9SETT0F2EA6900000000001 /* SettingsFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9SETT0F2EA6900000000000 /* SettingsFeature.swift */; };
+		F1DCC1012FC0000000000001 /* DefaultContentSelectionFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0012FC0000000000001 /* DefaultContentSelectionFeature.swift */; };
+		F1DCC1022FC0000000000001 /* DefaultContentSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0022FC0000000000001 /* DefaultContentSelectionView.swift */; };
+		F1DCC1032FC0000000000001 /* AppDefaultContentSelectionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0032FC0000000000001 /* AppDefaultContentSelectionTest.swift */; };
+		F1DCC1042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -414,6 +418,10 @@
 		E9F9EB522319696C00A70D11 /* RolledDiceExpressionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RolledDiceExpressionTest.swift; sourceTree = "<group>"; };
 		E9FF539228AF96F0000D754A /* Construct */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Construct; path = ..; sourceTree = "<group>"; };
 		E9SETT0F2EA6900000000000 /* SettingsFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFeature.swift; sourceTree = "<group>"; };
+		F1DCC0012FC0000000000001 /* DefaultContentSelectionFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultContentSelectionFeature.swift; sourceTree = "<group>"; };
+		F1DCC0022FC0000000000001 /* DefaultContentSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultContentSelectionView.swift; sourceTree = "<group>"; };
+		F1DCC0032FC0000000000001 /* AppDefaultContentSelectionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDefaultContentSelectionTest.swift; sourceTree = "<group>"; };
+		F1DCC0042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultContentSelectionFeatureTest.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -574,6 +582,7 @@
 				E9F1286E28E6D8510040C90C /* EntityChangeObserver.swift */,
 				E9F56AC5235483780085A72D /* AppState.swift */,
 				E999896722A6B4F20067BA25 /* ConstructApp.swift */,
+				F1DCC2012FC0000000000001 /* DefaultContentSelection */,
 				E92A41E3240D2F0C009AF440 /* WelcomeView.swift */,
 				E9869F8C252203BA0098A166 /* TabNavigationView.swift */,
 				E9869F90252203F40098A166 /* TabNavigationFeature.swift */,
@@ -583,6 +592,15 @@
 				E9E3575028DC822D00484DFA /* CrashReporter.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		F1DCC2012FC0000000000001 /* DefaultContentSelection */ = {
+			isa = PBXGroup;
+			children = (
+				F1DCC0012FC0000000000001 /* DefaultContentSelectionFeature.swift */,
+				F1DCC0022FC0000000000001 /* DefaultContentSelectionView.swift */,
+			);
+			path = DefaultContentSelection;
 			sourceTree = "<group>";
 		};
 		E931E5492339719500C3FE9A /* UI */ = {
@@ -879,6 +897,8 @@
 				E959BB5628BBF1AE0063CB64 /* CompendiumEntryTest.swift */,
 				E9EDE6B8296AEC1800026643 /* GenerateCombatantTraitsViewTest.swift */,
 				E95E25A82EA689B5000B82BF /* SettingsViewTest.swift */,
+				F1DCC0032FC0000000000001 /* AppDefaultContentSelectionTest.swift */,
+				F1DCC0042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1210,6 +1230,8 @@
 				E931E54B233971B300C3FE9A /* SearchField.swift in Sources */,
 				E95E25A72EA6899F000B82BF /* TipJarView.swift in Sources */,
 				E9SETT0F2EA6900000000001 /* SettingsFeature.swift in Sources */,
+				F1DCC1012FC0000000000001 /* DefaultContentSelectionFeature.swift in Sources */,
+				F1DCC1022FC0000000000001 /* DefaultContentSelectionView.swift in Sources */,
 				E97651D2248AE0D600C76865 /* RunningEncounterEventRow.swift in Sources */,
 				E9819BE22482E772005B898E /* CombatantTrackerEditView.swift in Sources */,
 				E97651D9248AEA8000C76865 /* CombatantTagEditView.swift in Sources */,
@@ -1267,6 +1289,8 @@
 				E95E25A92EA689B5000B82BF /* SettingsViewTest.swift in Sources */,
 				E97A4FAD23621FDA0044E424 /* EncounterDifficultyTest.swift in Sources */,
 				E959BB5728BBF1AE0063CB64 /* CompendiumEntryTest.swift in Sources */,
+				F1DCC1032FC0000000000001 /* AppDefaultContentSelectionTest.swift in Sources */,
+				F1DCC1042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift in Sources */,
 				E91E596F24477D3E00975453 /* AlignmentTest.swift in Sources */,
 				E98A0EF7267BCDD600316EE4 /* CreatureEditViewStateTest.swift in Sources */,
 				E90EFF412623220300F5443E /* DataSourceReaderParsersTest.swift in Sources */,

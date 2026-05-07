@@ -16,6 +16,7 @@ import Helpers
 import URLRouting
 import GameModels
 import Persistence
+import Compendium
 import Sharing
 
 @Reducer
@@ -25,19 +26,14 @@ struct AppFeature {
     struct State: Equatable {
 
         var navigation: Navigation.State?
-        var presentation: Presentation?
-        var pendingPresentations: [Presentation] = []
+        @Presents var destination: Destination.State?
+        var pendingDestinations: [Destination.State] = []
 
         var sceneIsActive = false
-        
+
         @Shared(.entity(Preferences.key)) var preferences = Preferences()
 
         @Presents var crashReportingPermissionAlert: AlertState<Action.Alert>?
-
-        enum Presentation: Equatable {
-            case welcomeSheet
-            case crashReportingPermissionAlert
-        }
     }
 
     enum Action: Equatable {
@@ -46,12 +42,13 @@ struct AppFeature {
 
         case onHorizontalSizeClassChange(UserInterfaceSizeClass)
 
-        case requestPresentation(State.Presentation)
-        case dismissPresentation(State.Presentation)
+        case requestDestination(Destination.State)
+        case destination(PresentationAction<Destination.Action>)
+        case presentCrashReportingPermissionAlert
 
         case onReceiveCrashReportingUserPermission(CrashReporter.UserPermission)
 
-        case welcomeSheetSampleEncounterTapped
+        case defaultContentSelectionContinueTapped
         case onAppear
 
         case scene(ScenePhase)
@@ -66,6 +63,12 @@ struct AppFeature {
             case send
             case dontSend
         }
+    }
+
+    @Reducer
+    enum Destination {
+        case welcome(WelcomeFeature)
+        case defaultContentSelection(DefaultContentSelectionFeature)
     }
 
     @Dependency(\.appReview) var appReview
@@ -89,7 +92,7 @@ struct AppFeature {
                                 crashReporter.registerUserPermission(.send)
                             }
 
-                            await send(.requestPresentation(.crashReportingPermissionAlert))
+                            await send(.presentCrashReportingPermissionAlert)
                         }
                     },
                     .run { _ in
@@ -120,41 +123,75 @@ struct AppFeature {
                 default:
                     break
                 }
-            case .requestPresentation(let p):
-                precondition(p != .welcomeSheet || !database.needsPrepareForUse)
+            case .requestDestination(let destination):
+                precondition(!database.needsPrepareForUse)
 
-                if state.presentation == nil {
-                    state.presentation = p
-                    if p == .crashReportingPermissionAlert {
-                        state.crashReportingPermissionAlert = AlertState {
-                            TextState("Construct quit unexpectedly.")
-                        } actions: {
-                            ButtonState(role: .cancel, action: .send(.dontSend)) {
-                                TextState("Don't send")
-                            }
-                            ButtonState(action: .send(.send)) {
-                                TextState("Send")
-                            }
-                        } message: {
-                            TextState("Do you want to send an anonymous crash reports so I can fix the issue?")
-                        }
+                if state.destination == nil {
+                    state.destination = destination
+
+                    let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
+                    if case .welcome = destination, !isUiTesting {
+                        state.$preferences.withLock { $0.didShowWelcomeSheet = true }
                     }
                 } else {
-                    state.pendingPresentations.append(p)
+                    state.pendingDestinations.append(destination)
                 }
-            case .dismissPresentation(let p):
-                guard state.presentation == p else { break }
-                state.presentation = nil
-                if p == .crashReportingPermissionAlert {
-                    state.crashReportingPermissionAlert = nil
+            case .destination(.dismiss):
+                guard let destination = state.destination else { break }
+                if case .defaultContentSelection(let selectionState) = destination,
+                   let dismissalToken = selectionState.dismissalToken {
+                    state.$preferences.withLock { $0.dismissedDefaultContentUpdatePromptToken = dismissalToken }
                 }
+                state.destination = nil
 
-                if let next = state.pendingPresentations.first {
-                    state.pendingPresentations.removeFirst()
+                if let next = state.pendingDestinations.first {
+                    state.pendingDestinations.removeFirst()
                     return .run { send in
                         try await Task.sleep(for: .seconds(0.1))
-                        await send(.requestPresentation(next))
+                        await send(.requestDestination(next))
                     }
+                }
+            case .destination(.presented(.welcome(.delegate(.dismissWelcomeSheet)))):
+                return .send(.destination(.dismiss))
+            case .destination(.presented(.welcome(.delegate(.openSampleEncounter(let selection))))):
+                return .run { send in
+                    if let encounter = SampleEncounter.restore(
+                        database: database,
+                        crashReporter: crashReporter,
+                        selection: selection
+                    ) {
+                        await send(.navigation(.openEncounter(encounter)))
+                    }
+
+                    await send(.destination(.dismiss))
+                }
+            case .destination(.presented(.defaultContentSelection(.delegate(.applied(let selection, let restoreSampleEncounter))))):
+                state.$preferences.withLock { $0.dismissedDefaultContentUpdatePromptToken = nil }
+                return .run { send in
+                    if restoreSampleEncounter,
+                       let encounter = SampleEncounter.restore(
+                        database: database,
+                        crashReporter: crashReporter,
+                        selection: selection
+                       ) {
+                        await send(.navigation(.openEncounter(encounter)))
+                    }
+                    await send(.destination(.dismiss))
+                }
+            case .destination:
+                break
+            case .presentCrashReportingPermissionAlert:
+                state.crashReportingPermissionAlert = AlertState {
+                    TextState("Construct quit unexpectedly.")
+                } actions: {
+                    ButtonState(role: .cancel, action: .send(.dontSend)) {
+                        TextState("Don't send")
+                    }
+                    ButtonState(action: .send(.send)) {
+                        TextState("Send")
+                    }
+                } message: {
+                    TextState("Do you want to send an anonymous crash reports so I can fix the issue?")
                 }
             case .alert(let presentationAction):
                 switch presentationAction {
@@ -163,30 +200,45 @@ struct AppFeature {
                 case .presented(.dontSend):
                     return .send(.onReceiveCrashReportingUserPermission(.dontSend))
                 case .dismiss:
-                    return .send(.dismissPresentation(.crashReportingPermissionAlert))
+                    state.crashReportingPermissionAlert = nil
                 }
             case .onReceiveCrashReportingUserPermission(let permission):
                 crashReporter.registerUserPermission(permission)
                 if state.preferences.errorReportingEnabled != (permission == .send) {
                     state.$preferences.withLock { $0.errorReportingEnabled = permission == .send }
                 }
-            case .welcomeSheetSampleEncounterTapped:
-                return .run { send in
-                    SampleEncounter.create(database: database, crashReporter: crashReporter)
-
-                    if let encounter: Encounter = try? database.keyValueStore.get(
-                        Encounter.key(Encounter.scratchPadEncounterId),
-                        crashReporter: crashReporter
-                    ) {
-                        await send(.navigation(.openEncounter(encounter)))
-                    }
-
-                    await send(.dismissPresentation(.welcomeSheet))
-                }
+            case .defaultContentSelectionContinueTapped:
+                return .send(.destination(.presented(.defaultContentSelection(.applySelection))))
             case .onAppear:
                 let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
+                let persistedSelection: DefaultContentSelection? = try? database.keyValueStore.get(DefaultContentSelection.key)
                 if isUiTesting || !state.preferences.didShowWelcomeSheet {
-                    return .send(.requestPresentation(.welcomeSheet))
+                    return .send(.requestDestination(.welcome(.init(selection: .none, sampleEncounterDefault: true))))
+                } else if persistedSelection?.hasAnySelection != true {
+                    let selection: DefaultContentSelection
+                    if let suggestedSelection = try? database.suggestedDefaultContentSelection() {
+                        selection = suggestedSelection
+                    } else {
+                        selection = .rules2014Only
+                    }
+                    return .send(.requestDestination(.defaultContentSelection(
+                        .init(
+                            selection: selection,
+                            sampleEncounterOption: .loadSampleEncounter(defaultEnabled: true)
+                        )
+                    )))
+                } else if let status = try? database.defaultContentDocumentStatus(),
+                          (status.has2014UpdateAvailable || status.has2024UpdateAvailable),
+                          let selection = persistedSelection,
+                          let dismissalToken = defaultContentUpdateDismissalToken(status: status),
+                          state.preferences.dismissedDefaultContentUpdatePromptToken != dismissalToken {
+                    return .send(.requestDestination(.defaultContentSelection(
+                        .init(
+                            selection: selection,
+                            allowsDismissal: true,
+                            dismissalToken: dismissalToken
+                        )
+                    )))
                 } else if let nodeCount = try? campaignBrowser.nodeCount(),
                           nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
                 {
@@ -218,15 +270,7 @@ struct AppFeature {
             }
             return .none
         }
-        .onChange(of: \.presentation) { oldValue, newValue in
-            Reduce { state, action in
-                let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
-                if newValue == .welcomeSheet && !isUiTesting {
-                    state.$preferences.withLock { $0.didShowWelcomeSheet = true }
-                }
-                return .none
-            }
-        }
+        .ifLet(\.$destination, action: \.destination)
         .ifLet(\.navigation, action: \.navigation) {
             Navigation()
         }
@@ -237,6 +281,80 @@ struct AppFeature {
                 idleTimer.isIdleTimerDisabled.wrappedValue = false
             }
             return .none
+        }
+    }
+
+    private func defaultContentUpdateDismissalToken(
+        status: Database.DefaultContentDocumentStatus
+    ) -> String? {
+        var parts: [String] = []
+        if status.has2014Document {
+            parts.append("2014:\(DefaultContentVersions.currentMonsters2014):\(DefaultContentVersions.currentSpells2014)")
+        }
+        if status.has2024Document {
+            parts.append("2024:\(DefaultContentVersions.currentMonsters2024):\(DefaultContentVersions.currentSpells2024)")
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: "|")
+    }
+
+    @Reducer
+    struct WelcomeFeature {
+        @ObservableState
+        struct State: Equatable {
+            enum Page: Equatable {
+                case benefits
+                case contentImport
+            }
+
+            var page: Page = .benefits
+            var defaultContentSelection: DefaultContentSelectionFeature.State
+
+            init(selection: DefaultContentSelection, sampleEncounterDefault: Bool) {
+                self.defaultContentSelection = .init(
+                    selection: selection,
+                    sampleEncounterOption: .loadSampleEncounter(defaultEnabled: sampleEncounterDefault)
+                )
+            }
+        }
+
+        enum Action: Equatable {
+            case didTapNext
+            case didTapBack
+            case didTapContinue
+            case defaultContentSelection(DefaultContentSelectionFeature.Action)
+            case delegate(Delegate)
+        }
+
+        enum Delegate: Equatable {
+            case dismissWelcomeSheet
+            case openSampleEncounter(DefaultContentSelection)
+        }
+
+        var body: some ReducerOf<Self> {
+            Scope(state: \.defaultContentSelection, action: \.defaultContentSelection) {
+                DefaultContentSelectionFeature()
+            }
+
+            Reduce { state, action in
+                switch action {
+                case .didTapNext:
+                    state.page = .contentImport
+                    return .none
+                case .didTapBack:
+                    state.page = .benefits
+                    return .none
+                case .didTapContinue:
+                    return .send(.defaultContentSelection(.applySelection))
+                case .defaultContentSelection(.delegate(.applied(let selection, let restoreSampleEncounter))):
+                    if restoreSampleEncounter {
+                        return .send(.delegate(.openSampleEncounter(selection)))
+                    } else {
+                        return .send(.delegate(.dismissWelcomeSheet))
+                    }
+                case .defaultContentSelection, .delegate:
+                    return .none
+                }
+            }
         }
     }
 
@@ -428,10 +546,38 @@ extension ColumnNavigationFeature.State {
     }
 }
 
+extension AppFeature.Destination.State: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case let (.welcome(lhsState), .welcome(rhsState)):
+            return lhsState == rhsState
+        case let (.defaultContentSelection(lhsState), .defaultContentSelection(rhsState)):
+            return lhsState == rhsState
+        default:
+            return false
+        }
+    }
+}
+
+extension AppFeature.Destination.Action: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case let (.welcome(lhsAction), .welcome(rhsAction)):
+            return lhsAction == rhsAction
+        case let (.defaultContentSelection(lhsAction), .defaultContentSelection(rhsAction)):
+            return lhsAction == rhsAction
+        default:
+            return false
+        }
+    }
+}
+
 extension AppFeature.State: NavigationTreeNode {
     var navigationNodes: [Any] {
         let nodes: [Any] = [self]
-        guard presentation != .welcomeSheet else { return nodes }
+        if case .some(.welcome) = destination {
+            return nodes
+        }
         guard let navigation else { return nodes }
         return nodes + navigation.navigationNodes
     }

@@ -7,41 +7,107 @@
 //
 
 import Foundation
+import Compendium
 import GameModels
 import Helpers
 import Persistence
 
 enum SampleEncounter {
 
-    // Creates a sample encounter and sets it as the scratch pad
-    static func create(database: Database, crashReporter: CrashReporter) {
-        // create sample encounter and save to scratch pad
-        let spe: Encounter? = try? database.keyValueStore.get(
+    // Backwards-compatible helper used by tests/snapshots.
+    // Defaults to 2014 content to match previous behavior.
+    static func createEncounter(
+        database: Database,
+        crashReporter: CrashReporter
+    ) -> Encounter {
+        createEncounter(
+            database: database,
+            crashReporter: crashReporter,
+            selection: .rules2014Only,
+            id: UUID(),
+            name: "Sample encounter"
+        )
+    }
+
+    // Creates a sample encounter from the selected rules edition.
+    // If the scratch pad is empty, it is replaced.
+    // Otherwise a new top-level encounter is created with a unique name.
+    @discardableResult
+    static func restore(
+        database: Database,
+        crashReporter: CrashReporter,
+        selection: DefaultContentSelection
+    ) -> Encounter? {
+        let scratchPad: Encounter? = try? database.keyValueStore.get(
             Encounter.key(Encounter.scratchPadEncounterId),
             crashReporter: crashReporter
         )
 
-        let encounter = createEncounter(database: database, crashReporter: crashReporter, existing: spe)
-        try? database.keyValueStore.put(encounter)
+        let shouldUseScratchPad = scratchPad?.combatants.isEmpty != false
+        if shouldUseScratchPad {
+            let encounter = createEncounter(
+                database: database,
+                crashReporter: crashReporter,
+                selection: selection,
+                id: Encounter.scratchPadEncounterId.rawValue,
+                name: scratchPad?.name.nonEmptyString ?? "Scratch pad"
+            )
+            try? database.keyValueStore.put(encounter)
+            return encounter
+        } else {
+            let name = uniqueTopLevelEncounterName(database: database, preferredName: "Sample encounter")
+            let encounter = createEncounter(
+                database: database,
+                crashReporter: crashReporter,
+                selection: selection,
+                id: UUID(),
+                name: name
+            )
+
+            do {
+                try database.keyValueStore.put(encounter)
+                try database.keyValueStore.put(
+                    CampaignNode(
+                        id: UUID().tagged(),
+                        title: name,
+                        contents: .init(key: encounter.key.rawValue, type: .encounter),
+                        special: nil,
+                        parentKeyPrefix: CampaignNode.root.keyPrefixForChildren.rawValue
+                    )
+                )
+            } catch {
+                return nil
+            }
+
+            return encounter
+        }
     }
 
-    static func createEncounter(database: Database, crashReporter: CrashReporter, existing spe: Encounter? = nil) -> Encounter {
+    private static func createEncounter(
+        database: Database,
+        crashReporter: CrashReporter,
+        selection: DefaultContentSelection,
+        id: UUID,
+        name: String
+    ) -> Encounter {
+        let preferredRealms = preferredMonsterRealms(for: selection)
+
         var combatants: [Combatant] = []
-        if let entry = try? database.keyValueStore.get(
-            CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "Mummy"),
+        if let mummy = loadMonster(
+            "Mummy",
+            preferredRealms: preferredRealms,
+            database: database,
             crashReporter: crashReporter
-        ),
-            let mummy = entry.item as? Monster
-        {
+        ) {
             combatants.append(Combatant(monster: mummy))
         }
 
-        if let entry = try? database.keyValueStore.get(
-            CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "Giant Spider"),
+        if let spider = loadMonster(
+            "Giant Spider",
+            preferredRealms: preferredRealms,
+            database: database,
             crashReporter: crashReporter
-        ),
-            let spider = entry.item as? Monster
-        {
+        ) {
             combatants.append(Combatant(monster: spider))
             combatants.append(Combatant(monster: spider))
         }
@@ -76,6 +142,58 @@ enum SampleEncounter {
             }, player: Player(name: "Chris"), level: 3, original: nil)),
         ])
 
-        return Encounter(id: Encounter.scratchPadEncounterId.rawValue, name: spe?.name.nonEmptyString ?? "Scratch pad", combatants: combatants)
+        return Encounter(id: id, name: name, combatants: combatants)
+    }
+
+    private static func preferredMonsterRealms(for selection: DefaultContentSelection) -> [CompendiumRealm.Id] {
+        var realms: [CompendiumRealm.Id] = []
+        if selection.include2024 {
+            realms.append(CompendiumRealm.core2024.id)
+        }
+        if selection.include2014 {
+            realms.append(CompendiumRealm.core.id)
+        }
+        if realms.isEmpty {
+            realms.append(CompendiumRealm.core.id)
+        }
+        return realms
+    }
+
+    private static func loadMonster(
+        _ identifier: String,
+        preferredRealms: [CompendiumRealm.Id],
+        database: Database,
+        crashReporter: CrashReporter
+    ) -> Monster? {
+        for realm in preferredRealms {
+            if let entry = try? database.keyValueStore.get(
+                CompendiumItemKey(type: .monster, realm: .init(realm), identifier: identifier),
+                crashReporter: crashReporter
+            ),
+               let monster = entry.item as? Monster {
+                return monster
+            }
+        }
+        return nil
+    }
+
+    private static func uniqueTopLevelEncounterName(database: Database, preferredName: String) -> String {
+        let existingNodes: [CampaignNode] = (try? database.keyValueStore.fetchAll(
+            .keyPrefix(CampaignNode.root.keyPrefixForFetchingDirectChildren)
+        )) ?? []
+        let existingNames = Set(existingNodes.map(\.title))
+
+        if !existingNames.contains(preferredName) {
+            return preferredName
+        }
+
+        var suffix = 2
+        while true {
+            let candidate = "\(preferredName) \(suffix)"
+            if !existingNames.contains(candidate) {
+                return candidate
+            }
+            suffix += 1
+        }
     }
 }

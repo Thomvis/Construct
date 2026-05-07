@@ -176,17 +176,6 @@ private struct ConstructContentView: View {
 
     @Bindable var store: StoreOf<AppFeature>
 
-    private var welcomeSheetBinding: Binding<Bool> {
-        Binding(
-            get: { store.presentation == .welcomeSheet },
-            set: { isPresented in
-                if !isPresented {
-                    store.send(.dismissPresentation(.welcomeSheet))
-                }
-            }
-        )
-    }
-
     var body: some View {
         ZStack {
             if let tabStore = store.scope(state: \.navigation?.tab, action: \.navigation.tab) {
@@ -195,14 +184,57 @@ private struct ConstructContentView: View {
                 ColumnNavigationView(store: columnStore)
             }
         }
-        .sheet(isPresented: welcomeSheetBinding) {
-            WelcomeView { tap in
-                switch tap {
-                case .sampleEncounter:
-                    store.send(.welcomeSheetSampleEncounterTapped)
-                case .dismiss:
-                    store.send(.dismissPresentation(.welcomeSheet))
+        .sheet(
+            item: $store.scope(state: \.destination, action: \.destination)
+        ) { destinationStore in
+            switch destinationStore.case {
+            case let .welcome(welcomeStore):
+                WelcomeView(store: welcomeStore)
+                    .interactiveDismissDisabled()
+            case let .defaultContentSelection(defaultContentSelectionStore):
+                NavigationStack {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            DefaultContentSelectionView(
+                                store: defaultContentSelectionStore,
+                                showsTitle: false,
+                                showsValidationMessage: false
+                            )
+
+                            Button(action: {
+                                store.send(.defaultContentSelectionContinueTapped)
+                            }) {
+                                Text("Continue")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .disabled(!defaultContentSelectionStore.isValidSelection || defaultContentSelectionStore.isImporting)
+
+                            Text("Select at least one edition.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity, minHeight: 18, alignment: .center)
+                                .opacity(defaultContentSelectionStore.isValidSelection ? 0 : 1)
+                                .accessibilityHidden(defaultContentSelectionStore.isValidSelection)
+                        }
+                        .padding()
+                    }
+                    .navigationTitle("Default content")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        if defaultContentSelectionStore.allowsDismissal {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Not now") {
+                                    store.send(.destination(.dismiss))
+                                }
+                            }
+                        }
+                    }
                 }
+                .interactiveDismissDisabled(!defaultContentSelectionStore.allowsDismissal)
             }
         }
         .alert($store.scope(state: \.crashReportingPermissionAlert, action: \.alert))

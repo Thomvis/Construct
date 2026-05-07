@@ -37,4 +37,13 @@ final class ConstructScratchPadAndSettingsUITests: ConstructUITestCase {
             .assertDiagnosticReports(enabled: false)
             .doneToAdventure()
     }
+
+    func testDefaultContentSheetCanOpenFromSettings() {
+        let settings = launchIntoAdventureBySkippingOnboarding()
+            .openSettings()
+
+        _ = settings
+            .openDefaultContent()
+            .cancel()
+    }
 }

@@ -20,6 +20,7 @@ public struct Preferences: Codable, Equatable, Sendable {
     public var parseableManagerLastRunVersion: String?
     public var errorReportingEnabled: Bool?
     public var adventureTabMode: AdventureTabMode?
+    public var dismissedDefaultContentUpdatePromptToken: String?
     @DecodableDefault.TypeDefault<MechMusePreferences>
     public var mechMuse: MechMusePreferences
 
@@ -28,12 +29,14 @@ public struct Preferences: Codable, Equatable, Sendable {
         parseableManagerLastRunVersion: String? = nil,
         errorReportingEnabled: Bool? = nil,
         adventureTabMode: AdventureTabMode? = nil,
+        dismissedDefaultContentUpdatePromptToken: String? = nil,
         mechMuse: MechMusePreferences = .defaultValue
     ) {
         self.didShowWelcomeSheet = didShowWelcomeSheet
         self.parseableManagerLastRunVersion = parseableManagerLastRunVersion
         self.errorReportingEnabled = errorReportingEnabled
         self.adventureTabMode = adventureTabMode
+        self.dismissedDefaultContentUpdatePromptToken = dismissedDefaultContentUpdatePromptToken
         self.mechMuse = mechMuse
     }
 }

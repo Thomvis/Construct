@@ -18,7 +18,7 @@ class ConstructUITestCase: XCTestCase {
         let app = launchApp()
         return OnboardingPage(app: app)
             .waitForVisible()
-            .tapContinue()
+            .tapContinue(openSampleEncounter: false)
     }
 }
 
@@ -27,12 +27,18 @@ struct OnboardingPage {
 
     @discardableResult
     func waitForVisible(timeout: TimeInterval = 120) -> Self {
-        XCTAssertTrue(app.staticTexts["Welcome to Construct"].waitForExistence(timeout: timeout), "Expected onboarding screen")
+        XCTAssertTrue(
+            app.staticTexts["Welcome to Construct"].waitForExistence(timeout: timeout),
+            "Expected onboarding screen"
+        )
         return self
     }
 
     @discardableResult
-    func tapContinue(timeout: TimeInterval = 10) -> AdventurePage {
+    func tapContinue(timeout: TimeInterval = 10, openSampleEncounter: Bool = false) -> AdventurePage {
+        goToContentImportPageIfNeeded(timeout: timeout)
+        ensureAnyDefaultContentEditionSelectedIfNeeded(timeout: timeout)
+        setSampleEncounterToggle(openSampleEncounter, timeout: timeout)
         let continueButton = app.buttons["Continue"]
         XCTAssertTrue(continueButton.waitForExistence(timeout: timeout))
         continueButton.tap()
@@ -42,19 +48,60 @@ struct OnboardingPage {
 
     @discardableResult
     func tapOpenSampleEncounter(timeout: TimeInterval = 10) -> ScratchPadPage {
-        let sampleButton = app.buttons["Open sample encounter"]
-        XCTAssertTrue(sampleButton.waitForExistence(timeout: timeout))
-        sampleButton.tap()
-        waitForDismiss()
+        _ = tapContinue(timeout: timeout, openSampleEncounter: true)
         return ScratchPadPage(app: app).waitForVisible()
     }
 
     private func waitForDismiss() {
-        let welcomeTitle = app.staticTexts["Welcome to Construct"]
-        if welcomeTitle.exists {
+        let onboardingCard = app.buttons["default-content-card-2014"]
+        if onboardingCard.exists {
             let gone = NSPredicate(format: "exists == false")
-            let waiter = XCTNSPredicateExpectation(predicate: gone, object: welcomeTitle)
+            let waiter = XCTNSPredicateExpectation(predicate: gone, object: onboardingCard)
             XCTAssertEqual(XCTWaiter().wait(for: [waiter], timeout: 30), .completed)
+        }
+    }
+
+    private func goToContentImportPageIfNeeded(timeout: TimeInterval) {
+        let card2014 = app.buttons["default-content-card-2014"].firstMatch
+        if card2014.waitForExistence(timeout: 1) {
+            return
+        }
+
+        let nextButton = app.buttons["Next"].firstMatch
+        if nextButton.waitForExistence(timeout: timeout) {
+            nextButton.tap()
+            XCTAssertTrue(card2014.waitForExistence(timeout: timeout))
+        }
+    }
+
+    private func ensureAnyDefaultContentEditionSelectedIfNeeded(timeout: TimeInterval) {
+        goToContentImportPageIfNeeded(timeout: timeout)
+
+        let continueButton = app.buttons["Continue"].firstMatch
+        if continueButton.waitForExistence(timeout: timeout), continueButton.isEnabled {
+            return
+        }
+
+        let card2014 = app.buttons["default-content-card-2014"].firstMatch
+        if card2014.waitForExistence(timeout: timeout) {
+            card2014.tap()
+            return
+        }
+
+        let fallbackTitle = app.staticTexts["Core 5e (2014)"].firstMatch
+        if fallbackTitle.waitForExistence(timeout: timeout) {
+            fallbackTitle.tap()
+        }
+    }
+
+    private func setSampleEncounterToggle(_ enabled: Bool, timeout: TimeInterval) {
+        let toggle = app.switches["default-content-sample-toggle"].firstMatch
+        guard toggle.waitForExistence(timeout: timeout) else { return }
+
+        let currentValue = (toggle.value as? String)?.lowercased()
+        let isOn = currentValue == "1" || currentValue == "on"
+        if isOn != enabled {
+            toggle.tap()
         }
     }
 }
@@ -2557,6 +2604,19 @@ struct SettingsPage {
         return AdventurePage(app: app).waitForVisible()
     }
 
+    @discardableResult
+    func openDefaultContent(timeout: TimeInterval = 10) -> DefaultContentSelectionPage {
+        let row = app.cells.containing(.staticText, identifier: "Default content").firstMatch
+        if row.waitForExistence(timeout: timeout) {
+            row.tap()
+        } else {
+            let button = app.buttons["Default content"].firstMatch
+            XCTAssertTrue(button.waitForExistence(timeout: timeout), "Expected Default content row")
+            button.tap()
+        }
+        return DefaultContentSelectionPage(app: app).waitForVisible()
+    }
+
     private func setSwitch(_ element: XCUIElement, enabled: Bool) {
         for _ in 0..<5 {
             if switchValue(of: element) == enabled { return }
@@ -2634,6 +2694,40 @@ struct SettingsPage {
         }
 
         return app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Adventure tab'")).firstMatch
+    }
+}
+
+struct DefaultContentSelectionPage {
+    let app: XCUIApplication
+
+    @discardableResult
+    func waitForVisible(timeout: TimeInterval = 10) -> Self {
+        XCTAssertTrue(app.navigationBars["Default content"].waitForExistence(timeout: timeout), "Expected Default content screen")
+        return self
+    }
+
+    @discardableResult
+    func toggleEdition2024() -> Self {
+        let card = app.buttons["default-content-card-2024"].firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout: 10), "Expected 2024 default content card")
+        card.tap()
+        return self
+    }
+
+    @discardableResult
+    func save() -> SettingsPage {
+        let saveButton = app.buttons["Save"].firstMatch
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 10), "Expected Save button")
+        saveButton.tap()
+        return SettingsPage(app: app).waitForVisible()
+    }
+
+    @discardableResult
+    func cancel() -> SettingsPage {
+        let cancelButton = app.buttons["Cancel"].firstMatch
+        XCTAssertTrue(cancelButton.waitForExistence(timeout: 10), "Expected Cancel button")
+        cancelButton.tap()
+        return SettingsPage(app: app).waitForVisible()
     }
 }
 

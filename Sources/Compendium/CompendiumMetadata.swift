@@ -90,14 +90,25 @@ public enum CompendiumMetadataError: Error {
     case cannotMoveDefaultResource
 }
 
+public enum DefaultContentEdition: Hashable, Sendable {
+    case rules2014
+    case rules2024
+}
+
 public extension CompendiumMetadata {
-    func importDefaultContent() async throws {
-        // Documents & Realms
-        try await createOrUpdateRealm(CompendiumRealm.core)
-        try await createOrUpdateRealm(CompendiumRealm.core2024)
+    func ensureHomebrewMetadata() async throws {
         try await createOrUpdateRealm(CompendiumRealm.homebrew)
-        try await createOrUpdateDocument(CompendiumSourceDocument.srd5_1)
-        try await createOrUpdateDocument(CompendiumSourceDocument.srd5_2)
         try await createOrUpdateDocument(CompendiumSourceDocument.homebrew)
+    }
+
+    func ensureEditionMetadata(_ edition: DefaultContentEdition) async throws {
+        switch edition {
+        case .rules2014:
+            try await createOrUpdateRealm(CompendiumRealm.core)
+            try await createOrUpdateDocument(CompendiumSourceDocument.srd5_1)
+        case .rules2024:
+            try await createOrUpdateRealm(CompendiumRealm.core2024)
+            try await createOrUpdateDocument(CompendiumSourceDocument.srd5_2)
+        }
     }
 }

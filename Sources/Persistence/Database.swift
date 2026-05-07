@@ -84,6 +84,7 @@ public class Database {
 
     public var needsPrepareForUse: Bool {
         return needsMigrations
+            || needsDefaultCompendiumMetadataBootstrap
             || needsDefaultCompendiumContentImport
             || needsScratchPadEncounterCreation
             || needsParseableProcessing
@@ -101,6 +102,10 @@ public class Database {
         guard importDefaultContent else { return false }
 
         do {
+            guard let selection = try keyValueStore.get(DefaultContentSelection.key), selection.hasAnySelection else {
+                return false
+            }
+
             let registeredMigrations = Set(migrator.migrations)
             let appliedMigrations = try queue.read { db in
                 try self.migrator.appliedMigrations(db)
@@ -110,11 +115,25 @@ public class Database {
 
             if hasLegacyImport {
                 return true
-            } else if let versions: DefaultContentVersions = try keyValueStore.get(DefaultContentVersions.key) {
-                return versions != DefaultContentVersions.current
             } else {
-                return false
+                let versions: DefaultContentVersions? = try keyValueStore.get(DefaultContentVersions.key)
+                return DefaultContentVersions.componentsNeedingImport(
+                    selection: selection,
+                    installed: versions
+                ).needsAnyImport
             }
+        } catch {
+            return false
+        }
+    }
+
+    private var needsDefaultCompendiumMetadataBootstrap: Bool {
+        guard importDefaultContent else { return false }
+
+        do {
+            let hasHomebrewRealm = try keyValueStore.contains(CompendiumRealm.key(for: CompendiumRealm.homebrew.id))
+            let hasHomebrewDocument = try keyValueStore.contains(CompendiumSourceDocument.homebrew.key)
+            return !hasHomebrewRealm || !hasHomebrewDocument
         } catch {
             return false
         }
@@ -144,18 +163,18 @@ public class Database {
         // migrate
         try migrator.migrate(self.queue)
 
+        if needsDefaultCompendiumMetadataBootstrap {
+            try await ensureHomebrewCompendiumMetadata()
+        }
+
         // import default content
         if needsDefaultContentImport {
-            let versions: DefaultContentVersions? = try keyValueStore.get(DefaultContentVersions.key)
-
-            // compendium
-            try await self.importDefaultCompendiumContent(
-                monsters2014: versions?.monsters2014 != DefaultContentVersions.current.monsters2014,
-                spells2014: versions?.spells2014 != DefaultContentVersions.current.spells2014,
-                monsters2024: versions?.monsters2024 != DefaultContentVersions.current.monsters2024,
-                spells2024: versions?.spells2024 != DefaultContentVersions.current.spells2024
-            )
-            try keyValueStore.put(DefaultContentVersions.current)
+            if let selection: DefaultContentSelection = try keyValueStore.get(DefaultContentSelection.key),
+               selection.hasAnySelection {
+                try await importDefaultCompendiumContentIfNeeded(selection: selection)
+            } else {
+                assertionFailure("Expected default content selection when importing default content")
+            }
         }
 
         // scratch pad
@@ -184,6 +203,104 @@ public class Database {
         try queue.close()
     }
 
+    public func suggestedDefaultContentSelection() throws -> DefaultContentSelection {
+        if let selection: DefaultContentSelection = try keyValueStore.get(DefaultContentSelection.key),
+           selection.hasAnySelection {
+            return selection
+        }
+
+        let status = try defaultContentDocumentStatus()
+        if status.has2014Document || status.has2024Document {
+            return DefaultContentSelection(
+                include2014: status.has2014Document,
+                include2024: status.has2024Document
+            )
+        }
+
+        return .rules2014Only
+    }
+
+    public func applyDefaultContentSelection(_ selection: DefaultContentSelection) async throws {
+        guard selection.hasAnySelection else {
+            throw DefaultContentSelectionError.emptySelection
+        }
+
+        try keyValueStore.put(selection)
+        try await ensureHomebrewCompendiumMetadata()
+        try await importDefaultCompendiumContentIfNeeded(selection: selection)
+    }
+
+    public struct DefaultContentDocumentStatus: Equatable, Sendable {
+        public let has2014Document: Bool
+        public let has2024Document: Bool
+        public let has2014UpdateAvailable: Bool
+        public let has2024UpdateAvailable: Bool
+
+        public init(
+            has2014Document: Bool,
+            has2024Document: Bool,
+            has2014UpdateAvailable: Bool = false,
+            has2024UpdateAvailable: Bool = false
+        ) {
+            self.has2014Document = has2014Document
+            self.has2024Document = has2024Document
+            self.has2014UpdateAvailable = has2014UpdateAvailable
+            self.has2024UpdateAvailable = has2024UpdateAvailable
+        }
+    }
+
+    public func defaultContentDocumentStatus() throws -> DefaultContentDocumentStatus {
+        let documents: [CompendiumSourceDocument] = try keyValueStore.fetchAll(
+            .keyPrefix(CompendiumSourceDocument.keyPrefix)
+        )
+        let has2014Document = documents.contains(where: { $0.id == CompendiumSourceDocument.srd5_1.id })
+        let has2024Document = documents.contains(where: { $0.id == CompendiumSourceDocument.srd5_2.id })
+        let versions: DefaultContentVersions = try keyValueStore.get(DefaultContentVersions.key) ?? .empty
+        return DefaultContentDocumentStatus(
+            has2014Document: has2014Document,
+            has2024Document: has2024Document,
+            has2014UpdateAvailable: has2014Document && versions.needs2014Update,
+            has2024UpdateAvailable: has2024Document && versions.needs2024Update
+        )
+    }
+
+    private func ensureHomebrewCompendiumMetadata() async throws {
+        let metadata = CompendiumMetadata.live(self)
+        try await metadata.ensureHomebrewMetadata()
+    }
+
+    private func importDefaultCompendiumContentIfNeeded(selection: DefaultContentSelection) async throws {
+        let metadata = CompendiumMetadata.live(self)
+        if selection.include2014 {
+            try await metadata.ensureEditionMetadata(.rules2014)
+        }
+        if selection.include2024 {
+            try await metadata.ensureEditionMetadata(.rules2024)
+        }
+
+        let versions: DefaultContentVersions = try keyValueStore.get(DefaultContentVersions.key) ?? .empty
+        let importComponents = DefaultContentVersions.componentsNeedingImport(
+            selection: selection,
+            installed: versions
+        )
+
+        guard importComponents.needsAnyImport else { return }
+
+        try await importDefaultCompendiumContent(components: importComponents)
+        try keyValueStore.put(versions.applyingCurrentVersions(for: importComponents))
+    }
+
+    func importDefaultCompendiumContent(
+        components: DefaultContentImportComponents
+    ) async throws {
+        try await importDefaultCompendiumContent(
+            monsters2014: components.monsters2014,
+            spells2014: components.spells2014,
+            monsters2024: components.monsters2024,
+            spells2024: components.spells2024
+        )
+    }
+
     func importDefaultCompendiumContent(
         monsters2014: Bool = true,
         spells2014: Bool = true,
@@ -197,7 +314,6 @@ public class Database {
             metadata: metadata
         )
 
-        try await metadata.importDefaultContent()
         try await importer.importDefaultContent(
             monsters2014: monsters2014,
             spells2014: spells2014,
@@ -218,6 +334,10 @@ public class Database {
         try keyValueStore.put(preferences)
     }
 
+}
+
+public enum DefaultContentSelectionError: Error {
+    case emptySelection
 }
 
 public protocol DatabaseAccess {

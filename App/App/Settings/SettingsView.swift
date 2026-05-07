@@ -105,6 +105,14 @@ struct SettingsView: View {
                 .pickerStyle(.menu)
             }
 
+            Section(footer: Text("Choose whether default 2014 and/or 2024 SRD content is imported.")) {
+                NavigationRowButton(action: {
+                    store.send(.setDefaultContentSelection(true))
+                }) {
+                    Text("Default content").foregroundColor(Color.primary)
+                }
+            }
+
             Section(
                 footer: Group {
                     if store.preferences.mechMuse.enabled {
@@ -214,6 +222,50 @@ struct SettingsView: View {
         }
         .listStyle(InsetGroupedListStyle())
         .sheet(item: sheetDestination, content: sheetView)
+        .sheet(
+            item: $store.scope(state: \.defaultContentSelection, action: \.defaultContentSelection)
+        ) { defaultContentSelectionStore in
+            NavigationStack {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        DefaultContentSelectionView(
+                            store: defaultContentSelectionStore,
+                            showsTitle: false,
+                            showsValidationMessage: false
+                        )
+
+                        Button(action: {
+                            defaultContentSelectionStore.send(.applySelection)
+                        }) {
+                            Text("Save")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .disabled(!defaultContentSelectionStore.isValidSelection || defaultContentSelectionStore.isImporting)
+
+                        Text("Select at least one edition.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity, minHeight: 18, alignment: .center)
+                            .opacity(defaultContentSelectionStore.isValidSelection ? 0 : 1)
+                            .accessibilityHidden(defaultContentSelectionStore.isValidSelection)
+                    }
+                    .padding()
+                }
+                .navigationTitle("Default content")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            store.send(.setDefaultContentSelection(false))
+                        }
+                    }
+                }
+            }
+        }
         .navigationDestination(item: pushDestination, destination: pushView)
         .navigationBarTitle("Settings")
         .onAppear {

@@ -18,3 +18,13 @@ extension DefaultContentVersions: KeyValueStoreEntity {
         Self.key
     }
 }
+
+/// DefaultContentSelection is a singleton entity
+extension DefaultContentSelection: KeyValueStoreEntity {
+    public static let keyPrefix: String = "Construct::DefaultContentSelection"
+    public static let key: Key = Key(id: "")
+
+    public var key: Key {
+        Self.key
+    }
+}

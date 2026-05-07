@@ -10,9 +10,9 @@ var keyValueStoreEntities: [any KeyValueStoreEntity.Type] = [
     CompendiumImportJob.self,
     CompendiumRealm.self,
     CompendiumSourceDocument.self,
+    DefaultContentSelection.self,
     DefaultContentVersions.self,
     Encounter.self,
     Preferences.self,
     RunningEncounter.self,
 ]
-
