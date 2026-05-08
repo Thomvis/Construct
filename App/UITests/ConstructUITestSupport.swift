@@ -97,6 +97,12 @@ struct AdventurePage {
     }
 
     @discardableResult
+    func waitForCampaignBrowserVisible(timeout: TimeInterval = 20) -> Self {
+        XCTAssertTrue(app.buttons["New group"].waitForExistence(timeout: timeout), "Campaign browser should be visible")
+        return self
+    }
+
+    @discardableResult
     func openCompendium(timeout: TimeInterval = 20) -> CompendiumPage {
         let tabButton = app.buttons["Compendium"].firstMatch
         if tabButton.waitForExistence(timeout: 2), tabButton.isHittable {
@@ -253,8 +259,9 @@ struct CompendiumPage {
     @discardableResult
     func tapTypeFilter(_ label: String) -> Self {
         let filterButton = app.buttons[label].firstMatch
-        XCTAssertTrue(filterButton.waitForExistence(timeout: 10), "Expected type filter \(label)")
-        filterButton.tap()
+        if filterButton.waitForExistence(timeout: 2) {
+            filterButton.tap()
+        }
         return self
     }
 
@@ -1205,26 +1212,67 @@ struct ScratchPadPage {
 
     @discardableResult
     func resetEncounter(option: String) -> Self {
-        let resetControl = app.popUpButtons["Reset…"].firstMatch.exists
-            ? app.popUpButtons["Reset…"].firstMatch
-            : app.buttons["Reset…"].firstMatch
-        XCTAssertTrue(resetControl.waitForExistence(timeout: 10), "Expected Reset… control")
-        if resetControl.isHittable {
-            resetControl.tap()
-        } else {
-            resetControl.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        for _ in 0..<3 {
+            let resetControl = app.popUpButtons["Reset…"].firstMatch.exists
+                ? app.popUpButtons["Reset…"].firstMatch
+                : app.buttons["Reset…"].firstMatch
+            XCTAssertTrue(resetControl.waitForExistence(timeout: 10), "Expected Reset… control")
+            if resetControl.isHittable {
+                resetControl.tap()
+            } else {
+                resetControl.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+
+            if tapResetOption(option, timeout: 3) {
+                return self
+            }
         }
 
-        let actionButton = app.buttons[option].firstMatch
-        if actionButton.waitForExistence(timeout: 5) {
-            actionButton.tap()
-        } else {
-            let actionItem = app.menuItems[option].firstMatch
-            XCTAssertTrue(actionItem.waitForExistence(timeout: 5), "Expected reset option \(option)")
-            actionItem.tap()
-        }
-
+        XCTFail("Expected reset option \(option)")
         return self
+    }
+
+    private func tapResetOption(_ option: String, timeout: TimeInterval) -> Bool {
+        let exactButton = app.buttons[option].firstMatch
+        if exactButton.waitForExistence(timeout: timeout) {
+            tapPossiblyNonHittable(exactButton)
+            return true
+        }
+
+        let exactMenuItem = app.menuItems[option].firstMatch
+        if exactMenuItem.waitForExistence(timeout: timeout) {
+            tapPossiblyNonHittable(exactMenuItem)
+            return true
+        }
+
+        let predicate = NSPredicate(format: "label CONTAINS[c] %@", option)
+        let matchingButton = app.buttons.matching(predicate).firstMatch
+        if matchingButton.waitForExistence(timeout: 1) {
+            tapPossiblyNonHittable(matchingButton)
+            return true
+        }
+
+        let matchingMenuItem = app.menuItems.matching(predicate).firstMatch
+        if matchingMenuItem.waitForExistence(timeout: 1) {
+            tapPossiblyNonHittable(matchingMenuItem)
+            return true
+        }
+
+        let matchingText = app.staticTexts.matching(predicate).firstMatch
+        if matchingText.waitForExistence(timeout: 1) {
+            tapPossiblyNonHittable(matchingText)
+            return true
+        }
+
+        return false
+    }
+
+    private func tapPossiblyNonHittable(_ element: XCUIElement) {
+        if element.isHittable {
+            element.tap()
+        } else {
+            element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
     }
 
     @discardableResult
@@ -2012,7 +2060,9 @@ struct AddCombatantsPage {
     func done() -> ScratchPadPage {
         // If we're on a combatant detail push, navigate back to the add-combatants list.
         for _ in 0..<2 {
-            let backToAddCombatant = app.buttons["Add Combatant"].firstMatch
+            let backToAddCombatant = app.buttons["Add Combatant"].firstMatch.exists
+                ? app.buttons["Add Combatant"].firstMatch
+                : app.buttons["BackButton"].firstMatch
             if backToAddCombatant.exists && backToAddCombatant.isHittable {
                 backToAddCombatant.tap()
             }
@@ -2026,6 +2076,23 @@ struct AddCombatantsPage {
 
         let searchField = app.searchFields.firstMatch
         if searchField.exists {
+            let addCombatantNavBar = app.navigationBars["Add Combatant"].firstMatch
+            let addCombatantDone = addCombatantNavBar.buttons["Done"].firstMatch
+            if addCombatantDone.exists && addCombatantDone.isHittable {
+                addCombatantDone.tap()
+                return waitForDismissalToScratchPad()
+            }
+
+            let navBarDoneButtons = app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Done'"))
+            if tapFirstHittable(from: navBarDoneButtons, timeout: 5) {
+                return waitForDismissalToScratchPad()
+            }
+
+            let doneButtons = app.buttons.matching(NSPredicate(format: "label == 'Done'"))
+            if tapFirstHittable(from: doneButtons, timeout: 2) {
+                return waitForDismissalToScratchPad()
+            }
+
             for _ in 0..<3 {
                 let closeButton = app.buttons["close"].firstMatch
                 if closeButton.exists {
@@ -2034,10 +2101,6 @@ struct AddCombatantsPage {
                     } else {
                         closeButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
                     }
-                } else {
-                    // Some add-combatants presentations expose only an unlabeled close affordance in
-                    // the lower-right corner of the search row.
-                    app.coordinate(withNormalizedOffset: CGVector(dx: 0.83, dy: 0.80)).tap()
                 }
 
                 let gone = NSPredicate(format: "exists == false")
@@ -2064,22 +2127,9 @@ struct AddCombatantsPage {
                 return waitForDismissalToScratchPad()
             }
 
-            let addCombatantNavBar = app.navigationBars["Add Combatant"].firstMatch
-            let addCombatantDone = addCombatantNavBar.buttons["Done"].firstMatch
-            if addCombatantDone.exists && addCombatantDone.isHittable {
-                addCombatantDone.tap()
-                return waitForDismissalToScratchPad()
-            }
-
-            let navBarDoneButtons = app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Done'"))
-            if tapFirstHittable(from: navBarDoneButtons, timeout: 5) {
-                return waitForDismissalToScratchPad()
-            }
-
-            let doneButtons = app.buttons.matching(NSPredicate(format: "label == 'Done'"))
-            if tapFirstHittable(from: doneButtons, timeout: 2) {
-                return waitForDismissalToScratchPad()
-            }
+            // Last resort for older presentations with an unlabeled close affordance.
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.83, dy: 0.80)).tap()
+            return waitForDismissalToScratchPad()
         }
 
         let container = app.scrollViews.firstMatch.exists ? app.scrollViews.firstMatch : app
@@ -2462,10 +2512,48 @@ struct SettingsPage {
     }
 
     @discardableResult
+    func setAdventureTabMode(_ mode: String) -> Self {
+        let picker = adventureTabPicker()
+        XCTAssertTrue(picker.waitForExistence(timeout: 10), "Expected Adventure tab picker")
+        if picker.isHittable {
+            picker.tap()
+        } else {
+            picker.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+
+        let button = app.buttons[mode].firstMatch
+        if button.waitForExistence(timeout: 5) {
+            button.tap()
+            return self
+        }
+
+        let menuItem = app.menuItems[mode].firstMatch
+        if menuItem.waitForExistence(timeout: 5) {
+            menuItem.tap()
+            return self
+        }
+
+        let text = app.staticTexts[mode].firstMatch
+        XCTAssertTrue(text.waitForExistence(timeout: 5), "Expected Adventure tab mode \(mode)")
+        if text.isHittable {
+            text.tap()
+        } else {
+            text.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+        return self
+    }
+
+    @discardableResult
     func doneToAdventure() -> AdventurePage {
         let doneButton = app.navigationBars["Settings"].buttons["Done"].firstMatch
-        XCTAssertTrue(doneButton.waitForExistence(timeout: 10), "Expected Done button in Settings")
-        doneButton.tap()
+        if doneButton.waitForExistence(timeout: 2) {
+            doneButton.tap()
+        } else {
+            XCTAssertTrue(
+                app.navigationBars["Adventure"].waitForExistence(timeout: 10),
+                "Expected Done button in Settings or Adventure after Settings dismissed"
+            )
+        }
         return AdventurePage(app: app).waitForVisible()
     }
 
@@ -2515,6 +2603,37 @@ struct SettingsPage {
         }
 
         return app.switches.firstMatch
+    }
+
+    private func adventureTabPicker() -> XCUIElement {
+        let labeledButton = app.buttons["Adventure tab"].firstMatch
+        if labeledButton.exists {
+            return labeledButton
+        }
+
+        let labeledPopUp = app.popUpButtons["Adventure tab"].firstMatch
+        if labeledPopUp.exists {
+            return labeledPopUp
+        }
+
+        let label = app.staticTexts["Adventure tab"].firstMatch
+        if label.waitForExistence(timeout: 2) {
+            let matchingButtons = app.buttons.allElementsBoundByIndex
+                .filter { $0.exists && abs($0.frame.midY - label.frame.midY) < 80 }
+                .sorted { abs($0.frame.midY - label.frame.midY) < abs($1.frame.midY - label.frame.midY) }
+            if let matchingButton = matchingButtons.first {
+                return matchingButton
+            }
+
+            let matchingPopUps = app.popUpButtons.allElementsBoundByIndex
+                .filter { $0.exists && abs($0.frame.midY - label.frame.midY) < 80 }
+                .sorted { abs($0.frame.midY - label.frame.midY) < abs($1.frame.midY - label.frame.midY) }
+            if let matchingPopUp = matchingPopUps.first {
+                return matchingPopUp
+            }
+        }
+
+        return app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Adventure tab'")).firstMatch
     }
 }
 

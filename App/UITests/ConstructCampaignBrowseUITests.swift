@@ -7,6 +7,10 @@ final class ConstructCampaignBrowseUITests: ConstructUITestCase {
         let adventure = OnboardingPage(app: app)
             .waitForVisible()
             .tapContinue()
+            .openSettings()
+            .setAdventureTabMode("Campaign browser")
+            .doneToAdventure()
+            .waitForCampaignBrowserVisible()
 
         adventure.createGroup(named: "Group One")
         adventure.openItem(named: "Group One")
