@@ -193,7 +193,8 @@ let package = Package(
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
             ],
             resources: [
-                .copy("Resources/initial.sqlite")
+                .copy("Resources/initial.sqlite"),
+                .copy("Resources/appstore-3.0.2-rich.sqlite")
             ]
         ),
         .target(

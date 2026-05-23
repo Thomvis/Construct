@@ -118,6 +118,14 @@ Verify core app behavior after the large refactor by growing UI test coverage ar
 1. Open `Import...` from Compendium manage menu, verify Import sheet is presented, and cancel.
 2. Open `Help center` from Settings, verify external sheet presentation, and dismiss.
 
+### 12) Upgrade experience smoke
+- File: `App/UITests/ConstructUpgradeExperienceUITests.swift`
+- Covered scenarios:
+1. Launch the current app against the App Store 3.0.2 rich fixture.
+2. Apply the rules-content update prompt shown for historical data.
+3. Navigate through the migrated campaign browser hierarchy.
+4. Open the migrated encounter and verify expected upgraded entries are visible.
+
 ## Observations from code + axe exploration
 - Key surfaces currently visible and automatable with accessibility:
 1. Adventure/Scratch pad actions: `Reset…`, `Add combatants`, `Run encounter`.

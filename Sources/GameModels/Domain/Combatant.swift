@@ -217,6 +217,23 @@ public struct CombatantResource: Codable, Hashable, Identifiable {
         self.slots = slots
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let legacyContainer = try decoder.container(keyedBy: LegacyCodingKeys.self)
+
+        id = try container.decode(Id.self, forKey: .id)
+        title = try container.decodeIfPresent(String.self, forKey: .title)
+            ?? legacyContainer.decode(String.self, forKey: .title)
+        slots = try container.decode([Bool].self, forKey: .slots)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encode(slots, forKey: .slots)
+    }
+
     public mutating func reset() {
         slots = Array(repeating: false, count: slots.count)
     }
@@ -241,6 +258,16 @@ public struct CombatantResource: Codable, Hashable, Identifiable {
     }
 
     public typealias Id = Tagged<CombatantResource, UUID>
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case title = "_title"
+        case slots
+    }
+
+    private enum LegacyCodingKeys: String, CodingKey {
+        case title
+    }
 }
 
 public extension CombatantResource {

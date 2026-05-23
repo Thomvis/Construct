@@ -248,7 +248,19 @@ struct BaseDependencies {
         let database: Database
         let environment = ProcessInfo.processInfo.environment
         if environment["CONSTRUCT_UI_TESTS"] == "1" {
-            if let sessionIdentifier = environment["XCTestSessionIdentifier"] {
+            if let fixturePath = environment["CONSTRUCT_UI_TEST_DATABASE_FIXTURE"], !fixturePath.isEmpty {
+                let fixtureName = URL(fileURLWithPath: fixturePath).deletingPathExtension().lastPathComponent
+                let sanitizedFixtureName = fixtureName.replacingOccurrences(
+                    of: "[^A-Za-z0-9-]",
+                    with: "-",
+                    options: .regularExpression
+                )
+                let dbURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("construct-ui-fixture-\(sanitizedFixtureName)")
+                    .appendingPathExtension("sqlite")
+                try prepareUITestDatabaseIfNeeded(at: dbURL, environment: environment)
+                database = try await Database(path: dbURL.path)
+            } else if let sessionIdentifier = environment["XCTestSessionIdentifier"] {
                 let sanitizedSessionIdentifier = sessionIdentifier.replacingOccurrences(
                     of: "[^A-Za-z0-9-]",
                     with: "-",
@@ -257,6 +269,7 @@ struct BaseDependencies {
                 let dbURL = FileManager.default.temporaryDirectory
                     .appendingPathComponent("construct-ui-\(sanitizedSessionIdentifier)")
                     .appendingPathExtension("sqlite")
+                try prepareUITestDatabaseIfNeeded(at: dbURL, environment: environment)
                 database = try await Database(path: dbURL.path)
             } else {
                 database = try await Database(path: nil)
@@ -265,5 +278,20 @@ struct BaseDependencies {
             database = try await Database.live()
         }
         return Self(database: database)
+    }
+
+    private static func prepareUITestDatabaseIfNeeded(
+        at dbURL: URL,
+        environment: [String: String]
+    ) throws {
+        guard let fixturePath = environment["CONSTRUCT_UI_TEST_DATABASE_FIXTURE"], !fixturePath.isEmpty else {
+            return
+        }
+
+        let fileManager = FileManager.default
+        if fileManager.fileExists(atPath: dbURL.path) {
+            try fileManager.removeItem(at: dbURL)
+        }
+        try fileManager.copyItem(at: URL(fileURLWithPath: fixturePath), to: dbURL)
     }
 }

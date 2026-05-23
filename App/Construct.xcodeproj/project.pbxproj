@@ -19,6 +19,7 @@
 		C1F2D3E4A5B6C7D8E9F00109 /* ConstructCompendiumManagementUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F2D3E4A5B6C7D8E9F00109 /* ConstructCompendiumManagementUITests.swift */; };
 		C1F2D3E4A5B6C7D8E9F00110 /* ConstructScratchPadAndSettingsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F2D3E4A5B6C7D8E9F00110 /* ConstructScratchPadAndSettingsUITests.swift */; };
 		C1F2D3E4A5B6C7D8E9F00111 /* ConstructImportAndLinksUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F2D3E4A5B6C7D8E9F00111 /* ConstructImportAndLinksUITests.swift */; };
+		C1F2D3E4A5B6C7D8E9F00112 /* ConstructUpgradeExperienceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F2D3E4A5B6C7D8E9F00112 /* ConstructUpgradeExperienceUITests.swift */; };
 		E9052BF024EDC5570085A676 /* SampleEncounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92A41E9240D8F2C009AF440 /* SampleEncounter.swift */; };
 		E905E0BC246D83B800698C0A /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E905E0BB246D83B800698C0A /* ComposableArchitecture */; };
 		E90EFF2A262056FE00F5443E /* compendium.xml in Resources */ = {isa = PBXBuildFile; fileRef = E90EFF29262056FE00F5443E /* compendium.xml */; };
@@ -262,6 +263,7 @@
 		D1F2D3E4A5B6C7D8E9F00109 /* ConstructCompendiumManagementUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructCompendiumManagementUITests.swift; sourceTree = "<group>"; };
 		D1F2D3E4A5B6C7D8E9F00110 /* ConstructScratchPadAndSettingsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructScratchPadAndSettingsUITests.swift; sourceTree = "<group>"; };
 		D1F2D3E4A5B6C7D8E9F00111 /* ConstructImportAndLinksUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructImportAndLinksUITests.swift; sourceTree = "<group>"; };
+		D1F2D3E4A5B6C7D8E9F00112 /* ConstructUpgradeExperienceUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructUpgradeExperienceUITests.swift; sourceTree = "<group>"; };
 		E903F71F237F42AF004C1AC8 /* InlineCombatantTagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineCombatantTagsView.swift; sourceTree = "<group>"; };
 		E903F721237F4ECE004C1AC8 /* CombatantTagPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantTagPopover.swift; sourceTree = "<group>"; };
 		E90BE73C2391A4D900D2AECE /* CompendiumEntryDetailViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompendiumEntryDetailViewState.swift; sourceTree = "<group>"; };
@@ -507,6 +509,7 @@
 				D1F2D3E4A5B6C7D8E9F00109 /* ConstructCompendiumManagementUITests.swift */,
 				D1F2D3E4A5B6C7D8E9F00110 /* ConstructScratchPadAndSettingsUITests.swift */,
 				D1F2D3E4A5B6C7D8E9F00111 /* ConstructImportAndLinksUITests.swift */,
+				D1F2D3E4A5B6C7D8E9F00112 /* ConstructUpgradeExperienceUITests.swift */,
 			);
 			path = UITests;
 			sourceTree = "<group>";
@@ -1148,6 +1151,7 @@
 				C1F2D3E4A5B6C7D8E9F00109 /* ConstructCompendiumManagementUITests.swift in Sources */,
 				C1F2D3E4A5B6C7D8E9F00110 /* ConstructScratchPadAndSettingsUITests.swift in Sources */,
 				C1F2D3E4A5B6C7D8E9F00111 /* ConstructImportAndLinksUITests.swift in Sources */,
+				C1F2D3E4A5B6C7D8E9F00112 /* ConstructUpgradeExperienceUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

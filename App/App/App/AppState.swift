@@ -207,9 +207,11 @@ struct AppFeature {
                     state.$preferences.withLock { $0.errorReportingEnabled = permission == .send }
                 }
             case .onAppear:
-                let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
+                let environment = ProcessInfo.processInfo.environment
+                let isUiTesting = environment["CONSTRUCT_UI_TESTS"] == "1"
+                let shouldForceWelcomeForUITests = isUiTesting && environment["CONSTRUCT_UI_TESTS_FORCE_WELCOME"] != "0"
                 let persistedSelection: DefaultContentSelection? = try? database.keyValueStore.get(DefaultContentSelection.key)
-                if isUiTesting || !state.preferences.didShowWelcomeSheet {
+                if shouldForceWelcomeForUITests || !state.preferences.didShowWelcomeSheet {
                     return .send(.requestDestination(.welcome(.init(selection: .none, sampleEncounterDefault: true))))
                 } else if persistedSelection?.hasAnySelection != true {
                     let selection: DefaultContentSelection
