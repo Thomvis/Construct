@@ -167,7 +167,9 @@ public final class DatabaseKeyValueStore: KeyValueStore {
 //            )
 
 
-            // secondary indexes are removed by a foreign key constraint
+            try Self.SecondaryIndexRecord
+                .filter(Column(Self.SecondaryIndexRecord.Columns.recordKey.name) == key)
+                .deleteAll(db)
 
             return try Record.deleteOne(db, key: key)
         }

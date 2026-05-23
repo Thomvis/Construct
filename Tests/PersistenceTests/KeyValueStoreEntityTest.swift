@@ -49,7 +49,7 @@ class KeyValueStoreEntityTest: XCTestCase {
             stats: apply(.default) { $0.name = "ABC" },
             challengeRating: .half
         ), origin: .created(nil), document: .init(CompendiumSourceDocument.srd5_1))
-        XCTAssertEqual(monster.key.rawValue, "compendium::monster::core::ABC")
+        XCTAssertEqual(monster.key.rawValue, "compendium::monster::core5e::ABC")
 
         let character = CompendiumEntry(Character(
             id: Self.id1.tagged(),

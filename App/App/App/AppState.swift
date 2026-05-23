@@ -48,7 +48,6 @@ struct AppFeature {
 
         case onReceiveCrashReportingUserPermission(CrashReporter.UserPermission)
 
-        case defaultContentSelectionContinueTapped
         case onAppear
 
         case scene(ScenePhase)
@@ -207,8 +206,6 @@ struct AppFeature {
                 if state.preferences.errorReportingEnabled != (permission == .send) {
                     state.$preferences.withLock { $0.errorReportingEnabled = permission == .send }
                 }
-            case .defaultContentSelectionContinueTapped:
-                return .send(.destination(.presented(.defaultContentSelection(.applySelection))))
             case .onAppear:
                 let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
                 let persistedSelection: DefaultContentSelection? = try? database.keyValueStore.get(DefaultContentSelection.key)
@@ -224,7 +221,7 @@ struct AppFeature {
                     return .send(.requestDestination(.defaultContentSelection(
                         .init(
                             selection: selection,
-                            sampleEncounterOption: .loadSampleEncounter(defaultEnabled: true)
+                            sampleEncounterOption: .loadSampleEncounter(defaultEnabled: false)
                         )
                     )))
                 } else if let status = try? database.defaultContentDocumentStatus(),

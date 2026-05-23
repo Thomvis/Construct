@@ -88,7 +88,7 @@ struct OnboardingPage {
             return
         }
 
-        let fallbackTitle = app.staticTexts["Core 5e (2014)"].firstMatch
+        let fallbackTitle = app.staticTexts["Core 5e"].firstMatch
         if fallbackTitle.waitForExistence(timeout: timeout) {
             fallbackTitle.tap()
         }
@@ -2606,12 +2606,12 @@ struct SettingsPage {
 
     @discardableResult
     func openDefaultContent(timeout: TimeInterval = 10) -> DefaultContentSelectionPage {
-        let row = app.cells.containing(.staticText, identifier: "Default content").firstMatch
+        let row = app.cells.containing(.staticText, identifier: "Rules content").firstMatch
         if row.waitForExistence(timeout: timeout) {
             row.tap()
         } else {
-            let button = app.buttons["Default content"].firstMatch
-            XCTAssertTrue(button.waitForExistence(timeout: timeout), "Expected Default content row")
+            let button = app.buttons["Rules content"].firstMatch
+            XCTAssertTrue(button.waitForExistence(timeout: timeout), "Expected Rules content row")
             button.tap()
         }
         return DefaultContentSelectionPage(app: app).waitForVisible()
@@ -2702,7 +2702,7 @@ struct DefaultContentSelectionPage {
 
     @discardableResult
     func waitForVisible(timeout: TimeInterval = 10) -> Self {
-        XCTAssertTrue(app.navigationBars["Default content"].waitForExistence(timeout: timeout), "Expected Default content screen")
+        XCTAssertTrue(app.navigationBars["Rules content"].waitForExistence(timeout: timeout), "Expected Rules content screen")
         return self
     }
 

@@ -33,6 +33,7 @@ extension Database {
         case v14 = "v14-compendium-sources"
         case v15 = "v15-keyvaluestore-ftsDeleteSync"
         case v16 = "v16-fix-missing-origin-document"
+        case v17 = "v17-rename-default-compendium-realm-and-document"
     }
 
     static func migrator() throws -> DatabaseMigrator {
@@ -573,6 +574,99 @@ extension Database {
                     continue
                 }
             }
+        }
+
+        migrator.registerMigration(Migration.v17) { db in
+            let store = DatabaseKeyValueStore(.direct(db))
+
+            let legacyCoreRealmId = CompendiumRealm.Id("core")
+            let legacySrd5_1DocumentId = CompendiumSourceDocument.Id("srd")
+
+            let realmIdUpdates: [CompendiumRealm.Id: CompendiumRealm.Id] = [
+                legacyCoreRealmId: CompendiumRealm.core.id
+            ]
+
+            func updatedDefaultSourceDocument(_ document: CompendiumSourceDocument) -> CompendiumSourceDocument? {
+                if document.realmId == legacyCoreRealmId && document.id == legacySrd5_1DocumentId {
+                    return CompendiumSourceDocument.srd5_1
+                } else {
+                    return nil
+                }
+            }
+
+            func updatedRealm(_ realm: CompendiumItemKey.Realm) -> CompendiumItemKey.Realm? {
+                realmIdUpdates[realm.value].map { .init($0) }
+            }
+
+            func updatedItemKey(_ key: CompendiumItemKey) -> CompendiumItemKey? {
+                guard let updatedRealmId = realmIdUpdates[key.realm.value] else { return nil }
+                return CompendiumItemKey(
+                    type: key.type,
+                    realm: .init(updatedRealmId),
+                    identifier: key.identifier
+                )
+            }
+
+            func migrateDefaultRealm(from legacyId: CompendiumRealm.Id, to realm: CompendiumRealm) throws {
+                let legacyKey = CompendiumRealm.key(for: legacyId).rawValue
+                let newKey = realm.key.rawValue
+                let hasLegacyRecord = try DatabaseKeyValueStore.Record.fetchOne(db, key: legacyKey) != nil
+                let hasNewRecord = try DatabaseKeyValueStore.Record.fetchOne(db, key: newKey) != nil
+                guard hasLegacyRecord || hasNewRecord else { return }
+
+                try store.put(realm)
+                if legacyKey != newKey {
+                    try DatabaseKeyValueStore.Record.deleteOne(db, key: legacyKey)
+                }
+            }
+
+            try migrateDefaultRealm(from: legacyCoreRealmId, to: CompendiumRealm.core)
+
+            let documentRecords = try DatabaseKeyValueStore.Record
+                .filter(Column("key").like("\(CompendiumSourceDocument.keyPrefix)%"))
+                .fetchAll(db)
+            for documentRecord in documentRecords {
+                var document = try DatabaseKeyValueStore.decoder.decode(CompendiumSourceDocument.self, from: documentRecord.value)
+                let originalKey = documentRecord.key
+
+                if let updatedDocument = updatedDefaultSourceDocument(document) {
+                    document.id = updatedDocument.id
+                    document.displayName = updatedDocument.displayName
+                    document.realmId = updatedDocument.realmId
+                } else if let updatedRealmId = realmIdUpdates[document.realmId] {
+                    document.realmId = updatedRealmId
+                }
+
+                guard document.key.rawValue != originalKey else { continue }
+                try store.put(document)
+                try store.remove(originalKey)
+            }
+
+            let visitors: [KeyValueStoreEntityVisitor] = compendiumSourceDocumentUpdateVisitors(
+                originalDocumentId: legacySrd5_1DocumentId,
+                targetDocument: CompendiumSourceDocument.srd5_1
+            )
+            + [
+                AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateCompendiumItemRealmGameModelsVisitor(
+                    updatedRealm: updatedRealm
+                )),
+                AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateItemReferenceGameModelsVisitor(
+                    updatedKey: updatedItemKey
+                ))
+            ]
+
+            let visitorManager = KeyValueStoreVisitorManager(databaseAccess: .direct(db))
+            try visitorManager.run(
+                scope: KeyValueStoreRequest(keyPrefixes: [
+                    CompendiumEntry.keyPrefix,
+                    Encounter.keyPrefix,
+                    RunningEncounter.keyPrefix,
+                    CompendiumImportJob.keyPrefix
+                ]),
+                visitors: visitors,
+                conflictResolution: .rename(fallback: .remove),
+                allowsPartialFailure: false
+            )
         }
 
         return migrator

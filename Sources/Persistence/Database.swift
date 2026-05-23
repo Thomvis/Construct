@@ -225,9 +225,9 @@ public class Database {
             throw DefaultContentSelectionError.emptySelection
         }
 
-        try keyValueStore.put(selection)
         try await ensureHomebrewCompendiumMetadata()
         try await importDefaultCompendiumContentIfNeeded(selection: selection)
+        try keyValueStore.put(selection)
     }
 
     public struct DefaultContentDocumentStatus: Equatable, Sendable {

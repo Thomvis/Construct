@@ -309,34 +309,25 @@ public extension CompendiumMetadata {
 
                 let visitorManager = KeyValueStoreVisitorManager(databaseAccess: DirectDatabaseAccess(db: db))
 
-                // Create all necessary visitors
-                let visitors: [KeyValueStoreEntityVisitor] = Array {
-                    // Updates entries with new document info
-                    AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateEntryDocumentGameModelsVisitor(
-                        originalDocumentId: originalDocumentId,
-                        targetDocument: doc
-                    ))
-
-                    // Updates document id in import job(s)
-                    if doc.id != originalDocumentId {
-                        AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateImportJobDocumentGameModelsVisitor(
-                            originalDocumentId: originalDocumentId,
-                            updatedDocumentId: doc.id
-                        ))
+                let updatedItemReference: ((CompendiumItemKey) -> CompendiumItemKey?)?
+                if doc.realmId != originalRealmId, let moving {
+                    updatedItemReference = { key -> CompendiumItemKey? in
+                        guard moving.contains(key) else { return nil }
+                        return CompendiumItemKey(
+                            type: key.type,
+                            realm: .init(doc.realmId),
+                            identifier: key.identifier
+                        )
                     }
-
-                    // Updates compendium item references if realm changed
-                    if doc.realmId != originalRealmId, let moving = moving {
-                        AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateItemReferenceGameModelsVisitor { key -> CompendiumItemKey? in
-                            guard moving.contains(key) else { return nil }
-                            return CompendiumItemKey(
-                                type: key.type,
-                                realm: .init(doc.realmId),
-                                identifier: key.identifier
-                            )
-                        })
-                    }
+                } else {
+                    updatedItemReference = nil
                 }
+
+                let visitors = compendiumSourceDocumentUpdateVisitors(
+                    originalDocumentId: originalDocumentId,
+                    targetDocument: doc,
+                    updatedItemReference: updatedItemReference
+                )
                 
                 // Run all visitors in a single pass
                 try visitorManager.run(

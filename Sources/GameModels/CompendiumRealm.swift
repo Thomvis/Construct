@@ -22,13 +22,13 @@ public struct CompendiumRealm: Hashable, Codable {
 
 public extension CompendiumRealm {
     static let core = CompendiumRealm(
-        id: .init("core"),
-        displayName: "Core 5e (2014)"
+        id: .init("core5e"),
+        displayName: "Core 5e"
     )
 
     static let core2024 = CompendiumRealm(
-        id: .init("core2024"),
-        displayName: "Core 5e (2024)"
+        id: .init("core5.5e"),
+        displayName: "Core 5.5e"
     )
 
     static let homebrew = CompendiumRealm(

@@ -117,10 +117,7 @@ public struct DefaultContentSelectionFeature {
             case .applySelectionResponse(.success(let selection)):
                 state.isImporting = false
                 let restoreSampleEncounter = state.sampleEncounterOption?.isEnabled == true
-                return .merge(
-                    .send(.onAppear),
-                    .send(.delegate(.applied(selection, restoreSampleEncounter: restoreSampleEncounter)))
-                )
+                return .send(.delegate(.applied(selection, restoreSampleEncounter: restoreSampleEncounter)))
 
             case .applySelectionResponse(.failure(let error)):
                 state.isImporting = false
@@ -138,7 +135,8 @@ public struct DefaultContentSelectionFeature {
 extension DefaultContentSelectionFeature.State.SampleEncounterOption {
     static func loadSampleEncounter(defaultEnabled: Bool) -> Self {
         .init(
-            title: "Load sample encounter",
+            title: "Open sample encounter after setup",
+            subtitle: "Adds a ready-to-run encounter to Scratch pad.",
             isEnabled: defaultEnabled
         )
     }

@@ -26,14 +26,16 @@ public class KeyValueStoreVisitorManager {
         visitor: KeyValueStoreEntityVisitor,
         conflictResolution: ConflictResolution,
         removeOriginalEntityOnKeyChange: Bool = true,
-        conflictWithOriginalEntity: Bool = false
+        conflictWithOriginalEntity: Bool = false,
+        allowsPartialFailure: Bool = true
     ) throws -> Result {
         return try run(
             scope: scope,
             visitors: [visitor],
             conflictResolution: conflictResolution,
             removeOriginalEntityOnKeyChange: removeOriginalEntityOnKeyChange,
-            conflictWithOriginalEntity: conflictWithOriginalEntity
+            conflictWithOriginalEntity: conflictWithOriginalEntity,
+            allowsPartialFailure: allowsPartialFailure
         )
     }
 
@@ -43,7 +45,8 @@ public class KeyValueStoreVisitorManager {
         visitors: [KeyValueStoreEntityVisitor],
         conflictResolution: ConflictResolution,
         removeOriginalEntityOnKeyChange: Bool = true,
-        conflictWithOriginalEntity: Bool = false
+        conflictWithOriginalEntity: Bool = false,
+        allowsPartialFailure: Bool = true
     ) throws -> Result {
         var result = Result()
         try databaseAccess.inSavepoint { db in
@@ -135,6 +138,7 @@ public class KeyValueStoreVisitorManager {
                         print("Visiting of record \(key) skipped")
                     }
                 } catch {
+                    guard allowsPartialFailure else { throw error }
                     // FIXME: throw?
                     print("Visiting of record \(key) failed with error \(error)")
                 }

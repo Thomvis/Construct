@@ -1,5 +1,6 @@
 import Compendium
 import ComposableArchitecture
+import GameModels
 import SwiftUI
 
 struct DefaultContentSelectionView: View {
@@ -11,17 +12,17 @@ struct DefaultContentSelectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if showsTitle {
-                Text("Load default content")
+                Text("Choose rules content")
                     .font(.headline)
             }
 
-            Text("Choose which rules edition content to load.")
+            Text(prompt)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
             editionCard(
-                title: "Core 5e (2014)",
-                subtitle: "SRD 5.1 / Basic Rules",
+                title: CompendiumRealm.core.displayName,
+                subtitle: CompendiumSourceDocument.srd5_1.displayName,
                 isSelected: store.selection.include2014,
                 isLoaded: store.has2014Document,
                 isUpdateAvailable: store.has2014UpdateAvailable,
@@ -30,8 +31,8 @@ struct DefaultContentSelectionView: View {
             .accessibilityIdentifier("default-content-card-2014")
 
             editionCard(
-                title: "Core 5e (2024)",
-                subtitle: "SRD 5.2 / Basic Rules",
+                title: CompendiumRealm.core2024.displayName,
+                subtitle: CompendiumSourceDocument.srd5_2.displayName,
                 isSelected: store.selection.include2024,
                 isLoaded: store.has2024Document,
                 isUpdateAvailable: store.has2024UpdateAvailable,
@@ -40,32 +41,14 @@ struct DefaultContentSelectionView: View {
             .accessibilityIdentifier("default-content-card-2024")
 
             if showsSampleEncounterOption, let sampleEncounterOption = store.sampleEncounterOption {
-                HStack(spacing: 12) {
-                    Text(sampleEncounterOption.title)
-                        .font(.body.bold())
-                        .foregroundStyle(.primary)
-                        .lineLimit(2)
-
-                    Spacer(minLength: 8)
-
-                    Toggle(
-                        "",
-                        isOn: Binding(
-                            get: { sampleEncounterOption.isEnabled },
-                            set: { store.send(.setSampleEncounterEnabled($0)) }
-                        )
-                    )
-                    .labelsHidden()
+                SampleEncounterOptionRow(option: sampleEncounterOption) {
+                    store.send(.setSampleEncounterEnabled($0))
                 }
-                .padding(12)
-                .background(Color(UIColor.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .padding(.top, 8)
-                .accessibilityIdentifier("default-content-sample-toggle")
             }
 
             if showsValidationMessage && !store.isValidSelection {
-                Text("Select at least one edition.")
+                Text("Select at least one rules set.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -86,6 +69,16 @@ struct DefaultContentSelectionView: View {
         }
     }
 
+    private var prompt: String {
+        if store.has2014UpdateAvailable || store.has2024UpdateAvailable {
+            "Updates are available for your installed Basic Rules content."
+        } else if store.has2014Document || store.has2024Document {
+            "Keep the content you use, or add another rules set."
+        } else {
+            "Import the Basic Rules/SRD content you want in the compendium."
+        }
+    }
+
     @ViewBuilder
     private func editionCard(
         title: String,
@@ -96,11 +89,12 @@ struct DefaultContentSelectionView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(subtitle)
+                    Text(title)
                         .font(.headline)
                         .foregroundStyle(.primary)
+                        .lineLimit(1)
 
                     Spacer()
 
@@ -108,14 +102,18 @@ struct DefaultContentSelectionView: View {
                         .foregroundStyle(isSelected ? Color.accentColor : .secondary)
                 }
 
-                Text(title)
+                Text(subtitle)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
-                if isLoaded {
-                    Text(isUpdateAvailable ? "Update available" : "Latest content loaded")
+                if let status = editionStatus(
+                    isSelected: isSelected,
+                    isLoaded: isLoaded,
+                    isUpdateAvailable: isUpdateAvailable
+                ) {
+                    Text(status.text)
                         .font(.footnote)
-                        .foregroundStyle(isUpdateAvailable ? Color.orange : .secondary)
+                        .foregroundStyle(status.color)
                 }
             }
             .padding(12)
@@ -128,6 +126,114 @@ struct DefaultContentSelectionView: View {
             }
         }
         .buttonStyle(.plain)
+        .disabled(store.isImporting)
+    }
+
+    private func editionStatus(
+        isSelected: Bool,
+        isLoaded: Bool,
+        isUpdateAvailable: Bool
+    ) -> (text: String, color: Color)? {
+        if isSelected, isUpdateAvailable {
+            ("Will update", .orange)
+        } else if isSelected, !isLoaded {
+            ("Will import", .accentColor)
+        } else if isUpdateAvailable {
+            ("Update available", .orange)
+        } else if isLoaded {
+            ("Installed", .secondary)
+        } else {
+            nil
+        }
+    }
+}
+
+struct DefaultContentSelectionSheet: View {
+    @Bindable var store: StoreOf<DefaultContentSelectionFeature>
+    var cancelButtonTitle: String?
+    var cancelAction: (() -> Void)?
+    var primaryButtonTitle: String
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    DefaultContentSelectionView(
+                        store: store,
+                        showsTitle: false,
+                        showsValidationMessage: false
+                    )
+
+                    Button(action: {
+                        store.send(.applySelection)
+                    }) {
+                        Text(primaryButtonTitle)
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(!store.isValidSelection || store.isImporting)
+
+                    Text("Select at least one rules set.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity, minHeight: 18, alignment: .center)
+                        .opacity(store.isValidSelection ? 0 : 1)
+                        .accessibilityHidden(store.isValidSelection)
+                }
+                .padding()
+            }
+            .navigationTitle("Rules content")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if let cancelButtonTitle, let cancelAction {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(cancelButtonTitle, action: cancelAction)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct SampleEncounterOptionRow: View {
+    var option: DefaultContentSelectionFeature.State.SampleEncounterOption
+    var titleFont: Font = .body.bold()
+    var setEnabled: (Bool) -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(option.title)
+                    .font(titleFont)
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+
+                if let subtitle = option.subtitle {
+                    Text(subtitle)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            Toggle(
+                "",
+                isOn: Binding(
+                    get: { option.isEnabled },
+                    set: setEnabled
+                )
+            )
+            .labelsHidden()
+        }
+        .padding(12)
+        .background(Color(UIColor.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityIdentifier("default-content-sample-toggle")
     }
 }
 

@@ -105,11 +105,11 @@ struct SettingsView: View {
                 .pickerStyle(.menu)
             }
 
-            Section(footer: Text("Choose whether default 2014 and/or 2024 SRD content is imported.")) {
+            Section(footer: Text("Manage the Basic Rules/SRD content available in the compendium.")) {
                 NavigationRowButton(action: {
                     store.send(.setDefaultContentSelection(true))
                 }) {
-                    Text("Default content").foregroundColor(Color.primary)
+                    Text("Rules content").foregroundColor(Color.primary)
                 }
             }
 
@@ -195,7 +195,7 @@ struct SettingsView: View {
                 NavigationRowButton(action: {
                     store.send(.importDefaultContent)
                 }) {
-                    Text("Import default content").foregroundColor(Color.primary)
+                    Text("Import rules content").foregroundColor(Color.primary)
                 }
             }
             #endif
@@ -225,46 +225,14 @@ struct SettingsView: View {
         .sheet(
             item: $store.scope(state: \.defaultContentSelection, action: \.defaultContentSelection)
         ) { defaultContentSelectionStore in
-            NavigationStack {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        DefaultContentSelectionView(
-                            store: defaultContentSelectionStore,
-                            showsTitle: false,
-                            showsValidationMessage: false
-                        )
-
-                        Button(action: {
-                            defaultContentSelectionStore.send(.applySelection)
-                        }) {
-                            Text("Save")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                        .disabled(!defaultContentSelectionStore.isValidSelection || defaultContentSelectionStore.isImporting)
-
-                        Text("Select at least one edition.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity, minHeight: 18, alignment: .center)
-                            .opacity(defaultContentSelectionStore.isValidSelection ? 0 : 1)
-                            .accessibilityHidden(defaultContentSelectionStore.isValidSelection)
-                    }
-                    .padding()
-                }
-                .navigationTitle("Default content")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") {
-                            store.send(.setDefaultContentSelection(false))
-                        }
-                    }
-                }
-            }
+            DefaultContentSelectionSheet(
+                store: defaultContentSelectionStore,
+                cancelButtonTitle: "Cancel",
+                cancelAction: {
+                    store.send(.setDefaultContentSelection(false))
+                },
+                primaryButtonTitle: "Save"
+            )
         }
         .navigationDestination(item: pushDestination, destination: pushView)
         .navigationBarTitle("Settings")

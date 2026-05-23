@@ -75,7 +75,7 @@ struct WelcomeView: View {
         VStack(spacing: 12) {
             ScrollView(.vertical) {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Load default content")
+                    Text("Choose rules content")
                         .font(.title3.weight(.semibold))
                         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -90,28 +90,13 @@ struct WelcomeView: View {
                     )
 
                     if let sampleEncounterOption = store.defaultContentSelection.sampleEncounterOption {
-                        HStack(spacing: 12) {
-                            Text(sampleEncounterOption.title)
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.primary)
-                                .lineLimit(2)
-
-                            Spacer(minLength: 8)
-
-                            Toggle(
-                                "",
-                                isOn: Binding(
-                                    get: { sampleEncounterOption.isEnabled },
-                                    set: { store.send(.defaultContentSelection(.setSampleEncounterEnabled($0))) }
-                                )
-                            )
-                            .labelsHidden()
+                        SampleEncounterOptionRow(
+                            option: sampleEncounterOption,
+                            titleFont: .subheadline.weight(.semibold)
+                        ) {
+                            store.send(.defaultContentSelection(.setSampleEncounterEnabled($0)))
                         }
-                        .padding(12)
-                        .background(Color(UIColor.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .padding(.top, 8)
-                        .accessibilityIdentifier("default-content-sample-toggle")
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -129,7 +114,7 @@ struct WelcomeView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
 
                 Button(action: {
-                        store.send(.didTapContinue)
+                    store.send(.didTapContinue)
                 }) {
                     Text("Continue")
                         .frame(maxWidth: .infinity)
@@ -138,7 +123,7 @@ struct WelcomeView: View {
                 .controlSize(.large)
                 .disabled(!store.defaultContentSelection.isValidSelection || store.defaultContentSelection.isImporting)
 
-                Text("Select at least one edition.")
+                Text("Select at least one rules set.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -166,7 +151,7 @@ struct WelcomeView: View {
             title: "Compendium",
             icon: "book.fill",
             iconColor: Color.accentColor,
-            body: "Quickly look up monster stats or spell details (from the SRD 5.1). Add your own monsters and NPCs to make them available in every encounter."
+            body: "Quickly look up monster stats and spell details from Basic Rules/SRD content. Add your own monsters and NPCs to make them available in every encounter."
         )
     ]
     struct ListItem: Identifiable {

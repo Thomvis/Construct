@@ -47,8 +47,9 @@ final class AppDefaultContentSelectionTest: XCTestCase {
             .init(
                 selection: .rules2014Only,
                 sampleEncounterOption: .init(
-                    title: "Load sample encounter",
-                    isEnabled: true
+                    title: "Open sample encounter after setup",
+                    subtitle: "Adds a ready-to-run encounter to Scratch pad.",
+                    isEnabled: false
                 )
             )
         ))) {
@@ -56,8 +57,9 @@ final class AppDefaultContentSelectionTest: XCTestCase {
                 .init(
                     selection: .rules2014Only,
                     sampleEncounterOption: .init(
-                        title: "Load sample encounter",
-                        isEnabled: true
+                        title: "Open sample encounter after setup",
+                        subtitle: "Adds a ready-to-run encounter to Scratch pad.",
+                        isEnabled: false
                     )
                 )
             )

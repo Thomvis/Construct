@@ -26,7 +26,7 @@ final class CompendiumItemReferenceTest: XCTestCase {
         let sut = try JSONDecoder().decode(CompendiumItemReference.self, from: data)
 
         XCTAssertEqual(sut.itemTitle, orig.itemTitle)
-        XCTAssertEqual(sut.itemKey.keyString, "monster::core::abc")
+        XCTAssertEqual(sut.itemKey.keyString, "monster::core5e::abc")
     }
 
     // Version used until modularisation

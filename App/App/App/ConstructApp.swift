@@ -192,48 +192,14 @@ private struct ConstructContentView: View {
                 WelcomeView(store: welcomeStore)
                     .interactiveDismissDisabled()
             case let .defaultContentSelection(defaultContentSelectionStore):
-                NavigationStack {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 20) {
-                            DefaultContentSelectionView(
-                                store: defaultContentSelectionStore,
-                                showsTitle: false,
-                                showsValidationMessage: false
-                            )
-
-                            Button(action: {
-                                store.send(.defaultContentSelectionContinueTapped)
-                            }) {
-                                Text("Continue")
-                                    .font(.headline)
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.large)
-                            .disabled(!defaultContentSelectionStore.isValidSelection || defaultContentSelectionStore.isImporting)
-
-                            Text("Select at least one edition.")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                                .frame(maxWidth: .infinity, minHeight: 18, alignment: .center)
-                                .opacity(defaultContentSelectionStore.isValidSelection ? 0 : 1)
-                                .accessibilityHidden(defaultContentSelectionStore.isValidSelection)
-                        }
-                        .padding()
-                    }
-                    .navigationTitle("Default content")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        if defaultContentSelectionStore.allowsDismissal {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button("Not now") {
-                                    store.send(.destination(.dismiss))
-                                }
-                            }
-                        }
-                    }
-                }
+                DefaultContentSelectionSheet(
+                    store: defaultContentSelectionStore,
+                    cancelButtonTitle: defaultContentSelectionStore.allowsDismissal ? "Not now" : nil,
+                    cancelAction: {
+                        store.send(.destination(.dismiss))
+                    },
+                    primaryButtonTitle: defaultContentSelectionStore.allowsDismissal ? "Update content" : "Continue"
+                )
                 .interactiveDismissDisabled(!defaultContentSelectionStore.allowsDismissal)
             }
         }
