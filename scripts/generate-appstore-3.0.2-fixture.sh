@@ -13,6 +13,18 @@ trap cleanup EXIT
 git -C "$ROOT" worktree add --detach "$WORKTREE" 3.0.2
 cp "$ROOT/scripts/fixtures/appstore-3.0.2-db-tool-main.swift" "$WORKTREE/Sources/DatabaseInitTool/main.swift"
 
+# The fixture should be produced by the 3.0.2 model/persistence code, but that
+# tag's SwiftPM command-line target no longer builds unchanged with the current
+# host toolchain:
+# - the replacement generator imports packages that were transitive in 3.0.2,
+#   so DatabaseInitTool needs explicit target dependencies;
+# - newer dependency constraints require a newer macOS platform than the tag
+#   declared;
+# - Helpers/Mailer.swift imports UIKit/MessageUI, which is not available for the
+#   macOS command-line tool build and is irrelevant to database generation;
+# - a few old Tagged call sites need explicit rawValue/UUID construction.
+# Keep these patches scoped to the temporary worktree so the generated database
+# remains a historical 3.0.2 input while the generator stays reproducible.
 python3 - "$WORKTREE/Package.swift" <<'PY'
 from pathlib import Path
 import sys
