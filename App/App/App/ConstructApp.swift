@@ -194,7 +194,7 @@ private struct ConstructContentView: View {
             case let .defaultContentSelection(defaultContentSelectionStore):
                 DefaultContentSelectionSheet(
                     store: defaultContentSelectionStore,
-                    cancelButtonTitle: defaultContentSelectionStore.allowsDismissal ? "Not now" : nil,
+                    cancelButtonTitle: defaultContentSelectionStore.allowsDismissal ? "Skip" : nil,
                     cancelAction: {
                         store.send(.destination(.dismiss))
                     },

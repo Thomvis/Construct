@@ -212,7 +212,7 @@ struct DefaultContentSelectionView: View {
         } else if isNewContent {
             ("New", .accentColor)
         } else if isImported {
-            ("Installed", .secondary)
+            ("Previously imported", .secondary)
         } else {
             nil
         }
