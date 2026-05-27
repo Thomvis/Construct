@@ -84,7 +84,7 @@ public class Database {
 
     public var needsPrepareForUse: Bool {
         return needsMigrations
-            || needsDefaultCompendiumMetadataBootstrap
+            || needsHomebrewCompendiumMetadataBootstrap
             || needsScratchPadEncounterCreation
             || needsParseableProcessing
     }
@@ -97,9 +97,7 @@ public class Database {
         }
     }
 
-    private var needsDefaultCompendiumMetadataBootstrap: Bool {
-        guard importDefaultContent else { return false }
-
+    private var needsHomebrewCompendiumMetadataBootstrap: Bool {
         do {
             let hasHomebrewRealm = try keyValueStore.contains(CompendiumRealm.key(for: CompendiumRealm.homebrew.id))
             let hasHomebrewDocument = try keyValueStore.contains(CompendiumSourceDocument.homebrew.key)
@@ -131,7 +129,7 @@ public class Database {
         // migrate
         try migrator.migrate(self.queue)
 
-        if needsDefaultCompendiumMetadataBootstrap {
+        if needsHomebrewCompendiumMetadataBootstrap {
             try await ensureHomebrewCompendiumMetadata()
         }
 

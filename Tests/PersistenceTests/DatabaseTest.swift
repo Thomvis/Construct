@@ -67,6 +67,18 @@ class DatabaseTest: XCTestCase {
         XCTAssertNil(srd2024Document)
     }
 
+    func testPrepareForUseBootstrapsHomebrewWhenDefaultContentIsDisabled() async throws {
+        let database = try await Database(path: nil, importDefaultContent: false)
+
+        let homebrewRealm: CompendiumRealm? = try database.keyValueStore.get(CompendiumRealm.key(for: CompendiumRealm.homebrew.id))
+        let homebrewDocument: CompendiumSourceDocument? = try database.keyValueStore.get(CompendiumSourceDocument.homebrew.key)
+        let scratchPad: Encounter? = try database.keyValueStore.get(Encounter.key(Encounter.scratchPadEncounterId))
+
+        XCTAssertNotNil(homebrewRealm)
+        XCTAssertNotNil(homebrewDocument)
+        XCTAssertNil(scratchPad)
+    }
+
     func testApplyDefaultContentSelectionCreatesOnlySelectedDefaultDocument() async throws {
         let database = try await Database(path: nil)
         try await database.applyDefaultContentSelection([.rules2024])
