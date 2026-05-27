@@ -69,20 +69,92 @@ class DatabaseTest: XCTestCase {
 
     func testApplyDefaultContentSelectionCreatesOnlySelectedDefaultDocument() async throws {
         let database = try await Database(path: nil)
-        try await database.applyDefaultContentSelection(.rules2024Only)
+        try await database.applyDefaultContentSelection([.rules2024])
 
-        let persistedSelection: DefaultContentSelection? = try database.keyValueStore.get(DefaultContentSelection.key)
+        let monsters2014Jobs = try importJobs(in: database.keyValueStore, sourceId: .defaultMonsters2014)
+        let spells2014Jobs = try importJobs(in: database.keyValueStore, sourceId: .defaultSpells2014)
+        let monsters2024Jobs = try importJobs(in: database.keyValueStore, sourceId: .defaultMonsters2024)
+        let spells2024Jobs = try importJobs(in: database.keyValueStore, sourceId: .defaultSpells2024)
         let srd2014Document: CompendiumSourceDocument? = try database.keyValueStore.get(CompendiumSourceDocument.srd5_1.key)
         let srd2024Document: CompendiumSourceDocument? = try database.keyValueStore.get(CompendiumSourceDocument.srd5_2.key)
 
-        XCTAssertEqual(persistedSelection, .rules2024Only)
+        XCTAssertTrue(monsters2014Jobs.isEmpty)
+        XCTAssertTrue(spells2014Jobs.isEmpty)
+        XCTAssertEqual(monsters2024Jobs.count, 1)
+        XCTAssertEqual(monsters2024Jobs.first?.sourceVersion, DefaultContentVersions.currentMonsters2024)
+        XCTAssertEqual(spells2024Jobs.count, 1)
+        XCTAssertEqual(spells2024Jobs.first?.sourceVersion, DefaultContentVersions.currentSpells2024)
         XCTAssertNil(srd2014Document)
         XCTAssertNotNil(srd2024Document)
     }
 
+    func testDefaultContentDocumentStatusUsesDefaultImportJobs() async throws {
+        let database = try await Database(path: nil, importDefaultContent: false)
+        try database.keyValueStore.put(CompendiumImportJob(
+            sourceId: .defaultMonsters2014,
+            sourceVersion: DefaultContentVersions.currentMonsters2014,
+            documentId: CompendiumSourceDocument.srd5_1.id
+        ))
+        try database.keyValueStore.put(CompendiumImportJob(
+            sourceId: .defaultSpells2014,
+            sourceVersion: DefaultContentVersions.currentSpells2014,
+            documentId: CompendiumSourceDocument.srd5_1.id
+        ))
+        try database.keyValueStore.put(CompendiumImportJob(
+            sourceId: .defaultMonsters2024,
+            sourceVersion: "old",
+            documentId: CompendiumSourceDocument.srd5_2.id
+        ))
+        try database.keyValueStore.put(CompendiumImportJob(
+            sourceId: .defaultSpells2024,
+            sourceVersion: DefaultContentVersions.currentSpells2024,
+            documentId: CompendiumSourceDocument.srd5_2.id
+        ))
+
+        let status = try database.defaultContentDocumentStatus()
+
+        XCTAssertEqual(status.importedRulesets, [.rules2014, .rules2024])
+        XCTAssertEqual(status.newRulesets, [])
+        XCTAssertEqual(status.updatedRulesets, [.rules2024])
+    }
+
+    func testDefaultContentVersionsMigrationCreatesDefaultImportJobs() throws {
+        let queue = try DatabaseQueue()
+        let migrator = try Database.migrator()
+        try migrator.migrate(queue, upTo: Database.Migration.v17.rawValue)
+
+        try queue.write { db in
+            let store = DatabaseKeyValueStore(.direct(db))
+            try store.put(
+                DefaultContentVersions(
+                    monsters2014: DefaultContentVersions.currentMonsters2014,
+                    spells2014: DefaultContentVersions.currentSpells2014,
+                    monsters2024: nil,
+                    spells2024: nil
+                ),
+                at: "Construct::DefaultContentVersions"
+            )
+        }
+
+        try migrator.migrate(queue)
+
+        let store = DatabaseKeyValueStore(DatabaseQueueAccess(queue: queue))
+        XCTAssertEqual(
+            try importJobs(in: store, sourceId: .defaultMonsters2014).first?.sourceVersion,
+            DefaultContentVersions.currentMonsters2014
+        )
+        XCTAssertEqual(
+            try importJobs(in: store, sourceId: .defaultSpells2014).first?.sourceVersion,
+            DefaultContentVersions.currentSpells2014
+        )
+        XCTAssertTrue(try importJobs(in: store, sourceId: .defaultMonsters2024).isEmpty)
+        XCTAssertTrue(try importJobs(in: store, sourceId: .defaultSpells2024).isEmpty)
+        XCTAssertFalse(try store.contains("Construct::DefaultContentVersions"))
+    }
+
     func testDefaultContentRealmAndDocumentIdMigration() throws {
         let queue = try DatabaseQueue()
-        var migrator = try Database.migrator()
+        let migrator = try Database.migrator()
         try migrator.migrate(queue, upTo: Database.Migration.v16.rawValue)
 
         let legacyCoreRealmId = CompendiumRealm.Id("core")
@@ -214,4 +286,13 @@ class DatabaseTest: XCTestCase {
         XCTAssertEqual(migratedImportJob?.documentId, CompendiumSourceDocument.srd5_1.id)
     }
 
+}
+
+private func importJobs(
+    in keyValueStore: KeyValueStore,
+    sourceId: CompendiumImportSourceId
+) throws -> [CompendiumImportJob] {
+    let keyPrefix = CompendiumImportJob.keyPrefix + CompendiumImportJob.jobIdPrefix(sourceId: sourceId)
+    let jobs: [CompendiumImportJob] = try keyValueStore.fetchAll(.keyPrefix(keyPrefix))
+    return jobs.filter { $0.sourceId == sourceId }
 }

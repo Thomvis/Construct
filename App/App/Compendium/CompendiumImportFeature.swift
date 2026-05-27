@@ -122,9 +122,7 @@ struct CompendiumImportFeature {
             case .importSettings: break
             case .didTapImportButton:
                 guard let task = state.importTask else {
-                    state.importResult.result = .failure(Error.importTaskCreationFailed)
-                    state.importResult.isLoading = false
-                    break
+                    return .send(.importDidFinish(nil))
                 }
                 let newRealm = state.importSettings.newRealm
                 let newDocument = state.importSettings.newDocument

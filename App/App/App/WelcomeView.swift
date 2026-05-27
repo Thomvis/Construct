@@ -16,11 +16,13 @@ struct WelcomeView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            switch store.page {
-            case .benefits:
-                benefitsPage
-            case .contentImport:
-                contentImportPage
+            if let pageStore = store.scope(state: \.page, action: \.page.presented) {
+                switch pageStore.case {
+                case .benefits:
+                    benefitsPage
+                case let .contentImport(contentImportStore):
+                    contentImportPage(store: contentImportStore)
+                }
             }
         }
         .padding(28)
@@ -71,65 +73,20 @@ struct WelcomeView: View {
         }
     }
 
-    private var contentImportPage: some View {
+    private func contentImportPage(store contentImportStore: StoreOf<DefaultContentSelectionFeature>) -> some View {
         VStack(spacing: 12) {
             ScrollView(.vertical) {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Choose rules content")
-                        .font(.title3.weight(.semibold))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    DefaultContentSelectionView(
-                        store: store.scope(
-                            state: \.defaultContentSelection,
-                            action: \.defaultContentSelection
-                        ),
-                        showsTitle: false,
-                        showsValidationMessage: false,
-                        showsSampleEncounterOption: false
-                    )
-
-                    if let sampleEncounterOption = store.defaultContentSelection.sampleEncounterOption {
-                        SampleEncounterOptionRow(
-                            option: sampleEncounterOption,
-                            titleFont: .subheadline.weight(.semibold)
-                        ) {
-                            store.send(.defaultContentSelection(.setSampleEncounterEnabled($0)))
+                    DefaultContentSelectionPage(
+                        store: contentImportStore,
+                        primaryAction: {
+                            store.send(.didTapContinue)
                         }
-                        .padding(.top, 8)
-                    }
+                    )
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 2)
                 .padding(.vertical, 1)
-            }
-
-            Spacer(minLength: 0)
-
-            VStack(spacing: 8) {
-                Text("You can change this in Settings later.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, alignment: .center)
-
-                Button(action: {
-                    store.send(.didTapContinue)
-                }) {
-                    Text("Continue")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(!store.defaultContentSelection.isValidSelection || store.defaultContentSelection.isImporting)
-
-                Text("Select at least one rules set.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, minHeight: 18, alignment: .center)
-                    .opacity(store.defaultContentSelection.isValidSelection ? 0 : 1)
-                    .accessibilityHidden(store.defaultContentSelection.isValidSelection)
             }
         }
     }
@@ -151,7 +108,7 @@ struct WelcomeView: View {
             title: "Compendium",
             icon: "book.fill",
             iconColor: Color.accentColor,
-            body: "Quickly look up monster stats and spell details from Basic Rules/SRD content. Add your own monsters and NPCs to make them available in every encounter."
+            body: "Quickly look up monster stats and spell details. Add your own monsters and NPCs to make them available in every encounter."
         )
     ]
     struct ListItem: Identifiable {
@@ -167,7 +124,7 @@ struct WelcomeView: View {
 struct WelcomeView_Previews: PreviewProvider {
     static var previews: some View {
         WelcomeView(
-            store: Store(initialState: .init(selection: .none, sampleEncounterDefault: true)) {
+            store: Store(initialState: .init()) {
                 AppFeature.WelcomeFeature()
             }
         )

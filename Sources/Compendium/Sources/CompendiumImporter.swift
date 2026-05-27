@@ -21,8 +21,6 @@ public class CompendiumImporter {
     }
 
     public func run(_ task: CompendiumImportTask) async throws -> Result {
-        var result = Result()
-
         let job = CompendiumImportJob(
             sourceId: task.sourceId,
             sourceVersion: task.sourceVersion,
@@ -31,6 +29,11 @@ public class CompendiumImporter {
         )
 
         try metadata.putJob(job)
+        return try await run(task, job: job)
+    }
+
+    func run(_ task: CompendiumImportTask, job: CompendiumImportJob) async throws -> Result {
+        var result = Result()
 
         let parseableVisitor = ParseableGameModelsVisitor()
 

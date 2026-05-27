@@ -5,93 +5,137 @@ import SwiftUI
 
 struct DefaultContentSelectionView: View {
     @Bindable var store: StoreOf<DefaultContentSelectionFeature>
-    var showsTitle: Bool = true
+    var title: String? = "Choose rules content"
+    var titleFont: Font = .headline
+    var footer: String? = nil
+    var primaryButtonTitle: String? = nil
+    var primaryAction: (() -> Void)? = nil
     var showsValidationMessage: Bool = true
-    var showsSampleEncounterOption: Bool = true
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            if showsTitle {
-                Text("Choose rules content")
-                    .font(.headline)
-            }
-
-            Text(prompt)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            editionCard(
-                title: CompendiumRealm.core.displayName,
-                subtitle: CompendiumSourceDocument.srd5_1.displayName,
-                isSelected: store.selection.include2014,
-                isLoaded: store.has2014Document,
-                isUpdateAvailable: store.has2014UpdateAvailable,
-                action: { store.send(.toggle2014) }
-            )
-            .accessibilityIdentifier("default-content-card-2014")
-
-            editionCard(
-                title: CompendiumRealm.core2024.displayName,
-                subtitle: CompendiumSourceDocument.srd5_2.displayName,
-                isSelected: store.selection.include2024,
-                isLoaded: store.has2024Document,
-                isUpdateAvailable: store.has2024UpdateAvailable,
-                action: { store.send(.toggle2024) }
-            )
-            .accessibilityIdentifier("default-content-card-2024")
-
-            if showsSampleEncounterOption, let sampleEncounterOption = store.sampleEncounterOption {
-                SampleEncounterOptionRow(option: sampleEncounterOption) {
-                    store.send(.setSampleEncounterEnabled($0))
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                if let title {
+                    Text(title)
+                        .font(titleFont)
                 }
-                .padding(.top, 8)
-            }
-
-            if showsValidationMessage && !store.isValidSelection {
-                Text("Select at least one rules set.")
-                    .font(.footnote)
+                
+                Text(prompt)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
+                
+                ForEach(DefaultContentRuleset.allCases, id: \.self) { ruleset in
+                    editionCard(
+                        ruleset: ruleset,
+                        action: { store.send(.toggleRuleset(ruleset)) }
+                    )
+                    .accessibilityIdentifier(accessibilityIdentifier(for: ruleset))
+                }
+                
+                if let restoreSampleEncounter = store.restoreSampleEncounter {
+                    SampleEncounterOptionRow(isEnabled: restoreSampleEncounter) {
+                        store.send(.setSampleEncounterEnabled($0))
+                    }
+                    .padding(.top, 8)
+                }
+                
+                if primaryButtonTitle == nil,
+                   showsValidationMessage,
+                   !store.isValidSelection {
+                    validationMessage
+                }
+                
+                if let error = store.applySelection.error {
+                    Text(error.localizedDescription)
+                        .font(.footnote)
+                        .foregroundStyle(Color.red)
+                }
+                
+                if let error = store.defaultDocumentStatus.error {
+                    Text(error.localizedDescription)
+                        .font(.footnote)
+                        .foregroundStyle(Color.red)
+                }
+                
+                if store.defaultDocumentStatus.isLoading {
+                    ProgressView("Checking installed content...")
+                        .font(.footnote)
+                }
+                
             }
+            .padding()
+        }
+        .safeAreaInset(edge: .bottom) {
+            VStack {
+                if let primaryButtonTitle, let primaryAction {
+                    Button(action: primaryAction) {
+                        HStack(spacing: 6) {
+                            if store.applySelection.isLoading {
+                                ProgressView()
+                                    .controlSize(.small)
+                            }
 
-            if let error = store.error {
-                Text(error.localizedDescription)
-                    .font(.footnote)
-                    .foregroundStyle(Color.red)
+                            Text(store.applySelection.isLoading ? "Importing..." : primaryButtonTitle)
+                                .font(.headline)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(!store.isValidSelection || store.applySelection.isLoading)
+                    
+                    if showsValidationMessage {
+                        validationMessage
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity, minHeight: 18, alignment: .center)
+                            .opacity(store.isValidSelection ? 0 : 1)
+                            .accessibilityHidden(store.isValidSelection)
+                    }
+                }
+                
+                if let footer {
+                    Text(footer)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
             }
-
-            if store.isImporting {
-                ProgressView("Importing content...")
-                    .font(.footnote)
-            }
+            .padding()
         }
         .onAppear {
             store.send(.onAppear)
         }
     }
 
+    private var validationMessage: some View {
+        Text("Select content to import.")
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+    }
+
     private var prompt: String {
-        if store.has2014UpdateAvailable || store.has2024UpdateAvailable {
-            "Updates are available for your installed Basic Rules content."
-        } else if store.has2014Document || store.has2024Document {
+        if store.defaultDocumentStatus.value?.hasAnyImportAvailable == true {
+            "New or updated SRD / Basic Rules content is available."
+        } else if store.defaultDocumentStatus.value?.importedRulesets.isEmpty == false {
             "Keep the content you use, or add another rules set."
         } else {
-            "Import the Basic Rules/SRD content you want in the compendium."
+            "Import the SRD / Basic Rules content you want in your compendium."
         }
     }
 
     @ViewBuilder
     private func editionCard(
-        title: String,
-        subtitle: String,
-        isSelected: Bool,
-        isLoaded: Bool,
-        isUpdateAvailable: Bool,
+        ruleset: DefaultContentRuleset,
         action: @escaping () -> Void
     ) -> some View {
+        let isSelected = store.selection.contains(ruleset)
+        let status = store.defaultDocumentStatus.value
+
         Button(action: action) {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(title)
+                    Text(title(for: ruleset))
                         .font(.headline)
                         .foregroundStyle(.primary)
                         .lineLimit(1)
@@ -102,18 +146,20 @@ struct DefaultContentSelectionView: View {
                         .foregroundStyle(isSelected ? Color.accentColor : .secondary)
                 }
 
-                Text(subtitle)
+                Text(subtitle(for: ruleset))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
                 if let status = editionStatus(
-                    isSelected: isSelected,
-                    isLoaded: isLoaded,
-                    isUpdateAvailable: isUpdateAvailable
+                    isImported: status?.isImported(ruleset) ?? false,
+                    isNewContent: status?.isNewContent(ruleset) ?? false,
+                    isUpdateAvailable: status?.isUpdateAvailable(ruleset) ?? false
                 ) {
                     Text(status.text)
                         .font(.footnote)
-                        .foregroundStyle(status.color)
+                        .foregroundStyle(Color.white)
+                        .padding(EdgeInsets(top: 2, leading: 6, bottom: 2, trailing: 6))
+                        .background(Capsule().fill(status.color))
                 }
             }
             .padding(12)
@@ -126,25 +172,66 @@ struct DefaultContentSelectionView: View {
             }
         }
         .buttonStyle(.plain)
-        .disabled(store.isImporting)
+        .disabled(store.applySelection.isLoading)
+    }
+
+    private func title(for ruleset: DefaultContentRuleset) -> String {
+        switch ruleset {
+        case .rules2014:
+            CompendiumRealm.core.displayName
+        case .rules2024:
+            CompendiumRealm.core2024.displayName
+        }
+    }
+
+    private func subtitle(for ruleset: DefaultContentRuleset) -> String {
+        switch ruleset {
+        case .rules2014:
+            CompendiumSourceDocument.srd5_1.displayName
+        case .rules2024:
+            CompendiumSourceDocument.srd5_2.displayName
+        }
+    }
+
+    private func accessibilityIdentifier(for ruleset: DefaultContentRuleset) -> String {
+        switch ruleset {
+        case .rules2014:
+            "default-content-card-2014"
+        case .rules2024:
+            "default-content-card-2024"
+        }
     }
 
     private func editionStatus(
-        isSelected: Bool,
-        isLoaded: Bool,
+        isImported: Bool,
+        isNewContent: Bool,
         isUpdateAvailable: Bool
     ) -> (text: String, color: Color)? {
-        if isSelected, isUpdateAvailable {
-            ("Will update", .orange)
-        } else if isSelected, !isLoaded {
-            ("Will import", .accentColor)
-        } else if isUpdateAvailable {
+        if isUpdateAvailable {
             ("Update available", .orange)
-        } else if isLoaded {
+        } else if isNewContent {
+            ("New", .accentColor)
+        } else if isImported {
             ("Installed", .secondary)
         } else {
             nil
         }
+    }
+}
+
+struct DefaultContentSelectionPage: View {
+    @Bindable var store: StoreOf<DefaultContentSelectionFeature>
+    var primaryAction: () -> Void
+
+    var body: some View {
+        DefaultContentSelectionView(
+            store: store,
+            title: "Choose rules content",
+            titleFont: .title3.weight(.semibold),
+            footer: "You can change this in Settings later.",
+            primaryButtonTitle: "Continue",
+            primaryAction: primaryAction
+        )
     }
 }
 
@@ -156,35 +243,14 @@ struct DefaultContentSelectionSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    DefaultContentSelectionView(
-                        store: store,
-                        showsTitle: false,
-                        showsValidationMessage: false
-                    )
-
-                    Button(action: {
-                        store.send(.applySelection)
-                    }) {
-                        Text(primaryButtonTitle)
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .disabled(!store.isValidSelection || store.isImporting)
-
-                    Text("Select at least one rules set.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity, minHeight: 18, alignment: .center)
-                        .opacity(store.isValidSelection ? 0 : 1)
-                        .accessibilityHidden(store.isValidSelection)
+            DefaultContentSelectionView(
+                store: store,
+                title: nil,
+                primaryButtonTitle: primaryButtonTitle,
+                primaryAction: {
+                    store.send(.applySelection)
                 }
-                .padding()
-            }
+            )
             .navigationTitle("Rules content")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -199,24 +265,22 @@ struct DefaultContentSelectionSheet: View {
 }
 
 struct SampleEncounterOptionRow: View {
-    var option: DefaultContentSelectionFeature.State.SampleEncounterOption
+    var isEnabled: Bool
     var titleFont: Font = .body.bold()
     var setEnabled: (Bool) -> Void
 
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 3) {
-                Text(option.title)
+                Text("Add sample encounter")
                     .font(titleFont)
                     .foregroundStyle(.primary)
                     .lineLimit(2)
 
-                if let subtitle = option.subtitle {
-                    Text(subtitle)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
+                Text("Get a taste of what Construct has to offer.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
             }
 
             Spacer(minLength: 8)
@@ -224,7 +288,7 @@ struct SampleEncounterOptionRow: View {
             Toggle(
                 "",
                 isOn: Binding(
-                    get: { option.isEnabled },
+                    get: { isEnabled },
                     set: setEnabled
                 )
             )
@@ -241,7 +305,7 @@ struct SampleEncounterOptionRow: View {
     NavigationStack {
         ScrollView {
             DefaultContentSelectionView(
-                store: Store(initialState: .init(selection: .both)) {
+                store: Store(initialState: .init(selection: Set(DefaultContentRuleset.allCases))) {
                     DefaultContentSelectionFeature()
                 }
             )

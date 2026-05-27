@@ -47,6 +47,7 @@ struct TabNavigationFeature {
 
     enum Action: Equatable {
         case openEncounter(Encounter)
+        case openEncounterInCampaignBrowser(Encounter)
         case selectedTab(State.Tabs)
         case campaignBrowser(CampaignBrowseViewFeature.Action)
         case simpleAdventure(SimpleAdventureFeature.Action)
@@ -77,9 +78,16 @@ struct TabNavigationFeature {
                     let detailState = EncounterDetailFeature.State(building: encounter)
                     return .send(.campaignBrowser(.setDestination(.encounter(detailState))))
                 }
+            case .openEncounterInCampaignBrowser(let encounter):
+                state.$preferences.withLock { $0.adventureTabMode = .campaignBrowser }
+                state.selectedTab = .campaign
+                let detailState = EncounterDetailFeature.State(building: encounter)
+                return .send(.campaignBrowser(.setDestination(.encounter(detailState))))
             case .selectedTab(let t):
                 state.selectedTab = t
             case .campaignBrowser: break
+            case .simpleAdventure(.delegate(.openEncounterInCampaignBrowser(let encounter))):
+                return .send(.openEncounterInCampaignBrowser(encounter))
             case .simpleAdventure: break
             case .compendium: break
             case .diceRoller: break
@@ -147,6 +155,11 @@ struct SimpleAdventureFeature {
         case setSheet(Sheet.State?)
         case encounter(EncounterDetailFeature.Action)
         case sheet(PresentationAction<Sheet.Action>)
+        case delegate(Delegate)
+
+        enum Delegate: Equatable {
+            case openEncounterInCampaignBrowser(Encounter)
+        }
     }
 
     @Reducer
@@ -201,7 +214,15 @@ struct SimpleAdventureFeature {
             case .sheet(.dismiss):
                 state.sheet = nil
 
-            case .encounter, .sheet:
+            case .sheet(.presented(.settings(.delegate(.sampleEncounterRestored(let encounter, let openInCampaignBrowser))))):
+                if openInCampaignBrowser {
+                    state.sheet = nil
+                    return .send(.delegate(.openEncounterInCampaignBrowser(encounter)))
+                } else if encounter.isScratchPad {
+                    state.encounter = State.makeScratchPadEncounterDetailState(encounter: encounter)
+                }
+
+            case .encounter, .sheet, .delegate:
                 break
             }
             return .none

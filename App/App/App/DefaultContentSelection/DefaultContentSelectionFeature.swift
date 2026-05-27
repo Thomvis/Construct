@@ -7,43 +7,37 @@ import Persistence
 
 @Reducer
 public struct DefaultContentSelectionFeature {
+    public typealias AsyncApplySelection = Async<Set<DefaultContentRuleset>, EquatableError>
+    public typealias AsyncDefaultDocumentStatus = Async<Database.DefaultContentDocumentStatus, EquatableError>
+
     @ObservableState
     public struct State: Equatable {
-        public struct SampleEncounterOption: Equatable {
-            var title: String
-            var subtitle: String?
-            var isEnabled: Bool
+        var selection: Set<DefaultContentRuleset> = []
+        var applySelection: AsyncApplySelection.State
+        var defaultDocumentStatus: AsyncDefaultDocumentStatus.State
 
-            public init(title: String, subtitle: String? = nil, isEnabled: Bool) {
-                self.title = title
-                self.subtitle = subtitle
-                self.isEnabled = isEnabled
-            }
-        }
-
-        var selection: DefaultContentSelection
-        var has2014Document = false
-        var has2024Document = false
-        var has2014UpdateAvailable = false
-        var has2024UpdateAvailable = false
-        var isImporting = false
-        var error: EquatableError?
-        var sampleEncounterOption: SampleEncounterOption?
+        var allowsSampleEncounterOnly = false
+        var restoreSampleEncounter: Bool?
         var allowsDismissal = false
         var dismissalToken: String?
 
         var isValidSelection: Bool {
-            selection.hasAnySelection
+            !selection.isEmpty || allowsSampleEncounterOnly && restoreSampleEncounter == true
         }
 
         public init(
-            selection: DefaultContentSelection,
-            sampleEncounterOption: SampleEncounterOption? = nil,
+            selection: Set<DefaultContentRuleset>,
+            restoreSampleEncounter: Bool? = nil,
+            allowsSampleEncounterOnly: Bool = false,
             allowsDismissal: Bool = false,
             dismissalToken: String? = nil
         ) {
+            @Dependency(\.uuid) var uuid
             self.selection = selection
-            self.sampleEncounterOption = sampleEncounterOption
+            self.applySelection = .init(identifier: uuid())
+            self.defaultDocumentStatus = .init(identifier: uuid())
+            self.allowsSampleEncounterOnly = allowsSampleEncounterOnly
+            self.restoreSampleEncounter = restoreSampleEncounter
             self.allowsDismissal = allowsDismissal
             self.dismissalToken = dismissalToken
         }
@@ -51,16 +45,28 @@ public struct DefaultContentSelectionFeature {
 
     public enum Action: Equatable {
         case onAppear
-        case toggle2014
-        case toggle2024
+        case toggleRuleset(DefaultContentRuleset)
         case setSampleEncounterEnabled(Bool)
         case applySelection
-        case loadedStatusResponse(Result<Database.DefaultContentDocumentStatus, EquatableError>)
-        case applySelectionResponse(Result<DefaultContentSelection, EquatableError>)
+        case defaultDocumentStatus(AsyncDefaultDocumentStatus.Action)
+        case applySelectionResponse(Result<Set<DefaultContentRuleset>, EquatableError>)
         case delegate(Delegate)
 
         public enum Delegate: Equatable {
-            case applied(DefaultContentSelection, restoreSampleEncounter: Bool)
+            case applied(Applied)
+
+            public struct Applied: Equatable {
+                public var selection: Set<DefaultContentRuleset>
+                public var restoreSampleEncounter: Bool
+
+                public init(
+                    selection: Set<DefaultContentRuleset>,
+                    restoreSampleEncounter: Bool
+                ) {
+                    self.selection = selection
+                    self.restoreSampleEncounter = restoreSampleEncounter
+                }
+            }
         }
     }
 
@@ -70,32 +76,33 @@ public struct DefaultContentSelectionFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return .run { send in
-                    do {
-                        let status = try database.defaultContentDocumentStatus()
-                        await send(.loadedStatusResponse(.success(status)))
-                    } catch {
-                        await send(.loadedStatusResponse(.failure(error.toEquatableError())))
-                    }
+                return .send(.defaultDocumentStatus(.startLoading))
+
+            case .toggleRuleset(let ruleset):
+                if state.selection.contains(ruleset) {
+                    state.selection.remove(ruleset)
+                } else {
+                    state.selection.insert(ruleset)
                 }
 
-            case .toggle2014:
-                state.selection.include2014.toggle()
-
-            case .toggle2024:
-                state.selection.include2024.toggle()
-
             case .setSampleEncounterEnabled(let isEnabled):
-                state.sampleEncounterOption?.isEnabled = isEnabled
+                state.restoreSampleEncounter = isEnabled
 
             case .applySelection:
-                guard state.selection.hasAnySelection else {
-                    state.error = EquatableError(DefaultContentSelectionError.emptySelection)
+                guard state.isValidSelection else {
+                    state.applySelection.result = .failure(.init(DefaultContentSelectionError.emptySelection))
                     return .none
                 }
 
-                state.isImporting = true
-                state.error = nil
+                guard !state.selection.isEmpty else {
+                    return .send(.delegate(.applied(.init(
+                        selection: state.selection,
+                        restoreSampleEncounter: state.restoreSampleEncounter == true
+                    ))))
+                }
+
+                state.applySelection.isLoading = true
+                state.applySelection.result = nil
                 return .run { [selection = state.selection] send in
                     do {
                         try await database.applyDefaultContentSelection(selection)
@@ -105,39 +112,35 @@ public struct DefaultContentSelectionFeature {
                     }
                 }
 
-            case .loadedStatusResponse(.success(let status)):
-                state.has2014Document = status.has2014Document
-                state.has2024Document = status.has2024Document
-                state.has2014UpdateAvailable = status.has2014UpdateAvailable
-                state.has2024UpdateAvailable = status.has2024UpdateAvailable
-
-            case .loadedStatusResponse(.failure(let error)):
-                state.error = error
-
             case .applySelectionResponse(.success(let selection)):
-                state.isImporting = false
-                let restoreSampleEncounter = state.sampleEncounterOption?.isEnabled == true
-                return .send(.delegate(.applied(selection, restoreSampleEncounter: restoreSampleEncounter)))
+                state.applySelection.isLoading = false
+                state.applySelection.result = .success(selection)
+                return .send(.delegate(.applied(.init(
+                    selection: selection,
+                    restoreSampleEncounter: state.restoreSampleEncounter == true
+                ))))
 
             case .applySelectionResponse(.failure(let error)):
-                state.isImporting = false
-                state.error = error
+                state.applySelection.isLoading = false
+                state.applySelection.result = .failure(error)
 
             case .delegate:
+                break
+
+            case .defaultDocumentStatus:
                 break
             }
 
             return .none
         }
-    }
-}
-
-extension DefaultContentSelectionFeature.State.SampleEncounterOption {
-    static func loadSampleEncounter(defaultEnabled: Bool) -> Self {
-        .init(
-            title: "Open sample encounter after setup",
-            subtitle: "Adds a ready-to-run encounter to Scratch pad.",
-            isEnabled: defaultEnabled
-        )
+        Scope(state: \.defaultDocumentStatus, action: \.defaultDocumentStatus) {
+            AsyncDefaultDocumentStatus {
+                do {
+                    return try database.defaultContentDocumentStatus()
+                } catch {
+                    throw error.toEquatableError()
+                }
+            }
+        }
     }
 }

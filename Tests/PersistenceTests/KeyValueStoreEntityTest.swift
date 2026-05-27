@@ -71,10 +71,6 @@ class KeyValueStoreEntityTest: XCTestCase {
         XCTAssertEqual(Preferences().key.rawValue, "Construct::Preferences")
     }
 
-    func testDefaultContentVersionsKey() {
-        XCTAssertEqual(DefaultContentVersions.current.key.rawValue, "Construct::DefaultContentVersions")
-    }
-
     func testDefaultContentImportSourceIdsKeepLegacy2014Bookmarks() {
         XCTAssertEqual(CompendiumImportSourceId.defaultMonsters2014.bookmark, "monsters")
         XCTAssertEqual(CompendiumImportSourceId.defaultSpells2014.bookmark, "spells")
@@ -82,27 +78,7 @@ class KeyValueStoreEntityTest: XCTestCase {
         XCTAssertEqual(CompendiumImportSourceId.defaultSpells2024.bookmark, "spells-2024")
     }
 
-    func testDefaultContentSelectionKey() {
-        XCTAssertEqual(DefaultContentSelection.none.key.rawValue, "Construct::DefaultContentSelection")
-    }
-
-    func testDefaultContentVersionsDecodesLegacyPayload() throws {
-        let legacyPayload = """
-        {
-          "monsters": "2026.02.21",
-          "spells": "2026.02.21"
-        }
-        """.data(using: .utf8)!
-
-        let versions = try JSONDecoder().decode(DefaultContentVersions.self, from: legacyPayload)
-
-        XCTAssertEqual(versions.monsters2014, "2026.02.21")
-        XCTAssertEqual(versions.spells2014, "2026.02.21")
-        XCTAssertNil(versions.monsters2024)
-        XCTAssertNil(versions.spells2024)
-    }
-
-    func testDefaultContentVersionsComponentsNeedingImportRespectsSelection() {
+    func testDefaultContentVersionsSourcesNeedingImportRespectsSelection() {
         let installed = DefaultContentVersions(
             monsters2014: DefaultContentVersions.currentMonsters2014,
             spells2014: DefaultContentVersions.currentSpells2014,
@@ -110,23 +86,20 @@ class KeyValueStoreEntityTest: XCTestCase {
             spells2024: nil
         )
 
-        let selected2014 = DefaultContentVersions.componentsNeedingImport(
-            selection: .rules2014Only,
+        let selected2014 = DefaultContentVersions.sourcesNeedingImport(
+            selection: [.rules2014],
             installed: installed
         )
-        let selected2024 = DefaultContentVersions.componentsNeedingImport(
-            selection: .rules2024Only,
+        let selected2024 = DefaultContentVersions.sourcesNeedingImport(
+            selection: [.rules2024],
             installed: installed
         )
 
-        XCTAssertEqual(selected2014, .none)
-        XCTAssertEqual(selected2024.monsters2024, true)
-        XCTAssertEqual(selected2024.spells2024, true)
-        XCTAssertEqual(selected2024.monsters2014, false)
-        XCTAssertEqual(selected2024.spells2014, false)
+        XCTAssertEqual(selected2014, [])
+        XCTAssertEqual(selected2024, [.monsters2024, .spells2024])
     }
 
-    func testDefaultContentVersionsApplyingCurrentVersionsUpdatesOnlyImportedComponents() {
+    func testDefaultContentVersionsApplyingCurrentVersionsUpdatesOnlyImportedSources() {
         let installed = DefaultContentVersions(
             monsters2014: "old2014m",
             spells2014: "old2014s",
@@ -135,12 +108,7 @@ class KeyValueStoreEntityTest: XCTestCase {
         )
 
         let updated = installed.applyingCurrentVersions(
-            for: DefaultContentImportComponents(
-                monsters2014: true,
-                spells2014: true,
-                monsters2024: false,
-                spells2024: false
-            )
+            for: [.monsters2014, .spells2014]
         )
 
         XCTAssertEqual(updated.monsters2014, DefaultContentVersions.currentMonsters2014)

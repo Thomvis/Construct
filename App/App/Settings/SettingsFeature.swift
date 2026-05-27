@@ -78,10 +78,15 @@ public struct SettingsFeature {
         case importDefaultContent
         case sendFeedback
         case rateInAppStore
+        case delegate(Delegate)
 
         // Mech Muse verification
         case verifyMechMuseApiKey
         case mechMuseVerificationResult(Result<String, MechMuseError>)
+
+        public enum Delegate: Equatable {
+            case sampleEncounterRestored(Encounter, openInCampaignBrowser: Bool)
+        }
     }
 
     @Dependency(\.mailer) var mailer
@@ -107,30 +112,45 @@ public struct SettingsFeature {
 
             case .setDefaultContentSelection(let presented):
                 if presented {
-                    if let suggestedSelection = try? database.suggestedDefaultContentSelection() {
+                    if let selection = try? database.defaultContentSelectionNeedingImport() {
                         state.defaultContentSelection = .init(
-                            selection: suggestedSelection,
-                            sampleEncounterOption: .loadSampleEncounter(defaultEnabled: false)
+                            selection: selection,
+                            restoreSampleEncounter: false,
+                            allowsSampleEncounterOnly: true
                         )
                     } else {
                         state.defaultContentSelection = .init(
-                            selection: .rules2014Only,
-                            sampleEncounterOption: .loadSampleEncounter(defaultEnabled: false)
+                            selection: [],
+                            restoreSampleEncounter: false,
+                            allowsSampleEncounterOnly: true
                         )
                     }
                 } else {
                     state.defaultContentSelection = nil
                 }
 
-            case .defaultContentSelection(.presented(.delegate(.applied(let selection, let restoreSampleEncounter)))):
+            case .defaultContentSelection(.presented(.delegate(.applied(let appliedSelection)))):
+                let defaultDocumentStatus = state.defaultContentSelection?.defaultDocumentStatus.value
+                let sampleEncounterRuleset = Self.sampleEncounterRuleset(
+                    selection: appliedSelection.selection,
+                    defaultDocumentStatus: defaultDocumentStatus
+                )
+                let shouldOpenInCampaignBrowser = (state.preferences.adventureTabMode ?? .simpleEncounter) == .simpleEncounter
                 state.defaultContentSelection = nil
-                guard restoreSampleEncounter else { break }
-                return .run { _ in
-                    _ = SampleEncounter.restore(
+                guard appliedSelection.restoreSampleEncounter else {
+                    return .none
+                }
+                return .run { send in
+                    if let encounter = SampleEncounter.restore(
                         database: database,
                         crashReporter: crashReporter,
-                        selection: selection
-                    )
+                        ruleset: sampleEncounterRuleset
+                    ) {
+                        await send(.delegate(.sampleEncounterRestored(
+                            encounter,
+                            openInCampaignBrowser: shouldOpenInCampaignBrowser && !encounter.isScratchPad
+                        )))
+                    }
                 }
 
             case .defaultContentSelection:
@@ -203,6 +223,9 @@ public struct SettingsFeature {
 
             case .mechMuseVerificationResult(.failure(let error)):
                 state.mechMuseVerificationState = .failed(error)
+
+            case .delegate:
+                break
             }
             return .none
         }
@@ -225,6 +248,22 @@ public struct SettingsFeature {
         }
 
         return .send(.verifyMechMuseApiKey)
+    }
+
+    private static func sampleEncounterRuleset(
+        selection: Set<DefaultContentRuleset>,
+        defaultDocumentStatus: Database.DefaultContentDocumentStatus?
+    ) -> DefaultContentRuleset {
+        if selection.contains(.rules2024) {
+            return .rules2024
+        }
+        if selection.contains(.rules2014) {
+            return .rules2014
+        }
+        if defaultDocumentStatus?.importedRulesets.contains(.rules2024) == true {
+            return .rules2024
+        }
+        return .rules2014
     }
 }
 

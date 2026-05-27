@@ -208,6 +208,7 @@
 		F1DCC1022FC0000000000001 /* DefaultContentSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0022FC0000000000001 /* DefaultContentSelectionView.swift */; };
 		F1DCC1032FC0000000000001 /* AppDefaultContentSelectionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0032FC0000000000001 /* AppDefaultContentSelectionTest.swift */; };
 		F1DCC1042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift */; };
+		F1DCC1052FC0000000000001 /* SimpleAdventureFeatureTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0052FC0000000000001 /* SimpleAdventureFeatureTest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -424,6 +425,7 @@
 		F1DCC0022FC0000000000001 /* DefaultContentSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultContentSelectionView.swift; sourceTree = "<group>"; };
 		F1DCC0032FC0000000000001 /* AppDefaultContentSelectionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDefaultContentSelectionTest.swift; sourceTree = "<group>"; };
 		F1DCC0042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultContentSelectionFeatureTest.swift; sourceTree = "<group>"; };
+		F1DCC0052FC0000000000001 /* SimpleAdventureFeatureTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleAdventureFeatureTest.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -902,6 +904,7 @@
 				E95E25A82EA689B5000B82BF /* SettingsViewTest.swift */,
 				F1DCC0032FC0000000000001 /* AppDefaultContentSelectionTest.swift */,
 				F1DCC0042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift */,
+				F1DCC0052FC0000000000001 /* SimpleAdventureFeatureTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1295,6 +1298,7 @@
 				E959BB5728BBF1AE0063CB64 /* CompendiumEntryTest.swift in Sources */,
 				F1DCC1032FC0000000000001 /* AppDefaultContentSelectionTest.swift in Sources */,
 				F1DCC1042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift in Sources */,
+				F1DCC1052FC0000000000001 /* SimpleAdventureFeatureTest.swift in Sources */,
 				E91E596F24477D3E00975453 /* AlignmentTest.swift in Sources */,
 				E98A0EF7267BCDD600316EE4 /* CreatureEditViewStateTest.swift in Sources */,
 				E90EFF412623220300F5443E /* DataSourceReaderParsersTest.swift in Sources */,

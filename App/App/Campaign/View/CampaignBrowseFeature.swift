@@ -178,6 +178,9 @@ struct CampaignBrowseViewFeature {
                     await send(.sheet(.dismiss))
                     await send(.items(.startLoading))
                 }
+            case .sheet(.presented(.settings(.delegate(.sampleEncounterRestored(let encounter, _))))):
+                state.sheet = nil
+                state.destination = .encounter(EncounterDetailFeature.State(building: encounter))
             case .setSheet(let s):
                 state.sheet = s
             case .setDestination(let dest):

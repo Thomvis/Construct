@@ -157,21 +157,21 @@ struct AppFeature {
                     if let encounter = SampleEncounter.restore(
                         database: database,
                         crashReporter: crashReporter,
-                        selection: selection
+                        ruleset: WelcomeFeature.sampleEncounterRuleset(selection: selection)
                     ) {
                         await send(.navigation(.openEncounter(encounter)))
                     }
 
                     await send(.destination(.dismiss))
                 }
-            case .destination(.presented(.defaultContentSelection(.delegate(.applied(let selection, let restoreSampleEncounter))))):
+            case .destination(.presented(.defaultContentSelection(.delegate(.applied(let appliedSelection))))):
                 state.$preferences.withLock { $0.dismissedDefaultContentUpdatePromptToken = nil }
                 return .run { send in
-                    if restoreSampleEncounter,
+                    if appliedSelection.restoreSampleEncounter,
                        let encounter = SampleEncounter.restore(
                         database: database,
                         crashReporter: crashReporter,
-                        selection: selection
+                        ruleset: WelcomeFeature.sampleEncounterRuleset(selection: appliedSelection.selection)
                        ) {
                         await send(.navigation(.openEncounter(encounter)))
                     }
@@ -210,25 +210,12 @@ struct AppFeature {
                 let environment = ProcessInfo.processInfo.environment
                 let isUiTesting = environment["CONSTRUCT_UI_TESTS"] == "1"
                 let shouldForceWelcomeForUITests = isUiTesting && environment["CONSTRUCT_UI_TESTS_FORCE_WELCOME"] != "0"
-                let persistedSelection: DefaultContentSelection? = try? database.keyValueStore.get(DefaultContentSelection.key)
                 if shouldForceWelcomeForUITests || !state.preferences.didShowWelcomeSheet {
-                    return .send(.requestDestination(.welcome(.init(selection: .none, sampleEncounterDefault: true))))
-                } else if persistedSelection?.hasAnySelection != true {
-                    let selection: DefaultContentSelection
-                    if let suggestedSelection = try? database.suggestedDefaultContentSelection() {
-                        selection = suggestedSelection
-                    } else {
-                        selection = .rules2014Only
-                    }
-                    return .send(.requestDestination(.defaultContentSelection(
-                        .init(
-                            selection: selection,
-                            sampleEncounterOption: .loadSampleEncounter(defaultEnabled: false)
-                        )
-                    )))
+                    return .send(.requestDestination(.welcome(.init())))
                 } else if let status = try? database.defaultContentDocumentStatus(),
-                          (status.has2014UpdateAvailable || status.has2024UpdateAvailable),
-                          let selection = persistedSelection,
+                          status.hasAnyImportAvailable,
+                          let selection = try? database.defaultContentSelectionNeedingImport(),
+                          !selection.isEmpty,
                           let dismissalToken = defaultContentUpdateDismissalToken(status: status),
                           state.preferences.dismissedDefaultContentUpdatePromptToken != dismissalToken {
                     return .send(.requestDestination(.defaultContentSelection(
@@ -286,12 +273,9 @@ struct AppFeature {
     private func defaultContentUpdateDismissalToken(
         status: Database.DefaultContentDocumentStatus
     ) -> String? {
-        var parts: [String] = []
-        if status.has2014Document {
-            parts.append("2014:\(DefaultContentVersions.currentMonsters2014):\(DefaultContentVersions.currentSpells2014)")
-        }
-        if status.has2024Document {
-            parts.append("2024:\(DefaultContentVersions.currentMonsters2024):\(DefaultContentVersions.currentSpells2024)")
+        let parts = DefaultContentRuleset.allCases.compactMap { ruleset -> String? in
+            guard status.isNewContent(ruleset) || status.isUpdateAvailable(ruleset) else { return nil }
+            return "\(ruleset.dismissalTokenPrefix):\(ruleset.currentVersionToken)"
         }
         return parts.isEmpty ? nil : parts.joined(separator: "|")
     }
@@ -300,60 +284,71 @@ struct AppFeature {
     struct WelcomeFeature {
         @ObservableState
         struct State: Equatable {
-            enum Page: Equatable {
-                case benefits
-                case contentImport
-            }
-
-            var page: Page = .benefits
-            var defaultContentSelection: DefaultContentSelectionFeature.State
-
-            init(selection: DefaultContentSelection, sampleEncounterDefault: Bool) {
-                self.defaultContentSelection = .init(
-                    selection: selection,
-                    sampleEncounterOption: .loadSampleEncounter(defaultEnabled: sampleEncounterDefault)
-                )
-            }
+            @Presents var page: Page.State? = .benefits
         }
 
         enum Action: Equatable {
             case didTapNext
             case didTapBack
             case didTapContinue
-            case defaultContentSelection(DefaultContentSelectionFeature.Action)
+            case page(PresentationAction<Page.Action>)
             case delegate(Delegate)
+        }
+        
+        @Reducer
+        enum Page {
+            case benefits
+            case contentImport(DefaultContentSelectionFeature)
         }
 
         enum Delegate: Equatable {
             case dismissWelcomeSheet
-            case openSampleEncounter(DefaultContentSelection)
+            case openSampleEncounter(Set<DefaultContentRuleset>)
         }
 
         var body: some ReducerOf<Self> {
-            Scope(state: \.defaultContentSelection, action: \.defaultContentSelection) {
-                DefaultContentSelectionFeature()
-            }
-
             Reduce { state, action in
                 switch action {
                 case .didTapNext:
-                    state.page = .contentImport
+                    if case .contentImport = state.page {
+                        return .none
+                    }
+                    state.page = .contentImport(Self.contentImportPageState)
                     return .none
                 case .didTapBack:
                     state.page = .benefits
                     return .none
                 case .didTapContinue:
-                    return .send(.defaultContentSelection(.applySelection))
-                case .defaultContentSelection(.delegate(.applied(let selection, let restoreSampleEncounter))):
-                    if restoreSampleEncounter {
-                        return .send(.delegate(.openSampleEncounter(selection)))
+                    return .send(.page(.presented(.contentImport(.applySelection))))
+                case .page(.presented(.contentImport(.delegate(.applied(let appliedSelection))))):
+                    if appliedSelection.restoreSampleEncounter {
+                        return .send(.delegate(.openSampleEncounter(
+                            appliedSelection.selection
+                        )))
                     } else {
                         return .send(.delegate(.dismissWelcomeSheet))
                     }
-                case .defaultContentSelection, .delegate:
+                case .page:
+                    return .none
+                case .delegate:
                     return .none
                 }
             }
+            .ifLet(\.$page, action: \.page)
+        }
+
+        static var contentImportPageState: DefaultContentSelectionFeature.State {
+            .init(
+                selection: [],
+                restoreSampleEncounter: true
+            )
+        }
+
+        static func sampleEncounterRuleset(selection: Set<DefaultContentRuleset>) -> DefaultContentRuleset {
+            if selection.contains(.rules2024) {
+                return .rules2024
+            }
+            return .rules2014
         }
     }
 
@@ -545,6 +540,17 @@ extension ColumnNavigationFeature.State {
     }
 }
 
+private extension DefaultContentRuleset {
+    var dismissalTokenPrefix: String {
+        switch self {
+        case .rules2014:
+            "2014"
+        case .rules2024:
+            "2024"
+        }
+    }
+}
+
 extension AppFeature.Destination.State: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
@@ -590,3 +596,6 @@ extension AppFeature.Navigation.State: NavigationTreeNode {
         }
     }
 }
+
+extension AppFeature.WelcomeFeature.Page.State: Equatable { }
+extension AppFeature.WelcomeFeature.Page.Action: Equatable { }

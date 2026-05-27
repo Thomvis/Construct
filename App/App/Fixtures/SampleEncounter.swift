@@ -23,7 +23,7 @@ enum SampleEncounter {
         createEncounter(
             database: database,
             crashReporter: crashReporter,
-            selection: .rules2014Only,
+            ruleset: .rules2014,
             id: UUID(),
             name: "Sample encounter"
         )
@@ -36,7 +36,7 @@ enum SampleEncounter {
     static func restore(
         database: Database,
         crashReporter: CrashReporter,
-        selection: DefaultContentSelection
+        ruleset: DefaultContentRuleset
     ) -> Encounter? {
         let scratchPad: Encounter? = try? database.keyValueStore.get(
             Encounter.key(Encounter.scratchPadEncounterId),
@@ -48,7 +48,7 @@ enum SampleEncounter {
             let encounter = createEncounter(
                 database: database,
                 crashReporter: crashReporter,
-                selection: selection,
+                ruleset: ruleset,
                 id: Encounter.scratchPadEncounterId.rawValue,
                 name: scratchPad?.name.nonEmptyString ?? "Scratch pad"
             )
@@ -59,7 +59,7 @@ enum SampleEncounter {
             let encounter = createEncounter(
                 database: database,
                 crashReporter: crashReporter,
-                selection: selection,
+                ruleset: ruleset,
                 id: UUID(),
                 name: name
             )
@@ -86,11 +86,11 @@ enum SampleEncounter {
     private static func createEncounter(
         database: Database,
         crashReporter: CrashReporter,
-        selection: DefaultContentSelection,
+        ruleset: DefaultContentRuleset,
         id: UUID,
         name: String
     ) -> Encounter {
-        let preferredRealms = preferredMonsterRealms(for: selection)
+        let preferredRealms = preferredMonsterRealms(for: ruleset)
 
         var combatants: [Combatant] = []
         if let mummy = loadMonster(
@@ -145,18 +145,13 @@ enum SampleEncounter {
         return Encounter(id: id, name: name, combatants: combatants)
     }
 
-    private static func preferredMonsterRealms(for selection: DefaultContentSelection) -> [CompendiumRealm.Id] {
-        var realms: [CompendiumRealm.Id] = []
-        if selection.include2024 {
-            realms.append(CompendiumRealm.core2024.id)
+    private static func preferredMonsterRealms(for ruleset: DefaultContentRuleset) -> [CompendiumRealm.Id] {
+        switch ruleset {
+        case .rules2014:
+            return [CompendiumRealm.core.id]
+        case .rules2024:
+            return [CompendiumRealm.core2024.id]
         }
-        if selection.include2014 {
-            realms.append(CompendiumRealm.core.id)
-        }
-        if realms.isEmpty {
-            realms.append(CompendiumRealm.core.id)
-        }
-        return realms
     }
 
     private static func loadMonster(

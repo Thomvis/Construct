@@ -6,25 +6,3 @@
 //
 
 import Foundation
-import Compendium
-import Tagged
-
-/// DefaultContentVersions is a singleton entity
-extension DefaultContentVersions: KeyValueStoreEntity {
-    public static let keyPrefix: String = "Construct::DefaultContentVersions"
-    public static let key: Key = Key(id: "")
-
-    public var key: Key {
-        Self.key
-    }
-}
-
-/// DefaultContentSelection is a singleton entity
-extension DefaultContentSelection: KeyValueStoreEntity {
-    public static let keyPrefix: String = "Construct::DefaultContentSelection"
-    public static let key: Key = Key(id: "")
-
-    public var key: Key {
-        Self.key
-    }
-}

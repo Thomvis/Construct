@@ -669,7 +669,7 @@ private struct CompendiumContentTip: Tip {
     }
 
     var message: Text? {
-        Text("Construct includes free content from Basic Rules 2014 and Basic Rules 2024. You can add creatures manually or import your collection.")
+        Text("Construct includes free content from Basic Rules 2014 and Basic Rules 2024. You can add creatures manually or import your collection from various file formats.")
     }
 
     var image: Image? {

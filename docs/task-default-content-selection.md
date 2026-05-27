@@ -4,7 +4,7 @@
 Implement user-driven default SRD selection with lazy realm/document creation for 2014/2024, while keeping homebrew always available.
 
 ## Progress
-- [x] Add `DefaultContentSelection` model and persistence wiring
+- [x] Add selection-aware persistence wiring
 - [x] Make database default import selection-aware and lazy
 - [x] Split metadata bootstrap APIs (`homebrew` vs edition metadata)
 - [x] Add reusable `DefaultContentSelectionFeature` + `DefaultContentSelectionView`
@@ -26,6 +26,13 @@ Implement user-driven default SRD selection with lazy realm/document creation fo
 - Existing users without persisted selection are prompted once and preselection is derived from loaded docs; fallback is 2014.
 - At least one edition must be selected.
 - Settings behavior is add-only (deselecting does not delete existing content).
+- Default content selection is modeled as a set of edition-level `DefaultContentRuleset`s.
+- There is no dedicated `DefaultContentSelection` wrapper; feature/database edges pass `Set<DefaultContentRuleset>` directly.
+- Default content status is modeled as sets of imported/new/updated `DefaultContentRuleset`s.
+- Compendium import is modeled as separate monster/spell `DefaultContentSource`s per ruleset.
+- `DefaultContentVersions` keeps one version per default content source.
+- The selection feature toggles rulesets; the database maps rulesets to their component sources before importing.
+- The legacy `DefaultContentVersions` migration only backfills 2014 jobs because no live versions had 2024 default content.
 
 ## Notes
 - Keep migration behavior intact.
@@ -36,6 +43,16 @@ Implement user-driven default SRD selection with lazy realm/document creation fo
 - Welcome and launch-required sheets are not swipe-dismissible.
 
 ## Validation
+- Latest build passed:
+  - `xcodebuild build -project App/Construct.xcodeproj -scheme Construct -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2' -derivedDataPath /tmp/ConstructDerivedData -skipPackagePluginValidation -skipMacroValidation CODE_SIGNING_ALLOWED=NO`
+- Latest focused tests passed:
+  - `PersistenceTests/DatabaseTest/testApplyDefaultContentSelectionCreatesOnlySelectedDefaultDocument`
+  - `PersistenceTests/DatabaseTest/testDefaultContentDocumentStatusUsesDefaultImportJobs`
+  - `PersistenceTests/DatabaseTest/testDefaultContentVersionsMigrationCreatesDefaultImportJobs`
+  - `PersistenceTests/KeyValueStoreEntityTest/testDefaultContentImportSourceIdsKeepLegacy2014Bookmarks`
+  - `PersistenceTests/KeyValueStoreEntityTest/testDefaultContentVersionsSourcesNeedingImportRespectsSelection`
+  - `PersistenceTests/KeyValueStoreEntityTest/testDefaultContentVersionsApplyingCurrentVersionsUpdatesOnlyImportedSources`
+  - `UnitTests/DefaultContentSelectionFeatureTest`
 - Latest focused unit tests passed:
   - `UnitTests/SettingsViewTest`
   - `UnitTests/AppDefaultContentSelectionTest`

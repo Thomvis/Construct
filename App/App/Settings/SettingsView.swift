@@ -231,7 +231,7 @@ struct SettingsView: View {
                 cancelAction: {
                     store.send(.setDefaultContentSelection(false))
                 },
-                primaryButtonTitle: "Save"
+                primaryButtonTitle: "Import"
             )
         }
         .navigationDestination(item: pushDestination, destination: pushView)

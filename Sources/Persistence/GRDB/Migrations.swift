@@ -34,6 +34,7 @@ extension Database {
         case v15 = "v15-keyvaluestore-ftsDeleteSync"
         case v16 = "v16-fix-missing-origin-document"
         case v17 = "v17-rename-default-compendium-realm-and-document"
+        case v18 = "v18-default-content-versions-to-import-jobs"
     }
 
     static func migrator() throws -> DatabaseMigrator {
@@ -669,11 +670,57 @@ extension Database {
             )
         }
 
+        migrator.registerMigration(Migration.v18) { db in
+            let legacyDefaultContentVersionsKey = "Construct::DefaultContentVersions"
+            guard let record = try DatabaseKeyValueStore.Record.fetchOne(
+                db,
+                key: legacyDefaultContentVersionsKey
+            ) else { return }
+
+            let versions = try DatabaseKeyValueStore.decoder.decode(
+                DefaultContentVersions.self,
+                from: record.value
+            )
+            let store = DatabaseKeyValueStore(.direct(db))
+
+            func migrateJob(
+                sourceId: CompendiumImportSourceId,
+                sourceVersion: String?,
+                documentId: CompendiumSourceDocument.Id,
+                uuid: UUID
+            ) throws {
+                guard let sourceVersion else { return }
+                let keyPrefix = CompendiumImportJob.keyPrefix + CompendiumImportJob.jobIdPrefix(sourceId: sourceId)
+                let existingJobs: [CompendiumImportJob] = try store.fetchAll(.keyPrefix(keyPrefix))
+                guard existingJobs.allSatisfy({ $0.sourceId != sourceId }) else { return }
+
+                try store.put(CompendiumImportJob(
+                    sourceId: sourceId,
+                    sourceVersion: sourceVersion,
+                    documentId: documentId,
+                    timestamp: record.modifiedAt,
+                    uuid: uuid
+                ))
+            }
+
+            try migrateJob(
+                sourceId: .defaultMonsters2014,
+                sourceVersion: versions.monsters2014,
+                documentId: CompendiumSourceDocument.srd5_1.id,
+                uuid: UUID(uuidString: "4A16D973-A4FB-4D7E-AE2F-C337C614F184")!
+            )
+            try migrateJob(
+                sourceId: .defaultSpells2014,
+                sourceVersion: versions.spells2014,
+                documentId: CompendiumSourceDocument.srd5_1.id,
+                uuid: UUID(uuidString: "0BA8EA2C-E625-4AF1-B31E-748BF67AC30C")!
+            )
+            try DatabaseKeyValueStore.Record.deleteOne(db, key: legacyDefaultContentVersionsKey)
+        }
+
         return migrator
     }
 }
-
-let legacyDefaultContentImportingMigrations: [Database.Migration] = [.v1, .v5, .v7, .v8, .v9]
 
 extension DatabaseMigrator {
     mutating func registerMigration(

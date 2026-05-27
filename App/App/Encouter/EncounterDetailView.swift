@@ -63,7 +63,7 @@ struct EncounterDetailView: View {
                 Section {
                     VStack(spacing: 8) {
                         Text("Empty encounter").font(.headline)
-                        Text("Start by adding one or more combatants.")
+                        Text("Start by adding combatants.")
                     }.frame(maxWidth: .infinity).padding(18)
                 }
             } else {
