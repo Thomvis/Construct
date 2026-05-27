@@ -22,5 +22,11 @@ final class AppDefaultContentSelectionTest: XCTestCase {
         await store.receive(.requestDestination(.welcome(.init()))) {
             $0.destination = .welcome(.init())
         }
+        XCTAssertEqual(store.state.preferences.didShowWelcomeSheet, false)
+
+        await store.send(.destination(.dismiss)) {
+            $0.destination = nil
+        }
+        XCTAssertEqual(store.state.preferences.didShowWelcomeSheet, true)
     }
 }

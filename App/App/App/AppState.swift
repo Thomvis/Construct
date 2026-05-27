@@ -127,16 +127,15 @@ struct AppFeature {
 
                 if state.destination == nil {
                     state.destination = destination
-
-                    let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
-                    if case .welcome = destination, !isUiTesting {
-                        state.$preferences.withLock { $0.didShowWelcomeSheet = true }
-                    }
                 } else {
                     state.pendingDestinations.append(destination)
                 }
             case .destination(.dismiss):
                 guard let destination = state.destination else { break }
+                let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
+                if case .welcome = destination, !isUiTesting {
+                    state.$preferences.withLock { $0.didShowWelcomeSheet = true }
+                }
                 if case .defaultContentSelection(let selectionState) = destination,
                    let dismissalToken = selectionState.dismissalToken {
                     state.$preferences.withLock { $0.dismissedDefaultContentUpdatePromptToken = dismissalToken }
