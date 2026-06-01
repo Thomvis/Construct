@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2428261D2FCE02BF008EC070 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2428261C2FCE02BF008EC070 /* StoreKit.framework */; };
 		24313C9E2FC7201C00542920 /* WelcomeFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24313C9D2FC7201900542920 /* WelcomeFeature.swift */; };
 		7BA60BB832104E43988EAF24 /* ConstructFirstLaunchUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29BC29F007A24B43B3F65D05 /* ConstructFirstLaunchUITests.swift */; };
 		C1F2D3E4A5B6C7D8E9F00101 /* ConstructUITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F2D3E4A5B6C7D8E9F00101 /* ConstructUITestSupport.swift */; };
@@ -251,6 +252,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2428261C2FCE02BF008EC070 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		24313C9D2FC7201900542920 /* WelcomeFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeFeature.swift; sourceTree = "<group>"; };
 		29BC29F007A24B43B3F65D05 /* ConstructFirstLaunchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructFirstLaunchUITests.swift; sourceTree = "<group>"; };
 		5AD778C50DFB411DAE4B090B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -445,6 +447,7 @@
 				E9F6D03A2FB7512200C551A7 /* ConcurrencyExtras in Frameworks */,
 				E9F6D0372FB74B2F00C551A7 /* OrderedCollections in Frameworks */,
 				E9F6D0362FB74B2F00C551A7 /* IdentifiedCollections in Frameworks */,
+				2428261D2FCE02BF008EC070 /* StoreKit.framework in Frameworks */,
 				E9F6D02B2FB740F500C551A7 /* CustomDump in Frameworks */,
 				E9F6D02A2FB740F500C551A7 /* CombineSchedulers in Frameworks */,
 				E9F6D0232FB73FD100C551A7 /* Dependencies in Frameworks */,
@@ -678,6 +681,7 @@
 		E9869F722520A17A0098A166 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2428261C2FCE02BF008EC070 /* StoreKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

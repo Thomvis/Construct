@@ -2629,12 +2629,12 @@ struct SettingsPage {
 
     @discardableResult
     func openDefaultContent(timeout: TimeInterval = 10) -> DefaultContentSelectionPage {
-        let row = app.cells.containing(.staticText, identifier: "Rules content").firstMatch
+        let row = app.cells.containing(.staticText, identifier: "Basic Rules content").firstMatch
         if row.waitForExistence(timeout: timeout) {
             row.tap()
         } else {
-            let button = app.buttons["Rules content"].firstMatch
-            XCTAssertTrue(button.waitForExistence(timeout: timeout), "Expected Rules content row")
+            let button = app.buttons["Basic Rules content"].firstMatch
+            XCTAssertTrue(button.waitForExistence(timeout: timeout), "Expected Basic Rules content row")
             button.tap()
         }
         return DefaultContentSelectionPage(app: app).waitForVisible()
@@ -2725,7 +2725,7 @@ struct DefaultContentSelectionPage {
 
     @discardableResult
     func waitForVisible(timeout: TimeInterval = 10) -> Self {
-        XCTAssertTrue(app.navigationBars["Rules content"].waitForExistence(timeout: timeout), "Expected Rules content screen")
+        XCTAssertTrue(app.navigationBars["Basic Rules content"].waitForExistence(timeout: timeout), "Expected Basic Rules content screen")
         return self
     }
 

@@ -34,7 +34,7 @@ class SettingsViewTest: XCTestCase {
         }
 
         let sut = SettingsView(store: store)
-        XCTAssertNotNil(try sut.inspect().find(text: "Rules content"))
+        XCTAssertNotNil(try sut.inspect().find(text: "Basic Rules content"))
     }
 
 }

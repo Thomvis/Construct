@@ -224,7 +224,7 @@ struct DefaultContentSelectionSheet: View {
                     store.send(.applySelection)
                 }
             )
-            .navigationTitle("Rules content")
+            .navigationTitle("Basic Rules content")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if let cancelButtonTitle, let cancelAction {

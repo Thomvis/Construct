@@ -49,7 +49,7 @@ final class ConstructUpgradeExperienceUITests: ConstructUITestCase {
     }
 
     private func applyDefaultContentUpdateIfNeeded(in app: XCUIApplication) {
-        guard app.navigationBars["Rules content"].waitForExistence(timeout: 5) else { return }
+        guard app.navigationBars["Basic Rules content"].waitForExistence(timeout: 5) else { return }
 
         let continueButton = app.buttons["Continue"].firstMatch
         if !continueButton.waitForExistence(timeout: 2) || !continueButton.isEnabled {
@@ -66,7 +66,7 @@ final class ConstructUpgradeExperienceUITests: ConstructUITestCase {
         primaryButton.tap()
 
         let dismissed = NSPredicate(format: "exists == false")
-        let expectation = XCTNSPredicateExpectation(predicate: dismissed, object: app.navigationBars["Rules content"])
+        let expectation = XCTNSPredicateExpectation(predicate: dismissed, object: app.navigationBars["Basic Rules content"])
         XCTAssertEqual(XCTWaiter().wait(for: [expectation], timeout: 60), .completed)
     }
 

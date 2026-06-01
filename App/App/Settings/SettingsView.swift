@@ -109,7 +109,7 @@ struct SettingsView: View {
                 NavigationRowButton(action: {
                     store.send(.setDefaultContentSelection(true))
                 }) {
-                    Text("Rules content").foregroundColor(Color.primary)
+                    Text("Basic Rules content").foregroundColor(Color.primary)
                 }
             }
 
