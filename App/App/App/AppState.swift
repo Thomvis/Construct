@@ -221,7 +221,9 @@ struct AppFeature {
                           nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
                 {
                     #if !DEBUG
-                    appReview.requestAppStoreReview()
+                    return .run { _ in
+                        await appReview.requestAppStoreReview()
+                    }
                     #endif
                 }
             case .scene(let phase):
