@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Compendium
+@testable import Compendium
 import XCTest
 
 final class Open5eAPIDataSourceTest: XCTestCase {
