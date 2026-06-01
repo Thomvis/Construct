@@ -3,17 +3,17 @@
 set -euo pipefail
 
 API_BASE="${OPEN5E_API_BASE:-https://api.open5e.com/v2}"
-DOCUMENT_KEY="${OPEN5E_DOCUMENT_KEY:-srd-2014}"
+DOCUMENT_KEY="${OPEN5E_DOCUMENT_KEY:-}"
 LIMIT="${OPEN5E_PAGE_LIMIT:-500}"
-V1_API_BASE="${OPEN5E_V1_API_BASE:-https://api.open5e.com}"
+V1_API_BASE="${OPEN5E_V1_API_BASE:-https://api.open5e.com/v1}"
 V1_DOCUMENT_SLUG="${OPEN5E_V1_DOCUMENT_SLUG:-wotc-srd}"
 V1_AUGMENT="${OPEN5E_V1_AUGMENT:-auto}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-MONSTERS_OUTPUT="${OPEN5E_MONSTERS_OUTPUT:-${REPO_ROOT}/Sources/Compendium/Fixtures/monsters-2014.json}"
-SPELLS_OUTPUT="${OPEN5E_SPELLS_OUTPUT:-${REPO_ROOT}/Sources/Compendium/Fixtures/spells-2014.json}"
+MONSTERS_OUTPUT="${OPEN5E_MONSTERS_OUTPUT:-}"
+SPELLS_OUTPUT="${OPEN5E_SPELLS_OUTPUT:-}"
 
 require_tool() {
   local tool="$1"
@@ -33,7 +33,11 @@ fetch_all_results() {
 
   while [[ -n "${url}" && "${url}" != "null" ]]; do
     local page
-    page="$(curl -fsSL -H 'accept: application/json' "${url}")"
+    if ! page="$(curl -fsSL -H 'accept: application/json' "${url}")"; then
+      echo "Failed to fetch ${url}" >&2
+      rm -f "${all_file}" "${next_file}"
+      return 1
+    fi
 
     local page_results
     page_results="$(printf '%s' "${page}" | jq -c '.results')"
@@ -95,7 +99,7 @@ filter_monsters() {
         else .languages
         end
       ),
-      challenge_rating_text,
+      challenge_rating,
       traits: ((.traits // []) | map({
         name,
         desc,
@@ -215,9 +219,11 @@ filter_spells() {
 }
 
 should_augment_v1_usage_limits() {
+  local document_key="$1"
+
   case "${V1_AUGMENT}" in
   auto)
-    [[ "${DOCUMENT_KEY}" == "srd-2014" ]]
+    [[ "${document_key}" == "srd-2014" ]]
     ;;
   true | TRUE | 1 | yes | YES)
     return 0
@@ -232,19 +238,28 @@ should_augment_v1_usage_limits() {
   esac
 }
 
-main() {
-  require_tool curl
-  require_tool jq
+default_output() {
+  local type="$1"
+  local document_key="$2"
+  local edition="${document_key#srd-}"
 
-  local monsters_url="${API_BASE}/creatures/?document__key=${DOCUMENT_KEY}&limit=${LIMIT}"
-  local spells_url="${API_BASE}/spells/?document__key=${DOCUMENT_KEY}&limit=${LIMIT}"
+  printf '%s\n' "${REPO_ROOT}/Sources/Compendium/Fixtures/${type}-${edition}.json"
+}
+
+update_fixtures() {
+  local document_key="$1"
+  local monsters_output="$2"
+  local spells_output="$3"
+
+  local monsters_url="${API_BASE}/creatures/?document__key=${document_key}&limit=${LIMIT}"
+  local spells_url="${API_BASE}/spells/?document__key=${document_key}&limit=${LIMIT}"
 
   local raw_monsters
   local raw_spells
   raw_monsters="$(fetch_all_results "${monsters_url}")"
   raw_spells="$(fetch_all_results "${spells_url}")"
 
-  if should_augment_v1_usage_limits; then
+  if should_augment_v1_usage_limits "${document_key}"; then
     local v1_monsters_url="${V1_API_BASE}/monsters/?document__slug=${V1_DOCUMENT_SLUG}&limit=${LIMIT}"
     local raw_v1_monsters
     local v2_raw_file
@@ -260,22 +275,49 @@ main() {
     printf '%s\n' "${raw_v1_monsters}" > "${v1_raw_file}"
 
     enrich_monsters_with_v1_usage_limits "${v2_raw_file}" "${v1_raw_file}" > "${merged_raw_file}"
-    cat "${merged_raw_file}" | filter_monsters > "${MONSTERS_OUTPUT}"
+    filter_monsters < "${merged_raw_file}" > "${monsters_output}"
     rm -f "${v2_raw_file}" "${v1_raw_file}" "${merged_raw_file}"
   else
-    printf '%s\n' "${raw_monsters}" | filter_monsters > "${MONSTERS_OUTPUT}"
+    printf '%s\n' "${raw_monsters}" | filter_monsters > "${monsters_output}"
   fi
 
-  printf '%s\n' "${raw_spells}" | filter_spells > "${SPELLS_OUTPUT}"
+  printf '%s\n' "${raw_spells}" | filter_spells > "${spells_output}"
 
   local monster_count
   local spell_count
-  monster_count="$(jq 'length' "${MONSTERS_OUTPUT}")"
-  spell_count="$(jq 'length' "${SPELLS_OUTPUT}")"
+  monster_count="$(jq 'length' "${monsters_output}")"
+  spell_count="$(jq 'length' "${spells_output}")"
 
-  echo "Updated fixtures:"
-  echo "  monsters: ${monster_count} -> ${MONSTERS_OUTPUT}"
-  echo "  spells:   ${spell_count} -> ${SPELLS_OUTPUT}"
+  echo "Updated ${document_key} fixtures:"
+  echo "  monsters: ${monster_count} -> ${monsters_output}"
+  echo "  spells:   ${spell_count} -> ${spells_output}"
+}
+
+main() {
+  require_tool curl
+  require_tool jq
+
+  if [[ -n "${DOCUMENT_KEY}" ]]; then
+    update_fixtures \
+      "${DOCUMENT_KEY}" \
+      "${MONSTERS_OUTPUT:-$(default_output monsters "${DOCUMENT_KEY}")}" \
+      "${SPELLS_OUTPUT:-$(default_output spells "${DOCUMENT_KEY}")}"
+    return
+  fi
+
+  if [[ -n "${MONSTERS_OUTPUT}" || -n "${SPELLS_OUTPUT}" ]]; then
+    echo "OPEN5E_DOCUMENT_KEY is required when overriding fixture output paths." >&2
+    exit 1
+  fi
+
+  update_fixtures \
+    "srd-2014" \
+    "$(default_output monsters srd-2014)" \
+    "$(default_output spells srd-2014)"
+  update_fixtures \
+    "srd-2024" \
+    "$(default_output monsters srd-2024)" \
+    "$(default_output spells srd-2024)"
 }
 
 main "$@"

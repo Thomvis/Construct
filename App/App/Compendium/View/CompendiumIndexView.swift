@@ -665,7 +665,7 @@ fileprivate extension CompendiumFilterSheetFeature.State {
 
 private struct CompendiumContentTip: Tip {
     var title: Text {
-        Text("Where are all the monsters?")
+        Text("Looking for more monsters?")
     }
 
     var message: Text? {

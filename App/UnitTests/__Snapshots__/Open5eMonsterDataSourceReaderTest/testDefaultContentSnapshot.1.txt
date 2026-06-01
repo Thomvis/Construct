@@ -765,7 +765,7 @@
             ▿ input: CreatureAction
               ▿ _id: Wrapper<UUID>
                 - wrappedValue: 00000000-0000-0000-0000-390000000000
-              - description: "The dragon uses one of the following breath weapons.\n**Fire Breath.** The dragon exhales fire in an 60-foot line that is 5 feet wide. Each creature in that line must make a DC 18 Dexterity saving throw, taking 45 (13d6) fire damage on a failed save, or half as much damage on a successful one.\n**Sleep Breath.** The dragon exhales sleep gas in a 60-foot cone. Each creature in that area must succeed on a DC 18 Constitution saving throw or fall unconscious for 10 minutes. This effect ends for a creature if the creature takes damage or someone uses an action to wake it."
+              - description: "The dragon uses one of the following breath weapons:\n\n- **Fire Breath.** The dragon exhales fire in an 60-foot line that is 5 feet wide. Each creature in that line must make a DC 18 Dexterity saving throw, taking 45 (13d6) fire damage on a failed save, or half as much damage on a successful one.\n- **Sleep Breath.** The dragon exhales sleep gas in a 60-foot cone. Each creature in that area must succeed on a DC 18 Constitution saving throw or fall unconscious for 10 minutes. This effect ends for a creature if the creature takes damage or someone uses an action to wake it."
               - name: "Breath Weapons (Recharge 5-6)"
             - result: Optional<ParserResult>.none
         ▿ armor: 1 element
@@ -3001,7 +3001,7 @@
             ▿ input: CreatureAction
               ▿ _id: Wrapper<UUID>
                 - wrappedValue: 00000000-0000-0000-0000-151000000000
-              - description: "The dragon uses one of the following breath weapons:\n**Fire Breath.** The dragon exhales fire in an 90-foot line that is 10 feet wide. Each creature in that line must make a DC 21 Dexterity saving throw, taking 56 (16d6) fire damage on a failed save, or half as much damage on a successful one.\n**Sleep Breath.** The dragon exhales sleep gas in a 90-foot cone. Each creature in that area must succeed on a DC 21 Constitution saving throw or fall unconscious for 10 minutes. This effect ends for a creature if the creature takes damage or someone uses an action to wake it."
+              - description: "The dragon uses one of the following breath weapons:\n\n- **Fire Breath.** The dragon exhales fire in an 90-foot line that is 10 feet wide. Each creature in that line must make a DC 21 Dexterity saving throw, taking 56 (16d6) fire damage on a failed save, or half as much damage on a successful one.\n- **Sleep Breath.** The dragon exhales sleep gas in a 90-foot cone. Each creature in that area must succeed on a DC 21 Constitution saving throw or fall unconscious for 10 minutes. This effect ends for a creature if the creature takes damage or someone uses an action to wake it."
               - name: "Breath Weapons (Recharge 5-6)"
             - result: Optional<ParserResult>.none
           ▿ Parseable<CreatureAction, ParsedCreatureAction>
@@ -8254,7 +8254,7 @@
             ▿ input: CreatureAction
               ▿ _id: Wrapper<UUID>
                 - wrappedValue: 00000000-0000-0000-0000-343000000000
-              - description: "The dragon uses one of the following breath weapons.\n**Fire Breath.** The dragon exhales fire in an 20-foot line that is 5 feet wide. Each creature in that line must make a DC 11 Dexterity saving throw, taking 14 (4d6) fire damage on a failed save, or half as much damage on a successful one.\n**Sleep Breath.** The dragon exhales sleep gas in a 15-foot cone. Each creature in that area must succeed on a DC 11 Constitution saving throw or fall unconscious for 1 minute. This effect ends for a creature if the creature takes damage or someone uses an action to wake it."
+              - description: "The dragon uses one of the following breath weapons:\n\n- **Fire Breath.** The dragon exhales fire in an 20-foot line that is 5 feet wide. Each creature in that line must make a DC 11 Dexterity saving throw, taking 14 (4d6) fire damage on a failed save, or half as much damage on a successful one.\n- **Sleep Breath.** The dragon exhales sleep gas in a 15-foot cone. Each creature in that area must succeed on a DC 11 Constitution saving throw or fall unconscious for 1 minute. This effect ends for a creature if the creature takes damage or someone uses an action to wake it."
               - name: "Breath Weapons (Recharge 5-6)"
             - result: Optional<ParserResult>.none
         ▿ armor: 1 element
@@ -23750,7 +23750,7 @@
               ▿ _id: Wrapper<UUID>
                 - wrappedValue: 00000000-0000-0000-0000-833000000000
               - description: "The golem exhales poisonous gas in a 15-foot cone. Each creature in that area must make a DC 19 Constitution saving throw, taking 45 (10d8) poison damage on a failed save, or half as much damage on a successful one."
-              - name: "Poison Breath (Recharge 5-6)"
+              - name: "Poison Breath (Recharge 6)"
             - result: Optional<ParserResult>.none
         ▿ armor: 1 element
           ▿ Armor
@@ -34147,9 +34147,9 @@
             - numenator: 1
         ▿ conditionImmunities: Optional<String>
           - some: "exhaustion, poisoned"
-        - damageImmunities: Optional<String>.none
-        ▿ damageResistances: Optional<String>
+        ▿ damageImmunities: Optional<String>
           - some: "poison"
+        - damageResistances: Optional<String>.none
         ▿ damageVulnerabilities: Optional<String>
           - some: "bludgeoning"
         - features: 0 elements
@@ -41628,7 +41628,7 @@
             ▿ input: CreatureAction
               ▿ _id: Wrapper<UUID>
                 - wrappedValue: 00000000-0000-0000-0000-144100000000
-              - description: "The dragon uses one of the following breath weapons.\n**Fire Breath.** The dragon exhales fire in a 40-foot line that is 5 feet wide. Each creature in that line must make a DC 14 Dexterity saving throw, taking 42 (12d6) fire damage on a failed save, or half as much damage on a successful one.\n**Sleep Breath.** The dragon exhales sleep gas in a 30-foot cone. Each creature in that area must succeed on a DC 14 Constitution saving throw or fall unconscious for 5 minutes. This effect ends for a creature if the creature takes damage or someone uses an action to wake it."
+              - description: "The dragon uses one of the following breath weapons:\n\n- **Fire Breath.** The dragon exhales fire in a 40-foot line that is 5 feet wide. Each creature in that line must make a DC 14 Dexterity saving throw, taking 42 (12d6) fire damage on a failed save, or half as much damage on a successful one.\n- **Sleep Breath.** The dragon exhales sleep gas in a 30-foot cone. Each creature in that area must succeed on a DC 14 Constitution saving throw or fall unconscious for 5 minutes. This effect ends for a creature if the creature takes damage or someone uses an action to wake it."
               - name: "Breath Weapons (Recharge 5-6)"
             - result: Optional<ParserResult>.none
         ▿ armor: 1 element

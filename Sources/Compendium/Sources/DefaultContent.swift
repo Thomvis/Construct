@@ -46,10 +46,10 @@ public enum DefaultContentSource: String, CaseIterable, Codable, Hashable, Senda
     case monsters2024
     case spells2024
 
-    public static let currentMonsters2014Version = "2026.02.21"
-    public static let currentSpells2014Version = "2026.02.21"
-    public static let currentMonsters2024Version = "2026.02.22"
-    public static let currentSpells2024Version = "2026.02.22"
+    public static let currentMonsters2014Version = "2026.06.01"
+    public static let currentSpells2014Version = "2026.06.01"
+    public static let currentMonsters2024Version = "2026.06.01"
+    public static let currentSpells2024Version = "2026.06.01"
 
     public var currentVersion: String {
         switch self {

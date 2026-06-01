@@ -31,7 +31,8 @@ public enum O5e {
         let perception: Int?
         let damageVulnerabilities: String
         let damageResistances, damageImmunities, conditionImmunities, senses: String
-        let languages, challengeRating: String
+        let languages: String
+        let challengeRating: Double
         let specialAbilities, actions: Either<[Action], String>?
         let legendaryDesc: String?
         let legendaryActions: Either<[Action], String>?
@@ -363,9 +364,7 @@ public enum O5e {
                 self.languages = (try? c.decode(LocalizedString.self, forKey: .languages))?.asString
                     ?? (try? c.decode(String.self, forKey: .languages))
                     ?? ""
-                self.challengeRating = try c.decodeIfPresent(String.self, forKey: .challengeRatingText)
-                    ?? c.decodeIfPresent(String.self, forKey: .challengeRating)
-                    ?? "0"
+                self.challengeRating = Self.decodeChallengeRating(from: c)
 
                 let traits = try c.decodeIfPresent([Action].self, forKey: .traits) ?? []
                 self.specialAbilities = traits.isEmpty ? nil : .left(traits)
@@ -426,7 +425,7 @@ public enum O5e {
                 self.conditionImmunities = try c.decodeIfPresent(String.self, forKey: .conditionImmunities) ?? ""
                 self.senses = try c.decodeIfPresent(String.self, forKey: .senses) ?? ""
                 self.languages = try c.decodeIfPresent(String.self, forKey: .languages) ?? ""
-                self.challengeRating = try c.decodeIfPresent(String.self, forKey: .challengeRating) ?? "0"
+                self.challengeRating = Self.decodeChallengeRating(from: c)
 
                 self.specialAbilities = try c.decodeIfPresent(Either<[Action], String>.self, forKey: .specialAbilities)
                 self.actions = try c.decodeIfPresent(Either<[Action], String>.self, forKey: .actions)
@@ -491,6 +490,21 @@ public enum O5e {
             }
 
             return components.joined(separator: ", ")
+        }
+
+        private static func decodeChallengeRating(from c: KeyedDecodingContainer<CodingKeys>) -> Double {
+            if let value = try? c.decode(Double.self, forKey: .challengeRating) {
+                return value
+            }
+
+            for key in [CodingKeys.challengeRatingText, .challengeRating] {
+                if let value = try? c.decode(String.self, forKey: key),
+                   let fraction = Fraction(rawValue: value) {
+                    return fraction.double
+                }
+            }
+
+            return 0
         }
 
         private static func v2LegendaryDescription(creatureName: String, hasLegendaryActions: Bool) -> String? {

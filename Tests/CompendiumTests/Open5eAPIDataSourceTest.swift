@@ -49,7 +49,7 @@ final class Open5eAPIDataSourceTest: XCTestCase {
                         "condition_immunities_display": ""
                       },
                       "languages": { "as_string": "Common" },
-                      "challenge_rating_text": "1/4",
+                      "challenge_rating": 0.25,
                       "traits": [{ "name": "Test Trait", "desc": "Trait description" }],
                       "actions": [{ "name": "Club", "desc": "Hit.", "action_type": "ACTION" }]
                     }
@@ -71,10 +71,11 @@ final class Open5eAPIDataSourceTest: XCTestCase {
         var didReceiveResults = false
         for try await page in try sut.read() {
             XCTAssertEqual(page.count, 1)
-            guard case .left = page[0] else {
+            guard case .left(let monster) = page[0] else {
                 XCTFail("Expected monster payload")
                 continue
             }
+            XCTAssertEqual(monster.challengeRating, 0.25)
             didReceiveResults = true
             break
         }

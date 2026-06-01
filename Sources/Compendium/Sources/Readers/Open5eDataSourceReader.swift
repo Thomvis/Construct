@@ -41,10 +41,16 @@ public final class Open5eDataSourceReader: CompendiumDataSourceReader {
 
 private extension Monster {
     init?(open5eMonster m: O5e.Monster, realm: CompendiumItemKey.Realm, generateUUID: () -> UUID) {
+        guard let stats = StatBlock(open5eMonster: m, generateUUID: generateUUID),
+              let challengeRating = Fraction(open5eChallengeRating: m.challengeRating)
+        else {
+            return nil
+        }
+
         self.init(
             realm: realm,
-            stats: StatBlock(open5eMonster: m, generateUUID: generateUUID)!,
-            challengeRating: Fraction(rawValue: m.challengeRating)!
+            stats: stats,
+            challengeRating: challengeRating
         )
     }
 }
@@ -117,7 +123,7 @@ private extension StatBlock {
             senses: m.senses.nonEmptyString,
             languages: m.languages.nonEmptyString,
 
-            challengeRating: Fraction(rawValue: m.challengeRating),
+            challengeRating: Fraction(open5eChallengeRating: m.challengeRating),
 
             features: m.specialAbilities?.leftValue?.map { a in
                 CreatureFeature(id: generateUUID(), name: a.name, description: a.desc)
@@ -137,6 +143,24 @@ private extension StatBlock {
                 )
             }
         )
+    }
+}
+
+private extension Fraction {
+    init?(open5eChallengeRating value: Double) {
+        guard value >= 0, value.isFinite else { return nil }
+
+        switch value {
+        case 0.125:
+            self = .oneEighth
+        case 0.25:
+            self = .oneQuarter
+        case 0.5:
+            self = .half
+        default:
+            guard value.rounded() == value else { return nil }
+            self.init(integer: Int(value))
+        }
     }
 }
 
