@@ -12,12 +12,6 @@ public enum DefaultContentRuleset: String, CaseIterable, Codable, Hashable, Send
     case rules2014
     case rules2024
 
-    public var currentVersionToken: String {
-        orderedSources
-            .map(\.currentVersion)
-            .joined(separator: ":")
-    }
-
     public var document: CompendiumSourceDocument {
         switch self {
         case .rules2014:
@@ -37,10 +31,6 @@ public enum DefaultContentRuleset: String, CaseIterable, Codable, Hashable, Send
     }
 
     public var sources: Set<DefaultContentSource> {
-        Set(orderedSources)
-    }
-
-    public var orderedSources: [DefaultContentSource] {
         switch self {
         case .rules2014:
             [.monsters2014, .spells2014]
@@ -106,61 +96,36 @@ public enum DefaultContentSource: String, CaseIterable, Codable, Hashable, Senda
 }
 
 public struct DefaultContentVersions: Codable, Hashable {
-    public let monsters2014: String?
-    public let spells2014: String?
-    public let monsters2024: String?
-    public let spells2024: String?
 
-    public init(
-        monsters2014: String? = nil,
-        spells2014: String? = nil,
-        monsters2024: String? = nil,
-        spells2024: String? = nil
-    ) {
-        self.monsters2014 = monsters2014
-        self.spells2014 = spells2014
-        self.monsters2024 = monsters2024
-        self.spells2024 = spells2024
+    public let versions: [DefaultContentSource: String]
+
+    public init(versions: [DefaultContentSource: String]) {
+        self.versions = versions
     }
 }
 
 public extension DefaultContentVersions {
-    static let currentMonsters2014 = DefaultContentSource.currentMonsters2014Version
-    static let currentSpells2014 = DefaultContentSource.currentSpells2014Version
-    static let currentMonsters2024 = DefaultContentSource.currentMonsters2024Version
-    static let currentSpells2024 = DefaultContentSource.currentSpells2024Version
 
     static let current = Self(
-        monsters2014: currentMonsters2014,
-        spells2014: currentSpells2014,
-        monsters2024: currentMonsters2024,
-        spells2024: currentSpells2024
+        versions: Dictionary(
+            uniqueKeysWithValues: DefaultContentSource.allCases.map { source in
+                (source, source.currentVersion)
+            }
+        )
     )
 
-    static let empty = Self()
+    static let empty = Self(versions: [:])
 
-    var importedRulesets: Set<DefaultContentRuleset> {
-        Set(DefaultContentRuleset.allCases.filter { ruleset in
-            !ruleset.sources.isDisjoint(with: importedSources)
-        })
+    var rulesets: Set<DefaultContentRuleset> {
+        Set(sources.map { $0.ruleset })
     }
 
-    var importedSources: Set<DefaultContentSource> {
-        Set(DefaultContentSource.allCases.filter { hasImport($0) })
+    var sources: Set<DefaultContentSource> {
+        Set(versions.keys)
     }
-
-    var newRulesets: Set<DefaultContentRuleset> {
-        Set(DefaultContentRuleset.allCases).subtracting(importedRulesets)
-    }
-
-    var updatedRulesets: Set<DefaultContentRuleset> {
-        Set(DefaultContentRuleset.allCases.filter { ruleset in
-            !ruleset.sources.isDisjoint(with: updatedSources)
-        })
-    }
-
-    private var updatedSources: Set<DefaultContentSource> {
-        Set(DefaultContentSource.allCases.filter { needsUpdate($0) })
+    
+    func filter(on ruleset: DefaultContentRuleset) -> DefaultContentVersions {
+        DefaultContentVersions(versions: versions.filter { source, version in source.ruleset == ruleset })
     }
 
     static func sourcesNeedingImport(
@@ -181,34 +146,8 @@ public extension DefaultContentVersions {
         return sources
     }
 
-    func hasImport(_ source: DefaultContentSource) -> Bool {
-        version(for: source) != nil
-    }
-
-    func needsUpdate(_ source: DefaultContentSource) -> Bool {
-        hasImport(source) && version(for: source) != source.currentVersion
-    }
-
-    func applyingCurrentVersions(for importedSources: Set<DefaultContentSource>) -> Self {
-        Self(
-            monsters2014: importedSources.contains(.monsters2014) ? Self.currentMonsters2014 : monsters2014,
-            spells2014: importedSources.contains(.spells2014) ? Self.currentSpells2014 : spells2014,
-            monsters2024: importedSources.contains(.monsters2024) ? Self.currentMonsters2024 : monsters2024,
-            spells2024: importedSources.contains(.spells2024) ? Self.currentSpells2024 : spells2024
-        )
-    }
-
     func version(for source: DefaultContentSource) -> String? {
-        switch source {
-        case .monsters2014:
-            monsters2014
-        case .spells2014:
-            spells2014
-        case .monsters2024:
-            monsters2024
-        case .spells2024:
-            spells2024
-        }
+        versions[source]
     }
 }
 
@@ -217,19 +156,11 @@ public let defaultSpells2014Path = Bundle.module.path(forResource: "spells-2014"
 public let defaultMonsters2024Path = Bundle.module.path(forResource: "monsters-2024", ofType: "json")!
 public let defaultSpells2024Path = Bundle.module.path(forResource: "spells-2024", ofType: "json")!
 
-// Backward compatibility aliases for older call sites/tests.
-public let defaultMonstersPath = defaultMonsters2014Path
-public let defaultSpellsPath = defaultSpells2014Path
-
 public extension CompendiumImportSourceId {
     static let defaultMonsters2014: Self = .init(type: "defaultContent", bookmark: "monsters")
     static let defaultSpells2014: Self = .init(type: "defaultContent", bookmark: "spells")
     static let defaultMonsters2024: Self = .init(type: "defaultContent", bookmark: "monsters-2024")
     static let defaultSpells2024: Self = .init(type: "defaultContent", bookmark: "spells-2024")
-
-    // Backward compatibility aliases.
-    static let defaultMonsters: Self = defaultMonsters2014
-    static let defaultSpells: Self = defaultSpells2014
 }
 
 public extension CompendiumImporter {
@@ -288,7 +219,7 @@ public extension CompendiumImporter {
     func importDefaultContent(
         sources: Set<DefaultContentSource> = Set(DefaultContentSource.allCases)
     ) async throws {
-        for source in DefaultContentSource.allCases where sources.contains(source) {
+        for source in sources {
             try await importDefaultContentSource(source)
         }
     }

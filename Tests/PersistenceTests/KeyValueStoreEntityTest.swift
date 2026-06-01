@@ -79,12 +79,10 @@ class KeyValueStoreEntityTest: XCTestCase {
     }
 
     func testDefaultContentVersionsSourcesNeedingImportRespectsSelection() {
-        let installed = DefaultContentVersions(
-            monsters2014: DefaultContentVersions.currentMonsters2014,
-            spells2014: DefaultContentVersions.currentSpells2014,
-            monsters2024: nil,
-            spells2024: nil
-        )
+        let installed = DefaultContentVersions(versions: [
+            .monsters2014: DefaultContentSource.monsters2014.currentVersion,
+            .spells2014: DefaultContentSource.spells2014.currentVersion,
+        ])
 
         let selected2014 = DefaultContentVersions.sourcesNeedingImport(
             selection: [.rules2014],
@@ -95,26 +93,19 @@ class KeyValueStoreEntityTest: XCTestCase {
             installed: installed
         )
 
-        XCTAssertEqual(selected2014, [])
-        XCTAssertEqual(selected2024, [.monsters2024, .spells2024])
+        XCTAssertEqual(selected2014, Set<DefaultContentSource>())
+        XCTAssertEqual(selected2024, Set([.monsters2024, .spells2024]))
     }
 
-    func testDefaultContentVersionsApplyingCurrentVersionsUpdatesOnlyImportedSources() {
-        let installed = DefaultContentVersions(
-            monsters2014: "old2014m",
-            spells2014: "old2014s",
-            monsters2024: "old2024m",
-            spells2024: "old2024s"
+    func testDefaultContentVersionsCurrentContainsAllCurrentSourceVersions() {
+        XCTAssertEqual(
+            DefaultContentVersions.current.versions,
+            Dictionary(
+                uniqueKeysWithValues: DefaultContentSource.allCases.map { source in
+                    (source, source.currentVersion)
+                }
+            )
         )
-
-        let updated = installed.applyingCurrentVersions(
-            for: [.monsters2014, .spells2014]
-        )
-
-        XCTAssertEqual(updated.monsters2014, DefaultContentVersions.currentMonsters2014)
-        XCTAssertEqual(updated.spells2014, DefaultContentVersions.currentSpells2014)
-        XCTAssertEqual(updated.monsters2024, "old2024m")
-        XCTAssertEqual(updated.spells2024, "old2024s")
     }
 
 }

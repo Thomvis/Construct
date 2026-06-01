@@ -75,7 +75,6 @@ public struct SettingsFeature {
         case setErrorReportingEnabled(Bool)
         case setAdventureTabMode(Preferences.AdventureTabMode)
         case resetPreferences
-        case importDefaultContent
         case sendFeedback
         case rateInAppStore
         case delegate(Delegate)
@@ -112,28 +111,19 @@ public struct SettingsFeature {
 
             case .setDefaultContentSelection(let presented):
                 if presented {
-                    if let selection = try? database.defaultContentSelectionNeedingImport() {
-                        state.defaultContentSelection = .init(
-                            selection: selection,
-                            restoreSampleEncounter: false,
-                            allowsSampleEncounterOnly: true
-                        )
-                    } else {
-                        state.defaultContentSelection = .init(
-                            selection: [],
-                            restoreSampleEncounter: false,
-                            allowsSampleEncounterOnly: true
-                        )
-                    }
+                    state.defaultContentSelection = .init(
+                        restoreSampleEncounter: false,
+                        allowsSampleEncounterOnly: true
+                    )
                 } else {
                     state.defaultContentSelection = nil
                 }
 
             case .defaultContentSelection(.presented(.delegate(.applied(let appliedSelection)))):
-                let defaultDocumentStatus = state.defaultContentSelection?.defaultDocumentStatus.value
+                let versions = state.defaultContentSelection?.importedDefaultContentVersions.value
                 let sampleEncounterRuleset = Self.sampleEncounterRuleset(
                     selection: appliedSelection.selection,
-                    defaultDocumentStatus: defaultDocumentStatus
+                    importedDefaultDocumentVersions: versions
                 )
                 let shouldOpenInCampaignBrowser = (state.preferences.adventureTabMode ?? .simpleEncounter) == .simpleEncounter
                 state.defaultContentSelection = nil
@@ -172,12 +162,6 @@ public struct SettingsFeature {
 
             case .resetPreferences:
                 state.$preferences.withLock { $0 = Preferences() }
-
-            case .importDefaultContent:
-                return .run { _ in
-                    let selection = try database.suggestedDefaultContentSelection()
-                    try await database.applyDefaultContentSelection(selection)
-                }
 
             case .sendFeedback:
                 if mailer.canSendMail() {
@@ -252,7 +236,7 @@ public struct SettingsFeature {
 
     private static func sampleEncounterRuleset(
         selection: Set<DefaultContentRuleset>,
-        defaultDocumentStatus: Database.DefaultContentDocumentStatus?
+        importedDefaultDocumentVersions: DefaultContentVersions?
     ) -> DefaultContentRuleset {
         if selection.contains(.rules2024) {
             return .rules2024
@@ -260,7 +244,7 @@ public struct SettingsFeature {
         if selection.contains(.rules2014) {
             return .rules2014
         }
-        if defaultDocumentStatus?.importedRulesets.contains(.rules2024) == true {
+        if importedDefaultDocumentVersions?.rulesets.contains(.rules2024) == true{
             return .rules2024
         }
         return .rules2014

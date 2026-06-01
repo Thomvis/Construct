@@ -81,7 +81,9 @@ class DatabaseTest: XCTestCase {
 
     func testApplyDefaultContentSelectionCreatesOnlySelectedDefaultDocument() async throws {
         let database = try await Database(path: nil)
-        try await database.applyDefaultContentSelection([.rules2024])
+        let metadata = CompendiumMetadata.live(database)
+        try await metadata.ensureEditionMetadata(.rules2024)
+        try await database.importDefaultCompendiumContent(sources: [.monsters2024, .spells2024])
 
         let monsters2014Jobs = try importJobs(in: database.keyValueStore, sourceId: .defaultMonsters2014)
         let spells2014Jobs = try importJobs(in: database.keyValueStore, sourceId: .defaultSpells2014)
@@ -93,23 +95,23 @@ class DatabaseTest: XCTestCase {
         XCTAssertTrue(monsters2014Jobs.isEmpty)
         XCTAssertTrue(spells2014Jobs.isEmpty)
         XCTAssertEqual(monsters2024Jobs.count, 1)
-        XCTAssertEqual(monsters2024Jobs.first?.sourceVersion, DefaultContentVersions.currentMonsters2024)
+        XCTAssertEqual(monsters2024Jobs.first?.sourceVersion, DefaultContentSource.monsters2024.currentVersion)
         XCTAssertEqual(spells2024Jobs.count, 1)
-        XCTAssertEqual(spells2024Jobs.first?.sourceVersion, DefaultContentVersions.currentSpells2024)
+        XCTAssertEqual(spells2024Jobs.first?.sourceVersion, DefaultContentSource.spells2024.currentVersion)
         XCTAssertNil(srd2014Document)
         XCTAssertNotNil(srd2024Document)
     }
 
-    func testDefaultContentDocumentStatusUsesDefaultImportJobs() async throws {
+    func testCompendiumMetadataLatestImportJobUsesDefaultImportJobs() async throws {
         let database = try await Database(path: nil, importDefaultContent: false)
         try database.keyValueStore.put(CompendiumImportJob(
             sourceId: .defaultMonsters2014,
-            sourceVersion: DefaultContentVersions.currentMonsters2014,
+            sourceVersion: DefaultContentSource.monsters2014.currentVersion,
             documentId: CompendiumSourceDocument.srd5_1.id
         ))
         try database.keyValueStore.put(CompendiumImportJob(
             sourceId: .defaultSpells2014,
-            sourceVersion: DefaultContentVersions.currentSpells2014,
+            sourceVersion: DefaultContentSource.spells2014.currentVersion,
             documentId: CompendiumSourceDocument.srd5_1.id
         ))
         try database.keyValueStore.put(CompendiumImportJob(
@@ -119,15 +121,26 @@ class DatabaseTest: XCTestCase {
         ))
         try database.keyValueStore.put(CompendiumImportJob(
             sourceId: .defaultSpells2024,
-            sourceVersion: DefaultContentVersions.currentSpells2024,
+            sourceVersion: DefaultContentSource.spells2024.currentVersion,
             documentId: CompendiumSourceDocument.srd5_2.id
         ))
 
-        let status = try database.defaultContentDocumentStatus()
+        let metadata = CompendiumMetadata.live(database)
+        let importedVersions: [(DefaultContentSource, String)] = try DefaultContentSource.allCases.compactMap { source in
+            guard let version = try metadata.latestImportJob(sourceId: source.importSourceId)?.sourceVersion else {
+                return nil
+            }
+            return (source, version)
+        }
+        let versions = DefaultContentVersions(versions: Dictionary(
+            uniqueKeysWithValues: importedVersions
+        ))
 
-        XCTAssertEqual(status.importedRulesets, [.rules2014, .rules2024])
-        XCTAssertEqual(status.newRulesets, [])
-        XCTAssertEqual(status.updatedRulesets, [.rules2024])
+        XCTAssertEqual(versions.rulesets, Set<DefaultContentRuleset>([.rules2014, .rules2024]))
+        XCTAssertEqual(
+            DefaultContentVersions.sourcesNeedingImport(selection: Set(DefaultContentRuleset.allCases), installed: versions),
+            Set([.monsters2024])
+        )
     }
 
     func testDefaultContentVersionsMigrationCreatesDefaultImportJobs() throws {
@@ -138,11 +151,9 @@ class DatabaseTest: XCTestCase {
         try queue.write { db in
             let store = DatabaseKeyValueStore(.direct(db))
             try store.put(
-                DefaultContentVersions(
-                    monsters2014: DefaultContentVersions.currentMonsters2014,
-                    spells2014: DefaultContentVersions.currentSpells2014,
-                    monsters2024: nil,
-                    spells2024: nil
+                LegacyDefaultContentVersionsFixture(
+                    monsters2014: DefaultContentSource.monsters2014.currentVersion,
+                    spells2014: DefaultContentSource.spells2014.currentVersion
                 ),
                 at: "Construct::DefaultContentVersions"
             )
@@ -153,11 +164,11 @@ class DatabaseTest: XCTestCase {
         let store = DatabaseKeyValueStore(DatabaseQueueAccess(queue: queue))
         XCTAssertEqual(
             try importJobs(in: store, sourceId: .defaultMonsters2014).first?.sourceVersion,
-            DefaultContentVersions.currentMonsters2014
+            DefaultContentSource.monsters2014.currentVersion
         )
         XCTAssertEqual(
             try importJobs(in: store, sourceId: .defaultSpells2014).first?.sourceVersion,
-            DefaultContentVersions.currentSpells2014
+            DefaultContentSource.spells2014.currentVersion
         )
         XCTAssertTrue(try importJobs(in: store, sourceId: .defaultMonsters2024).isEmpty)
         XCTAssertTrue(try importJobs(in: store, sourceId: .defaultSpells2024).isEmpty)
@@ -298,6 +309,11 @@ class DatabaseTest: XCTestCase {
         XCTAssertEqual(migratedImportJob?.documentId, CompendiumSourceDocument.srd5_1.id)
     }
 
+}
+
+private struct LegacyDefaultContentVersionsFixture: Codable {
+    var monsters2014: String?
+    var spells2014: String?
 }
 
 private func importJobs(

@@ -35,7 +35,7 @@ class CompendiumImporterTest: XCTestCase {
         let sut = CompendiumImporter(compendium: compendium, metadata: compendiumMetadata)
         let item = Fixtures.monster
         let task = CompendiumImportTask(
-            sourceId: .defaultMonsters,
+            sourceId: .defaultMonsters2014,
             sourceVersion: nil,
             reader: DummyCompendiumDataSourceReader(items: [item]),
             document: CompendiumSourceDocument.unspecifiedCore,
@@ -54,7 +54,7 @@ class CompendiumImporterTest: XCTestCase {
         var item = Fixtures.monster
 
         let task = CompendiumImportTask(
-            sourceId: .defaultMonsters,
+            sourceId: .defaultMonsters2014,
             sourceVersion: nil,
             reader: DummyCompendiumDataSourceReader(items: [item]),
             document: CompendiumSourceDocument.unspecifiedCore,
@@ -77,7 +77,7 @@ class CompendiumImporterTest: XCTestCase {
         var item = Fixtures.monster
 
         let task = CompendiumImportTask(
-            sourceId: .defaultMonsters,
+            sourceId: .defaultMonsters2014,
             sourceVersion: nil,
             reader: DummyCompendiumDataSourceReader(items: [item]),
             document: CompendiumSourceDocument.unspecifiedCore,
@@ -89,7 +89,7 @@ class CompendiumImporterTest: XCTestCase {
         // change the item and import it again
         item.stats.hitPoints = 1000
         let task2 = CompendiumImportTask(
-            sourceId: .defaultMonsters,
+            sourceId: .defaultMonsters2014,
             sourceVersion: nil,
             reader: DummyCompendiumDataSourceReader(items: [item]),
             document: CompendiumSourceDocument.unspecifiedCore,
@@ -114,7 +114,7 @@ class CompendiumImporterTest: XCTestCase {
         try compendiumMetadata.createDocument(document)
 
         let task = CompendiumImportTask(
-            sourceId: .defaultMonsters,
+            sourceId: .defaultMonsters2014,
             sourceVersion: nil,
             reader: RealmAwareDummyCompendiumDataSourceReader { realmId in
                 var stats = StatBlock.default

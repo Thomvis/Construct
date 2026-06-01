@@ -191,12 +191,6 @@ struct SettingsView: View {
                 }) {
                     Text("Reset all preferences").foregroundColor(Color.primary)
                 }
-
-                NavigationRowButton(action: {
-                    store.send(.importDefaultContent)
-                }) {
-                    Text("Import rules content").foregroundColor(Color.primary)
-                }
             }
             #endif
 

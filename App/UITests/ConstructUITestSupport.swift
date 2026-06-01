@@ -39,9 +39,8 @@ struct OnboardingPage {
         goToContentImportPageIfNeeded(timeout: timeout)
         ensureAnyDefaultContentEditionSelectedIfNeeded(timeout: timeout)
         setSampleEncounterToggle(openSampleEncounter, timeout: timeout)
-        let continueButton = app.buttons["Continue"]
-        XCTAssertTrue(continueButton.waitForExistence(timeout: timeout))
-        continueButton.tap()
+        let primaryButton = contentImportPrimaryButton(timeout: timeout)
+        primaryButton.tap()
         waitForDismiss()
         return AdventurePage(app: app).waitForVisible()
     }
@@ -77,11 +76,24 @@ struct OnboardingPage {
     private func ensureAnyDefaultContentEditionSelectedIfNeeded(timeout: TimeInterval) {
         goToContentImportPageIfNeeded(timeout: timeout)
 
+        let importButton = app.buttons["Import"].firstMatch
+        if importButton.waitForExistence(timeout: 1) {
+            if importButton.isEnabled {
+                return
+            }
+            selectDefaultContentEdition(timeout: timeout)
+            return
+        }
+
         let continueButton = app.buttons["Continue"].firstMatch
         if continueButton.waitForExistence(timeout: timeout), continueButton.isEnabled {
             return
         }
 
+        selectDefaultContentEdition(timeout: timeout)
+    }
+
+    private func selectDefaultContentEdition(timeout: TimeInterval) {
         let card2014 = app.buttons["default-content-card-2014"].firstMatch
         if card2014.waitForExistence(timeout: timeout) {
             card2014.tap()
@@ -92,6 +104,17 @@ struct OnboardingPage {
         if fallbackTitle.waitForExistence(timeout: timeout) {
             fallbackTitle.tap()
         }
+    }
+
+    private func contentImportPrimaryButton(timeout: TimeInterval) -> XCUIElement {
+        let importButton = app.buttons["Import"].firstMatch
+        if importButton.waitForExistence(timeout: 1) {
+            return importButton
+        }
+
+        let continueButton = app.buttons["Continue"].firstMatch
+        XCTAssertTrue(continueButton.waitForExistence(timeout: timeout))
+        return continueButton
     }
 
     private func setSampleEncounterToggle(_ enabled: Bool, timeout: TimeInterval) {

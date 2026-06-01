@@ -159,133 +159,9 @@ public class Database {
         try queue.close()
     }
 
-    public func suggestedDefaultContentSelection() throws -> Set<DefaultContentRuleset> {
-        let selectionNeedingImport = try defaultContentSelectionNeedingImport()
-        if !selectionNeedingImport.isEmpty {
-            return selectionNeedingImport
-        }
-
-        let versions = try defaultContentImportJobs().versions
-        if !versions.importedRulesets.isEmpty {
-            return versions.importedRulesets
-        }
-
-        return [.rules2014]
-    }
-
-    public func defaultContentSelectionNeedingImport() throws -> Set<DefaultContentRuleset> {
-        let sources = try defaultContentSourcesNeedingImport(selection: Set(DefaultContentRuleset.allCases))
-        return Set(sources.map(\.ruleset))
-    }
-
-    public func applyDefaultContentSelection(_ selection: Set<DefaultContentRuleset>) async throws {
-        guard !selection.isEmpty else {
-            throw DefaultContentSelectionError.emptySelection
-        }
-
-        try await ensureHomebrewCompendiumMetadata()
-        try await importDefaultCompendiumContentIfNeeded(selection: selection)
-    }
-
-    public struct DefaultContentDocumentStatus: Equatable, Sendable {
-        public let importedRulesets: Set<DefaultContentRuleset>
-        public let newRulesets: Set<DefaultContentRuleset>
-        public let updatedRulesets: Set<DefaultContentRuleset>
-
-        public init(
-            importedRulesets: Set<DefaultContentRuleset>,
-            newRulesets: Set<DefaultContentRuleset>,
-            updatedRulesets: Set<DefaultContentRuleset>
-        ) {
-            self.importedRulesets = importedRulesets
-            self.newRulesets = newRulesets
-            self.updatedRulesets = updatedRulesets
-        }
-
-        public var hasAnyImportAvailable: Bool {
-            !newRulesets.isEmpty || !updatedRulesets.isEmpty
-        }
-
-        public func isImported(_ ruleset: DefaultContentRuleset) -> Bool {
-            importedRulesets.contains(ruleset)
-        }
-
-        public func isNewContent(_ ruleset: DefaultContentRuleset) -> Bool {
-            newRulesets.contains(ruleset)
-        }
-
-        public func isUpdateAvailable(_ ruleset: DefaultContentRuleset) -> Bool {
-            updatedRulesets.contains(ruleset)
-        }
-    }
-
-    public func defaultContentDocumentStatus() throws -> DefaultContentDocumentStatus {
-        let versions = try defaultContentImportJobs().versions
-        return DefaultContentDocumentStatus(
-            importedRulesets: versions.importedRulesets,
-            newRulesets: versions.newRulesets,
-            updatedRulesets: versions.updatedRulesets
-        )
-    }
-
     private func ensureHomebrewCompendiumMetadata() async throws {
         let metadata = CompendiumMetadata.live(self)
         try await metadata.ensureHomebrewMetadata()
-    }
-
-    private func importDefaultCompendiumContentIfNeeded(selection: Set<DefaultContentRuleset>) async throws {
-        let metadata = CompendiumMetadata.live(self)
-        for ruleset in selection {
-            try await metadata.ensureEditionMetadata(ruleset.edition)
-        }
-
-        let sources = try defaultContentSourcesNeedingImport(selection: selection)
-
-        guard !sources.isEmpty else { return }
-
-        try await importDefaultCompendiumContent(sources: sources)
-    }
-
-    private func defaultContentSourcesNeedingImport(
-        selection: Set<DefaultContentRuleset>
-    ) throws -> Set<DefaultContentSource> {
-        try DefaultContentVersions.sourcesNeedingImport(
-            selection: selection,
-            installed: defaultContentImportJobs().versions
-        )
-    }
-
-    private struct DefaultContentImportJobs {
-        var latestMonsters2014: CompendiumImportJob?
-        var latestSpells2014: CompendiumImportJob?
-        var latestMonsters2024: CompendiumImportJob?
-        var latestSpells2024: CompendiumImportJob?
-
-        var versions: DefaultContentVersions {
-            DefaultContentVersions(
-                monsters2014: latestMonsters2014?.sourceVersion,
-                spells2014: latestSpells2014?.sourceVersion,
-                monsters2024: latestMonsters2024?.sourceVersion,
-                spells2024: latestSpells2024?.sourceVersion
-            )
-        }
-    }
-
-    private func defaultContentImportJobs() throws -> DefaultContentImportJobs {
-        DefaultContentImportJobs(
-            latestMonsters2014: try latestImportJob(sourceId: .defaultMonsters2014),
-            latestSpells2014: try latestImportJob(sourceId: .defaultSpells2014),
-            latestMonsters2024: try latestImportJob(sourceId: .defaultMonsters2024),
-            latestSpells2024: try latestImportJob(sourceId: .defaultSpells2024)
-        )
-    }
-
-    private func latestImportJob(sourceId: CompendiumImportSourceId) throws -> CompendiumImportJob? {
-        let keyPrefix = CompendiumImportJob.keyPrefix + CompendiumImportJob.jobIdPrefix(sourceId: sourceId)
-        let jobs: [CompendiumImportJob] = try keyValueStore.fetchAll(.keyPrefix(keyPrefix))
-        return jobs
-            .filter { $0.sourceId == sourceId }
-            .max { $0.timestamp < $1.timestamp }
     }
 
     func importDefaultCompendiumContent(
@@ -313,10 +189,6 @@ public class Database {
         try keyValueStore.put(preferences)
     }
 
-}
-
-public enum DefaultContentSelectionError: Error {
-    case emptySelection
 }
 
 public protocol DatabaseAccess {

@@ -247,6 +247,12 @@ public extension CompendiumMetadata {
             store.observeAll(.keyPrefix(CompendiumRealm.keyPrefix))
         } putJob: { job in
             try store.put(job)
+        } latestImportJob: { sourceId in
+            let keyPrefix = CompendiumImportJob.keyPrefix + CompendiumImportJob.jobIdPrefix(sourceId: sourceId)
+            let jobs: [CompendiumImportJob] = try store.fetchAll(.keyPrefix(keyPrefix))
+            return jobs
+                .filter { $0.sourceId == sourceId }
+                .max { $0.timestamp < $1.timestamp }
         } createRealm: { realm in
             if try store.contains(realm.key) {
                 throw CompendiumMetadataError.resourceAlreadyExists

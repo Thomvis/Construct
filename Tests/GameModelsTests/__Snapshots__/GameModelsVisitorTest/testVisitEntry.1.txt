@@ -46,7 +46,7 @@
 +         wrappedValue: CompendiumItemKey(
 +           type: .monster,
 +           realm: CompendiumItemKey.Realm(
-+             value: Tagged(rawValue: "core")
++             value: Tagged(rawValue: "core5e")
 +           ),
 +           identifier: "visited"
 +         )

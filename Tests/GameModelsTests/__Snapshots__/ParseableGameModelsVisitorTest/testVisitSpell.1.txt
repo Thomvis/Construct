@@ -36,8 +36,8 @@
   - material: Optional<String>.none
   - name: "Acid Splash"
   - range: "60 feet"
-  ▿ realm: core
-    ▿ value: core
-      - rawValue: "core"
+  ▿ realm: core5e
+    ▿ value: core5e
+      - rawValue: "core5e"
   - ritual: false
   - school: "C"

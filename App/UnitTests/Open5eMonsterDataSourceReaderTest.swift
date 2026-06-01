@@ -21,8 +21,8 @@ class Open5eMonsterDataSourceReaderTest: XCTestCase {
     var spellDataSource: (any CompendiumDataSource<[Open5eAPIResult]>)!
 
     override func setUp() {
-        monsterDataSource = FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults()
-        spellDataSource = FileDataSource(path: defaultSpellsPath).decode(type: [O5e.Spell].self).toOpen5eAPIResults()
+        monsterDataSource = FileDataSource(path: defaultMonsters2014Path).decode(type: [O5e.Monster].self).toOpen5eAPIResults()
+        spellDataSource = FileDataSource(path: defaultSpells2014Path).decode(type: [O5e.Spell].self).toOpen5eAPIResults()
     }
 
     // Temporary migration guard: snapshot the full default Open5e content before/after fixture updates.

@@ -1,5 +1,7 @@
+import Compendium
 import ComposableArchitecture
 @testable import Construct
+import GameModels
 import Persistence
 import TestSupport
 import XCTest
@@ -9,8 +11,13 @@ final class DefaultContentSelectionFeatureTest: XCTestCase {
 
     func testApplySelectionRequiresAtLeastOneEdition() async throws {
         let db = try await Database(path: nil, importDefaultContent: false)
+        let initialState = withDependencies {
+            $0.uuid = UUIDGenerator.fake()
+        } operation: {
+            DefaultContentSelectionFeature.State()
+        }
 
-        let store = TestStore(initialState: DefaultContentSelectionFeature.State(selection: [])) {
+        let store = TestStore(initialState: initialState) {
             DefaultContentSelectionFeature()
         } withDependencies: {
             $0.database = db
@@ -24,12 +31,16 @@ final class DefaultContentSelectionFeatureTest: XCTestCase {
 
     func testApplySelectionAllowsSampleEncounterOnlyWhenConfigured() async throws {
         let db = try await Database(path: nil, importDefaultContent: false)
+        let initialState = withDependencies {
+            $0.uuid = UUIDGenerator.fake()
+        } operation: {
+            DefaultContentSelectionFeature.State(
+                restoreSampleEncounter: true,
+                allowsSampleEncounterOnly: true
+            )
+        }
 
-        let store = TestStore(initialState: DefaultContentSelectionFeature.State(
-            selection: [],
-            restoreSampleEncounter: true,
-            allowsSampleEncounterOnly: true
-        )) {
+        let store = TestStore(initialState: initialState) {
             DefaultContentSelectionFeature()
         } withDependencies: {
             $0.database = db
@@ -44,36 +55,41 @@ final class DefaultContentSelectionFeatureTest: XCTestCase {
     }
 
     func testOnAppearLoadsDocumentStatus() async throws {
-        let db = try await Database(path: nil)
+        let db = try await Database(path: nil, importDefaultContent: false)
+        try db.keyValueStore.put(CompendiumImportJob(
+            sourceId: .defaultMonsters2014,
+            sourceVersion: DefaultContentSource.monsters2014.currentVersion,
+            documentId: CompendiumSourceDocument.srd5_1.id
+        ))
 
-        let store = TestStore(initialState: DefaultContentSelectionFeature.State(selection: [.rules2014])) {
+        var initialState = withDependencies {
+            $0.uuid = UUIDGenerator.fake()
+        } operation: {
+            DefaultContentSelectionFeature.State()
+        }
+        initialState.selection = [.rules2014]
+
+        let store = TestStore(initialState: initialState) {
             DefaultContentSelectionFeature()
         } withDependencies: {
+            $0.compendium = DatabaseCompendium(databaseAccess: db.access)
+            $0.compendiumMetadata = .live(db)
             $0.database = db
             $0.uuid = UUIDGenerator.fake()
         }
 
         await store.send(.onAppear)
-        await store.receive(.defaultDocumentStatus(.startLoading))
-        await store.receive(.defaultDocumentStatus(.didStartLoading)) {
-            $0.defaultDocumentStatus.isLoading = true
-            $0.defaultDocumentStatus.result = nil
+        await store.receive(.importedDefaultContentVersions(.startLoading))
+        await store.receive(.importedDefaultContentVersions(.didStartLoading)) {
+            $0.importedDefaultContentVersions.isLoading = true
+            $0.importedDefaultContentVersions.result = nil
         }
-        await store.receive(.defaultDocumentStatus(.didFinishLoading(.success(
-            Database.DefaultContentDocumentStatus(
-                importedRulesets: [],
-                newRulesets: [.rules2014, .rules2024],
-                updatedRulesets: []
-            )
-        )))) {
-            $0.defaultDocumentStatus.isLoading = false
-            $0.defaultDocumentStatus.result = .success(
-                Database.DefaultContentDocumentStatus(
-                    importedRulesets: [],
-                    newRulesets: [.rules2014, .rules2024],
-                    updatedRulesets: []
-                )
-            )
+        let versions = DefaultContentVersions(versions: [
+            .monsters2014: DefaultContentSource.monsters2014.currentVersion
+        ])
+        await store.receive(.importedDefaultContentVersions(.didFinishLoading(.success(versions)))) {
+            $0.importedDefaultContentVersions.isLoading = false
+            $0.importedDefaultContentVersions.result = .success(versions)
         }
     }
 }

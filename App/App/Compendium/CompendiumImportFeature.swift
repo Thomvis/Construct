@@ -88,6 +88,7 @@ struct CompendiumImportFeature {
 
     @Dependency(\.compendium) var compendium
     @Dependency(\.compendiumMetadata) var compendiumMetadata
+    @Dependency(\.crashReporter) var crashReporter
 
     var body: some ReducerOf<Self> {
         Reduce<State, Action> { state, action in
@@ -128,6 +129,7 @@ struct CompendiumImportFeature {
                 let newDocument = state.importSettings.newDocument
 
                 state.importResult.isLoading = true
+                let dataSourceId = state.selectedDataSourceId
                 return .run { send in
                     do {
                         if let newRealm {
@@ -143,7 +145,10 @@ struct CompendiumImportFeature {
 
                         let result = try await importer.run(task)
                         await send(.importDidFinish(result))
-                    } catch {
+                    } catch let error {
+                        crashReporter.trackError(.init(error: error, properties: [
+                            "dataSourceId": dataSourceId?.rawValue
+                        ].compactMapValues { $0 }, attachments: [:]))
                         await send(.importDidFinish(nil))
                     }
                 }
@@ -1226,6 +1231,8 @@ enum CompendiumMetadataKey: DependencyKey {
             [dummyRealms].async.stream
         } putJob: { _ in
 
+        } latestImportJob: { _ in
+            nil
         } createRealm: { _ in
 
         } updateRealm: { _, _ in

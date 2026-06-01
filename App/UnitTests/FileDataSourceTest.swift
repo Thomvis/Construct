@@ -15,7 +15,7 @@ import GameModels
 
 class FileDataSourceTest: XCTestCase {
     func test() async throws {
-        let sut = FileDataSource(path: defaultMonstersPath)
+        let sut = FileDataSource(path: defaultMonsters2014Path)
 
         let data = try await sut.read().first
         XCTAssertNotNil(data)

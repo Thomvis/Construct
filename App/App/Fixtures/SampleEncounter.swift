@@ -142,7 +142,9 @@ enum SampleEncounter {
             }, player: Player(name: "Chris"), level: 3, original: nil)),
         ])
 
-        return Encounter(id: id, name: name, combatants: combatants)
+        return apply(Encounter(id: id, name: name, combatants: combatants)) {
+            $0.partyForDifficulty = .combatant(.init(filter: nil))
+        }
     }
 
     private static func preferredMonsterRealms(for ruleset: DefaultContentRuleset) -> [CompendiumRealm.Id] {

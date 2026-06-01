@@ -12,10 +12,10 @@ import ComposableArchitecture
 
 struct WelcomeView: View {
 
-    @Bindable var store: StoreOf<AppFeature.WelcomeFeature>
+    @Bindable var store: StoreOf<WelcomeFeature>
 
     var body: some View {
-        VStack(spacing: 20) {
+        Group {
             if let pageStore = store.scope(state: \.page, action: \.page.presented) {
                 switch pageStore.case {
                 case .benefits:
@@ -25,7 +25,7 @@ struct WelcomeView: View {
                 }
             }
         }
-        .padding(28)
+        .alert($store.scope(state: \.alert, action: \.alert))
     }
 
     private var benefitsPage: some View {
@@ -71,24 +71,19 @@ struct WelcomeView: View {
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
         }
+        .padding(28)
     }
 
     private func contentImportPage(store contentImportStore: StoreOf<DefaultContentSelectionFeature>) -> some View {
-        VStack(spacing: 12) {
-            ScrollView(.vertical) {
-                VStack(alignment: .leading, spacing: 16) {
-                    DefaultContentSelectionPage(
-                        store: contentImportStore,
-                        primaryAction: {
-                            store.send(.didTapContinue)
-                        }
-                    )
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 2)
-                .padding(.vertical, 1)
+        DefaultContentSelectionPage(
+            store: contentImportStore,
+            primaryAction: {
+                store.send(.didTapContinue)
+            },
+            skipAction: {
+                store.send(.didTapSkip)
             }
-        }
+        )
     }
 
     static let items: [ListItem] = [
@@ -125,7 +120,7 @@ struct WelcomeView_Previews: PreviewProvider {
     static var previews: some View {
         WelcomeView(
             store: Store(initialState: .init()) {
-                AppFeature.WelcomeFeature()
+                WelcomeFeature()
             }
         )
     }

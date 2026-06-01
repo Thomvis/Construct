@@ -16,6 +16,7 @@ public struct CompendiumMetadata {
     public let observeRealms: () -> AsyncThrowingStream<[CompendiumRealm], Error>
 
     public let putJob: (CompendiumImportJob) throws -> Void
+    private let fetchLatestImportJob: (CompendiumImportSourceId) throws -> CompendiumImportJob?
 
     /// Fails when a realm with the same id already exists
     public let createRealm: (CompendiumRealm) throws -> Void
@@ -40,6 +41,7 @@ public struct CompendiumMetadata {
         realms: @escaping () throws -> [CompendiumRealm],
         observeRealms: @escaping () -> AsyncThrowingStream<[CompendiumRealm], Error>,
         putJob: @escaping (CompendiumImportJob) throws -> Void,
+        latestImportJob: @escaping (CompendiumImportSourceId) throws -> CompendiumImportJob? = { _ in nil },
         createRealm: @escaping (CompendiumRealm) throws -> Void,
         updateRealm: @escaping (CompendiumRealm.Id, String) async throws -> Void,
         removeRealm: @escaping (CompendiumRealm.Id) async throws -> Void,
@@ -53,6 +55,7 @@ public struct CompendiumMetadata {
         self.observeRealms = observeRealms
 
         self.putJob = putJob
+        self.fetchLatestImportJob = latestImportJob
 
         self.createRealm = createRealm
         self.updateRealm = updateRealm
@@ -61,6 +64,10 @@ public struct CompendiumMetadata {
         self.createDocument = createDocument
         self.updateDocument = updateDocument
         self.removeDocument = removeDocument
+    }
+
+    public func latestImportJob(sourceId: CompendiumImportSourceId) throws -> CompendiumImportJob? {
+        try fetchLatestImportJob(sourceId)
     }
 }
 

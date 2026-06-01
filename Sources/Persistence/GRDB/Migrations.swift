@@ -678,7 +678,7 @@ extension Database {
             ) else { return }
 
             let versions = try DatabaseKeyValueStore.decoder.decode(
-                DefaultContentVersions.self,
+                LegacyDefaultContentVersions.self,
                 from: record.value
             )
             let store = DatabaseKeyValueStore(.direct(db))
@@ -719,6 +719,11 @@ extension Database {
         }
 
         return migrator
+    }
+
+    private struct LegacyDefaultContentVersions: Decodable {
+        var monsters2014: String?
+        var spells2014: String?
     }
 }
 

@@ -7,6 +7,21 @@ import XCTest
 @MainActor
 final class AppDefaultContentSelectionTest: XCTestCase {
 
+    func testWelcomeDefaultContentSkipShowsConfirmationBeforeDismissing() async {
+        let store = TestStore(initialState: WelcomeFeature.State()) {
+            WelcomeFeature()
+        }
+        store.exhaustivity = .off
+
+        await store.send(.didTapSkip)
+        XCTAssertNotNil(store.state.alert)
+
+        await store.send(.alert(.presented(.confirmSkip))) {
+            $0.alert = nil
+        }
+        await store.receive(.delegate(.dismissWelcomeSheet))
+    }
+
     func testOnAppearPresentsWelcomeForNewUsersWithEmptySelection() async throws {
         let db = try await Database(path: nil, importDefaultContent: false)
         let store = TestStore(initialState: AppFeature.State()) {

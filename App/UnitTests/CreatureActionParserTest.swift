@@ -650,7 +650,7 @@ class CreatureActionParserTest: XCTestCase {
     @MainActor
     func testAllMonsterActions() async throws {
         let sut = Open5eDataSourceReader(
-            dataSource: FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
+            dataSource: FileDataSource(path: defaultMonsters2014Path).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
             generateUUID: UUIDGenerator.fake().callAsFunction
         )
 
@@ -742,7 +742,7 @@ class CreatureActionParserTest: XCTestCase {
     @MainActor
     func testParsePerformance() async throws {
         let sut = Open5eDataSourceReader(
-            dataSource: FileDataSource(path: defaultMonstersPath).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
+            dataSource: FileDataSource(path: defaultMonsters2014Path).decode(type: [O5e.Monster].self).toOpen5eAPIResults(),
             generateUUID: UUIDGenerator.fake().callAsFunction
         )
 

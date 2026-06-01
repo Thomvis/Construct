@@ -12,7 +12,7 @@
         ▿ result: Optional<ParserResult>
           ▿ some: ParserResult
             ▿ _modelVersion: Wrapper<EmptyString>
-              - wrappedValue: "2"
+              - wrappedValue: "5"
             ▿ _parserName: Wrapper<EmptyString>
               - wrappedValue: "CreatureActionDomainParser"
             ▿ value: Optional<ParsedCreatureAction>
@@ -20,6 +20,7 @@
                 ▿ action: Optional<Model>
                   ▿ some: Model
                     ▿ weaponAttack: WeaponAttack
+                      - conditionalHitModifiers: 0 elements
                       ▿ effects: 1 element
                         ▿ AttackEffect
                           - condition: Optional<CreatureConditionEffect>.none
@@ -30,6 +31,7 @@
                             - versatileWeaponGrip: Optional<Grip>.none
                           ▿ damage: 1 element
                             ▿ Damage
+                              - alternativeTypes: 0 elements
                               ▿ damageExpression: Optional<DiceExpression>
                                 ▿ some: 1d6 + 2
                                   ▿ compound: (3 elements)
@@ -45,6 +47,7 @@
                               - staticDamage: 5
                               - type: DamageType.slashing
                           - other: Optional<String>.none
+                          - replacesDamage: false
                       ▿ hitModifier: Modifier
                         - modifier: 4
                       ▿ ranges: 1 element
@@ -85,7 +88,7 @@
                             - .1: Operator.add
                             ▿ .2: 2
                               - number: 2
-            - version: "2"
+            - version: "5"
   - abilityScores: Optional<AbilityScores>.none
   ▿ actions: 1 element
     ▿ Parseable<CreatureAction, ParsedCreatureAction>
@@ -97,7 +100,7 @@
       ▿ result: Optional<ParserResult>
         ▿ some: ParserResult
           ▿ _modelVersion: Wrapper<EmptyString>
-            - wrappedValue: "2"
+            - wrappedValue: "5"
           ▿ _parserName: Wrapper<EmptyString>
             - wrappedValue: "CreatureActionDomainParser"
           ▿ value: Optional<ParsedCreatureAction>
@@ -105,6 +108,7 @@
               ▿ action: Optional<Model>
                 ▿ some: Model
                   ▿ weaponAttack: WeaponAttack
+                    - conditionalHitModifiers: 0 elements
                     ▿ effects: 1 element
                       ▿ AttackEffect
                         - condition: Optional<CreatureConditionEffect>.none
@@ -115,6 +119,7 @@
                           - versatileWeaponGrip: Optional<Grip>.none
                         ▿ damage: 1 element
                           ▿ Damage
+                            - alternativeTypes: 0 elements
                             ▿ damageExpression: Optional<DiceExpression>
                               ▿ some: 1d6 + 2
                                 ▿ compound: (3 elements)
@@ -130,6 +135,7 @@
                             - staticDamage: 5
                             - type: DamageType.slashing
                         - other: Optional<String>.none
+                        - replacesDamage: false
                     ▿ hitModifier: Modifier
                       - modifier: 4
                     ▿ ranges: 1 element
@@ -170,7 +176,7 @@
                           - .1: Operator.add
                           ▿ .2: 2
                             - number: 2
-          - version: "2"
+          - version: "5"
   - armor: 0 elements
   - armorClass: Optional<Int>.none
   - challengeRating: Optional<Fraction>.none
@@ -188,7 +194,7 @@
       ▿ result: Optional<ParserResult>
         ▿ some: ParserResult
           ▿ _modelVersion: Wrapper<EmptyString>
-            - wrappedValue: "1"
+            - wrappedValue: "3"
           ▿ _parserName: Wrapper<EmptyString>
             - wrappedValue: "CreatureFeatureDomainParser"
           ▿ value: Optional<ParsedCreatureFeature>
@@ -292,7 +298,7 @@
                               - text: "sanctuary"
                               ▿ type: Optional<CompendiumItemType>
                                 - some: CompendiumItemType.spell
-          - version: "1"
+          - version: "3"
   - hitPointDice: Optional<DiceExpression>.none
   - hitPoints: Optional<Int>.none
   - initiative: Optional<Initiative>.none
@@ -309,11 +315,11 @@
           ▿ result: Optional<ParserResult>
             ▿ some: ParserResult
               ▿ _modelVersion: Wrapper<EmptyString>
-                - wrappedValue: "2"
+                - wrappedValue: "5"
               ▿ _parserName: Wrapper<EmptyString>
                 - wrappedValue: "CreatureActionDomainParser"
               - value: Optional<ParsedCreatureAction>.none
-              - version: "2"
+              - version: "5"
       - description: Optional<String>.none
   - level: Optional<Int>.none
   - movement: Optional<Dictionary<MovementMode, Int>>.none

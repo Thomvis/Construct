@@ -134,11 +134,15 @@ struct AppFeature {
                 guard let destination = state.destination else { break }
                 let isUiTesting = ProcessInfo.processInfo.environment["CONSTRUCT_UI_TESTS"] == "1"
                 if case .welcome = destination, !isUiTesting {
-                    state.$preferences.withLock { $0.didShowWelcomeSheet = true }
+                    state.$preferences.withLock {
+                        $0.didShowWelcomeSheet = true
+                        $0.dismissedDefaultContentUpdatePromptToken = defaultContentUpdateDismissalToken()
+                    }
                 }
-                if case .defaultContentSelection(let selectionState) = destination,
-                   let dismissalToken = selectionState.dismissalToken {
-                    state.$preferences.withLock { $0.dismissedDefaultContentUpdatePromptToken = dismissalToken }
+                if case .defaultContentSelection = destination {
+                    state.$preferences.withLock {
+                        $0.dismissedDefaultContentUpdatePromptToken = defaultContentUpdateDismissalToken()
+                    }
                 }
                 state.destination = nil
 
@@ -211,19 +215,8 @@ struct AppFeature {
                 let shouldForceWelcomeForUITests = isUiTesting && environment["CONSTRUCT_UI_TESTS_FORCE_WELCOME"] != "0"
                 if shouldForceWelcomeForUITests || !state.preferences.didShowWelcomeSheet {
                     return .send(.requestDestination(.welcome(.init())))
-                } else if let status = try? database.defaultContentDocumentStatus(),
-                          status.hasAnyImportAvailable,
-                          let selection = try? database.defaultContentSelectionNeedingImport(),
-                          !selection.isEmpty,
-                          let dismissalToken = defaultContentUpdateDismissalToken(status: status),
-                          state.preferences.dismissedDefaultContentUpdatePromptToken != dismissalToken {
-                    return .send(.requestDestination(.defaultContentSelection(
-                        .init(
-                            selection: selection,
-                            allowsDismissal: true,
-                            dismissalToken: dismissalToken
-                        )
-                    )))
+                } else if state.preferences.dismissedDefaultContentUpdatePromptToken != defaultContentUpdateDismissalToken() {
+                    return .send(.requestDestination(.defaultContentSelection(.init())))
                 } else if let nodeCount = try? campaignBrowser.nodeCount(),
                           nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
                 {
@@ -269,86 +262,10 @@ struct AppFeature {
         }
     }
 
-    private func defaultContentUpdateDismissalToken(
-        status: Database.DefaultContentDocumentStatus
-    ) -> String? {
-        let parts = DefaultContentRuleset.allCases.compactMap { ruleset -> String? in
-            guard status.isNewContent(ruleset) || status.isUpdateAvailable(ruleset) else { return nil }
-            return "\(ruleset.dismissalTokenPrefix):\(ruleset.currentVersionToken)"
-        }
-        return parts.isEmpty ? nil : parts.joined(separator: "|")
-    }
-
-    @Reducer
-    struct WelcomeFeature {
-        @ObservableState
-        struct State: Equatable {
-            @Presents var page: Page.State? = .benefits
-        }
-
-        enum Action: Equatable {
-            case didTapNext
-            case didTapBack
-            case didTapContinue
-            case page(PresentationAction<Page.Action>)
-            case delegate(Delegate)
-        }
-        
-        @Reducer
-        enum Page {
-            case benefits
-            case contentImport(DefaultContentSelectionFeature)
-        }
-
-        enum Delegate: Equatable {
-            case dismissWelcomeSheet
-            case openSampleEncounter(Set<DefaultContentRuleset>)
-        }
-
-        var body: some ReducerOf<Self> {
-            Reduce { state, action in
-                switch action {
-                case .didTapNext:
-                    if case .contentImport = state.page {
-                        return .none
-                    }
-                    state.page = .contentImport(Self.contentImportPageState)
-                    return .none
-                case .didTapBack:
-                    state.page = .benefits
-                    return .none
-                case .didTapContinue:
-                    return .send(.page(.presented(.contentImport(.applySelection))))
-                case .page(.presented(.contentImport(.delegate(.applied(let appliedSelection))))):
-                    if appliedSelection.restoreSampleEncounter {
-                        return .send(.delegate(.openSampleEncounter(
-                            appliedSelection.selection
-                        )))
-                    } else {
-                        return .send(.delegate(.dismissWelcomeSheet))
-                    }
-                case .page:
-                    return .none
-                case .delegate:
-                    return .none
-                }
-            }
-            .ifLet(\.$page, action: \.page)
-        }
-
-        static var contentImportPageState: DefaultContentSelectionFeature.State {
-            .init(
-                selection: [],
-                restoreSampleEncounter: true
-            )
-        }
-
-        static func sampleEncounterRuleset(selection: Set<DefaultContentRuleset>) -> DefaultContentRuleset {
-            if selection.contains(.rules2024) {
-                return .rules2024
-            }
-            return .rules2014
-        }
+    private func defaultContentUpdateDismissalToken() -> String {
+        return DefaultContentSource.allCases
+            .map { source in "\(source.importSourceId.rawValue):\(source.currentVersion)" }
+            .joined(separator: "|")
     }
 
     @Reducer
@@ -539,17 +456,6 @@ extension ColumnNavigationFeature.State {
     }
 }
 
-private extension DefaultContentRuleset {
-    var dismissalTokenPrefix: String {
-        switch self {
-        case .rules2014:
-            "2014"
-        case .rules2024:
-            "2024"
-        }
-    }
-}
-
 extension AppFeature.Destination.State: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
@@ -595,6 +501,3 @@ extension AppFeature.Navigation.State: NavigationTreeNode {
         }
     }
 }
-
-extension AppFeature.WelcomeFeature.Page.State: Equatable { }
-extension AppFeature.WelcomeFeature.Page.Action: Equatable { }

@@ -194,13 +194,13 @@ private struct ConstructContentView: View {
             case let .defaultContentSelection(defaultContentSelectionStore):
                 DefaultContentSelectionSheet(
                     store: defaultContentSelectionStore,
-                    cancelButtonTitle: defaultContentSelectionStore.allowsDismissal ? "Skip" : nil,
+                    cancelButtonTitle: "Skip",
                     cancelAction: {
                         store.send(.destination(.dismiss))
                     },
-                    primaryButtonTitle: defaultContentSelectionStore.allowsDismissal ? "Update content" : "Continue"
+                    primaryButtonTitle: "Update content"
                 )
-                .interactiveDismissDisabled(!defaultContentSelectionStore.allowsDismissal)
+                .interactiveDismissDisabled(false)
             }
         }
         .alert($store.scope(state: \.crashReportingPermissionAlert, action: \.alert))

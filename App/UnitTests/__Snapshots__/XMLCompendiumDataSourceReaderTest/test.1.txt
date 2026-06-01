@@ -3,9 +3,9 @@
     ▿ challengeRating: Fraction
       - denominator: 1
       - numenator: 13
-    ▿ realm: core
-      ▿ value: core
-        - rawValue: "core"
+    ▿ realm: core5e
+      ▿ value: core5e
+        - rawValue: "core5e"
     ▿ stats: StatBlock
       ▿ _alignment: Migrated<Optional<Alignment>>
         ▿ wrappedValue: Optional<Alignment>
@@ -212,9 +212,9 @@
     ▿ challengeRating: Fraction
       - denominator: 1
       - numenator: 1
-    ▿ realm: core
-      ▿ value: core
-        - rawValue: "core"
+    ▿ realm: core5e
+      ▿ value: core5e
+        - rawValue: "core5e"
     ▿ stats: StatBlock
       ▿ _alignment: Migrated<Optional<Alignment>>
         ▿ wrappedValue: Optional<Alignment>
@@ -348,9 +348,9 @@
       - some: "a tiny strip of white clot"
     - name: "Aid"
     - range: "30 feet"
-    ▿ realm: core
-      ▿ value: core
-        - rawValue: "core"
+    ▿ realm: core5e
+      ▿ value: core5e
+        - rawValue: "core5e"
     - ritual: false
     - school: "Abjuration"
   ▿ Spell
@@ -371,8 +371,8 @@
     - material: Optional<String>.none
     - name: "Acid Splash"
     - range: "60 feet"
-    ▿ realm: core
-      ▿ value: core
-        - rawValue: "core"
+    ▿ realm: core5e
+      ▿ value: core5e
+        - rawValue: "core5e"
     - ritual: false
     - school: "Conjuration"

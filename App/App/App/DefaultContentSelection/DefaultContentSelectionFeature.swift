@@ -5,41 +5,38 @@ import GameModels
 import Helpers
 import Persistence
 
+enum DefaultContentSelectionError: Error {
+    case emptySelection
+}
+
 @Reducer
 public struct DefaultContentSelectionFeature {
     public typealias AsyncApplySelection = Async<Set<DefaultContentRuleset>, EquatableError>
-    public typealias AsyncDefaultDocumentStatus = Async<Database.DefaultContentDocumentStatus, EquatableError>
+    public typealias AsyncImportedDefaultContentVersions = Async<DefaultContentVersions, EquatableError>
 
     @ObservableState
     public struct State: Equatable {
         var selection: Set<DefaultContentRuleset> = []
-        var applySelection: AsyncApplySelection.State
-        var defaultDocumentStatus: AsyncDefaultDocumentStatus.State
+        var importedDefaultContentVersions: AsyncImportedDefaultContentVersions.State
 
         var allowsSampleEncounterOnly = false
         var restoreSampleEncounter: Bool?
-        var allowsDismissal = false
-        var dismissalToken: String?
+        
+        var applySelection: AsyncApplySelection.State
 
         var isValidSelection: Bool {
             !selection.isEmpty || allowsSampleEncounterOnly && restoreSampleEncounter == true
         }
 
         public init(
-            selection: Set<DefaultContentRuleset>,
             restoreSampleEncounter: Bool? = nil,
             allowsSampleEncounterOnly: Bool = false,
-            allowsDismissal: Bool = false,
-            dismissalToken: String? = nil
         ) {
             @Dependency(\.uuid) var uuid
-            self.selection = selection
             self.applySelection = .init(identifier: uuid())
-            self.defaultDocumentStatus = .init(identifier: uuid())
+            self.importedDefaultContentVersions = .init(identifier: uuid())
             self.allowsSampleEncounterOnly = allowsSampleEncounterOnly
             self.restoreSampleEncounter = restoreSampleEncounter
-            self.allowsDismissal = allowsDismissal
-            self.dismissalToken = dismissalToken
         }
     }
 
@@ -48,7 +45,7 @@ public struct DefaultContentSelectionFeature {
         case toggleRuleset(DefaultContentRuleset)
         case setSampleEncounterEnabled(Bool)
         case applySelection
-        case defaultDocumentStatus(AsyncDefaultDocumentStatus.Action)
+        case importedDefaultContentVersions(AsyncImportedDefaultContentVersions.Action)
         case applySelectionResponse(Result<Set<DefaultContentRuleset>, EquatableError>)
         case delegate(Delegate)
 
@@ -70,13 +67,14 @@ public struct DefaultContentSelectionFeature {
         }
     }
 
-    @Dependency(\.database) var database
+    @Dependency(\.compendium) var compendium
+    @Dependency(\.compendiumMetadata) var compendiumMetadata
 
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return .send(.defaultDocumentStatus(.startLoading))
+                return .send(.importedDefaultContentVersions(.startLoading))
 
             case .toggleRuleset(let ruleset):
                 if state.selection.contains(ruleset) {
@@ -103,9 +101,9 @@ public struct DefaultContentSelectionFeature {
 
                 state.applySelection.isLoading = true
                 state.applySelection.result = nil
-                return .run { [selection = state.selection] send in
+                return .run { [installedVersions = state.importedDefaultContentVersions.value, selection = state.selection] send in
                     do {
-                        try await database.applyDefaultContentSelection(selection)
+                        try await applyDefaultContentSelection(selection, installedVersions: installedVersions)
                         await send(.applySelectionResponse(.success(selection)))
                     } catch {
                         await send(.applySelectionResponse(.failure(error.toEquatableError())))
@@ -127,20 +125,52 @@ public struct DefaultContentSelectionFeature {
             case .delegate:
                 break
 
-            case .defaultDocumentStatus:
+            case .importedDefaultContentVersions:
                 break
             }
 
             return .none
         }
-        Scope(state: \.defaultDocumentStatus, action: \.defaultDocumentStatus) {
-            AsyncDefaultDocumentStatus {
+        Scope(state: \.importedDefaultContentVersions, action: \.importedDefaultContentVersions) {
+            AsyncImportedDefaultContentVersions {
                 do {
-                    return try database.defaultContentDocumentStatus()
+                    return try importedDefaultContentVersions()
                 } catch {
                     throw error.toEquatableError()
                 }
             }
         }
+    }
+    
+    func applyDefaultContentSelection(
+        _ selection: Set<DefaultContentRuleset>,
+        installedVersions: DefaultContentVersions?
+    ) async throws {
+        try await compendiumMetadata.ensureHomebrewMetadata()
+        for ruleset in selection {
+            try await compendiumMetadata.ensureEditionMetadata(ruleset.edition)
+        }
+
+        let sources = try DefaultContentVersions.sourcesNeedingImport(
+            selection: selection,
+            installed: installedVersions ?? importedDefaultContentVersions()
+        )
+        guard !sources.isEmpty else { return }
+
+        let importer = CompendiumImporter(
+            compendium: compendium,
+            metadata: compendiumMetadata
+        )
+        try await importer.importDefaultContent(sources: sources)
+    }
+
+    func importedDefaultContentVersions() throws -> DefaultContentVersions {
+        let versions: [(DefaultContentSource, String)] = try DefaultContentSource.allCases.compactMap { source in
+            guard let version = try compendiumMetadata.latestImportJob(sourceId: source.importSourceId)?.sourceVersion else {
+                return nil
+            }
+            return (source, version)
+        }
+        return DefaultContentVersions(versions: Dictionary(uniqueKeysWithValues: versions))
     }
 }
