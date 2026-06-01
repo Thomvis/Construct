@@ -25,6 +25,7 @@ struct DefaultContentSelectionView: View {
                         ruleset: ruleset,
                         action: { store.send(.toggleRuleset(ruleset)) }
                     )
+                    .accessibilityIdentifier(accessibilityIdentifier(for: ruleset))
                 }
                 
                 if let restoreSampleEncounter = store.restoreSampleEncounter {
@@ -135,6 +136,13 @@ struct DefaultContentSelectionView: View {
         switch ruleset {
         case .rules2014: CompendiumSourceDocument.srd5_1.displayName
         case .rules2024: CompendiumSourceDocument.srd5_2.displayName
+        }
+    }
+
+    private func accessibilityIdentifier(for ruleset: DefaultContentRuleset) -> String {
+        switch ruleset {
+        case .rules2014: "default-content-card-2014"
+        case .rules2024: "default-content-card-2024"
         }
     }
 
