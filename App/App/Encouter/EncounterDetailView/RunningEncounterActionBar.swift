@@ -68,13 +68,16 @@ struct RunningEncounterActionBar: View {
                                 Text("\(combatant.discriminatedName)'s turn")
                             }
                             running.turn.map { turn in
-                                Text("Round \(turn.round)").font(.footnote)
+                                Text("Round \(turn.round)")
+                                    .font(.footnote)
+                                    .accessibilityIdentifier("running-encounter-round")
                             }
                         }
                     }
                 }
                 .contentShape(Rectangle())
             }
+            .accessibilityIdentifier("running-encounter-menu")
 
             Spacer()
 

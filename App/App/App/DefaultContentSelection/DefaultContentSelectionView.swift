@@ -278,6 +278,7 @@ struct SampleEncounterOptionRow: View {
         .padding(12)
         .background(Color(UIColor.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityIdentifier("default-content-sample-toggle")
     }
 }
 

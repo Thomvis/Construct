@@ -710,6 +710,14 @@ struct CompendiumDetailPage {
     private func openDetailMenu(expectedActions: [String]) {
         if detailMenuIsVisible(expectedActions: expectedActions) { return }
 
+        let identifiedMenu = app.descendants(matching: .any)
+            .matching(identifier: "compendium-detail-menu")
+            .firstMatch
+        if identifiedMenu.waitForExistence(timeout: 2), identifiedMenu.isHittable {
+            identifiedMenu.tap()
+            if detailMenuIsVisible(expectedActions: expectedActions) { return }
+        }
+
         let labelPredicates = [
             NSPredicate(format: "label ==[c] 'More'"),
             NSPredicate(format: "label ==[c] 'More actions'"),
@@ -1277,7 +1285,10 @@ struct ScratchPadPage {
     }
 
     func assertEmptyEncounterVisible() {
-        XCTAssertTrue(app.staticTexts["Empty encounter"].waitForExistence(timeout: 10))
+        let emptyEncounter = app.descendants(matching: .any)
+            .matching(identifier: "empty-encounter")
+            .firstMatch
+        XCTAssertTrue(emptyEncounter.waitForExistence(timeout: 10))
     }
 
     @discardableResult
@@ -1639,8 +1650,11 @@ struct RunningEncounterPage {
     }
 
     func assertRoundVisible(_ round: Int, timeout: TimeInterval = 10) {
-        let predicate = NSPredicate(format: "label CONTAINS[c] %@", "Round \(round)")
-        XCTAssertTrue(app.buttons.matching(predicate).firstMatch.waitForExistence(timeout: timeout), "Expected running encounter to show Round \(round)")
+        let roundLabel = app.descendants(matching: .any)
+            .matching(identifier: "running-encounter-round")
+            .matching(NSPredicate(format: "label CONTAINS[c] %@", "Round \(round)"))
+            .firstMatch
+        XCTAssertTrue(roundLabel.waitForExistence(timeout: timeout), "Expected running encounter to show Round \(round)")
     }
 
     @discardableResult
@@ -1746,6 +1760,14 @@ struct RunningEncounterPage {
     }
 
     private func openRunningMenu() {
+        let identifiedMenu = app.descendants(matching: .any)
+            .matching(identifier: "running-encounter-menu")
+            .firstMatch
+        if identifiedMenu.waitForExistence(timeout: 2), identifiedMenu.isHittable {
+            identifiedMenu.tap()
+            return
+        }
+
         let roundButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Round'")).firstMatch
         if roundButton.waitForExistence(timeout: 5) {
             roundButton.tap()

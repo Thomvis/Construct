@@ -62,7 +62,9 @@ struct EncounterDetailView: View {
             if store.state.encounter.combatants.isEmpty {
                 Section {
                     VStack(spacing: 8) {
-                        Text("Empty encounter").font(.headline)
+                        Text("Empty encounter")
+                            .font(.headline)
+                            .accessibilityIdentifier("empty-encounter")
                         Text("Start by adding combatants.")
                     }.frame(maxWidth: .infinity).padding(18)
                 }

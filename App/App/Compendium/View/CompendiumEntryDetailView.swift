@@ -88,6 +88,7 @@ struct CompendiumEntryDetailView: View {
                             }) {
                                 Image(systemName: "ellipsis.circle").frame(width: 30, height: 30, alignment: .trailing)
                             }
+                            .accessibilityIdentifier("compendium-detail-menu")
                         }
                     }
                 }
