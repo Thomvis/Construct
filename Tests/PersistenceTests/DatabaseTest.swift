@@ -193,6 +193,24 @@ class DatabaseTest: XCTestCase {
             displayName: "Custom",
             realmId: legacyCoreRealmId
         )
+        let legacyHomebrewRealmId = CompendiumRealm.Id("legacy-homebrew")
+        let legacyHomebrewSrdDocument = CompendiumSourceDocument(
+            id: legacySrd5_1DocumentId,
+            displayName: "Custom SRD",
+            realmId: legacyHomebrewRealmId
+        )
+        let importJob = CompendiumImportJob(
+            sourceId: CompendiumImportSourceId(type: "test", bookmark: "legacy-srd"),
+            sourceVersion: nil,
+            documentId: legacySrd5_1DocumentId,
+            uuid: UUID(uuidString: "01D595EF-9075-42FE-B22C-BF5C2B5EBB2D")!
+        )
+        let customImportJob = CompendiumImportJob(
+            sourceId: CompendiumImportSourceId(type: "test", bookmark: "custom-srd"),
+            sourceVersion: nil,
+            documentId: legacySrd5_1DocumentId,
+            uuid: UUID(uuidString: "FEF75113-1DD3-4E23-AC69-C70F80D24730")!
+        )
 
         var mummyStats = StatBlock.default
         mummyStats.name = "Legacy Mummy"
@@ -207,7 +225,7 @@ class DatabaseTest: XCTestCase {
         )
         let legacyMummyEntry = CompendiumEntry(
             legacyMummy,
-            origin: .created(legacyMummyReference),
+            origin: .imported(importJob.id),
             document: .init(legacySrd5_1Document)
         )
 
@@ -223,6 +241,18 @@ class DatabaseTest: XCTestCase {
             origin: .created(nil),
             document: .init(legacyCustomDocument)
         )
+        var customStats = StatBlock.default
+        customStats.name = "Custom SRD Monster"
+        let customMonster = Monster(
+            realm: .init(legacyHomebrewRealmId),
+            stats: customStats,
+            challengeRating: .half
+        )
+        let customMonsterEntry = CompendiumEntry(
+            customMonster,
+            origin: .imported(customImportJob.id),
+            document: .init(legacyHomebrewSrdDocument)
+        )
 
         let encounter = Encounter(
             name: "Legacy encounter",
@@ -236,22 +266,19 @@ class DatabaseTest: XCTestCase {
                 )
             ]
         )
-        let importJob = CompendiumImportJob(
-            sourceId: CompendiumImportSourceId(type: "test", bookmark: "legacy-srd"),
-            sourceVersion: nil,
-            documentId: legacySrd5_1DocumentId,
-            uuid: UUID(uuidString: "01D595EF-9075-42FE-B22C-BF5C2B5EBB2D")!
-        )
-
         try queue.write { db in
             let store = DatabaseKeyValueStore(.direct(db))
             try store.put(CompendiumRealm(id: legacyCoreRealmId, displayName: "Core 5e (2014)"))
+            try store.put(CompendiumRealm(id: legacyHomebrewRealmId, displayName: "Legacy homebrew"))
             try store.put(legacySrd5_1Document)
             try store.put(legacyCustomDocument)
+            try store.put(legacyHomebrewSrdDocument)
             try store.put(legacyMummyEntry)
             try store.put(legacyGhostEntry)
+            try store.put(customMonsterEntry)
             try store.put(encounter)
             try store.put(importJob)
+            try store.put(customImportJob)
         }
 
         try migrator.migrate(queue)
@@ -262,12 +289,14 @@ class DatabaseTest: XCTestCase {
         XCTAssertNil(legacyCoreRealm)
         XCTAssertEqual(migratedCoreRealm, CompendiumRealm.core)
 
-        let legacySrd5_1: CompendiumSourceDocument? = try store.get(CompendiumSourceDocument.key(forRealmId: legacyCoreRealmId, documentId: legacySrd5_1DocumentId))
+        let legacySrd5_1: CompendiumSourceDocument? = try store.get(CompendiumSourceDocument.key(for: .init(realmId: legacyCoreRealmId, documentId: legacySrd5_1DocumentId)))
         let migratedSrd5_1: CompendiumSourceDocument? = try store.get(CompendiumSourceDocument.srd5_1.key)
-        let migratedCustomDocument: CompendiumSourceDocument? = try store.get(CompendiumSourceDocument.key(forRealmId: CompendiumRealm.core.id, documentId: legacyCustomDocument.id))
+        let migratedCustomDocument: CompendiumSourceDocument? = try store.get(CompendiumSourceDocument.key(for: .init(realmId: CompendiumRealm.core.id, documentId: legacyCustomDocument.id)))
         XCTAssertNil(legacySrd5_1)
         XCTAssertEqual(migratedSrd5_1, CompendiumSourceDocument.srd5_1)
         XCTAssertEqual(migratedCustomDocument?.realmId, CompendiumRealm.core.id)
+        let migratedHomebrewSrdDocument: CompendiumSourceDocument? = try store.get(legacyHomebrewSrdDocument.key)
+        XCTAssertEqual(migratedHomebrewSrdDocument, legacyHomebrewSrdDocument)
 
         let migratedMummyKey = CompendiumItemKey(
             type: .monster,
@@ -290,15 +319,17 @@ class DatabaseTest: XCTestCase {
         XCTAssertEqual(migratedMummyEntry?.document.id, CompendiumSourceDocument.srd5_1.id)
         XCTAssertEqual(
             migratedMummyEntry?.origin,
-            .created(CompendiumItemReference(itemTitle: legacyMummy.title, itemKey: migratedMummyKey))
+            .imported(importJob.id)
         )
         XCTAssertEqual(migratedGhostEntry?.item.realm.value, CompendiumRealm.core.id)
         XCTAssertEqual(migratedGhostEntry?.document.id, legacyCustomDocument.id)
+        let migratedCustomMonsterEntry: CompendiumEntry? = try store.get(customMonsterEntry.key)
+        XCTAssertEqual(migratedCustomMonsterEntry, customMonsterEntry)
 
         let migratedMummySecondaryIndexes = try store.secondaryIndexValues(for: CompendiumEntry.key(for: migratedMummyKey).rawValue)
         XCTAssertEqual(
-            migratedMummySecondaryIndexes?[SecondaryIndexes.compendiumEntrySourceDocumentId],
-            CompendiumSourceDocument.srd5_1.id.rawValue
+            migratedMummySecondaryIndexes?[SecondaryIndexes.compendiumEntrySourceDocumentKey],
+            CompendiumSourceDocument.srd5_1.key.rawValue
         )
 
         let migratedEncounter: Encounter? = try store.get(encounter.key)
@@ -307,6 +338,8 @@ class DatabaseTest: XCTestCase {
 
         let migratedImportJob: CompendiumImportJob? = try store.get(importJob.key)
         XCTAssertEqual(migratedImportJob?.documentId, CompendiumSourceDocument.srd5_1.id)
+        let migratedCustomImportJob: CompendiumImportJob? = try store.get(customImportJob.key)
+        XCTAssertEqual(migratedCustomImportJob, customImportJob)
     }
 
 }

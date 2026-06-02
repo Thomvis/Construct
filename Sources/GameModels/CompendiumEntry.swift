@@ -47,6 +47,10 @@ public struct CompendiumEntry: Equatable {
         }
     }
 
+    public var sourceDocumentKey: CompendiumSourceDocumentKey {
+        .init(realmId: item.realm.value, documentId: document.id)
+    }
+
     public struct Error: Equatable {
         let errorDump: String
         let data: Data

@@ -51,17 +51,14 @@ final class ConstructUpgradeExperienceUITests: ConstructUITestCase {
     private func applyDefaultContentUpdateIfNeeded(in app: XCUIApplication) {
         guard app.navigationBars["Basic Rules content"].waitForExistence(timeout: 5) else { return }
 
-        let continueButton = app.buttons["Continue"].firstMatch
-        if !continueButton.waitForExistence(timeout: 2) || !continueButton.isEnabled {
+        let primaryButton = app.buttons["Update content"].firstMatch
+        XCTAssertTrue(primaryButton.waitForExistence(timeout: 10), "Expected default content primary button")
+        if !primaryButton.isEnabled {
             let card2014 = app.buttons["default-content-card-2014"].firstMatch
             XCTAssertTrue(card2014.waitForExistence(timeout: 10), "Expected 2014 default content card")
             card2014.tap()
         }
 
-        let primaryButton = app.buttons["Continue"].firstMatch.exists
-            ? app.buttons["Continue"].firstMatch
-            : app.buttons["Update content"].firstMatch
-        XCTAssertTrue(primaryButton.waitForExistence(timeout: 10), "Expected default content primary button")
         XCTAssertTrue(primaryButton.isEnabled, "Default content primary button should be enabled")
         primaryButton.tap()
 

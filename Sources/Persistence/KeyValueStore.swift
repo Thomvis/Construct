@@ -450,7 +450,7 @@ public enum SecondaryIndexes: Hashable {
     public static let compendiumEntryMonsterChallengeRating = 1
     public static let compendiumEntrySpellLevel = 2
     public static let compendiumEntryMonsterType = 3
-    public static let compendiumEntrySourceDocumentId = 4
+    public static let compendiumEntrySourceDocumentKey = 4
 }
 
 public struct SecondaryIndexFilter {

@@ -3,30 +3,27 @@
 //  PersistenceTests
 //
 
-import Testing
 import Foundation
 import Sharing
-import ComposableArchitecture
 @testable import Persistence
 import GameModels
+import XCTest
 
 @MainActor
-struct SharedKeyValueStorePersistenceTests {
+final class SharedKeyValueStorePersistenceTests: XCTestCase {
 
     // MARK: - KeyValueStorePersistenceKey Tests
 
-    @Test
-    func loadReturnsInitialValueWhenNoStoredValue() async throws {
+    func testLoadReturnsInitialValueWhenNoStoredValue() async throws {
         let db = try await Database(path: nil)
 
         @Shared(.keyValueStore("test.missing", store: { db.keyValueStore }))
         var value: String = "default"
 
-        #expect(value == "default")
+        XCTAssertEqual(value, "default")
     }
 
-    @Test
-    func loadReturnsStoredValue() async throws {
+    func testLoadReturnsStoredValue() async throws {
         let db = try await Database(path: nil)
 
         // Store a value first
@@ -35,11 +32,10 @@ struct SharedKeyValueStorePersistenceTests {
         @Shared(.keyValueStore("test.stored", store: { db.keyValueStore }))
         var value: String = "default"
 
-        #expect(value == "stored")
+        XCTAssertEqual(value, "stored")
     }
 
-    @Test
-    func saveWritesToStore() async throws {
+    func testSaveWritesToStore() async throws {
         let db = try await Database(path: nil)
 
         @Shared(.keyValueStore("test.save", store: { db.keyValueStore }))
@@ -51,11 +47,10 @@ struct SharedKeyValueStorePersistenceTests {
         try await Task.sleep(for: .milliseconds(50))
 
         let stored: String? = try db.keyValueStore.get("test.save")
-        #expect(stored == "updated")
+        XCTAssertEqual(stored, "updated")
     }
 
-    @Test
-    func subscribeReceivesExternalUpdates() async throws {
+    func testSubscribeReceivesExternalUpdates() async throws {
         let db = try await Database(path: nil)
 
         @Shared(.keyValueStore("test.subscribe", store: { db.keyValueStore }))
@@ -70,11 +65,10 @@ struct SharedKeyValueStorePersistenceTests {
         // Give time for notification
         try await Task.sleep(for: .milliseconds(100))
 
-        #expect(value == "external")
+        XCTAssertEqual(value, "external")
     }
 
-    @Test
-    func worksWithCodableTypes() async throws {
+    func testWorksWithCodableTypes() async throws {
         struct Settings: Codable, Equatable, Sendable {
             var theme: String
             var fontSize: Int
@@ -85,20 +79,19 @@ struct SharedKeyValueStorePersistenceTests {
         @Shared(.keyValueStore("test.codable", store: { db.keyValueStore }))
         var settings: Settings = Settings(theme: "light", fontSize: 14)
 
-        #expect(settings.theme == "light")
+        XCTAssertEqual(settings.theme, "light")
 
         $settings.withLock { $0.theme = "dark" }
 
         try await Task.sleep(for: .milliseconds(50))
 
         let stored: Settings? = try db.keyValueStore.get("test.codable")
-        #expect(stored?.theme == "dark")
+        XCTAssertEqual(stored?.theme, "dark")
     }
 
     // MARK: - KeyValueStoreEntityPersistenceKey Tests
 
-    @Test
-    func entityKeyLoadsStoredEntity() async throws {
+    func testEntityKeyLoadsStoredEntity() async throws {
         let db = try await Database(path: nil)
 
         let preferences = Preferences(
@@ -110,12 +103,11 @@ struct SharedKeyValueStorePersistenceTests {
         @Shared(.entity(Preferences.key, store: { db.keyValueStore }))
         var loaded: Preferences = Preferences()
 
-        #expect(loaded.didShowWelcomeSheet == true)
-        #expect(loaded.errorReportingEnabled == true)
+        XCTAssertTrue(loaded.didShowWelcomeSheet)
+        XCTAssertEqual(loaded.errorReportingEnabled, true)
     }
 
-    @Test
-    func entityKeySavesEntity() async throws {
+    func testEntityKeySavesEntity() async throws {
         let db = try await Database(path: nil)
 
         @Shared(.entity(Preferences.key, store: { db.keyValueStore }))
@@ -128,11 +120,10 @@ struct SharedKeyValueStorePersistenceTests {
         try await Task.sleep(for: .milliseconds(50))
 
         let stored: Preferences? = try db.keyValueStore.get(Preferences.key)
-        #expect(stored?.didShowWelcomeSheet == true)
+        XCTAssertEqual(stored?.didShowWelcomeSheet, true)
     }
 
-    @Test
-    func multipleSharedReferencesStaySynced() async throws {
+    func testMultipleSharedReferencesStaySynced() async throws {
         let db = try await Database(path: nil)
 
         @Shared(.keyValueStore("test.sync", store: { db.keyValueStore }))
@@ -145,7 +136,6 @@ struct SharedKeyValueStorePersistenceTests {
 
         try await Task.sleep(for: .milliseconds(100))
 
-        #expect(value2 == "updated")
+        XCTAssertEqual(value2, "updated")
     }
 }
-

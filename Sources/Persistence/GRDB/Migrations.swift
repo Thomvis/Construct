@@ -35,6 +35,7 @@ extension Database {
         case v16 = "v16-fix-missing-origin-document"
         case v17 = "v17-rename-default-compendium-realm-and-document"
         case v18 = "v18-default-content-versions-to-import-jobs"
+        case v19 = "v19-compendium-source-document-index-realm"
     }
 
     static func migrator() throws -> DatabaseMigrator {
@@ -643,8 +644,23 @@ extension Database {
                 try store.remove(originalKey)
             }
 
+            let legacySrd5_1DocumentKey = CompendiumSourceDocumentKey(
+                realmId: legacyCoreRealmId,
+                documentId: legacySrd5_1DocumentId
+            )
+            let legacySrd5_1ImportJobIds = Set(try DatabaseKeyValueStore.Record
+                .filter(Column("key").like("\(CompendiumEntry.keyPrefix)%"))
+                .fetchAll(db)
+                .compactMap { record -> CompendiumImportJob.Id? in
+                    let entry = try DatabaseKeyValueStore.decoder.decode(CompendiumEntry.self, from: record.value)
+                    guard entry.sourceDocumentKey == legacySrd5_1DocumentKey,
+                          case let .imported(jobId?) = entry.origin else { return nil }
+                    return jobId
+                })
+
             let visitors: [KeyValueStoreEntityVisitor] = compendiumSourceDocumentUpdateVisitors(
-                originalDocumentId: legacySrd5_1DocumentId,
+                originalDocumentKey: legacySrd5_1DocumentKey,
+                originalImportJobIds: legacySrd5_1ImportJobIds,
                 targetDocument: CompendiumSourceDocument.srd5_1
             )
             + [
@@ -716,6 +732,20 @@ extension Database {
                 uuid: UUID(uuidString: "0BA8EA2C-E625-4AF1-B31E-748BF67AC30C")!
             )
             try DatabaseKeyValueStore.Record.deleteOne(db, key: legacyDefaultContentVersionsKey)
+        }
+
+        migrator.registerMigration(Migration.v19) { db in
+            let records = try DatabaseKeyValueStore.Record
+                .filter(Column("key").like("\(CompendiumEntry.keyPrefix)%"))
+                .fetchAll(db)
+            for record in records {
+                let entry = try DatabaseKeyValueStore.decoder.decode(CompendiumEntry.self, from: record.value)
+                try DatabaseKeyValueStore.saveSecondaryIndexValues(
+                    entry.secondaryIndexValues,
+                    recordKey: record.key,
+                    in: db
+                )
+            }
         }
 
         return migrator

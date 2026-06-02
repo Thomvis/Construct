@@ -27,7 +27,7 @@ final class UpdateEntryDocumentGameModelsVisitorTest: XCTestCase {
         }
         
         let sut = UpdateEntryDocumentGameModelsVisitor(
-            originalDocumentId: fixtures.document.id,
+            originalDocumentKey: .init(fixtures.document),
             targetDocument: targetDocument
         )
 
@@ -67,7 +67,7 @@ final class UpdateEntryDocumentGameModelsVisitorTest: XCTestCase {
         }
         
         let sut = UpdateEntryDocumentGameModelsVisitor(
-            originalDocumentId: fixtures.document.id,
+            originalDocumentKey: .init(fixtures.document),
             targetDocument: targetDocument
         )
 
@@ -106,7 +106,7 @@ final class UpdateEntryDocumentGameModelsVisitorTest: XCTestCase {
         }
         
         let sut = UpdateEntryDocumentGameModelsVisitor(
-            originalDocumentId: fixtures.document.id,
+            originalDocumentKey: .init(fixtures.document),
             targetDocument: targetDocument
         )
 
@@ -129,5 +129,21 @@ final class UpdateEntryDocumentGameModelsVisitorTest: XCTestCase {
         XCTAssertTrue(sut.visit(entry: &entry2))
         assertSnapshot(of: diff(fixtures.entryInDocument2, entry2) ?? "", as: .lines)
         XCTAssertEqual(entry2.item.realm.value, "newrealm")
+    }
+
+    func testDoesNotUpdateMatchingDocumentIdInDifferentRealm() {
+        let sut = UpdateEntryDocumentGameModelsVisitor(
+            originalDocumentKey: .init(fixtures.document),
+            targetDocument: apply(fixtures.document) {
+                $0.id = "newdoc"
+            }
+        )
+        var entry = apply(fixtures.entryInDocument1) {
+            $0.item.realm = .init("otherrealm")
+        }
+        let original = entry
+
+        XCTAssertFalse(sut.visit(entry: &entry))
+        expectNoDifference(entry, original)
     }
 } 

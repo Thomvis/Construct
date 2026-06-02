@@ -2,19 +2,21 @@ import Foundation
 import GameModels
 
 func compendiumSourceDocumentUpdateVisitors(
-    originalDocumentId: CompendiumSourceDocument.Id,
+    originalDocumentKey: CompendiumSourceDocumentKey,
+    originalImportJobIds: Set<CompendiumImportJob.Id>? = nil,
     targetDocument: CompendiumSourceDocument,
     updatedItemReference: ((CompendiumItemKey) -> CompendiumItemKey?)? = nil
 ) -> [KeyValueStoreEntityVisitor] {
     Array {
         AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateEntryDocumentGameModelsVisitor(
-            originalDocumentId: originalDocumentId,
+            originalDocumentKey: originalDocumentKey,
             targetDocument: targetDocument
         ))
 
-        if targetDocument.id != originalDocumentId {
+        if targetDocument.id != originalDocumentKey.documentId {
             AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateImportJobDocumentGameModelsVisitor(
-                originalDocumentId: originalDocumentId,
+                originalDocumentId: originalDocumentKey.documentId,
+                originalJobIds: originalImportJobIds,
                 updatedDocumentId: targetDocument.id
             ))
         }

@@ -237,8 +237,8 @@ struct CompendiumImportFeature {
             }
 
             var existingDocument: CompendiumSourceDocument? {
-                guard case .existing(let id) = document else { return nil }
-                return documents.value?.first(where: { $0.id == id })
+                guard case .existing(let key) = document else { return nil }
+                return documents.value?.first(where: { CompendiumSourceDocumentKey($0) == key })
             }
 
             var newDocument: CompendiumSourceDocument? {
@@ -282,8 +282,8 @@ struct CompendiumImportFeature {
 
             var documentPickerLabel: String? {
                 switch document {
-                case .existing(let id):
-                    return documents.value?.first { $0.id == id }?.displayName
+                case .existing(let key):
+                    return documents.value?.first { CompendiumSourceDocumentKey($0) == key }?.displayName
                 case .new:
                     return "New document..."
                 case nil:
@@ -301,8 +301,8 @@ struct CompendiumImportFeature {
             }
 
             var realmForExistingDocument: CompendiumRealm? {
-                guard case let .existing(documentId) = document,
-                    let doc = documents.value?.first(where: { $0.id == documentId }),
+                guard case let .existing(documentKey) = document,
+                    let doc = documents.value?.first(where: { CompendiumSourceDocumentKey($0) == documentKey }),
                     let realm = realms.value?.first(where: { $0.id == doc.realmId })
                 else {
                     return nil
@@ -366,7 +366,7 @@ struct CompendiumImportFeature {
             /// Returns true if it found an existing document
             mutating func setSuggestedDocument(_ suggestion: String) -> Bool {
                 if let match = documents.value?.first(where: { $0.displayName == suggestion }) {
-                    document = .existing(match.id)
+                    document = .existing(.init(match))
                     return true
                 } else {
                     document = .new
@@ -387,7 +387,7 @@ struct CompendiumImportFeature {
             }
 
             enum SelectedCompendiumDocument: Hashable {
-                case existing(CompendiumSourceDocument.Id)
+                case existing(CompendiumSourceDocumentKey)
                 case new
             }
 
@@ -914,8 +914,8 @@ public struct CompendiumImportView: View {
                                     selection: $store.importSettings.document.animation()
                                 ) {
                                     if let docs = store.importSettings.documents.value {
-                                        ForEach(docs, id: \.id) { doc in
-                                            Text("\(doc.displayName) (\(doc.id.rawValue))").tag(Optional.some(SelectedDocument.existing(doc.id)))
+                                        ForEach(docs, id: \.key) { doc in
+                                            Text("\(doc.displayName) (\(doc.id.rawValue))").tag(Optional.some(SelectedDocument.existing(.init(doc))))
                                         }
                                     } else {
                                         Text("Loading documents...")
@@ -1241,9 +1241,9 @@ enum CompendiumMetadataKey: DependencyKey {
 
         } createDocument: { _ in
 
-        } updateDocument: { _, _, _ in
+        } updateDocument: { _, _ in
 
-        } removeDocument: { _, _ in
+        } removeDocument: { _ in
 
         }
     }

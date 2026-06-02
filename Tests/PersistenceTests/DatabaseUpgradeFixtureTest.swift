@@ -34,10 +34,10 @@ final class DatabaseUpgradeFixtureTest: XCTestCase {
         XCTAssertEqual(migratedSrdDocument, CompendiumSourceDocument.srd5_1)
 
         let homebrewDocument: CompendiumSourceDocument = try XCTUnwrap(try store.get(
-            CompendiumSourceDocument.key(
-                forRealmId: CompendiumRealm.homebrew.id,
+            CompendiumSourceDocument.key(for: .init(
+                realmId: CompendiumRealm.homebrew.id,
                 documentId: "upgrade-lab"
-            )
+            ))
         ))
         XCTAssertEqual(homebrewDocument.displayName, "Upgrade Lab Homebrew")
 

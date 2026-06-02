@@ -23,6 +23,20 @@ public struct CompendiumSourceDocument: Hashable, Codable, Identifiable {
     }
 }
 
+public struct CompendiumSourceDocumentKey: Hashable, Codable {
+    public var realmId: CompendiumRealm.Id
+    public var documentId: CompendiumSourceDocument.Id
+
+    public init(realmId: CompendiumRealm.Id, documentId: CompendiumSourceDocument.Id) {
+        self.realmId = realmId
+        self.documentId = documentId
+    }
+
+    public init(_ document: CompendiumSourceDocument) {
+        self.init(realmId: document.realmId, documentId: document.id)
+    }
+}
+
 public extension CompendiumSourceDocument {
     static let srd5_1 = CompendiumSourceDocument(
         id: "srd5e",

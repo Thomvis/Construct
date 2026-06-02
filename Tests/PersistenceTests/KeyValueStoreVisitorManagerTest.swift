@@ -31,20 +31,26 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
             + 1firstvisited
             -   entity: {"id":"first","value":0}
             +   entity: {"id":"firstvisited","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1first]:  {"id":0,"title":"zero"}
+            +   fts[1firstvisited]:  {"id":0,"title":"zero"}
+            -   idxs[1first]: {"0":"0"}
+            +   idxs[1firstvisited]: {"0":"0"}
             - 1second
             + 1secondvisited
             -   entity: {"id":"second","value":0}
             +   entity: {"id":"secondvisited","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1second]:  {"id":0,"title":"zero"}
+            +   fts[1secondvisited]:  {"id":0,"title":"zero"}
+            -   idxs[1second]: {"0":"0"}
+            +   idxs[1secondvisited]: {"0":"0"}
             - 1third
             + 1thirdvisited
             -   entity: {"id":"third","value":0}
             +   entity: {"id":"thirdvisited","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1third]:  {"id":0,"title":"zero"}
+            +   fts[1thirdvisited]:  {"id":0,"title":"zero"}
+            -   idxs[1third]: {"0":"0"}
+            +   idxs[1thirdvisited]: {"0":"0"}
               """
             """#
         }
@@ -70,24 +76,24 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
               1first
             -   entity: {"id":"first","value":0}
             +   entity: {"id":"first","value":1}
-            -   fts:    {"id":0,"title":"zero"}
-            +   fts:    {"id":0,"title":"one"}
-            -   idxs:   {"0":"0"}
-            +   idxs:   {"0":"1"}
+            -   fts[1first]:  {"id":0,"title":"zero"}
+            +   fts[1first]:  {"id":0,"title":"one"}
+            -   idxs[1first]: {"0":"0"}
+            +   idxs[1first]: {"0":"1"}
               1second
             -   entity: {"id":"second","value":0}
             +   entity: {"id":"second","value":1}
-            -   fts:    {"id":0,"title":"zero"}
-            +   fts:    {"id":0,"title":"one"}
-            -   idxs:   {"0":"0"}
-            +   idxs:   {"0":"1"}
+            -   fts[1second]:  {"id":0,"title":"zero"}
+            +   fts[1second]:  {"id":0,"title":"one"}
+            -   idxs[1second]: {"0":"0"}
+            +   idxs[1second]: {"0":"1"}
               1third
             -   entity: {"id":"third","value":0}
             +   entity: {"id":"third","value":1}
-            -   fts:    {"id":0,"title":"zero"}
-            +   fts:    {"id":0,"title":"one"}
-            -   idxs:   {"0":"0"}
-            +   idxs:   {"0":"1"}
+            -   fts[1third]:  {"id":0,"title":"zero"}
+            +   fts[1third]:  {"id":0,"title":"one"}
+            -   idxs[1third]: {"0":"0"}
+            +   idxs[1third]: {"0":"1"}
               """
             """#
         }
@@ -113,12 +119,14 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
             + 1firstvisitedvisited
             -   entity: {"id":"first","value":0}
             +   entity: {"id":"firstvisitedvisited","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1first]:  {"id":0,"title":"zero"}
+            +   fts[1firstvisitedvisited]:  {"id":0,"title":"zero"}
+            -   idxs[1first]: {"0":"0"}
+            +   idxs[1firstvisitedvisited]: {"0":"0"}
             - 1firstvisited
             -   entity: {"id":"firstvisited","value":0}
-            -   fts:    {"id":0,"title":"zero"}
-            -   idxs:   {"0":"0"}
+            -   fts[1firstvisited]:  {"id":0,"title":"zero"}
+            -   idxs[1firstvisited]: {"0":"0"}
               """
             """#
         }
@@ -150,42 +158,54 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
             + 1firstvisited 2 2 2visited
             -   entity: {"id":"first","value":0}
             +   entity: {"id":"firstvisited 2 2 2visited","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1first]:  {"id":0,"title":"zero"}
+            +   fts[1firstvisited 2 2 2visited]:  {"id":0,"title":"zero"}
+            -   idxs[1first]: {"0":"0"}
+            +   idxs[1firstvisited 2 2 2visited]: {"0":"0"}
             - 1firstvisited
             + 1firstvisited 2 2visited
             -   entity: {"id":"firstvisited","value":0}
             +   entity: {"id":"firstvisited 2 2visited","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1firstvisited]:  {"id":0,"title":"zero"}
+            +   fts[1firstvisited 2 2visited]:  {"id":0,"title":"zero"}
+            -   idxs[1firstvisited]: {"0":"0"}
+            +   idxs[1firstvisited 2 2visited]: {"0":"0"}
             - 1firstvisited 2
             + 1firstvisited 2visited
             -   entity: {"id":"firstvisited 2","value":0}
             +   entity: {"id":"firstvisited 2visited","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1firstvisited 2]:  {"id":0,"title":"zero"}
+            +   fts[1firstvisited 2visited]:  {"id":0,"title":"zero"}
+            -   idxs[1firstvisited 2]: {"0":"0"}
+            +   idxs[1firstvisited 2visited]: {"0":"0"}
             - 1firstvisited 2 2
             + 1firstvisitedvisited
             -   entity: {"id":"firstvisited 2 2","value":0}
             +   entity: {"id":"firstvisitedvisited","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1firstvisited 2 2]:  {"id":0,"title":"zero"}
+            +   fts[1firstvisitedvisited]:  {"id":0,"title":"zero"}
+            -   idxs[1firstvisited 2 2]: {"0":"0"}
+            +   idxs[1firstvisitedvisited]: {"0":"0"}
             - 1firstvisited 2 2 2
             + 1secondvisited 2
             -   entity: {"id":"firstvisited 2 2 2","value":0}
             +   entity: {"id":"secondvisited 2","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1firstvisited 2 2 2]:  {"id":0,"title":"zero"}
+            +   fts[1secondvisited 2]:  {"id":0,"title":"zero"}
+            -   idxs[1firstvisited 2 2 2]: {"0":"0"}
+            +   idxs[1secondvisited 2]: {"0":"0"}
             - 1second
             + 1secondvisitedvisited
             -   entity: {"id":"second","value":0}
             +   entity: {"id":"secondvisitedvisited","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1second]:  {"id":0,"title":"zero"}
+            +   fts[1secondvisitedvisited]:  {"id":0,"title":"zero"}
+            -   idxs[1second]: {"0":"0"}
+            +   idxs[1secondvisitedvisited]: {"0":"0"}
             - 1secondvisited
             -   entity: {"id":"secondvisited","value":0}
-            -   fts:    {"id":0,"title":"zero"}
-            -   idxs:   {"0":"0"}
+            -   fts[1secondvisited]:  {"id":0,"title":"zero"}
+            -   idxs[1secondvisited]: {"0":"0"}
               """
             """#
         }
@@ -217,14 +237,16 @@ class KeyValueStoreVisitorManagerTest: XCTestCase {
               """
               1first
                 entity: {"id":"first","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+                fts[1first]:  {"id":0,"title":"zero"}
+                idxs[1first]: {"0":"0"}
             - 1firstvisited
             + 1firstvisitedvisited
             -   entity: {"id":"firstvisited","value":0}
             +   entity: {"id":"firstvisitedvisited","value":0}
-                fts:    {"id":0,"title":"zero"}
-                idxs:   {"0":"0"}
+            -   fts[1firstvisited]:  {"id":0,"title":"zero"}
+            +   fts[1firstvisitedvisited]:  {"id":0,"title":"zero"}
+            -   idxs[1firstvisited]: {"0":"0"}
+            +   idxs[1firstvisitedvisited]: {"0":"0"}
               """
             """#
         }
@@ -328,13 +350,13 @@ extension DatabaseKeyValueStore {
                 // Setting id to 0 because it is not relevant for the dump
                 try String(data: encoder.encode(FTSRecord(id: 0, title: $0.title, subtitle: $0.subtitle, body: $0.body)), encoding: .utf8)!
             } ?? "none"
-            result += "  fts:    \(fts)\n"
+            result += "  fts[\(k)]:  \(fts)\n"
 
             // add secondary index values
             let values = try secondaryIndexValues(for: k).map {
                 try String(data: encoder.encode($0), encoding: .utf8)!
             } ?? "none"
-            result += "  idxs:   \(values)\n"
+            result += "  idxs[\(k)]: \(values)\n"
         }
 
         return result.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)

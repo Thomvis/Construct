@@ -41,4 +41,16 @@ final class UpdateImportJobDocumentGameModelsVisitorTest: XCTestCase {
         )
         XCTAssertFalse(sut.visit(job: &otherJob))
     }
+
+    func testDoesNotUpdateJobOutsideExplicitScope() {
+        let sut = UpdateImportJobDocumentGameModelsVisitor(
+            originalDocumentId: fixtures.document.id,
+            originalJobIds: [],
+            updatedDocumentId: "newdoc"
+        )
+        var job = fixtures.importJob
+
+        XCTAssertFalse(sut.visit(job: &job))
+        expectNoDifference(job, fixtures.importJob)
+    }
 } 

@@ -62,12 +62,11 @@ final class DefaultContentSelectionFeatureTest: XCTestCase {
             documentId: CompendiumSourceDocument.srd5_1.id
         ))
 
-        var initialState = withDependencies {
+        let initialState = withDependencies {
             $0.uuid = UUIDGenerator.fake()
         } operation: {
-            DefaultContentSelectionFeature.State()
+            DefaultContentSelectionFeature.State(preselectImportedRulesets: true)
         }
-        initialState.selection = [.rules2014]
 
         let store = TestStore(initialState: initialState) {
             DefaultContentSelectionFeature()
@@ -89,6 +88,32 @@ final class DefaultContentSelectionFeatureTest: XCTestCase {
         ])
         await store.receive(.importedDefaultContentVersions(.didFinishLoading(.success(versions)))) {
             $0.importedDefaultContentVersions.isLoading = false
+            $0.importedDefaultContentVersions.result = .success(versions)
+            $0.preselectImportedRulesets = false
+            $0.selection = [.rules2014]
+        }
+    }
+
+    func testLoadedDocumentStatusDoesNotOverwriteManualSelection() async {
+        let initialState = withDependencies {
+            $0.uuid = UUIDGenerator.fake()
+        } operation: {
+            DefaultContentSelectionFeature.State(preselectImportedRulesets: true)
+        }
+
+        let store = TestStore(initialState: initialState) {
+            DefaultContentSelectionFeature()
+        }
+
+        await store.send(.toggleRuleset(.rules2024)) {
+            $0.preselectImportedRulesets = false
+            $0.selection = [.rules2024]
+        }
+
+        let versions = DefaultContentVersions(versions: [
+            .monsters2014: DefaultContentSource.monsters2014.currentVersion
+        ])
+        await store.send(.importedDefaultContentVersions(.didFinishLoading(.success(versions)))) {
             $0.importedDefaultContentVersions.result = .success(versions)
         }
     }

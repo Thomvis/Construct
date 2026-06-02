@@ -120,11 +120,11 @@ extension CompendiumEntry: KeyConflictResolution {
 extension CompendiumSourceDocument: KeyValueStoreEntity {
     public static var keyPrefix: String = "sourceDoc"
     public var key: Key {
-        Self.key(forRealmId: realmId, documentId: id)
+        Self.key(for: .init(self))
     }
 
-    public static func key(forRealmId realmId: CompendiumRealm.Id, documentId id: CompendiumSourceDocument.Id) -> Key {
-        Key(id: realmId.rawValue + id.rawValue)
+    public static func key(for documentKey: CompendiumSourceDocumentKey) -> Key {
+        Key(id: documentKey.realmId.rawValue + documentKey.documentId.rawValue)
     }
 
     public static func keyPrefix(for realmId: CompendiumRealm.Id) -> Key {

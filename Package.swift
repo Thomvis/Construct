@@ -181,9 +181,6 @@ let package = Package(
                 "GameModels",
                 "TestSupport",
                 .product(name: "InlineSnapshotTesting", package: "swift-snapshot-testing"),
-                .product(name: "CasePathsCore", package: "swift-case-paths"),
-                .product(name: "Sharing", package: "swift-sharing"),
-                .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
             ]
         ),
         .target(

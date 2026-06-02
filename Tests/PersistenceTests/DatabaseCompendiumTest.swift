@@ -123,6 +123,21 @@ class DatabaseCompendiumTest: XCTestCase {
         }
     }
 
+    func testMetadataCreateDocumentThrowsResourceAlreadyExistsForSlugInDifferentRealm() throws {
+        let sut = CompendiumMetadata.live(Database.uninitialized)
+        let realmA = CompendiumRealm(id: "a", displayName: "A")
+        let realmB = CompendiumRealm(id: "b", displayName: "B")
+        try sut.createRealm(realmA)
+        try sut.createRealm(realmB)
+        try sut.createDocument(.init(id: "doc", displayName: "Doc A", realmId: realmA.id))
+
+        XCTAssertThrowsError(
+            try sut.createDocument(.init(id: "doc", displayName: "Doc B", realmId: realmB.id))
+        ) { error in
+            XCTAssertEqual(error as! CompendiumMetadataError, CompendiumMetadataError.resourceAlreadyExists)
+        }
+    }
+
     func testMetadataCreateDocumentThrowsInvalidRealmId() throws {
         let sut = CompendiumMetadata.live(Database.uninitialized)
 
@@ -145,9 +160,27 @@ class DatabaseCompendiumTest: XCTestCase {
 
         let newDoc = CompendiumSourceDocument(id: doc.id, displayName: "NewDoc", realmId: doc.realmId)
 
-        try await sut.updateDocument(newDoc, doc.realmId, doc.id)
+        try await sut.updateDocument(newDoc, .init(doc))
 
         XCTAssertEqual(try sut.sourceDocuments().first?.displayName, newDoc.displayName)
+    }
+
+    func testMetadataUpdateDocumentNewDisplayNameAllowsLegacyDuplicateSlugInDifferentRealm() async throws {
+        let db = Database.uninitialized
+        let sut = CompendiumMetadata.live(db)
+        let documentA = CompendiumSourceDocument(id: "doc", displayName: "Doc A", realmId: "realm-a")
+        let documentB = CompendiumSourceDocument(id: "doc", displayName: "Doc B", realmId: "realm-b")
+        try db.keyValueStore.put(documentA)
+        try db.keyValueStore.put(documentB)
+
+        let updatedDocumentA = CompendiumSourceDocument(
+            id: documentA.id,
+            displayName: "Updated Doc A",
+            realmId: documentA.realmId
+        )
+        try await sut.updateDocument(updatedDocumentA, .init(documentA))
+
+        expectNoDifference(Set(try sut.sourceDocuments()), Set([updatedDocumentA, documentB]))
     }
 
     func testMetadataUpdateDocumentNewDisplayNameThrowsResourceNotFound() async throws {
@@ -158,7 +191,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let doc = CompendiumSourceDocument(id: .init("doc"), displayName: "Doc", realmId: realm.id)
 
         do {
-            try await sut.updateDocument(doc, doc.realmId, doc.id)
+            try await sut.updateDocument(doc, .init(doc))
         } catch {
             XCTAssertEqual(error as! CompendiumMetadataError, CompendiumMetadataError.resourceNotFound)
         }
@@ -186,7 +219,7 @@ class DatabaseCompendiumTest: XCTestCase {
 
         let newDoc = CompendiumSourceDocument(id: "b", displayName: "NewDoc", realmId: doc.realmId)
 
-        try await sut.updateDocument(newDoc, doc.realmId, doc.id)
+        try await sut.updateDocument(newDoc, .init(doc))
 
         XCTAssertEqual(try sut.sourceDocuments(), [newDoc])
 
@@ -378,6 +411,58 @@ class DatabaseCompendiumTest: XCTestCase {
         expectNoDifference(result.map(\.item.title), [])
     }
 
+    func testFetchWithDocumentScopeDistinguishesLegacyDuplicateSlugsAcrossRealms() throws {
+        let db = Database.uninitialized
+        let compendium = DatabaseCompendium(databaseAccess: db.access)
+        let documentA = CompendiumSourceDocument(id: "doc", displayName: "Doc A", realmId: "realmA")
+        let documentB = CompendiumSourceDocument(id: "doc", displayName: "Doc B", realmId: "realmB")
+        let entryA = CompendiumEntry(
+            Character(id: .init(), realm: .init(documentA.realmId), stats: .default),
+            origin: .created(nil),
+            document: .init(documentA)
+        )
+        let entryB = CompendiumEntry(
+            Character(id: .init(), realm: .init(documentB.realmId), stats: .default),
+            origin: .created(nil),
+            document: .init(documentB)
+        )
+        try compendium.put(entryA)
+        try compendium.put(entryB)
+
+        let result = try compendium.fetch(CompendiumFetchRequest(
+            filters: .init(sourceScopes: [.document(.init(documentA))])
+        ))
+
+        expectNoDifference(result.map(\.item.key), [entryA.item.key])
+    }
+
+    func testMetadataRemoveDocumentDistinguishesLegacyDuplicateSlugsAcrossRealms() async throws {
+        let db = Database.uninitialized
+        let compendium = DatabaseCompendium(databaseAccess: db.access)
+        let sut = CompendiumMetadata.live(db)
+        let documentA = CompendiumSourceDocument(id: "doc", displayName: "Doc A", realmId: "realmA")
+        let documentB = CompendiumSourceDocument(id: "doc", displayName: "Doc B", realmId: "realmB")
+        let entryA = CompendiumEntry(
+            Character(id: .init(), realm: .init(documentA.realmId), stats: .default),
+            origin: .created(nil),
+            document: .init(documentA)
+        )
+        let entryB = CompendiumEntry(
+            Character(id: .init(), realm: .init(documentB.realmId), stats: .default),
+            origin: .created(nil),
+            document: .init(documentB)
+        )
+        try db.keyValueStore.put(documentA)
+        try db.keyValueStore.put(documentB)
+        try compendium.put(entryA)
+        try compendium.put(entryB)
+
+        try await sut.removeDocument(.init(documentA))
+
+        XCTAssertNil(try compendium.get(entryA.item.key))
+        XCTAssertNotNil(try compendium.get(entryB.item.key))
+    }
+
     func testMetadataUpdateDocumentNewIdThrowsResourceAlreadyExists() async throws {
         let sut = CompendiumMetadata.live(Database.uninitialized)
         let realm = CompendiumRealm(id: "a", displayName: "A")
@@ -390,7 +475,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let newDoc1 = CompendiumSourceDocument(id: "doc2", displayName: doc1.displayName, realmId: doc1.realmId)
 
         do {
-            try await sut.updateDocument(newDoc1, doc1.realmId, doc1.id)
+            try await sut.updateDocument(newDoc1, .init(doc1))
         } catch {
             XCTAssertEqual(error as! CompendiumMetadataError, CompendiumMetadataError.resourceAlreadyExists)
         }
@@ -408,7 +493,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let newDoc1 = CompendiumSourceDocument(id: "doc2", displayName: doc1.displayName, realmId: doc1.realmId)
 
         do {
-            try await sut.updateDocument(newDoc1, doc1.realmId, doc1.id)
+            try await sut.updateDocument(newDoc1, .init(doc1))
         } catch {
             XCTAssertEqual(error as! CompendiumMetadataError, CompendiumMetadataError.cannotMoveDefaultResource)
         }
@@ -426,7 +511,7 @@ class DatabaseCompendiumTest: XCTestCase {
 
         let newDoc = CompendiumSourceDocument(id: doc.id, displayName: "NewDoc", realmId: realm2.id)
 
-        try await sut.updateDocument(newDoc, doc.realmId, doc.id)
+        try await sut.updateDocument(newDoc, .init(doc))
 
         XCTAssertEqual(try sut.sourceDocuments(), [newDoc])
     }
@@ -442,7 +527,7 @@ class DatabaseCompendiumTest: XCTestCase {
         let newDoc = CompendiumSourceDocument(id: doc.id, displayName: "NewDoc", realmId: .init("b"))
 
         do {
-            try await sut.updateDocument(newDoc, doc.realmId, doc.id)
+            try await sut.updateDocument(newDoc, .init(doc))
         } catch {
             XCTAssertEqual(error as! CompendiumMetadataError, CompendiumMetadataError.invalidRealmId)
         }

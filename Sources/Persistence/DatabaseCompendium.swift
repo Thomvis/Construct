@@ -131,7 +131,9 @@ extension CompendiumEntry: FTSDocumentConvertible, SecondaryIndexValueRepresenta
     public var secondaryIndexValues: [Int: String] {
         var values: [Int: String] = [
             SecondaryIndexes.compendiumEntryTitle: item.title,
-            SecondaryIndexes.compendiumEntrySourceDocumentId: document.id.rawValue
+            SecondaryIndexes.compendiumEntrySourceDocumentKey: CompendiumSourceDocument
+                .key(for: sourceDocumentKey)
+                .rawValue
         ]
         if let monster = item as? Monster {
             // format the CR so that it sorts correctly, examples:
@@ -151,6 +153,7 @@ extension CompendiumEntry: FTSDocumentConvertible, SecondaryIndexValueRepresenta
         }
         return values
     }
+
 }
 
 public extension KeyValueStore {
@@ -204,11 +207,13 @@ extension CompendiumFilters {
             }
         })
 
-        if let documentIds = resolvedSourceDocumentIds(sourceDocuments: sourceDocuments) {
+        if let sources = resolvedSources(sourceDocuments: sourceDocuments) {
             result.append(
                 SecondaryIndexFilter(
-                    index: SecondaryIndexes.compendiumEntrySourceDocumentId,
-                    condition: .oneOf(documentIds.map(\.rawValue))
+                    index: SecondaryIndexes.compendiumEntrySourceDocumentKey,
+                    condition: .oneOf(sources.map {
+                        CompendiumSourceDocument.key(for: $0.documentKey).rawValue
+                    })
                 )
             )
         }
@@ -216,20 +221,22 @@ extension CompendiumFilters {
         return result
     }
 
-    fileprivate func resolvedSourceDocumentIds(sourceDocuments: [CompendiumSourceDocument]) -> [CompendiumSourceDocument.Id]? {
+    fileprivate func resolvedSources(sourceDocuments: [CompendiumSourceDocument]) -> [Source]? {
         guard let sourceScopes else {
             return nil
         }
 
         let selectedRealmIds = Set(self.selectedRealmIds)
-        let documentIds = Set((sourceScopes.compactMap { scope -> CompendiumSourceDocument.Id? in
+        let sources = Set((sourceScopes.compactMap { scope -> Source? in
             guard case let .document(source) = scope else { return nil }
-            return source.document
+            return source
         }) + sourceDocuments.compactMap { sourceDocument in
-            selectedRealmIds.contains(sourceDocument.realmId) ? sourceDocument.id : nil
+            selectedRealmIds.contains(sourceDocument.realmId) ? Source(sourceDocument) : nil
         })
 
-        return documentIds.sorted { $0.rawValue < $1.rawValue }
+        return sources.sorted {
+            ($0.realm.rawValue, $0.document.rawValue) < ($1.realm.rawValue, $1.document.rawValue)
+        }
     }
 }
 
@@ -277,7 +284,8 @@ public extension CompendiumMetadata {
 
             try store.remove(key)
         } createDocument: { doc in
-            if try store.contains(doc.key) {
+            let documents: [CompendiumSourceDocument] = try store.fetchAll(.keyPrefix(CompendiumSourceDocument.keyPrefix))
+            if documents.contains(where: { $0.id == doc.id }) {
                 throw CompendiumMetadataError.resourceAlreadyExists
             }
 
@@ -286,28 +294,35 @@ public extension CompendiumMetadata {
             }
 
             try store.put(doc)
-        } updateDocument: { doc, originalRealmId, originalDocumentId in
+        } updateDocument: { doc, originalDocumentKey in
             try database.queue.inTransaction { db in
                 let dbAccess = DirectDatabaseAccess(db: db)
                 let store = DatabaseKeyValueStore(dbAccess)
 
-                let originalKey = CompendiumSourceDocument.key(forRealmId: originalRealmId, documentId: originalDocumentId)
+                let originalKey = CompendiumSourceDocument.key(for: originalDocumentKey)
                 if try !store.contains(originalKey) {
                     throw CompendiumMetadataError.resourceNotFound
                 }
 
-                if try doc.realmId != originalRealmId && !store.contains(CompendiumRealm.key(for: doc.realmId)) {
+                if originalKey != doc.key && CompendiumSourceDocument.isDefaultDocument(id: originalDocumentKey.documentId) {
+                    throw CompendiumMetadataError.cannotMoveDefaultResource
+                }
+
+                let documents: [CompendiumSourceDocument] = try store.fetchAll(.keyPrefix(CompendiumSourceDocument.keyPrefix))
+                if doc.key != originalKey
+                    && documents.contains(where: { $0.id == doc.id && $0.key != originalKey }) {
+                    throw CompendiumMetadataError.resourceAlreadyExists
+                }
+
+                if try doc.realmId != originalDocumentKey.realmId && !store.contains(CompendiumRealm.key(for: doc.realmId)) {
                     throw CompendiumMetadataError.invalidRealmId
                 }
 
                 let moving: Set<CompendiumItemKey>?
-                if doc.realmId != originalRealmId {
+                if doc.realmId != originalDocumentKey.realmId {
                     let compendium = DatabaseCompendium(databaseAccess: dbAccess)
                     moving = try Set(compendium.fetchKeys(filters: .init(
-                        sourceScopes: [.document(.init(
-                            realm: originalRealmId,
-                            document: originalDocumentId
-                        ))]
+                        sourceScopes: [.document(.init(originalDocumentKey))]
                     )))
                 } else {
                     moving = nil
@@ -316,7 +331,7 @@ public extension CompendiumMetadata {
                 let visitorManager = KeyValueStoreVisitorManager(databaseAccess: DirectDatabaseAccess(db: db))
 
                 let updatedItemReference: ((CompendiumItemKey) -> CompendiumItemKey?)?
-                if doc.realmId != originalRealmId, let moving {
+                if doc.realmId != originalDocumentKey.realmId, let moving {
                     updatedItemReference = { key -> CompendiumItemKey? in
                         guard moving.contains(key) else { return nil }
                         return CompendiumItemKey(
@@ -330,7 +345,7 @@ public extension CompendiumMetadata {
                 }
 
                 let visitors = compendiumSourceDocumentUpdateVisitors(
-                    originalDocumentId: originalDocumentId,
+                    originalDocumentKey: originalDocumentKey,
                     targetDocument: doc,
                     updatedItemReference: updatedItemReference
                 )
@@ -343,10 +358,6 @@ public extension CompendiumMetadata {
 
                 if originalKey != doc.key {
                     // it's a move
-                    if CompendiumSourceDocument.isDefaultDocument(id: originalDocumentId) {
-                        throw CompendiumMetadataError.cannotMoveDefaultResource
-                    }
-
                     try store.put(doc)
                     try store.remove(originalKey)
                 } else {
@@ -355,8 +366,8 @@ public extension CompendiumMetadata {
 
                 return .commit
             }
-        } removeDocument: { realmId, documentId in
-            let key = CompendiumSourceDocument.key(forRealmId: realmId, documentId: documentId)
+        } removeDocument: { documentKey in
+            let key = CompendiumSourceDocument.key(for: documentKey)
             if try !store.contains(key) {
                 throw CompendiumMetadataError.resourceNotFound
             }
@@ -368,8 +379,8 @@ public extension CompendiumMetadata {
                     keyPrefix: CompendiumEntry.keyPrefix,
                     filters: [
                         SecondaryIndexFilter(
-                            index: SecondaryIndexes.compendiumEntrySourceDocumentId,
-                            condition: .equals(documentId.rawValue)
+                            index: SecondaryIndexes.compendiumEntrySourceDocumentKey,
+                            condition: .equals(key.rawValue)
                         )
                     ]
                 ))
@@ -390,7 +401,7 @@ public func transfer(
     var result: [String] = []
     let keyValueStore = DatabaseKeyValueStore(db)
 
-    guard let targetDocument = try keyValueStore.get(CompendiumSourceDocument.key(forRealmId: target.realm, documentId: target.document)) else {
+    guard let targetDocument = try keyValueStore.get(CompendiumSourceDocument.key(for: target.documentKey)) else {
 
         throw CompendiumMetadataError.resourceNotFound
     }
@@ -407,7 +418,7 @@ public func transfer(
 
         let visitors: [KeyValueStoreEntityVisitor] = Array {
             AbstractKeyValueStoreEntityVisitor(gameModelsVisitor: UpdateEntryDocumentGameModelsVisitor(
-                originalDocumentId: nil,
+                originalDocumentKey: nil,
                 targetDocument: targetDocument
             ))
 

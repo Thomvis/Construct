@@ -200,8 +200,8 @@ class CreatureEditViewStateTest: XCTestCase {
             updateRealm: { _, _ in },
             removeRealm: { _ in },
             createDocument: { _ in },
-            updateDocument: { _, _, _ in },
-            removeDocument: { _, _ in }
+            updateDocument: { _, _ in },
+            removeDocument: { _ in }
         )
         deps.mechMuse = MechMuse.unconfigured
         deps.database = Database.uninitialized
@@ -369,8 +369,8 @@ class CompendiumMultiSourceFilterReducerTest: XCTestCase {
             updateRealm: { _, _ in },
             removeRealm: { _ in },
             createDocument: { _ in },
-            updateDocument: { _, _, _ in },
-            removeDocument: { _, _ in }
+            updateDocument: { _, _ in },
+            removeDocument: { _ in }
         )
         deps.database = Database.uninitialized
         deps.compendium = DatabaseCompendium(databaseAccess: deps.database.access)

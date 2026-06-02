@@ -344,8 +344,7 @@ struct EditDocument {
                                 displayName: displayName,
                                 realmId: realmId
                             ),
-                            original.realmId,
-                            original.id
+                            .init(original)
                         )
                     } else {
                         // new document
@@ -363,7 +362,7 @@ struct EditDocument {
 
                 return compendiumMetadataOperation(state: &state) {
                     // remove document
-                    try await compendiumMetadata.removeDocument(original.realmId, original.id)
+                    try await compendiumMetadata.removeDocument(.init(original))
                 }
             case .onSlugChange(let newSlug):
                 // Don't allow slug changes for existing documents

@@ -25,15 +25,14 @@ public struct CompendiumMetadata {
     /// Fails when the realm does not exist or if it has any documents
     public let removeRealm: (CompendiumRealm.Id) async throws -> Void
 
-    /// Fails when a document with the same id already exists or if the realm does not exist
+    /// Fails when a document with the same id already exists in any realm or if the realm does not exist
     public let createDocument: (CompendiumSourceDocument) throws -> Void
-    /// The second and third argument represent the original realm and document id. If they differ, the document and its
-    /// content will be moved.
+    /// The second argument represents the original document key. If it differs, the document and its content will be moved.
     ///
-    /// Fails when the document does not yet exist or if the realm does not exist
-    public let updateDocument: (CompendiumSourceDocument, CompendiumRealm.Id, CompendiumSourceDocument.Id) async throws -> Void
+    /// Fails when the document does not yet exist, the realm does not exist, or the id already exists in another realm
+    public let updateDocument: (CompendiumSourceDocument, CompendiumSourceDocumentKey) async throws -> Void
     /// Removes a document AND all its content. Fails when the document does not exist
-    public let removeDocument: (CompendiumRealm.Id, CompendiumSourceDocument.Id) async throws -> Void
+    public let removeDocument: (CompendiumSourceDocumentKey) async throws -> Void
 
     public init(
         sourceDocuments: @escaping () throws -> [CompendiumSourceDocument],
@@ -46,8 +45,8 @@ public struct CompendiumMetadata {
         updateRealm: @escaping (CompendiumRealm.Id, String) async throws -> Void,
         removeRealm: @escaping (CompendiumRealm.Id) async throws -> Void,
         createDocument: @escaping (CompendiumSourceDocument) throws -> Void,
-        updateDocument: @escaping (CompendiumSourceDocument, CompendiumRealm.Id, CompendiumSourceDocument.Id) async throws -> Void,
-        removeDocument: @escaping (CompendiumRealm.Id, CompendiumSourceDocument.Id) async throws -> Void
+        updateDocument: @escaping (CompendiumSourceDocument, CompendiumSourceDocumentKey) async throws -> Void,
+        removeDocument: @escaping (CompendiumSourceDocumentKey) async throws -> Void
     ) {
         self.sourceDocuments = sourceDocuments
         self.observeSourceDocuments = observeSourceDocuments
@@ -84,7 +83,7 @@ extension CompendiumMetadata {
         do {
             try createDocument(document)
         } catch {
-            try await updateDocument(document, document.realmId, document.id)
+            try await updateDocument(document, .init(document))
         }
     }
 }

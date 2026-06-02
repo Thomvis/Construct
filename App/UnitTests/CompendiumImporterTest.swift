@@ -141,6 +141,21 @@ class CompendiumImporterTest: XCTestCase {
         XCTAssertNotNil(entry)
         XCTAssertEqual(entry?.item.key.realm.value, CompendiumRealm.homebrew.id)
     }
+
+    func testImportSettingsExistingDocumentSelectionDistinguishesDuplicateSlugsAcrossRealms() {
+        let realmA = CompendiumRealm(id: "realm-a", displayName: "Realm A")
+        let realmB = CompendiumRealm(id: "realm-b", displayName: "Realm B")
+        let documentA = CompendiumSourceDocument(id: "doc", displayName: "Document A", realmId: realmA.id)
+        let documentB = CompendiumSourceDocument(id: "doc", displayName: "Document B", realmId: realmB.id)
+        var state = CompendiumImportFeature.ImportSettings.State()
+        state.documents.result = .success([documentA, documentB])
+        state.realms.result = .success([realmA, realmB])
+        state.document = .existing(.init(documentB))
+
+        XCTAssertEqual(state.existingDocument, documentB)
+        XCTAssertEqual(state.documentPickerLabel, documentB.displayName)
+        XCTAssertEqual(state.realmForExistingDocument, realmB)
+    }
 }
 
 struct DummyCompendiumDataSourceReader: CompendiumDataSourceReader {

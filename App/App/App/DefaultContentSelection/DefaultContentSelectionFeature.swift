@@ -20,6 +20,7 @@ public struct DefaultContentSelectionFeature {
         var importedDefaultContentVersions: AsyncImportedDefaultContentVersions.State
 
         var allowsSampleEncounterOnly = false
+        var preselectImportedRulesets = false
         var restoreSampleEncounter: Bool?
         
         var applySelection: AsyncApplySelection.State
@@ -31,11 +32,13 @@ public struct DefaultContentSelectionFeature {
         public init(
             restoreSampleEncounter: Bool? = nil,
             allowsSampleEncounterOnly: Bool = false,
+            preselectImportedRulesets: Bool = false
         ) {
             @Dependency(\.uuid) var uuid
             self.applySelection = .init(identifier: uuid())
             self.importedDefaultContentVersions = .init(identifier: uuid())
             self.allowsSampleEncounterOnly = allowsSampleEncounterOnly
+            self.preselectImportedRulesets = preselectImportedRulesets
             self.restoreSampleEncounter = restoreSampleEncounter
         }
     }
@@ -77,6 +80,7 @@ public struct DefaultContentSelectionFeature {
                 return .send(.importedDefaultContentVersions(.startLoading))
 
             case .toggleRuleset(let ruleset):
+                state.preselectImportedRulesets = false
                 if state.selection.contains(ruleset) {
                     state.selection.remove(ruleset)
                 } else {
@@ -124,6 +128,12 @@ public struct DefaultContentSelectionFeature {
 
             case .delegate:
                 break
+
+            case .importedDefaultContentVersions(.didFinishLoading(.success(let versions))):
+                if state.preselectImportedRulesets {
+                    state.selection = versions.rulesets.isEmpty ? [.rules2014] : versions.rulesets
+                    state.preselectImportedRulesets = false
+                }
 
             case .importedDefaultContentVersions:
                 break

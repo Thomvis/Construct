@@ -216,7 +216,9 @@ struct AppFeature {
                 if shouldForceWelcomeForUITests || !state.preferences.didShowWelcomeSheet {
                     return .send(.requestDestination(.welcome(.init())))
                 } else if state.preferences.dismissedDefaultContentUpdatePromptToken != defaultContentUpdateDismissalToken() {
-                    return .send(.requestDestination(.defaultContentSelection(.init())))
+                    return .send(.requestDestination(.defaultContentSelection(.init(
+                        preselectImportedRulesets: true
+                    ))))
                 } else if let nodeCount = try? campaignBrowser.nodeCount(),
                           nodeCount >= CampaignBrowser.initialSpecialNodeCount+2
                 {
