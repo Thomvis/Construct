@@ -24,12 +24,37 @@ public final class FileDataSource: CompendiumDataSource {
     public func read() -> AsyncThrowingStream<Data, Error> {
         AsyncThrowingStream { continuation in
             do {
-                continuation.yield(try Data(contentsOf: URL(fileURLWithPath: path)))
+                continuation.yield(try readData())
                 continuation.finish()
+            } catch let error as CompendiumDataSourceError {
+                continuation.finish(throwing: error)
             } catch {
-                continuation.finish(throwing: CompendiumDataSourceError.notFound)
+                continuation.finish(throwing: CompendiumDataSourceError.other(error))
             }
         }
+    }
+
+    private func readData() throws -> Data {
+        let url = URL(fileURLWithPath: path)
+        let coordinator = NSFileCoordinator()
+        var coordinationError: NSError?
+        var result: Result<Data, Error>?
+
+        coordinator.coordinate(readingItemAt: url, error: &coordinationError) { url in
+            result = Result {
+                try Data(contentsOf: url)
+            }
+        }
+
+        if let coordinationError {
+            throw coordinationError
+        }
+
+        guard let result else {
+            throw CompendiumDataSourceError.notFound
+        }
+
+        return try result.get()
     }
 
 }

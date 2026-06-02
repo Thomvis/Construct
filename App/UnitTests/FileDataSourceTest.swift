@@ -21,6 +21,23 @@ class FileDataSourceTest: XCTestCase {
         XCTAssertNotNil(data)
     }
 
+    func testReadFailureIncludesUnderlyingError() async throws {
+        let sut = FileDataSource(
+            path: FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString)
+                .path
+        )
+
+        do {
+            _ = try await sut.read().first
+            XCTFail("Expected read to fail")
+        } catch let error as CompendiumDataSourceError {
+            guard case .other = error else {
+                return XCTFail("Expected underlying read error")
+            }
+        }
+    }
+
     @MainActor
     func testSourceCreatedFromFileURLCanBeReadByXMLReader() async throws {
         let xml = """
