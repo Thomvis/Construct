@@ -484,6 +484,7 @@ struct CompendiumDocumentsView: View {
                         } label: {
                             HStack {
                                 Text(document.displayName)
+                                    .multilineTextAlignment(.leading)
                                 Spacer()
                                 Text(document.id.rawValue)
                                     .foregroundStyle(.secondary)
