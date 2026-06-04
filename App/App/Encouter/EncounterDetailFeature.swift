@@ -468,17 +468,17 @@ struct EncounterDetailFeature {
                         encounter: state.encounter
                     ))
             case .onFeedbackButtonTap:
-                guard mailer.canSendMail() else { break }
-
                 let currentState = state
                 return .run { send in
+                    guard await mailer.canSendMail() else { return }
+
                     try await Task.sleep(for: .seconds(0.1))  // delay for a bit so the menu has disappeared
 
                     let imageData = await MainActor.run {
                         screenshotClient.screenshot()?.pngData()
                     }
 
-                    mailer.sendMail(
+                    await mailer.sendMail(
                         .init(
                             subject: "Encounter Feedback",
                             attachment: Array(builder: {

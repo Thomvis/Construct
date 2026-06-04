@@ -66,6 +66,7 @@ public struct SettingsFeature {
     }
 
     public enum Action: Equatable {
+        case canSendMailResponse(Bool)
         case onAppear
         case setDestination(State.Destination?)
         case setDefaultContentSelection(Bool)
@@ -102,9 +103,16 @@ public struct SettingsFeature {
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
+            case .canSendMailResponse(let canSendMail):
+                state.canSendMail = canSendMail
+
             case .onAppear:
-                state.canSendMail = mailer.canSendMail()
-                return verifyMechMuseIfNeeded(state: &state)
+                return .merge(
+                    verifyMechMuseIfNeeded(state: &state),
+                    .run { send in
+                        await send(.canSendMailResponse(await mailer.canSendMail()))
+                    }
+                )
 
             case .setDestination(let destination):
                 state.destination = destination
@@ -164,8 +172,9 @@ public struct SettingsFeature {
                 state.$preferences.withLock { $0 = Preferences() }
 
             case .sendFeedback:
-                if mailer.canSendMail() {
-                    mailer.sendMail(.init())
+                return .run { _ in
+                    guard await mailer.canSendMail() else { return }
+                    await mailer.sendMail(.init())
                 }
 
             case .rateInAppStore:

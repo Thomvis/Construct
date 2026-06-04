@@ -294,7 +294,7 @@ struct CombatantDetailFeature {
         case .addLimitedResource(.onDoneTap):
             guard case .addLimitedResource(let editState) = state.popover else { return .none }
             return .run { send in
-                keyboard.dismissKeyboard()
+                await keyboard.dismissKeyboard()
                 await send(.popover(nil))
                 await send(.combatant(.addResource(editState.resource)))
             }

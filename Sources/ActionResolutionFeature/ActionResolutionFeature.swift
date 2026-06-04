@@ -112,10 +112,10 @@ public struct ActionResolutionFeature {
                     return .send(.muse(.didRollDiceAction(action)))
                 }
             case .diceAction(.onFeedbackButtonTap), .muse(.onFeedbackButtonTap):
-                guard mailer.canSendMail() else { break }
-
                 let currentState = state
                 return .run { send in
+                    guard await mailer.canSendMail() else { return }
+
                     let imageData = await MainActor.run {
                         let renderer = ImageRenderer(
                             // FIXME
@@ -129,7 +129,7 @@ public struct ActionResolutionFeature {
                         return renderer.uiImage?.pngData()
                     }
 
-                    mailer.sendMail(.init(
+                    await mailer.sendMail(.init(
                         subject: "Action Resolution Feedback",
                         attachment: Array(builder: {
                             FeedbackMailContents.Attachment(customDump: currentState)

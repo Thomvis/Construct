@@ -4,10 +4,13 @@ import UIKit
 import ComposableArchitecture
 
 public struct Mailer {
-    public var canSendMail: () -> Bool
-    public var sendMail: (FeedbackMailContents) -> Void
+    public var canSendMail: @MainActor () -> Bool
+    public var sendMail: @MainActor (FeedbackMailContents) -> Void
 
-    public init(canSendMail: @escaping () -> Bool, sendMail: @escaping (FeedbackMailContents) -> Void) {
+    public init(
+        canSendMail: @escaping @MainActor () -> Bool,
+        sendMail: @escaping @MainActor (FeedbackMailContents) -> Void
+    ) {
         self.canSendMail = canSendMail
         self.sendMail = sendMail
     }
@@ -61,36 +64,46 @@ private class MailComposeDelegate: NSObject, MFMailComposeViewControllerDelegate
     }
 }
 
-fileprivate let mailComposeDelegate = MailComposeDelegate()
+@MainActor fileprivate let mailComposeDelegate = MailComposeDelegate()
+
+@MainActor
+private func presentMail(_ contents: FeedbackMailContents) {
+    guard MFMailComposeViewController.canSendMail() else { return }
+
+    let composeVC = MFMailComposeViewController()
+    composeVC.mailComposeDelegate = mailComposeDelegate
+
+    // Configure the fields of the interface.
+    composeVC.setToRecipients(["hello@construct5e.app"])
+    composeVC.setSubject(contents.subject)
+
+    for attachment in contents.attachments {
+        composeVC.addAttachmentData(
+            attachment.data,
+            mimeType: attachment.mimeType,
+            fileName: attachment.fileName
+        )
+    }
+
+    // Present the view controller modally.
+    let keyWindow = {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .filter(\.isKeyWindow)
+            .first
+    }
+
+    keyWindow()?.rootViewController?.deepestPresentedViewController.present(composeVC, animated: true, completion: nil)
+}
+
 extension Mailer: DependencyKey {
     public static var liveValue: Mailer = Mailer(
-        canSendMail: { MFMailComposeViewController.canSendMail() },
+        canSendMail: {
+            MFMailComposeViewController.canSendMail()
+        },
         sendMail: { contents in
-            let composeVC = MFMailComposeViewController()
-            composeVC.mailComposeDelegate = mailComposeDelegate
-
-            // Configure the fields of the interface.
-            composeVC.setToRecipients(["hello@construct5e.app"])
-            composeVC.setSubject(contents.subject)
-
-            for attachment in contents.attachments {
-                composeVC.addAttachmentData(
-                    attachment.data,
-                    mimeType: attachment.mimeType,
-                    fileName: attachment.fileName
-                )
-            }
-
-            // Present the view controller modally.
-            let keyWindow = {
-                UIApplication.shared.connectedScenes
-                    .compactMap { $0 as? UIWindowScene }
-                    .flatMap { $0.windows }
-                    .filter(\.isKeyWindow)
-                    .first
-            }
-
-            keyWindow()?.rootViewController?.deepestPresentedViewController.present(composeVC, animated: true, completion:nil)
+            presentMail(contents)
         }
     )
 }

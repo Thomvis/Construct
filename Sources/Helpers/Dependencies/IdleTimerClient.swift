@@ -6,25 +6,23 @@
 //
 
 import Foundation
-import SwiftUI
 import UIKit
 import ComposableArchitecture
 
 public struct IdleTimerClient {
-    public var isIdleTimerDisabled: Binding<Bool>
+    public var setIdleTimerDisabled: @MainActor (Bool) -> Void
     
-    public init(isIdleTimerDisabled: Binding<Bool>) {
-        self.isIdleTimerDisabled = isIdleTimerDisabled
+    public init(setIdleTimerDisabled: @escaping @MainActor (Bool) -> Void) {
+        self.setIdleTimerDisabled = setIdleTimerDisabled
     }
 }
 
 extension IdleTimerClient: DependencyKey {
     public static var liveValue: IdleTimerClient {
         IdleTimerClient(
-            isIdleTimerDisabled: Binding<Bool>(
-                get: { UIApplication.shared.isIdleTimerDisabled },
-                set: { UIApplication.shared.isIdleTimerDisabled = $0 }
-            )
+            setIdleTimerDisabled: { isDisabled in
+                UIApplication.shared.isIdleTimerDisabled = isDisabled
+            }
         )
     }
 }
@@ -35,4 +33,3 @@ public extension DependencyValues {
         set { self[IdleTimerClient.self] = newValue }
     }
 }
-

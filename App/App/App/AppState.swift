@@ -257,12 +257,11 @@ struct AppFeature {
             Navigation()
         }
         Reduce { state, action in
-            if state.sceneIsActive, let edv = state.firstNavigationNode(of: EncounterDetailFeature.State.self), edv.running != nil {
-                idleTimer.isIdleTimerDisabled.wrappedValue = true
-            } else {
-                idleTimer.isIdleTimerDisabled.wrappedValue = false
+            let idleTimerDisabled = state.sceneIsActive
+                && state.firstNavigationNode(of: EncounterDetailFeature.State.self)?.running != nil
+            return .run { _ in
+                await idleTimer.setIdleTimerDisabled(idleTimerDisabled)
             }
-            return .none
         }
     }
 

@@ -28,7 +28,7 @@ final class AppDefaultContentSelectionTest: XCTestCase {
             AppFeature()
         } withDependencies: {
             $0.database = db
-            $0.idleTimer = .init(isIdleTimerDisabled: .constant(false))
+            $0.idleTimer = .init(setIdleTimerDisabled: { _ in })
             $0.uuid = UUIDGenerator.fake()
         }
         store.exhaustivity = .off

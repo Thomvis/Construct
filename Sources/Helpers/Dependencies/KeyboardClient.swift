@@ -10,9 +10,9 @@ import UIKit
 import ComposableArchitecture
 
 public struct KeyboardClient {
-    public var dismissKeyboard: () -> Void
+    public var dismissKeyboard: @MainActor () -> Void
     
-    public init(dismissKeyboard: @escaping () -> Void) {
+    public init(dismissKeyboard: @escaping @MainActor () -> Void) {
         self.dismissKeyboard = dismissKeyboard
     }
 }
@@ -41,4 +41,3 @@ public extension DependencyValues {
         set { self[KeyboardClient.self] = newValue }
     }
 }
-
