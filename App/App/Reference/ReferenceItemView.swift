@@ -21,25 +21,28 @@ struct ReferenceItemView: View {
         // TODO: not all content should be presented in a NavigationView
         NavigationStack {
             ZStack {
-                if let compendiumStore = store.scope(state: \.content.compendiumState?.compendium, action: \.contentCompendium.compendium) {
-                    CompendiumIndexView(store: compendiumStore)
-                }
-
-                if let combatantDetailStore = store.scope(state: \.content.combatantDetailState, action: \.contentCombatantDetail) {
-                    CombatantDetailView(store: combatantDetailStore)
-                }
-
-                if let addCombatantStore = store.scope(state: \.content.addCombatantState, action: \.contentAddCombatant) {
-                    AddCombatantReferenceItemView(store: addCombatantStore)
-                }
-
-                if let compendiumItemStore = store.scope(state: \.content.compendiumItemState, action: \.contentCompendiumItem) {
-                    CompendiumEntryDetailView(store: compendiumItemStore)
-                }
-
-                if let safariStore = store.scope(state: \.content.safariState, action: \.contentSafari) {
-                    SafariView(url: safariStore.withState(\.url))
-                        .navigationBarHidden(true)
+                switch store.state.content {
+                case .compendium:
+                    if let store = store.scope(state: \.content[case: \.compendium]?.compendium, action: \.contentCompendium.compendium) {
+                        CompendiumIndexView(store: store)
+                    }
+                case .combatantDetail:
+                    if let store = store.scope(state: \.content[case: \.combatantDetail], action: \.contentCombatantDetail) {
+                        CombatantDetailView(store: store)
+                    }
+                case .addCombatant:
+                    if let store = store.scope(state: \.content[case: \.addCombatant], action: \.contentAddCombatant) {
+                        AddCombatantReferenceItemView(store: store)
+                    }
+                case .compendiumItem:
+                    if let store = store.scope(state: \.content[case: \.compendiumItem], action: \.contentCompendiumItem) {
+                        CompendiumEntryDetailView(store: store)
+                    }
+                case .safari:
+                    if let store = store.scope(state: \.content[case: \.safari], action: \.contentSafari) {
+                        SafariView(url: store.withState(\.url))
+                            .navigationBarHidden(true)
+                    }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -49,7 +52,7 @@ struct ReferenceItemView: View {
         // to a link open in Safari. This works on the Settings/About screen, but not here
         // for some reason. So we do it manually.
         .onAppear {
-            if let url = store.content.safariState?.url, ProcessInfo.processInfo.isiOSAppOnMac {
+            if let url = store.content[case: \.safari]?.url, ProcessInfo.processInfo.isiOSAppOnMac {
                 self.openURL(url)
                 store.send(.close)
             }

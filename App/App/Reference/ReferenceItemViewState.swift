@@ -27,70 +27,6 @@ struct ReferenceItem {
             case compendiumItem(CompendiumEntryDetailFeature.State)
             case safari(SafariViewState)
 
-            var compendiumState: Content.Compendium? {
-                get {
-                    guard case .compendium(let s) = self else { return nil }
-                    return s
-                }
-                set {
-                    if let newValue = newValue {
-                        self = .compendium(newValue)
-                    }
-                }
-            }
-
-            var combatantDetailState: CombatantDetail? {
-                get {
-                    if case .combatantDetail(let s) = self {
-                        return s
-                    }
-                    return nil
-                }
-                set {
-                    guard case .combatantDetail = self, let newValue = newValue else { return }
-                    self = .combatantDetail(newValue)
-                }
-            }
-
-            var addCombatantState: AddCombatant? {
-                get {
-                    if case .addCombatant(let s) = self {
-                        return s
-                    }
-                    return nil
-                }
-                set {
-                    guard case .addCombatant = self, let newValue = newValue else { return }
-                    self = .addCombatant(newValue)
-                }
-            }
-
-            var compendiumItemState: CompendiumEntryDetailFeature.State? {
-                get {
-                    if case .compendiumItem(let s) = self {
-                        return s
-                    }
-                    return nil
-                }
-                set {
-                    guard case .compendiumItem = self, let newValue = newValue else { return }
-                    self = .compendiumItem(newValue)
-                }
-            }
-
-            var safariState: SafariViewState? {
-                get {
-                    if case .safari(let s) = self {
-                        return s
-                    }
-                    return nil
-                }
-                set {
-                    guard case .safari = self, let newValue = newValue else { return }
-                    self = .safari(newValue)
-                }
-            }
-
             var context: ReferenceContext {
                 get {
                     switch self {
@@ -297,6 +233,21 @@ struct ReferenceItem {
     var body: some ReducerOf<Self> {
         Scope(state: \.content, action: \.self) {
             ContentReducer()
+        }
+        Reduce { state, action in
+            switch action {
+            case .contentAddCombatant(.addCombatant(.onSelect(let combatants, dismiss: _))):
+                return .send(.inEncounterDetailContext(.addCombatant(.add(combatants))))
+            case .contentAddCombatant(.onSelection(let a)):
+                return .send(.inEncounterDetailContext(.addCombatant(a)))
+            case .contentCombatantDetail(.detail(.combatant(let a))):
+                guard let combatant = state.content[case: \.combatantDetail]?.detailState.combatant else {
+                    return .none
+                }
+                return .send(.inEncounterDetailContext(.combatantAction(combatant.id, a)))
+            default:
+                return .none
+            }
         }
     }
 

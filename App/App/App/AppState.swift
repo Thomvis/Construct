@@ -425,7 +425,7 @@ extension ColumnNavigationFeature.State {
         let activeCompendiumReferenceItemTab = referenceView.items
             .first(where: { $0.id == referenceView.selectedItemId })
             .flatMap {
-                $0.state.content.compendiumState?.compendium
+                $0.state.content[case: \.compendium]?.compendium
             }
 
         let selectedTab: TabNavigationFeature.State.Tabs = {

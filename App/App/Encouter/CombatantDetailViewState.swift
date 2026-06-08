@@ -261,6 +261,7 @@ struct CombatantDetailFeature {
             .ifLet(\.healthDialogState, action: \.healthDialog) {
                 HealthDialogFeature()
             }
+            ._printChanges()
     }
 
     private var tapHandlingReducer: some ReducerOf<Self> {

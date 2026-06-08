@@ -159,6 +159,10 @@ struct ReferenceViewFeature {
                 }
                 return .none
             }
+            
+            Scope(state: \.state, action: \.self) {
+                ReferenceItem()
+            }
         }
     }
 
@@ -195,7 +199,7 @@ struct ReferenceViewFeature {
                 }
             case .item(.element(id: let id, action: .close)):
                 return .send(.removeTab(id))
-            case .item: break // handled above
+            case .item: break // handled below
             }
             return .none
         }
