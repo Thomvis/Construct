@@ -128,6 +128,7 @@
 		E9869F91252203F40098A166 /* TabNavigationFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F90252203F40098A166 /* TabNavigationFeature.swift */; };
 		E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9425223E870098A166 /* ColumnNavigationView.swift */; };
 		E9869F9925223EBB0098A166 /* ColumnNavigationFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9825223EBB0098A166 /* ColumnNavigationFeature.swift */; };
+		E9869F9B25223F2B0098A166 /* AdventureNavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9869F9A25223F2B0098A166 /* AdventureNavigationState.swift */; };
 		E98A0EF7267BCDD600316EE4 /* CreatureEditViewStateTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98A0EF6267BCDD600316EE4 /* CreatureEditViewStateTest.swift */; };
 		E98BF12B257E6D4900CBC174 /* ReferenceViewPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */; };
 		E99095B3249797F400731EB9 /* AddCombatantDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */; };
@@ -211,6 +212,7 @@
 		F1DCC1032FC0000000000001 /* AppDefaultContentSelectionTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0032FC0000000000001 /* AppDefaultContentSelectionTest.swift */; };
 		F1DCC1042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift */; };
 		F1DCC1052FC0000000000001 /* SimpleAdventureFeatureTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0052FC0000000000001 /* SimpleAdventureFeatureTest.swift */; };
+		F1DCC1062FC0000000000001 /* ColumnNavigationFeatureTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DCC0062FC0000000000001 /* ColumnNavigationFeatureTest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -358,6 +360,7 @@
 		E9869F90252203F40098A166 /* TabNavigationFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationFeature.swift; sourceTree = "<group>"; };
 		E9869F9425223E870098A166 /* ColumnNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationView.swift; sourceTree = "<group>"; };
 		E9869F9825223EBB0098A166 /* ColumnNavigationFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationFeature.swift; sourceTree = "<group>"; };
+		E9869F9A25223F2B0098A166 /* AdventureNavigationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdventureNavigationState.swift; sourceTree = "<group>"; };
 		E98A0EF6267BCDD600316EE4 /* CreatureEditViewStateTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatureEditViewStateTest.swift; sourceTree = "<group>"; };
 		E98BF12A257E6D4900CBC174 /* ReferenceViewPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceViewPreference.swift; sourceTree = "<group>"; };
 		E990F4CE236E027300276EB6 /* AddCombatantDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCombatantDetailView.swift; sourceTree = "<group>"; };
@@ -430,6 +433,7 @@
 		F1DCC0032FC0000000000001 /* AppDefaultContentSelectionTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDefaultContentSelectionTest.swift; sourceTree = "<group>"; };
 		F1DCC0042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultContentSelectionFeatureTest.swift; sourceTree = "<group>"; };
 		F1DCC0052FC0000000000001 /* SimpleAdventureFeatureTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleAdventureFeatureTest.swift; sourceTree = "<group>"; };
+		F1DCC0062FC0000000000001 /* ColumnNavigationFeatureTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColumnNavigationFeatureTest.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -599,6 +603,7 @@
 				E9869F90252203F40098A166 /* TabNavigationFeature.swift */,
 				E9869F9425223E870098A166 /* ColumnNavigationView.swift */,
 				E9869F9825223EBB0098A166 /* ColumnNavigationFeature.swift */,
+				E9869F9A25223F2B0098A166 /* AdventureNavigationState.swift */,
 				E974888E28B522B9004A5CFD /* AppInvocation.swift */,
 				E9E3575028DC822D00484DFA /* CrashReporter.swift */,
 			);
@@ -903,6 +908,7 @@
 				F1DCC0032FC0000000000001 /* AppDefaultContentSelectionTest.swift */,
 				F1DCC0042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift */,
 				F1DCC0052FC0000000000001 /* SimpleAdventureFeatureTest.swift */,
+				F1DCC0062FC0000000000001 /* ColumnNavigationFeatureTest.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1213,6 +1219,7 @@
 				E97651DC248BBFF500C76865 /* EncounterSettingsView.swift in Sources */,
 				E90FB9FE25E946E90026191A /* AddCombatantReferenceItemView.swift in Sources */,
 				E9869F9525223E870098A166 /* ColumnNavigationView.swift in Sources */,
+				E9869F9B25223F2B0098A166 /* AdventureNavigationState.swift in Sources */,
 				E946B02C247E6225008A407C /* CompendiumItemGroupDetailView.swift in Sources */,
 				E97651DB248BBF1B00C76865 /* RunningEncounterLogView.swift in Sources */,
 				E942E012247EAA2600170FAC /* CompendiumEntryDetailView.swift in Sources */,
@@ -1307,6 +1314,7 @@
 				F1DCC1032FC0000000000001 /* AppDefaultContentSelectionTest.swift in Sources */,
 				F1DCC1042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift in Sources */,
 				F1DCC1052FC0000000000001 /* SimpleAdventureFeatureTest.swift in Sources */,
+				F1DCC1062FC0000000000001 /* ColumnNavigationFeatureTest.swift in Sources */,
 				E91E596F24477D3E00975453 /* AlignmentTest.swift in Sources */,
 				E98A0EF7267BCDD600316EE4 /* CreatureEditViewStateTest.swift in Sources */,
 				E90EFF412623220300F5443E /* DataSourceReaderParsersTest.swift in Sources */,
@@ -1422,7 +1430,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 141;
+				CURRENT_PROJECT_VERSION = 142;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				DEVELOPMENT_TEAM = 7A98H9ZVL6;
@@ -1444,7 +1452,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
-				MARKETING_VERSION = 3.1.0;
+				MARKETING_VERSION = 3.1.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1494,7 +1502,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 141;
+				CURRENT_PROJECT_VERSION = 142;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
 				DEVELOPMENT_TEAM = 7A98H9ZVL6;
@@ -1510,7 +1518,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
-				MARKETING_VERSION = 3.1.0;
+				MARKETING_VERSION = 3.1.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "";

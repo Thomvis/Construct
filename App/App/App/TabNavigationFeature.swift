@@ -71,18 +71,11 @@ struct TabNavigationFeature {
         Reduce { state, action in
             switch action {
             case .openEncounter(let encounter):
-                switch state.adventureTabMode {
-                case .simpleEncounter:
-                    state.simpleAdventure.encounter = SimpleAdventureFeature.State.makeScratchPadEncounterDetailState(encounter: encounter)
-                case .campaignBrowser:
-                    let detailState = EncounterDetailFeature.State(building: encounter)
-                    return .send(.campaignBrowser(.setDestination(.encounter(detailState))))
-                }
+                state.openEncounter(encounter)
             case .openEncounterInCampaignBrowser(let encounter):
                 state.$preferences.withLock { $0.adventureTabMode = .campaignBrowser }
                 state.selectedTab = .campaign
-                let detailState = EncounterDetailFeature.State(building: encounter)
-                return .send(.campaignBrowser(.setDestination(.encounter(detailState))))
+                state.openEncounterInCampaignBrowser(encounter)
             case .selectedTab(let t):
                 state.selectedTab = t
             case .campaignBrowser: break
@@ -102,12 +95,7 @@ extension TabNavigationFeature.State: NavigationTreeNode {
         var nodes: [Any] = [self]
         switch selectedTab {
         case .campaign:
-            switch adventureTabMode {
-            case .simpleEncounter:
-                nodes.append(contentsOf: simpleAdventure.navigationNodes)
-            case .campaignBrowser:
-                nodes.append(contentsOf: campaignBrowser.navigationNodes)
-            }
+            nodes.append(contentsOf: adventureNavigationNodes)
         case .compendium:
             nodes.append(contentsOf: compendium.navigationNodes)
         case .diceRoller:

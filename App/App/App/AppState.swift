@@ -313,18 +313,13 @@ struct AppFeature {
             case column(ColumnNavigationFeature.Action)
         }
 
-        @Shared(.entity(Preferences.key)) var preferences: Preferences = Preferences()
-
         var body: some ReducerOf<Self> {
             Reduce<State, Action> { state, action in
                 switch (state, action) {
                 case (.tab, .openEncounter(let e)):
                     return .send(.tab(.openEncounter(e)))
                 case (.column, .openEncounter(let e)):
-                    let detailState = EncounterDetailFeature.State(
-                        building: e
-                    )
-                    return .send(.column(.campaignBrowse(.setDestination(.encounter(detailState)))))
+                    return .send(.column(.openEncounter(e)))
                 default:
                     break
                 }
@@ -375,18 +370,9 @@ extension AppFeature.State {
 extension TabNavigationFeature.State {
     var columnNavigationViewState: ColumnNavigationFeature.State {
         let def = ColumnNavigationFeature.State()
-        let campaignBrowse: CampaignBrowseViewFeature.State = {
-            switch adventureTabMode {
-            case .simpleEncounter:
-                var state = campaignBrowser
-                state.destination = .encounter(simpleAdventure.encounter)
-                return state
-            case .campaignBrowser:
-                return campaignBrowser
-            }
-        }()
         return ColumnNavigationFeature.State(
-            campaignBrowse: campaignBrowse,
+            campaignBrowse: campaignBrowserForColumnNavigation,
+            simpleAdventure: simpleAdventure,
             referenceView: ReferenceViewFeature.State(
                 items: [
                     ReferenceViewFeature.Item.State(
@@ -416,12 +402,6 @@ extension TabNavigationFeature.State {
 extension ColumnNavigationFeature.State {
     var tabNavigationViewState: TabNavigationFeature.State {
         let def = TabNavigationFeature.State()
-        let simpleAdventure = apply(def.simpleAdventure) { simpleAdventure in
-            if case let .encounter(encounterState)? = campaignBrowse.destination {
-                simpleAdventure.encounter = encounterState
-            }
-        }
-
         let activeCompendiumReferenceItemTab = referenceView.items
             .first(where: { $0.id == referenceView.selectedItemId })
             .flatMap {
@@ -433,7 +413,7 @@ extension ColumnNavigationFeature.State {
                 return .diceRoller
             }
 
-            if !campaignBrowse.navigationNodes(of: EncounterDetailFeature.State.self).isEmpty {
+            if !navigationNodes(of: EncounterDetailFeature.State.self).isEmpty {
                 return .campaign
             }
 
@@ -447,7 +427,7 @@ extension ColumnNavigationFeature.State {
         return TabNavigationFeature.State(
             selectedTab: selectedTab,
             campaignBrowser: campaignBrowse,
-            simpleAdventure: simpleAdventure,
+            simpleAdventure: simpleAdventureForTabNavigation,
             compendium: activeCompendiumReferenceItemTab ?? def.compendium,
             diceRoller: apply(def.diceRoller) {
                 $0.calculatorState.expression = diceCalculator.diceCalculator.expression

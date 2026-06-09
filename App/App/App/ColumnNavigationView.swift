@@ -15,7 +15,7 @@ struct ColumnNavigationView: View {
     var body: some View {
         return ZStack {
             HStack(spacing: 0) {
-                CampaignBrowserContainerView(store: store.scope(state: \.campaignBrowse, action: \.campaignBrowse))
+                adventureView
                     .frame(width: 360)
 
                 Divider().ignoresSafeArea()
@@ -29,6 +29,20 @@ struct ColumnNavigationView: View {
                 state: \.diceCalculator,
                 action: \.diceCalculator
             ))
+        }
+    }
+
+    @ViewBuilder
+    var adventureView: some View {
+        switch store.adventureTabMode {
+        case .simpleEncounter:
+            SimpleAdventureContainerView(
+                store: store.scope(state: \.simpleAdventure, action: \.simpleAdventure)
+            )
+        case .campaignBrowser:
+            CampaignBrowserContainerView(
+                store: store.scope(state: \.campaignBrowse, action: \.campaignBrowse)
+            )
         }
     }
 }
