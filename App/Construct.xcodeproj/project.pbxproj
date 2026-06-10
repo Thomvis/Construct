@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2428261D2FCE02BF008EC070 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2428261C2FCE02BF008EC070 /* StoreKit.framework */; };
 		24313C9E2FC7201C00542920 /* WelcomeFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24313C9D2FC7201900542920 /* WelcomeFeature.swift */; };
+		245945A52FD9660B00D6CC6C /* DescribeCombatantsEvaluation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 245945A42FD9660B00D6CC6C /* DescribeCombatantsEvaluation.swift */; };
 		7BA60BB832104E43988EAF24 /* ConstructFirstLaunchUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29BC29F007A24B43B3F65D05 /* ConstructFirstLaunchUITests.swift */; };
 		C1F2D3E4A5B6C7D8E9F00101 /* ConstructUITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F2D3E4A5B6C7D8E9F00101 /* ConstructUITestSupport.swift */; };
 		C1F2D3E4A5B6C7D8E9F00102 /* ConstructEncounterBuildingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F2D3E4A5B6C7D8E9F00102 /* ConstructEncounterBuildingUITests.swift */; };
@@ -256,6 +257,7 @@
 /* Begin PBXFileReference section */
 		2428261C2FCE02BF008EC070 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		24313C9D2FC7201900542920 /* WelcomeFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeFeature.swift; sourceTree = "<group>"; };
+		245945A42FD9660B00D6CC6C /* DescribeCombatantsEvaluation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DescribeCombatantsEvaluation.swift; sourceTree = "<group>"; };
 		29BC29F007A24B43B3F65D05 /* ConstructFirstLaunchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstructFirstLaunchUITests.swift; sourceTree = "<group>"; };
 		5AD778C50DFB411DAE4B090B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8F4A46FF65A94B9E90DE145F /* ConstructUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ConstructUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -909,6 +911,7 @@
 				F1DCC0042FC0000000000001 /* DefaultContentSelectionFeatureTest.swift */,
 				F1DCC0052FC0000000000001 /* SimpleAdventureFeatureTest.swift */,
 				F1DCC0062FC0000000000001 /* ColumnNavigationFeatureTest.swift */,
+				245945A42FD9660B00D6CC6C /* DescribeCombatantsEvaluation.swift */,
 			);
 			path = UnitTests;
 			sourceTree = "<group>";
@@ -1321,6 +1324,7 @@
 				E9EDE6B9296AEC1800026643 /* GenerateCombatantTraitsViewTest.swift in Sources */,
 				E999FBD6235C9068000CCC8B /* StatBlockCombatantResourcesTest.swift in Sources */,
 				E99F95A42428DCB100183B5B /* RunningEncounterTest.swift in Sources */,
+				245945A52FD9660B00D6CC6C /* DescribeCombatantsEvaluation.swift in Sources */,
 				E9323A3D23205E7700F0D0C6 /* FileDataSourceTest.swift in Sources */,
 				E999FBD2235C606A000CCC8B /* ImprovedInitiativeDataSourceReaderTest.swift in Sources */,
 				E9CFB30F2350515700CA0AF4 /* CampaignBrowserTest.swift in Sources */,
@@ -1451,7 +1455,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				MARKETING_VERSION = 3.1.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -1517,7 +1521,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				MARKETING_VERSION = 3.1.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -1544,6 +1548,7 @@
 				DEVELOPMENT_ASSET_PATHS = "App/Preview\\ Content";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1564,6 +1569,7 @@
 				DEVELOPMENT_ASSET_PATHS = "App/Preview\\ Content";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1639,6 +1645,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = UnitTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1657,6 +1664,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = UnitTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1724,9 +1732,11 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture.git";
 			requirement = {
-				kind = exactVersion;
-				version = 1.23.2;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.23.2;
 			};
+			traits = (
+			);
 		};
 		E911C31F2E7897AE0073DE9C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -1799,6 +1809,8 @@
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.0.0;
 			};
+			traits = (
+			);
 		};
 		E9F6D0322FB74B2F00C551A7 /* XCRemoteSwiftPackageReference "swift-identified-collections" */ = {
 			isa = XCRemoteSwiftPackageReference;

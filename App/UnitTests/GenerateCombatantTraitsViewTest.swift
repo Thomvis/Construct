@@ -77,14 +77,14 @@ class GenerateCombatantTraitsViewTest: XCTestCase {
 
         init() {
             _mechMuse = MechMuse(
-                client: .constant(OpenAI(apiToken: "")),
-                describeAction: { _, _ in fatalError() },
-                describeCombatants: { client, requests in
+                describeAction: { _ in fatalError() },
+                describeCombatants: { requests in
                     self.describeCombatantsCallCount += 1
                     return self.describeCombatantsResult
                 },
-                generateStatBlock: { _, _ in fatalError() },
-                verifyAPIKey: { _ in fatalError() }
+                generateStatBlock: { _ in fatalError() },
+                isConfigured: { false },
+                verifyConfiguration: { fatalError() }
             )
 
             _crashReporter = CrashReporter(

@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.4
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Construct",
     platforms: [
-        .iOS(.v18),
+        .iOS(.v26),
         .macOS(.v12)
     ],
     products: [
@@ -25,7 +25,7 @@ let package = Package(
         .executable(name: "db-tool", targets: ["DatabaseInitTool"])
     ],
     dependencies: [
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.23.2"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.26.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/combine-schedulers", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
@@ -40,7 +40,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-parsing", from: "0.14.1"),
         .package(url: "https://github.com/pointfreeco/swift-clocks.git", from: "1.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing.git", from: "1.14.0"),
-        .package(url: "https://github.com/pointfreeco/swift-sharing.git", from: "2.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-sharing.git", from: "2.8.1"),
         .package(url: "https://github.com/ajevans99/swift-json-schema", from: "0.10.0"),
         .package(url: "https://github.com/MacPaw/OpenAI.git", from: "0.4.7")
     ],

@@ -148,7 +148,7 @@ public struct ActionDescriptionFeature {
             Reduce { state, action in
                 switch action {
                 case .onAppear:
-                    state.mechMuseIsConfigured = mechMuse.isConfigured
+                    state.mechMuseIsConfigured = mechMuse.isConfigured()
                 case .onFeedbackButtonTap: break // handled by the parent
                 case .onReloadOrCancelButtonTap:
                     if state.description.result.isReducing {
@@ -197,13 +197,12 @@ public struct ActionDescriptionFeature {
                 resultReducerForInput: { input in
                     State._AsyncDescription_Reduce {
                         guard let request = input.request else { throw ActionDescriptionFeatureError.missingInput }
-                        return try mechMuse.describe(action: request)
+                        return try mechMuse.describeAction(request)
                     } reduce: { result, element in
                         result += element
                     } mapError: {
                         ($0 as? MechMuseError) ?? .unspecified
                     }
-
                 }
             ).retaining { $0.result }
         }
@@ -215,7 +214,6 @@ public struct ActionDescriptionFeature {
                 return .none
             }
         }
-
     }
 }
 

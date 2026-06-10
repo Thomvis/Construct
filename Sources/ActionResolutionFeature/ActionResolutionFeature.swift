@@ -105,7 +105,7 @@ public struct ActionResolutionFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                state.isMuseEnabled = mechMuse.isConfigured
+                state.isMuseEnabled = mechMuse.isConfigured()
             case .setMode(let mode):
                 state.mode = mode
                 if state.mode == .muse, state.isMuseEnabled, let action = state.diceAction?.action {

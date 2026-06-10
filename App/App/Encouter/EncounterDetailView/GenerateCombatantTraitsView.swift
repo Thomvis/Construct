@@ -324,8 +324,7 @@ struct GenerateCombatantTraitsView_Preview: PreviewProvider {
                 GenerateCombatantTraitsFeature()
             } withDependencies: {
                 $0.mechMuse = MechMuse(
-                    client: .constant(OpenAI(apiToken: "")),
-                    describeAction: { client, request in
+                    describeAction: { request in
                         return AsyncThrowingStream { continuation in
                             Task {
                                 try await Task.sleep(for: .seconds(0.5))
@@ -333,7 +332,7 @@ struct GenerateCombatantTraitsView_Preview: PreviewProvider {
                             }
                         }
                     },
-                    describeCombatants: { _, request in
+                    describeCombatants: { request in
                         AsyncThrowingStream { continuation in
                             Task {
                                 try await Task.sleep(for: .seconds(2))
@@ -341,11 +340,12 @@ struct GenerateCombatantTraitsView_Preview: PreviewProvider {
                             }
                         }
                     },
-                    generateStatBlock: { _, _ in
+                    generateStatBlock: { _ in
                         try await Task.sleep(for: .seconds(0.5))
                         return nil
                     },
-                    verifyAPIKey: { client in
+                    isConfigured: { true },
+                    verifyConfiguration: {
                         try await Task.sleep(for: .seconds(1))
                     }
                 )

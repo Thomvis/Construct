@@ -88,7 +88,7 @@ struct MechMuseCreatureGenerationFeature {
         Reduce<State, Action> { state, action in
             switch action {
             case .onAppear:
-                state.mechMuseIsConfigured = mechMuse.isConfigured
+                state.mechMuseIsConfigured = mechMuse.isConfigured()
                 return .none
             case .onGenerationResultTap(let revisionId):
                 if let revisionIdx = state.revisions.firstIndex(where: { $0.id == revisionId }),
@@ -130,7 +130,7 @@ struct MechMuseCreatureGenerationFeature {
 
                 return .run { [revision] send in
                     do {
-                        let result = try await mechMuse.generate(statBlock: request)
+                        let result = try await mechMuse.generateStatBlock(request)
                         if let result {
                             await send(.onGenerateDidFinish(revision.id, .success(result)), animation: .default)
                         } else {

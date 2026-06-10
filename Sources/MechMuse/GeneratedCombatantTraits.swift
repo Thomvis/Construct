@@ -9,8 +9,9 @@ import Foundation
 import Parsing
 import OpenAI
 import JSONSchemaBuilder
+import FoundationModels
 
-public struct GenerateCombatantTraitsRequest {
+public struct GenerateCombatantTraitsRequest: Codable {
     public let combatantNames: [String] // names with discriminator
 
     public init(combatantNames: [String]) {
@@ -19,29 +20,37 @@ public struct GenerateCombatantTraitsRequest {
 }
 
 extension GenerateCombatantTraitsRequest: PromptConvertible {
-    public func prompt() -> [InputItem] {
+    public static var systemInstructions: String {
+        "You are helping a Dungeons & Dragons DM create awesome encounters."
+    }
+    
+    public var userQuery: String {
         let namesList = combatantNames.map { "\"\($0)\"" }.joined(separator: ", ")
-
+        return """
+                The encounter has \(combatantNames.count) monster(s): \(namesList). Come up with gritty physical and personality traits that don't interfere with its stats and unique nickname that fits its traits. One trait of each type for each monster, limit each trait to a single sentence.
+                """
+    }
+    
+    public func prompt() -> [InputItem] {
         // Prompt notes:
         // - Spelling out D&D because it yields slightly longer responses
         // - Without quotes around each combatant name, the discriminator could be omitted from the response
         // - Added "Limit each value to a single sentence" to subdue the tendency to give a bulleted list when only
         //   a single combatant was in the request.
         return [
-            .inputMessage(.init(role: .system, content: .textInput("You are helping a Dungeons & Dragons DM create awesome encounters."))),
-            .inputMessage(.init(role: .user, content: .textInput("""
-                The encounter has \(combatantNames.count) monster(s): \(namesList). Come up with gritty physical and personality traits that don't interfere with its stats and unique nickname that fits its traits. One trait of each type for each monster, limit each trait to a single sentence.
-                """
-            )))
+            .inputMessage(.init(role: .system, content: .textInput(Self.systemInstructions))),
+            .inputMessage(.init(role: .user, content: .textInput(userQuery)))
         ]
     }
 }
 
+@Generable
 @Schemable
 @ObjectOptions(.additionalProperties { false })
 public struct GenerateCombatantTraitsResponse: Codable {
     public let combatantTraits: [Traits]
 
+    @Generable
     @Schemable
     @ObjectOptions(.additionalProperties { false })
     public struct Traits: Codable, Equatable, Hashable {

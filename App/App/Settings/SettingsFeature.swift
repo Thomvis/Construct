@@ -201,7 +201,7 @@ public struct SettingsFeature {
                     try await clock.sleep(for: .milliseconds(100))
 
                     do {
-                        try await mechMuse.verifyAPIKey(apiKey)
+                        try await mechMuse.verifyConfiguration()
                         await send(.mechMuseVerificationResult(.success(apiKey)))
                     } catch let error as MechMuseError {
                         await send(.mechMuseVerificationResult(.failure(error)))

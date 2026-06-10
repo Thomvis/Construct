@@ -162,7 +162,7 @@ struct GenerateCombatantTraitsFeature {
                 state.error = nil
                 return .run { send in
                     do {
-                        let response = try mechMuse.describe(combatants: request)
+                        let response = try mechMuse.describeCombatants(request)
                         for try await traits in response {
                             await send(.onTraitGenerationDidReceiveTraits(traits))
                         }
@@ -178,7 +178,7 @@ struct GenerateCombatantTraitsFeature {
 
             switch action {
             case .onAppear:
-                if !mechMuse.isConfigured {
+                if !mechMuse.isConfigured() {
                     state.error = .unconfigured
                 }
             case .onSmartSelectionGroupTap(let g):
