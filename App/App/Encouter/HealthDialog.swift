@@ -136,7 +136,3 @@ extension HealthDialog: Popover {
         }
     }
 }
-
-extension HealthDialogFeature.State {
-    static let nullInstance = HealthDialogFeature.State(numberEntryView: NumberEntryFeature.State.nullInstance, hp: nil)
-}

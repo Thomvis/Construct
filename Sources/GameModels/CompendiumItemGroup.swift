@@ -55,7 +55,3 @@ public struct CompendiumItemGroup: CompendiumItem, Equatable {
 
     public typealias Id = Tagged<CompendiumItemGroup, UUID>
 }
-
-extension CompendiumItemGroup {
-    public static let nullInstance = CompendiumItemGroup(id: UUID().tagged(), title: "", members: [])
-}

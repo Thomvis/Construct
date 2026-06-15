@@ -67,7 +67,3 @@ public struct DiceRollerFeature {
         }
     }
 }
-
-public extension DiceRollerFeature.State {
-    static let nullInstance = DiceRollerFeature.State()
-}

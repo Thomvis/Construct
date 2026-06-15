@@ -123,7 +123,6 @@ struct GenerateCombatantTraitsFeature {
             }
         }
 
-        static let nullInstance = State(encounter: Encounter.nullInstance)
     }
 
     enum Action: BindableAction, Equatable {

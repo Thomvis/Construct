@@ -148,10 +148,3 @@ public struct ActionResolutionFeature {
         }
     }
 }
-
-public extension ActionResolutionFeature.State {
-    static let nullInstance = Self(
-        creatureStats: StatBlock.default,
-        action: ParseableCreatureAction(input: CreatureAction(id: UUID(), name: "", description: ""))
-    )
-}

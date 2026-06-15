@@ -32,7 +32,6 @@ struct SafariViewState: Hashable, Codable, Identifiable {
 
     var id: URL { url }
 
-    static let nullInstance = SafariViewState(url: URL(fileURLWithPath: "/"))
 }
 
 extension SafariViewState: NavigationStackItemState {

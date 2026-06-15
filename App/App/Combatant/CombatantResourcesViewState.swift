@@ -25,7 +25,6 @@ struct CombatantResourcesFeature {
 
         var navigationTitle: String { "Limited resources" }
 
-        static let nullInstance = State(combatant: Combatant.nullInstance, editState: nil)
     }
 
     @CasePathable

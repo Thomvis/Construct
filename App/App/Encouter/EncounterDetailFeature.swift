@@ -33,7 +33,6 @@ struct EncounterDetailFeature {
             self.state = state
         }
 
-        static let nullInstance = AddCombatantSheet(state: AddCombatantFeature.State.nullInstance)
     }
 
     @ObservableState
@@ -47,10 +46,12 @@ struct EncounterDetailFeature {
                         $0.state.encounter = b
                     }
                 case .combatant(let cds):
-                    // Update combatant from building, or nullInstance if removed
-                    let updatedCombatant = b.combatant(for: cds.combatant.id) ?? .nullInstance
-                    sheet?.modify(\.combatant) {
-                        $0.combatant = updatedCombatant
+                    if let updatedCombatant = b.combatant(for: cds.combatant.id) {
+                        sheet?.modify(\.combatant) {
+                            $0.combatant = updatedCombatant
+                        }
+                    } else {
+                        sheet = nil
                     }
                 default:
                     break
@@ -67,10 +68,13 @@ struct EncounterDetailFeature {
                         $0.state.encounter = running.current
                     }
                 case .combatant(let cds):
-                    let updatedCombatant = running.current.combatant(for: cds.combatant.id) ?? .nullInstance
-                    sheet?.modify(\.combatant) {
-                        $0.runningEncounter = running
-                        $0.combatant = updatedCombatant
+                    if let updatedCombatant = running.current.combatant(for: cds.combatant.id) {
+                        sheet?.modify(\.combatant) {
+                            $0.runningEncounter = running
+                            $0.combatant = updatedCombatant
+                        }
+                    } else {
+                        sheet = nil
                     }
                 case .selectedCombatantTags(let scts):
                     let updatedCombatants = scts.combatants.compactMap {
@@ -534,11 +538,6 @@ extension EncounterDetailFeature.State: NavigationStackItemState {
 
     var navigationTitle: String { navigationTitleOverride ?? encounter.name }
     var navigationTitleDisplayMode: NavigationBarItem.TitleDisplayMode? { .inline }
-}
-
-extension EncounterDetailFeature.State {
-    static let nullInstance = EncounterDetailFeature.State(
-        building: Encounter.nullInstance)
 }
 
 extension EncounterDetailFeature.State: NavigationTreeNode {}

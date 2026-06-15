@@ -220,7 +220,3 @@ public struct RunningEncounterEvent: Codable, Equatable {
         }
     }
 }
-
-extension RunningEncounter {
-    public static let nullInstance = RunningEncounter(id: UUID().tagged(), base: Encounter.nullInstance, current: Encounter.nullInstance)
-}

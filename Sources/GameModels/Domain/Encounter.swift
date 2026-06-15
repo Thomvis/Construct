@@ -254,7 +254,3 @@ public extension Encounter {
         id == Self.scratchPadEncounterId
     }
 }
-
-extension Encounter {
-    public static let nullInstance = Encounter(name: "", combatants: [])
-}

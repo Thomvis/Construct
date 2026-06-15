@@ -66,7 +66,6 @@ struct CombatantTagEditFeature {
             }
         }
 
-        static let nullInstance = State(mode: .create, tag: CombatantTag.nullInstance, effectContext: nil, popover: nil)
     }
 
     @CasePathable

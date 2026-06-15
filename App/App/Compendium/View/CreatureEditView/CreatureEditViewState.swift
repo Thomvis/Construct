@@ -896,10 +896,6 @@ extension CreatureEditFormModel {
     }
 }
 
-extension CreatureEditFeature.State {
-    static let nullInstance = CreatureEditFeature.State(create: .monster)
-}
-
 enum CreatureEditResult: Equatable {
     case compendium(CompendiumEntry)
     case adHoc(AdHocCombatantDefinition)

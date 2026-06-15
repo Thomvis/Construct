@@ -119,7 +119,6 @@ struct CombatantTagsFeature {
             }
         }
 
-        static let nullInstance = State(combatants: [], effectContext: nil)
     }
 
     @CasePathable

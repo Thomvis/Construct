@@ -76,7 +76,6 @@ struct CompendiumItemTransferFeature {
             case failure(String)
         }
 
-        static let nullInstance = State(mode: .copy, selection: .single(CompendiumItemKey(type: .monster, realm: .init(CompendiumRealm.core.id), identifier: "")), originDocument: nil)
     }
 
     enum Action: BindableAction, Equatable {

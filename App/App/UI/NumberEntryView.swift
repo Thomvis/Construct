@@ -98,11 +98,6 @@ public extension NumberEntryFeature.State {
         }
     }
 
-    static let nullInstance = Self(
-        mode: .dice,
-        pad: NumberPadFeature.State(value: 0),
-        dice: DiceCalculator.State(displayOutcomeExternally: false, rollOnAppear: false, expression: .number(0), mode: .editingExpression)
-    )
 }
 
 struct NumberEntryView: View {

@@ -84,7 +84,6 @@ struct CampaignBrowseViewFeature {
             return ListFormatter().string(for: nodes.map { "“\($0.title)”" })
         }
 
-        static let nullInstance = State(node: CampaignNode.root, mode: .browse, showSettingsButton: false)
     }
 
     @CasePathable
@@ -194,11 +193,11 @@ struct CampaignBrowseViewFeature {
                             )
                             nextScreen = .encounter(detailState)
                         } else {
-                            nextScreen = .encounter(EncounterDetailFeature.State.nullInstance)
+                            nextScreen = .encounter(EncounterDetailFeature.State(building: Encounter(name: "", combatants: [])))
                         }
                     case .other:
                         assertionFailure("Other item type is not supported")
-                        nextScreen = .encounter(EncounterDetailFeature.State.nullInstance)
+                        nextScreen = .encounter(EncounterDetailFeature.State(building: Encounter(name: "", combatants: [])))
                     }
                 } else {
                     // group
@@ -300,22 +299,7 @@ extension CampaignBrowseViewFeature.State: NavigationStackItemState {
     var navigationTitle: String { navigationBarTitle }
 }
 
-extension CampaignBrowseViewFeature.State.NodeEditState {
-    static let nullInstance = CampaignBrowseViewFeature.State.NodeEditState(name: "")
-}
-
 extension CampaignBrowseViewFeature.State: DestinationTreeNode {}
-
-extension CampaignBrowseViewFeature.Destination.State {
-    var nullInstance: CampaignBrowseViewFeature.Destination.State {
-        switch self {
-        case .campaignBrowse:
-            return .campaignBrowse(CampaignBrowseViewFeature.State.nullInstance)
-        case .encounter:
-            return .encounter(EncounterDetailFeature.State.nullInstance)
-        }
-    }
-}
 
 extension CampaignBrowseViewFeature.Destination.State: NavigationTreeNode {
     var navigationNodes: [Any] {

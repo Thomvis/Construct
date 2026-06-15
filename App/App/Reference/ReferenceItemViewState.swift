@@ -157,9 +157,12 @@ struct ReferenceItem {
 
                     self.pinToTurn = selectedCombatantId == runningEncounter?.turn?.combatantId
 
-                    let combatant = runningEncounter?.current.combatant(for: selectedCombatantId)
-                    ?? encounter.combatant(for: selectedCombatantId)
-                    ?? Combatant.nullInstance
+                    guard let combatant = runningEncounter?.current.combatant(for: selectedCombatantId)
+                        ?? encounter.combatant(for: selectedCombatantId)
+                        ?? encounter.combatants.first
+                    else {
+                        preconditionFailure("Combatant detail reference requires at least one combatant.")
+                    }
                     self.detailState = CombatantDetailFeature.State(runningEncounter: runningEncounter, combatant: combatant)
                 }
 
@@ -301,10 +304,6 @@ struct ReferenceItem {
                 }
         }
     }
-}
-
-extension ReferenceItem.State {
-    static let nullInstance = Self(content: .compendium(Content.Compendium()))
 }
 
 extension ReferenceItem.State.Content {

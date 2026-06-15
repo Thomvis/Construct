@@ -84,7 +84,6 @@ struct NamedStatBlockContentItemEditFeature {
             var description: String
         }
 
-        static let nullInstance = State(newItemOfType: .feature)
     }
 
     enum Action: Equatable, BindableAction {

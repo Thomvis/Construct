@@ -272,20 +272,7 @@ struct CompendiumEntryDetailFeature {
     }
 }
 
-extension CompendiumEntryDetailFeature.State {
-    static let nullInstance = CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance)
-}
-
 extension CompendiumEntryDetailFeature.State: DestinationTreeNode {}
-
-extension CompendiumEntryDetailFeature.Destination.State {
-    var nullInstance: CompendiumEntryDetailFeature.Destination.State {
-        switch self {
-        case .compendiumItemDetailView:
-            return .compendiumItemDetailView(.nullInstance)
-        }
-    }
-}
 
 extension CompendiumEntryDetailFeature.Destination.State: Equatable {}
 extension CompendiumEntryDetailFeature.Destination.Action: Equatable {}

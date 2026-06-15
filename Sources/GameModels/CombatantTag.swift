@@ -130,11 +130,3 @@ public extension CombatantTag {
 extension CombatantTag: Identifiable {
 
 }
-
-extension CombatantTag {
-    public static let nullInstance = CombatantTag(id: UUID().tagged(), definition: CombatantTagDefinition.nullInstance, note: nil, duration: nil, addedIn: nil, sourceCombatantId: nil)
-}
-
-extension CombatantTagDefinition {
-    public static let nullInstance = CombatantTagDefinition(name: "", category: .other)
-}

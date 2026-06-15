@@ -221,13 +221,3 @@ struct CompendiumDocumentSelectionView: View {
         return idx == 0 || sources[idx - 1].realm != source.realm
     }
 }
-
-extension CompendiumDocumentSelectionFeature.State {
-    public static var nullInstance: Self {
-        CompendiumDocumentSelectionFeature.State(
-            selectedSource: nil,
-            disabledSources: [],
-            unselectedLabel: ""
-        )
-    }
-}

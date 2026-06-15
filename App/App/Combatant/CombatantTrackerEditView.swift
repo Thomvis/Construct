@@ -65,7 +65,6 @@ struct CombatantTrackerEditFeature {
             !resource.title.isEmpty
         }
 
-        static let nullInstance = State(resource: CombatantResource.nullInstance)
     }
 
     @CasePathable

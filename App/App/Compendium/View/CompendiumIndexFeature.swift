@@ -489,14 +489,6 @@ extension CompendiumIndexFeature.Sheet.State: Equatable {}
 extension CompendiumIndexFeature.Sheet.Action: Equatable {}
 
 extension CompendiumIndexFeature.State {
-    static let nullInstance = CompendiumIndexFeature.State(
-        title: "",
-        properties: Properties(showImport: false, showAdd: false),
-        results: .initial
-    )
-}
-
-extension CompendiumIndexFeature.State {
     struct LastResult: Equatable {
         var input: CompendiumIndexFeature.Query.State
         var entries: [CompendiumEntry]
@@ -540,15 +532,6 @@ extension CompendiumIndexFeature.State.RetainedMappedResults.State {
 }
 
 extension CompendiumIndexFeature.State: DestinationTreeNode {}
-
-extension CompendiumIndexFeature.Destination.State {
-    var nullInstance: CompendiumIndexFeature.Destination.State {
-        switch self {
-        case .itemDetail:
-            return .itemDetail(CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance))
-        }
-    }
-}
 
 extension CompendiumIndexFeature.Destination.State: NavigationTreeNode {
     var navigationNodes: [Any] {

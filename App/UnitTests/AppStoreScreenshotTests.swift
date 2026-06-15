@@ -66,6 +66,35 @@ class AppStoreScreenshotTests: XCTestCase {
         BaseDependencies(database: database)
     }
 
+    var screenshotCampaignBrowserState: CampaignBrowseViewFeature.State {
+        CampaignBrowseViewFeature.State(
+            node: CampaignNode.root,
+            mode: .browse,
+            showSettingsButton: false
+        )
+    }
+
+    var screenshotCompendiumState: CompendiumIndexFeature.State {
+        CompendiumIndexFeature.State(
+            title: "",
+            properties: .init(showImport: false, showAdd: false),
+            results: .initial
+        )
+    }
+
+    var screenshotDiceRollerState: DiceRollerFeature.State {
+        DiceRollerFeature.State()
+    }
+
+    var screenshotDiceCalculatorState: DiceCalculator.State {
+        DiceCalculator.State(
+            displayOutcomeExternally: false,
+            rollOnAppear: false,
+            expression: .number(0),
+            mode: .editingExpression
+        )
+    }
+
     @MainActor
     func test_iPhone_screenshot1() async {
         await snapshot(view: await tabNavigationEncounterDetailRunning, devices: Self.phones)
@@ -174,8 +203,8 @@ class AppStoreScreenshotTests: XCTestCase {
                             ])),
                             showSettingsButton: false,
                             destination: .encounter(encounterDetailViewState)),
-                        compendium: CompendiumIndexFeature.State.nullInstance,
-                        diceRoller: DiceRollerFeature.State.nullInstance
+                        compendium: screenshotCompendiumState,
+                        diceRoller: screenshotDiceRollerState
                     )
                 )
             )
@@ -192,8 +221,8 @@ class AppStoreScreenshotTests: XCTestCase {
                 navigation: .tab(
                     TabNavigationFeature.State(
                         selectedTab: .diceRoller,
-                        campaignBrowser: .nullInstance,
-                        compendium: .nullInstance,
+                        campaignBrowser: screenshotCampaignBrowserState,
+                        compendium: screenshotCompendiumState,
                         diceRoller: apply(DiceRollerFeature.State()) { state in
                             state.calculatorState.expression = 1.d(20)+1.d(6)+2
                             state.calculatorState.previousExpressions = [1.d(20)+1.d(6)]
@@ -230,7 +259,7 @@ class AppStoreScreenshotTests: XCTestCase {
                 navigation: .tab(
                     TabNavigationFeature.State(
                         selectedTab: .compendium,
-                        campaignBrowser: CampaignBrowseViewFeature.State.nullInstance,
+                        campaignBrowser: screenshotCampaignBrowserState,
                         compendium: await apply(CompendiumIndexFeature.State(
                             title: CompendiumItemType.monster.localizedScreenDisplayName,
                             properties: .init(showImport: false, showAdd: true, typeRestriction: nil),
@@ -244,7 +273,7 @@ class AppStoreScreenshotTests: XCTestCase {
                             await store.send(.query(.onTextDidChange("Dragon"))).finish()
                             state = store.withState { $0 }
                         },
-                        diceRoller: DiceRollerFeature.State.nullInstance
+                        diceRoller: screenshotDiceRollerState
                     )
                 )
             )
@@ -271,8 +300,8 @@ class AppStoreScreenshotTests: XCTestCase {
                             showSettingsButton: false,
                             destination: .campaignBrowse(campaignBrowseViewState)
                         ),
-                        compendium: .nullInstance,
-                        diceRoller: DiceRollerFeature.State.nullInstance
+                        compendium: screenshotCompendiumState,
+                        diceRoller: screenshotDiceRollerState
                     )
                 )
             )
@@ -640,7 +669,7 @@ class AppStoreScreenshotTests: XCTestCase {
                                 )
                             )
                         ),
-                        diceCalculator: FloatingDiceRollerFeature.State(hidden: true, diceCalculator: DiceCalculator.State.nullInstance)
+                        diceCalculator: FloatingDiceRollerFeature.State(hidden: true, diceCalculator: screenshotDiceCalculatorState)
                     )
                 )
             )
@@ -799,7 +828,7 @@ class AppStoreScreenshotTests: XCTestCase {
                         ),
                         diceCalculator: FloatingDiceRollerFeature.State(
                             hidden: true,
-                            diceCalculator: DiceCalculator.State.nullInstance
+                            diceCalculator: screenshotDiceCalculatorState
                         )
                     )
                 )

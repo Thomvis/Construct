@@ -36,13 +36,6 @@ struct TabNavigationFeature {
             preferences.adventureTabMode ?? .simpleEncounter
         }
 
-        static let nullInstance = State(
-            selectedTab: .campaign,
-            campaignBrowser: .nullInstance,
-            simpleAdventure: .nullInstance,
-            compendium: .nullInstance,
-            diceRoller: .nullInstance
-        )
     }
 
     enum Action: Equatable {
@@ -126,11 +119,6 @@ struct SimpleAdventureFeature {
                 navigationTitleOverride: "Encounter"
             )
         }
-
-        static let nullInstance = State(
-            encounter: .nullInstance,
-            sheet: nil
-        )
 
         var shouldShowNormalModeTip: Bool {
             scratchPadRunningEncounterCount >= 3

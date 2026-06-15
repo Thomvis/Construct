@@ -106,8 +106,6 @@ struct AddCombatantFeature {
 }
 
 extension AddCombatantFeature.State {
-    static let nullInstance = AddCombatantFeature.State(encounter: Encounter.nullInstance)
-
     init(
         compendiumState: CompendiumIndexFeature.State = CompendiumIndexFeature.State(
             title: "Add Combatant",

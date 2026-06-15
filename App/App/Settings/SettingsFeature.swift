@@ -259,7 +259,3 @@ public struct SettingsFeature {
         return .rules2014
     }
 }
-
-public extension SettingsFeature.State {
-    static let nullInstance = Self()
-}

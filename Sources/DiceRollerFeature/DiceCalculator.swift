@@ -640,7 +640,3 @@ extension RolledDiceExpression {
         }
     }
 }
-
-public extension DiceCalculator.State {
-    static let nullInstance = Self(displayOutcomeExternally: false, rollOnAppear: false, expression: .number(0), mode: .editingExpression)
-}

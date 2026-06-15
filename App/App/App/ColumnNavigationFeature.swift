@@ -28,7 +28,6 @@ struct ColumnNavigationFeature {
             preferences.adventureTabMode ?? .simpleEncounter
         }
 
-        static let nullInstance = State()
     }
 
     enum Action: Equatable {

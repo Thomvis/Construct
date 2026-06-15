@@ -360,30 +360,7 @@ struct CombatantDetailFeature {
     }
 }
 
-extension CombatantDetailFeature.State {
-    static let nullInstance = CombatantDetailFeature.State(combatant: Combatant.nullInstance)
-}
-
 extension CombatantDetailFeature.State: DestinationTreeNode {}
-
-extension CombatantDetailFeature.Destination.State {
-    var nullInstance: CombatantDetailFeature.Destination.State {
-        switch self {
-        case .combatantTagsView:
-            return .combatantTagsView(.nullInstance)
-        case .combatantTagEditView:
-            return .combatantTagEditView(.nullInstance)
-        case .creatureEditView:
-            return .creatureEditView(.nullInstance)
-        case .combatantResourcesView:
-            return .combatantResourcesView(.nullInstance)
-        case .runningEncounterLogView:
-            return .runningEncounterLogView(.nullInstance)
-        case .compendiumItemDetailView:
-            return .compendiumItemDetailView(CompendiumEntryDetailFeature.State(entry: CompendiumEntry.nullInstance))
-        }
-    }
-}
 
 extension CombatantDetailFeature.Destination.State: Equatable {}
 extension CombatantDetailFeature.Destination.Action: Equatable {}

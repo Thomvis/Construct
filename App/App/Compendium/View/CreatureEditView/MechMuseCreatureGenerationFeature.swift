@@ -54,8 +54,6 @@ struct MechMuseCreatureGenerationFeature {
             )
         }
 
-        static let nullInstance = State(base: .default)
-
         struct Revision: Equatable, Identifiable {
             let id: Id
             let prompt: String

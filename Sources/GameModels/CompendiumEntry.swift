@@ -89,14 +89,6 @@ extension CompendiumEntry: Codable {
 }
 
 extension CompendiumEntry {
-    public static let nullInstance = CompendiumEntry(
-        Monster(realm: .init(CompendiumRealm.core.id), stats: StatBlock.default, challengeRating: .init(integer: 1)),
-        origin: .created(nil),
-        document: CompendiumSourceDocumentReference(id: CompendiumSourceDocument.Id(rawValue: ""), displayName: "")
-    )
-}
-
-extension CompendiumEntry {
     public var attribution: AttributedString? {
         var result = AttributedString("")
         if case .created(let ref?) = origin {

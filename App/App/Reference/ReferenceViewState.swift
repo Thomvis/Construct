@@ -238,8 +238,6 @@ extension ReferenceViewFeature.State: NavigationStackItemState {
 extension ReferenceViewFeature.State: NavigationTreeNode {}
 
 extension ReferenceViewFeature.State {
-    static let nullInstance = Self(items: [])
-
     static let defaultInstance = Self(items: [.init(state: defaultItemState)])
     private static let defaultItemState = ReferenceItem.State(content: .compendium(ReferenceItem.State.Content.Compendium()))
 }

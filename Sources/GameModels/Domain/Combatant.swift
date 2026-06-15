@@ -309,11 +309,3 @@ public extension StatBlock {
         initiative?.modifier.modifier ?? abilityScores?.dexterity.modifier.modifier
     }
 }
-
-public extension Combatant {
-    static let nullInstance = Combatant(adHoc: AdHocCombatantDefinition(id: UUID().tagged(), stats: StatBlock.default))
-}
-
-public extension CombatantResource {
-    static let nullInstance = CombatantResource(id: UUID().tagged(), title: "", slots: [])
-}

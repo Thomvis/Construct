@@ -214,7 +214,3 @@ extension CompendiumItemGroupEditFeature.State: NavigationStackItemState {
         }
     }
 }
-
-extension CompendiumItemGroupEditFeature.State {
-    static let nullInstance = CompendiumItemGroupEditFeature.State(mode: .create, group: CompendiumItemGroup.nullInstance, allCharacters: .initial)
-}

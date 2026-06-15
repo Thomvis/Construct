@@ -31,7 +31,6 @@ extension CompendiumIndexFeature {
                 )
             }
 
-            static let nullInstance = Self(text: nil, filters: nil, order: .title)
         }
 
         enum Action: Equatable {
@@ -68,6 +67,3 @@ extension CompendiumIndexFeature {
 //    }
 //}
 //
-//extension CompendiumIndexFeature.State.Query {
-//    static let nullInstance = CompendiumIndexFeature.State.Query(text: nil, filters: nil, order: .title)
-//}

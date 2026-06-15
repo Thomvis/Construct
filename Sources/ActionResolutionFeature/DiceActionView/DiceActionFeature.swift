@@ -179,7 +179,3 @@ public struct DiceActionFeature {
         }
     }
 }
-
-extension DiceActionFeature.State {
-    static let nullInstance = Self(creatureName: "", action: DiceAction(title: "", subtitle: "", steps: []))
-}
