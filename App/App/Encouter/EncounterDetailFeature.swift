@@ -147,36 +147,6 @@ struct EncounterDetailFeature {
             }
         }
 
-        var localStateForDeduplication: Self {
-            var res = self
-            res.sheet = res.sheet.map {
-                switch $0 {
-                case .add: return .add(AddCombatantSheet.nullInstance)
-                case .combatant: return .combatant(CombatantDetailFeature.State.nullInstance)
-                case .runningEncounterLog:
-                    return .runningEncounterLog(RunningEncounterLogViewState.nullInstance)
-                case .selectedCombatantTags:
-                    return .selectedCombatantTags(CombatantTagsFeature.State.nullInstance)
-                case .settings: return .settings
-                case .generateCombatantTraits:
-                    return .generateCombatantTraits(
-                        GenerateCombatantTraitsFeature.State.nullInstance)
-                }
-            }
-
-            res.popover = popover.map {
-                switch $0 {
-                case .encounterInitiative: return .encounterInitiative
-                case .combatantInitiative:
-                    return .combatantInitiative(
-                        Combatant.nullInstance, NumberEntryFeature.State.nullInstance)
-                case .health: return .health(.single(Combatant.nullInstance))
-                }
-            }
-
-            return res
-        }
-
         enum Popover: Equatable {
             case encounterInitiative
             case combatantInitiative(Combatant, NumberEntryFeature.State)

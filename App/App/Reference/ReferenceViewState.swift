@@ -242,17 +242,4 @@ extension ReferenceViewFeature.State {
 
     static let defaultInstance = Self(items: [.init(state: defaultItemState)])
     private static let defaultItemState = ReferenceItem.State(content: .compendium(ReferenceItem.State.Content.Compendium()))
-
-    //Is this correct?
-    var localStateForDeduplication: (TabbedDocumentViewContentItem.Id?, [ReferenceViewFeature.Item.State]) {
-        (selectedItemId, items.map { item in
-            if item.id == selectedItemId {
-                var res = item
-                res.state = ReferenceItem.State.nullInstance
-                return res
-            } else {
-                return ReferenceViewFeature.Item.State(id: item.id, title: "", state: ReferenceItem.State.nullInstance)
-            }
-        })
-    }
 }

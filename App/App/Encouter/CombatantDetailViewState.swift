@@ -145,27 +145,6 @@ struct CombatantDetailFeature {
             }
         }
 
-        var localStateForDeduplication: Self {
-            var res = self
-            if let destination {
-                res.destination = destination.nullInstance
-            }
-            if safari != nil {
-                res.safari = .nullInstance
-            }
-            res.popover = popover.map {
-                switch $0 {
-                case .healthAction: return .healthAction(HealthDialogFeature.State.nullInstance)
-                case .initiative: return .initiative(NumberEntryFeature.State.nullInstance)
-                case .rollCheck: return .rollCheck(DiceCalculator.State.nullInstance)
-                case .diceAction: return .diceAction(ActionResolutionFeature.State.nullInstance)
-                case .tagDetails: return .tagDetails(CombatantTag.nullInstance)
-                case .addLimitedResource: return .addLimitedResource(CombatantTrackerEditFeature.State.nullInstance)
-                }
-            }
-            return res
-        }
-
         enum Popover: Equatable {
             case healthAction(HealthDialogFeature.State)
             case initiative(NumberEntryFeature.State)

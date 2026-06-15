@@ -120,22 +120,6 @@ struct CreatureEditFeature {
             }
         }
 
-        var localStateForDeduplication: Self {
-            var res = self
-            res.popover = popover.map {
-                switch $0 {
-                case .numberEntry: return .numberEntry(.nullInstance)
-                }
-            }
-            res.sheet = res.sheet.map {
-                switch $0 {
-                case .actionEditor: return .actionEditor(NamedStatBlockContentItemEditFeature.State.nullInstance)
-                case .creatureGeneration: return .creatureGeneration(.nullInstance)
-                }
-            }
-            return res
-        }
-
         enum Mode: Equatable {
             case create(CreatureType)
             case editMonster(Monster)

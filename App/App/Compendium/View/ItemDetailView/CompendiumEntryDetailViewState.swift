@@ -91,30 +91,6 @@ struct CompendiumEntryDetailFeature {
             }
         }
 
-        var localStateForDeduplication: Self {
-            var res = self
-            res.popover = popover.map {
-                switch $0 {
-                case .creatureAction: return .creatureAction(.nullInstance)
-                case .rollCheck: return .rollCheck(.nullInstance)
-                }
-            }
-            res.sheet = res.sheet.map {
-                switch $0 {
-                case .creatureEdit: return .creatureEdit(.nullInstance)
-                case .groupEdit: return .groupEdit(.nullInstance)
-                case .transfer: return .transfer(.nullInstance)
-                }
-            }
-            if let destination {
-                res.destination = destination.nullInstance
-            }
-            if safari != nil {
-                res.safari = .nullInstance
-            }
-            return res
-        }
-
         enum Popover: Equatable, Identifiable {
             case creatureAction(ActionResolutionFeature.State)
             case rollCheck(DiceCalculator.State)

@@ -352,21 +352,6 @@ extension EnvironmentValues {
     }
 }
 
-extension AppFeature.State {
-    var localStateForDeduplication: AppFeature.State {
-        var res = self
-        switch res.navigation {
-        case .column:
-            res.navigation = .column(ColumnNavigationFeature.State.nullInstance)
-        case .tab:
-            res.navigation = .tab(TabNavigationFeature.State.nullInstance)
-        case nil:
-            res.navigation = nil
-        }
-        return res
-    }
-}
-
 extension TabNavigationFeature.State {
     var columnNavigationViewState: ColumnNavigationFeature.State {
         let def = ColumnNavigationFeature.State()

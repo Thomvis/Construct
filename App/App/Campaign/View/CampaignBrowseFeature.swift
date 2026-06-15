@@ -31,14 +31,6 @@ struct CampaignBrowseViewFeature {
             self.destination = destination
         }
 
-        var localStateForDeduplication: State {
-            var res = self
-            if let destination {
-                res.destination = destination.nullInstance
-            }
-            return res
-        }
-
         enum Mode: Equatable {
             case browse
             case move([CampaignNode])

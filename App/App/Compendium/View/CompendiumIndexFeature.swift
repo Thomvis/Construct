@@ -139,31 +139,6 @@ struct CompendiumIndexFeature {
             properties.apply(to: &self.results.input.filters)
         }
 
-        var localStateForDeduplication: Self {
-            var res = self
-            res.results.input = Query.State.nullInstance
-            res.results.retained?.input = Query.State.nullInstance
-
-            if let destination {
-                res.destination = destination.nullInstance
-            }
-            if safari != nil {
-                res.safari = .nullInstance
-            }
-            res.sheet = res.sheet.map {
-                switch $0 {
-                case .creatureEdit: return .creatureEdit(CreatureEditFeature.State.nullInstance)
-                case .groupEdit: return .groupEdit(CompendiumItemGroupEditFeature.State.nullInstance)
-                case .compendiumImport: return .compendiumImport(CompendiumImportFeature.State())
-                case .documents: return .documents(CompendiumDocumentsFeature.State())
-                case .transfer: return .transfer(CompendiumItemTransferFeature.State(mode: .copy, selection: .multipleFetchRequest(.init())))
-                case .filter: return .filter(CompendiumFilterSheetFeature.State())
-                }
-            }
-
-            return res
-        }
-
         struct Properties: Equatable {
             let showImport: Bool
             let showAdd: Bool
