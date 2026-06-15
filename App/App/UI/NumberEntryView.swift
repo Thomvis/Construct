@@ -87,10 +87,10 @@ public extension NumberEntryFeature.State {
         if combatant.definition.player != nil {
             return .pad(
                 value: combatant.initiative ?? 0,
-                expression: combatant.definition.initiativeModifier.map { 1.d(20) + $0 }
+                expression: combatant.definition.initiativeModifier.map { 1.d(20) + $0 }?.normalized
             )
-        } else if let mod = combatant.definition.initiativeModifier {
-            return .dice(.rollingExpression(1.d(20) + mod, prefilledResult: combatant.initiative))
+        } else if let mod = combatant.definition.initiativeModifier, let e = (1.d(20) + mod).normalized {
+            return .dice(.rollingExpression(e, prefilledResult: combatant.initiative))
         } else if let initiative = combatant.initiative {
             return .dice(.rollingExpression(1.d(20), prefilledResult: initiative))
         } else {
