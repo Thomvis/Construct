@@ -308,13 +308,6 @@ extension DiceCalculator.State {
         return result.contributingNodeCount > 1 || result.dice.count > 1
     }
 
-    var shouldCelebrateRoll: Bool {
-        if let result = result {
-            return result.total == expression.maximum && expression.minimum != expression.maximum
-        }
-        return false
-    }
-
     var resultIsIntermediary: Bool {
         intermediaryResult != nil
     }
@@ -378,6 +371,7 @@ fileprivate struct DiceExpressionView: View {
 
 struct OutcomeView: View {
     @Bindable var store: StoreOf<DiceCalculator>
+    @State private var isStatisticsPresented = false
 
     var body: some View {
         ZStack {
@@ -391,16 +385,8 @@ struct OutcomeView: View {
                         diceSummary(result).animation(nil, value: result)
                     }
                     HStack {
-                        if store.shouldCelebrateRoll && !store.resultIsIntermediary {
-                            Throphy()
-                        }
-
                         Text("\(result.total)").font(.largeTitle)
                             .animation(nil, value: result)
-
-                        if store.shouldCelebrateRoll && !store.resultIsIntermediary {
-                            Throphy()
-                        }
                     }
                     if store.showDiceSummary {
                         diceSummary(result).opacity(0.0) // just to reserve space for symmetry
@@ -418,8 +404,10 @@ struct OutcomeView: View {
         }
         .frame(maxWidth: .infinity)
         .overlay(
-            TrailingButtons(store: store)
-                .frame(maxWidth: .infinity, alignment: .trailing)
+            TrailingButtons(store: store) {
+                isStatisticsPresented = true
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
         )
         .overlay(Group {
             Button(action: {
@@ -430,10 +418,24 @@ struct OutcomeView: View {
             .disabled(!store.showDiceSummary)
             .frame(maxWidth: .infinity, alignment: .leading)
         })
-    }
-
-    func Throphy() -> some View {
-        Text("🏆").font(.largeTitle).transition(.asymmetric(insertion: AnyTransition.scale.combined(with: .opacity), removal: .opacity))
+        .sheet(isPresented: $isStatisticsPresented) {
+            NavigationStack {
+                DiceExpressionStatisticsView(
+                    expression: store.expression,
+                    highlightedValue: store.result?.total
+                )
+                .navigationTitle("Roll stats")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") {
+                            isStatisticsPresented = false
+                        }
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
+        }
     }
 
     @ViewBuilder
@@ -443,16 +445,30 @@ struct OutcomeView: View {
 
     struct TrailingButtons: View {
         @Bindable var store: StoreOf<DiceCalculator>
+        let statisticsButtonTapped: () -> Void
 
         var body: some View {
-            VStack {
+            VStack(spacing: 10) {
                 Button(action: {
                     store.send(.onRerollButtonTap, animation: .default)
                 }) {
                     Text("Re-roll").font(.footnote)
                 }
                 .disabled(!store.canRerollResult)
+
+                let result = store.intermediaryResult ?? store.result
+                DiceResultGaugeButton(
+                    total: result?.total ?? 0,
+                    expression: store.expression,
+                    isIntermediary: result == nil || store.resultIsIntermediary
+                ) {
+                    statisticsButtonTapped()
+                }
+                .controlSize(.small)
+                .disabled(store.resultIsIntermediary)
+                .opacity(store.resultIsIntermediary ? 0.50 : 1)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
         }
     }
 }
